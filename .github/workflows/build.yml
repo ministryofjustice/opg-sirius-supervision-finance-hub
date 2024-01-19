@@ -1,0 +1,145 @@
+name: Test & Build
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test:
+    name: Test Finance Hub
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Tests
+        run: make unit-test
+
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: ${{ always() }}
+        with:
+          check_name: "Unit Test Results"
+          files: test-results/unit-tests.xml
+
+      - name: Upload Code Coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: test-results/test-coverage.txt
+          fail_ci_if_error: false
+          verbose: true
+
+  lint:
+    name: GO lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run linting
+        run: make go-lint
+
+  build:
+    name: "Build & Push Containers"
+    runs-on: ubuntu-latest
+    needs: ['test', 'lint']
+    outputs:
+      branch: ${{ steps.set-outputs.outputs.branch }}
+      tag: ${{ steps.bump_version.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+      - name: Extract branch name
+        run: |
+          if [ "${{ github.head_ref }}" == "" ]; then
+            echo BRANCH_NAME=main >> $GITHUB_ENV
+          else
+            echo BRANCH_NAME=${{ github.head_ref }} >> $GITHUB_ENV
+          fi
+        id: extract_branch
+      - uses: unfor19/install-aws-cli-action@v1
+
+      - name: Build Container
+        run: make build
+
+      - name: Run Trivy vulnerability scanner
+        run: make scan
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'test-results/trivy.sarif'
+
+      - name: Bump version
+        id: bump_version
+        uses: anothrNick/github-tag-action@1.67.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INITIAL_VERSION: 1.0.0
+          DEFAULT_BUMP: minor
+          PRERELEASE: true
+          PRERELEASE_SUFFIX: ${{ env.BRANCH_NAME }}
+          RELEASE_BRANCHES: main
+          WITH_V: true
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
+          aws-region: eu-west-1
+          role-to-assume: arn:aws:iam::311462405659:role/sirius-actions-ci
+          role-duration-seconds: 3600
+          role-session-name: GitHubActions
+
+      - name: ECR Login
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registries: 311462405659
+
+      - name: Push Container
+        run: |
+          docker tag 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-hub:latest 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-hub:${{ steps.bump_version.outputs.tag }}
+          if [ $BRANCH_NAME == "main" ]; then
+            docker tag 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-hub:latest 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-hub:main-${{ steps.bump_version.outputs.tag }}
+            # We want all of the tags pushed
+            docker push  --all-tags 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-hub
+          else
+            docker push 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-hub:${{ steps.bump_version.outputs.tag }}
+          fi
+
+  push-tags:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
+          aws-region: eu-west-1
+          role-to-assume: arn:aws:iam::997462338508:role/sirius-actions-ci
+          role-duration-seconds: 3600
+          role-session-name: GitHubActions
+
+      - name: Install AWS CLI
+        id: install-aws-cli
+        uses: unfor19/install-aws-cli-action@v1
+
+      - name: Push Tag to Parameter Store
+        run: |
+          aws ssm put-parameter --name "opg-sirius-finance-hub-latest-green-build" --type "String" --value "${{ needs.build.outputs.tag }}" --overwrite --region=eu-west-1
+
+      - name: Trigger Dev Deploy
+        shell: bash
+        run: curl -u ${{ secrets.JENKINS_API_USER }}:${{ secrets.JENKINS_API_TOKEN }} "https://${{ secrets.JENKINS_URL }}/job/Sirius/job/Deploy_to_Development/build?token=${{ secrets.JENKINS_API_TOKEN_NAME }}&cause=Triggered+by+opg-sirius-finance-hub"

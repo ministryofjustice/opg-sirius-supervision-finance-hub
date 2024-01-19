@@ -1,0 +1,22 @@
+node_modules
+package-lock.json
+test-results
+tmp/
+web/static
+
+# Cypress cli run artifact folders
+cypress/logs
+cypress/screenshots
+cypress/videos
+cypress/downloads
+
+# binaries
+/main
+
+# IDEs
+.idea
+
+.DS_Store
+.cache
+.gocache
+.trivy-cache
