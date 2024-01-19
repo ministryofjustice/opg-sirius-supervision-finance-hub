@@ -1,0 +1,18 @@
+version: "3.6"
+services:
+  finance:
+    build:
+      target: dev
+    ports:
+      - '2345:2345'
+    volumes:
+      - ./go.mod:/app/go.mod
+      - ./go.sum:/app/go.sum
+      - ./internal:/app/internal
+      - ./main_test.go:/app/main_test.go
+      - ./main.go:/app/main.go
+      - ./web/static/javascript:/app/web/static/javascript
+      - ./web/template:/app/web/template
+
+  yarn:
+    command: watch
