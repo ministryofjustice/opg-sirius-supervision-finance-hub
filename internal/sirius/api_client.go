@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/ministryofjustice/opg-go-common/logging"
+	"io"
 	"net/http"
 )
 
@@ -82,4 +83,27 @@ type ApiClient struct {
 	http    HTTPClient
 	baseURL string
 	logger  *logging.Logger
+}
+
+func (c *ApiClient) newRequest(ctx Context, method, path string, body io.Reader) (*http.Request, error) {
+	req, err := http.NewRequestWithContext(ctx.Context, method, c.baseURL+path, body)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, c := range ctx.Cookies {
+		req.AddCookie(c)
+	}
+
+	req.Header.Add("OPG-Bypass-Membrane", "1")
+	req.Header.Add("X-XSRF-TOKEN", ctx.XSRFToken)
+
+	return req, err
+}
+
+func (c *ApiClient) logErrorRequest(req *http.Request, err error) {
+	c.logger.Print("method: " + req.Method + ", url: " + req.URL.Path)
+	if err != nil {
+		c.logger.Print(err)
+	}
 }

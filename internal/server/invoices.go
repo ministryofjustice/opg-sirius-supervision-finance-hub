@@ -8,6 +8,7 @@ type FinanceHubInformation interface {
 }
 
 type InvoicePage struct {
+	Error         string
 	HoldingString string
 }
 

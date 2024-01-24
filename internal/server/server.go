@@ -12,6 +12,7 @@ import (
 )
 
 type ApiClient interface {
+	FinanceVarsClient
 }
 
 type Template interface {
