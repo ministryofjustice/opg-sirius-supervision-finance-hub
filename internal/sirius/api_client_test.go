@@ -1,6 +1,7 @@
 package sirius
 
 import (
+	"context"
 	"github.com/ministryofjustice/opg-go-common/logging"
 	"github.com/opg-sirius-finance-hub/internal/mocks"
 	"net/http"
@@ -9,6 +10,14 @@ import (
 
 	"github.com/stretchr/testify/assert"
 )
+
+func getContext(cookies []*http.Cookie) Context {
+	return Context{
+		Context:   context.Background(),
+		Cookies:   cookies,
+		XSRFToken: "abcde",
+	}
+}
 
 func TestClientError(t *testing.T) {
 	assert.Equal(t, "message", ClientError("message").Error())
