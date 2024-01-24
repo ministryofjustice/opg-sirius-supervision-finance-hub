@@ -1,6 +1,8 @@
 package server
 
 import (
+	"github.com/opg-sirius-finance-hub/internal/model"
+	"github.com/opg-sirius-finance-hub/internal/sirius"
 	"io"
 )
 
@@ -19,4 +21,10 @@ func (m *mockTemplate) Execute(w io.Writer, vars any) error {
 }
 
 type mockApiClient struct {
+	error              error
+	CurrentUserDetails model.Assignee
+}
+
+func (m mockApiClient) GetCurrentUserDetails(context sirius.Context) (model.Assignee, error) {
+	return m.CurrentUserDetails, m.error
 }
