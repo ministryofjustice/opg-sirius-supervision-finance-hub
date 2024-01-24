@@ -27,3 +27,11 @@ dev-up:
 
 down:
 	docker compose down
+
+cypress: setup-directories
+	docker compose up -d --wait finance
+	docker compose run --build --rm cypress run --env grepUntagged=true
+
+axe: setup-directories
+	docker compose up -d --wait finance
+	docker compose run --rm cypress run --env grepTags="@axe"
