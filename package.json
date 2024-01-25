@@ -12,18 +12,18 @@
     "cypress": "cypress open",
     "cypress-headless": "cypress run -b chrome",
     "cypress-build-down": "docker compose down",
-    "prettier": "prettier --write ./web",
-    "lint": "eslint ./web/assets/javascript",
+    "lint": "prettier --check .",
+    "prettier": "prettier --write .",
+    "fmt": "prettier --write .",
     "watch": "yarn build:js --watch=forever"
   },
   "dependencies": {
     "@cypress/grep": "^4.0.1",
-    "@ministryofjustice/frontend": "^1.0.0",
+    "@ministryofjustice/frontend": "^1.6.2",
     "govuk-frontend": "^4.3.1",
     "opg-sirius-header": "ministryofjustice/opg-sirius-header#semver:v0.17.0"
   },
   "devDependencies": {
-    "@cypress/grep": "^4.0.0",
     "axe-core": "^4.7.2",
     "cypress": "^13.0.0",
     "cypress-axe": "^1.4.0",
