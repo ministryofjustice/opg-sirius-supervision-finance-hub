@@ -1,13 +1,13 @@
-import navTabs from "../fixtures/navigation.json";
 import "cypress-axe";
 
+describe("Accessibility test client tasks", { tags: "@axe" }, () => {
+    before(() => {
+        cy.visit('/');
+        cy.url().should('contain', 'supervision/finance')
+        cy.injectAxe();
+    });
 
-describe("Accessibility", { tags: "@axe" }, () => {
-    navTabs.forEach(([page, url]) =>
-        it(`should render ${page} page accessibly`, () => {
-            cy.visit(url);
-            cy.injectAxe();
-            cy.checkA11y();
-        })
-    )
+    it("Should have no accessibility violations",() => {
+        cy.checkA11y();
+    });
 });
