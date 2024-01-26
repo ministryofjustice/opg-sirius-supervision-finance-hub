@@ -9,8 +9,10 @@ services:
     environment:
       PORT: 8888
       SIRIUS_PUBLIC_URL: http://localhost:8080
-      SIRIUS_URL: http://host.docker.internal:8080
       PREFIX: /supervision/finance
+      SIRIUS_URL: http://json-server:3000
+    depends_on:
+      - json-server
 
   json-server:
     build:
