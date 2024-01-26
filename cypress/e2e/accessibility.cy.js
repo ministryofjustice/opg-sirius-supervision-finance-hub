@@ -3,7 +3,7 @@ import "cypress-axe";
 describe("Accessibility test client tasks", { tags: "@axe" }, () => {
     before(() => {
         cy.visit('/');
-        cy.url().should('contain', 'supervision/finance')
+        cy.url().should('contain', 'finance')
         cy.injectAxe();
     });
 

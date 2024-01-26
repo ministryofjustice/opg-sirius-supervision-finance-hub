@@ -9,8 +9,4 @@ module.exports = defineConfig({
         },
         baseUrl: 'http://localhost:8888',
     },
-    env: {
-        grepOmitFiltered: true,
-        grepFilterSpecs: true,
-    }
 });
