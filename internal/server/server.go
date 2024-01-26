@@ -12,6 +12,7 @@ import (
 )
 
 type ApiClient interface {
+	FinanceVarsClient
 }
 
 type Template interface {
@@ -23,9 +24,7 @@ func New(logger *zap.SugaredLogger, client ApiClient, templates map[string]*temp
 
 	mux := http.NewServeMux()
 
-	mux.Handle("/",
-		wrap(
-			invoices(client, templates["invoices.gotmpl"])))
+	mux.Handle("/", wrap(invoices(client, templates["invoices.gotmpl"])))
 
 	mux.Handle("/health-check", healthCheck())
 
