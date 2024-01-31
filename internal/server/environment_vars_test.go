@@ -12,7 +12,7 @@ func TestNewEnvironmentVars(t *testing.T) {
 	assert.Equal(t, EnvironmentVars{
 		Port:            "1234",
 		WebDir:          "web",
-		SiriusURL:       "http://localhost:8080",
+		SiriusURL:       "http://host.docker.internal:8080",
 		SiriusPublicURL: "",
 		Prefix:          "",
 	}, vars)
