@@ -11,7 +11,7 @@ go-lint:
 	docker compose run --rm go-lint
 
 build:
-	docker compose build --parallel finance
+	docker compose build --no-cache --parallel finance
 
 build-all:
 	docker compose build --parallel finance json-server test-runner cypress
