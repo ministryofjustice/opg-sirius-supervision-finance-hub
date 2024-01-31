@@ -1,4 +1,4 @@
-import GOVUKFrontend from 'govuk-frontend/govuk/all.js';
+import "govuk-frontend/dist/govuk/all.mjs";
 import "opg-sirius-header/sirius-header.js";
 
 GOVUKFrontend.initAll();
