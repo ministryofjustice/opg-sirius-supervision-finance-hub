@@ -9,7 +9,15 @@ services:
     environment:
       PORT: 8888
       SIRIUS_PUBLIC_URL: http://localhost:8080
-      SIRIUS_URL: http://host.docker.internal:8080
+      SIRIUS_URL: http://json-server:3000
+    depends_on:
+      - json-server
+
+  json-server:
+    build:
+      dockerfile: docker/json-server/Dockerfile
+    ports:
+      - '3000:3000'
 
   test-runner:
     build:
@@ -17,6 +25,17 @@ services:
     working_dir: /go/src/app
     volumes:
       - ./:/go/src/app
+
+  cypress:
+    build:
+      dockerfile: docker/cypress/Dockerfile
+    command: [ "--headless", "-b", "electron", "--env", "grepUntagged=true" ]
+    volumes:
+      - ./cypress/screenshots:/root/cypress/screenshots:rw,delegated
+      - ./cypress/logs:/root/cypress/logs:rw,delegated
+    depends_on:
+      - finance
+      - json-server
 
   go-lint:
     image: golangci/golangci-lint:v1.54.2
