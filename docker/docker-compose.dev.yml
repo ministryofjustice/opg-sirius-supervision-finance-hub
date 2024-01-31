@@ -6,6 +6,7 @@ services:
     ports:
       - '2345:2345'
     volumes:
+      - ./.air.toml:/app/.air.toml
       - ./go.mod:/app/go.mod
       - ./go.sum:/app/go.sum
       - ./internal:/app/internal
@@ -16,3 +17,11 @@ services:
 
   yarn:
     command: watch
+
+  json-server:
+    build:
+      dockerfile: docker/json-server/Dockerfile
+    volumes:
+      - ./json-server/config:/app/config
+    ports:
+      - '3000:3000'
