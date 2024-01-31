@@ -1,6 +1,6 @@
 import "cypress-axe";
 
-describe("Accessibility test client tasks", { tags: "@axe" }, () => {
+describe("Accessibility test invoices", { tags: "@axe" }, () => {
     before(() => {
         cy.visit('/');
         cy.url().should('contain', 'finance')

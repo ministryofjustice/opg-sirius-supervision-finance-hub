@@ -19,18 +19,18 @@
   },
   "dependencies": {
     "@cypress/grep": "^4.0.1",
-    "@ministryofjustice/frontend": "^1.6.2",
-    "govuk-frontend": "^4.3.1",
+    "@ministryofjustice/frontend": "^2.1.0",
+    "govuk-frontend": "^5.0.0",
     "opg-sirius-header": "ministryofjustice/opg-sirius-header#semver:v0.17.0"
   },
   "devDependencies": {
-    "axe-core": "^4.7.2",
-    "cypress": "^13.0.0",
-    "cypress-axe": "^1.4.0",
+    "axe-core": "^4.8.3",
+    "cypress": "^13.6.4",
+    "cypress-axe": "^1.5.0",
     "cypress-failed-log": "^2.10.0",
     "esbuild": "^0.19.0",
-    "eslint": "^8.30.0",
-    "sass": "^1.38.1"
+    "eslint": "^8.56.0",
+    "sass": "^1.70.0"
   },
   "resolutions": {
     "colors": "1.4.0"
