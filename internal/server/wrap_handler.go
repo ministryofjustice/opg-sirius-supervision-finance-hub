@@ -45,6 +45,9 @@ func wrapHandler(client ApiClient, logger *zap.SugaredLogger, tmplError Template
 
 			vars, err := NewFinanceVars(client, r, envVars)
 			if err == nil {
+				logger.Infow(
+					"next",
+				)
 				err = next(*vars, w, r)
 			}
 

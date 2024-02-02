@@ -1,0 +1,14 @@
+{{ define "content-header" }}
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full">
+            <h2
+                    class="govuk-heading-m govuk-!-margin-bottom-0">
+                {{ printf "%v %v" .FirstName .Surname }}
+            </h2>
+            <span
+                    class="govuk-caption-m  govuk-!-margin-bottom-0">
+                Total outstanding: <strong>{{ printf "£%v" .Outstanding }}</strong>
+            </span>
+        </div>
+    </div>
+{{ end }}

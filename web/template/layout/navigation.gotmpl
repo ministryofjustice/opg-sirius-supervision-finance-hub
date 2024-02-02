@@ -1,0 +1,28 @@
+{{ define "navigation" }}
+    <div class="govuk-grid-row govuk-!-margin-top-5  govuk-!-margin-bottom-0">
+        <div class="govuk-grid-column-full">
+            <nav class="moj-sub-navigation" aria-label="Secondary navigation">
+                <ul class="moj-sub-navigation__list">
+                    <li class="moj-sub-navigation__item">
+                        <div
+                            class="moj-sub-navigation__link"
+                            hx-get="{{ prefix "invoices" }}"
+                            hx-target="#tab-content"
+                            hx-push-url="/invoices"
+                            >Invoices</div
+                        >
+                    </li>
+                    <li class="moj-sub-navigation__item">
+                        <div
+                            class="moj-sub-navigation__link"
+                            hx-get="{{ prefix "other" }}"
+                            hx-target="#tab-content"
+                            hx-push-url="/other"
+                            >Other</div
+                        >
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+{{ end }}

@@ -7,17 +7,22 @@ import (
 type FinanceHubInformation interface {
 }
 
-type InvoicePage struct {
+type InvoiceTab struct {
 	Error         string
 	HoldingString string
+	ClientVars
 }
 
 func invoices(client FinanceHubInformation, tmpl Template) Handler {
 	return func(app FinanceVars, w http.ResponseWriter, r *http.Request) error {
-		var vars InvoicePage
+		var vars InvoiceTab
 
-		vars.HoldingString = "Hello World"
+		vars.HoldingString = "Hello invoices tab!"
+		vars.ClientVars = app.ClientVars
 
+		if r.Header.Get("HX-Request") == "true" {
+			return tmpl.ExecuteTemplate(w, "invoices", vars)
+		}
 		return tmpl.Execute(w, vars)
 	}
 }

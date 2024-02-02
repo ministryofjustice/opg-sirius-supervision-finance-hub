@@ -10,6 +10,7 @@ type FinanceVars struct {
 	Path            string
 	XSRFToken       string
 	MyDetails       model.Assignee
+	ClientVars      ClientVars
 	SuccessMessage  string
 	Errors          sirius.ValidationErrors
 	EnvironmentVars EnvironmentVars
@@ -26,15 +27,18 @@ type FinanceVarsClient interface {
 func NewFinanceVars(client FinanceVarsClient, r *http.Request, envVars EnvironmentVars) (*FinanceVars, error) {
 	ctx := getContext(r)
 
-	myDetails, err := client.GetCurrentUserDetails(ctx)
-	if err != nil {
-		return nil, err
+	myDetails := model.Assignee{}
+	clientVars := ClientVars{
+		FirstName:   "Ian",
+		Surname:     "Moneybags",
+		Outstanding: "1000000",
 	}
 
 	vars := FinanceVars{
 		Path:            r.URL.Path,
 		XSRFToken:       ctx.XSRFToken,
 		MyDetails:       myDetails,
+		ClientVars:      clientVars,
 		EnvironmentVars: envVars,
 	}
 

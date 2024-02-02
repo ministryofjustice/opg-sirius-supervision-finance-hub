@@ -17,6 +17,7 @@ type ApiClient interface {
 
 type Template interface {
 	Execute(wr io.Writer, data any) error
+	ExecuteTemplate(wr io.Writer, name string, data any) error
 }
 
 func New(logger *zap.SugaredLogger, client ApiClient, templates map[string]*template.Template, envVars EnvironmentVars) http.Handler {
@@ -24,7 +25,10 @@ func New(logger *zap.SugaredLogger, client ApiClient, templates map[string]*temp
 
 	mux := http.NewServeMux()
 
-	mux.Handle("/", wrap(invoices(client, templates["invoices.gotmpl"])))
+	mux.Handle("/invoices", wrap(invoices(client, templates["invoices.gotmpl"])))
+	mux.Handle("/other", wrap(other(client, templates["other.gotmpl"])))
+
+	mux.Handle("/", wrap(main(client, templates["index.gotmpl"])))
 
 	mux.Handle("/health-check", healthCheck())
 
