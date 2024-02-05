@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+	"github.com/opg-sirius-finance-hub/internal/server/routes"
 	"github.com/opg-sirius-finance-hub/internal/sirius"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
@@ -34,15 +35,15 @@ func TestStatusError_Error(t *testing.T) {
 }
 
 type mockNext struct {
-	app    FinanceVars
+	app    AppVars
 	w      http.ResponseWriter
 	r      *http.Request
 	Err    error
 	Called int
 }
 
-func (m *mockNext) GetHandler() Handler {
-	return func(app FinanceVars, w http.ResponseWriter, r *http.Request) error {
+func (m *mockNext) GetHandler() routes.Handler {
+	return func(app AppVars, w http.ResponseWriter, r *http.Request) error {
 		m.app = app
 		m.w = w
 		m.r = r

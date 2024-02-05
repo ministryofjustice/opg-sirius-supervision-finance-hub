@@ -1,1 +1,11 @@
-<h1 class="govuk-heading-l">{{.HoldingString}}</h1>
+{{ template "page" . }}
+
+{{ define "title" }} OPG Sirius Finance Hub {{ end }}
+
+{{ define "content" }}
+
+    {{ block "other" . }}
+        <h1 class="govuk-heading-l">{{.HoldingString}}</h1>
+    {{ end }}
+
+{{ end }}

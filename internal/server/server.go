@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/ministryofjustice/opg-go-common/securityheaders"
+	"github.com/opg-sirius-finance-hub/internal/model"
 	"github.com/opg-sirius-finance-hub/internal/sirius"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.uber.org/zap"
@@ -12,7 +13,7 @@ import (
 )
 
 type ApiClient interface {
-	FinanceVarsClient
+	GetCurrentUserDetails(sirius.Context) (model.Assignee, error)
 }
 
 type Template interface {
@@ -25,8 +26,8 @@ func New(logger *zap.SugaredLogger, client ApiClient, templates map[string]*temp
 
 	mux := http.NewServeMux()
 
-	mux.Handle("/invoices", wrap(invoices(client, templates["invoices.gotmpl"])))
-	mux.Handle("/other", wrap(other(client, templates["other.gotmpl"])))
+	mux.Handle("/invoices", wrap(InvoicesHandler{&client, templates["invoices.gotmpl"], "invoices"}))
+	mux.Handle("/other", wrap(OtherHandler{&client, templates["other.gotmpl"], "other"}))
 
 	mux.HandleFunc("/", redirectToDefaultLanding)
 

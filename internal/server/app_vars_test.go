@@ -34,10 +34,10 @@ func TestNewFinanceVars(t *testing.T) {
 	r, _ := http.NewRequest("GET", "/path", nil)
 
 	envVars := EnvironmentVars{}
-	vars, err := NewFinanceVars(client, r, envVars)
+	vars, err := NewAppVars(client, r, envVars)
 
 	assert.Nil(t, err)
-	assert.Equal(t, FinanceVars{
+	assert.Equal(t, AppVars{
 		Path:            "/path",
 		XSRFToken:       "",
 		MyDetails:       mockUserDetailsData,

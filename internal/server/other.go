@@ -1,7 +1,9 @@
 package server
 
 import (
+	"math/rand"
 	"net/http"
+	"strconv"
 )
 
 type OtherTab struct {
@@ -9,12 +11,23 @@ type OtherTab struct {
 	HoldingString string
 }
 
-func other(client FinanceHubInformation, tmpl Template) Handler {
-	return func(app FinanceVars, w http.ResponseWriter, r *http.Request) error {
-		var vars OtherTab
+type OtherHandler struct {
+	client  *ApiClient
+	tmpl    Template
+	partial string
+}
 
-		vars.HoldingString = "Hello other tab!"
+func (h OtherHandler) render(app PageVars, w http.ResponseWriter, r *http.Request) error {
+	var vars InvoiceTab
 
-		return tmpl.Execute(w, vars)
-	}
+	vars.HoldingString = "I am always 123"
+	vars.PageVars = app
+	return h.tmpl.Execute(w, vars)
+}
+
+func (h OtherHandler) replace(app AppVars, w http.ResponseWriter, r *http.Request) error {
+	var vars InvoiceTab
+
+	vars.HoldingString = "I am a random number: " + strconv.Itoa(rand.Int())
+	return h.tmpl.ExecuteTemplate(w, h.partial, vars)
 }

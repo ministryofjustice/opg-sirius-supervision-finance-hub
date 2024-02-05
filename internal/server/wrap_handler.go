@@ -1,7 +1,9 @@
 package server
 
 import (
+	"errors"
 	"fmt"
+	"github.com/opg-sirius-finance-hub/internal/model"
 	"github.com/opg-sirius-finance-hub/internal/sirius"
 	"go.uber.org/zap"
 	"net/http"
@@ -36,19 +38,42 @@ func (e StatusError) Code() int {
 	return int(e)
 }
 
-type Handler func(app FinanceVars, w http.ResponseWriter, r *http.Request) error
+func isHxRequest(r *http.Request) bool {
+	return r.Header.Get("HX-Request") == "true"
+}
+
+type Handler interface {
+	render(app PageVars, w http.ResponseWriter, r *http.Request) error
+	replace(app AppVars, w http.ResponseWriter, r *http.Request) error
+}
 
 func wrapHandler(client ApiClient, logger *zap.SugaredLogger, tmplError Template, envVars EnvironmentVars) func(next Handler) http.Handler {
 	return func(next Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
 
-			vars, err := NewFinanceVars(client, r, envVars)
-			if err == nil {
+			var err error
+			vars := NewAppVars(r, envVars)
+			if isHxRequest(r) {
 				logger.Infow(
-					"next",
+					"next - replace",
 				)
-				err = next(*vars, w, r)
+				err = next.replace(*vars, w, r)
+			} else {
+				logger.Infow(
+					"next - render",
+				)
+				// this data is only needed on a full page load, so fetch it here instead
+				pageVars := PageVars{
+					MyDetails: model.Assignee{},
+					Client: ClientVars{
+						FirstName:   "Ian",
+						Surname:     "Moneybags",
+						Outstanding: "1000000",
+					},
+					AppVars: *vars,
+				}
+				err = next.render(pageVars, w, r)
 			}
 
 			logger.Infow(
@@ -59,12 +84,13 @@ func wrapHandler(client ApiClient, logger *zap.SugaredLogger, tmplError Template
 			)
 
 			if err != nil {
-				if err == sirius.ErrUnauthorized {
+				if errors.Is(err, sirius.ErrUnauthorized) {
 					http.Redirect(w, r, envVars.SiriusURL+"/auth", http.StatusFound)
 					return
 				}
 
-				if redirect, ok := err.(RedirectError); ok {
+				var redirect RedirectError
+				if errors.As(err, &redirect) {
 					http.Redirect(w, r, envVars.Prefix+"/"+redirect.To(), http.StatusFound)
 					return
 				}
@@ -72,10 +98,12 @@ func wrapHandler(client ApiClient, logger *zap.SugaredLogger, tmplError Template
 				logger.Errorw("Error handler", err)
 
 				code := http.StatusInternalServerError
-				if serverStatusError, ok := err.(StatusError); ok {
+				var serverStatusError StatusError
+				if errors.As(err, &serverStatusError) {
 					code = serverStatusError.Code()
 				}
-				if siriusStatusError, ok := err.(sirius.StatusError); ok {
+				var siriusStatusError sirius.StatusError
+				if errors.As(err, &siriusStatusError) {
 					code = siriusStatusError.Code
 				}
 

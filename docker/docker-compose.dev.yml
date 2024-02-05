@@ -5,6 +5,8 @@ services:
       target: dev
     ports:
       - '2345:2345'
+    environment:
+      SIRIUS_PUBLIC_URL: http://localhost:8080
     volumes:
       - ./.air.toml:/app/.air.toml
       - ./go.mod:/app/go.mod

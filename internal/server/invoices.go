@@ -10,20 +10,26 @@ type FinanceHubInformation interface {
 type InvoiceTab struct {
 	Error         string
 	HoldingString string
-	ClientVars
+	PageVars
 }
 
-func invoices(client FinanceHubInformation, tmpl Template) Handler {
-	return func(app FinanceVars, w http.ResponseWriter, r *http.Request) error {
-		var vars InvoiceTab
+type InvoicesHandler struct {
+	client  *ApiClient
+	tmpl    Template
+	partial string
+}
 
-		vars.HoldingString = "I am rendered statically!"
-		vars.ClientVars = app.ClientVars
+func (h InvoicesHandler) render(app PageVars, w http.ResponseWriter, r *http.Request) error {
+	var vars InvoiceTab
 
-		if r.Header.Get("HX-Request") == "true" {
-			vars.HoldingString = "I am rendered dynamically!"
-			return tmpl.ExecuteTemplate(w, "invoices", vars)
-		}
-		return tmpl.Execute(w, vars)
-	}
+	vars.HoldingString = "I am static!"
+	vars.PageVars = app
+	return h.tmpl.Execute(w, vars)
+}
+
+func (h InvoicesHandler) replace(app AppVars, w http.ResponseWriter, r *http.Request) error {
+	var vars InvoiceTab
+
+	vars.HoldingString = "I am dynamic!"
+	return h.tmpl.ExecuteTemplate(w, h.partial, vars)
 }

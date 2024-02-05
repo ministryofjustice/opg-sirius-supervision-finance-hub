@@ -3,11 +3,11 @@
         <div class="govuk-grid-column-full">
             <h2
                     class="govuk-heading-m govuk-!-margin-bottom-0">
-                {{ printf "%v %v" .FirstName .Surname }}
+                {{ printf "%v %v" .Client.FirstName .Client.Surname }}
             </h2>
             <span
                     class="govuk-caption-m  govuk-!-margin-bottom-0">
-                Total outstanding: <strong>{{ printf "£%v" .Outstanding }}</strong>
+                Total outstanding: <strong>{{ printf "£%v" .Client.Outstanding }}</strong>
             </span>
         </div>
     </div>
