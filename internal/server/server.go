@@ -28,7 +28,7 @@ func New(logger *zap.SugaredLogger, client ApiClient, templates map[string]*temp
 	mux.Handle("/invoices", wrap(invoices(client, templates["invoices.gotmpl"])))
 	mux.Handle("/other", wrap(other(client, templates["other.gotmpl"])))
 
-	mux.Handle("/", wrap(main(client, templates["index.gotmpl"])))
+	mux.HandleFunc("/", redirectToDefaultLanding)
 
 	mux.Handle("/health-check", healthCheck())
 
@@ -56,4 +56,10 @@ func getContext(r *http.Request) sirius.Context {
 		Cookies:   r.Cookies(),
 		XSRFToken: token,
 	}
+}
+
+// redirects to the invoices tab if root page is hit
+// this isn't necessary if we have a different landing page
+func redirectToDefaultLanding(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/invoices", http.StatusSeeOther)
 }
