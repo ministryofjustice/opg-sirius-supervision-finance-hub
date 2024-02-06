@@ -14,9 +14,10 @@ type InvoiceTab struct {
 }
 
 type InvoicesHandler struct {
-	client  *ApiClient
-	tmpl    Template
-	partial string
+	client    *ApiClient
+	tmpl      Template
+	partial   string
+	executeFn func() error
 }
 
 func (h InvoicesHandler) render(app PageVars, w http.ResponseWriter, r *http.Request) error {
