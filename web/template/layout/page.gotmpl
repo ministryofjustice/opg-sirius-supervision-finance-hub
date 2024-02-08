@@ -20,12 +20,12 @@
       <link href="{{ prefix "/stylesheets/all.css" }}" rel="stylesheet">
     </head>
 
-    <body class="govuk-template__body sirius-finance" data-test="My value" data-other="report:details">
+    <body class="govuk-template__body sirius-finance">
 
       {{ template "header" . }}
 
-      <div class="govuk-width-container app-width-container">
-        <main class="govuk-main-wrapper app-main-class" id="main-content" role="main">
+      <div class="govuk-width-container">
+        <main class="govuk-main-wrapper app-main-class govuk-!-padding-top-2"  role="main">
           {{ block "main" . }}{{ end }}
         </main>
       </div>
