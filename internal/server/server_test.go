@@ -23,6 +23,11 @@ func (m *mockTemplate) Execute(w io.Writer, vars any) error {
 type mockApiClient struct {
 	error              error
 	CurrentUserDetails model.Assignee
+	PersonDetails      model.Person
+}
+
+func (m mockApiClient) GetPersonDetails(context sirius.Context, i int) (model.Person, error) {
+	return m.PersonDetails, m.error
 }
 
 func (m mockApiClient) GetCurrentUserDetails(context sirius.Context) (model.Assignee, error) {
