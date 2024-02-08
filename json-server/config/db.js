@@ -8,5 +8,14 @@ module.exports = function () {
                 "Finance Reporting"
             ],
         },
+        "finance": {
+            "id": 2,
+            "firstname": "Finance",
+            "surname": "Person",
+            "caseRecNumber": "12345678",
+            "outstandingBalance": "£22.22",
+            "creditBalance": "£1.01",
+            "paymentMethod": "Demanded"
+        },
     }
 }

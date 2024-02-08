@@ -1,0 +1,82 @@
+// Sirius specific styles
+
+.sirius-finance {
+  .govuk-width-container,
+  .moj-header__container,
+  .moj-primary-navigation__container {
+    max-width: none;
+    padding: 0 15px;
+  }
+
+  .flex-container {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .main-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 1em 0 0.5em;
+    border-bottom: 1px solid $govuk-border-colour;
+    margin-bottom: 2em;
+  }
+
+  #overview {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 2em;
+    padding-bottom: 1em;
+    border-bottom: 1px solid $govuk-border-colour;
+  }
+
+  .moj-sub-navigation {
+    margin-bottom: 0px;
+  }
+}
+
+main {
+  header {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5em 0 0.5em;
+    border-bottom: 1px solid $govuk-border-colour;
+    margin-bottom: 2em;
+  }
+
+  .moj-sub-navigation {
+    margin-bottom: 0;
+  }
+}
+
+.moj-header__container {
+  max-width: 98%;
+}
+
+.moj-timeline__item {
+  max-width: 60em;
+}
+
+.govuk-form-group {
+  max-width: 40em;
+}
+
+span.rag {
+  font-weight: bold;
+  &.green {
+    color: govuk-colour("green") !important;
+  }
+  &.amber {
+    color: govuk-colour("orange") !important;
+  }
+  &.red {
+    color: govuk-colour("red") !important;
+  }
+}
+
+span.secondary {
+  display: block;
+  color: $govuk-secondary-text-colour;
+  font-size: 16px;
+  font-size: 1rem;
+  line-height: 1.25;
+}

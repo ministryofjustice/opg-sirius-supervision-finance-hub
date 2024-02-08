@@ -3,6 +3,7 @@ module github.com/opg-sirius-finance-hub
 go 1.21
 
 require (
+	github.com/gorilla/mux v1.8.1
 	github.com/ministryofjustice/opg-go-common v0.0.0-20231128145056-24628fba649c
 	github.com/stretchr/testify v1.8.4
 	go.opentelemetry.io/contrib/detectors/aws/ecs v1.22.0
@@ -12,6 +13,7 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.22.0
 	go.opentelemetry.io/otel/sdk v1.22.0
 	go.uber.org/zap v1.26.0
+	golang.org/x/sync v0.5.0
 	google.golang.org/grpc v1.61.0
 )
 
