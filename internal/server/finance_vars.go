@@ -5,7 +5,7 @@ import (
 	"github.com/opg-sirius-finance-hub/internal/sirius"
 	"golang.org/x/sync/errgroup"
 	"net/http"
-	"path"
+	"regexp"
 	"strconv"
 )
 
@@ -14,13 +14,15 @@ type FinanceVars struct {
 	XSRFToken       string
 	MyDetails       model.Assignee
 	Person          model.Person
+	Tabs            []Tab
 	SuccessMessage  string
 	Errors          sirius.ValidationErrors
 	EnvironmentVars EnvironmentVars
 }
 
 type Tab struct {
-	Title string
+	Title    string
+	BasePath string
 }
 
 type FinanceVarsClient interface {
@@ -36,6 +38,12 @@ func NewFinanceVars(client FinanceVarsClient, r *http.Request, envVars Environme
 		Path:            r.URL.Path,
 		XSRFToken:       ctx.XSRFToken,
 		EnvironmentVars: envVars,
+		Tabs: []Tab{
+			{
+				Title:    "Invoices",
+				BasePath: "invoices",
+			},
+		},
 	}
 
 	group.Go(func() error {
@@ -47,7 +55,8 @@ func NewFinanceVars(client FinanceVarsClient, r *http.Request, envVars Environme
 		return nil
 	})
 	group.Go(func() error {
-		personId, _ := strconv.Atoi(path.Base(r.RequestURI))
+		re := regexp.MustCompile("[0-9]+")
+		personId, _ := strconv.Atoi(re.FindAllString(r.URL.Path, -1)[0])
 		person, err := client.GetPersonDetails(ctx.With(groupCtx), personId)
 		if err != nil {
 			return err
@@ -61,4 +70,8 @@ func NewFinanceVars(client FinanceVarsClient, r *http.Request, envVars Environme
 	}
 
 	return &vars, nil
+}
+
+func (t Tab) GetURL(personId int) string {
+	return "/" + strconv.Itoa(personId)
 }
