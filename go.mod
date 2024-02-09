@@ -3,6 +3,7 @@ module github.com/opg-sirius-finance-hub
 go 1.19
 
 require (
+	github.com/gorilla/mux v1.8.1
 	github.com/ministryofjustice/opg-go-common v0.0.0-20231128145056-24628fba649c
 	github.com/stretchr/testify v1.8.4
 	go.opentelemetry.io/contrib/detectors/aws/ecs v1.22.0
