@@ -52,19 +52,27 @@ var mockPerson = model.Person{
 
 func TestNewFinanceVars(t *testing.T) {
 	client := &mockFinanceVarsClient{userData: mockUserDetailsData, personData: mockPerson}
-	r, _ := http.NewRequest("GET", "/path", nil)
+	r, _ := http.NewRequest("GET", "/path/1", nil)
 
 	envVars := EnvironmentVars{}
 	vars, err := NewFinanceVars(client, r, envVars)
 
 	assert.Nil(t, err)
 	assert.Equal(t, FinanceVars{
-		Path:            "/path",
+		Path:            "/path/1",
 		XSRFToken:       "",
 		MyDetails:       mockUserDetailsData,
 		Person:          mockPerson,
+		Tabs:            []Tab{{Title: "Invoices", BasePath: "invoices"}},
 		SuccessMessage:  "",
 		Errors:          nil,
 		EnvironmentVars: envVars,
 	}, *vars)
+}
+
+func TestTab_GetURL(t *testing.T) {
+	tab := Tab{BasePath: "test-path"}
+	personId := mockPerson.ID
+
+	assert.Equal(t, "/1", tab.GetURL(personId))
 }

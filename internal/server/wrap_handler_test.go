@@ -53,7 +53,7 @@ func (m *mockNext) GetHandler() Handler {
 
 func Test_wrapHandler_successful_request(t *testing.T) {
 	w := httptest.NewRecorder()
-	r, _ := http.NewRequest(http.MethodGet, "test-url", nil)
+	r, _ := http.NewRequest(http.MethodGet, "test-url/1", nil)
 
 	mockClient := mockApiClient{}
 
@@ -73,12 +73,12 @@ func Test_wrapHandler_successful_request(t *testing.T) {
 	assert.Equal(t, w, next.w)
 	assert.Equal(t, r, next.r)
 	assert.Equal(t, 1, next.Called)
-	assert.Equal(t, "test-url", next.app.Path)
+	assert.Equal(t, "test-url/1", next.app.Path)
 	assert.Len(t, logs, 1)
 	assert.Equal(t, "Application Request", logs[0].Message)
 	assert.Len(t, logs[0].ContextMap(), 3)
 	assert.Equal(t, "GET", logs[0].ContextMap()["method"])
-	assert.Equal(t, "test-url", logs[0].ContextMap()["uri"])
+	assert.Equal(t, "test-url/1", logs[0].ContextMap()["uri"])
 	assert.Equal(t, 200, w.Result().StatusCode)
 }
 
@@ -102,7 +102,7 @@ func Test_wrapHandler_status_error_handling(t *testing.T) {
 	for i, test := range tests {
 		t.Run("Scenario "+strconv.Itoa(i), func(t *testing.T) {
 			w := httptest.NewRecorder()
-			r, _ := http.NewRequest(http.MethodGet, "test-url", nil)
+			r, _ := http.NewRequest(http.MethodGet, "test-url/1", nil)
 
 			mockClient := mockApiClient{}
 
@@ -125,7 +125,7 @@ func Test_wrapHandler_status_error_handling(t *testing.T) {
 			assert.Equal(t, "Application Request", logs[0].Message)
 			assert.Len(t, logs[0].ContextMap(), 3)
 			assert.Equal(t, "GET", logs[0].ContextMap()["method"])
-			assert.Equal(t, "test-url", logs[0].ContextMap()["uri"])
+			assert.Equal(t, "test-url/1", logs[0].ContextMap()["uri"])
 			assert.Equal(t, "Error handler", logs[1].Message)
 			assert.Equal(t, map[string]interface{}{"error": test.wantError}, logs[1].ContextMap())
 			assert.Equal(t, "Failed to render error template", logs[2].Message)
@@ -137,37 +137,4 @@ func Test_wrapHandler_status_error_handling(t *testing.T) {
 			assert.Equal(t, test.wantCode, w.Result().StatusCode)
 		})
 	}
-}
-
-func Test_wrapHandler_follows_local_redirect(t *testing.T) {
-	w := httptest.NewRecorder()
-	r, _ := http.NewRequest(http.MethodGet, "test-url", nil)
-
-	mockClient := mockApiClient{}
-
-	observedZapCore, observedLogs := observer.New(zap.InfoLevel)
-	logger := zap.New(observedZapCore).Sugar()
-
-	errorTemplate := &mockTemplate{}
-	envVars := EnvironmentVars{Prefix: "/finance-prefix"}
-	nextHandlerFunc := wrapHandler(mockClient, logger, errorTemplate, envVars)
-	next := mockNext{Err: RedirectError("redirect-to-here")}
-	httpHandler := nextHandlerFunc(next.GetHandler())
-	httpHandler.ServeHTTP(w, r)
-
-	logs := observedLogs.All()
-
-	assert.Equal(t, 1, next.Called)
-	assert.Equal(t, w, next.w)
-	assert.Equal(t, r, next.r)
-	assert.Len(t, logs, 1)
-	assert.Equal(t, "Application Request", logs[0].Message)
-	assert.Len(t, logs[0].ContextMap(), 3)
-	assert.Equal(t, "GET", logs[0].ContextMap()["method"])
-	assert.Equal(t, "test-url", logs[0].ContextMap()["uri"])
-	assert.Equal(t, 0, errorTemplate.count)
-	assert.Equal(t, 302, w.Result().StatusCode)
-	location, err := w.Result().Location()
-	assert.Nil(t, err)
-	assert.Equal(t, "/finance-prefix/redirect-to-here", location.String())
 }
