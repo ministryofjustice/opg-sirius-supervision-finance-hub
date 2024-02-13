@@ -4,6 +4,7 @@ $govuk-moj-table-background-color: #e7f2fb;
 @import "node_modules/govuk-frontend/dist/govuk/all";
 @import "node_modules/@ministryofjustice/frontend/moj/all";
 @import "node_modules/opg-sirius-header/sass/sirius-header";
+@import "./scss/finance-hub";
 
 .moj-header__container {
   max-width: 98%;

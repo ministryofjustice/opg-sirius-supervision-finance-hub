@@ -1,6 +1,6 @@
 module github.com/opg-sirius-finance-hub
 
-go 1.21
+go 1.19
 
 require (
 	github.com/ministryofjustice/opg-go-common v0.0.0-20231128145056-24628fba649c
@@ -12,6 +12,7 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.22.0
 	go.opentelemetry.io/otel/sdk v1.22.0
 	go.uber.org/zap v1.26.0
+	golang.org/x/sync v0.5.0
 	google.golang.org/grpc v1.61.0
 )
 
