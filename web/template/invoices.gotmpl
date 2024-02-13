@@ -1,11 +1,14 @@
-{{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.InvoicePage*/ -}}
-{{ template "page" . }}
+{{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.InvoicesPage*/ -}}
+{{ template "tab" . }}
 
-{{ define "title" }} OPG Sirius Finance Hub {{ end }}
+{{ define "title" }}Invoices{{ end }}
 
-{{ define "main" }}
-    <div class="main">
-    {{ template "personInfo" .App.Person }}
-    </div>
-
+{{ define "tab-content" }}
+    <div>
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full">
+            {{ template "invoices-list" . }}
+        </div>
+      </div>
+  </div>
 {{ end }}
