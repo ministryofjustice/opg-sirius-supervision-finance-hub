@@ -1,0 +1,27 @@
+{{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.InvoicesPage*/ -}}
+{{ define "invoices-list" }}
+  <header>
+    <h1 class="govuk-heading-l  govuk-!-margin-bottom-0  govuk-!-margin-top-0">Invoices</h1>
+    <div style="float: right;">
+      <div class="moj-button-menu">
+        <div class="moj-button-menu__wrapper">
+          <a href="./add-manual-invoice" role="button" draggable="false" class="govuk-button moj-button-menu__item govuk-button--secondary " data-module="govuk-button">
+            Add manual invoice (not in use)
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+    <table id="invoices" class="govuk-table"  data-module="moj-sortable-table">
+      <thead class="govuk-table__head">
+        <tr class="govuk-table__row">
+          <th scope="col" data-cy="invoice" class="govuk-table__header">Invoice</th>
+          <th scope="col" data-cy="status" class="govuk-table__header">Status</th>
+          <th scope="col" data-cy="amount" class="govuk-table__header">Amount</th>
+          <th scope="col" data-cy="raised" class="govuk-table__header">Raised</th>
+          <th scope="col" data-cy="received" class="govuk-table__header">Received</th>
+          <th scope="col" data-cy="outstanding-balance" class="govuk-table__header">Outstanding Balance</th>
+        </tr>
+      </thead>
+    </table>
+{{ end }}
