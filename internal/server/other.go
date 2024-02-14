@@ -7,27 +7,19 @@ import (
 )
 
 type OtherTab struct {
-	Error         string
 	HoldingString string
+	AppVars
 }
 
 type OtherHandler struct {
-	client  *ApiClient
-	tmpl    Template
-	partial string
+	route
 }
 
-func (h OtherHandler) render(app PageVars, w http.ResponseWriter, r *http.Request) error {
-	var vars InvoiceTab
+func (h OtherHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
+	var data OtherTab
+	data.AppVars = v
+	data.HoldingString = "I am a random number: " + strconv.Itoa(rand.Int())
 
-	vars.HoldingString = "I am always 123"
-	vars.PageVars = app
-	return h.tmpl.Execute(w, vars)
-}
-
-func (h OtherHandler) replace(app AppVars, w http.ResponseWriter, r *http.Request) error {
-	var vars InvoiceTab
-
-	vars.HoldingString = "I am a random number: " + strconv.Itoa(rand.Int())
-	return h.tmpl.ExecuteTemplate(w, h.partial, vars)
+	h.Data = data
+	return h.execute(w, r)
 }

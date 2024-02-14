@@ -2,10 +2,9 @@ package server
 
 import "github.com/opg-sirius-finance-hub/internal/model"
 
-type PageVars struct {
+type HeaderData struct {
 	MyDetails model.Assignee
 	Client    ClientVars
-	AppVars
 }
 
 type ClientVars struct {

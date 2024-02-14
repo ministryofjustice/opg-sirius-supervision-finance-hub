@@ -11,7 +11,7 @@ type AppVars struct {
 	EnvironmentVars EnvironmentVars
 }
 
-func NewAppVars(r *http.Request, envVars EnvironmentVars) *AppVars {
+func NewAppVars(r *http.Request, envVars EnvironmentVars) (AppVars, error) {
 	ctx := getContext(r)
 
 	vars := AppVars{
@@ -20,5 +20,5 @@ func NewAppVars(r *http.Request, envVars EnvironmentVars) *AppVars {
 		EnvironmentVars: envVars,
 	}
 
-	return &vars
+	return vars, nil
 }

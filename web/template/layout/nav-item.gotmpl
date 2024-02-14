@@ -1,0 +1,11 @@
+{{ define "nav-item" }}
+    <li class="moj-sub-navigation__item">
+        <div
+                class="moj-sub-navigation__link"
+                hx-get="{{ prefix . }}"
+                hx-target="#tab-content"
+                hx-push-url="/{{ . }}"
+        >{{ title . }}</div
+        >
+    </li>
+{{ end }}

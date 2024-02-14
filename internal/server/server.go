@@ -22,12 +22,16 @@ type Template interface {
 }
 
 func New(logger *zap.SugaredLogger, client ApiClient, templates map[string]*template.Template, envVars EnvironmentVars) http.Handler {
+	// middleware
+	// - logging
+	// - errors
+	// - vars
 	wrap := wrapHandler(client, logger, templates["error.gotmpl"], envVars)
 
 	mux := http.NewServeMux()
 
-	mux.Handle("/invoices", wrap(InvoicesHandler{&client, templates["invoices.gotmpl"], "invoices"}))
-	mux.Handle("/other", wrap(OtherHandler{&client, templates["other.gotmpl"], "other"}))
+	mux.Handle("/invoices", wrap(InvoicesHandler{route{client: &client, tmpl: templates["invoices.gotmpl"], partial: "invoices"}}))
+	mux.Handle("/other", wrap(OtherHandler{route{client: &client, tmpl: templates["other.gotmpl"], partial: "other"}}))
 
 	mux.HandleFunc("/", redirectToDefaultLanding)
 

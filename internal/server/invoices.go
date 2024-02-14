@@ -8,29 +8,24 @@ type FinanceHubInformation interface {
 }
 
 type InvoiceTab struct {
-	Error         string
 	HoldingString string
-	PageVars
+	AppVars
 }
 
 type InvoicesHandler struct {
-	client    *ApiClient
-	tmpl      Template
-	partial   string
-	executeFn func() error
+	route
 }
 
-func (h InvoicesHandler) render(app PageVars, w http.ResponseWriter, r *http.Request) error {
-	var vars InvoiceTab
+func (h InvoicesHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
+	var data InvoiceTab
+	data.AppVars = v
 
-	vars.HoldingString = "I am static!"
-	vars.PageVars = app
-	return h.tmpl.Execute(w, vars)
-}
-
-func (h InvoicesHandler) replace(app AppVars, w http.ResponseWriter, r *http.Request) error {
-	var vars InvoiceTab
-
-	vars.HoldingString = "I am dynamic!"
-	return h.tmpl.ExecuteTemplate(w, h.partial, vars)
+	// example of how to change the data based on how it is being fetched
+	if isHxRequest(r) {
+		data.HoldingString = "I am dynamic!"
+	} else {
+		data.HoldingString = "I am static!"
+	}
+	h.Data = data
+	return h.execute(w, r)
 }

@@ -4,7 +4,7 @@
 
 {{ define "content" }}
 
-    {{ block "invoices" . }}
+    {{ block "invoices" .Data }}
         <h1 class="govuk-heading-l">{{.HoldingString}}</h1>
     {{ end }}
 
