@@ -4,14 +4,14 @@ import (
 	"net/http"
 )
 
-type InvoicePage struct {
+type FeeReductionsPage struct {
 	ListPage
 }
 
-func invoices(tmpl Template) Handler {
+func feeReductions(tmpl Template) Handler {
 	return func(app FinanceVars, w http.ResponseWriter, r *http.Request) error {
 
-		var vars InvoicePage
+		var vars FeeReductionsPage
 
 		vars.App = app
 

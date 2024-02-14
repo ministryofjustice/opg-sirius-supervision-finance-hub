@@ -43,6 +43,10 @@ func NewFinanceVars(client FinanceVarsClient, r *http.Request, envVars Environme
 				Title:    "Invoices",
 				BasePath: "invoices",
 			},
+			{
+				Title:    "Fee reductions",
+				BasePath: "fee-reductions",
+			},
 		},
 	}
 
