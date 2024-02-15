@@ -11,7 +11,7 @@ import (
 func (c *ApiClient) GetPersonDetails(ctx Context, ClientId int) (model.Person, error) {
 	var v model.Person
 
-	requestURL := fmt.Sprintf("/api/v1/finance/%d", ClientId)
+	requestURL := fmt.Sprintf("/api/v1/client/%d", ClientId)
 	req, err := c.newRequest(ctx, http.MethodGet, requestURL, nil)
 	if err != nil {
 		c.logErrorRequest(req, err)
