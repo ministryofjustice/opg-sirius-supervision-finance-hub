@@ -1,6 +1,8 @@
 package server
 
-type ListPage struct {
-	App   FinanceVars
-	Error string
+import "github.com/opg-sirius-finance-hub/internal/model"
+
+type HeaderData struct {
+	MyDetails model.Assignee
+	Client    model.Person
 }

@@ -22,6 +22,7 @@ import (
 	"path/filepath"
 	"syscall"
 	"time"
+	"unicode"
 )
 
 func initTracerProvider(ctx context.Context, logger *zap.SugaredLogger) func() {
@@ -126,6 +127,12 @@ func createTemplates(envVars server.EnvironmentVars) map[string]*template.Templa
 			}
 
 			return false
+		},
+		"title": func(s string) string {
+			r := []rune(s)
+			r[0] = unicode.ToUpper(r[0])
+
+			return string(r)
 		},
 		"prefix": func(s string) string {
 			return envVars.Prefix + s
