@@ -8,6 +8,7 @@ type AppVars struct {
 	Path            string
 	XSRFToken       string
 	EnvironmentVars EnvironmentVars
+	Tabs            []Tab
 }
 
 type Tab struct {
@@ -22,6 +23,12 @@ func NewAppVars(r *http.Request, envVars EnvironmentVars) (AppVars, error) {
 		Path:            r.URL.Path,
 		XSRFToken:       ctx.XSRFToken,
 		EnvironmentVars: envVars,
+		Tabs: []Tab{
+			{
+				Title:    "Invoices",
+				BasePath: "invoices",
+			},
+		},
 	}
 
 	return vars, nil
