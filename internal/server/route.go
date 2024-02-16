@@ -1,11 +1,17 @@
 package server
 
 import (
+	"github.com/opg-sirius-finance-hub/internal/model"
 	"golang.org/x/sync/errgroup"
 	"net/http"
 )
 
-type WithHeaderData struct {
+type HeaderData struct {
+	MyDetails model.Assignee
+	Client    model.Person
+}
+
+type PageData struct {
 	Data any
 	HeaderData
 }
@@ -24,7 +30,7 @@ func (r route) execute(w http.ResponseWriter, req *http.Request) error {
 		ctx := getContext(req)
 		group, groupCtx := errgroup.WithContext(ctx.Context)
 
-		data := WithHeaderData{
+		data := PageData{
 			Data: r.Data,
 		}
 
