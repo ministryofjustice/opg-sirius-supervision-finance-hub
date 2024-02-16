@@ -1,0 +1,11 @@
+{{ define "main" }}
+    <div class="govuk-width-container app-width-container">
+        <main class="govuk-main-wrapper app-main-class" id="main-content" role="main">
+            {{ template "person-info" .Client }}
+            {{ template "navigation" . }}
+            <div id="tab-content">
+                {{ template "tab-content" . }}
+            </div>
+        </main>
+    </div>
+{{ end }}

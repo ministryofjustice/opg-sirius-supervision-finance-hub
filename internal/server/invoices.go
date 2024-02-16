@@ -4,19 +4,22 @@ import (
 	"net/http"
 )
 
-type FinanceHubInformation interface{}
-
-type InvoicePage struct {
-	ListPage
+type FinanceHubInformation interface {
 }
 
-func invoices(client FinanceHubInformation, tmpl Template) Handler {
-	return func(app FinanceVars, w http.ResponseWriter, r *http.Request) error {
+type InvoiceTab struct {
+	HoldingString string
+	AppVars
+}
 
-		var vars InvoicePage
+type InvoicesHandler struct {
+	route
+}
 
-		vars.App = app
+func (h *InvoicesHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
+	var data InvoiceTab
+	data.AppVars = v
 
-		return tmpl.Execute(w, vars)
-	}
+	h.Data = data
+	return h.execute(w, r)
 }

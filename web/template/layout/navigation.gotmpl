@@ -1,0 +1,12 @@
+{{ define "navigation" }}
+    <div class="govuk-grid-row govuk-!-margin-top-5  govuk-!-margin-bottom-0">
+        <div class="govuk-grid-column-full">
+            <nav class="moj-sub-navigation" aria-label="Secondary navigation">
+                <ul class="moj-sub-navigation__list">
+                    {{ template "tab" "invoices" }}
+                    {{ template "tab" "other" }}
+                </ul>
+            </nav>
+        </div>
+    </div>
+{{ end }}

@@ -1,25 +1,11 @@
 {{ define "tab" }}
-  {{ template "page" . }}
-{{ end }}
-
-{{ define "main" }}
-  {{ template "personInfo" .App.Person }}
-  <div class="govuk-grid-row">
-    <div class="govuk-grid-column-full">
-        <div class="govuk-grid-column-full">
-          <div class="govuk-grid-row">
-            <div class="govuk-grid-column-full">
-                {{ template "tabs" .App }}
-            </div>
-          </div>
-          <div class="govuk-grid-row">
-            <div>
-                {{ template "error-summary" .App.Errors }}
-            </div>
-          </div>
-            {{ block "tab-content" . }}{{ end }}
-        </div>
-      </div>
-    </div>
-  </div>
+  <li class="moj-sub-navigation__item">
+    <div
+            class="moj-sub-navigation__link"
+            hx-get="{{ prefix . }}"
+            hx-target="#tab-content"
+            hx-push-url="/{{ . }}"
+    >{{ title . }}</div
+    >
+  </li>
 {{ end }}
