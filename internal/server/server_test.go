@@ -20,6 +20,13 @@ func (m *mockTemplate) Execute(w io.Writer, vars any) error {
 	return m.error
 }
 
+func (m *mockTemplate) ExecuteTemplate(w io.Writer, name string, vars any) error {
+	m.count += 1
+	m.lastVars = vars
+	m.lastW = w
+	return m.error
+}
+
 type mockApiClient struct {
 	error              error
 	CurrentUserDetails model.Assignee

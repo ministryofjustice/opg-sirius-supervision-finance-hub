@@ -1,5 +1,5 @@
 {
-    "users-current":
+    "users":
         {
             "id": 65,
             "roles": [
@@ -8,9 +8,9 @@
                 "Finance Reporting"
             ]
         },
-    "finance": [
+    "client": [
         {
-            "id": 2,
+            "id": 1,
             "firstname": "Finance",
             "surname": "Person",
             "caseRecNumber": "12345678",
