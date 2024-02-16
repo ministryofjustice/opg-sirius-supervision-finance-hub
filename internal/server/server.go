@@ -31,8 +31,8 @@ func New(logger *zap.SugaredLogger, client ApiClient, templates map[string]*temp
 
 	mux := http.NewServeMux()
 
-	mux.Handle("/invoices", wrap(InvoicesHandler{route{client: &client, tmpl: templates["invoices.gotmpl"], partial: "invoices"}}))
-	mux.Handle("/other", wrap(OtherHandler{route{client: &client, tmpl: templates["other.gotmpl"], partial: "other"}}))
+	mux.Handle("/invoices", wrap(&InvoicesHandler{route{client: &client, tmpl: templates["invoices.gotmpl"], partial: "invoices"}}))
+	mux.Handle("/other", wrap(&OtherHandler{route{client: &client, tmpl: templates["other.gotmpl"], partial: "other"}}))
 
 	mux.HandleFunc("/", redirectToDefaultLanding)
 

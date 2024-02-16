@@ -16,7 +16,7 @@ type InvoicesHandler struct {
 	route
 }
 
-func (h InvoicesHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
+func (h *InvoicesHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
 	var data InvoiceTab
 	data.AppVars = v
 
