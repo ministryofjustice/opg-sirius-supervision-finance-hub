@@ -15,7 +15,7 @@ type OtherHandler struct {
 	route
 }
 
-func (h OtherHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
+func (h *OtherHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
 	var data OtherTab
 	data.AppVars = v
 
