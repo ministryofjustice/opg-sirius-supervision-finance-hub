@@ -4,9 +4,6 @@ import (
 	"net/http"
 )
 
-type FinanceHubInformation interface {
-}
-
 type InvoiceTab struct {
 	HoldingString string
 	AppVars

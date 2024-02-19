@@ -40,4 +40,3 @@ Alternatively to set it up not using Docker use below. This hosts it on `localho
 ## Run Trivy scanning
 
 `make scan`
-
