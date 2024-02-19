@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestNewFinanceVars(t *testing.T) {
+func TestNewAppVars(t *testing.T) {
 	r, _ := http.NewRequest("GET", "/path", nil)
 
 	envVars := EnvironmentVars{}

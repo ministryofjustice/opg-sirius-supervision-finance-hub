@@ -8,7 +8,7 @@ import (
 
 type HeaderData struct {
 	MyDetails model.Assignee
-	Client    model.Person
+	Person    model.Person
 }
 
 type PageData struct {
@@ -23,6 +23,9 @@ type route struct {
 	Data    any
 }
 
+// execute is an abstraction of the Template execute functions in order to conditionally render either a full template or
+// a block, in response to a header added by HTMX. If the header is not present, the function will also fetch all
+// additional data needed by the page for a full page load.
 func (r route) execute(w http.ResponseWriter, req *http.Request) error {
 	if r.isHxRequest(req) {
 		return r.tmpl.ExecuteTemplate(w, r.partial, r.Data)
@@ -49,7 +52,7 @@ func (r route) execute(w http.ResponseWriter, req *http.Request) error {
 			if err != nil {
 				return err
 			}
-			data.Client = person
+			data.Person = person
 			return nil
 		})
 
