@@ -1,0 +1,18 @@
+{{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.FeeReductionsTab*/ -}}
+{{ template "page" . }}
+
+{{ define "title" }}OPG Sirius Finance Hub - Fee Reductions{{ end }}
+
+{{ define "tab-content" }}
+
+  {{ block "fee-reductions" .Data }}
+    <div>
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full">
+          {{ template "fee-reductions-list" . }}
+        </div>
+      </div>
+    </div>
+  {{ end }}
+
+{{ end }}
