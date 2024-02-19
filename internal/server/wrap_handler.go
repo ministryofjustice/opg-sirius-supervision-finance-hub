@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"fmt"
 	"github.com/opg-sirius-finance-hub/internal/sirius"
 	"go.uber.org/zap"
@@ -36,16 +37,23 @@ func (e StatusError) Code() int {
 	return int(e)
 }
 
-type Handler func(app FinanceVars, w http.ResponseWriter, r *http.Request) error
+func isHxRequest(r *http.Request) bool {
+	return r.Header.Get("HX-Request") == "true"
+}
+
+type Handler interface {
+	render(app AppVars, w http.ResponseWriter, r *http.Request) error
+}
 
 func wrapHandler(client ApiClient, logger *zap.SugaredLogger, tmplError Template, envVars EnvironmentVars) func(next Handler) http.Handler {
 	return func(next Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
 
-			vars, err := NewFinanceVars(client, r, envVars)
+			var err error
+			vars, err := NewAppVars(r, envVars)
 			if err == nil {
-				err = next(*vars, w, r)
+				err = next.render(vars, w, r)
 			}
 
 			logger.Infow(
@@ -56,12 +64,13 @@ func wrapHandler(client ApiClient, logger *zap.SugaredLogger, tmplError Template
 			)
 
 			if err != nil {
-				if err == sirius.ErrUnauthorized {
+				if errors.Is(err, sirius.ErrUnauthorized) {
 					http.Redirect(w, r, envVars.SiriusURL+"/auth", http.StatusFound)
 					return
 				}
 
-				if redirect, ok := err.(RedirectError); ok {
+				var redirect RedirectError
+				if errors.As(err, &redirect) {
 					http.Redirect(w, r, envVars.Prefix+"/"+redirect.To(), http.StatusFound)
 					return
 				}
@@ -69,10 +78,12 @@ func wrapHandler(client ApiClient, logger *zap.SugaredLogger, tmplError Template
 				logger.Errorw("Error handler", err)
 
 				code := http.StatusInternalServerError
-				if serverStatusError, ok := err.(StatusError); ok {
+				var serverStatusError StatusError
+				if errors.As(err, &serverStatusError) {
 					code = serverStatusError.Code()
 				}
-				if siriusStatusError, ok := err.(sirius.StatusError); ok {
+				var siriusStatusError sirius.StatusError
+				if errors.As(err, &siriusStatusError) {
 					code = siriusStatusError.Code
 				}
 
