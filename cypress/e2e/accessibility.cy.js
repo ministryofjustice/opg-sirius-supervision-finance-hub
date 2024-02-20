@@ -2,8 +2,8 @@ import "cypress-axe";
 
 describe("Accessibility test invoices", { tags: "@axe" }, () => {
     before(() => {
-        cy.visit('/finance/2');
-        cy.url().should('contain', 'finance')
+        cy.visit('/clients/1/invoices');
+        cy.url().should('contain', 'invoices')
         cy.injectAxe();
     });
 
