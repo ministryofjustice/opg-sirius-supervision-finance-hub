@@ -12,9 +12,9 @@ type AppVars struct {
 }
 
 type Tab struct {
+	Id       string
 	Title    string
 	BasePath string
-	PushUrl  string
 }
 
 func NewAppVars(r *http.Request, envVars EnvironmentVars) (AppVars, error) {
@@ -23,14 +23,17 @@ func NewAppVars(r *http.Request, envVars EnvironmentVars) (AppVars, error) {
 	clientId := r.PathValue("id")
 	tabs := []Tab{
 		{
+			Id:       "invoices",
 			Title:    "Invoices",
 			BasePath: "/clients/" + clientId + "/invoices",
 		},
 		{
+			Id:       "fee-reductions",
 			Title:    "Fee Reductions",
 			BasePath: "/clients/" + clientId + "/fee-reductions",
 		},
 		{
+			Id:       "pending-invoice-adjustments",
 			Title:    "Pending Invoice Adjustments",
 			BasePath: "/clients/" + clientId + "/pending-invoice-adjustments",
 		},

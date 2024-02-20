@@ -1,5 +1,7 @@
 {{ define "tab" }}
-    <li class="moj-sub-navigation__item">
+    <li class="moj-sub-navigation__item"
+        data-cy="{{ .Id }}"
+    >
         <div
                 class="moj-sub-navigation__link"
                 hx-get="{{ prefix .BasePath }}"
