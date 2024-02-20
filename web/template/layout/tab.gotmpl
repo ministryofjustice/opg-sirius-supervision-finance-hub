@@ -2,11 +2,11 @@
     <li class="moj-sub-navigation__item">
         <div
                 class="moj-sub-navigation__link"
-                hx-get="{{ prefix . }}"
+                hx-get="{{ prefix .BasePath }}"
                 hx-target="#tab-content"
-                hx-push-url="/{{ . }}"
+                hx-push-url="{{ .BasePath }}"
         >
-            {{ title . }}
+            {{ .Title }}
         </div>
     </li>
 {{ end }}
