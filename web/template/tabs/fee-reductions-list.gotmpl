@@ -1,0 +1,33 @@
+{{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.FeeReductionsTab*/ -}}
+{{ define "fee-reductions-list" }}
+  <header>
+    <h1 class="govuk-heading-l  govuk-!-margin-bottom-0  govuk-!-margin-top-0">Fee Reductions</h1>
+
+    {{/* move the style into css file */}}
+    <div style="float: right;">
+
+      <div class="moj-button-menu">
+        <div class="moj-button-menu__wrapper">
+          <a href="/fee-reduction/add" role="button" draggable="false" class="govuk-button moj-button-menu__item govuk-button--secondary " data-module="govuk-button">
+            Award a fee reduction
+          </a>
+          <a href="/fee-reduction/cancel" role="button" draggable="false" class="govuk-button moj-button-menu__item govuk-button--secondary " data-module="govuk-button">
+            Cancel a fee reduction
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+  <table id="invoices" class="govuk-table">
+    <thead class="govuk-table__head">
+    <tr class="govuk-table__row">
+      <th scope="col" data-cy="type" class="govuk-table__header">Type</th>
+      <th scope="col" data-cy="start-date" class="govuk-table__header">Start date</th>
+      <th scope="col" data-cy="end-date" class="govuk-table__header">End date</th>
+      <th scope="col" data-cy="date-received" class="govuk-table__header">Date received</th>
+      <th scope="col" data-cy="status" class="govuk-table__header">Status</th>
+      <th scope="col" data-cy="notes" class="govuk-table__header">Notes</th>
+    </tr>
+    </thead>
+  </table>
+{{ end }}

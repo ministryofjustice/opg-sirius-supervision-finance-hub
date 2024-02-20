@@ -1,23 +1,31 @@
 describe("Finance Hub", () => {
     beforeEach(() => {
-        cy.visit("/supervision/finance/2");
+        cy.visit("/clients/1/invoices");
     });
 
     describe("Finance Details Header", () => {
-        it("should shows the person name", () => {
-            cy.get('[data-cy="person-name"]').should("contain", "Finance Person");
-        });
-        it("should shows the court ref", () => {
-            cy.get('[data-cy="court-ref"]').should("contain", "12345678");
-        });
-        it("should shows the total outstanding balance", () => {
-            cy.get('[data-cy="total-outstanding-balance"]').should("contain", "£22.22");
-        });
-        it("should shows the total credit balance", () => {
-            cy.get('[data-cy="total-credit-balance"]').should("contain", "£1.01");
-        });
-        it("should shows the payment method", () => {
-            cy.get('[data-cy="payment-method"]').should("contain", "Demanded");
+        it("shows the client details", () => {
+            cy.contains('[data-cy="person-name"]', "Finance Person");
+            cy.contains('[data-cy="court-ref"]', "12345678");
+            cy.contains('[data-cy="total-outstanding-balance"]', "£22.22");
+            cy.contains('[data-cy="total-credit-balance"]', "£1.01");
+            cy.contains('[data-cy="payment-method"]', "Demanded");
         });
     });
+
+    describe("Tabs", () => {
+        it("navigates between tabs correctly", () => {
+            cy.get('[data-cy="fee-reductions"]').click();
+            cy.url().should("contain", "fee-reductions");
+            cy.contains(".govuk-heading-l", "Fee Reductions");
+
+            cy.get('[data-cy="pending-invoice-adjustments"]').click();
+            cy.url().should("contain", "pending-invoice-adjustments");
+            cy.contains(".govuk-heading-l", "Pending Invoice Adjustments");
+
+            cy.get('[data-cy="invoices"]').click();
+            cy.url().should("contain", "invoices");
+            cy.contains(".govuk-heading-l", "Invoices");
+        })
+    })
 });
