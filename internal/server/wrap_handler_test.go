@@ -128,7 +128,7 @@ func Test_wrapHandler_status_error_handling(t *testing.T) {
 			assert.Equal(t, map[string]interface{}{"error": test.wantError}, logs[1].ContextMap())
 			assert.Equal(t, "Failed to render error template", logs[2].Message)
 			assert.Equal(t, map[string]interface{}{"error": "some template error"}, logs[2].ContextMap())
-			assert.Equal(t, 1, errorTemplate.count)
+			assert.True(t, errorTemplate.execute)
 			assert.IsType(t, ErrorVars{}, errorTemplate.lastVars)
 			assert.Equal(t, test.wantCode, errorTemplate.lastVars.(ErrorVars).Code)
 			assert.Equal(t, test.wantError, errorTemplate.lastVars.(ErrorVars).Error)

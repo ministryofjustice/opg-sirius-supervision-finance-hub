@@ -19,7 +19,7 @@ type PageData struct {
 }
 
 type route struct {
-	client  *ApiClient
+	client  ApiClient
 	tmpl    Template
 	partial string
 	Data    any
@@ -40,7 +40,7 @@ func (r route) execute(w http.ResponseWriter, req *http.Request) error {
 		}
 
 		group.Go(func() error {
-			myDetails, err := (*r.client).GetCurrentUserDetails(ctx.With(groupCtx))
+			myDetails, err := r.client.GetCurrentUserDetails(ctx.With(groupCtx))
 			if err != nil {
 				return err
 			}
@@ -52,7 +52,7 @@ func (r route) execute(w http.ResponseWriter, req *http.Request) error {
 			if err != nil {
 				return errors.New("client id in string cannot be parsed to an integer")
 			}
-			person, err := (*r.client).GetPersonDetails(ctx.With(groupCtx), personId)
+			person, err := r.client.GetPersonDetails(ctx.With(groupCtx), personId)
 			if err != nil {
 				return err
 			}
