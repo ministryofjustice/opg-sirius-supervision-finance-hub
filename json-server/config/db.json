@@ -18,5 +18,18 @@
             "creditBalance": "£1.01",
             "paymentMethod": "Demanded"
         }
-    ]
+    ],
+    "invoice": {
+        "invoices": [
+            {
+                "id": 1,
+                "ref": "AD101002/22",
+                "status": "Unpaid",
+                "amount": "123.23",
+                "raisedDate": "10/01/2003",
+                "received": "3.45",
+                "outstandingBalance": "119.78"
+            }
+        ]
+    }
 }

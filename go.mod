@@ -1,6 +1,6 @@
 module github.com/opg-sirius-finance-hub
 
-go 1.22.0
+go 1.22
 
 require (
 	github.com/ministryofjustice/opg-go-common v0.0.0-20231128145056-24628fba649c

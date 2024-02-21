@@ -12,16 +12,105 @@
       </div>
     </div>
   </header>
-    <table id="invoices" class="govuk-table">
-      <thead class="govuk-table__head">
-        <tr class="govuk-table__row">
-          <th scope="col" data-cy="invoice" class="govuk-table__header">Invoice</th>
-          <th scope="col" data-cy="status" class="govuk-table__header">Status</th>
-          <th scope="col" data-cy="amount" class="govuk-table__header">Amount</th>
-          <th scope="col" data-cy="raised" class="govuk-table__header">Raised</th>
-          <th scope="col" data-cy="received" class="govuk-table__header">Received</th>
-          <th scope="col" data-cy="outstanding-balance" class="govuk-table__header">Outstanding Balance</th>
-        </tr>
-      </thead>
-    </table>
+{{.}}
+{{/*<div class="govuk-grid-row">*/}}
+{{/*  <div class="govuk-grid-column-full">*/}}
+{{/*    <table id="invoices" class="govuk-table">*/}}
+{{/*      <thead class="govuk-table__head">*/}}
+{{/*        <tr class="govuk-table__row">*/}}
+{{/*          <th scope="col" data-cy="invoice" class="govuk-table__header">Invoice</th>*/}}
+{{/*          <th scope="col" data-cy="status" class="govuk-table__header">Status</th>*/}}
+{{/*          <th scope="col" data-cy="amount" class="govuk-table__header">Amount</th>*/}}
+{{/*          <th scope="col" data-cy="raised" class="govuk-table__header">Raised</th>*/}}
+{{/*          <th scope="col" data-cy="received" class="govuk-table__header">Received</th>*/}}
+{{/*          <th scope="col" data-cy="outstanding-balance" class="govuk-table__header">Outstanding Balance</th>*/}}
+{{/*        </tr>*/}}
+{{/*      </thead>*/}}
+{{/*      <tbody class="govuk-table__body">*/}}
+{{/*      {{ range .InvoiceList.Invoices }}*/}}
+{{/*      <tr class="govuk-table__row">*/}}
+{{/*        <td class="govuk-table__cell" style="border-bottom-color: rgb(177, 180, 182);">*/}}
+{{/*          <details class="govuk-details" id="summary" style="margin-bottom: 0px;">*/}}
+{{/*            <summary class="govuk-details__summary">*/}}
+{{/*              <span class="govuk-details__summary-text">*/}}
+{{/*                {{ .Ref }} S2000001/21*/}}
+{{/*              </span>*/}}
+{{/*            </summary>*/}}
+{{/*          </details>*/}}
+{{/*        </td>*/}}
+{{/*        <td class="govuk-table__cell" data-sort-value="6961" style="border-bottom-color: rgb(177, 180, 182);">{{ .Status }} Unpaid</td>*/}}
+{{/*        <td class="govuk-table__cell" style="border-bottom-color: rgb(177, 180, 182);">{{ .Amount }} £320</td>*/}}
+{{/*        <td class="govuk-table__cell" style="border-bottom-color: rgb(177, 180, 182);">{{ .RaisedDate }} 31/03/2022</td>*/}}
+{{/*        <td class="govuk-table__cell" style="border-bottom-color: rgb(177, 180, 182);">{{ .Received }} £0</td>*/}}
+{{/*        <td class="govuk-table__cell" id="rowoneoutstandingbalance" style="border-bottom-color: rgb(177, 180, 182);">{{ .OutstandingBalance }} £320</td>*/}}
+{{/*        <td class="govuk-table__cell" style="border-bottom-color: rgb(177, 180, 182);">*/}}
+{{/*          <a href="./invoice-actions"> <button type="submit" class="govuk-button govuk-!-margin-bottom-0 govuk-button--secondary" data-module="govuk-button">*/}}
+{{/*              Adjust invoice (not working)*/}}
+{{/*            </button> </a>*/}}
+{{/*        </td>*/}}
+{{/*      </tr>*/}}
+{{/*      {{ end }}*/}}
+{{/*      <tr id="invoice-reveal" class="hide">*/}}
+{{/*        <td class="govuk-table__cell" colspan="6">*/}}
+{{/*          <div class="govuk-details__text">*/}}
+{{/*            <table class="govuk-table">*/}}
+{{/*              <caption class="govuk-table__caption govuk-table__caption--m">Invoice ledger allocations</caption>*/}}
+{{/*              <thead class="govuk-table__head">*/}}
+{{/*              <tr class="govuk-table__row">*/}}
+{{/*                <th scope="col" class="govuk-table__header">Amount</th>*/}}
+{{/*                <th scope="col" class="govuk-table__header">Received date</th>*/}}
+{{/*                <th scope="col" class="govuk-table__header">Transaction type</th>*/}}
+{{/*                <th scope="col" class="govuk-table__header">Status</th>*/}}
+{{/*              </tr>*/}}
+{{/*              </thead>*/}}
+
+{{/*              <tbody class="govuk-table__body">*/}}
+{{/*              <tr class="govuk-table__row">*/}}
+
+{{/*              </tr>*/}}
+{{/*              <tr class="govuk-table__row">*/}}
+
+{{/*              </tr>*/}}
+{{/*              <tr class="govuk-table__row">*/}}
+
+
+
+{{/*              </tr>*/}}
+
+{{/*              </tbody>*/}}
+{{/*            </table>*/}}
+{{/*          </div>*/}}
+
+{{/*          <div class="govuk-details__text">*/}}
+{{/*            <table class="govuk-table">*/}}
+{{/*              <caption class="govuk-table__caption govuk-table__caption--m">Supervision level breakdown</caption>*/}}
+{{/*              <thead class="govuk-table__head">*/}}
+{{/*              <tr class="govuk-table__row">*/}}
+{{/*                <th scope="col" class="govuk-table__header">Supervision level</th>*/}}
+{{/*                <th scope="col" class="govuk-table__header">Amout</th>*/}}
+{{/*                <th scope="col" class="govuk-table__header">From</th>*/}}
+{{/*                <th scope="col" class="govuk-table__header">To</th>*/}}
+{{/*              </tr>*/}}
+{{/*              </thead>*/}}
+
+{{/*              <tbody class="govuk-table__body">*/}}
+{{/*              <tr class="govuk-table__row">*/}}
+
+{{/*                <td class="govuk-table__cell">General</td>*/}}
+{{/*                <td class="govuk-table__cell">£91.17</td>*/}}
+{{/*                <td class="govuk-table__cell">01/04/2023</td>*/}}
+{{/*                <td class="govuk-table__cell">13/07/2023</td>*/}}
+{{/*              </tr>*/}}
+{{/*              </tbody>*/}}
+{{/*            </table>*/}}
+{{/*          </div>*/}}
+{{/*        </td>*/}}
+{{/*      </tr>*/}}
+
+
+
+{{/*      </tbody>*/}}
+{{/*    </table>*/}}
+{{/*  </div>*/}}
+{{/*</div>*/}}
 {{ end }}
