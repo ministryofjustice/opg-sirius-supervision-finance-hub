@@ -15,6 +15,7 @@ import (
 type ApiClient interface {
 	GetCurrentUserDetails(sirius.Context) (model.Assignee, error)
 	GetPersonDetails(sirius.Context, int) (model.Person, error)
+	GetFeeReductions(sirius.Context, int) ([]model.FeeReduction, error)
 }
 
 type Template interface {
