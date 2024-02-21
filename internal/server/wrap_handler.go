@@ -37,10 +37,6 @@ func (e StatusError) Code() int {
 	return int(e)
 }
 
-func isHxRequest(r *http.Request) bool {
-	return r.Header.Get("HX-Request") == "true"
-}
-
 type Handler interface {
 	render(app AppVars, w http.ResponseWriter, r *http.Request) error
 }

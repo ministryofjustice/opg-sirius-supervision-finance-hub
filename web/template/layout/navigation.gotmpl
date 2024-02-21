@@ -3,8 +3,9 @@
         <div class="govuk-grid-column-full">
             <nav class="moj-sub-navigation" aria-label="Secondary navigation">
                 <ul class="moj-sub-navigation__list">
-                    {{ template "tab" "invoices" }}
-                    {{ template "tab" "other" }}
+                    {{ range .Data.Tabs }}
+                        {{ template "tab" . }}
+                    {{ end }}
                 </ul>
             </nav>
         </div>

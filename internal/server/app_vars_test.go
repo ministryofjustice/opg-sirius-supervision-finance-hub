@@ -8,6 +8,7 @@ import (
 
 func TestNewAppVars(t *testing.T) {
 	r, _ := http.NewRequest("GET", "/path", nil)
+	r.SetPathValue("id", "1")
 
 	envVars := EnvironmentVars{}
 	vars, err := NewAppVars(r, envVars)
@@ -17,5 +18,22 @@ func TestNewAppVars(t *testing.T) {
 		Path:            "/path",
 		XSRFToken:       "",
 		EnvironmentVars: envVars,
+		Tabs: []Tab{
+			{
+				Title:    "Invoices",
+				BasePath: "/clients/1/invoices",
+				Id:       "invoices",
+			},
+			{
+				Title:    "Fee Reductions",
+				BasePath: "/clients/1/fee-reductions",
+				Id:       "fee-reductions",
+			},
+			{
+				Title:    "Pending Invoice Adjustments",
+				BasePath: "/clients/1/pending-invoice-adjustments",
+				Id:       "pending-invoice-adjustments",
+			},
+		},
 	}, vars)
 }

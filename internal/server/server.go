@@ -23,18 +23,13 @@ type Template interface {
 }
 
 func New(logger *zap.SugaredLogger, client ApiClient, templates map[string]*template.Template, envVars EnvironmentVars) http.Handler {
-	// middleware
-	// - logging
-	// - errors
-	// - vars
 	wrap := wrapHandler(client, logger, templates["error.gotmpl"], envVars)
 
 	mux := http.NewServeMux()
 
-	mux.Handle("/invoices", wrap(&InvoicesHandler{route{client: &client, tmpl: templates["invoices.gotmpl"], partial: "invoices"}}))
-	mux.Handle("/other", wrap(&OtherHandler{route{client: &client, tmpl: templates["other.gotmpl"], partial: "other"}}))
-
-	mux.HandleFunc("/", redirectToDefaultLanding)
+	mux.Handle("GET /clients/{id}/invoices", wrap(&InvoicesHandler{route{client: client, tmpl: templates["invoices.gotmpl"], partial: "invoices"}}))
+	mux.Handle("GET /clients/{id}/fee-reductions", wrap(&FeeReductionsHandler{route{client: client, tmpl: templates["fee-reductions.gotmpl"], partial: "fee-reductions"}}))
+	mux.Handle("GET /clients/{id}/pending-invoice-adjustments", wrap(&PendingInvoiceAdjustmentsHandler{route{client: client, tmpl: templates["pending-invoice-adjustments.gotmpl"], partial: "pending-invoice-adjustments"}}))
 
 	mux.Handle("/health-check", healthCheck())
 
@@ -62,10 +57,4 @@ func getContext(r *http.Request) sirius.Context {
 		Cookies:   r.Cookies(),
 		XSRFToken: token,
 	}
-}
-
-// redirects to the invoices tab if root page is hit
-// this isn't necessary if we have a different landing page
-func redirectToDefaultLanding(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/invoices", http.StatusSeeOther)
 }

@@ -5,7 +5,6 @@ import (
 )
 
 type InvoiceTab struct {
-	HoldingString string
 	AppVars
 }
 
