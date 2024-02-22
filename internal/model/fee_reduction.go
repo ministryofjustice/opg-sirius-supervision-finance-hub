@@ -10,3 +10,5 @@ type FeeReduction struct {
 	Deleted      bool   `json:"deleted"`
 	Status       string // calculated on server
 }
+
+type FeeReductions []FeeReduction

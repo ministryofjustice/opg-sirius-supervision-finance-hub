@@ -8,8 +8,8 @@ import (
 	"net/http"
 )
 
-func (c *ApiClient) GetFeeReductions(ctx Context, clientId int) ([]model.FeeReduction, error) {
-	var v []model.FeeReduction
+func (c *ApiClient) GetFeeReductions(ctx Context, clientId int) (model.FeeReductions, error) {
+	var v model.FeeReductions
 
 	requestURL := fmt.Sprintf("/api/v1/clients/%d/fee-reductions", clientId)
 	req, err := c.newRequest(ctx, http.MethodGet, requestURL, nil)

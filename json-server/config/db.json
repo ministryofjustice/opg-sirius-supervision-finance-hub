@@ -51,7 +51,7 @@
             "id": 3,
             "type": "REMISSION",
             "startDate": "2023-04-01T00:00:00+00:00",
-            "endDate": "2026-04-31T00:00:00+00:00",
+            "endDate": "2026-03-31T00:00:00+00:00",
             "dateReceived": "2023-02-02T00:00:00+00:00",
             "notes": "Remission for 2023/2026",
             "deleted": false

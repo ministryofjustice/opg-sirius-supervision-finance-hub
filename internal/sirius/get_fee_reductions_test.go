@@ -46,7 +46,7 @@ func TestGetFeeReductions(t *testing.T) {
 		}, nil
 	}
 
-	expectedResponse := []model.FeeReduction{
+	expectedResponse := model.FeeReductions{
 		{
 			Id:           1,
 			Type:         "EXEMPTION",
