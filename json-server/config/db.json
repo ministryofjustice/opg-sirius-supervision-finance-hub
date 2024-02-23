@@ -8,7 +8,7 @@
                 "Finance Reporting"
             ]
         },
-    "client": [
+    "clients": [
         {
             "id": 1,
             "firstname": "Finance",
@@ -17,6 +17,57 @@
             "outstandingBalance": "£22.22",
             "creditBalance": "£1.01",
             "paymentMethod": "Demanded"
+        },
+        {
+            "id": 2,
+            "firstname": "Ian",
+            "surname": "Finance",
+            "caseRecNumber": "12345678",
+            "outstandingBalance": "£1000000",
+            "creditBalance": "£0",
+            "paymentMethod": "Demanded"
+        }
+    ],
+    "fee-reductions": [
+        {
+            "id": 4,
+            "clientId": 1,
+            "type": "REMISSION",
+            "startDate": "2023-04-01T00:00:00+00:00",
+            "endDate": "2026-03-31T00:00:00+00:00",
+            "dateReceived": "2023-02-02T00:00:00+00:00",
+            "notes": "Remission for 2023/2026",
+            "deleted": false
+        },
+        {
+            "id": 3,
+            "clientId": 1,
+            "type": "HARDSHIP",
+            "startDate": "2022-04-01T00:00:00+00:00",
+            "endDate": "2023-03-31T00:00:00+00:00",
+            "dateReceived": "2022-02-02T00:00:00+00:00",
+            "notes": "Hardship for 2023/2023",
+            "deleted": false
+        },
+        {
+            "id": 2,
+            "clientId": 1,
+            "type": "REMISSION",
+            "startDate": "2022-04-01T00:00:00+00:00",
+            "endDate": "2021-03-31T00:00:00+00:00",
+            "dateReceived": "2021-06-02T00:00:00+00:00",
+            "notes": "Remission for 2021/2022",
+            "deleted": false
+        },
+        {
+            "id": 1,
+            "clientId": 1,
+            "type": "EXEMPTION",
+            "startDate": "2022-04-01T00:00:00+00:00",
+            "endDate": "2021-03-31T00:00:00+00:00",
+            "dateReceived": "2021-02-02T00:00:00+00:00",
+            "notes": "Exemption cancelled due to incorrect filing",
+            "deleted": true
         }
     ]
 }

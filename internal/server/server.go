@@ -10,11 +10,18 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 )
 
 type ApiClient interface {
 	GetCurrentUserDetails(sirius.Context) (model.Assignee, error)
 	GetPersonDetails(sirius.Context, int) (model.Person, error)
+	GetFeeReductions(sirius.Context, int) (model.FeeReductions, error)
+}
+
+type router interface {
+	Client() ApiClient
+	execute(http.ResponseWriter, *http.Request, any) error
 }
 
 type Template interface {
@@ -27,9 +34,9 @@ func New(logger *zap.SugaredLogger, client ApiClient, templates map[string]*temp
 
 	mux := http.NewServeMux()
 
-	mux.Handle("GET /clients/{id}/invoices", wrap(&InvoicesHandler{route{client: client, tmpl: templates["invoices.gotmpl"], partial: "invoices"}}))
-	mux.Handle("GET /clients/{id}/fee-reductions", wrap(&FeeReductionsHandler{route{client: client, tmpl: templates["fee-reductions.gotmpl"], partial: "fee-reductions"}}))
-	mux.Handle("GET /clients/{id}/pending-invoice-adjustments", wrap(&PendingInvoiceAdjustmentsHandler{route{client: client, tmpl: templates["pending-invoice-adjustments.gotmpl"], partial: "pending-invoice-adjustments"}}))
+	mux.Handle("GET /clients/{id}/invoices", wrap(&InvoicesHandler{&route{client: client, tmpl: templates["invoices.gotmpl"], partial: "invoices"}}))
+	mux.Handle("GET /clients/{id}/fee-reductions", wrap(&FeeReductionsHandler{&route{client: client, tmpl: templates["fee-reductions.gotmpl"], partial: "fee-reductions"}}))
+	mux.Handle("GET /clients/{id}/pending-invoice-adjustments", wrap(&PendingInvoiceAdjustmentsHandler{&route{client: client, tmpl: templates["pending-invoice-adjustments.gotmpl"], partial: "pending-invoice-adjustments"}}))
 
 	mux.Handle("/health-check", healthCheck())
 
@@ -52,9 +59,12 @@ func getContext(r *http.Request) sirius.Context {
 		token = r.FormValue("xsrfToken")
 	}
 
+	clientId, _ := strconv.Atoi(r.PathValue("id"))
+
 	return sirius.Context{
 		Context:   r.Context(),
 		Cookies:   r.Cookies(),
 		XSRFToken: token,
+		ClientId:  clientId,
 	}
 }

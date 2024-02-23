@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"github.com/opg-sirius-finance-hub/internal/model"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -26,13 +27,13 @@ func TestRoute_htmxRequest(t *testing.T) {
 		AppVars: AppVars{Path: "/path"},
 	}
 
-	sut := route{client: client, tmpl: template, partial: "test", Data: data}
+	sut := route{client: client, tmpl: template, partial: "test"}
 
-	err := sut.execute(w, r)
+	err := sut.execute(w, r, data)
 
 	assert.Nil(t, err)
-	assert.True(t, template.executeTemplate)
-	assert.False(t, template.execute)
+	assert.True(t, template.executedTemplate)
+	assert.False(t, template.executed)
 
 	assert.Equal(t, data, template.lastVars)
 }
@@ -66,19 +67,20 @@ func TestRoute_fullPage(t *testing.T) {
 		HeaderData: fetchedData,
 	}
 
-	sut := route{client: client, tmpl: template, partial: "test", Data: data.Data}
+	sut := route{client: client, tmpl: template, partial: "test"}
 
-	err := sut.execute(w, r)
+	err := sut.execute(w, r, data.Data)
 
 	assert.Nil(t, err)
-	assert.True(t, template.execute)
-	assert.False(t, template.executeTemplate)
+	assert.True(t, template.executed)
+	assert.False(t, template.executedTemplate)
 
 	assert.Equal(t, data, template.lastVars)
 }
 
 func TestRoute_error(t *testing.T) {
 	client := mockApiClient{}
+	client.error = errors.New("it broke")
 	template := &mockTemplate{}
 
 	w := httptest.NewRecorder()
@@ -92,10 +94,10 @@ func TestRoute_error(t *testing.T) {
 		},
 	}
 
-	sut := route{client: client, tmpl: template, partial: "test", Data: data.Data}
+	sut := route{client: client, tmpl: template, partial: "test"}
 
-	err := sut.execute(w, r)
+	err := sut.execute(w, r, data.Data)
 
 	assert.NotNil(t, err)
-	assert.Equal(t, "client id in string cannot be parsed to an integer", err.Error())
+	assert.Equal(t, "it broke", err.Error())
 }
