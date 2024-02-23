@@ -9,13 +9,12 @@ type InvoiceTab struct {
 }
 
 type InvoicesHandler struct {
-	route
+	router
 }
 
 func (h *InvoicesHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
 	var data InvoiceTab
 	data.AppVars = v
 
-	h.Data = data
-	return h.execute(w, r)
+	return h.execute(w, r, data)
 }

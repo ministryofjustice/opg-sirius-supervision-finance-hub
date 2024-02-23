@@ -9,13 +9,12 @@ type PendingInvoiceAdjustmentsTab struct {
 }
 
 type PendingInvoiceAdjustmentsHandler struct {
-	route
+	router
 }
 
 func (h *PendingInvoiceAdjustmentsHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
 	var data FeeReductionsTab
 	data.AppVars = v
 
-	h.Data = data
-	return h.execute(w, r)
+	return h.execute(w, r, data)
 }

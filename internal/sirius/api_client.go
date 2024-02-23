@@ -57,6 +57,7 @@ type Context struct {
 	Context   context.Context
 	Cookies   []*http.Cookie
 	XSRFToken string
+	ClientId  int
 }
 
 func (ctx Context) With(c context.Context) Context {

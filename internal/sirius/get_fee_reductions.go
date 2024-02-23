@@ -8,10 +8,10 @@ import (
 	"net/http"
 )
 
-func (c *ApiClient) GetPersonDetails(ctx Context, ClientId int) (model.Person, error) {
-	var v model.Person
+func (c *ApiClient) GetFeeReductions(ctx Context, clientId int) (model.FeeReductions, error) {
+	var v model.FeeReductions
 
-	requestURL := fmt.Sprintf("/api/v1/clients/%d", ClientId)
+	requestURL := fmt.Sprintf("/api/v1/clients/%d/fee-reductions", clientId)
 	req, err := c.newRequest(ctx, http.MethodGet, requestURL, nil)
 	if err != nil {
 		c.logErrorRequest(req, err)

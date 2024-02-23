@@ -1,11 +1,9 @@
 package server
 
 import (
-	"errors"
 	"github.com/opg-sirius-finance-hub/internal/model"
 	"golang.org/x/sync/errgroup"
 	"net/http"
-	"strconv"
 )
 
 type HeaderData struct {
@@ -22,21 +20,24 @@ type route struct {
 	client  ApiClient
 	tmpl    Template
 	partial string
-	Data    any
+}
+
+func (r route) Client() ApiClient {
+	return r.client
 }
 
 // execute is an abstraction of the Template execute functions in order to conditionally render either a full template or
 // a block, in response to a header added by HTMX. If the header is not present, the function will also fetch all
 // additional data needed by the page for a full page load.
-func (r route) execute(w http.ResponseWriter, req *http.Request) error {
+func (r route) execute(w http.ResponseWriter, req *http.Request, data any) error {
 	if r.isHxRequest(req) {
-		return r.tmpl.ExecuteTemplate(w, r.partial, r.Data)
+		return r.tmpl.ExecuteTemplate(w, r.partial, data)
 	} else {
 		ctx := getContext(req)
 		group, groupCtx := errgroup.WithContext(ctx.Context)
 
 		data := PageData{
-			Data: r.Data,
+			Data: data,
 		}
 
 		group.Go(func() error {
@@ -48,11 +49,7 @@ func (r route) execute(w http.ResponseWriter, req *http.Request) error {
 			return nil
 		})
 		group.Go(func() error {
-			personId, err := strconv.Atoi(req.PathValue("id"))
-			if err != nil {
-				return errors.New("client id in string cannot be parsed to an integer")
-			}
-			person, err := r.client.GetPersonDetails(ctx.With(groupCtx), personId)
+			person, err := r.client.GetPersonDetails(ctx.With(groupCtx), ctx.ClientId)
 			if err != nil {
 				return err
 			}
