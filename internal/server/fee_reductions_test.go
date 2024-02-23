@@ -9,7 +9,7 @@ import (
 )
 
 func TestFeeReductions(t *testing.T) {
-	feeReductions := model.FeeReductions{
+	in := model.FeeReductions{
 		{
 			Id:           1,
 			Type:         "EXEMPTION",
@@ -30,7 +30,7 @@ func TestFeeReductions(t *testing.T) {
 		},
 	}
 
-	client := mockApiClient{FeeReductions: feeReductions}
+	client := mockApiClient{FeeReductions: in}
 	ro := &mockRoute{client: client}
 
 	w := httptest.NewRecorder()
@@ -47,8 +47,25 @@ func TestFeeReductions(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, ro.executed)
 
+	out := FeeReductions{
+		{
+			Type:         "Exemption",
+			StartDate:    "01/04/2022",
+			EndDate:      "31/03/2021",
+			DateReceived: "02/02/2021",
+			Notes:        "Exemption cancelled due to incorrect filing",
+		},
+		{
+			Type:         "Remission",
+			StartDate:    "01/04/2022",
+			EndDate:      "31/03/2021",
+			DateReceived: "02/06/2021",
+			Notes:        "Remission for 2021/2022",
+		},
+	}
+
 	expected := FeeReductionsTab{
-		FeeReductions: feeReductions,
+		FeeReductions: out,
 		AppVars:       appVars,
 	}
 

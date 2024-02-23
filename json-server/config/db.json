@@ -21,21 +21,12 @@
     ],
     "fee-reductions": [
         {
-            "id": 1,
-            "type": "EXEMPTION",
-            "startDate": "2022-04-01T00:00:00+00:00",
-            "endDate": "2021-03-31T00:00:00+00:00",
-            "dateReceived": "2021-02-02T00:00:00+00:00",
-            "notes": "Exemption cancelled due to incorrect filing",
-            "deleted": true
-        },
-        {
-            "id": 2,
+            "id": 4,
             "type": "REMISSION",
-            "startDate": "2022-04-01T00:00:00+00:00",
-            "endDate": "2021-03-31T00:00:00+00:00",
-            "dateReceived": "2021-06-02T00:00:00+00:00",
-            "notes": "Remission for 2021/2022",
+            "startDate": "2023-04-01T00:00:00+00:00",
+            "endDate": "2026-03-31T00:00:00+00:00",
+            "dateReceived": "2023-02-02T00:00:00+00:00",
+            "notes": "Remission for 2023/2026",
             "deleted": false
         },
         {
@@ -48,13 +39,22 @@
             "deleted": false
         },
         {
-            "id": 3,
+            "id": 2,
             "type": "REMISSION",
-            "startDate": "2023-04-01T00:00:00+00:00",
-            "endDate": "2026-03-31T00:00:00+00:00",
-            "dateReceived": "2023-02-02T00:00:00+00:00",
-            "notes": "Remission for 2023/2026",
+            "startDate": "2022-04-01T00:00:00+00:00",
+            "endDate": "2021-03-31T00:00:00+00:00",
+            "dateReceived": "2021-06-02T00:00:00+00:00",
+            "notes": "Remission for 2021/2022",
             "deleted": false
+        },
+        {
+            "id": 1,
+            "type": "EXEMPTION",
+            "startDate": "2022-04-01T00:00:00+00:00",
+            "endDate": "2021-03-31T00:00:00+00:00",
+            "dateReceived": "2021-02-02T00:00:00+00:00",
+            "notes": "Exemption cancelled due to incorrect filing",
+            "deleted": true
         }
     ]
 }

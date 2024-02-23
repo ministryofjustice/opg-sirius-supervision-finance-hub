@@ -8,7 +8,6 @@ type FeeReduction struct {
 	DateReceived Date   `json:"dateReceived"`
 	Notes        string `json:"notes"`
 	Deleted      bool   `json:"deleted"`
-	Status       string // calculated on server
 }
 
 type FeeReductions []FeeReduction

@@ -4,13 +4,26 @@ describe("Fee Reductions Tab", () => {
     });
 
     describe("Fee Reductions", () => {
-        it("shows table header", () => {
-            cy.contains('[data-cy="type"]', "Type");
-            cy.contains('[data-cy="start-date"]', "Start date");
-            cy.contains('[data-cy="end-date"]', "End date");
-            cy.contains('[data-cy="date-received"]', "Date received");
-            cy.contains('[data-cy="status"]', "Status");
-            cy.contains('[data-cy="notes"]', "Notes");
+        it("displays table and content", () => {
+            cy.get("table#fee-reductions > thead > tr")
+                .children()
+                .first().contains("Type")
+                .next().contains("Start date")
+                .next().contains("End date")
+                .next().contains("Date received")
+                .next().contains("Status")
+                .next().contains("Notes");
+
+            cy.get("table#fee-reductions > tbody > tr")
+                .should("have.length", 4)
+                .first()
+                .children()
+                .first().contains("Remission")
+                .next().contains("01/04/2023")
+                .next().contains("31/03/2026")
+                .next().contains("02/02/2023")
+                .next() // status not added yet
+                .next().contains("Remission for 2023/2026");
         });
     });
 });

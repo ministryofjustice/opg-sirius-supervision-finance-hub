@@ -20,7 +20,7 @@
             </div>
         </div>
     </header>
-    <table id="invoices" class="govuk-table">
+    <table id="fee-reductions" class="govuk-table">
         <thead class="govuk-table__head">
         <tr class="govuk-table__row">
             <th scope="col" data-cy="type" class="govuk-table__header">Type</th>
@@ -36,14 +36,14 @@
         {{ else }}
             {{ range . }}
                 <tbody class="govuk-table__body">
-                <tr>
-                    <td class="govuk-table__cell">{{.Type}}</td>
-                    <td class="govuk-table__cell">{{.StartDate}}</td>
-                    <td class="govuk-table__cell">{{.EndDate}}</td>
-                    <td class="govuk-table__cell">{{.DateReceived}}</td>
-                    <td class="govuk-table__cell"></td>
-                    <td class="govuk-table__cell">{{.Notes}}</td>
-                </tr>
+                    <tr>
+                        <td class="govuk-table__cell">{{.Type}}</td>
+                        <td class="govuk-table__cell">{{.StartDate}}</td>
+                        <td class="govuk-table__cell">{{.EndDate}}</td>
+                        <td class="govuk-table__cell">{{.DateReceived}}</td>
+                        <td class="govuk-table__cell"></td>
+                        <td class="govuk-table__cell">{{.Notes}}</td>
+                    </tr>
                 </tbody>
             {{end }}
         {{ end }}

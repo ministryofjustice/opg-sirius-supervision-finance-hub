@@ -2,11 +2,24 @@ package server
 
 import (
 	"github.com/opg-sirius-finance-hub/internal/model"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"net/http"
 )
 
+type FeeReductions []FeeReduction
+
+type FeeReduction struct {
+	Type         string
+	StartDate    string
+	EndDate      string
+	DateReceived string
+	Notes        string
+	Status       string
+}
+
 type FeeReductionsTab struct {
-	FeeReductions model.FeeReductions
+	FeeReductions FeeReductions
 	AppVars
 }
 
@@ -22,6 +35,20 @@ func (h *FeeReductionsHandler) render(v AppVars, w http.ResponseWriter, r *http.
 		return err
 	}
 
-	data := FeeReductionsTab{feeReductions, v}
+	data := FeeReductionsTab{h.transform(feeReductions), v}
 	return h.execute(w, r, data)
+}
+
+func (h *FeeReductionsHandler) transform(in model.FeeReductions) FeeReductions {
+	var out FeeReductions
+	for _, f := range in {
+		out = append(out, FeeReduction{
+			Type:         cases.Title(language.English).String(f.Type),
+			StartDate:    f.StartDate.String(),
+			EndDate:      f.EndDate.String(),
+			DateReceived: f.DateReceived.String(),
+			Notes:        f.Notes,
+		})
+	}
+	return out
 }
