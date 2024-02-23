@@ -32,7 +32,9 @@
         </tr>
         </thead>
         {{ if eq (len .) 0 }}
-            <div>There are no Fee reductions</div>
+            <tr class="govuk-table__row">
+                <td colspan="100%" class="govuk-table__cell govuk-table__cell--no-data">There are no fee reductions</td>
+            </tr>
         {{ else }}
             {{ range . }}
                 <tbody class="govuk-table__body">
