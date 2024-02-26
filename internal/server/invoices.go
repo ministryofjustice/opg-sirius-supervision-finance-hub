@@ -1,15 +1,13 @@
 package server
 
 import (
-	"errors"
 	"github.com/opg-sirius-finance-hub/internal/model"
 	"net/http"
-	"strconv"
 )
 
 type InvoiceTab struct {
+	Invoices model.Invoices
 	AppVars
-	Invoices model.InvoiceList
 }
 
 type InvoicesHandler struct {
@@ -17,20 +15,13 @@ type InvoicesHandler struct {
 }
 
 func (h *InvoicesHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
-	var data InvoiceTab
 	ctx := getContext(r)
-	clientId, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		return errors.New("client id in string cannot be parsed to an integer")
-	}
 
-	invoices, err := (h.route.client).GetInvoices(ctx, clientId)
+	invoices, err := h.Client().GetInvoices(ctx, ctx.ClientId)
 	if err != nil {
 		return err
 	}
 
-	data.AppVars = v
-	data.Invoices = invoices
-
+	data := InvoiceTab{invoices, v}
 	return h.execute(w, r, data)
 }

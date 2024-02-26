@@ -14,11 +14,9 @@
   </header>
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-full ">
-        {{ $length := len .Invoices.Invoices }}
+        {{ $length := len .Invoices }}
         {{ if eq $length 0 }}
-{{/*        <tr class="govuk-table__row">*/}}
-          <div class="govuk-!-text-align-centre">There are no invoices</div>
-{{/*        </tr>*/}}
+          <div data-cy="no-invoices" class="govuk-!-text-align-centre govuk-heading-m">There are no invoices</div>
         {{ else }}
         <table id="invoices" class="govuk-table">
           <thead class="govuk-table__head">
@@ -32,10 +30,10 @@
           </tr>
           </thead>
           <tbody class="govuk-table__body">
-          {{  range .Invoices.Invoices }}
+          {{  range .Invoices }}
             <tr class="govuk-table__row">
-              <td class="govuk-table__cell" style="border-bottom-color: rgb(177, 180, 182);">
-                <details class="govuk-details summary" id="invoice-{{.Id}}" style="margin-bottom: 0px;">
+              <td class="govuk-table__cell" >
+                <details class="govuk-details summary" id="invoice-{{.Id}}">
                   <summary class="govuk-details__summary">
                     <span class="govuk-details__summary-text">
                       {{ .Ref }}
@@ -43,15 +41,17 @@
                   </summary>
                 </details>
               </td>
-              <td class="govuk-table__cell" data-sort-value="6961" style="border-bottom-color: rgb(177, 180, 182);">{{ .Status }}</td>
-              <td class="govuk-table__cell" style="border-bottom-color: rgb(177, 180, 182);">£{{ .Amount }}</td>
-              <td class="govuk-table__cell" style="border-bottom-color: rgb(177, 180, 182);">{{ .RaisedDate }}</td>
-              <td class="govuk-table__cell" style="border-bottom-color: rgb(177, 180, 182);">£{{ .Received }}</td>
-              <td class="govuk-table__cell" style="border-bottom-color: rgb(177, 180, 182);">£{{ .OutstandingBalance }}</td>
-              <td class="govuk-table__cell" style="border-bottom-color: rgb(177, 180, 182);">
-                <a href="./invoice-actions"> <button type="submit" class="govuk-button govuk-!-margin-bottom-0 govuk-button--secondary" data-module="govuk-button">
+              <td class="govuk-table__cell">{{ .Status }}</td>
+              <td class="govuk-table__cell">£{{ .Amount }}</td>
+              <td class="govuk-table__cell">{{ .RaisedDate }}</td>
+              <td class="govuk-table__cell">£{{ .Received }}</td>
+              <td class="govuk-table__cell">£{{ .OutstandingBalance }}</td>
+              <td class="govuk-table__cell">
+                <a href="./invoice-actions">
+                  <button type="submit" class="govuk-button govuk-!-margin-bottom-0 govuk-button--secondary" data-module="govuk-button">
                     Adjust invoice (not working)
-                  </button> </a>
+                  </button>
+                </a>
               </td>
             </tr>
 

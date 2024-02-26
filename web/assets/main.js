@@ -8,15 +8,15 @@ htmx.logAll();
 
 if (document.querySelector(".summary")) {
     const summaries = document.getElementsByClassName("summary")
-    for (let summary of summaries) {
-        let summeryId = summary.id
+    for (const summary of summaries) {
+        const summeryId = summary.id
         summary.onclick = function () {
-            toggleSummary(summeryId);
+            toggleSummery(summeryId);
         }
     }
 }
 
-function toggleSummary(summeryId) {
+function toggleSummery(summeryId) {
     document
         .getElementById(`${summeryId}-reveal`)
         .classList.toggle("hide");

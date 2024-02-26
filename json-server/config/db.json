@@ -70,79 +70,80 @@
             "deleted": true
         }
     ],
-    "invoices": {
-        "invoices": [
-            {
-                "id": 1,
-                "ref": "AD101002/22",
-                "status": "Unpaid",
-                "amount": "123.23",
-                "raisedDate": "10/01/9999",
-                "received": "3.45",
-                "outstandingBalance": "119.78",
-                "ledgers": [
-                    {
-                        "amount": "123",
-                        "receivedDate": "01/05/2222",
-                        "transactionType": "Online card payment",
-                        "status": "Applied"
-                    },
-                    {
-                        "amount": "321",
-                        "receivedDate": "12/12/2223",
-                        "transactionType": "",
-                        "status": "Rejected"
-                    }
-                ]
-            },
-            {
-                "id": 2,
-                "ref": "S2000001/20",
-                "status": "Paid - Online card",
-                "amount": "320",
-                "raisedDate": "11/11/8888",
-                "received": "0",
-                "outstandingBalance": "320",
-                "supervisionLevels": [
-                    {
-                        "Level": "General",
-                        "Amount": "320",
-                        "From": "01/04/2019",
-                        "To": "31/03/2020"
-                    }
-                ]
-            },
-            {
-                "id": 3,
-                "ref": "N2000001/20",
-                "status": "",
-                "amount": "",
-                "raisedDate": "",
-                "received": "",
-                "outstandingBalance": "",
-                "ledgers": [
-                    {
-                        "amount": "123",
-                        "receivedDate": "01/05/2222",
-                        "transactionType": "Online card payment",
-                        "status": "Applied"
-                    },
-                    {
-                        "amount": "321",
-                        "receivedDate": "12/12/1111",
-                        "transactionType": "",
-                        "status": "Pending"
-                    }
-                ],
-                "supervisionLevels": [
-                    {
-                        "Level": "General",
-                        "Amount": "320",
-                        "From": "01/04/2019",
-                        "To": "31/03/2020"
-                    }
-                ]
-            }
-        ]
-    }
+    "invoices": [
+        {
+            "id": 1,
+            "clientId": 1,
+            "ref": "AD101002/22",
+            "status": "Unpaid",
+            "amount": "123.23",
+            "raisedDate": "10/01/9999",
+            "received": "3.45",
+            "outstandingBalance": "119.78",
+            "ledgers": [
+                {
+                    "amount": "123",
+                    "receivedDate": "01/05/2222",
+                    "transactionType": "Online card payment",
+                    "status": "Applied"
+                },
+                {
+                    "amount": "321",
+                    "receivedDate": "12/12/2223",
+                    "transactionType": "",
+                    "status": "Rejected"
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "clientId": 1,
+            "ref": "S2000001/20",
+            "status": "Paid - Online card",
+            "amount": "320",
+            "raisedDate": "11/11/8888",
+            "received": "0",
+            "outstandingBalance": "320",
+            "supervisionLevels": [
+                {
+                    "Level": "General",
+                    "Amount": "320",
+                    "From": "01/04/2019",
+                    "To": "31/03/2020"
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "clientId": 1,
+            "ref": "N2000001/20",
+            "status": "",
+            "amount": "",
+            "raisedDate": "",
+            "received": "",
+            "outstandingBalance": "",
+            "ledgers": [
+                {
+                    "amount": "123",
+                    "receivedDate": "01/05/2222",
+                    "transactionType": "Online card payment",
+                    "status": "Applied"
+                },
+                {
+                    "amount": "321",
+                    "receivedDate": "12/12/1111",
+                    "transactionType": "",
+                    "status": "Pending"
+                }
+            ],
+            "supervisionLevels": [
+                {
+                    "Level": "General",
+                    "Amount": "320",
+                    "From": "01/04/2019",
+                    "To": "31/03/2020"
+                }
+            ]
+        }
+    ]
 }
