@@ -17,7 +17,7 @@ type ApiClient interface {
 	GetCurrentUserDetails(sirius.Context) (model.Assignee, error)
 	GetPersonDetails(sirius.Context, int) (model.Person, error)
 	GetFeeReductions(sirius.Context, int) (model.FeeReductions, error)
-	GetInvoices(sirius.Context, int) (model.InvoiceList, error)
+	GetInvoices(sirius.Context, int) (model.Invoices, error)
 }
 
 type router interface {

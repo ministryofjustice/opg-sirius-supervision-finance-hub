@@ -7,55 +7,40 @@ import (
 	"net/http"
 )
 
-func (c *ApiClient) GetInvoices(ctx Context, ClientId int) (model.InvoiceList, error) {
-	var invoiceList model.InvoiceList
+func (c *ApiClient) GetInvoices(ctx Context, clientId int) (model.Invoices, error) {
+	var invoices model.Invoices
 
-	url := fmt.Sprintf("/api/v1/clients/%d/invoices", ClientId)
+	url := fmt.Sprintf("/api/v1/clients/%d/invoices", clientId)
 
 	req, err := c.newRequest(ctx, http.MethodGet, url, nil)
 
 	if err != nil {
-		return invoiceList, err
+		return invoices, err
 	}
 
 	resp, err := c.http.Do(req)
 
 	if err != nil {
-		return invoiceList, err
+		c.logger.Request(req, err)
+		return invoices, err
 	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusUnauthorized {
-		return invoiceList, ErrUnauthorized
+		c.logger.Request(req, err)
+		return invoices, ErrUnauthorized
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return invoiceList, newStatusError(resp)
+		c.logger.Request(req, err)
+		return invoices, newStatusError(resp)
 	}
 
-	if err = json.NewDecoder(resp.Body).Decode(&invoiceList); err != nil {
-		return invoiceList, err
+	if err = json.NewDecoder(resp.Body).Decode(&invoices); err != nil {
+		c.logger.Request(req, err)
+		return invoices, err
 	}
 
-	var invoices []model.Invoice
-
-	for _, t := range invoiceList.Invoices {
-		var invoice = model.Invoice{
-			Id:                 t.Id,
-			Ref:                t.Ref,
-			Status:             t.Status,
-			Amount:             t.Amount,
-			RaisedDate:         t.RaisedDate,
-			Received:           t.Received,
-			OutstandingBalance: t.OutstandingBalance,
-			Ledgers:            t.Ledgers,
-			SupervisionLevels:  t.SupervisionLevels,
-		}
-		invoices = append(invoices, invoice)
-	}
-
-	invoiceList.Invoices = invoices
-	//see returning just one odject not an array
-	return invoiceList, err
+	return invoices, err
 }

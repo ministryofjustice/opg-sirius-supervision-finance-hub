@@ -16,35 +16,33 @@ func TestGetInvoicesCanReturn200(t *testing.T) {
 	client, _ := NewApiClient(mockClient, "http://localhost:3000", logger)
 
 	json := `
-	{
-	   "invoices":[
-		  {
-			 "id":3,
-			 "ref":"N2000001/20",
-			 "status":"Unpaid",
-			 "amount":"232",
-			 "raisedDate":"01/04/2222",
-			 "received":"22",
-			 "outstandingBalance":"210",
-			 "ledgers":[
-				{
-				   "amount":"123",
-				   "receivedDate":"01/05/2222",
-				   "transactionType":"Online card payment",
-				   "status":"Applied"
-				}
-			 ],
-			 "supervisionLevels":[
-				{
-				   "Level":"General",
-				   "Amount":"320",
-				   "From":"01/04/2019",
-				   "To":"31/03/2020"
-				}
-			 ]
-		  }
-	   ]
-	}
+	[
+	  {
+		 "id":3,
+		 "ref":"N2000001/20",
+		 "status":"Unpaid",
+		 "amount":"232",
+		 "raisedDate":"01/04/2222",
+		 "received":"22",
+		 "outstandingBalance":"210",
+		 "ledgers":[
+			{
+			   "amount":"123",
+			   "receivedDate":"01/05/2222",
+			   "transactionType":"Online card payment",
+			   "status":"Applied"
+			}
+		 ],
+		 "supervisionLevels":[
+			{
+			   "Level":"General",
+			   "Amount":"320",
+			   "From":"01/04/2019",
+			   "To":"31/03/2020"
+			}
+		 ]
+	  }
+	]
 	`
 
 	r := io.NopCloser(bytes.NewReader([]byte(json)))
@@ -56,31 +54,29 @@ func TestGetInvoicesCanReturn200(t *testing.T) {
 		}, nil
 	}
 
-	expectedResponse := model.InvoiceList{
-		Invoices: []model.Invoice{
-			{
-				Id:                 3,
-				Ref:                "N2000001/20",
-				Status:             "Unpaid",
-				Amount:             "232",
-				RaisedDate:         "01/04/2222",
-				Received:           "22",
-				OutstandingBalance: "210",
-				Ledgers: []model.Ledger{
-					{
-						Amount:          "123",
-						ReceivedDate:    "01/05/2222",
-						TransactionType: "Online card payment",
-						Status:          "Applied",
-					},
+	expectedResponse := model.Invoices{
+		{
+			Id:                 3,
+			Ref:                "N2000001/20",
+			Status:             "Unpaid",
+			Amount:             "232",
+			RaisedDate:         model.NewDate("01/04/2222"),
+			Received:           "22",
+			OutstandingBalance: "210",
+			Ledgers: []model.Ledger{
+				{
+					Amount:          "123",
+					ReceivedDate:    model.NewDate("01/05/2222"),
+					TransactionType: "Online card payment",
+					Status:          "Applied",
 				},
-				SupervisionLevels: []model.SupervisionLevel{
-					{
-						Level:  "General",
-						Amount: "320",
-						From:   "01/04/2019",
-						To:     "31/03/2020",
-					},
+			},
+			SupervisionLevels: []model.SupervisionLevel{
+				{
+					Level:  "General",
+					Amount: "320",
+					From:   model.NewDate("01/04/2019"),
+					To:     model.NewDate("31/03/2020"),
 				},
 			},
 		},
@@ -103,9 +99,7 @@ func TestGetInvoicesCanThrow500Error(t *testing.T) {
 
 	clientList, err := client.GetInvoices(getContext(nil), 3)
 
-	expectedResponse := model.InvoiceList{
-		Invoices: nil,
-	}
+	var expectedResponse model.Invoices
 
 	assert.Equal(t, expectedResponse, clientList)
 
