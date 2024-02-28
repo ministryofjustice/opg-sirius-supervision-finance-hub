@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/opg-sirius-finance-hub/internal/sirius"
 	"net/http"
 )
 
@@ -9,6 +10,7 @@ type AppVars struct {
 	XSRFToken       string
 	Tabs            []Tab
 	EnvironmentVars EnvironmentVars
+	Errors          sirius.ValidationErrors
 }
 
 type Tab struct {

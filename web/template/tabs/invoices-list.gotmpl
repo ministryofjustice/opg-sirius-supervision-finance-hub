@@ -47,11 +47,21 @@
               <td class="govuk-table__cell" data-cy="invoice-received">£{{ .Received }}</td>
               <td class="govuk-table__cell" data-cy="invoice-outstanding-balance">£{{ .OutstandingBalance }}</td>
               <td class="govuk-table__cell">
-                <a href="./invoice-actions">
-                  <button type="submit" class="govuk-button govuk-!-margin-bottom-0 govuk-button--secondary" data-module="govuk-button">
-                    Adjust invoice (not working)
-                  </button>
-                </a>
+                <div class="moj-button-menu">
+                  <div class="moj-button-menu__wrapper">
+                    <a
+                      class="govuk-button moj-button-menu__item govuk-button--secondary"
+{{/*                      href="{{ (printf "/clients/1/invoices/%d/update" .Id) }}"*/}}
+                      role="button"
+                      draggable="false"
+                      data-module="govuk-button"
+                      hx-get="{{ (printf "/clients/1/invoices/%d/update" .Id) }}"
+                      hx-target="#tab-content"
+                      hx-push-url="{{ (printf "/clients/1/invoices/%d/update" .Id) }}">
+                      Adjust invoice
+                    </a>
+                  </div>
+                </div>
               </td>
             </tr>
 
