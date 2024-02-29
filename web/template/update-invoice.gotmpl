@@ -4,81 +4,80 @@
 
 {{ define "main" }}
     {{ block "update-invoice" .Data}}
-    <div id="error-summary">
-        {{ template "error-summary" .Errors }}
-    </div>
-    <div class="govuk-grid-row govuk-!-margin-top-5">
-        <div class="govuk-grid-column-full">
-            <header>
-                <h1 class="govuk-heading-l govuk-!-margin-top-0 govuk-!-margin-bottom-0">
-                    Adjust invoice
-                </h1>
-            </header>
+        <div class="govuk-grid-row govuk-!-margin-top-5">
+            <div class="govuk-grid-column-full">
+                <header>
+                    <h1 class="govuk-heading-l govuk-!-margin-top-0 govuk-!-margin-bottom-0">
+                        Adjust invoice
+                    </h1>
+                </header>
 
-            <div class="govuk-grid-row">
-                <form
-                    id="update-invoice-form"
-                    class="add-note govuk-grid-column-one-third"
-                    method="post"
+                <div class="govuk-grid-row">
+                    <form
+                            id="update-invoice-form"
+                            class="add-note govuk-grid-column-one-third"
+                            method="post"
+                            hx-post="{{ (printf "/clients/1/invoices/%d/ledger-entries" 1) }}"
+                            hx-target="#error-summary"
                     >
-                    <input
-                        type="hidden"
-                        name="xsrfToken"
-                        value="{{ .XSRFToken }}"/>
+                        <input
+                                type="hidden"
+                                name="xsrfToken"
+                                value="{{ .XSRFToken }}"/>
 
-                    <div class="govuk-form-group">
                         <div class="govuk-form-group">
-                            <fieldset class="govuk-fieldset">
-                                <legend class="govuk-fieldset__legend" id="invoiceType">Choose an invoice adjustment type</legend>
-                                {{ template "error-message" (index .Errors "invoiceType") }}
-                                {{ $selectedType := .InvoiceType }}
-                                <div class="govuk-radios" id="f-invoiceType">
-                                    {{ range .InvoiceTypes }}
-                                        <div class="govuk-radios__item">
-                                            <input class="govuk-radios__input" id="{{.Handle}}" name="invoiceType"
-                                                   type="radio" value="{{.Handle}}">
-                                            <label class="govuk-label govuk-radios__label"
-                                                   for="{{.Handle}}">{{.Description}}</label>
-                                        </div>
-                                    {{ end }}
-                                </div>
-                            </fieldset>
-                        </div>
-                        <div class="govuk-character-count" data-module="govuk-character-count" data-maxlength="1000">
                             <div class="govuk-form-group">
-                                <label class="govuk-label" for="f-2-note">
-                                    Notes (optional)
-                                </label>
-                                <textarea
-                                    class="govuk-textarea govuk-js-character-count"
-                                    id="f-2-note"
-                                    name="notes"
-                                    rows="10"
-                                    aria-describedby="f-2-note-info notes-hint"
-                                ></textarea>
-                                <div
-                                    id="f-2-note-info"
-                                    class="govuk-hint govuk-character-count__message"
-                                    aria-live="polite">
-                                    You have 1,000 characters remaining
+                                <fieldset class="govuk-fieldset">
+                                    <legend class="govuk-fieldset__legend" id="invoiceType">Choose an invoice adjustment
+                                        type
+                                    </legend>
+                                    {{ template "error-message" (index .Errors "invoiceType") }}
+                                    {{ $selectedType := .InvoiceType }}
+                                    <div class="govuk-radios" id="f-invoiceType">
+                                        {{ range .InvoiceTypes }}
+                                            <div class="govuk-radios__item">
+                                                <input class="govuk-radios__input" id="{{.Handle}}" name="invoiceType"
+                                                       type="radio" value="{{.Handle}}">
+                                                <label class="govuk-label govuk-radios__label"
+                                                       for="{{.Handle}}">{{.Description}}</label>
+                                            </div>
+                                        {{ end }}
+                                    </div>
+                                </fieldset>
+                            </div>
+                            <div class="govuk-character-count" data-module="govuk-character-count"
+                                 data-maxlength="1000">
+                                <div class="govuk-form-group">
+                                    <label class="govuk-label" for="f-2-note">
+                                        Notes (optional)
+                                    </label>
+                                    <textarea
+                                            class="govuk-textarea govuk-js-character-count"
+                                            id="f-2-note"
+                                            name="notes"
+                                            rows="10"
+                                            aria-describedby="f-2-note-info notes-hint"
+                                    ></textarea>
+                                    <div
+                                            id="f-2-note-info"
+                                            class="govuk-hint govuk-character-count__message"
+                                            aria-live="polite">
+                                        You have 1,000 characters remaining
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="govuk-button-group govuk-!-margin-top-7">
-                        <button
-                            hx-post="{{ (printf "/clients/1/invoices/%d/ledger-entries" 1) }}"
-                            hx-target="#error-summary"
-{{/*                            hx-trigger="submit"*/}}
-                            class="govuk-button"
-                            data-module="govuk-button">
-                            Save and continue
-                        </button>
-                    </div>
-                </form>
+                        <div class="govuk-button-group govuk-!-margin-top-7">
+                            <button
+                                    class="govuk-button"
+                                    data-module="govuk-button">
+                                Save and continue
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
     {{ end }}
 {{ end }}

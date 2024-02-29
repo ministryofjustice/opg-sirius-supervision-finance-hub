@@ -10,14 +10,6 @@ import (
 	"strconv"
 )
 
-type SubmitInvoices struct {
-	InvoiceTypes []model.InvoiceType
-	InvoiceType  string
-	Notes        string
-	Id           string
-	AppVars
-}
-
 type SubmitInvoiceHandler struct {
 	router
 }
@@ -43,27 +35,15 @@ func (h *SubmitInvoiceHandler) render(v AppVars, w http.ResponseWriter, r *http.
 	err := h.Client().UpdateInvoice(ctx, ctx.ClientId, invoiceId, typeName, notes)
 	var verr sirius.ValidationError
 	if errors.As(err, &verr) {
-		data := UpdateInvoices{invoiceTypes, "", "", r.PathValue("id"), v}
-		data.InvoiceTypes = invoiceTypes
-		data.InvoiceType = invoiceType
-		data.Notes = notes
-		data.Errors = util.RenameErrors(verr.Errors)
-		w.WriteHeader(http.StatusBadRequest)
-		return h.execute(w, r, data)
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		return h.execute(w, r, util.RenameErrors(verr.Errors))
 	}
 	if err != nil {
 		return err
 	}
 
-	//var invoiceName string
-	//for _, t := range invoiceTypes {
-	//	if t.Handle == invoiceType {
-	//		invoiceName = t.Description
-	//	}
-	//}
-
-	//w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices", v.EnvironmentVars.Prefix, ctx.ClientId))
-	return RedirectError(fmt.Sprintf("%s/clients/%d/invoices", v.EnvironmentVars.Prefix, ctx.ClientId))
+	w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices", v.EnvironmentVars.Prefix, ctx.ClientId))
+	return nil
 }
 
 func getInvoiceName(handle string, types []model.InvoiceType) string {
