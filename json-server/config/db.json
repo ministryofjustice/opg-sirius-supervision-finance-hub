@@ -1,149 +1,172 @@
 {
-    "users":
-        {
-            "id": 65,
-            "roles": [
-                "Case Manager",
-                "Manager",
-                "Finance Reporting"
-            ]
-        },
-    "clients": [
-        {
-            "id": 1,
-            "firstname": "Finance",
-            "surname": "Person",
-            "caseRecNumber": "12345678",
-            "outstandingBalance": "£22.22",
-            "creditBalance": "£1.01",
-            "paymentMethod": "Demanded"
-        },
-        {
-            "id": 2,
-            "firstname": "Ian",
-            "surname": "Finance",
-            "caseRecNumber": "12345678",
-            "outstandingBalance": "£1000000",
-            "creditBalance": "£0",
-            "paymentMethod": "Demanded"
-        }
-    ],
-    "fee-reductions": [
-        {
-            "id": 4,
-            "clientId": 1,
-            "type": "REMISSION",
-            "startDate": "2023-04-01T00:00:00+00:00",
-            "endDate": "2026-03-31T00:00:00+00:00",
-            "dateReceived": "2023-02-02T00:00:00+00:00",
-            "notes": "Remission for 2023/2026",
-            "deleted": false
-        },
-        {
-            "id": 3,
-            "clientId": 1,
-            "type": "HARDSHIP",
-            "startDate": "2022-04-01T00:00:00+00:00",
-            "endDate": "2023-03-31T00:00:00+00:00",
-            "dateReceived": "2022-02-02T00:00:00+00:00",
-            "notes": "Hardship for 2023/2023",
-            "deleted": false
-        },
-        {
-            "id": 2,
-            "clientId": 1,
-            "type": "REMISSION",
-            "startDate": "2022-04-01T00:00:00+00:00",
-            "endDate": "2021-03-31T00:00:00+00:00",
-            "dateReceived": "2021-06-02T00:00:00+00:00",
-            "notes": "Remission for 2021/2022",
-            "deleted": false
-        },
-        {
-            "id": 1,
-            "clientId": 1,
-            "type": "EXEMPTION",
-            "startDate": "2022-04-01T00:00:00+00:00",
-            "endDate": "2021-03-31T00:00:00+00:00",
-            "dateReceived": "2021-02-02T00:00:00+00:00",
-            "notes": "Exemption cancelled due to incorrect filing",
-            "deleted": true
-        }
-    ],
-    "invoices": [
-        {
-            "id": 1,
-            "clientId": 1,
-            "ref": "AD101002/22",
-            "status": "Unpaid",
-            "amount": "123.23",
-            "raisedDate": "10/01/9999",
-            "received": "3.45",
-            "outstandingBalance": "119.78",
-            "ledgers": [
-                {
-                    "amount": "123",
-                    "receivedDate": "01/05/2222",
-                    "transactionType": "Online card payment",
-                    "status": "Applied"
-                },
-                {
-                    "amount": "321",
-                    "receivedDate": "12/12/2223",
-                    "transactionType": "",
-                    "status": "Rejected"
-                }
-            ]
-        },
-        {
-            "id": 2,
-            "clientId": 1,
-            "ref": "S2000001/20",
-            "status": "Paid - Online card",
-            "amount": "320",
-            "raisedDate": "11/11/8888",
-            "received": "0",
-            "outstandingBalance": "320",
-            "supervisionLevels": [
-                {
-                    "Level": "General",
-                    "Amount": "320",
-                    "From": "01/04/2019",
-                    "To": "31/03/2020"
-                }
-            ]
-        },
-        {
-            "id": 3,
-            "clientId": 1,
-            "ref": "N2000001/20",
-            "status": "",
-            "amount": "",
-            "raisedDate": "",
-            "received": "",
-            "outstandingBalance": "",
-            "ledgers": [
-                {
-                    "amount": "123",
-                    "receivedDate": "01/05/2222",
-                    "transactionType": "Online card payment",
-                    "status": "Applied"
-                },
-                {
-                    "amount": "321",
-                    "receivedDate": "12/12/1111",
-                    "transactionType": "",
-                    "status": "Pending"
-                }
-            ],
-            "supervisionLevels": [
-                {
-                    "Level": "General",
-                    "Amount": "320",
-                    "From": "01/04/2019",
-                    "To": "31/03/2020"
-                }
-            ]
-        }
+  "users": {
+    "id": 65,
+    "roles": [
+      "Case Manager",
+      "Manager",
+      "Finance Reporting"
     ]
+  },
+  "clients": [
+    {
+      "id": 1,
+      "firstname": "Finance",
+      "surname": "Person",
+      "caseRecNumber": "12345678",
+      "outstandingBalance": "£22.22",
+      "creditBalance": "£1.01",
+      "paymentMethod": "Demanded"
+    },
+    {
+      "id": 2,
+      "firstname": "Ian",
+      "surname": "Finance",
+      "caseRecNumber": "12345678",
+      "outstandingBalance": "£1000000",
+      "creditBalance": "£0",
+      "paymentMethod": "Demanded"
+    }
+  ],
+  "fee-reductions": [
+    {
+      "id": 4,
+      "clientId": 1,
+      "type": "REMISSION",
+      "startDate": "2023-04-01T00:00:00+00:00",
+      "endDate": "2026-03-31T00:00:00+00:00",
+      "dateReceived": "2023-02-02T00:00:00+00:00",
+      "notes": "Remission for 2023/2026",
+      "deleted": false
+    },
+    {
+      "id": 3,
+      "clientId": 1,
+      "type": "HARDSHIP",
+      "startDate": "2022-04-01T00:00:00+00:00",
+      "endDate": "2023-03-31T00:00:00+00:00",
+      "dateReceived": "2022-02-02T00:00:00+00:00",
+      "notes": "Hardship for 2023/2023",
+      "deleted": false
+    },
+    {
+      "id": 2,
+      "clientId": 1,
+      "type": "REMISSION",
+      "startDate": "2022-04-01T00:00:00+00:00",
+      "endDate": "2021-03-31T00:00:00+00:00",
+      "dateReceived": "2021-06-02T00:00:00+00:00",
+      "notes": "Remission for 2021/2022",
+      "deleted": false
+    },
+    {
+      "id": 1,
+      "clientId": 1,
+      "type": "EXEMPTION",
+      "startDate": "2022-04-01T00:00:00+00:00",
+      "endDate": "2021-03-31T00:00:00+00:00",
+      "dateReceived": "2021-02-02T00:00:00+00:00",
+      "notes": "Exemption cancelled due to incorrect filing",
+      "deleted": true
+    }
+  ],
+  "invoices": [
+    {
+      "id": 1,
+      "clientId": 1,
+      "ref": "AD101002/22",
+      "status": "Unpaid",
+      "amount": "123.23",
+      "raisedDate": "10/01/9999",
+      "received": "3.45",
+      "outstandingBalance": "119.78",
+      "ledgers": [
+        {
+          "amount": "123",
+          "receivedDate": "01/05/2222",
+          "transactionType": "Online card payment",
+          "status": "Applied"
+        },
+        {
+          "amount": "321",
+          "receivedDate": "12/12/2223",
+          "transactionType": "",
+          "status": "Rejected"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "clientId": 1,
+      "ref": "S2000001/20",
+      "status": "Paid - Online card",
+      "amount": "320",
+      "raisedDate": "11/11/8888",
+      "received": "0",
+      "outstandingBalance": "320",
+      "supervisionLevels": [
+        {
+          "Level": "General",
+          "Amount": "320",
+          "From": "01/04/2019",
+          "To": "31/03/2020"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "clientId": 1,
+      "ref": "N2000001/20",
+      "status": "",
+      "amount": "",
+      "raisedDate": "",
+      "received": "",
+      "outstandingBalance": "",
+      "ledgers": [
+        {
+          "amount": "123",
+          "receivedDate": "01/05/2222",
+          "transactionType": "Online card payment",
+          "status": "Applied"
+        },
+        {
+          "amount": "321",
+          "receivedDate": "12/12/1111",
+          "transactionType": "",
+          "status": "Pending"
+        }
+      ],
+      "supervisionLevels": [
+        {
+          "Level": "General",
+          "Amount": "320",
+          "From": "01/04/2019",
+          "To": "31/03/2020"
+        }
+      ]
+    }
+  ],
+  "ledger-entries": [
+    {
+      "invoiceType": "",
+      "notes": "",
+      "invoiceId": "1",
+      "id": 1
+    },
+    {
+      "invoiceType": "",
+      "notes": "",
+      "invoiceId": "1",
+      "id": 2
+    }
+  ],
+  "errors": [
+    {
+      "id": "notesError",
+      "validation_errors": {
+        "notes": {
+          "": "The note must be 1000 characters or fewer"
+        }
+      }
+    }
+  ]
 }

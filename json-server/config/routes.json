@@ -3,5 +3,5 @@
     "/users/current": "/users",
     ":id/fee-reductions": "/fee-reductions?clientId=:id",
     ":id/invoices": "/invoices?clientId=:id",
-    ":id/invoices/update": "/invoices?clientId=:id"
+    "invoices/*/ledger-entries": "/ledger-entries"
 }

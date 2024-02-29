@@ -4,6 +4,7 @@
 
 {{ define "main" }}
     {{ block "update-invoice" .Data}}
+    {{ template "error-summary" .Errors }}
     <div class="govuk-grid-row govuk-!-margin-top-5">
         <div class="govuk-grid-column-full">
             <header>

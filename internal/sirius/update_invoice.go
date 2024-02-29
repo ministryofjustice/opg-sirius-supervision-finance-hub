@@ -8,7 +8,6 @@ import (
 )
 
 type updateInvoice struct {
-	Id          int    `json:"id"`
 	InvoiceType string `json:"invoiceType"`
 	Notes       string `json:"notes"`
 }
@@ -16,7 +15,6 @@ type updateInvoice struct {
 func (c *ApiClient) UpdateInvoice(ctx Context, clientId int, invoiceId int, invoiceType string, notes string) error {
 	var body bytes.Buffer
 	err := json.NewEncoder(&body).Encode(updateInvoice{
-		Id:          invoiceId,
 		InvoiceType: invoiceType,
 		Notes:       notes,
 	})
@@ -24,7 +22,7 @@ func (c *ApiClient) UpdateInvoice(ctx Context, clientId int, invoiceId int, invo
 		return err
 	}
 
-	req, err := c.newRequest(ctx, http.MethodPost, fmt.Sprintf("/api/v1/clients/%d/invoices/update", clientId), &body)
+	req, err := c.newRequest(ctx, http.MethodPost, fmt.Sprintf("/api/v1/invoices/%d/ledger-entries", invoiceId), &body)
 
 	if err != nil {
 		return err

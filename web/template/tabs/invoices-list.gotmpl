@@ -51,13 +51,12 @@
                   <div class="moj-button-menu__wrapper">
                     <a
                       class="govuk-button moj-button-menu__item govuk-button--secondary"
-{{/*                      href="{{ (printf "/clients/1/invoices/%d/update" .Id) }}"*/}}
                       role="button"
                       draggable="false"
                       data-module="govuk-button"
-                      hx-get="{{ (printf "/clients/1/invoices/%d/update" .Id) }}"
-                      hx-target="#tab-content"
-                      hx-push-url="{{ (printf "/clients/1/invoices/%d/update" .Id) }}">
+                      hx-get="{{ (printf "/clients/1/invoices/%d/ledger-entries" .Id) }}"
+                      hx-target="#main-content"
+                      hx-push-url="{{ (printf "/clients/1/invoices/%d/ledger-entries" .Id) }}">
                       Adjust invoice
                     </a>
                   </div>

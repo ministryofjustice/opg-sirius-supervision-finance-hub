@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"fmt"
 	"github.com/opg-sirius-finance-hub/internal/model"
 	"github.com/opg-sirius-finance-hub/internal/sirius"
@@ -13,6 +14,7 @@ type UpdateInvoices struct {
 	InvoiceTypes []model.InvoiceType
 	InvoiceType  string
 	Notes        string
+	Id           string
 	AppVars
 }
 
@@ -28,10 +30,9 @@ func (h *UpdateInvoiceHandler) render(v AppVars, w http.ResponseWriter, r *http.
 		{Handle: "unapply", Description: "Unapply"},
 		{Handle: "reapply", Description: "Reapply"},
 	}
-	data := UpdateInvoices{invoiceTypes, "", "", v}
+	data := UpdateInvoices{invoiceTypes, "", "", r.PathValue("id"), v}
 
 	if r.Method == http.MethodGet {
-
 		return h.execute(w, r, data)
 	} else {
 		ctx := getContext(r)
@@ -43,26 +44,27 @@ func (h *UpdateInvoiceHandler) render(v AppVars, w http.ResponseWriter, r *http.
 		)
 
 		err := h.Client().UpdateInvoice(ctx, ctx.ClientId, invoiceId, typeName, notes)
-		if verr, ok := err.(sirius.ValidationError); ok {
+		var verr sirius.ValidationError
+		if errors.As(err, &verr) {
 			data.InvoiceTypes = invoiceTypes
 			data.InvoiceType = invoiceType
 			data.Notes = notes
-			v.Errors = util.RenameErrors(verr.Errors)
+			data.Errors = util.RenameErrors(verr.Errors)
 			w.WriteHeader(http.StatusBadRequest)
 			return h.execute(w, r, data)
 		}
 		if err != nil {
 			return err
 		}
+		//
+		//var invoiceName string
+		//for _, t := range invoiceTypes {
+		//	if t.Handle == invoiceType {
+		//		invoiceName = t.Description
+		//	}
+		//}
 
-		var invoiceName string
-		for _, t := range invoiceTypes {
-			if t.Handle == invoiceType {
-				invoiceName = t.Description
-			}
-		}
-
-		return RedirectError(fmt.Sprintf("/clients/%d/invoices?success=add&invoiceType=%s", ctx.ClientId, invoiceName))
+		return RedirectError(fmt.Sprintf("%s/clients/%d/invoices", v.EnvironmentVars.Prefix, ctx.ClientId))
 	}
 }
 
