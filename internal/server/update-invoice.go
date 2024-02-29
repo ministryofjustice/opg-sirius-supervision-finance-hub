@@ -1,13 +1,9 @@
 package server
 
 import (
-	"errors"
 	"fmt"
 	"github.com/opg-sirius-finance-hub/internal/model"
-	"github.com/opg-sirius-finance-hub/internal/sirius"
-	"github.com/opg-sirius-finance-hub/internal/util"
 	"net/http"
-	"strconv"
 )
 
 type UpdateInvoices struct {
@@ -35,27 +31,28 @@ func (h *UpdateInvoiceHandler) render(v AppVars, w http.ResponseWriter, r *http.
 	if r.Method == http.MethodGet {
 		return h.execute(w, r, data)
 	} else {
+		fmt.Println("other one")
 		ctx := getContext(r)
-		var (
-			invoiceId, _ = strconv.Atoi(r.PathValue("id"))
-			invoiceType  = r.PostFormValue("invoiceType")
-			typeName     = getInvoiceName(invoiceType, invoiceTypes)
-			notes        = r.PostFormValue("notes")
-		)
-
-		err := h.Client().UpdateInvoice(ctx, ctx.ClientId, invoiceId, typeName, notes)
-		var verr sirius.ValidationError
-		if errors.As(err, &verr) {
-			data.InvoiceTypes = invoiceTypes
-			data.InvoiceType = invoiceType
-			data.Notes = notes
-			data.Errors = util.RenameErrors(verr.Errors)
-			w.WriteHeader(http.StatusBadRequest)
-			return h.execute(w, r, data)
-		}
-		if err != nil {
-			return err
-		}
+		//var (
+		//	invoiceId, _ = strconv.Atoi(r.PathValue("id"))
+		//	invoiceType  = r.PostFormValue("invoiceType")
+		//	//typeName     = getInvoiceName(invoiceType, invoiceTypes)
+		//	notes = r.PostFormValue("notes")
+		//)
+		//
+		//err := h.Client().UpdateInvoice(ctx, ctx.ClientId, invoiceId, typeName, notes)
+		//var verr sirius.ValidationError
+		//if errors.As(err, &verr) {
+		//	data.InvoiceTypes = invoiceTypes
+		//	data.InvoiceType = invoiceType
+		//	data.Notes = notes
+		//	data.Errors = util.RenameErrors(verr.Errors)
+		//	w.WriteHeader(http.StatusBadRequest)
+		//	return h.execute(w, r, data)
+		//}
+		//if err != nil {
+		//	return err
+		//}
 		//
 		//var invoiceName string
 		//for _, t := range invoiceTypes {
@@ -68,11 +65,12 @@ func (h *UpdateInvoiceHandler) render(v AppVars, w http.ResponseWriter, r *http.
 	}
 }
 
-func getInvoiceName(handle string, types []model.InvoiceType) string {
-	for _, t := range types {
-		if handle == t.Handle {
-			return t.Description
-		}
-	}
-	return ""
-}
+//
+//func getInvoiceName(handle string, types []model.InvoiceType) string {
+//	for _, t := range types {
+//		if handle == t.Handle {
+//			return t.Description
+//		}
+//	}
+//	return ""
+//}

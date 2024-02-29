@@ -50,5 +50,15 @@ func (c *ApiClient) UpdateInvoice(ctx Context, clientId int, invoiceId int, invo
 		return newStatusError(resp)
 	}
 
+	//validationErrors := ValidationErrors{
+	//	"notes": {
+	//		"": "Select an assurance type",
+	//	},
+	//}
+	//
+	//return ValidationError{
+	//	Errors: validationErrors,
+	//}
+
 	return nil
 }

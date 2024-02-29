@@ -4,7 +4,9 @@
 
 {{ define "main" }}
     {{ block "update-invoice" .Data}}
-    {{ template "error-summary" .Errors }}
+    <div id="error-summary">
+        {{ template "error-summary" .Errors }}
+    </div>
     <div class="govuk-grid-row govuk-!-margin-top-5">
         <div class="govuk-grid-column-full">
             <header>
@@ -17,7 +19,8 @@
                 <form
                     id="update-invoice-form"
                     class="add-note govuk-grid-column-one-third"
-                    method="post">
+                    method="post"
+                    >
                     <input
                         type="hidden"
                         name="xsrfToken"
@@ -65,7 +68,9 @@
 
                     <div class="govuk-button-group govuk-!-margin-top-7">
                         <button
-                            type="submit"
+                            hx-post="{{ (printf "/clients/1/invoices/%d/ledger-entries" 1) }}"
+                            hx-target="#error-summary"
+{{/*                            hx-trigger="submit"*/}}
                             class="govuk-button"
                             data-module="govuk-button">
                             Save and continue

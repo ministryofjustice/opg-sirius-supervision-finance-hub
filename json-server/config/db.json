@@ -146,18 +146,6 @@
     }
   ],
   "ledger-entries": [
-    {
-      "invoiceType": "",
-      "notes": "",
-      "invoiceId": "1",
-      "id": 1
-    },
-    {
-      "invoiceType": "",
-      "notes": "",
-      "invoiceId": "1",
-      "id": 2
-    }
   ],
   "errors": [
     {
