@@ -22,6 +22,7 @@ func (h *InvoicesHandler) render(v AppVars, w http.ResponseWriter, r *http.Reque
 		return err
 	}
 
-	data := InvoiceTab{invoices, v}
+	data := &InvoiceTab{invoices, v}
+	data.selectTab("invoices")
 	return h.execute(w, r, data)
 }

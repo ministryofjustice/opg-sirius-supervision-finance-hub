@@ -5,13 +5,13 @@
         <a
                 class="moj-sub-navigation__link"
                 hx-get="{{ prefix .BasePath }}"
-                hx-target="#tab-content"
+                hx-target="#main-content"
                 hx-push-url="{{ .BasePath }}"
+                {{ if .Selected }}
+                    aria-current="page"
+                {{ end }}
         >
             {{ .Title }}
         </a>
     </li>
 {{ end }}
-
-
-{{ if .IsSelected $ }}aria-current="page" {{ else }}href="{{ .GetURL $.SelectedTeam }}"{{ end }}

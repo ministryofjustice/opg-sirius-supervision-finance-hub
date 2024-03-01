@@ -7,12 +7,7 @@
             {{ end }}
             {{ template "person-info" .Person }}
             <div id="main-content">
-                {{ block "main-content" . }}
-                    {{ template "navigation" . }}
-                    <div id="tab-content">
-                        {{ template "tab-content" . }}
-                    </div>
-                {{ end }}
+                {{ block "main-content" . }}{{ end }}
             </div>
         </main>
     </div>
