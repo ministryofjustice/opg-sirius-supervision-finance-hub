@@ -2,13 +2,16 @@
     <li class="moj-sub-navigation__item"
         data-cy="{{ .Id }}"
     >
-        <div
+        <a
                 class="moj-sub-navigation__link"
                 hx-get="{{ prefix .BasePath }}"
                 hx-target="#tab-content"
                 hx-push-url="{{ .BasePath }}"
         >
             {{ .Title }}
-        </div>
+        </a>
     </li>
 {{ end }}
+
+
+{{ if .IsSelected $ }}aria-current="page" {{ else }}href="{{ .GetURL $.SelectedTeam }}"{{ end }}

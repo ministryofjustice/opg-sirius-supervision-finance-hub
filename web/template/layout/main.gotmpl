@@ -2,16 +2,17 @@
 {{ define "main" }}
     <div class="govuk-width-container app-width-container">
         <main class="govuk-main-wrapper app-main-class" role="main">
+            {{ if .SuccessMessage }}
+                {{ template "success-banner" . }}
+            {{ end }}
             {{ template "person-info" .Person }}
-            <div id="error-summary">
-                {{/* template must be included to find the partial but false passed in to prevent it rendering */}}
-                {{ template "error-summary" false }}
-            </div>
             <div id="main-content">
-                {{ template "navigation" . }}
-                <div id="tab-content">
-                    {{ template "tab-content" . }}
-                </div>
+                {{ block "main-content" . }}
+                    {{ template "navigation" . }}
+                    <div id="tab-content">
+                        {{ template "tab-content" . }}
+                    </div>
+                {{ end }}
             </div>
         </main>
     </div>

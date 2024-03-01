@@ -1,6 +1,10 @@
+import { initAll } from 'govuk-frontend'
 import "govuk-frontend/dist/govuk/all.mjs";
 import "opg-sirius-header/sirius-header.js";
 
+initAll();
+
+document.body.className = ((document.body.className) ? document.body.className + ' js-enabled' : 'js-enabled');
 
 window.htmx = require('htmx.org');
 
@@ -15,6 +19,11 @@ if (document.querySelector(".summary")) {
                 .classList.toggle("hide");
         }
     }
+}
+
+if (document.querySelector(".moj-banner--success")) {
+    const el = document.getElementsByClassName("moj-banner--success")[0];
+    el.onclick = () => el.classList.add("hide");
 }
 
 // htmx by default doesn't swap on error. Status code 422 used to distinguish bad requests from validation errors.

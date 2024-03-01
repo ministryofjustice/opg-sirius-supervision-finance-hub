@@ -3,7 +3,6 @@ package server
 import (
 	"errors"
 	"fmt"
-	"github.com/opg-sirius-finance-hub/internal/model"
 	"github.com/opg-sirius-finance-hub/internal/sirius"
 	"github.com/opg-sirius-finance-hub/internal/util"
 	"net/http"
@@ -15,24 +14,14 @@ type SubmitInvoiceHandler struct {
 }
 
 func (h *SubmitInvoiceHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
-	fmt.Println("here")
-	invoiceTypes := []model.InvoiceType{
-		{Handle: "writeOff", Description: "Write off"},
-		{Handle: "addCredit", Description: "Add credit"},
-		{Handle: "addDebit", Description: "Add debit"},
-		{Handle: "unapply", Description: "Unapply"},
-		{Handle: "reapply", Description: "Reapply"},
-	}
-
 	ctx := getContext(r)
 	var (
 		invoiceId, _ = strconv.Atoi(r.PathValue("id"))
 		invoiceType  = r.PostFormValue("invoiceType")
-		typeName     = getInvoiceName(invoiceType, invoiceTypes)
 		notes        = r.PostFormValue("notes")
 	)
 
-	err := h.Client().UpdateInvoice(ctx, ctx.ClientId, invoiceId, typeName, notes)
+	err := h.Client().UpdateInvoice(ctx, ctx.ClientId, invoiceId, invoiceType, notes)
 	var verr sirius.ValidationError
 	if errors.As(err, &verr) {
 		w.WriteHeader(http.StatusUnprocessableEntity)
@@ -42,15 +31,6 @@ func (h *SubmitInvoiceHandler) render(v AppVars, w http.ResponseWriter, r *http.
 		return err
 	}
 
-	w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices", v.EnvironmentVars.Prefix, ctx.ClientId))
+	w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices?success=%s", v.EnvironmentVars.Prefix, ctx.ClientId, invoiceType))
 	return nil
-}
-
-func getInvoiceName(handle string, types []model.InvoiceType) string {
-	for _, t := range types {
-		if handle == t.Handle {
-			return t.Description
-		}
-	}
-	return ""
 }
