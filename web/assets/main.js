@@ -2,9 +2,8 @@ import { initAll } from 'govuk-frontend'
 import "govuk-frontend/dist/govuk/all.mjs";
 import "opg-sirius-header/sirius-header.js";
 
+document.body.className += ' js-enabled' + ('noModule' in HTMLScriptElement.prototype ? ' govuk-frontend-supported' : '');
 initAll();
-
-document.body.className = ((document.body.className) ? document.body.className + ' js-enabled' : 'js-enabled');
 
 window.htmx = require('htmx.org');
 
