@@ -2,8 +2,8 @@ package server
 
 import (
 	"github.com/ministryofjustice/opg-go-common/securityheaders"
-	"github.com/opg-sirius-finance-hub/internal/model"
-	"github.com/opg-sirius-finance-hub/internal/sirius"
+	"github.com/opg-sirius-finance-hub/api"
+	"github.com/opg-sirius-finance-hub/frontend/internal/sirius"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.uber.org/zap"
 	"html/template"
@@ -14,9 +14,9 @@ import (
 )
 
 type ApiClient interface {
-	GetCurrentUserDetails(sirius.Context) (model.Assignee, error)
-	GetPersonDetails(sirius.Context, int) (model.Person, error)
-	GetFeeReductions(sirius.Context, int) (model.FeeReductions, error)
+	GetCurrentUserDetails(sirius.Context) (api.Assignee, error)
+	GetPersonDetails(sirius.Context, int) (api.Person, error)
+	GetFeeReductions(sirius.Context, int) (api.FeeReductions, error)
 }
 
 type router interface {

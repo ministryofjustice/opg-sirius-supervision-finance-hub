@@ -1,4 +1,4 @@
-package model
+package api
 
 type FeeReduction struct {
 	Id           int    `json:"id"`

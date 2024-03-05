@@ -1,8 +1,8 @@
 package server
 
 import (
-	"github.com/opg-sirius-finance-hub/internal/model"
-	"github.com/opg-sirius-finance-hub/internal/sirius"
+	"github.com/opg-sirius-finance-hub/api"
+	"github.com/opg-sirius-finance-hub/frontend/internal/sirius"
 	"io"
 	"net/http"
 )
@@ -50,19 +50,19 @@ func (r *mockRoute) execute(w http.ResponseWriter, req *http.Request, data any) 
 
 type mockApiClient struct {
 	error              error
-	CurrentUserDetails model.Assignee
-	PersonDetails      model.Person
-	FeeReductions      model.FeeReductions
+	CurrentUserDetails api.Assignee
+	PersonDetails      api.Person
+	FeeReductions      api.FeeReductions
 }
 
-func (m mockApiClient) GetPersonDetails(sirius.Context, int) (model.Person, error) {
+func (m mockApiClient) GetPersonDetails(sirius.Context, int) (api.Person, error) {
 	return m.PersonDetails, m.error
 }
 
-func (m mockApiClient) GetCurrentUserDetails(sirius.Context) (model.Assignee, error) {
+func (m mockApiClient) GetCurrentUserDetails(sirius.Context) (api.Assignee, error) {
 	return m.CurrentUserDetails, m.error
 }
 
-func (m mockApiClient) GetFeeReductions(sirius.Context, int) (model.FeeReductions, error) {
+func (m mockApiClient) GetFeeReductions(sirius.Context, int) (api.FeeReductions, error) {
 	return m.FeeReductions, m.error
 }

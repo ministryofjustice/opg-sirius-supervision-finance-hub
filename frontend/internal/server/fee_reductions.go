@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/opg-sirius-finance-hub/internal/model"
+	"github.com/opg-sirius-finance-hub/api"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"net/http"
@@ -39,7 +39,7 @@ func (h *FeeReductionsHandler) render(v AppVars, w http.ResponseWriter, r *http.
 	return h.execute(w, r, data)
 }
 
-func (h *FeeReductionsHandler) transform(in model.FeeReductions) FeeReductions {
+func (h *FeeReductionsHandler) transform(in api.FeeReductions) FeeReductions {
 	var out FeeReductions
 	for _, f := range in {
 		out = append(out, FeeReduction{

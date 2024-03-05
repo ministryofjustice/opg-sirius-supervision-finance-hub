@@ -3,7 +3,7 @@ package sirius
 import (
 	"context"
 	"github.com/ministryofjustice/opg-go-common/logging"
-	"github.com/opg-sirius-finance-hub/internal/mocks"
+	"github.com/opg-sirius-finance-hub/frontend/internal/mocks"
 	"net/http"
 	"os"
 	"testing"

@@ -2,13 +2,13 @@ package sirius
 
 import (
 	"encoding/json"
-	"github.com/opg-sirius-finance-hub/internal/model"
+	"github.com/opg-sirius-finance-hub/api"
 
 	"net/http"
 )
 
-func (c *ApiClient) GetCurrentUserDetails(ctx Context) (model.Assignee, error) {
-	var v model.Assignee
+func (c *ApiClient) GetCurrentUserDetails(ctx Context) (api.Assignee, error) {
+	var v api.Assignee
 
 	req, err := c.newRequest(ctx, http.MethodGet, "/api/v1/users/current", nil)
 	if err != nil {

@@ -2,7 +2,7 @@ package server
 
 import (
 	"errors"
-	"github.com/opg-sirius-finance-hub/internal/model"
+	"github.com/opg-sirius-finance-hub/api"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -47,11 +47,11 @@ func TestRoute_fullPage(t *testing.T) {
 	r.SetPathValue("id", "1")
 
 	fetchedData := HeaderData{
-		Person: model.Person{
+		Person: api.Person{
 			Firstname: "Ian",
 			Surname:   "Testing",
 		},
-		MyDetails: model.Assignee{
+		MyDetails: api.Assignee{
 			Id: 123,
 		},
 	}

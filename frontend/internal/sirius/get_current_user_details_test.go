@@ -2,8 +2,8 @@ package sirius
 
 import (
 	"bytes"
-	"github.com/opg-sirius-finance-hub/internal/mocks"
-	"github.com/opg-sirius-finance-hub/internal/model"
+	"github.com/opg-sirius-finance-hub/api"
+	"github.com/opg-sirius-finance-hub/frontend/internal/mocks"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -45,7 +45,7 @@ func TestGetCurrentUserDetails(t *testing.T) {
 		}, nil
 	}
 
-	expectedResponse := model.Assignee{
+	expectedResponse := api.Assignee{
 		Id:    65,
 		Roles: []string{"Case Manager"},
 	}
@@ -115,7 +115,7 @@ func TestMyDetailsReturns200(t *testing.T) {
 		}, nil
 	}
 
-	expectedResponse := model.Assignee{
+	expectedResponse := api.Assignee{
 		Id:    55,
 		Roles: []string{"OPG User", "Case Manager"},
 	}

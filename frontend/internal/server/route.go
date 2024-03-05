@@ -1,14 +1,14 @@
 package server
 
 import (
-	"github.com/opg-sirius-finance-hub/internal/model"
+	"github.com/opg-sirius-finance-hub/api"
 	"golang.org/x/sync/errgroup"
 	"net/http"
 )
 
 type HeaderData struct {
-	MyDetails model.Assignee
-	Person    model.Person
+	MyDetails api.Assignee
+	Person    api.Person
 }
 
 type PageData struct {
