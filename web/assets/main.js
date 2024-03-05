@@ -20,6 +20,28 @@ if (document.querySelector(".summary")) {
     }
 }
 
+if (document.querySelector(".show-input-field")) {
+    const inputFields = document.getElementsByClassName("show-input-field")
+    for (const inputField of inputFields) {
+        inputField.onclick = function () {
+            document
+                .getElementById(`field-input`)
+                .classList.remove("hide");
+        }
+    }
+}
+
+if (document.querySelector(".hide-input-field")) {
+    const inputFields = document.getElementsByClassName("hide-input-field")
+    for (const inputField of inputFields) {
+        inputField.onclick = function () {
+            document
+                .getElementById(`field-input`)
+                .classList.add("hide");
+        }
+    }
+}
+
 if (document.querySelector(".moj-banner--success")) {
     const el = document.getElementsByClassName("moj-banner--success")[0];
     el.onclick = () => el.classList.add("hide");

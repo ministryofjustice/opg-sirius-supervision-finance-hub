@@ -12,17 +12,14 @@
                         Adjust invoice
                     </h1>
                 </header>
-
-                <div id="error-summary">
-                </div>
-
+                {{ template "error-summary" .Errors }}
                 <div class="govuk-grid-row">
                     <form
                             id="update-invoice-form"
                             class="add-note govuk-grid-column-one-third"
                             method="post"
                             hx-post="{{ (printf "/clients/%s/invoices/%s/ledger-entries" .ClientId .InvoiceId) }}"
-                            hx-target="#error-summary"
+                            hx-target="#main-content"
                     >
                         <input
                                 type="hidden"
@@ -30,16 +27,14 @@
                                 value="{{ .XSRFToken }}"/>
 
                         <div class="govuk-form-group">
-                            <div class="govuk-form-group">
-                                <fieldset class="govuk-fieldset">
-                                    <legend class="govuk-fieldset__legend" id="invoiceType">Choose an invoice adjustment
-                                        type
-                                    </legend>
-                                    {{ template "error-message" (index .Errors "invoiceType") }}
-                                    <div class="govuk-radios" id="f-invoiceType">
+                                <div id="f-invoiceType" class="govuk-form-group {{ if index .Errors "invoiceType" }}govuk-form-group--error{{ end }}">
+                                <fieldset class="govuk-fieldset" >
+                                    <legend class="govuk-fieldset__legend" id="invoiceType">Choose an invoice adjustment type</legend>
+                                    <span data-cy="invoice-error">{{ template "error-message" (index .Errors "invoiceType") }}</span>
+                                    <div class="govuk-radios" >
                                         {{ range .InvoiceTypes }}
                                             <div class="govuk-radios__item">
-                                                <input class="govuk-radios__input" id="{{.Handle}}" name="invoiceType"
+                                                <input class="govuk-radios__input {{ if .AmountRequired }}show{{else}}hide{{ end }}-input-field" id="{{.Handle}}" name="invoiceType"
                                                        type="radio" value="{{.Handle}}">
                                                 <label class="govuk-label govuk-radios__label"
                                                        for="{{.Handle}}">{{.Description}}</label>
@@ -50,13 +45,14 @@
                             </div>
                             <div class="govuk-character-count" data-module="govuk-character-count"
                                  data-maxlength="1000">
-                                <div class="govuk-form-group">
-                                    <label class="govuk-label" for="f-2-note">
-                                        Notes (optional)
+                                <div class="govuk-form-group{{ if index .Errors "notes" }} govuk-form-group--error{{ end }}" >
+                                    <label class="govuk-label" for="f-notes" id="notes-label" data-cy="notes-error">
+                                        Reason for the adjustment
+                                        {{ template "error-message" (index .Errors "notes") }}
                                     </label>
                                     <textarea
                                             class="govuk-textarea govuk-js-character-count"
-                                            id="f-2-note"
+                                            id="f-notes"
                                             name="notes"
                                             rows="10"
                                             aria-describedby="f-2-note-info notes-hint"
@@ -70,13 +66,23 @@
                                 </div>
                             </div>
                         </div>
-
+                        <div class="hide" id="field-input" style="display: block;">
+                            <div class="govuk-form-group {{ if index .Errors "amount" }}govuk-form-group--error{{ end }}">
+                                <label class="govuk-label govuk-body" for="f-amount">
+                                    Amount
+                                    <span  data-cy="amount-error">{{ template "error-message" (index .Errors "amount") }}</span>
+                                </label>
+                                <div class="govuk-input__wrapper"><div class="govuk-input__prefix" aria-hidden="true">£</div>
+                                    <input class="govuk-input govuk-input--width-5" id="f-amount"  name="amount" type="text" spellcheck="false"></div>
+                            </div>
+                        </div>
                         <div class="govuk-button-group govuk-!-margin-top-7">
                             <button
                                     class="govuk-button"
                                     data-module="govuk-button">
                                 Save and continue
                             </button>
+                            <a class="govuk-link"  href="{{(printf "/clients/%s/invoices" .ClientId) }}">Cancel</a>
                         </div>
                     </form>
                 </div>

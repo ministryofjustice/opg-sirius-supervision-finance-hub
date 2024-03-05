@@ -151,8 +151,14 @@
     {
       "id": "notesError",
       "validation_errors": {
+        "invoiceType": {
+          "": "Select the invoice type"
+        },
         "notes": {
-          "": "The note must be 1000 characters or fewer"
+          "": "Reason for manual credit must be 1000 characters or less"
+        },
+        "amount": {
+          "": "Enter an amount"
         }
       }
     }

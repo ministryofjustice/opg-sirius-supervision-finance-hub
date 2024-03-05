@@ -56,7 +56,7 @@ type mockApiClient struct {
 	Invoices           model.Invoices
 }
 
-func (m mockApiClient) UpdateInvoice(context sirius.Context, i int, k int, s string, j string) error {
+func (m mockApiClient) UpdateInvoice(context sirius.Context, i int, k int, s string, j string, amount string) error {
 	return m.error
 }
 

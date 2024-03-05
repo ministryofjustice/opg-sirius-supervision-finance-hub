@@ -14,7 +14,12 @@ var validationMappings = map[string]map[string]pair{
 		"isEmpty": pair{"invoiceType", "Select the invoice type"},
 	},
 	"notes": {
-		"stringLengthTooLong": pair{"notes", "The note must be 1000 characters or fewer"},
+		"isEmpty":             pair{"notes", "Enter a reason for adjustment"},
+		"stringLengthTooLong": pair{"notes", "Reason for manual credit must be 1000 characters or less"},
+	},
+	"amount": {
+		"isEmpty": pair{"amount", "Enter an amount"},
+		"tooHigh": pair{"amount", "Amount entered must be less than £"},
 	},
 }
 
