@@ -52,7 +52,7 @@ func TestInvoice_error(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, ro.executed)
 
-	expected := InvoiceTab{
+	expected := &InvoiceTab{
 		Invoices: data,
 		AppVars:  appVars,
 	}

@@ -39,7 +39,7 @@
                                     <div class="govuk-radios" id="f-invoiceType">
                                         {{ range .InvoiceTypes }}
                                             <div class="govuk-radios__item">
-                                                <input class="govuk-radios__input" id="{{.Handle}}" name="invoiceType"
+                                                <input class="govuk-radios__input {{ if .AmountRequired }}show{{else}}hide{{ end }}-input-field" id="{{.Handle}}" name="invoiceType"
                                                        type="radio" value="{{.Handle}}">
                                                 <label class="govuk-label govuk-radios__label"
                                                        for="{{.Handle}}">{{.Description}}</label>
@@ -70,7 +70,15 @@
                                 </div>
                             </div>
                         </div>
-
+                        <div class="hide" id="field-input" style="display: block;">
+                            <div class="govuk-form-group">
+                                <label class="govuk-label govuk-body" for="invoice-actions-cost">
+                                    Amount
+                                </label>
+                                <div class="govuk-input__wrapper"><div class="govuk-input__prefix" aria-hidden="true">£</div>
+                                    <input class="govuk-input govuk-input--width-5" id="invoice-actions-cost" name="invoice-actions-cost" type="text" spellcheck="false"></div>
+                            </div>
+                        </div>
                         <div class="govuk-button-group govuk-!-margin-top-7">
                             <button
                                     class="govuk-button"
