@@ -15,6 +15,7 @@ func TestSubmitInvoiceSuccess(t *testing.T) {
 		"id":          {"1"},
 		"invoiceType": {"writeOff"},
 		"notes":       {"This is a note"},
+		"amount":      {"100"},
 	}
 
 	client := mockApiClient{}
@@ -44,6 +45,7 @@ func TestSubmitInvoiceError(t *testing.T) {
 		"id":          {"1"},
 		"invoiceType": {"writeOff"},
 		"notes":       {"This is a note"},
+		"amount":      {"100"},
 	}
 
 	client := mockApiClient{}
@@ -74,7 +76,7 @@ func TestAddTaskValidationErrors(t *testing.T) {
 
 	validationErrors := sirius.ValidationErrors{
 		"notes": {
-			"stringLengthTooLong": "The note must be 1000 characters or fewer",
+			"stringLengthTooLong": "Reason for manual credit must be 1000 characters or less",
 		},
 	}
 

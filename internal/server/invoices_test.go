@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"github.com/opg-sirius-finance-hub/internal/model"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -8,7 +9,7 @@ import (
 	"testing"
 )
 
-func TestInvoice_error(t *testing.T) {
+func TestInvoice(t *testing.T) {
 	data := model.Invoices{
 		model.Invoice{
 			Id:                 3,
@@ -52,10 +53,35 @@ func TestInvoice_error(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, ro.executed)
 
-	expected := InvoiceTab{
+	expected := &InvoiceTab{
 		Invoices: data,
 		AppVars:  appVars,
 	}
 
 	assert.Equal(t, expected, ro.data)
+}
+
+func TestInvoiceErrors(t *testing.T) {
+	client := mockApiClient{}
+	client.error = errors.New("this has failed")
+	ro := &mockRoute{client: client}
+
+	w := httptest.NewRecorder()
+	r, _ := http.NewRequest(http.MethodGet, "", nil)
+	r.SetPathValue("id", "1")
+
+	appVars := AppVars{Path: "/path/"}
+
+	sut := InvoicesHandler{ro}
+	err := sut.render(appVars, w, r)
+
+	assert.Equal(t, "this has failed", err.Error())
+	assert.False(t, ro.executed)
+
+	//expected := &InvoiceTab{
+	//	Invoices: data,
+	//	AppVars:  appVars,
+	//}
+	//
+	//assert.Equal(t, expected, ro.data)
 }

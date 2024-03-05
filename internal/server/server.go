@@ -18,7 +18,7 @@ type ApiClient interface {
 	GetPersonDetails(sirius.Context, int) (model.Person, error)
 	GetFeeReductions(sirius.Context, int) (model.FeeReductions, error)
 	GetInvoices(sirius.Context, int) (model.Invoices, error)
-	UpdateInvoice(sirius.Context, int, int, string, string) error
+	UpdateInvoice(sirius.Context, int, int, string, string, string) error
 }
 
 type router interface {
@@ -40,7 +40,7 @@ func New(logger *zap.SugaredLogger, client ApiClient, templates map[string]*temp
 	mux.Handle("GET /clients/{id}/fee-reductions", wrap(&FeeReductionsHandler{&route{client: client, tmpl: templates["fee-reductions.gotmpl"], partial: "fee-reductions"}}))
 	mux.Handle("GET /clients/{id}/pending-invoice-adjustments", wrap(&PendingInvoiceAdjustmentsHandler{&route{client: client, tmpl: templates["pending-invoice-adjustments.gotmpl"], partial: "pending-invoice-adjustments"}}))
 	mux.Handle("GET /clients/{id}/invoices/{invoiceId}/ledger-entries", wrap(&UpdateInvoiceHandler{&route{client: client, tmpl: templates["update-invoice.gotmpl"], partial: "update-invoice"}}))
-	mux.Handle("POST /clients/{id}/invoices/{invoiceId}/ledger-entries", wrap(&SubmitInvoiceHandler{&route{client: client, tmpl: templates["error-summary.gotmpl"], partial: "error-summary"}}))
+	mux.Handle("POST /clients/{id}/invoices/{invoiceId}/ledger-entries", wrap(&SubmitInvoiceHandler{&route{client: client, tmpl: templates["update-invoice.gotmpl"], partial: "update-invoice"}}))
 
 	mux.Handle("/health-check", healthCheck())
 
