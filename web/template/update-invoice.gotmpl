@@ -36,7 +36,6 @@
                                         type
                                     </legend>
                                     {{ template "error-message" (index .Errors "invoiceType") }}
-                                    {{ $selectedType := .InvoiceType }}
                                     <div class="govuk-radios" id="f-invoiceType">
                                         {{ range .InvoiceTypes }}
                                             <div class="govuk-radios__item">

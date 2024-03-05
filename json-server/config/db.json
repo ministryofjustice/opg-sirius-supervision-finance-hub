@@ -146,36 +146,6 @@
     }
   ],
   "ledger-entries": [
-    {
-      "invoiceType": "",
-      "notes": "",
-      "invoiceId": "1",
-      "id": 1
-    },
-    {
-      "invoiceType": "Write off",
-      "notes": "",
-      "invoiceId": "1",
-      "id": 2
-    },
-    {
-      "invoiceType": "Write off",
-      "notes": "",
-      "invoiceId": "1",
-      "id": 3
-    },
-    {
-      "invoiceType": "writeOff",
-      "notes": "",
-      "invoiceId": "1",
-      "id": 4
-    },
-    {
-      "invoiceType": "addDebit",
-      "notes": "kljkljlkjkl",
-      "invoiceId": "1",
-      "id": 5
-    }
   ],
   "errors": [
     {
