@@ -1,5 +1,5 @@
 describe("Invoice Tab", () => {
-        it("shows table headers", () => {
+        it("table with correct headers and content", () => {
             cy.visit("/clients/1/invoices");
             cy.contains('[data-cy="invoice"]', "Invoice");
             cy.contains('[data-cy="status"]', "Status");
@@ -23,7 +23,7 @@ describe("Invoice Tab", () => {
     });
 
 describe("Invoices ledger allocations", () => {
-    it("shows all the correct headers", () => {
+    it("table with correct headers and content", () => {
         cy.visit("/clients/1/invoices");
         cy.get('#invoice-1').click()
         cy.contains('[data-cy="ledger-title"]', "Invoice ledger allocations");
