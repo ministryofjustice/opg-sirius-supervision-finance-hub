@@ -67,7 +67,7 @@ func wrapHandler(client ApiClient, logger *zap.SugaredLogger, tmplError Template
 
 				var redirect RedirectError
 				if errors.As(err, &redirect) {
-					http.Redirect(w, r, envVars.Prefix+"/"+redirect.To(), http.StatusFound)
+					http.Redirect(w, r, envVars.Prefix+redirect.To(), http.StatusFound)
 					return
 				}
 
