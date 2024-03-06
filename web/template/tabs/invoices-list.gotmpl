@@ -12,16 +12,119 @@
       </div>
     </div>
   </header>
-    <table id="invoices" class="govuk-table">
-      <thead class="govuk-table__head">
-        <tr class="govuk-table__row">
-          <th scope="col" data-cy="invoice" class="govuk-table__header">Invoice</th>
-          <th scope="col" data-cy="status" class="govuk-table__header">Status</th>
-          <th scope="col" data-cy="amount" class="govuk-table__header">Amount</th>
-          <th scope="col" data-cy="raised" class="govuk-table__header">Raised</th>
-          <th scope="col" data-cy="received" class="govuk-table__header">Received</th>
-          <th scope="col" data-cy="outstanding-balance" class="govuk-table__header">Outstanding Balance</th>
-        </tr>
-      </thead>
-    </table>
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-full ">
+        {{ $length := len .Invoices }}
+        {{ if eq $length 0 }}
+          <div data-cy="no-invoices" class="govuk-!-text-align-centre govuk-heading-m">There are no invoices</div>
+        {{ else }}
+        <table id="invoices" class="govuk-table">
+          <thead class="govuk-table__head">
+          <tr class="govuk-table__row">
+            <th scope="col" data-cy="invoice" class="govuk-table__header">Invoice</th>
+            <th scope="col" data-cy="status" class="govuk-table__header">Status</th>
+            <th scope="col" data-cy="amount" class="govuk-table__header">Amount</th>
+            <th scope="col" data-cy="raised" class="govuk-table__header">Raised</th>
+            <th scope="col" data-cy="received" class="govuk-table__header">Received</th>
+            <th scope="col" data-cy="outstanding-balance" class="govuk-table__header">Outstanding Balance</th>
+          </tr>
+          </thead>
+          <tbody class="govuk-table__body">
+          {{  range .Invoices }}
+            <tr class="govuk-table__row">
+              <td class="govuk-table__cell" >
+                <details class="govuk-details summary" id="invoice-{{.Id}}">
+                  <summary class="govuk-details__summary">
+                    <span class="govuk-details__summary-text" data-cy="ref">
+                      {{ .Ref }}
+                    </span>
+                  </summary>
+                </details>
+              </td>
+              <td class="govuk-table__cell" data-cy="invoice-status">{{ .Status }}</td>
+              <td class="govuk-table__cell" data-cy="invoice-amount">£{{ .Amount }}</td>
+              <td class="govuk-table__cell" data-cy="invoice-raised-date">{{ .RaisedDate }}</td>
+              <td class="govuk-table__cell" data-cy="invoice-received">£{{ .Received }}</td>
+              <td class="govuk-table__cell" data-cy="invoice-outstanding-balance">£{{ .OutstandingBalance }}</td>
+              <td class="govuk-table__cell">
+                <div class="moj-button-menu">
+                  <div class="moj-button-menu__wrapper">
+                    <a
+                      class="govuk-button moj-button-menu__item govuk-button--secondary"
+                      role="button"
+                      draggable="false"
+                      data-module="govuk-button"
+                      hx-get="{{ (printf "/clients/1/invoices/%d/ledger-entries" .Id) }}"
+                      hx-target="#main-content"
+                      hx-push-url="{{ (printf "/clients/1/invoices/%d/ledger-entries" .Id) }}">
+                      Adjust invoice
+                    </a>
+                  </div>
+                </div>
+              </td>
+            </tr>
+
+          <tr class="hide" id="invoice-{{.Id}}-reveal">
+            <td class="govuk-table__cell" colspan="4">
+              <div class="govuk-details__text">
+                {{ $length := len .Ledgers }}
+                {{ if ne $length 0 }}
+                <table class="govuk-table">
+                  <caption data-cy="ledger-title" class="govuk-table__caption govuk-table__caption--m">Invoice ledger allocations</caption>
+                  <thead class="govuk-table__head">
+                  <tr class="govuk-table__row">
+                    <th data-cy="ledger-amount" scope="col" class="govuk-table__header">Amount</th>
+                    <th data-cy="ledger-received-date" scope="col" class="govuk-table__header">Received date</th>
+                    <th data-cy="ledger-transaction-type" scope="col" class="govuk-table__header">Transaction type</th>
+                    <th data-cy="ledger-status" scope="col" class="govuk-table__header">Status</th>
+                  </tr>
+                  </thead>
+                  <tbody class="govuk-table__body">
+                  {{ range .Ledgers }}
+                  <tr class="govuk-table__row">
+                    <td class="govuk-table__cell" data-cy="ledger-amount-data">£{{ .Amount }}</td>
+                    <td class="govuk-table__cell" data-cy="ledger-received-date-data">{{ .ReceivedDate }}</td>
+                    <td class="govuk-table__cell" data-cy="ledger-transaction-type-data">{{ .TransactionType}}</td>
+                    <td class="govuk-table__cell" data-cy="ledger-status-data">{{ .Status }}</td>
+                  {{ end }}
+                  </tbody>
+                </table>
+                {{ end }}
+              </div>
+
+              <div class="govuk-details__text">
+                {{ $supervisionLength := len .SupervisionLevels }}
+                {{ if ne $supervisionLength 0 }}
+                <table class="govuk-table">
+                  <caption data-cy="supervision-title" class="govuk-table__caption govuk-table__caption--m">Supervision level breakdown</caption>
+                  <thead class="govuk-table__head">
+                  <tr class="govuk-table__row">
+                    <th data-cy="supervision-level" scope="col" class="govuk-table__header">Supervision level</th>
+                    <th data-cy="supervision-amount" scope="col" class="govuk-table__header">Amount</th>
+                    <th data-cy="supervision-from" scope="col" class="govuk-table__header">From</th>
+                    <th data-cy="supervision-to" scope="col" class="govuk-table__header">To</th>
+                  </tr>
+                  </thead>
+
+                  <tbody class="govuk-table__body">
+                  {{ range .SupervisionLevels }}
+                  <tr class="govuk-table__row">
+                    <td class="govuk-table__cell" data-cy="supervision-level-data">{{ .Level }}</td>
+                    <td class="govuk-table__cell" data-cy="supervision-amount-data">£{{ .Amount }}</td>
+                    <td class="govuk-table__cell" data-cy="supervision-from-data">{{ .From }}</td>
+                    <td class="govuk-table__cell" data-cy="supervision-to-data">{{ .To }}</td>
+                  </tr>
+                  {{ end }}
+                  </tbody>
+                </table>
+                  {{ end }}
+              </div>
+            </td>
+          </tr>
+          {{ end }}
+          </tbody>
+        </table>
+        {{ end }}
+      </div>
+    </div>
 {{ end }}

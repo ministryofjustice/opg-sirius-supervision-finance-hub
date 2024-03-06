@@ -13,8 +13,8 @@ type PendingInvoiceAdjustmentsHandler struct {
 }
 
 func (h *PendingInvoiceAdjustmentsHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
-	var data FeeReductionsTab
-	data.AppVars = v
+	data := &FeeReductionsTab{AppVars: v}
+	data.selectTab("pending-invoice-adjustments")
 
 	return h.execute(w, r, data)
 }

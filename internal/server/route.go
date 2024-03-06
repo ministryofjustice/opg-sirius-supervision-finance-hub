@@ -12,7 +12,8 @@ type HeaderData struct {
 }
 
 type PageData struct {
-	Data any
+	Data           any
+	SuccessMessage string
 	HeaderData
 }
 
@@ -61,8 +62,18 @@ func (r route) execute(w http.ResponseWriter, req *http.Request, data any) error
 			return err
 		}
 
+		data.SuccessMessage = r.getSuccess(req)
+
 		return r.tmpl.Execute(w, data)
 	}
+}
+
+func (r route) getSuccess(req *http.Request) string {
+	switch req.URL.Query().Get("success") {
+	case "writeOff":
+		return "The write off is now waiting for approval"
+	}
+	return ""
 }
 
 func (r route) isHxRequest(req *http.Request) bool {

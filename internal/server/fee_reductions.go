@@ -35,7 +35,8 @@ func (h *FeeReductionsHandler) render(v AppVars, w http.ResponseWriter, r *http.
 		return err
 	}
 
-	data := FeeReductionsTab{h.transform(feeReductions), v}
+	data := &FeeReductionsTab{h.transform(feeReductions), v}
+	data.selectTab("fee-reductions")
 	return h.execute(w, r, data)
 }
 
