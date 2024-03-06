@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/opg-sirius-finance-hub/internal/sirius"
 	"net/http"
 )
 
@@ -9,12 +10,14 @@ type AppVars struct {
 	XSRFToken       string
 	Tabs            []Tab
 	EnvironmentVars EnvironmentVars
+	Errors          sirius.ValidationErrors
 }
 
 type Tab struct {
 	Id       string
 	Title    string
 	BasePath string
+	Selected bool
 }
 
 func NewAppVars(r *http.Request, envVars EnvironmentVars) (AppVars, error) {
@@ -47,4 +50,17 @@ func NewAppVars(r *http.Request, envVars EnvironmentVars) (AppVars, error) {
 	}
 
 	return vars, nil
+}
+
+func (a *AppVars) selectTab(s string) {
+	for i, tab := range a.Tabs {
+		if tab.Id == s {
+			a.Tabs[i] = Tab{
+				tab.Id,
+				tab.Title,
+				tab.BasePath,
+				true,
+			}
+		}
+	}
 }

@@ -53,6 +53,15 @@ type mockApiClient struct {
 	CurrentUserDetails model.Assignee
 	PersonDetails      model.Person
 	FeeReductions      model.FeeReductions
+	Invoices           model.Invoices
+}
+
+func (m mockApiClient) UpdateInvoice(context sirius.Context, i int, k int, s string, j string) error {
+	return m.error
+}
+
+func (m mockApiClient) GetInvoices(context sirius.Context, i int) (model.Invoices, error) {
+	return m.Invoices, m.error
 }
 
 func (m mockApiClient) GetPersonDetails(sirius.Context, int) (model.Person, error) {
