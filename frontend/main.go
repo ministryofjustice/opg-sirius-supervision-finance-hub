@@ -77,7 +77,7 @@ func main() {
 		logger.Fatalw("Error creating EnvironmentVars", "error", err)
 	}
 
-	client, err := sirius.NewApiClient(http.DefaultClient, envVars.SiriusURL, apiCallLogger)
+	client, err := sirius.NewApiClient(http.DefaultClient, envVars.SiriusURL, envVars.BackendUrl, apiCallLogger)
 	if err != nil {
 		logger.Fatalw("Error returned by Sirius New ApiClient", "error", err)
 	}

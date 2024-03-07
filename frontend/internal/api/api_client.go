@@ -68,11 +68,12 @@ func (ctx Context) With(c context.Context) Context {
 	}
 }
 
-func NewApiClient(httpClient HTTPClient, baseURL string, logger *logging.Logger) (*ApiClient, error) {
+func NewApiClient(httpClient HTTPClient, siriusUrl string, backendUrl string, logger *logging.Logger) (*ApiClient, error) {
 	return &ApiClient{
-		http:    httpClient,
-		baseURL: baseURL,
-		logger:  logger,
+		http:       httpClient,
+		siriusUrl:  siriusUrl,
+		backendUrl: backendUrl,
+		logger:     logger,
 	}, nil
 }
 
@@ -81,13 +82,30 @@ type HTTPClient interface {
 }
 
 type ApiClient struct {
-	http    HTTPClient
-	baseURL string
-	logger  *logging.Logger
+	http       HTTPClient
+	siriusUrl  string
+	logger     *logging.Logger
+	backendUrl string
 }
 
-func (c *ApiClient) newRequest(ctx Context, method, path string, body io.Reader) (*http.Request, error) {
-	req, err := http.NewRequestWithContext(ctx.Context, method, c.baseURL+path, body)
+func (c *ApiClient) newSiriusRequest(ctx Context, method, path string, body io.Reader) (*http.Request, error) {
+	req, err := http.NewRequestWithContext(ctx.Context, method, c.siriusUrl+path, body)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, c := range ctx.Cookies {
+		req.AddCookie(c)
+	}
+
+	req.Header.Add("OPG-Bypass-Membrane", "1")
+	req.Header.Add("X-XSRF-TOKEN", ctx.XSRFToken)
+
+	return req, err
+}
+
+func (c *ApiClient) newBackendRequest(ctx Context, method, path string, body io.Reader) (*http.Request, error) {
+	req, err := http.NewRequestWithContext(ctx.Context, method, c.backendUrl+path, body)
 	if err != nil {
 		return nil, err
 	}

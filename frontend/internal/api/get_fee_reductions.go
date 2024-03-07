@@ -11,7 +11,7 @@ func (c *ApiClient) GetFeeReductions(ctx Context, clientId int) (shared.FeeReduc
 	var v shared.FeeReductions
 
 	requestURL := fmt.Sprintf("/api/v1/clients/%d/fee-reductions", clientId)
-	req, err := c.newRequest(ctx, http.MethodGet, requestURL, nil)
+	req, err := c.newSiriusRequest(ctx, http.MethodGet, requestURL, nil)
 	if err != nil {
 		c.logErrorRequest(req, err)
 		return v, err

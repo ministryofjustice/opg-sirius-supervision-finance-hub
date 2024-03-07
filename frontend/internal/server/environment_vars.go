@@ -10,6 +10,7 @@ type EnvironmentVars struct {
 	SiriusURL       string
 	SiriusPublicURL string
 	Prefix          string
+	BackendUrl      string
 }
 
 func NewEnvironmentVars() (EnvironmentVars, error) {
@@ -20,6 +21,7 @@ func NewEnvironmentVars() (EnvironmentVars, error) {
 		SiriusURL:       getEnv("SIRIUS_URL", "http://host.docker.internal:8080"),
 		SiriusPublicURL: getEnv("SIRIUS_PUBLIC_URL", ""),
 		Prefix:          getEnv("PREFIX", ""),
+		BackendUrl:      getEnv("BACKEND_URL", ""),
 	}, nil
 }
 
