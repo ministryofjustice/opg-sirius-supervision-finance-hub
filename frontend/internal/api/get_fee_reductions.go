@@ -3,15 +3,14 @@ package sirius
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/opg-sirius-finance-hub/api"
-
+	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
 )
 
-func (c *ApiClient) GetPersonDetails(ctx Context, ClientId int) (api.Person, error) {
-	var v api.Person
+func (c *ApiClient) GetFeeReductions(ctx Context, clientId int) (shared.FeeReductions, error) {
+	var v shared.FeeReductions
 
-	requestURL := fmt.Sprintf("/api/v1/clients/%d", ClientId)
+	requestURL := fmt.Sprintf("/api/v1/clients/%d/fee-reductions", clientId)
 	req, err := c.newRequest(ctx, http.MethodGet, requestURL, nil)
 	if err != nil {
 		c.logErrorRequest(req, err)

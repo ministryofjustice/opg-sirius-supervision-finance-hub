@@ -1,0 +1,20 @@
+version: "3.6"
+services:
+  frontend:
+    build:
+      target: dev
+    ports:
+      - '2345:2345'
+    volumes:
+      - ./frontend:/app
+
+  yarn:
+    command: watch
+
+  json-server:
+    build:
+      dockerfile: json-server/Dockerfile
+    volumes:
+      - ./json-server/config:/app/config
+    ports:
+      - '3000:3000'

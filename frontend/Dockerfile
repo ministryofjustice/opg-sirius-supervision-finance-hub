@@ -11,9 +11,9 @@ WORKDIR /app
 
 RUN mkdir -p web/static
 
-COPY web/assets web/assets
-COPY package.json .
-COPY yarn.lock .
+COPY frontend/web/assets web/assets
+COPY frontend/package.json .
+COPY frontend/yarn.lock .
 
 RUN yarn install
 RUN yarn build
@@ -40,6 +40,8 @@ RUN go mod download
 
 COPY . .
 
+WORKDIR /app/frontend
+
 RUN go build -a -installsuffix cgo -o /go/bin/opg-sirius-finance-hub
 
 FROM alpine:3
@@ -54,6 +56,6 @@ RUN apk --update --no-cache add \
 RUN apk upgrade --no-cache libcrypto3 libssl3
 
 COPY --from=build-env /go/bin/opg-sirius-finance-hub opg-sirius-finance-hub
-COPY --from=build-env /app/web/template web/template
+COPY --from=build-env /app/frontend/web/template web/template
 COPY --from=asset-env /app/web/static web/static
 ENTRYPOINT ["./opg-sirius-finance-hub"]

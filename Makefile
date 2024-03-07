@@ -28,8 +28,8 @@ up:
 
 dev-up:
 	docker compose run --rm yarn
-	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml build finance
-	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml up finance yarn json-server
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml build finance
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml up finance yarn json-server
 
 down:
 	docker compose down

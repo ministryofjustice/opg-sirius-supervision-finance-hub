@@ -2,8 +2,8 @@ package sirius
 
 import (
 	"bytes"
-	"github.com/opg-sirius-finance-hub/api"
 	"github.com/opg-sirius-finance-hub/frontend/internal/mocks"
+	"github.com/opg-sirius-finance-hub/shared"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -35,7 +35,7 @@ func TestGetPersonDetails(t *testing.T) {
 		}, nil
 	}
 
-	expectedResponse := api.Person{
+	expectedResponse := shared.Person{
 		ID:                 2,
 		Firstname:          "Finance",
 		Surname:            "Person",

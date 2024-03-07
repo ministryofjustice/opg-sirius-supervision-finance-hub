@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/opg-sirius-finance-hub/api"
+	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -9,22 +9,22 @@ import (
 )
 
 func TestFeeReductions(t *testing.T) {
-	in := api.FeeReductions{
+	in := shared.FeeReductions{
 		{
 			Id:           1,
 			Type:         "EXEMPTION",
-			StartDate:    api.NewDate("2022-04-01T00:00:00+00:00"),
-			EndDate:      api.NewDate("2021-03-31T00:00:00+00:00"),
-			DateReceived: api.NewDate("2021-02-02T00:00:00+00:00"),
+			StartDate:    shared.NewDate("2022-04-01T00:00:00+00:00"),
+			EndDate:      shared.NewDate("2021-03-31T00:00:00+00:00"),
+			DateReceived: shared.NewDate("2021-02-02T00:00:00+00:00"),
 			Notes:        "Exemption cancelled due to incorrect filing",
 			Deleted:      true,
 		},
 		{
 			Id:           2,
 			Type:         "REMISSION",
-			StartDate:    api.NewDate("2022-04-01T00:00:00+00:00"),
-			EndDate:      api.NewDate("2021-03-31T00:00:00+00:00"),
-			DateReceived: api.NewDate("2021-06-02T00:00:00+00:00"),
+			StartDate:    shared.NewDate("2022-04-01T00:00:00+00:00"),
+			EndDate:      shared.NewDate("2021-03-31T00:00:00+00:00"),
+			DateReceived: shared.NewDate("2021-06-02T00:00:00+00:00"),
 			Notes:        "Remission for 2021/2022",
 			Deleted:      false,
 		},

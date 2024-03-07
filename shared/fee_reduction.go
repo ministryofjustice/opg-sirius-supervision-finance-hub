@@ -1,4 +1,4 @@
-package api
+package shared
 
 type FeeReduction struct {
 	Id           int    `json:"id"`

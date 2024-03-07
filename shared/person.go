@@ -1,4 +1,4 @@
-package api
+package shared
 
 type Person struct {
 	ID                 int    `json:"id"`

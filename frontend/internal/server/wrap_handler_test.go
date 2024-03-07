@@ -2,7 +2,7 @@ package server
 
 import (
 	"errors"
-	"github.com/opg-sirius-finance-hub/frontend/internal/sirius"
+	"github.com/opg-sirius-finance-hub/frontend/internal/api"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"

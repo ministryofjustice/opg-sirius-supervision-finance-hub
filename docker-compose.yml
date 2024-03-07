@@ -4,7 +4,7 @@ services:
   finance:
     image: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-hub:latest
     build:
-      dockerfile: docker/sirius-finance-hub/Dockerfile
+      dockerfile: frontend/Dockerfile
     ports: ["8888:8888"]
     environment:
       PORT: 8888
@@ -15,7 +15,7 @@ services:
 
   json-server:
     build:
-      dockerfile: docker/json-server/Dockerfile
+      dockerfile: json-server/Dockerfile
     ports:
       - '3000:3000'
 
@@ -57,4 +57,4 @@ services:
     working_dir: /home/node/app
     entrypoint: yarn
     volumes:
-      - ./:/home/node/app
+      - ./frontend:/home/node/app
