@@ -3,7 +3,6 @@ package sirius
 import (
 	"encoding/json"
 	"github.com/opg-sirius-finance-hub/shared"
-
 	"net/http"
 )
 

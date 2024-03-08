@@ -2,7 +2,7 @@ package server
 
 import (
 	"github.com/ministryofjustice/opg-go-common/securityheaders"
-	"github.com/opg-sirius-finance-hub/frontend/internal/api"
+	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
 	"github.com/opg-sirius-finance-hub/shared"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.uber.org/zap"

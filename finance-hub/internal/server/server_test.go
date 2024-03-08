@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/opg-sirius-finance-hub/frontend/internal/api"
+	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
 	"github.com/opg-sirius-finance-hub/shared"
 	"io"
 	"net/http"

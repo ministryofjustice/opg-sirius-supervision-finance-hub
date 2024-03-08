@@ -1,12 +1,33 @@
 version: "3.6"
 services:
-  frontend:
+  finance-hub:
     build:
       target: dev
     ports:
       - '2345:2345'
     volumes:
-      - ./frontend:/app
+      - ./finance-hub/.air.toml:/app/.air.toml
+      - ./go.mod:/app/go.mod
+      - ./go.sum:/app/go.sum
+      - ./finance-hub/internal:/app/finance-hub/internal
+      - ./shared:/app/shared
+      - ./finance-hub/main_test.go:/app/finance-hub/main_test.go
+      - ./finance-hub/main.go:/app/finance-hub/main.go
+      - ./finance-hub/web/static/javascript:/app/finance-hub/web/static/javascript
+      - ./finance-hub/web/template:/app/finance-hub/web/template
+
+  finance-api:
+    build:
+      target: dev
+    ports:
+      - '5432:2345'
+    volumes:
+      - ./finance-api/.air.toml:/app/.air.toml
+      - ./go.mod:/app/go.mod
+      - ./go.sum:/app/go.sum
+      - ./finance-api/main.go:/app/finance-api/main.go
+      - ./finance-api/internal:/app/finance-api/internal
+      - ./shared:/app/shared
 
   yarn:
     command: watch

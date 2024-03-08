@@ -2,7 +2,7 @@ package sirius
 
 import (
 	"bytes"
-	"github.com/opg-sirius-finance-hub/frontend/internal/mocks"
+	"github.com/opg-sirius-finance-hub/finance-hub/internal/mocks"
 	"github.com/opg-sirius-finance-hub/shared"
 	"io"
 	"net/http"

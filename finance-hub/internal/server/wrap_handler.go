@@ -3,7 +3,7 @@ package server
 import (
 	"errors"
 	"fmt"
-	"github.com/opg-sirius-finance-hub/frontend/internal/api"
+	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
 	"go.uber.org/zap"
 	"net/http"
 	"time"

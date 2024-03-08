@@ -1,14 +1,10 @@
-package main
+package internal
 
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
-	"os"
-
-	_ "github.com/lib/pq"
 )
 
 type user struct {
@@ -25,24 +21,9 @@ type UserDto struct {
 	Roles []string `json:"roles"`
 }
 
-func main() {
-	dbUser := getEnv("POSTGRES_USER", "")
-	dbPassword := getEnv("POSTGRES_PASSWORD", "")
-	pgDb := getEnv("POSTGRES_DB", "")
-	// Open a connection to the PostgreSQL database
-	db, err := sql.Open("postgres", fmt.Sprintf("postgresql://%s:%s@sirius-db:5432/%s?sslmode=disable", dbUser, dbPassword, pgDb))
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-
-	err = db.Ping()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Define a handler function to handle HTTP requests
-	http.HandleFunc("/users/current", func(w http.ResponseWriter, r *http.Request) {
+func GetCurrentUser(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log.Println("Fetching current user")
 		// Query the database to get the list of people
 		rows, err := db.Query("SELECT id, name, email, roles FROM users LIMIT 1")
 		if err != nil {
@@ -87,17 +68,5 @@ func main() {
 		// Set the Content-Type header and write the JSON response
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(jsonData)
-	})
-
-	// Start the HTTP server on port 8080
-	log.Println("Server listening on :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
-}
-
-func getEnv(key, def string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
 	}
-
-	return def
 }
