@@ -10,6 +10,9 @@ setup-directories: test-results
 go-lint:
 	docker compose run --rm go-lint
 
+build:
+	docker compose build --no-cache --parallel finance-hub finance-api
+
 build-all:
 	docker compose build --parallel finance-hub finance-api json-server test-runner cypress sirius-db
 
@@ -22,8 +25,8 @@ scan: setup-directories
 
 up:
 	docker compose run --rm yarn
-	docker compose -f docker-compose.yml -f docker-compose.dev.yml build finance-hub finance-api
-	docker compose -f docker-compose.yml -f docker-compose.dev.yml up finance-hub yarn json-server sirius-db finance-api
+	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml build finance-hub finance-api
+	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml up finance-hub yarn json-server sirius-db finance-api
 
 down:
 	docker compose down
