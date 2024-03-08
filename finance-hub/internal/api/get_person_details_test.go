@@ -14,7 +14,7 @@ import (
 
 func TestGetPersonDetails(t *testing.T) {
 	logger, mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", logger)
+	client, _ := NewApiClient(mockClient, "http://localhost:3000", "http://localhost:8181", logger)
 
 	json := `{
             "id": 2,
@@ -57,7 +57,7 @@ func TestGetPersonDetailsReturnsUnauthorisedClientError(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, logger)
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
 	_, err := client.GetPersonDetails(getContext(nil), 2)
 	assert.Equal(t, ErrUnauthorized, err)
 }
@@ -69,7 +69,7 @@ func TestPersonDetailsReturns500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, logger)
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
 
 	_, err := client.GetPersonDetails(getContext(nil), 1)
 	assert.Equal(t, StatusError{

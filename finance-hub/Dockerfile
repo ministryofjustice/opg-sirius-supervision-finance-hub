@@ -55,4 +55,4 @@ RUN apk upgrade --no-cache libcrypto3 libssl3
 COPY --from=build-env /go/bin/finance-hub finance-hub
 COPY --from=build-env /app/finance-hub/web/template web/template
 COPY --from=asset-env /app/web/static web/static
-ENTRYPOINT ["./ofinance-hub"]
+ENTRYPOINT ["./finance-hub"]

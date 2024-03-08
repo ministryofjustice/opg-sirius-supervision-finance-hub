@@ -14,7 +14,7 @@ import (
 
 func TestGetFeeReductions(t *testing.T) {
 	logger, mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", logger)
+	client, _ := NewApiClient(mockClient, "http://localhost:3000", "http://localhost:8181", logger)
 
 	json := `[
         {
@@ -79,7 +79,7 @@ func TestGetFeeReductionsReturnsUnauthorisedClientError(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, logger)
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
 	_, err := client.GetFeeReductions(getContext(nil), 1)
 	assert.Equal(t, ErrUnauthorized, err)
 }
@@ -91,7 +91,7 @@ func TestFeeReductionsReturns500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, logger)
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
 
 	_, err := client.GetFeeReductions(getContext(nil), 1)
 	assert.Equal(t, StatusError{

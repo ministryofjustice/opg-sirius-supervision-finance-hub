@@ -3,6 +3,7 @@ package internal
 import (
 	"database/sql"
 	"encoding/json"
+	"github.com/opg-sirius-finance-hub/shared"
 	"log"
 	"net/http"
 )
@@ -12,13 +13,6 @@ type user struct {
 	name  string
 	email string
 	roles string
-}
-
-type UserDto struct {
-	ID    int      `json:"id"`
-	Name  string   `json:"name"`
-	Email string   `json:"email"`
-	Roles []string `json:"roles"`
 }
 
 func GetCurrentUser(db *sql.DB) http.HandlerFunc {
@@ -54,10 +48,8 @@ func GetCurrentUser(db *sql.DB) http.HandlerFunc {
 		}
 
 		// Marshal the slice of Person structs to JSON
-		jsonData, err := json.Marshal(UserDto{
-			ID:    u.id,
-			Name:  u.name,
-			Email: u.email,
+		jsonData, err := json.Marshal(shared.Assignee{
+			Id:    u.id,
 			Roles: roles,
 		})
 		if err != nil {
@@ -67,6 +59,9 @@ func GetCurrentUser(db *sql.DB) http.HandlerFunc {
 
 		// Set the Content-Type header and write the JSON response
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(jsonData)
+		_, err = w.Write(jsonData)
+		if err != nil {
+			return
+		}
 	}
 }
