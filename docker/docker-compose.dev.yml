@@ -1,26 +1,40 @@
 version: "3.6"
 services:
-  finance:
+  finance-hub:
     build:
       target: dev
     ports:
       - '2345:2345'
     volumes:
-      - ./.air.toml:/app/.air.toml
+      - ./finance-hub/.air.toml:/app/.air.toml
       - ./go.mod:/app/go.mod
       - ./go.sum:/app/go.sum
-      - ./internal:/app/internal
-      - ./main_test.go:/app/main_test.go
-      - ./main.go:/app/main.go
-      - ./web/static/javascript:/app/web/static/javascript
-      - ./web/template:/app/web/template
+      - ./finance-hub/internal:/app/finance-hub/internal
+      - ./shared:/app/shared
+      - ./finance-hub/main_test.go:/app/finance-hub/main_test.go
+      - ./finance-hub/main.go:/app/finance-hub/main.go
+      - ./finance-hub/web/static/javascript:/app/finance-hub/web/static/javascript
+      - ./finance-hub/web/template:/app/finance-hub/web/template
+
+  finance-api:
+    build:
+      target: dev
+    ports:
+      - '5432:2345'
+    volumes:
+      - ./finance-api/.air.toml:/app/.air.toml
+      - ./go.mod:/app/go.mod
+      - ./go.sum:/app/go.sum
+      - ./finance-api/main.go:/app/finance-api/main.go
+      - ./finance-api/internal:/app/finance-api/internal
+      - ./shared:/app/shared
 
   yarn:
     command: watch
 
   json-server:
     build:
-      dockerfile: docker/json-server/Dockerfile
+      dockerfile: ../json-server/Dockerfile
     volumes:
       - ./json-server/config:/app/config
     ports:
