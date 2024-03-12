@@ -109,3 +109,20 @@ func TestGetInvoicesCanThrow500Error(t *testing.T) {
 		Method: http.MethodGet,
 	}, err)
 }
+
+func TestGetInvoicesUnauthorised(t *testing.T) {
+	logger, _ := SetUpTest()
+	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnauthorized)
+	}))
+	defer svr.Close()
+
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, logger)
+
+	clientList, err := client.GetInvoices(getContext(nil), 3)
+
+	var expectedResponse model.Invoices
+
+	assert.Equal(t, expectedResponse, clientList)
+	assert.Equal(t, ErrUnauthorized, err)
+}
