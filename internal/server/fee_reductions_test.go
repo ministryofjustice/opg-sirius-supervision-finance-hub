@@ -64,7 +64,7 @@ func TestFeeReductions(t *testing.T) {
 		},
 	}
 
-	expected := FeeReductionsTab{
+	expected := &FeeReductionsTab{
 		FeeReductions: out,
 		AppVars:       appVars,
 	}

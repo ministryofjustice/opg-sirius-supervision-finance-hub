@@ -1,10 +1,10 @@
 const getFailRoute = (req) => {
-    return req.headers?.cookie?.match(/fail-route=(?<failRoute>[^;]+);/)?.groups
+    return req.headers?.cookie?.match(/fail-route=(?<failRoute>[^;]+)/)?.groups
         .failRoute;
 };
 
 const getStatusCode = (req) => {
-    return req.headers?.cookie?.match(/fail-code=(?<statusCode>[^;]+);/)?.groups
+    return req.headers?.cookie?.match(/fail-code=(?<statusCode>[^;]+)/)?.groups
         .statusCode;
 };
 
