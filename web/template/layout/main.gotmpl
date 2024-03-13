@@ -1,11 +1,13 @@
 {{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.PageData*/ -}}
 {{ define "main" }}
     <div class="govuk-width-container app-width-container">
-        <main class="govuk-main-wrapper app-main-class" id="main-content" role="main">
+        <main class="govuk-main-wrapper app-main-class" role="main">
+            {{ if .SuccessMessage }}
+                {{ template "success-banner" . }}
+            {{ end }}
             {{ template "person-info" .Person }}
-            {{ template "navigation" . }}
-            <div id="tab-content">
-                {{ template "tab-content" . }}
+            <div id="main-content">
+                {{ block "main-content" . }}{{ end }}
             </div>
         </main>
     </div>
