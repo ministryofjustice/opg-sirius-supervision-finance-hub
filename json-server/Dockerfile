@@ -1,0 +1,28 @@
+### Build front end assets so json-server can route to them
+#FROM node:18.3.0-alpine3.14 as build-assets
+#
+#WORKDIR /app
+#
+#RUN mkdir -p web/static
+#
+#COPY web/assets web/assets
+#COPY package.json .
+#COPY yarn.lock .
+#
+#RUN yarn install
+#RUN yarn build
+#
+## build json-server for mock API
+FROM node:18.3.0-alpine3.14 as json-server
+
+WORKDIR /app
+
+EXPOSE 3000
+
+COPY json-server .
+
+RUN npm install
+
+#COPY --from=build-assets /app/web/static/ public
+
+ENTRYPOINT ["npm", "run", "serve"]
