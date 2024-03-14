@@ -2,7 +2,7 @@ node_modules
 package-lock.json
 test-results
 tmp/
-web/static
+web/static/
 
 # Cypress cli run artifact folders
 cypress/logs
