@@ -40,3 +40,9 @@ Alternatively to set it up not using Docker use below. This hosts it on `localho
 ## Run Trivy scanning
 
 `make scan`
+
+-------------------------------------------------------------------
+## Architectural Decision Records
+
+The major decisions made on this project are documented as ADRs in `/adrs`. The process for contributing to these is documented
+in the first ADR.
