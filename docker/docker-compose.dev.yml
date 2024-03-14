@@ -20,7 +20,7 @@ services:
     build:
       target: dev
     ports:
-      - '5432:2345'
+      - '3456:2345'
     volumes:
       - ./finance-api/.air.toml:/app/.air.toml
       - ./go.mod:/app/go.mod
