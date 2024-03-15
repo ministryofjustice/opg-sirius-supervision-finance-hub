@@ -2,7 +2,7 @@ node_modules
 package-lock.json
 test-results
 tmp/
-web/static
+/finance-hub/web/static/
 
 # Cypress cli run artifact folders
 cypress/logs
@@ -20,3 +20,4 @@ cypress/downloads
 .cache
 .gocache
 .trivy-cache
+

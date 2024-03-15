@@ -2,11 +2,11 @@
 
 ### Major dependencies
 
-- [Go](https://golang.org/) (>= 1.19)
+- [Go](https://golang.org/) (>= 1.22)
 - [docker compose](https://docs.docker.com/compose/install/) (>= 2.0.0)
 
 #### Installing dependencies locally:
-(This is only necessary if dunning without docker)
+(This is only necessary if running without docker)
 
 - `yarn install`
 - `go mod download`
@@ -14,22 +14,20 @@
 
 ## Local development
 
-The application ran through Docker can be accessed on `localhost:8888/supervision/finance/`.
-
-**Note: Sirius is required to be running in order to authenticate. However, it also runs its own version of Finance on port `8080`.
-Ensure that after logging in, you redirect back to the correct port (`8888`)**
+The application ran through Docker can be accessed on `localhost:8888/clients/1/invoices`.
 
 To enable debugging and hot-reloading of Go files:
 
-`make dev-up`
+`make up`
 
-### Without docker
+Hot-reloading is managed independently for both apps and should happen seemlessly. Hot-reloading for web assets (JS, CSS, etc.)
+is also provided via a Yarn watch command.
 
-Alternatively to set it up not using Docker use below. This hosts it on `localhost:1234`
+Both the `finance-hub` (front end) and `finance-api` (back end) can be debugged independently, as they expose different
+ports for Delve:
 
-- `yarn install && yarn build `
-- `go build main.go `
-- `./main `
+* `finance-hub`: 2345
+* `finance-api`: 3456
 
 -------------------------------------------------------------------
 ## Run the unit/functional tests
