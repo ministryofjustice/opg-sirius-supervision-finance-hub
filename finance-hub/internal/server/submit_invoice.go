@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
-	"github.com/opg-sirius-finance-hub/finance-hub/util"
+	"github.com/opg-sirius-finance-hub/finance-hub/internal/util"
 	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
 	"strconv"
