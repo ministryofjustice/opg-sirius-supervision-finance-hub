@@ -80,6 +80,8 @@ services:
     image: sirius-db
     build:
       dockerfile: docker/sirius-db/Dockerfile
+    volumes:
+      - ./sirius-db/dump.sql:/app/scripts/db/dump.sql
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
