@@ -99,4 +99,5 @@ services:
     working_dir: /src
     volumes:
       - ./finance-api/internal/store:/src
+      - ./migrations:/src/migrations
     command: generate
