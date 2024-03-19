@@ -1,9 +1,12 @@
 package main
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
-	"github.com/opg-sirius-finance-hub/finance-api/internal"
+	"github.com/jackc/pgx/v5"
+	"github.com/opg-sirius-finance-hub/finance-api/cmd/api"
+	"github.com/opg-sirius-finance-hub/finance-api/internal/service"
+	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"log"
 	"net/http"
 	"os"
@@ -12,23 +15,25 @@ import (
 )
 
 func main() {
+	logger := log.New(os.Stdout, "", log.LstdFlags|log.Llongfile)
+
 	dbUser := getEnv("POSTGRES_USER", "")
 	dbPassword := getEnv("POSTGRES_PASSWORD", "")
 	pgDb := getEnv("POSTGRES_DB", "")
 	// Open a connection to the PostgreSQL database
-	db, err := sql.Open("postgres", fmt.Sprintf("postgresql://%s:%s@sirius-db:5432/%s?sslmode=disable", dbUser, dbPassword, pgDb))
+	ctx := context.Background()
+
+	conn, err := pgx.Connect(ctx, fmt.Sprintf("postgresql://%s:%s@sirius-db:5432/%s?sslmode=disable", dbUser, dbPassword, pgDb))
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer db.Close()
+	defer conn.Close(ctx)
 
-	err = db.Ping()
-	if err != nil {
-		log.Fatal(err)
-	}
+	Store := store.New(conn)
+	Service := service.Service{Store: Store}
+	server := api.Server{Logger: logger, Service: &Service}
 
-	// Define a handler function to handle HTTP requests
-	http.HandleFunc("/users/current", internal.GetCurrentUser(db))
+	server.SetupRoutes()
 
 	// Start the HTTP server on port 8080
 	log.Println("Server listening on :8080")

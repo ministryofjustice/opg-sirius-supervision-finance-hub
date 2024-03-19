@@ -24,7 +24,7 @@ COPY . .
 
 WORKDIR /app/finance-api
 
-RUN go build -a -installsuffix cgo -o /go/bin/finance-api
+RUN go build -a -installsuffix cgo -o /go/bin/finance-api ./cmd/api/main.go
 
 FROM alpine:3
 WORKDIR /go/bin

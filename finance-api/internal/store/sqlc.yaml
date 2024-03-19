@@ -1,0 +1,12 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "queries"
+    schema: "schema.sql"
+    # or
+#    schema: "misc/migrations" # will refer a directory
+    gen:
+      go:
+        package: "store"
+        sql_package: "pgx/v5"
+        out: "."

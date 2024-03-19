@@ -93,3 +93,10 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  sqlc:
+    image: kjconroy/sqlc
+    working_dir: /src
+    volumes:
+      - ./finance-api/internal/store:/src
+    command: generate
