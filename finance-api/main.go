@@ -29,6 +29,7 @@ func main() {
 
 	// Define a handler function to handle HTTP requests
 	http.HandleFunc("/users/current", internal.GetCurrentUser(db))
+	http.HandleFunc("/clients/{id}", internal.GetFinancePerson(db))
 
 	// Start the HTTP server on port 8080
 	log.Println("Server listening on :8080")
