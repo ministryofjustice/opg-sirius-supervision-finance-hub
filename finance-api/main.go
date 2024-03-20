@@ -4,18 +4,65 @@ import (
 	"context"
 	"fmt"
 	"github.com/jackc/pgx/v5"
+	"github.com/ministryofjustice/opg-go-common/env"
 	"github.com/opg-sirius-finance-hub/finance-api/cmd/api"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/service"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
-	"log"
+	"go.opentelemetry.io/contrib/detectors/aws/ecs"
+	"go.opentelemetry.io/contrib/propagators/aws/xray"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/sdk/trace"
+	"go.uber.org/zap"
+	"google.golang.org/grpc"
 	"net/http"
 	"os"
 
 	_ "github.com/lib/pq"
 )
 
+func initTracerProvider(ctx context.Context, logger *zap.SugaredLogger) func() {
+	resource, err := ecs.NewResourceDetector().Detect(ctx)
+	if err != nil {
+		logger.Fatal(err)
+	}
+
+	traceExporter, err := otlptracegrpc.New(ctx,
+		otlptracegrpc.WithInsecure(),
+		otlptracegrpc.WithEndpoint("0.0.0.0:4317"),
+		otlptracegrpc.WithDialOption(grpc.WithBlock()),
+	)
+	if err != nil {
+		logger.Fatal(err)
+	}
+
+	idg := xray.NewIDGenerator()
+	tp := trace.NewTracerProvider(
+		trace.WithResource(resource),
+		trace.WithSampler(trace.AlwaysSample()),
+		trace.WithBatcher(traceExporter),
+		trace.WithIDGenerator(idg),
+	)
+
+	otel.SetTracerProvider(tp)
+	otel.SetTextMapPropagator(xray.Propagator{})
+
+	return func() {
+		if err := tp.Shutdown(ctx); err != nil {
+			logger.Fatal(err)
+		}
+	}
+}
+
 func main() {
-	logger := log.New(os.Stdout, "", log.LstdFlags|log.Llongfile)
+	logger := zap.Must(zap.NewProduction(zap.Fields(zap.String("service_name", "opg-sirius-finance-api")))).Sugar()
+
+	defer func() { _ = logger.Sync() }()
+
+	if env.Get("TRACING_ENABLED", "0") == "1" {
+		shutdown := initTracerProvider(context.Background(), logger)
+		defer shutdown()
+	}
 
 	dbUser := getEnv("POSTGRES_USER", "")
 	dbPassword := getEnv("POSTGRES_PASSWORD", "")
@@ -25,7 +72,7 @@ func main() {
 
 	conn, err := pgx.Connect(ctx, fmt.Sprintf("postgresql://%s:%s@sirius-db:5432/%s?sslmode=disable", dbUser, dbPassword, pgDb))
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	}
 	defer conn.Close(ctx)
 
@@ -36,8 +83,8 @@ func main() {
 	server.SetupRoutes()
 
 	// Start the HTTP server on port 8080
-	log.Println("Server listening on :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	logger.Infow("Server listening on :8080")
+	logger.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 func getEnv(key, def string) string {

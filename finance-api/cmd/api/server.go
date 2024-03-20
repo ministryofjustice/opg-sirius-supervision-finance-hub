@@ -2,15 +2,15 @@ package api
 
 import (
 	"github.com/opg-sirius-finance-hub/finance-api/internal/service"
-	"log"
+	"go.uber.org/zap"
 	"net/http"
 )
 
 type Server struct {
-	Logger  *log.Logger
+	Logger  *zap.SugaredLogger
 	Service *service.Service
 }
 
 func (s *Server) SetupRoutes() {
-	http.HandleFunc("GET /users/current", s.getCurrentUser)
+	http.HandleFunc("GET /clients/{id}", s.getAccountInformation)
 }

@@ -1,2 +1,2 @@
--- name: FinanceClient :one
-SELECT id FROM finance_client LIMIT 1;
+-- name: GetAccountInformation :one
+SELECT cacheddebtamount, cachedcreditamount, payment_method FROM finance_client WHERE client_id = $1;

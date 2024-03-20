@@ -48,7 +48,7 @@ func TestRoute_fullPage(t *testing.T) {
 
 	fetchedData := HeaderData{
 		Person: shared.Person{
-			Firstname: "Ian",
+			FirstName: "Ian",
 			Surname:   "Testing",
 		},
 		MyDetails: shared.Assignee{

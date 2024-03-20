@@ -62,7 +62,7 @@ func TestGetCurrentUserDetailsReturnsUnauthorisedClientError(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, "", svr.URL, logger)
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, "", logger)
 	_, err := client.GetCurrentUserDetails(getContext(nil))
 	assert.Equal(t, ErrUnauthorized, err)
 }
@@ -74,12 +74,12 @@ func TestMyDetailsReturns500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, "", svr.URL, logger)
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, "", logger)
 
 	_, err := client.GetCurrentUserDetails(getContext(nil))
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
-		URL:    svr.URL + "/users/current",
+		URL:    svr.URL + "/api/v1/users/current",
 		Method: http.MethodGet,
 	}, err)
 }

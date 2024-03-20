@@ -99,7 +99,7 @@ services:
     working_dir: /src
     volumes:
       - ./finance-api/internal/store:/src
-      - ./migrations:/src/migrations
+      - ./migrations:/migrations
     command: generate
 
   migrate:
