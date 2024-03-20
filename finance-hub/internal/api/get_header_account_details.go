@@ -2,14 +2,17 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/opg-sirius-finance-hub/shared"
+
 	"net/http"
 )
 
-func (c *ApiClient) GetCurrentUserDetails(ctx Context) (shared.Assignee, error) {
-	var v shared.Assignee
+func (c *ApiClient) GetHeaderDetails(ctx Context, ClientId int) (shared.HeaderAccountData, error) {
+	var v shared.HeaderAccountData
 
-	req, err := c.newSiriusRequest(ctx, http.MethodGet, "/api/v1/users/current", nil)
+	requestURL := fmt.Sprintf("/clients/%d", ClientId)
+	req, err := c.newBackendRequest(ctx, http.MethodGet, requestURL, nil)
 	if err != nil {
 		c.logErrorRequest(req, err)
 		return v, err

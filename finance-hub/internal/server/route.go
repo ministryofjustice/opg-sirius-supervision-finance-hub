@@ -7,8 +7,9 @@ import (
 )
 
 type HeaderData struct {
-	MyDetails shared.Assignee
-	Person    shared.Person
+	MyDetails         shared.Assignee
+	Person            shared.Person
+	HeaderAccountData shared.HeaderAccountData
 }
 
 type PageData struct {
@@ -55,6 +56,14 @@ func (r route) execute(w http.ResponseWriter, req *http.Request, data any) error
 				return err
 			}
 			data.Person = person
+			return nil
+		})
+		group.Go(func() error {
+			headerDetails, err := r.client.GetHeaderDetails(ctx.With(groupCtx), ctx.ClientId)
+			if err != nil {
+				return err
+			}
+			data.HeaderAccountData = headerDetails
 			return nil
 		})
 

@@ -19,6 +19,7 @@ type ApiClient interface {
 	GetFeeReductions(api.Context, int) (shared.FeeReductions, error)
 	GetInvoices(api.Context, int) (shared.Invoices, error)
 	UpdateInvoice(api.Context, int, int, string, string, string) error
+	GetHeaderDetails(api.Context, int) (shared.HeaderAccountData, error)
 }
 
 type router interface {

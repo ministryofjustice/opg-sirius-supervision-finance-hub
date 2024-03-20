@@ -3,11 +3,11 @@
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-full">
             <a href="javascript: history.go(-1)" class="govuk-back-link">Back</a>
-            <h1 data-cy="person-name" class="govuk-heading-m govuk-!-margin-bottom-2">{{ .Firstname }} {{ .Surname }}</h1>
-            <span data-cy="court-ref" class="govuk-caption-m  govuk-!-margin-bottom-1">Court reference: {{ .CourtRef }}</span>
-            <span data-cy="total-outstanding-balance" class="govuk-caption-m  govuk-!-margin-bottom-1">Total outstanding balance: {{ .OutstandingBalance }}</span>
-            <span data-cy="total-credit-balance" class="govuk-caption-m  govuk-!-margin-bottom-1">Total credit balance: {{ .CreditBalance }}</span>
-            <span data-cy="payment-method" class="govuk-caption-m  govuk-!-margin-bottom-1">Payment method: {{ .PaymentMethod }}</span>
+            <h1 data-cy="person-name" class="govuk-heading-m govuk-!-margin-bottom-2">{{ .Person.Firstname }} {{ .Person.Surname }}</h1>
+            <span data-cy="court-ref" class="govuk-caption-m  govuk-!-margin-bottom-1">Court reference: {{ .Person.CourtRef }}</span>
+            <span data-cy="total-outstanding-balance" class="govuk-caption-m  govuk-!-margin-bottom-1">Total outstanding balance: £{{ .HeaderAccountData.OutstandingBalance }}</span>
+            <span data-cy="total-credit-balance" class="govuk-caption-m  govuk-!-margin-bottom-1">Total credit balance: £{{ .HeaderAccountData.CreditBalance }}</span>
+            <span data-cy="payment-method" class="govuk-caption-m  govuk-!-margin-bottom-1">Payment method: {{ .HeaderAccountData.PaymentMethod }}</span>
         </div>
     </div>
 {{ end }}

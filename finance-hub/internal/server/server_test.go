@@ -49,11 +49,12 @@ func (r *mockRoute) execute(w http.ResponseWriter, req *http.Request, data any) 
 }
 
 type mockApiClient struct {
-	error              error
-	CurrentUserDetails shared.Assignee
-	PersonDetails      shared.Person
-	FeeReductions      shared.FeeReductions
-	Invoices           shared.Invoices
+	error                error
+	CurrentUserDetails   shared.Assignee
+	PersonDetails        shared.Person
+	HeaderAccountDetails shared.HeaderAccountData
+	FeeReductions        shared.FeeReductions
+	Invoices             shared.Invoices
 }
 
 func (m mockApiClient) UpdateInvoice(context api.Context, i int, k int, s string, j string, amount string) error {
@@ -66,6 +67,10 @@ func (m mockApiClient) GetInvoices(context api.Context, i int) (shared.Invoices,
 
 func (m mockApiClient) GetPersonDetails(api.Context, int) (shared.Person, error) {
 	return m.PersonDetails, m.error
+}
+
+func (m mockApiClient) GetHeaderDetails(api.Context, int) (shared.HeaderAccountData, error) {
+	return m.HeaderAccountDetails, m.error
 }
 
 func (m mockApiClient) GetCurrentUserDetails(api.Context) (shared.Assignee, error) {
