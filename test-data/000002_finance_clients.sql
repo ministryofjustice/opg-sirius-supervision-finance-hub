@@ -1,0 +1,1 @@
+INSERT INTO finance_client VALUES (1, 1, '1234', 'DEMANDED', null);

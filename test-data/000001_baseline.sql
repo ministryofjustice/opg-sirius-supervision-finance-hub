@@ -1,3 +1,5 @@
+CREATE ROLE api;
+
 create sequence billing_period_id_seq;
 
 alter sequence billing_period_id_seq owner to api;

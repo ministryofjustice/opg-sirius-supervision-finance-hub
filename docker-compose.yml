@@ -77,17 +77,17 @@ services:
         condition: service_healthy
 
   sirius-db:
-    image: sirius-db
+    image: postgres:12-alpine
     build:
       dockerfile: docker/sirius-db/Dockerfile
-    volumes:
-      - ./sirius-db/dump.sql:/app/scripts/db/dump.sql
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=finance
     ports:
       - "5431:5432"
+    volumes:
+      - ./test-data/:/docker-entrypoint-initdb.d/
     healthcheck:
       test: pg_isready --username=user --dbname=finance
       interval: 5s
@@ -101,3 +101,13 @@ services:
       - ./finance-api/internal/store:/src
       - ./migrations:/src/migrations
     command: generate
+
+  migrate:
+    image: migrate/migrate
+    depends_on:
+      sirius-db:
+        condition: service_healthy
+    volumes:
+      - ./migrations:/database
+    command:
+      [ "-path", "/database", "-database",  "postgres://user:password@sirius-db:5432/finance?sslmode=disable", "up" ]
