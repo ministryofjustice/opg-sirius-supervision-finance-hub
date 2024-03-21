@@ -1,4 +1,4 @@
-# 2. Adopt go-migrate for data migration
+# 7. Adopt go-migrate for data migration
 
 Date: 2024-03-19
 
