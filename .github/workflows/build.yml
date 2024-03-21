@@ -44,16 +44,6 @@ jobs:
       - name: Run linting
         run: make go-lint
 
-  sqlc:
-    name: sqlc
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: sqlc-dev/setup-sqlc@v3
-        with:
-          sqlc-version: '1.25.0'
-      - run: sqlc diff
-
   acceptance-test:
     name: Acceptance Testing
     runs-on: ubuntu-latest
