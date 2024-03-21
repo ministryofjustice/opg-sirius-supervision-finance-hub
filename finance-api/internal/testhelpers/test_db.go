@@ -84,7 +84,6 @@ func InitDb() *TestDatabase {
 
 func migrateDb(connString string) error {
 	pathToMigrationFiles := basePath + "/migrations"
-	log.Println(connString)
 
 	m, err := migrate.New(fmt.Sprintf("file:%s", pathToMigrationFiles), fmt.Sprintf("%ssslmode=disable", connString))
 	if err != nil {

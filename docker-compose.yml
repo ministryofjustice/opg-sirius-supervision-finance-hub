@@ -21,13 +21,6 @@ services:
     ports:
       - '3000:3000'
 
-  test-runner:
-    build:
-      dockerfile: docker/test-runner/Dockerfile
-    working_dir: /go/src/app
-    volumes:
-      - ./:/go/src/app
-
   cypress:
     build:
       dockerfile: docker/cypress/Dockerfile

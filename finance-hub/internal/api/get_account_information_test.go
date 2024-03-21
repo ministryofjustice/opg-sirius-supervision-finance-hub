@@ -32,14 +32,13 @@ func TestGetHeaderAccountDetails(t *testing.T) {
 		}, nil
 	}
 
-	expectedResponse := shared.HeaderAccountData{
-		ClientID:           2,
-		OutstandingBalance: "22.22",
-		CreditBalance:      "1.01",
+	expectedResponse := shared.AccountInformation{
+		OutstandingBalance: 2222,
+		CreditBalance:      101,
 		PaymentMethod:      "Demanded",
 	}
 
-	headerDetails, err := client.GetHeaderDetails(getContext(nil), 2)
+	headerDetails, err := client.GetAccountInformation(getContext(nil), 2)
 	assert.Equal(t, expectedResponse, headerDetails)
 	assert.Equal(t, nil, err)
 }
@@ -52,7 +51,7 @@ func TestGetHeaderAccountDetailsReturnsUnauthorisedClientError(t *testing.T) {
 	defer svr.Close()
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
-	_, err := client.GetHeaderDetails(getContext(nil), 2)
+	_, err := client.GetAccountInformation(getContext(nil), 2)
 	assert.Equal(t, ErrUnauthorized, err)
 }
 
@@ -65,7 +64,7 @@ func TestHeaderAccountDetailsReturns500Error(t *testing.T) {
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
 
-	_, err := client.GetHeaderDetails(getContext(nil), 1)
+	_, err := client.GetAccountInformation(getContext(nil), 1)
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/clients/1",
