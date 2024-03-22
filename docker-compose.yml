@@ -24,7 +24,7 @@ services:
   cypress:
     build:
       dockerfile: docker/cypress/Dockerfile
-    command: [ "--headless", "-b", "electron", "--env", "grepUntagged=true" ]
+    command: [ "--headless", "-b", "electron"]
     volumes:
       - ./cypress/screenshots:/root/cypress/screenshots:rw,delegated
       - ./cypress/logs:/root/cypress/logs:rw,delegated
@@ -71,8 +71,6 @@ services:
 
   sirius-db:
     image: postgres:12-alpine
-    build:
-      dockerfile: docker/sirius-db/Dockerfile
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password

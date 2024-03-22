@@ -17,7 +17,7 @@ build-all:
 	docker compose build --parallel finance-hub finance-api json-server test-runner cypress sirius-db
 
 test: setup-directories
-	go run gotest.tools/gotestsum@latest --junitfile test-results/unit-tests.xml -- ./... -coverprofile=test-results/test-coverage.txt
+	go run gotest.tools/gotestsum@latest --format testname  --junitfile test-results/unit-tests.xml -- ./... -coverprofile=test-results/test-coverage.txt
 
 scan: setup-directories
 	docker compose run --rm trivy image --format table --exit-code 0 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-hub:latest

@@ -6,9 +6,6 @@ import (
 )
 
 func Test_intToDecimalString(t *testing.T) {
-	type args struct {
-		i int
-	}
 	tests := []struct {
 		name string
 		arg  int

@@ -2,7 +2,6 @@ package api
 
 import (
 	"bytes"
-	"github.com/opg-sirius-finance-hub/finance-hub/internal/mocks"
 	"github.com/opg-sirius-finance-hub/shared"
 	"io"
 	"net/http"
@@ -38,7 +37,7 @@ func TestGetCurrentUserDetails(t *testing.T) {
 
 	r := io.NopCloser(bytes.NewReader([]byte(json)))
 
-	mocks.GetDoFunc = func(*http.Request) (*http.Response, error) {
+	GetDoFunc = func(*http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: 200,
 			Body:       r,
@@ -108,7 +107,7 @@ func TestMyDetailsReturns200(t *testing.T) {
 
 	r := io.NopCloser(bytes.NewReader([]byte(json)))
 
-	mocks.GetDoFunc = func(*http.Request) (*http.Response, error) {
+	GetDoFunc = func(*http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: 200,
 			Body:       r,

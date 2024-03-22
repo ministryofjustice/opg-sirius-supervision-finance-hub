@@ -44,12 +44,19 @@ jobs:
           verbose: true
 
   lint:
-    name: GO lint
+    name: Go lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Run linting
-        run: make go-lint
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache: false
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v4
+        with:
+          version: v1.54
+          args: -v --timeout=5m
 
   acceptance-test:
     name: Acceptance Testing
