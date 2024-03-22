@@ -2,7 +2,6 @@ package api
 
 import (
 	"bytes"
-	"github.com/opg-sirius-finance-hub/finance-hub/internal/mocks"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"io"
@@ -47,7 +46,7 @@ func TestGetInvoicesCanReturn200(t *testing.T) {
 
 	r := io.NopCloser(bytes.NewReader([]byte(json)))
 
-	mocks.GetDoFunc = func(rq *http.Request) (*http.Response, error) {
+	GetDoFunc = func(rq *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: 200,
 			Body:       r,

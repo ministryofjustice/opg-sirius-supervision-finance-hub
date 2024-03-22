@@ -46,18 +46,32 @@ func TestRoute_fullPage(t *testing.T) {
 	r, _ := http.NewRequest(http.MethodGet, "", nil)
 	r.SetPathValue("id", "1")
 
-	fetchedData := HeaderData{
-		Person: shared.Person{
-			Firstname: "Ian",
-			Surname:   "Testing",
-		},
-		MyDetails: shared.Assignee{
-			Id: 123,
-		},
+	client.PersonDetails = shared.Person{
+		ID:        1,
+		FirstName: "Ian",
+		Surname:   "Testing",
+		CourtRef:  "123abc",
+	}
+	client.AccountInformation = shared.AccountInformation{
+		OutstandingBalance: 12300,
+		CreditBalance:      123,
+		PaymentMethod:      "DEMANDED",
+	}
+	client.CurrentUserDetails = shared.Assignee{
+		Id: 123,
 	}
 
-	client.PersonDetails = fetchedData.Person
-	client.CurrentUserDetails = fetchedData.MyDetails
+	fetchedData := HeaderData{
+		FinanceClient: FinanceClient{
+			FirstName:          client.PersonDetails.FirstName,
+			Surname:            client.PersonDetails.Surname,
+			CourtRef:           client.PersonDetails.CourtRef,
+			OutstandingBalance: "123",
+			CreditBalance:      "1.23",
+			PaymentMethod:      "Demanded",
+		},
+		MyDetails: client.CurrentUserDetails,
+	}
 
 	data := PageData{
 		Data: mockRouteData{
