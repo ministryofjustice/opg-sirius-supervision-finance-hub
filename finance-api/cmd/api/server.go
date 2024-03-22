@@ -1,14 +1,18 @@
 package api
 
 import (
-	"github.com/opg-sirius-finance-hub/finance-api/internal/service"
+	"github.com/opg-sirius-finance-hub/shared"
 	"go.uber.org/zap"
 	"net/http"
 )
 
+type Service interface {
+	GetAccountInformation(id int) (*shared.AccountInformation, error)
+}
+
 type Server struct {
 	Logger  *zap.SugaredLogger
-	Service *service.Service
+	Service Service
 }
 
 func (s *Server) SetupRoutes() {
