@@ -45,7 +45,7 @@ func InitDb() *TestDatabase {
 		postgres.WithDatabase(dbname),
 		postgres.WithUsername(user),
 		postgres.WithPassword(password),
-		postgres.WithInitScripts(basePath+"/test-data/000000_baseline.sql"),
+		postgres.WithInitScripts(basePath+"/test-data/baseline.sql"),
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("database system is ready to accept connections").
 				WithOccurrence(2).

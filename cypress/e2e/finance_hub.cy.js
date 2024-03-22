@@ -7,8 +7,8 @@ describe("Finance Hub", () => {
         it("shows the client details", () => {
             cy.contains('[data-cy="person-name"]', "Finance Person");
             cy.contains('[data-cy="court-ref"]', "12345678");
-            cy.contains('[data-cy="total-outstanding-balance"]', "£22.22");
-            cy.contains('[data-cy="total-credit-balance"]', "£1.01");
+            cy.contains('[data-cy="total-outstanding-balance"]', "£123");
+            cy.contains('[data-cy="total-credit-balance"]', "£22.22");
             cy.contains('[data-cy="payment-method"]', "Demanded");
         });
     });

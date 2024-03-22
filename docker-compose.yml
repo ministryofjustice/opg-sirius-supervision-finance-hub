@@ -33,6 +33,7 @@ services:
       - json-server
       - finance-api
       - sirius-db
+      - migrate
 
   go-lint:
     image: golangci/golangci-lint:v1.54.2
@@ -78,7 +79,8 @@ services:
     ports:
       - "5431:5432"
     volumes:
-      - ./test-data/:/docker-entrypoint-initdb.d/
+      - ./test-data/baseline.sql:/docker-entrypoint-initdb.d/baseline.sql
+      - ./test-data/seed_data.sql:/seed_data.sql
     healthcheck:
       test: pg_isready --username=user --dbname=finance
       interval: 5s
