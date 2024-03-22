@@ -31,6 +31,9 @@ up:
 down:
 	docker compose down
 
+sqlc:
+	docker compose up sqlc
+
 start-and-seed:
 	docker compose up -d --wait finance-hub finance-api
 	docker compose up -d migrate

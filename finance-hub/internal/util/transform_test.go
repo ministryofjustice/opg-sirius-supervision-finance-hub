@@ -34,7 +34,7 @@ func Test_intToDecimalString(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, intToDecimalString(tt.arg), "intToDecimalString(%v)", tt.arg)
+			assert.Equalf(t, tt.want, IntToDecimalString(tt.arg), "intToDecimalString(%v)", tt.arg)
 		})
 	}
 }

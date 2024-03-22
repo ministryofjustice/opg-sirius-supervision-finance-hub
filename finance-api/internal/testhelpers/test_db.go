@@ -25,6 +25,9 @@ const (
 
 var basePath string
 
+// TestDatabase is a test utility containing a fully-migrated Postgres instance. To use this, run InitDb within a TestMain
+// function and use the DbInstance to interact with the database as needed (e.g. to insert data prior to testing).
+// Ensure to run TearDown at the end of the tests to clean up.
 type TestDatabase struct {
 	DbInstance *pgxpool.Pool
 	DbAddress  string
@@ -38,14 +41,13 @@ func InitDb() *TestDatabase {
 	testPath := filepath.Dir(b)
 	basePath = filepath.Join(testPath, "../../..")
 
-	// 1. Start the postgres container and run any migrations on it
 	container, err := postgres.RunContainer(
 		ctx,
 		testcontainers.WithImage("docker.io/postgres:16-alpine"),
 		postgres.WithDatabase(dbname),
 		postgres.WithUsername(user),
 		postgres.WithPassword(password),
-		postgres.WithInitScripts(basePath+"/test-data/baseline.sql"),
+		postgres.WithInitScripts(basePath+"/migrations/000000_baseline.sql"),
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("database system is ready to accept connections").
 				WithOccurrence(2).
@@ -103,6 +105,5 @@ func migrateDb(connString string) error {
 
 func (tdb *TestDatabase) TearDown() {
 	tdb.DbInstance.Close()
-	// remove test container
 	_ = tdb.container.Terminate(context.Background())
 }

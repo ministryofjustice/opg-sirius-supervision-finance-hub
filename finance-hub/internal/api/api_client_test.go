@@ -10,17 +10,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// MockClient is the mock client
 type MockClient struct {
 	DoFunc func(req *http.Request) (*http.Response, error)
 }
 
 var (
-	// GetDoFunc fetches the mock client's `Do` func
+	// GetDoFunc fetches the mock client's `Do` func. Implement this within a test to modify the client's behaviour.
 	GetDoFunc func(req *http.Request) (*http.Response, error)
 )
 
-// Do is the mock client's `Do` func
 func (m *MockClient) Do(req *http.Request) (*http.Response, error) {
 	return GetDoFunc(req)
 }

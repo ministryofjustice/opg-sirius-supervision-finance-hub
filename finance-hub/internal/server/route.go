@@ -1,12 +1,12 @@
 package server
 
 import (
+	"github.com/opg-sirius-finance-hub/finance-hub/internal/util"
 	"github.com/opg-sirius-finance-hub/shared"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"net/http"
-	"strconv"
 )
 
 type FinanceClient struct {
@@ -109,12 +109,8 @@ func (r route) transformFinanceClient(person shared.Person, accountInfo shared.A
 		FirstName:          person.FirstName,
 		Surname:            person.Surname,
 		CourtRef:           person.CourtRef,
-		OutstandingBalance: intToDecimalString(accountInfo.OutstandingBalance),
-		CreditBalance:      intToDecimalString(accountInfo.CreditBalance),
+		OutstandingBalance: util.IntToDecimalString(accountInfo.OutstandingBalance),
+		CreditBalance:      util.IntToDecimalString(accountInfo.CreditBalance),
 		PaymentMethod:      cases.Title(language.English).String(accountInfo.PaymentMethod),
 	}
-}
-
-func intToDecimalString(i int) string {
-	return strconv.FormatFloat(float64(i)/100, 'f', -1, 32)
 }
