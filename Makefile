@@ -16,8 +16,8 @@ build:
 build-all:
 	docker compose build --parallel finance-hub finance-api json-server test-runner cypress sirius-db
 
-unit-test: setup-directories
-	docker compose run --rm test-runner gotestsum --junitfile test-results/unit-tests.xml -- ./... -coverprofile=test-results/test-coverage.txt
+test: setup-directories
+	go run gotest.tools/gotestsum@latest --format testname  --junitfile test-results/unit-tests.xml -- ./... -coverprofile=test-results/test-coverage.txt
 
 scan: setup-directories
 	docker compose run --rm trivy image --format table --exit-code 0 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-hub:latest
@@ -26,7 +26,7 @@ scan: setup-directories
 up:
 	docker compose run --rm yarn
 	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml build finance-hub finance-api
-	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml up -d finance-hub yarn json-server sirius-db finance-api
+	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml up finance-hub yarn json-server finance-api sqlc sirius-db migrate
 
 down:
 	docker compose down
