@@ -4,6 +4,8 @@
 
 - [Go](https://golang.org/) (>= 1.22)
 - [docker compose](https://docs.docker.com/compose/install/) (>= 2.0.0)
+- [sqlc](https://github.com/sqlc-dev/sqlc?tab=readme-ov-file) (>=1.25.0)
+- [golang-migrate](https://github.com/golang-migrate/migrate) (4.17.0)
 
 #### Installing dependencies locally:
 (This is only necessary if running without docker)
@@ -29,17 +31,44 @@ ports for Delve:
 * `finance-hub`: 2345
 * `finance-api`: 3456
 
--------------------------------------------------------------------
-## Run the unit/functional tests
+-----
+## Generating the sqlc Store
 
-`make unit-test`
+The data access layer of `finance-api` is auto-generated with `sqlc`. It reads the database schema (specified in `/migrations/`)
+to generate the models and queries in `/finance-api/internal/store/queries/`.
 
--------------------------------------------------------------------
+To generate these files after making changes, run `make sqlc`.
+
+## Generating migrations
+
+To generate migration files with `golang migrate`, install it locally with `brew install golang-migrate` and run:
+
+`migrate create -ext sql -dir migrations/ -seq <name-of-migration>`
+
+Or copy the up and down files and increment them.
+
+## Adding seed data
+
+In general, look to keep tests self-contained by having them create (and clear) the data they require for testing. However,
+there are times where we need to seed the data in advance in order to test it, such as where the method for adding the 
+data is driven by Sirius, e.g. Cypress tests asserting on the client header.
+
+To seed this data, add the inserts to `/test-data.sql`.
+
+-----
+## Run the unit/integration tests
+
+`make test`
+
+## Run the Cypress tests
+
+`make cypress`
+
 ## Run Trivy scanning
 
 `make scan`
 
--------------------------------------------------------------------
+-----
 ## Architectural Decision Records
 
 The major decisions made on this project are documented as ADRs in `/adrs`. The process for contributing to these is documented

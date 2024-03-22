@@ -21,17 +21,10 @@ services:
     ports:
       - '3000:3000'
 
-  test-runner:
-    build:
-      dockerfile: docker/test-runner/Dockerfile
-    working_dir: /go/src/app
-    volumes:
-      - ./:/go/src/app
-
   cypress:
     build:
       dockerfile: docker/cypress/Dockerfile
-    command: [ "--headless", "-b", "electron", "--env", "grepUntagged=true" ]
+    command: [ "--headless", "-b", "electron"]
     volumes:
       - ./cypress/screenshots:/root/cypress/screenshots:rw,delegated
       - ./cypress/logs:/root/cypress/logs:rw,delegated
@@ -40,6 +33,7 @@ services:
       - json-server
       - finance-api
       - sirius-db
+      - migrate
 
   go-lint:
     image: golangci/golangci-lint:v1.54.2
@@ -77,17 +71,36 @@ services:
         condition: service_healthy
 
   sirius-db:
-    image: sirius-db
-    build:
-      dockerfile: docker/sirius-db/Dockerfile
+    image: postgres:12-alpine
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=finance
     ports:
       - "5431:5432"
+    volumes:
+      - ./migrations/000000_baseline.sql:/docker-entrypoint-initdb.d/baseline.sql
+      - ./test-data/seed_data.sql:/seed_data.sql
     healthcheck:
       test: pg_isready --username=user --dbname=finance
       interval: 5s
       timeout: 5s
       retries: 5
+
+  sqlc:
+    image: kjconroy/sqlc
+    working_dir: /src
+    volumes:
+      - ./finance-api/internal/store:/src
+      - ./migrations:/schema
+    command: generate
+
+  migrate:
+    image: migrate/migrate
+    depends_on:
+      sirius-db:
+        condition: service_healthy
+    volumes:
+      - ./migrations:/database
+    command:
+      [ "-path", "/database", "-database",  "postgres://user:password@sirius-db:5432/finance?sslmode=disable", "up" ]
