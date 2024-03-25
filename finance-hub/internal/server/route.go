@@ -1,14 +1,26 @@
 package server
 
 import (
+	"github.com/opg-sirius-finance-hub/finance-hub/internal/util"
 	"github.com/opg-sirius-finance-hub/shared"
 	"golang.org/x/sync/errgroup"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"net/http"
 )
 
+type FinanceClient struct {
+	FirstName          string
+	Surname            string
+	CourtRef           string
+	OutstandingBalance string
+	CreditBalance      string
+	PaymentMethod      string
+}
+
 type HeaderData struct {
-	MyDetails shared.Assignee
-	Person    shared.Person
+	MyDetails     shared.Assignee
+	FinanceClient FinanceClient
 }
 
 type PageData struct {
@@ -41,6 +53,9 @@ func (r route) execute(w http.ResponseWriter, req *http.Request, data any) error
 			Data: data,
 		}
 
+		var person shared.Person
+		var accountInfo shared.AccountInformation
+
 		group.Go(func() error {
 			myDetails, err := r.client.GetCurrentUserDetails(ctx.With(groupCtx))
 			if err != nil {
@@ -50,11 +65,19 @@ func (r route) execute(w http.ResponseWriter, req *http.Request, data any) error
 			return nil
 		})
 		group.Go(func() error {
-			person, err := r.client.GetPersonDetails(ctx.With(groupCtx), ctx.ClientId)
+			p, err := r.client.GetPersonDetails(ctx.With(groupCtx), ctx.ClientId)
 			if err != nil {
 				return err
 			}
-			data.Person = person
+			person = p
+			return nil
+		})
+		group.Go(func() error {
+			ai, err := r.client.GetAccountInformation(ctx.With(groupCtx), ctx.ClientId)
+			if err != nil {
+				return err
+			}
+			accountInfo = ai
 			return nil
 		})
 
@@ -62,6 +85,7 @@ func (r route) execute(w http.ResponseWriter, req *http.Request, data any) error
 			return err
 		}
 
+		data.FinanceClient = r.transformFinanceClient(person, accountInfo)
 		data.SuccessMessage = r.getSuccess(req)
 
 		return r.tmpl.Execute(w, data)
@@ -78,4 +102,15 @@ func (r route) getSuccess(req *http.Request) string {
 
 func (r route) isHxRequest(req *http.Request) bool {
 	return req.Header.Get("HX-Request") == "true"
+}
+
+func (r route) transformFinanceClient(person shared.Person, accountInfo shared.AccountInformation) FinanceClient {
+	return FinanceClient{
+		FirstName:          person.FirstName,
+		Surname:            person.Surname,
+		CourtRef:           person.CourtRef,
+		OutstandingBalance: util.IntToDecimalString(accountInfo.OutstandingBalance),
+		CreditBalance:      util.IntToDecimalString(accountInfo.CreditBalance),
+		PaymentMethod:      cases.Title(language.English).String(accountInfo.PaymentMethod),
+	}
 }

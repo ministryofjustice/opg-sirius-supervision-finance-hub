@@ -2,7 +2,6 @@ package api
 
 import (
 	"bytes"
-	"github.com/opg-sirius-finance-hub/finance-hub/internal/mocks"
 	"github.com/opg-sirius-finance-hub/shared"
 	"io"
 	"net/http"
@@ -38,7 +37,7 @@ func TestGetCurrentUserDetails(t *testing.T) {
 
 	r := io.NopCloser(bytes.NewReader([]byte(json)))
 
-	mocks.GetDoFunc = func(*http.Request) (*http.Response, error) {
+	GetDoFunc = func(*http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: 200,
 			Body:       r,
@@ -62,7 +61,7 @@ func TestGetCurrentUserDetailsReturnsUnauthorisedClientError(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, "", svr.URL, logger)
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, "", logger)
 	_, err := client.GetCurrentUserDetails(getContext(nil))
 	assert.Equal(t, ErrUnauthorized, err)
 }
@@ -74,12 +73,12 @@ func TestMyDetailsReturns500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, "", svr.URL, logger)
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, "", logger)
 
 	_, err := client.GetCurrentUserDetails(getContext(nil))
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
-		URL:    svr.URL + "/users/current",
+		URL:    svr.URL + "/api/v1/users/current",
 		Method: http.MethodGet,
 	}, err)
 }
@@ -108,7 +107,7 @@ func TestMyDetailsReturns200(t *testing.T) {
 
 	r := io.NopCloser(bytes.NewReader([]byte(json)))
 
-	mocks.GetDoFunc = func(*http.Request) (*http.Response, error) {
+	GetDoFunc = func(*http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: 200,
 			Body:       r,
