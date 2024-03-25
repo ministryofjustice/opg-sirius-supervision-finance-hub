@@ -25,8 +25,9 @@ services:
       - ./finance-api/.air.toml:/app/.air.toml
       - ./go.mod:/app/go.mod
       - ./go.sum:/app/go.sum
-      - ./finance-api/main.go:/app/finance-api/main.go
+      - ./finance-api/cmd:/app/finance-api/cmd
       - ./finance-api/internal:/app/finance-api/internal
+      - ./finance-api/main.go:/app/finance-api/main.go
       - ./shared:/app/shared
 
   yarn:
