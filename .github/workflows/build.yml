@@ -14,20 +14,27 @@ defaults:
     shell: bash
 
 jobs:
-  test:
-    name: Test Finance Hub
+  Test:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run Tests
-        run: make unit-test
 
-      - name: Publish Unit Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        if: ${{ always() }}
+    steps:
+      - name: Set up Go 1.22
+        uses: actions/setup-go@v1
         with:
-          check_name: "Unit Test Results"
-          files: test-results/unit-tests.xml
+          go-version: 1.22
+        id: go
+
+      - name: Check out code
+        uses: actions/checkout@v1
+
+      - name: Unit/Integration Tests
+        run: make test
+
+      - name: Test Summary
+        uses: test-summary/action@v2
+        with:
+          paths: "test-results/unit-tests.xml"
+        if: always()
 
       - name: Upload Code Coverage
         uses: codecov/codecov-action@v3
@@ -37,15 +44,22 @@ jobs:
           verbose: true
 
   lint:
-    name: GO lint
+    name: Go Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Run linting
-        run: make go-lint
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache: false
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v4
+        with:
+          version: v1.54
+          args: -v --timeout=5m
 
-  acceptance-test:
-    name: Acceptance Testing
+  accessibility-test:
+    name: Accessibility Tests
     runs-on: ubuntu-latest
     needs: test
     steps:
@@ -66,7 +80,7 @@ jobs:
           path: cypress/logs
 
   cypress:
-    name: Cypress
+    name: Cypress Tests
     runs-on: ubuntu-latest
     needs: test
     steps:
@@ -86,7 +100,7 @@ jobs:
           name: cypress-logs
           path: cypress/logs
 
-  build:
+  build-and-push:
     name: "Build & Push Containers"
     runs-on: ubuntu-latest
     needs: ['test', 'lint']
@@ -118,7 +132,7 @@ jobs:
         with:
           sarif_file: 'test-results/trivy.sarif'
 
-      - name: Bump version
+      - name: Bump Version
         id: bump_version
         uses: anothrNick/github-tag-action@1.67.0
         env:
@@ -159,7 +173,7 @@ jobs:
 
   push-tags:
     runs-on: ubuntu-latest
-    needs: build
+    needs: build-and-push
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4

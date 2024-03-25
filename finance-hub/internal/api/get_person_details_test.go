@@ -2,33 +2,28 @@ package api
 
 import (
 	"bytes"
-	"github.com/opg-sirius-finance-hub/finance-hub/internal/mocks"
 	"github.com/opg-sirius-finance-hub/shared"
+	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestGetPersonDetails(t *testing.T) {
 	logger, mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "http://localhost:8181", logger)
+	client, _ := NewApiClient(mockClient, "http://localhost:3000", "", logger)
 
 	json := `{
             "id": 2,
             "firstname": "Finance",
             "surname": "Person",
-            "caseRecNumber": "12345678",
-            "outstandingBalance": "£22.22",
-            "creditBalance": "£1.01",
-            "paymentMethod": "Demanded"
+			"caseRecNumber": "12345678"
         }`
 
 	r := io.NopCloser(bytes.NewReader([]byte(json)))
 
-	mocks.GetDoFunc = func(*http.Request) (*http.Response, error) {
+	GetDoFunc = func(*http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: 200,
 			Body:       r,
@@ -36,13 +31,10 @@ func TestGetPersonDetails(t *testing.T) {
 	}
 
 	expectedResponse := shared.Person{
-		ID:                 2,
-		Firstname:          "Finance",
-		Surname:            "Person",
-		CourtRef:           "12345678",
-		OutstandingBalance: "£22.22",
-		CreditBalance:      "£1.01",
-		PaymentMethod:      "Demanded",
+		ID:        2,
+		FirstName: "Finance",
+		Surname:   "Person",
+		CourtRef:  "12345678",
 	}
 
 	person, err := client.GetPersonDetails(getContext(nil), 2)
@@ -57,7 +49,7 @@ func TestGetPersonDetailsReturnsUnauthorisedClientError(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, "", logger)
 	_, err := client.GetPersonDetails(getContext(nil), 2)
 	assert.Equal(t, ErrUnauthorized, err)
 }
@@ -69,7 +61,7 @@ func TestPersonDetailsReturns500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, "", logger)
 
 	_, err := client.GetPersonDetails(getContext(nil), 1)
 	assert.Equal(t, StatusError{

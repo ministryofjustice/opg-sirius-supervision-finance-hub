@@ -1,4 +1,4 @@
-# 2. The Finance API service will takeover ownership of the `supervision_finance` schema
+# 5. The Finance API service will takeover ownership of the `supervision_finance` schema
 
 Date: 2024-03-14
 

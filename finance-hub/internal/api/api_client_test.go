@@ -3,13 +3,25 @@ package api
 import (
 	"context"
 	"github.com/ministryofjustice/opg-go-common/logging"
-	"github.com/opg-sirius-finance-hub/finance-hub/internal/mocks"
 	"net/http"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+type MockClient struct {
+	DoFunc func(req *http.Request) (*http.Response, error)
+}
+
+var (
+	// GetDoFunc fetches the mock client's `Do` func. Implement this within a test to modify the client's behaviour.
+	GetDoFunc func(req *http.Request) (*http.Response, error)
+)
+
+func (m *MockClient) Do(req *http.Request) (*http.Response, error) {
+	return GetDoFunc(req)
+}
 
 func getContext(cookies []*http.Cookie) Context {
 	return Context{
@@ -42,8 +54,8 @@ func TestStatusError(t *testing.T) {
 	assert.Equal(t, err, err.Data())
 }
 
-func SetUpTest() (*logging.Logger, *mocks.MockClient) {
+func SetUpTest() (*logging.Logger, *MockClient) {
 	logger := logging.New(os.Stdout, "opg-sirius-finance-hub")
-	mockClient := &mocks.MockClient{}
+	mockClient := &MockClient{}
 	return logger, mockClient
 }

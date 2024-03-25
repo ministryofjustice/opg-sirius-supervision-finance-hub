@@ -1,4 +1,4 @@
-# 2. Finance front ends and back ends will be developed within the same monorepo 
+# 4. Finance front ends and back ends will be developed within the same monorepo 
 
 Date: 2024-03-14
 
