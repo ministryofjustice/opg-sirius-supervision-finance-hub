@@ -27,3 +27,41 @@ func (q *Queries) GetAccountInformation(ctx context.Context, clientID int32) (Ge
 	err := row.Scan(&i.Cacheddebtamount, &i.Cachedcreditamount, &i.PaymentMethod)
 	return i, err
 }
+
+const getInvoices = `-- name: GetInvoices :many
+SELECT id, reference, amount, raiseddate, cacheddebtamount FROM invoice WHERE finance_client_id = $1
+`
+
+type GetInvoicesRow struct {
+	ID               int32
+	Reference        string
+	Amount           int32
+	Raiseddate       pgtype.Date
+	Cacheddebtamount pgtype.Int4
+}
+
+func (q *Queries) GetInvoices(ctx context.Context, financeClientID pgtype.Int4) ([]GetInvoicesRow, error) {
+	rows, err := q.db.Query(ctx, getInvoices, financeClientID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetInvoicesRow
+	for rows.Next() {
+		var i GetInvoicesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Reference,
+			&i.Amount,
+			&i.Raiseddate,
+			&i.Cacheddebtamount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
