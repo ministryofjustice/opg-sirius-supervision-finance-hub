@@ -6,10 +6,10 @@ type Invoice struct {
 	Id                 int                `json:"id"`
 	Ref                string             `json:"ref"`
 	Status             string             `json:"status"`
-	Amount             string             `json:"amount"`
+	Amount             int                `json:"amount"`
 	RaisedDate         Date               `json:"raisedDate"`
-	Received           string             `json:"received"`
-	OutstandingBalance string             `json:"outstandingBalance"`
+	Received           int                `json:"received"`
+	OutstandingBalance int                `json:"outstandingBalance"`
 	Ledgers            []Ledger           `json:"ledgers"`
 	SupervisionLevels  []SupervisionLevel `json:"supervisionLevels"`
 }

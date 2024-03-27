@@ -37,10 +37,10 @@ sqlc:
 start-and-seed:
 	docker compose up -d --wait finance-hub finance-api
 	docker compose up -d migrate
-	until docker compose logs sirius-db 2>&1 | grep -q 'database system is ready to accept connections'; \
-	do \
-  	sleep 1; \
-	done;
+#	until docker compose logs sirius-db 2>&1 | grep -q 'database system is ready to accept connections'; \
+#	do \
+#  	sleep 1; \
+#	done;
 	docker compose exec sirius-db psql -U user -d finance -a -f ./seed_data.sql
 
 cypress: setup-directories start-and-seed
