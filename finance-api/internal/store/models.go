@@ -123,12 +123,13 @@ type LedgerAllocation struct {
 	// (DC2Type:money)
 	Amount int32
 	// (DC2Type:refdata)
-	Status        string
-	Reference     pgtype.Text
-	Notes         pgtype.Text
-	Allocateddate pgtype.Date
-	Batchnumber   pgtype.Int4
-	Source        pgtype.Text
+	Status          string
+	Reference       pgtype.Text
+	Notes           pgtype.Text
+	Allocateddate   pgtype.Date
+	Batchnumber     pgtype.Int4
+	Source          pgtype.Text
+	TransactionType pgtype.Text
 }
 
 type Property struct {

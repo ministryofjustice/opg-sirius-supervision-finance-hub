@@ -65,3 +65,39 @@ func (q *Queries) GetInvoices(ctx context.Context, financeClientID pgtype.Int4) 
 	}
 	return items, nil
 }
+
+const getLedgerAllocations = `-- name: GetLedgerAllocations :many
+select id, amount, allocateddate, status from ledger_allocation where invoice_id = $1
+`
+
+type GetLedgerAllocationsRow struct {
+	ID            int32
+	Amount        int32
+	Allocateddate pgtype.Date
+	Status        string
+}
+
+func (q *Queries) GetLedgerAllocations(ctx context.Context, invoiceID pgtype.Int4) ([]GetLedgerAllocationsRow, error) {
+	rows, err := q.db.Query(ctx, getLedgerAllocations, invoiceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetLedgerAllocationsRow
+	for rows.Next() {
+		var i GetLedgerAllocationsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Amount,
+			&i.Allocateddate,
+			&i.Status,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
