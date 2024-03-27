@@ -15,10 +15,10 @@ func TestInvoice(t *testing.T) {
 			Id:                 3,
 			Ref:                "N2000001/20",
 			Status:             "Unpaid",
-			Amount:             "232",
+			Amount:             232,
 			RaisedDate:         shared.NewDate("01/04/2222"),
-			Received:           "22",
-			OutstandingBalance: "210",
+			Received:           22,
+			OutstandingBalance: 210,
 			Ledgers: []shared.Ledger{
 				{
 					Amount:          "123",
@@ -53,8 +53,36 @@ func TestInvoice(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, ro.executed)
 
+	out := Invoices{
+		{
+			Id:                 3,
+			Ref:                "N2000001/20",
+			Status:             "Unpaid",
+			Amount:             "2.32",
+			RaisedDate:         "01/04/2222",
+			Received:           "0.22",
+			OutstandingBalance: "2.10",
+			Ledgers: []shared.Ledger{
+				{
+					Amount:          "123",
+					ReceivedDate:    shared.NewDate("01/05/2222"),
+					TransactionType: "Online card payment",
+					Status:          "Applied",
+				},
+			},
+			SupervisionLevels: []shared.SupervisionLevel{
+				{
+					Level:  "General",
+					Amount: "320",
+					From:   shared.NewDate("01/04/2019"),
+					To:     shared.NewDate("31/03/2020"),
+				},
+			},
+		},
+	}
+
 	expected := &InvoiceTab{
-		Invoices: data,
+		Invoices: out,
 		AppVars:  appVars,
 	}
 

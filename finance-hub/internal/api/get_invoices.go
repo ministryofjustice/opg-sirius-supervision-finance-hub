@@ -10,9 +10,9 @@ import (
 func (c *ApiClient) GetInvoices(ctx Context, clientId int) (shared.Invoices, error) {
 	var invoices shared.Invoices
 
-	url := fmt.Sprintf("/api/v1/clients/%d/invoices", clientId)
+	url := fmt.Sprintf("/clients/%d/invoices", clientId)
 
-	req, err := c.newSiriusRequest(ctx, http.MethodGet, url, nil)
+	req, err := c.newBackendRequest(ctx, http.MethodGet, url, nil)
 
 	if err != nil {
 		return invoices, err
