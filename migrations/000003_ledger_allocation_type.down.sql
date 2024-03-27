@@ -1,0 +1,1 @@
+ALTER TABLE ledger_allocation DROP COLUMN transaction_type;

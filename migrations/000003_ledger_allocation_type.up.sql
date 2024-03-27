@@ -1,0 +1,1 @@
+ALTER TABLE ledger_allocation ADD COLUMN transaction_type varchar(250)
