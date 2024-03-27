@@ -21,7 +21,6 @@ func TestService_GetInvoices(t *testing.T) {
 	)
 
 	Store := store.New(testDB.DbInstance)
-
 	dateString := "2020-03-16"
 	date, _ := time.Parse("2006-01-02", dateString)
 	tests := []struct {
