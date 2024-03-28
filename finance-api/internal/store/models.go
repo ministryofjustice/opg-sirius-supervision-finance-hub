@@ -67,6 +67,8 @@ type Invoice struct {
 	Scheduledfn14date pgtype.Date
 	// (DC2Type:money)
 	Cacheddebtamount pgtype.Int4
+	Createddate      pgtype.Date
+	CreatedbyID      pgtype.Int4
 }
 
 type InvoiceEmailStatus struct {
@@ -122,12 +124,13 @@ type LedgerAllocation struct {
 	// (DC2Type:money)
 	Amount int32
 	// (DC2Type:refdata)
-	Status        string
-	Reference     pgtype.Text
-	Notes         pgtype.Text
-	Allocateddate pgtype.Date
-	Batchnumber   pgtype.Int4
-	Source        pgtype.Text
+	Status          string
+	Reference       pgtype.Text
+	Notes           pgtype.Text
+	Allocateddate   pgtype.Date
+	Batchnumber     pgtype.Int4
+	Source          pgtype.Text
+	TransactionType pgtype.Text
 }
 
 type Property struct {
