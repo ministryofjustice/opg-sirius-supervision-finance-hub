@@ -37,7 +37,7 @@ ports for Delve:
 The data access layer of `finance-api` is auto-generated with `sqlc`. It reads the database schema (specified in `/migrations/`)
 to generate the models and queries in `/finance-api/internal/store/queries/`.
 
-To generate these files after making changes, run `make sqlc`.
+To generate these files after making changes, run `make sqlc-gen`.
 
 ## Generating migrations
 
