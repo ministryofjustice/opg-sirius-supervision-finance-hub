@@ -87,13 +87,21 @@ services:
       timeout: 5s
       retries: 5
 
-  sqlc:
+  sqlc-gen:
     image: kjconroy/sqlc
     working_dir: /src
     volumes:
       - ./finance-api/internal/store:/src
       - ./migrations:/schema
     command: generate
+
+  sqlc-diff:
+    image: kjconroy/sqlc
+    working_dir: /src
+    volumes:
+      - ./finance-api/internal/store:/src
+      - ./migrations:/schema
+    command: diff
 
   migrate:
     image: migrate/migrate
