@@ -31,8 +31,11 @@ up:
 down:
 	docker compose down
 
-sqlc:
-	docker compose up sqlc
+sqlc-gen:
+	docker compose up sqlc-gen
+
+sqlc-diff:
+	docker compose up sqlc-diff
 
 start-and-seed:
 	docker compose up -d --wait finance-hub finance-api
