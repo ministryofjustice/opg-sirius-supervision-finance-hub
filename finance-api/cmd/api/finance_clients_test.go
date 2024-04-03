@@ -47,5 +47,19 @@ func TestServer_getAccountInformation_clientNotFound(t *testing.T) {
 
 	res := w.Result()
 
+	assert.Equal(t, 404, res.StatusCode)
+}
+
+func TestServer_getAccountInformation_error(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/clients/1", nil)
+	req.SetPathValue("id", "1")
+	w := httptest.NewRecorder()
+
+	mock := &mockService{err: pgx.ErrTooManyRows}
+	server := Server{Service: mock}
+	server.getAccountInformation(w, req)
+
+	res := w.Result()
+
 	assert.Equal(t, 500, res.StatusCode)
 }
