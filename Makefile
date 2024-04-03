@@ -32,10 +32,10 @@ down:
 	docker compose down
 
 sqlc-gen:
-	docker compose up sqlc-gen
+	docker compose run --rm sqlc-gen
 
 sqlc-diff:
-	docker compose up sqlc-diff
+	docker compose run --rm sqlc-diff
 
 start-and-seed:
 	docker compose up -d --wait finance-hub finance-api
@@ -51,3 +51,9 @@ cypress: setup-directories start-and-seed
 
 axe: setup-directories start-and-seed
 	docker compose run --rm cypress run --env grepTags="@axe"
+
+proto-compile:
+	docker-compose run --rm protogen
+
+proto-clean: ## Clean generated proto.
+	@rm -rf contract/*.go

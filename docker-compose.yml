@@ -112,3 +112,15 @@ services:
       - ./migrations:/database
     command:
       [ "-path", "/database", "-database",  "postgres://user:password@sirius-db:5432/finance?sslmode=disable", "up" ]
+
+  protogen:
+    build:
+      dockerfile: docker/protogen/Dockerfile
+    working_dir: /source
+    volumes:
+      - ./contract:/source
+    command: bash -c "
+      protoc *.proto --proto_path=.
+      --go_out=. --go_opt=module=github.com/opg-sirius-finance-hub/contract
+      --go-grpc_out=. --go-grpc_opt=module=github.com/opg-sirius-finance-hub/contract
+      "

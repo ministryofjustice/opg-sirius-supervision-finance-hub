@@ -1,0 +1,17 @@
+syntax = "proto3";
+package accountinformation;
+option go_package = "github.com/opg-sirius-finance-hub/contract";
+
+message AccountInformation {
+  int32 outstandingBalance = 1;
+  int32 creditBalance = 2;
+  string paymentMethod = 3;
+}
+
+message ClientId {
+  int32 clientId = 1;
+}
+
+service AccountInformationService {
+  rpc Get(ClientId) returns (AccountInformation) {}
+}
