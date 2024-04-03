@@ -6,7 +6,6 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.17.0
 	github.com/jackc/pgx/v5 v5.5.5
 	github.com/lib/pq v1.10.9
-	github.com/mattes/migrate v3.0.1+incompatible
 	github.com/ministryofjustice/opg-go-common v0.0.0-20231128145056-24628fba649c
 	github.com/stretchr/testify v1.9.0
 	github.com/testcontainers/testcontainers-go v0.29.1
@@ -35,7 +34,7 @@ require (
 	github.com/cpuguy83/dockercfg v0.3.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/distribution/reference v0.5.0 // indirect
-	github.com/docker/docker v25.0.3+incompatible // indirect
+	github.com/docker/docker v25.0.5+incompatible // indirect
 	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
