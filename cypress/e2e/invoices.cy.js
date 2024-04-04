@@ -34,7 +34,7 @@ describe("Invoices ledger allocations", () => {
         cy.get('[data-cy="ledger-transaction-type-data"]').first().contains("unknown");
     });
 });
-//
+// TODO ensure this test is working for showing supervision levels in PFS-51
 // describe("Supervision level breakdown", () => {
 //     it("shows all the correct headers", () => {
 //         cy.visit("/clients/1/invoices");

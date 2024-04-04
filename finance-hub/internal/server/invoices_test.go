@@ -21,7 +21,7 @@ func TestInvoice(t *testing.T) {
 			OutstandingBalance: 210,
 			Ledgers: []shared.Ledger{
 				{
-					Amount:          "123",
+					Amount:          12300,
 					ReceivedDate:    shared.NewDate("01/05/2222"),
 					TransactionType: "Online card payment",
 					Status:          "Applied",
@@ -62,7 +62,7 @@ func TestInvoice(t *testing.T) {
 			RaisedDate:         "01/04/2222",
 			Received:           "0.22",
 			OutstandingBalance: "2.10",
-			Ledgers: []shared.Ledger{
+			Ledgers: []LedgerAllocation{
 				{
 					Amount:          "123",
 					ReceivedDate:    shared.NewDate("01/05/2222"),
