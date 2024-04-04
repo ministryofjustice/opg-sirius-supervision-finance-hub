@@ -8,6 +8,13 @@ import (
 
 type Invoices []Invoice
 
+type LedgerAllocation struct {
+	Amount          string
+	ReceivedDate    shared.Date
+	TransactionType string
+	Status          string
+}
+
 type Invoice struct {
 	Id                 int
 	Ref                string
@@ -16,7 +23,7 @@ type Invoice struct {
 	RaisedDate         string
 	Received           string
 	OutstandingBalance string
-	Ledgers            []shared.Ledger
+	Ledgers            []LedgerAllocation
 	SupervisionLevels  []shared.SupervisionLevel
 }
 
@@ -53,8 +60,21 @@ func (h *InvoicesHandler) transform(in shared.Invoices) Invoices {
 			RaisedDate:         f.RaisedDate.String(),
 			Received:           util.IntToDecimalString(f.Received),
 			OutstandingBalance: util.IntToDecimalString(f.OutstandingBalance),
-			Ledgers:            f.Ledgers,
+			Ledgers:            transformLedgers(f.Ledgers),
 			SupervisionLevels:  f.SupervisionLevels,
+		})
+	}
+	return out
+}
+
+func transformLedgers(ledgers []shared.Ledger) []LedgerAllocation {
+	var out []LedgerAllocation
+	for _, l := range ledgers {
+		out = append(out, LedgerAllocation{
+			Amount:          util.IntToDecimalString(l.Amount),
+			ReceivedDate:    l.ReceivedDate,
+			TransactionType: l.TransactionType,
+			Status:          l.Status,
 		})
 	}
 	return out
