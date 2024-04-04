@@ -50,12 +50,13 @@ func (q *Queries) GetInvoices(ctx context.Context, financeClientID pgtype.Int4) 
 }
 
 const getLedgerAllocations = `-- name: GetLedgerAllocations :many
-select id, amount, allocateddate, status from ledger_allocation where invoice_id = $1
+select id, amount, datetime, allocateddate, status from ledger_allocation where invoice_id = $1 order by id desc
 `
 
 type GetLedgerAllocationsRow struct {
 	ID            int32
 	Amount        int32
+	Datetime      pgtype.Timestamp
 	Allocateddate pgtype.Date
 	Status        string
 }
@@ -72,6 +73,7 @@ func (q *Queries) GetLedgerAllocations(ctx context.Context, invoiceID pgtype.Int
 		if err := rows.Scan(
 			&i.ID,
 			&i.Amount,
+			&i.Datetime,
 			&i.Allocateddate,
 			&i.Status,
 		); err != nil {
