@@ -49,7 +49,7 @@ func TestService_GetInvoices(t *testing.T) {
 					OutstandingBalance: 0,
 					Ledgers: []shared.Ledger{
 						{
-							Amount:          "123",
+							Amount:          12300,
 							ReceivedDate:    shared.NewDate("11/04/2022"),
 							TransactionType: "unknown",
 							Status:          "Confirmed",
