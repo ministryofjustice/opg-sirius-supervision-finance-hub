@@ -1,12 +1,34 @@
 package server
 
 import (
+	"github.com/opg-sirius-finance-hub/finance-hub/internal/util"
 	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
 )
 
+type Invoices []Invoice
+
+type LedgerAllocation struct {
+	Amount          string
+	ReceivedDate    shared.Date
+	TransactionType string
+	Status          string
+}
+
+type Invoice struct {
+	Id                 int
+	Ref                string
+	Status             string
+	Amount             string
+	RaisedDate         string
+	Received           string
+	OutstandingBalance string
+	Ledgers            []LedgerAllocation
+	SupervisionLevels  []shared.SupervisionLevel
+}
+
 type InvoiceTab struct {
-	Invoices shared.Invoices
+	Invoices Invoices
 	AppVars
 }
 
@@ -22,7 +44,38 @@ func (h *InvoicesHandler) render(v AppVars, w http.ResponseWriter, r *http.Reque
 		return err
 	}
 
-	data := &InvoiceTab{invoices, v}
+	data := &InvoiceTab{h.transform(invoices), v}
 	data.selectTab("invoices")
 	return h.execute(w, r, data)
+}
+
+func (h *InvoicesHandler) transform(in shared.Invoices) Invoices {
+	var out Invoices
+	for _, f := range in {
+		out = append(out, Invoice{
+			Id:                 f.Id,
+			Ref:                f.Ref,
+			Status:             f.Status,
+			Amount:             util.IntToDecimalString(f.Amount),
+			RaisedDate:         f.RaisedDate.String(),
+			Received:           util.IntToDecimalString(f.Received),
+			OutstandingBalance: util.IntToDecimalString(f.OutstandingBalance),
+			Ledgers:            transformLedgers(f.Ledgers),
+			SupervisionLevels:  f.SupervisionLevels,
+		})
+	}
+	return out
+}
+
+func transformLedgers(ledgers []shared.Ledger) []LedgerAllocation {
+	var out []LedgerAllocation
+	for _, l := range ledgers {
+		out = append(out, LedgerAllocation{
+			Amount:          util.IntToDecimalString(l.Amount),
+			ReceivedDate:    l.ReceivedDate,
+			TransactionType: l.TransactionType,
+			Status:          l.Status,
+		})
+	}
+	return out
 }
