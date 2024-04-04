@@ -4,30 +4,34 @@ import (
 	"context"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/opg-sirius-finance-hub/shared"
-	"regexp"
-	"strconv"
 )
 
-func (s *Service) GetInvoices(id int) (*shared.Invoices, error) {
+func (s *Service) GetInvoices(clientID int) (*shared.Invoices, error) {
 	ctx := context.Background()
-
-	fc, err := s.Store.GetInvoices(ctx, pgtype.Int4{Int32: int32(id), Valid: true})
-	if err != nil {
-		return nil, err
-	}
-
-	ledgerAllocationsData, err := s.Store.GetLedgerAllocations(ctx, pgtype.Int4{Int32: int32(id), Valid: true})
-	if err != nil {
-		return nil, err
-	}
 
 	var ledgerAllocations []shared.Ledger
 	var invoices shared.Invoices
 	var totalOfLedgerAllocationsAmount int
 
-	for _, i := range ledgerAllocationsData {
+	var id pgtype.Int4
+	err := id.Scan(int64(clientID))
+	if err != nil {
+		return nil, err
+	}
+
+	invoicesRawData, err := s.Store.GetInvoices(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	ledgerAllocationsRawData, err := s.Store.GetLedgerAllocations(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, i := range ledgerAllocationsRawData {
 		var ledgerAllocation = shared.Ledger{
-			Amount:          IntToDecimalString(int(i.Amount)),
+			Amount:          int(i.Amount),
 			ReceivedDate:    shared.Date{Time: i.Allocateddate.Time},
 			TransactionType: "unknown",
 			Status:          i.Status,
@@ -36,7 +40,7 @@ func (s *Service) GetInvoices(id int) (*shared.Invoices, error) {
 		totalOfLedgerAllocationsAmount = totalOfLedgerAllocationsAmount + int(i.Amount)
 	}
 
-	for _, i := range fc {
+	for _, i := range invoicesRawData {
 		var invoice = shared.Invoice{
 			Id:                 int(i.ID),
 			Ref:                i.Reference,
@@ -52,14 +56,4 @@ func (s *Service) GetInvoices(id int) (*shared.Invoices, error) {
 	}
 
 	return &invoices, nil
-}
-
-func IntToDecimalString(i int) string {
-	s := strconv.FormatFloat(float64(i)/100, 'f', -1, 32)
-	const singleDecimal = "\\.\\d$"
-	m, _ := regexp.Match(singleDecimal, []byte(s))
-	if m {
-		s = s + "0"
-	}
-	return s
 }

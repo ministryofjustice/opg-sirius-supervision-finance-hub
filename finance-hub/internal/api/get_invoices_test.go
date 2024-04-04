@@ -26,7 +26,7 @@ func TestGetInvoicesCanReturn200(t *testing.T) {
 		 "outstandingBalance":210,
 		 "ledgers":[
 			{
-			   "amount":"£12",
+			   "amount":12000,
 			   "receivedDate":"01/05/2222",
 			   "transactionType":"Online card payment",
 			   "status":"Applied"
@@ -64,7 +64,7 @@ func TestGetInvoicesCanReturn200(t *testing.T) {
 			OutstandingBalance: 210,
 			Ledgers: []shared.Ledger{
 				{
-					Amount:          "£12",
+					Amount:          12000,
 					ReceivedDate:    shared.NewDate("01/05/2222"),
 					TransactionType: "Online card payment",
 					Status:          "Applied",
@@ -97,9 +97,6 @@ func TestGetInvoicesCanThrow500Error(t *testing.T) {
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
 
 	_, err := client.GetInvoices(getContext(nil), 1)
-	//var expectedResponse shared.Invoices
-	//
-	//assert.Equal(t, expectedResponse, invoices)
 
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
