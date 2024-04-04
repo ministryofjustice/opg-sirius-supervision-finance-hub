@@ -8,7 +8,6 @@ import (
 
 func (s *Service) GetInvoices(clientID int) (*shared.Invoices, error) {
 	ctx := context.Background()
-
 	var invoices shared.Invoices
 
 	invoicesRawData, err := s.Store.GetInvoices(ctx, pgtype.Int4{Int32: int32(clientID), Valid: true})
