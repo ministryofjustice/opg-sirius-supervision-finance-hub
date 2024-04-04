@@ -26,7 +26,7 @@ func (s *Service) GetInvoices(clientID int) (*shared.Invoices, error) {
 	for _, i := range ledgerAllocationsRawData {
 		var ledgerAllocation = shared.Ledger{
 			Amount:          int(i.Amount),
-			ReceivedDate:    shared.Date{Time: i.Allocateddate.Time},
+			ReceivedDate:    CheckForAllocation(i.Allocateddate, i.Datetime),
 			TransactionType: "unknown",
 			Status:          i.Status,
 		}
@@ -50,4 +50,12 @@ func (s *Service) GetInvoices(clientID int) (*shared.Invoices, error) {
 	}
 
 	return &invoices, nil
+}
+
+func CheckForAllocation(allocatedDate pgtype.Date, datetime pgtype.Timestamp) shared.Date {
+	if !allocatedDate.Time.IsZero() {
+		return shared.Date{Time: allocatedDate.Time}
+	}
+
+	return shared.Date{Time: datetime.Time}
 }
