@@ -30,8 +30,6 @@ scan: setup-directories
 dev-up:
 	docker compose run --rm yarn
 	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml build finance-hub finance-api
-	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml up finance-hub yarn json-server finance-api sqlc-gen sirius-db 
-	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml run finance-migration
 
 up: build
 	docker compose up -d --wait finance-hub 

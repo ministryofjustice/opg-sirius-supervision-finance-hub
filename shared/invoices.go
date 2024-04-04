@@ -15,7 +15,7 @@ type Invoice struct {
 }
 
 type Ledger struct {
-	Amount          string `json:"amount"`
+	Amount          int    `json:"amount"`
 	ReceivedDate    Date   `json:"receivedDate"`
 	TransactionType string `json:"transactionType"`
 	Status          string `json:"status"`

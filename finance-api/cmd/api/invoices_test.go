@@ -29,7 +29,7 @@ func TestServer_getInvoices(t *testing.T) {
 			OutstandingBalance: 0,
 			Ledgers: []shared.Ledger{
 				{
-					Amount:          "£123",
+					Amount:          123,
 					ReceivedDate:    shared.NewDate("11/04/2022"),
 					TransactionType: "unknown",
 					Status:          "Confirmed",
@@ -47,7 +47,7 @@ func TestServer_getInvoices(t *testing.T) {
 	defer res.Body.Close()
 	data, _ := io.ReadAll(res.Body)
 
-	expected := `[{"id":1,"ref":"S203531/19","status":"","amount":12,"raisedDate":"16\/03\/2020","received":123,"outstandingBalance":0,"ledgers":[{"amount":"£123","receivedDate":"11\/04\/2022","transactionType":"unknown","status":"Confirmed"}],"supervisionLevels":null}]`
+	expected := `[{"id":1,"ref":"S203531/19","status":"","amount":12,"raisedDate":"16\/03\/2020","received":123,"outstandingBalance":0,"ledgers":[{"amount":123,"receivedDate":"11\/04\/2022","transactionType":"unknown","status":"Confirmed"}],"supervisionLevels":null}]`
 
 	assert.Equal(t, expected, string(data))
 	assert.Equal(t, 1, mock.expectedId)
@@ -60,6 +60,20 @@ func TestServer_getInvoices_clientNotFound(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	mock := &mockService{err: pgx.ErrNoRows}
+	server := Server{Service: mock}
+	server.getInvoices(w, req)
+
+	res := w.Result()
+
+	assert.Equal(t, 404, res.StatusCode)
+}
+
+func TestServer_getInvoices_error(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/clients/1/invoices", nil)
+	req.SetPathValue("id", "1")
+	w := httptest.NewRecorder()
+
+	mock := &mockService{err: pgx.ErrTooManyRows}
 	server := Server{Service: mock}
 	server.getInvoices(w, req)
 
