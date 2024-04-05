@@ -17,4 +17,5 @@ type Server struct {
 
 func (s *Server) SetupRoutes() {
 	http.HandleFunc("GET /clients/{id}", s.getAccountInformation)
+	http.Handle("/health-check", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 }
