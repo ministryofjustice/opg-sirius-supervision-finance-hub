@@ -21,6 +21,7 @@ services:
       dockerfile: docker/finance-api/Dockerfile
     ports: [ "8181:8080" ]
     environment:
+      - POSTGRES_CONN=sirius-db:5432
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=finance
