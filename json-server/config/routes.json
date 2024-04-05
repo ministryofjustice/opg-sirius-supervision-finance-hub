@@ -1,7 +1,7 @@
 {
     "/api/v1/*": "/$1",
     "/users/current": "/users",
-    ":id/fee-reductions": "/fee-reductions?clientId=:id",
+    ":id/finance-discounts": "/fee-reductions?clientId=:id",
     ":id/invoices": "/invoices?clientId=:id",
     "invoices/*/ledger-entries": "/ledger-entries"
 }

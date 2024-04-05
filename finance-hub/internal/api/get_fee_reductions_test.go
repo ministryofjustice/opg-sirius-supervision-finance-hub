@@ -95,7 +95,7 @@ func TestFeeReductionsReturns500Error(t *testing.T) {
 	_, err := client.GetFeeReductions(getContext(nil), 1)
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
-		URL:    svr.URL + "/api/v1/clients/1/fee-reductions",
+		URL:    svr.URL + "/api/v1/finance/1/finance-discounts",
 		Method: http.MethodGet,
 	}, err)
 }

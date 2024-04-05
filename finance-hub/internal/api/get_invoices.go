@@ -10,7 +10,7 @@ import (
 func (c *ApiClient) GetInvoices(ctx Context, clientId int) (shared.Invoices, error) {
 	var invoices shared.Invoices
 
-	url := fmt.Sprintf("/api/v1/clients/%d/invoices", clientId)
+	url := fmt.Sprintf("/api/v1/finance/%d/invoices", clientId)
 
 	req, err := c.newSiriusRequest(ctx, http.MethodGet, url, nil)
 

@@ -104,7 +104,7 @@ func TestGetInvoicesCanThrow500Error(t *testing.T) {
 
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
-		URL:    svr.URL + "/api/v1/clients/3/invoices",
+		URL:    svr.URL + "/api/v1/finance/3/invoices",
 		Method: http.MethodGet,
 	}, err)
 }
