@@ -26,9 +26,9 @@ func (s *Service) GetInvoices(clientID int) (*shared.Invoices, error) {
 	for _, i := range ledgerAllocationsRawData {
 		var ledgerAllocation = shared.Ledger{
 			Amount:          int(i.Amount),
-			ReceivedDate:    CheckForAllocation(i.Allocateddate, i.Datetime),
-			TransactionType: "unknown",
-			Status:          i.Status,
+			ReceivedDate:    CheckForAllocation(i.Bankdate, i.Datetime),
+			TransactionType: i.Type,
+			Status:          "Applied",
 		}
 		ledgerAllocations = append(ledgerAllocations, ledgerAllocation)
 		totalOfLedgerAllocationsAmount = totalOfLedgerAllocationsAmount + int(i.Amount)

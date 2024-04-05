@@ -50,15 +50,15 @@ func (q *Queries) GetInvoices(ctx context.Context, financeClientID pgtype.Int4) 
 }
 
 const getLedgerAllocations = `-- name: GetLedgerAllocations :many
-select id, amount, datetime, allocateddate, status from ledger_allocation where invoice_id = $1 order by id desc
+select la.id, la.amount, la.datetime, l.bankdate, l.type from ledger_allocation la inner join ledger l on la.ledger_id = l.id where la.invoice_id = $1 order by la.id desc
 `
 
 type GetLedgerAllocationsRow struct {
-	ID            int32
-	Amount        int32
-	Datetime      pgtype.Timestamp
-	Allocateddate pgtype.Date
-	Status        string
+	ID       int32
+	Amount   int32
+	Datetime pgtype.Timestamp
+	Bankdate pgtype.Date
+	Type     string
 }
 
 func (q *Queries) GetLedgerAllocations(ctx context.Context, invoiceID pgtype.Int4) ([]GetLedgerAllocationsRow, error) {
@@ -74,8 +74,8 @@ func (q *Queries) GetLedgerAllocations(ctx context.Context, invoiceID pgtype.Int
 			&i.ID,
 			&i.Amount,
 			&i.Datetime,
-			&i.Allocateddate,
-			&i.Status,
+			&i.Bankdate,
+			&i.Type,
 		); err != nil {
 			return nil, err
 		}

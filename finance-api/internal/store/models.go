@@ -114,6 +114,8 @@ type Ledger struct {
 	Bankaccount pgtype.Text
 	Source      pgtype.Text
 	Line        pgtype.Int4
+	Createddate pgtype.Date
+	CreatedbyID pgtype.Int4
 }
 
 type LedgerAllocation struct {
