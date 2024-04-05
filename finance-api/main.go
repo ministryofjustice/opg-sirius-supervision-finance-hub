@@ -64,13 +64,14 @@ func main() {
 		defer shutdown()
 	}
 
+	dbConn := getEnv("POSTGRES_CONN", "")
 	dbUser := getEnv("POSTGRES_USER", "")
 	dbPassword := getEnv("POSTGRES_PASSWORD", "")
 	pgDb := getEnv("POSTGRES_DB", "")
 	// Open a connection to the PostgreSQL database
 	ctx := context.Background()
 
-	conn, err := pgx.Connect(ctx, fmt.Sprintf("postgresql://%s:%s@sirius-db:5432/%s?sslmode=disable", dbUser, dbPassword, pgDb))
+	conn, err := pgx.Connect(ctx, fmt.Sprintf("postgresql://%s:%s@%s/%s", dbUser, dbPassword, dbConn, pgDb))
 	if err != nil {
 		logger.Fatal(err)
 	}
