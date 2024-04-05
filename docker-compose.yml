@@ -73,6 +73,7 @@ services:
   sirius-db:
     image: postgres:12-alpine
     environment:
+      - POSTGRES_CONN=sirius-db:5432
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=finance
