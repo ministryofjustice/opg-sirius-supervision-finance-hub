@@ -35,7 +35,7 @@ func TestGetInvoicesCanReturn200(t *testing.T) {
 		 "supervisionLevels":[
 			{
 			   "Level":"General",
-			   "Amount":"320",
+			   "Amount":32000,
 			   "From":"01/04/2019",
 			   "To":"31/03/2020"
 			}
@@ -73,7 +73,7 @@ func TestGetInvoicesCanReturn200(t *testing.T) {
 			SupervisionLevels: []shared.SupervisionLevel{
 				{
 					Level:  "General",
-					Amount: "320",
+					Amount: 32000,
 					From:   shared.NewDate("01/04/2019"),
 					To:     shared.NewDate("31/03/2020"),
 				},

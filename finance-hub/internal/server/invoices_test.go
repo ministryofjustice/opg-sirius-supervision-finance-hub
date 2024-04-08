@@ -30,7 +30,7 @@ func TestInvoice(t *testing.T) {
 			SupervisionLevels: []shared.SupervisionLevel{
 				{
 					Level:  "General",
-					Amount: "320",
+					Amount: 32000,
 					From:   shared.NewDate("01/04/2019"),
 					To:     shared.NewDate("31/03/2020"),
 				},
@@ -70,7 +70,7 @@ func TestInvoice(t *testing.T) {
 					Status:          "Applied",
 				},
 			},
-			SupervisionLevels: []shared.SupervisionLevel{
+			SupervisionLevels: []SupervisionLevel{
 				{
 					Level:  "General",
 					Amount: "320",
