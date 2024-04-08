@@ -6,6 +6,8 @@ import (
 	"github.com/opg-sirius-finance-hub/shared"
 )
 
+var totalOfLedgerAllocationsAmount int
+
 func (s *Service) GetInvoices(clientID int) (*shared.Invoices, error) {
 	ctx := context.Background()
 	var invoices shared.Invoices
@@ -37,7 +39,6 @@ func (s *Service) GetInvoices(clientID int) (*shared.Invoices, error) {
 			Ledgers:            ledgerAllocations,
 			SupervisionLevels:  supervisionLevels,
 		}
-
 		invoices = append(invoices, invoice)
 	}
 
