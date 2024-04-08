@@ -23,7 +23,7 @@ type Ledger struct {
 
 type SupervisionLevel struct {
 	Level  string `json:"level"`
-	Amount string `json:"amount"`
+	Amount int    `json:"amount"`
 	From   Date   `json:"from"`
 	To     Date   `json:"to"`
 }

@@ -6,21 +6,61 @@ import (
 	"github.com/opg-sirius-finance-hub/shared"
 )
 
+var totalOfLedgerAllocationsAmount int
+
 func (s *Service) GetInvoices(clientID int) (*shared.Invoices, error) {
 	ctx := context.Background()
 
-	var ledgerAllocations []shared.Ledger
 	var invoices shared.Invoices
-	var totalOfLedgerAllocationsAmount int
 
 	invoicesRawData, err := s.Store.GetInvoices(ctx, pgtype.Int4{Int32: int32(clientID), Valid: true})
 	if err != nil {
 		return nil, err
 	}
 
-	ledgerAllocationsRawData, err := s.Store.GetLedgerAllocations(ctx, pgtype.Int4{Int32: int32(clientID), Valid: true})
+	for _, i := range invoicesRawData {
+		var invoice = shared.Invoice{
+			Id:                 int(i.ID),
+			Ref:                i.Reference,
+			Status:             "",
+			Amount:             int(i.Amount),
+			RaisedDate:         shared.Date{Time: i.Raiseddate.Time},
+			Received:           totalOfLedgerAllocationsAmount,
+			OutstandingBalance: int(i.Amount) - totalOfLedgerAllocationsAmount,
+			Ledgers:            getLedgerAllocations(s, ctx, int(i.ID)),
+			SupervisionLevels:  getSupervisionLevels(s, ctx, int(i.ID)),
+		}
+		invoices = append(invoices, invoice)
+	}
+
+	return &invoices, nil
+}
+
+func getSupervisionLevels(s *Service, ctx context.Context, invoiceID int) []shared.SupervisionLevel {
+	var supervisionLevels []shared.SupervisionLevel
+	supervisionLevelsRawData, err := s.Store.GetSupervisionLevels(ctx, pgtype.Int4{Int32: int32(invoiceID), Valid: true})
 	if err != nil {
-		return nil, err
+		return nil
+	}
+
+	for _, i := range supervisionLevelsRawData {
+		var supervisionLevel = shared.SupervisionLevel{
+			Level:  i.Supervisionlevel,
+			Amount: int(i.Amount),
+			From:   shared.Date{Time: i.Fromdate.Time},
+			To:     shared.Date{Time: i.Todate.Time},
+		}
+		supervisionLevels = append(supervisionLevels, supervisionLevel)
+	}
+	return supervisionLevels
+}
+
+func getLedgerAllocations(s *Service, ctx context.Context, invoiceID int) []shared.Ledger {
+	var ledgerAllocations []shared.Ledger
+	totalOfLedgerAllocationsAmount = 0
+	ledgerAllocationsRawData, err := s.Store.GetLedgerAllocations(ctx, pgtype.Int4{Int32: int32(invoiceID), Valid: true})
+	if err != nil {
+		return nil
 	}
 
 	for _, i := range ledgerAllocationsRawData {
@@ -33,28 +73,12 @@ func (s *Service) GetInvoices(clientID int) (*shared.Invoices, error) {
 		ledgerAllocations = append(ledgerAllocations, ledgerAllocation)
 		totalOfLedgerAllocationsAmount = totalOfLedgerAllocationsAmount + int(i.Amount)
 	}
-
-	for _, i := range invoicesRawData {
-		var invoice = shared.Invoice{
-			Id:                 int(i.ID),
-			Ref:                i.Reference,
-			Status:             "",
-			Amount:             int(i.Amount),
-			RaisedDate:         shared.Date{Time: i.Raiseddate.Time},
-			Received:           totalOfLedgerAllocationsAmount,
-			OutstandingBalance: int(i.Amount) - totalOfLedgerAllocationsAmount,
-			Ledgers:            ledgerAllocations,
-			SupervisionLevels:  nil,
-		}
-		invoices = append(invoices, invoice)
-	}
-
-	return &invoices, nil
+	return ledgerAllocations
 }
 
-func CheckForAllocation(allocatedDate pgtype.Date, datetime pgtype.Timestamp) shared.Date {
-	if !allocatedDate.Time.IsZero() {
-		return shared.Date{Time: allocatedDate.Time}
+func CheckForAllocation(bankDate pgtype.Date, datetime pgtype.Timestamp) shared.Date {
+	if !bankDate.Time.IsZero() {
+		return shared.Date{Time: bankDate.Time}
 	}
 
 	return shared.Date{Time: datetime.Time}

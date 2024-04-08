@@ -21,10 +21,12 @@ func TestService_GetInvoices(t *testing.T) {
 	seedData(testDbInstance, sqlQueryFeeReduction)
 	sqlQueryInvoice := "INSERT INTO invoice VALUES (1, 1, 1, 'S2', 'S203531/19', '2019-04-01', '2020-03-31', 12300, null, 1, '2020-03-20', 10, '2020-03-16', null, null, 12300, '2019-06-06', 99);"
 	seedData(testDbInstance, sqlQueryInvoice)
-	sqlQueryLedger := "INSERT INTO ledger VALUES (1, 'random1223', '2022-04-11T08:36:40+00:00', '', 12300, '', 'Unknown Credit', 'Confirmed', 1, 1, 1, '11/04/2022', '11/04/2022', 1254, '', 1);"
+	sqlQueryLedger := "INSERT INTO ledger VALUES (1, 'random1223', '2022-04-11T08:36:40+00:00', '', 12300, '', 'Card Payment', 'Confirmed', 1, 1, 1, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 65);"
 	seedData(testDbInstance, sqlQueryLedger)
 	sqlQueryLedgerAllocation := "INSERT INTO ledger_allocation VALUES (1, 1, 1, '2022-04-11T08:36:40+00:00', 12300, 'Confirmed', null, 'Notes here', '2022-04-11', null);"
 	seedData(testDbInstance, sqlQueryLedgerAllocation)
+	sqlQuerySupervisionLevel := "INSERT INTO invoice_fee_range VALUES (1, 1, 'General', '2022-04-01', '2023-03-31', 12300);"
+	seedData(testDbInstance, sqlQuerySupervisionLevel)
 
 	Store := store.New(testDbInstance)
 	dateString := "2020-03-16"
@@ -50,12 +52,19 @@ func TestService_GetInvoices(t *testing.T) {
 					Ledgers: []shared.Ledger{
 						{
 							Amount:          12300,
-							ReceivedDate:    shared.NewDate("11/04/2022"),
-							TransactionType: "unknown",
-							Status:          "Confirmed",
+							ReceivedDate:    shared.NewDate("04/12/2022"),
+							TransactionType: "Card Payment",
+							Status:          "Applied",
 						},
 					},
-					SupervisionLevels: nil,
+					SupervisionLevels: []shared.SupervisionLevel{
+						{
+							Level:  "General",
+							Amount: 12300,
+							From:   shared.NewDate("01/04/2022"),
+							To:     shared.NewDate("31/03/2023"),
+						},
+					},
 				},
 			},
 		},

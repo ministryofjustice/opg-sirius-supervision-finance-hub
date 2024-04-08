@@ -86,3 +86,39 @@ func (q *Queries) GetLedgerAllocations(ctx context.Context, invoiceID pgtype.Int
 	}
 	return items, nil
 }
+
+const getSupervisionLevels = `-- name: GetSupervisionLevels :many
+select supervisionlevel, fromdate, todate, amount from invoice_fee_range where invoice_id = $1 order by todate desc
+`
+
+type GetSupervisionLevelsRow struct {
+	Supervisionlevel string
+	Fromdate         pgtype.Date
+	Todate           pgtype.Date
+	Amount           int32
+}
+
+func (q *Queries) GetSupervisionLevels(ctx context.Context, invoiceID pgtype.Int4) ([]GetSupervisionLevelsRow, error) {
+	rows, err := q.db.Query(ctx, getSupervisionLevels, invoiceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetSupervisionLevelsRow
+	for rows.Next() {
+		var i GetSupervisionLevelsRow
+		if err := rows.Scan(
+			&i.Supervisionlevel,
+			&i.Fromdate,
+			&i.Todate,
+			&i.Amount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
