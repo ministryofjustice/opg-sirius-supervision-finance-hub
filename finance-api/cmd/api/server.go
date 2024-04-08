@@ -8,6 +8,7 @@ import (
 
 type Service interface {
 	GetAccountInformation(id int) (*shared.AccountInformation, error)
+	GetInvoices(id int) (*shared.Invoices, error)
 }
 
 type Server struct {
@@ -17,5 +18,6 @@ type Server struct {
 
 func (s *Server) SetupRoutes() {
 	http.HandleFunc("GET /clients/{id}", s.getAccountInformation)
+	http.HandleFunc("GET /clients/{id}/invoices", s.getInvoices)
 	http.Handle("/health-check", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 }
