@@ -15,12 +15,11 @@
                 {{ template "error-summary" .Errors }}
                 <div class="govuk-grid-row">
                     <form
-                            id="update-invoice-form"
-                            class="add-note govuk-grid-column-one-third"
-                            method="post"
-                            hx-post="{{ (printf "/clients/%s/invoices/%s/ledger-entries" .ClientId .InvoiceId) }}"
-                            hx-target="#main-content"
-                    >
+                        id="update-invoice-form"
+                        class="add-note govuk-grid-column-one-third"
+                        method="post"
+                        hx-post="{{ (printf "/clients/%s/invoices/%s/ledger-entries" .ClientId .InvoiceId) }}"
+                        hx-target="#main-content">
                         <input
                                 type="hidden"
                                 name="xsrfToken"
