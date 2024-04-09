@@ -11,9 +11,15 @@ services:
       SIRIUS_PUBLIC_URL: http://localhost:8080
       SIRIUS_URL: http://json-server:3000
       BACKEND_URL: http://finance-api:8080
-
+    healthcheck:
+      test: wget -O /dev/null -S 'http://localhost:8888/health-check' 2>&1 | grep 'HTTP/1.1 200 OK' || exit 1
+      interval: 15s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     depends_on:
       - json-server
+      - finance-api
 
   finance-api:
     image: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-api:latest
@@ -25,6 +31,12 @@ services:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=finance
+    healthcheck:
+      test: wget -O /dev/null -S 'http://localhost:8080/health-check' 2>&1 | grep 'HTTP/1.1 200 OK' || exit 1
+      interval: 15s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     depends_on:
       sirius-db:
         condition: service_healthy
@@ -47,7 +59,6 @@ services:
       - json-server
       - finance-api
       - sirius-db
-      - migrate
 
   go-lint:
     image: golangci/golangci-lint:v1.54.2
@@ -72,7 +83,7 @@ services:
       - ./finance-hub:/home/node/app
 
   sirius-db:
-    image: postgres:12-alpine
+    image: postgres:13-alpine
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
@@ -104,8 +115,10 @@ services:
       - ./migrations:/schema
     command: diff
 
-  migrate:
-    image: migrate/migrate
+  finance-migration:
+    image: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-migration:latest
+    build:
+      dockerfile: docker/finance-migration/Dockerfile
     depends_on:
       sirius-db:
         condition: service_healthy
