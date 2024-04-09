@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE ROLE api;
 
 create sequence billing_period_id_seq;
@@ -377,3 +378,6 @@ create index idx_819a1c8ae1f44b34
 create unique index uniq_819a1c8a36967d99
     on report (batchnumber);
 
+-- +goose Down
+
+-- Baseline migration - no down
