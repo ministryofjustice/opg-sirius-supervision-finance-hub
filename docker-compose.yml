@@ -80,7 +80,7 @@ services:
     ports:
       - "5431:5432"
     volumes:
-      - ./migrations/000000_baseline.sql:/docker-entrypoint-initdb.d/baseline.sql
+      - ./migrations/1_baseline.sql:/docker-entrypoint-initdb.d/1_baseline.sql
       - ./test-data/seed_data.sql:/seed_data.sql
     healthcheck:
       test: pg_isready --username=user --dbname=finance
@@ -105,17 +105,16 @@ services:
     command: diff
 
   migrate:
-    image: migrate/migrate
+    build:
+      dockerfile: docker/goose/Dockerfile
     depends_on:
       sirius-db:
         condition: service_healthy
-    volumes:
-      - ./migrations:/database
     command:
       [
-        "-path",
+        "-dir",
         "/database",
-        "-database",
+        "postgres",
         "postgres://user:password@sirius-db:5432/finance?sslmode=disable",
         "up"
       ]
