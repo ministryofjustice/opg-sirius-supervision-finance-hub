@@ -13,7 +13,7 @@ import (
 
 func TestGetFeeReductions(t *testing.T) {
 	logger, mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "http://localhost:8181", logger)
+	client, _ := NewApiClient(mockClient, "http://localhost:3000", "", logger)
 
 	json := `[
         {
@@ -22,8 +22,8 @@ func TestGetFeeReductions(t *testing.T) {
             "startDate": "2022-04-01T00:00:00+00:00",
             "endDate": "2021-03-31T00:00:00+00:00",
             "dateReceived": "2021-02-02T00:00:00+00:00",
-            "notes": "Exemption cancelled due to incorrect filing",
-            "deleted": true
+			"status": 'Expired',
+            "notes": "Exemption cancelled due to incorrect filing"
         },
         {
             "id": 2,
@@ -31,8 +31,8 @@ func TestGetFeeReductions(t *testing.T) {
             "startDate": "2022-04-01T00:00:00+00:00",
             "endDate": "2021-03-31T00:00:00+00:00",
             "dateReceived": "2021-06-02T00:00:00+00:00",
-            "notes": "Remission for 2021/2022",
-            "deleted": false
+			"status": 'Expired',
+            "notes": "Remission for 2021/2022"
         }
 	]`
 
@@ -52,8 +52,8 @@ func TestGetFeeReductions(t *testing.T) {
 			StartDate:    shared.NewDate("2022-04-01T00:00:00+00:00"),
 			EndDate:      shared.NewDate("2021-03-31T00:00:00+00:00"),
 			DateReceived: shared.NewDate("2021-02-02T00:00:00+00:00"),
+			Status:       "Expired",
 			Notes:        "Exemption cancelled due to incorrect filing",
-			Deleted:      true,
 		},
 		{
 			Id:           2,
@@ -61,8 +61,8 @@ func TestGetFeeReductions(t *testing.T) {
 			StartDate:    shared.NewDate("2022-04-01T00:00:00+00:00"),
 			EndDate:      shared.NewDate("2021-03-31T00:00:00+00:00"),
 			DateReceived: shared.NewDate("2021-06-02T00:00:00+00:00"),
+			Status:       "Active",
 			Notes:        "Remission for 2021/2022",
-			Deleted:      false,
 		},
 	}
 
@@ -95,7 +95,7 @@ func TestFeeReductionsReturns500Error(t *testing.T) {
 	_, err := client.GetFeeReductions(getContext(nil), 1)
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
-		URL:    svr.URL + "/api/v1/clients/1/fee-reductions",
+		URL:    svr.URL + "/clients/1/fee-reductions",
 		Method: http.MethodGet,
 	}, err)
 }
