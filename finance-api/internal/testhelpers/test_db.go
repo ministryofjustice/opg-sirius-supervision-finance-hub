@@ -42,7 +42,7 @@ func InitDb() *TestDatabase {
 
 	container, err := postgres.RunContainer(
 		ctx,
-		testcontainers.WithImage("docker.io/postgres:16-alpine"),
+		testcontainers.WithImage("docker.io/postgres:13-alpine"),
 		postgres.WithDatabase(dbname),
 		postgres.WithUsername(user),
 		postgres.WithPassword(password),
