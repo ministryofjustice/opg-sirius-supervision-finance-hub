@@ -2,16 +2,15 @@ package testhelpers
 
 import (
 	"context"
-	"errors"
-	"fmt"
-	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"database/sql"
 	"github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/pressly/goose/v3"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"log"
+	"os"
 	"path/filepath"
 	"runtime"
 	"time"
@@ -47,7 +46,7 @@ func InitDb() *TestDatabase {
 		postgres.WithDatabase(dbname),
 		postgres.WithUsername(user),
 		postgres.WithPassword(password),
-		postgres.WithInitScripts(basePath+"/migrations/000000_baseline.sql"),
+		postgres.WithInitScripts(basePath+"/migrations/1_baseline.sql"),
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("database system is ready to accept connections").
 				WithOccurrence(2).
@@ -85,20 +84,26 @@ func InitDb() *TestDatabase {
 }
 
 func migrateDb(connString string) error {
-	pathToMigrationFiles := basePath + "/migrations"
-
-	m, err := migrate.New(fmt.Sprintf("file:%s", pathToMigrationFiles), fmt.Sprintf("%ssslmode=disable", connString))
+	db, err := sql.Open("pgx", connString)
 	if err != nil {
 		return err
 	}
-	defer m.Close()
+	defer db.Close()
 
-	err = m.Up()
-	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
+	provider, err := goose.NewProvider(
+		goose.DialectPostgres,
+		db,
+		os.DirFS(basePath+"/migrations"),
+		goose.WithExcludeNames([]string{"1_baseline.sql"}),
+	)
+
+	if err != nil {
 		return err
 	}
 
-	log.Println("migration done")
+	if _, err = provider.Up(context.Background()); err != nil {
+		return err
+	}
 
 	return nil
 }
