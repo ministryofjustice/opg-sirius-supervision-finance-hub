@@ -4,6 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
+	"path/filepath"
+	"runtime"
+	"time"
+
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -11,10 +16,6 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"log"
-	"path/filepath"
-	"runtime"
-	"time"
 )
 
 const (
@@ -43,7 +44,7 @@ func InitDb() *TestDatabase {
 
 	container, err := postgres.RunContainer(
 		ctx,
-		testcontainers.WithImage("docker.io/postgres:16-alpine"),
+		testcontainers.WithImage("docker.io/postgres:13-alpine"),
 		postgres.WithDatabase(dbname),
 		postgres.WithUsername(user),
 		postgres.WithPassword(password),
