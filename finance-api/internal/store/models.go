@@ -26,7 +26,7 @@ type FeeReduction struct {
 	ID              int32
 	FinanceClientID pgtype.Int4
 	// (DC2Type:refdata)
-	Discounttype string
+	Type string
 	// (DC2Type:refdata)
 	Evidencetype pgtype.Text
 	Startdate    pgtype.Date
@@ -59,7 +59,6 @@ type Invoice struct {
 	Amount int32
 	// (DC2Type:refdata)
 	Supervisionlevel  pgtype.Text
-	FeeReductionID    pgtype.Int4
 	Confirmeddate     pgtype.Date
 	Batchnumber       pgtype.Int4
 	Raiseddate        pgtype.Date
