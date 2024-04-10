@@ -39,6 +39,7 @@ func (s *Service) GetInvoices(clientID int) (*shared.Invoices, error) {
 			Ledgers:            ledgerAllocations,
 			SupervisionLevels:  supervisionLevels,
 		}
+
 		invoices = append(invoices, invoice)
 	}
 
