@@ -41,9 +41,9 @@ To generate these files after making changes, run `make sqlc-gen`.
 
 ## Generating migrations
 
-To generate migration files with `golang migrate`, install it locally with `brew install golang-migrate` and run:
+To generate migration files with `goose`, install it locally with `brew install goose` and run:
 
-`migrate create -ext sql -dir migrations/ -seq <name-of-migration>`
+`goose create <name-of-migration> sql`
 
 Or copy the up and down files and increment them.
 

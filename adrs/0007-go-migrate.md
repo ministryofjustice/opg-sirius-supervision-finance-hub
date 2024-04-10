@@ -4,7 +4,7 @@ Date: 2024-03-19
 
 ## Status
 
-Accepted
+Superseded by ADR 0009-goose
 
 ## Context
 
