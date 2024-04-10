@@ -19,19 +19,19 @@ func TestGetFeeReductions(t *testing.T) {
         {
             "id": 1,
             "type": "EXEMPTION",
-            "startDate": "2022-04-01T00:00:00+00:00",
+            "startDate": "2019-04-01T00:00:00+00:00",
             "endDate": "2021-03-31T00:00:00+00:00",
             "dateReceived": "2021-02-02T00:00:00+00:00",
-			"status": 'Expired',
+			"status": "Expired",
             "notes": "Exemption cancelled due to incorrect filing"
         },
         {
             "id": 2,
             "type": "REMISSION",
-            "startDate": "2022-04-01T00:00:00+00:00",
+            "startDate": "2019-04-01T00:00:00+00:00",
             "endDate": "2021-03-31T00:00:00+00:00",
             "dateReceived": "2021-06-02T00:00:00+00:00",
-			"status": 'Expired',
+			"status": "Expired",
             "notes": "Remission for 2021/2022"
         }
 	]`
@@ -49,7 +49,7 @@ func TestGetFeeReductions(t *testing.T) {
 		{
 			Id:           1,
 			Type:         "EXEMPTION",
-			StartDate:    shared.NewDate("2022-04-01T00:00:00+00:00"),
+			StartDate:    shared.NewDate("2019-04-01T00:00:00+00:00"),
 			EndDate:      shared.NewDate("2021-03-31T00:00:00+00:00"),
 			DateReceived: shared.NewDate("2021-02-02T00:00:00+00:00"),
 			Status:       "Expired",
@@ -58,10 +58,10 @@ func TestGetFeeReductions(t *testing.T) {
 		{
 			Id:           2,
 			Type:         "REMISSION",
-			StartDate:    shared.NewDate("2022-04-01T00:00:00+00:00"),
+			StartDate:    shared.NewDate("2019-04-01T00:00:00+00:00"),
 			EndDate:      shared.NewDate("2021-03-31T00:00:00+00:00"),
 			DateReceived: shared.NewDate("2021-06-02T00:00:00+00:00"),
-			Status:       "Active",
+			Status:       "Expired",
 			Notes:        "Remission for 2021/2022",
 		},
 	}
