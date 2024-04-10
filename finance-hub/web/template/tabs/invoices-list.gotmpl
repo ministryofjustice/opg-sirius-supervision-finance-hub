@@ -67,8 +67,6 @@
           <tr class="hide" id="invoice-{{.Id}}-reveal">
             <td class="govuk-table__cell" colspan="4">
               <div class="govuk-details__text">
-                {{ $length := len .Ledgers }}
-                {{ if ne $length 0 }}
                 <table class="govuk-table">
                   <caption data-cy="ledger-title" class="govuk-table__caption govuk-table__caption--m">Invoice ledger allocations</caption>
                   <thead class="govuk-table__head">
@@ -80,8 +78,12 @@
                   </tr>
                   </thead>
                   <tbody class="govuk-table__body">
-                  {{ range .Ledgers }}
+                  {{ $length := len .Ledgers }}
                   <tr class="govuk-table__row">
+                  {{ if eq $length 0 }}
+                    <td data-cy="no-ledgers" class="govuk-table__cell">There are no invoice ledger allocations for this invoice</td>
+                  {{ else }}
+                  {{ range .Ledgers }}
                     <td class="govuk-table__cell" data-cy="ledger-amount-data">£{{ .Amount }}</td>
                     <td class="govuk-table__cell" data-cy="ledger-received-date-data">{{ .ReceivedDate }}</td>
                     <td class="govuk-table__cell" data-cy="ledger-transaction-type-data">{{ .TransactionType}}</td>
