@@ -19,6 +19,10 @@ func (s *Service) GetInvoices(clientID int) (*shared.Invoices, error) {
 	}
 
 	for _, i := range invoicesRawData {
+		ledgerAllocations, totalOfLedgerAllocationsAmount, err := getLedgerAllocations(s, ctx, int(i.ID))
+		if err != nil {
+			return nil, err
+		}
 		var invoice = shared.Invoice{
 			Id:                 int(i.ID),
 			Ref:                i.Reference,
@@ -27,9 +31,10 @@ func (s *Service) GetInvoices(clientID int) (*shared.Invoices, error) {
 			RaisedDate:         shared.Date{Time: i.Raiseddate.Time},
 			Received:           totalOfLedgerAllocationsAmount,
 			OutstandingBalance: int(i.Amount) - totalOfLedgerAllocationsAmount,
-			Ledgers:            getLedgerAllocations(s, ctx, int(i.ID)),
+			Ledgers:            ledgerAllocations,
 			SupervisionLevels:  getSupervisionLevels(s, ctx, int(i.ID)),
 		}
+
 		invoices = append(invoices, invoice)
 	}
 
@@ -55,28 +60,28 @@ func getSupervisionLevels(s *Service, ctx context.Context, invoiceID int) []shar
 	return supervisionLevels
 }
 
-func getLedgerAllocations(s *Service, ctx context.Context, invoiceID int) []shared.Ledger {
+func getLedgerAllocations(s *Service, ctx context.Context, invoiceID int) ([]shared.Ledger, int, error) {
 	var ledgerAllocations []shared.Ledger
 	totalOfLedgerAllocationsAmount = 0
 	ledgerAllocationsRawData, err := s.Store.GetLedgerAllocations(ctx, pgtype.Int4{Int32: int32(invoiceID), Valid: true})
 	if err != nil {
-		return nil
+		return nil, 0, err
 	}
 
 	for _, i := range ledgerAllocationsRawData {
 		var ledgerAllocation = shared.Ledger{
 			Amount:          int(i.Amount),
-			ReceivedDate:    CheckForAllocation(i.Bankdate, i.Datetime),
+			ReceivedDate:    calculateReceivedDate(i.Bankdate, i.Datetime),
 			TransactionType: i.Type,
 			Status:          "Applied",
 		}
 		ledgerAllocations = append(ledgerAllocations, ledgerAllocation)
 		totalOfLedgerAllocationsAmount = totalOfLedgerAllocationsAmount + int(i.Amount)
 	}
-	return ledgerAllocations
+	return ledgerAllocations, totalOfLedgerAllocationsAmount, nil
 }
 
-func CheckForAllocation(bankDate pgtype.Date, datetime pgtype.Timestamp) shared.Date {
+func calculateReceivedDate(bankDate pgtype.Date, datetime pgtype.Timestamp) shared.Date {
 	if !bankDate.Time.IsZero() {
 		return shared.Date{Time: bankDate.Time}
 	}
