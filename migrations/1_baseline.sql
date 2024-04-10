@@ -106,7 +106,7 @@ create table fee_reduction
     finance_client_id integer
         constraint fk_6ab78de42ac816b
             references finance_client,
-    discounttype      varchar(255)               not null,
+    type              varchar(255)               not null,
     evidencetype      varchar(255) default NULL::character varying,
     startdate         date                       not null,
     enddate           date                       not null,
@@ -115,7 +115,7 @@ create table fee_reduction
     datereceived      date
 );
 
-comment on column fee_reduction.discounttype is '(DC2Type:refdata)';
+comment on column fee_reduction.type is '(DC2Type:refdata)';
 
 comment on column fee_reduction.evidencetype is '(DC2Type:refdata)';
 
@@ -143,10 +143,6 @@ create table invoice
     enddate           date        not null,
     amount            integer     not null,
     supervisionlevel  varchar(255) default NULL::character varying,
-    fee_reduction_id  integer
-        constraint fk_7df7fbe047b45492
-            references fee_reduction
-            on delete cascade,
     confirmeddate     date,
     batchnumber       integer,
     raiseddate        date,
@@ -163,9 +159,6 @@ comment on column invoice.cacheddebtamount is '(DC2Type:money)';
 
 alter table invoice
     owner to api;
-
-create index idx_77988f286abf21a3
-    on invoice (fee_reduction_id);
 
 create index idx_77988f287a3c530d
     on invoice (finance_client_id);
