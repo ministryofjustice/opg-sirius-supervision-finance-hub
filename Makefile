@@ -27,15 +27,11 @@ scan: setup-directories
 	docker compose run --rm trivy image --format table --exit-code 0 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-migration:latest
 	docker compose run --rm trivy image --format sarif --output /test-results/migration.sarif --exit-code 1 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-migration:latest
 
-dev-up:
+up:
 	docker compose run --rm yarn
 	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml build finance-hub finance-api
-	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml up finance-hub yarn json-server finance-api sqlc-gen sirius-db 
+	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml up finance-hub yarn json-server finance-api sqlc-gen sirius-db
 	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml run finance-migration
-
-up: build
-	docker compose up -d --wait finance-hub 
-	docker compose run finance-migration
 
 down:
 	docker compose down
