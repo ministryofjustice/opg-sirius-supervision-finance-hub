@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/ministryofjustice/opg-go-common/env"
 	"github.com/opg-sirius-finance-hub/finance-api/cmd/api"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/service"
@@ -15,6 +15,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"log"
 	"net/http"
 	"os"
 
@@ -71,13 +72,13 @@ func main() {
 	// Open a connection to the PostgreSQL database
 	ctx := context.Background()
 
-	conn, err := pgx.Connect(ctx, fmt.Sprintf("postgresql://%s:%s@%s/%s", dbUser, dbPassword, dbConn, pgDb))
+	db, err := pgxpool.New(ctx, fmt.Sprintf("postgresql://%s:%s@%s/%s", dbUser, dbPassword, dbConn, pgDb))
 	if err != nil {
-		logger.Fatal(err)
+		log.Fatal(err)
 	}
-	defer conn.Close(ctx)
+	defer db.Close()
 
-	Store := store.New(conn)
+	Store := store.New(db)
 	Service := service.Service{Store: Store}
 	server := api.Server{Logger: logger, Service: &Service}
 
