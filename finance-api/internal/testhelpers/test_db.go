@@ -56,7 +56,7 @@ func InitDb() *TestDatabase {
 		log.Fatal(err)
 	}
 
-	connString, err := container.ConnectionString(ctx)
+	connString, err := container.ConnectionString(ctx, "search_path=supervision_finance")
 	if err != nil {
 		log.Fatal(err)
 	}

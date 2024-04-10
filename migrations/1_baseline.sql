@@ -1,6 +1,10 @@
 -- +goose Up
 CREATE ROLE api;
 
+CREATE SCHEMA supervision_finance;
+
+SET SEARCH_PATH TO supervision_finance;
+
 create sequence billing_period_id_seq;
 
 alter sequence billing_period_id_seq owner to api;
