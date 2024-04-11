@@ -1,8 +1,7 @@
 -- +goose Up
 CREATE ROLE api;
-
 CREATE SCHEMA supervision_finance;
-
+GRANT ALL ON SCHEMA supervision_finance TO api;
 SET SEARCH_PATH TO supervision_finance;
 
 create sequence billing_period_id_seq;
