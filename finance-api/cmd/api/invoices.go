@@ -2,8 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"errors"
-	"github.com/jackc/pgx/v5"
 	"net/http"
 	"strconv"
 )
@@ -12,9 +10,7 @@ func (s *Server) getInvoices(w http.ResponseWriter, r *http.Request) {
 	clientId, _ := strconv.Atoi(r.PathValue("id"))
 	accountInfo, err := s.Service.GetInvoices(clientId)
 
-	if errors.Is(err, pgx.ErrNoRows) {
-		http.Error(w, err.Error(), http.StatusNotFound)
-	} else if err != nil {
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
