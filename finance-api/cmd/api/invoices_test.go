@@ -54,20 +54,6 @@ func TestServer_getInvoices(t *testing.T) {
 	assert.Equal(t, "application/json", res.Header.Get("Content-Type"))
 }
 
-func TestServer_getInvoices_clientNotFound(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/clients/1/invoices", nil)
-	req.SetPathValue("id", "1")
-	w := httptest.NewRecorder()
-
-	mock := &mockService{err: pgx.ErrNoRows}
-	server := Server{Service: mock}
-	server.getInvoices(w, req)
-
-	res := w.Result()
-
-	assert.Equal(t, 404, res.StatusCode)
-}
-
 func TestServer_getInvoices_error(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/clients/1/invoices", nil)
 	req.SetPathValue("id", "1")

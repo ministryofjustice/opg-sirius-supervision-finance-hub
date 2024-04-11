@@ -6,8 +6,6 @@ import (
 	"github.com/opg-sirius-finance-hub/shared"
 )
 
-var totalOfLedgerAllocationsAmount int
-
 func (s *Service) GetInvoices(clientID int) (*shared.Invoices, error) {
 	ctx := context.Background()
 
@@ -62,7 +60,7 @@ func getSupervisionLevels(s *Service, ctx context.Context, invoiceID int) []shar
 
 func getLedgerAllocations(s *Service, ctx context.Context, invoiceID int) ([]shared.Ledger, int, error) {
 	var ledgerAllocations []shared.Ledger
-	totalOfLedgerAllocationsAmount = 0
+	totalOfLedgerAllocationsAmount := 0
 	ledgerAllocationsRawData, err := s.Store.GetLedgerAllocations(ctx, pgtype.Int4{Int32: int32(invoiceID), Valid: true})
 	if err != nil {
 		return nil, 0, err
