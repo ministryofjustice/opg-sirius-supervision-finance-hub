@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestService_GetFeeReductions(t *testing.T) {
@@ -65,6 +66,52 @@ func TestService_GetFeeReductions(t *testing.T) {
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetFeeReductions() got = %v, want %v", got, tt.want)
 			}
+		})
+	}
+}
+
+func Test_calculateStatus(t *testing.T) {
+	type args struct {
+		startDate shared.Date
+		endDate   shared.Date
+		deleted   bool
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "returns active when today is after start date and before end date and not deleted",
+			args: args{
+				startDate: shared.Date{time.Now().AddDate(-1, 0, 0)},
+				endDate:   shared.Date{time.Now().AddDate(1, 0, 0)},
+				deleted:   false,
+			},
+			want: "Active",
+		},
+		{
+			name: "returns expired when today is after end date and not deleted",
+			args: args{
+				startDate: shared.Date{time.Now().AddDate(-2, 0, 0)},
+				endDate:   shared.Date{time.Now().AddDate(-1, 0, 0)},
+				deleted:   false,
+			},
+			want: "Expired",
+		},
+		{
+			name: "returns cancelled the fee reduction is deleted",
+			args: args{
+				startDate: shared.Date{time.Now().AddDate(-1, 0, 0)},
+				endDate:   shared.Date{time.Now().AddDate(1, 0, 0)},
+				deleted:   true,
+			},
+			want: "Cancelled",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, calculateStatus(tt.args.startDate, tt.args.endDate, tt.args.deleted), "calculateStatus(%v, %v, %v)", tt.args.startDate, tt.args.endDate, tt.args.deleted)
 		})
 	}
 }

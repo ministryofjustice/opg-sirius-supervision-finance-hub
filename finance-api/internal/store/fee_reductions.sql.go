@@ -17,12 +17,8 @@ select fr.id,
        startdate,
        enddate,
        datereceived,
-       case
-           when deleted = true then 'Cancelled'
-           when (startdate < CURRENT_DATE and enddate > CURRENT_DATE) then 'Active'
-           when CURRENT_DATE > enddate then 'Expired'
-           else '' end as status,
-       notes
+       notes,
+       deleted
 from fee_reduction fr
          inner join finance_client fc on fc.id = fr.finance_client_id
 where fr.finance_client_id = $1
@@ -35,8 +31,8 @@ type GetFeeReductionsRow struct {
 	Startdate    pgtype.Date
 	Enddate      pgtype.Date
 	Datereceived pgtype.Date
-	Status       string
 	Notes        string
+	Deleted      bool
 }
 
 func (q *Queries) GetFeeReductions(ctx context.Context, financeClientID pgtype.Int4) ([]GetFeeReductionsRow, error) {
@@ -54,8 +50,8 @@ func (q *Queries) GetFeeReductions(ctx context.Context, financeClientID pgtype.I
 			&i.Startdate,
 			&i.Enddate,
 			&i.Datereceived,
-			&i.Status,
 			&i.Notes,
+			&i.Deleted,
 		); err != nil {
 			return nil, err
 		}
