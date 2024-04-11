@@ -58,43 +58,43 @@ func (h *InvoicesHandler) render(v AppVars, w http.ResponseWriter, r *http.Reque
 
 func (h *InvoicesHandler) transform(in shared.Invoices) Invoices {
 	var out Invoices
-	for _, f := range in {
+	for _, invoice := range in {
 		out = append(out, Invoice{
-			Id:                 f.Id,
-			Ref:                f.Ref,
-			Status:             f.Status,
-			Amount:             util.IntToDecimalString(f.Amount),
-			RaisedDate:         f.RaisedDate.String(),
-			Received:           util.IntToDecimalString(f.Received),
-			OutstandingBalance: util.IntToDecimalString(f.OutstandingBalance),
-			Ledgers:            transformLedgers(f.Ledgers),
-			SupervisionLevels:  transformSupervisionLevels(f.SupervisionLevels),
+			Id:                 invoice.Id,
+			Ref:                invoice.Ref,
+			Status:             invoice.Status,
+			Amount:             util.IntToDecimalString(invoice.Amount),
+			RaisedDate:         invoice.RaisedDate.String(),
+			Received:           util.IntToDecimalString(invoice.Received),
+			OutstandingBalance: util.IntToDecimalString(invoice.OutstandingBalance),
+			Ledgers:            h.transformLedgers(invoice.Ledgers),
+			SupervisionLevels:  h.transformSupervisionLevels(invoice.SupervisionLevels),
 		})
 	}
 	return out
 }
 
-func transformSupervisionLevels(in []shared.SupervisionLevel) []SupervisionLevel {
+func (h *InvoicesHandler) transformSupervisionLevels(in []shared.SupervisionLevel) []SupervisionLevel {
 	var out []SupervisionLevel
-	for _, f := range in {
+	for _, supervisionLevel := range in {
 		out = append(out, SupervisionLevel{
-			Level:  f.Level,
-			Amount: util.IntToDecimalString(f.Amount),
-			From:   f.From,
-			To:     f.To,
+			Level:  supervisionLevel.Level,
+			Amount: util.IntToDecimalString(supervisionLevel.Amount),
+			From:   supervisionLevel.From,
+			To:     supervisionLevel.To,
 		})
 	}
 	return out
 }
 
-func transformLedgers(ledgers []shared.Ledger) []LedgerAllocation {
+func (h *InvoicesHandler) transformLedgers(ledgers []shared.Ledger) []LedgerAllocation {
 	var out []LedgerAllocation
-	for _, l := range ledgers {
+	for _, ledger := range ledgers {
 		out = append(out, LedgerAllocation{
-			Amount:          util.IntToDecimalString(l.Amount),
-			ReceivedDate:    l.ReceivedDate,
-			TransactionType: l.TransactionType,
-			Status:          l.Status,
+			Amount:          util.IntToDecimalString(ledger.Amount),
+			ReceivedDate:    ledger.ReceivedDate,
+			TransactionType: ledger.TransactionType,
+			Status:          ledger.Status,
 		})
 	}
 	return out
