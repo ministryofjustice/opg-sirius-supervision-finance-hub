@@ -126,6 +126,6 @@ services:
         "-dir",
         "/database",
         "postgres",
-        "postgres://user:password@sirius-db:5432/finance?sslmode=disable",
+        "postgres://user:password@sirius-db:5432/finance?sslmode=disable&search_path=supervision_finance",
         "up"
       ]
