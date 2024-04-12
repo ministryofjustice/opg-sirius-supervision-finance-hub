@@ -17,17 +17,17 @@ func (s *Service) GetFeeReductions(id int) (*shared.FeeReductions, error) {
 
 	var feeReductions shared.FeeReductions
 
-	for _, f := range feeReductionsRawData {
-		startDate := shared.Date{Time: f.Startdate.Time}
-		endDate := shared.Date{Time: f.Enddate.Time}
+	for _, fee := range feeReductionsRawData {
+		startDate := shared.Date{Time: fee.Startdate.Time}
+		endDate := shared.Date{Time: fee.Enddate.Time}
 		var feeReduction = shared.FeeReduction{
-			Id:           int(f.ID),
-			Type:         f.Discounttype,
+			Id:           int(fee.ID),
+			Type:         fee.Type,
 			StartDate:    startDate,
 			EndDate:      endDate,
-			DateReceived: shared.Date{Time: f.Datereceived.Time},
-			Status:       calculateStatus(startDate, endDate, f.Deleted),
-			Notes:        f.Notes,
+			DateReceived: shared.Date{Time: fee.Datereceived.Time},
+			Status:       calculateStatus(startDate, endDate, fee.Deleted),
+			Notes:        fee.Notes,
 		}
 		feeReductions = append(feeReductions, feeReduction)
 	}

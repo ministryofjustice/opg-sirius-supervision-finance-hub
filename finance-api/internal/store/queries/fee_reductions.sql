@@ -1,6 +1,6 @@
 -- name: GetFeeReductions :many
 select fr.id,
-       discounttype,
+       type,
        startdate,
        enddate,
        datereceived,

@@ -99,16 +99,3 @@ func (h *InvoicesHandler) transformLedgers(ledgers []shared.Ledger) []LedgerAllo
 	}
 	return out
 }
-
-func (h *InvoicesHandler) transformLedgers(ledgers []shared.Ledger) []LedgerAllocation {
-	var out []LedgerAllocation
-	for _, ledger := range ledgers {
-		out = append(out, LedgerAllocation{
-			Amount:          util.IntToDecimalString(ledger.Amount),
-			ReceivedDate:    ledger.ReceivedDate,
-			TransactionType: ledger.TransactionType,
-			Status:          ledger.Status,
-		})
-	}
-	return out
-}

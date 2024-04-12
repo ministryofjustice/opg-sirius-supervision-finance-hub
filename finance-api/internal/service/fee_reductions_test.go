@@ -2,7 +2,6 @@ package service
 
 import (
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
-	"github.com/opg-sirius-finance-hub/finance-api/internal/testhelpers"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"reflect"
@@ -11,16 +10,12 @@ import (
 )
 
 func TestService_GetFeeReductions(t *testing.T) {
-	testDB := testhelpers.InitDb()
-	testDbInstance = testDB.DbInstance
-	defer testDB.TearDown()
+	testDB.SeedData(
+		"INSERT INTO finance_client VALUES (5, 3, '1234', 'DEMANDED', null, 12300, 2222);",
+		"INSERT INTO fee_reduction VALUES (2, 5, 'REMISSION', null, '2019-04-01', '2020-03-31', 'notes', false, '2019-05-01');",
+	)
 
-	sqlQuery := "INSERT INTO finance_client VALUES (5, 3, '1234', 'DEMANDED', null, 12300, 2222);"
-	seedData(testDbInstance, sqlQuery)
-	sqlQueryFeeReduction := "INSERT INTO fee_reduction VALUES (1, 5, 'REMISSION', null, '2019-04-01', '2020-03-31', 'notes', false, '2019-05-01');"
-	seedData(testDbInstance, sqlQueryFeeReduction)
-
-	Store := store.New(testDbInstance)
+	Store := store.New(testDB.DbInstance)
 
 	tests := []struct {
 		name    string
@@ -59,7 +54,7 @@ func TestService_GetFeeReductions(t *testing.T) {
 				t.Errorf("GetFeeReductions() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if (err == nil) && len(*got) == 0 {
+			if (err == nil) && reflect.ValueOf(*got).IsZero() {
 				assert.Empty(t, got)
 				return
 			}

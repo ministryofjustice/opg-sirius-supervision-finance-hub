@@ -13,7 +13,7 @@ import (
 
 const getFeeReductions = `-- name: GetFeeReductions :many
 select fr.id,
-       discounttype,
+       type,
        startdate,
        enddate,
        datereceived,
@@ -27,7 +27,7 @@ order by enddate desc, deleted
 
 type GetFeeReductionsRow struct {
 	ID           int32
-	Discounttype string
+	Type         string
 	Startdate    pgtype.Date
 	Enddate      pgtype.Date
 	Datereceived pgtype.Date
@@ -46,7 +46,7 @@ func (q *Queries) GetFeeReductions(ctx context.Context, financeClientID pgtype.I
 		var i GetFeeReductionsRow
 		if err := rows.Scan(
 			&i.ID,
-			&i.Discounttype,
+			&i.Type,
 			&i.Startdate,
 			&i.Enddate,
 			&i.Datereceived,
