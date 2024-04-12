@@ -72,11 +72,12 @@ func TestService_GetInvoices(t *testing.T) {
 				Store: Store,
 			}
 			got, err := s.GetInvoices(tt.id)
+
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetInvoices() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if (err == nil) && len(*got) == 0 {
+			if (err == nil) && reflect.ValueOf(*got).IsZero() {
 				assert.Empty(t, got)
 				return
 			}

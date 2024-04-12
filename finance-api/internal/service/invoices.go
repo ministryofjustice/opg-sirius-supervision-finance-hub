@@ -55,12 +55,12 @@ func getSupervisionLevels(s *Service, ctx context.Context, invoiceID int) ([]sha
 		return nil, err
 	}
 
-	for _, i := range supervisionLevelsRawData {
+	for _, supervision := range supervisionLevelsRawData {
 		var supervisionLevel = shared.SupervisionLevel{
-			Level:  i.Supervisionlevel,
-			Amount: int(i.Amount),
-			From:   shared.Date{Time: i.Fromdate.Time},
-			To:     shared.Date{Time: i.Todate.Time},
+			Level:  supervision.Supervisionlevel,
+			Amount: int(supervision.Amount),
+			From:   shared.Date{Time: supervision.Fromdate.Time},
+			To:     shared.Date{Time: supervision.Todate.Time},
 		}
 		supervisionLevels = append(supervisionLevels, supervisionLevel)
 	}
@@ -75,15 +75,15 @@ func getLedgerAllocations(s *Service, ctx context.Context, invoiceID int) ([]sha
 		return nil, 0, err
 	}
 
-	for _, i := range ledgerAllocationsRawData {
+	for _, ledger := range ledgerAllocationsRawData {
 		var ledgerAllocation = shared.Ledger{
-			Amount:          int(i.Amount),
-			ReceivedDate:    calculateReceivedDate(i.Bankdate, i.Datetime),
-			TransactionType: i.Type,
+			Amount:          int(ledger.Amount),
+			ReceivedDate:    calculateReceivedDate(ledger.Bankdate, ledger.Datetime),
+			TransactionType: ledger.Type,
 			Status:          "Applied",
 		}
 		ledgerAllocations = append(ledgerAllocations, ledgerAllocation)
-		totalOfLedgerAllocationsAmount = totalOfLedgerAllocationsAmount + int(i.Amount)
+		totalOfLedgerAllocationsAmount = totalOfLedgerAllocationsAmount + int(ledger.Amount)
 	}
 	return ledgerAllocations, totalOfLedgerAllocationsAmount, nil
 }
