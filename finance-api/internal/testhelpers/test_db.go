@@ -33,6 +33,16 @@ type TestDatabase struct {
 	container  testcontainers.Container
 }
 
+func (db *TestDatabase) SeedData(data ...string) {
+	ctx := context.Background()
+	for _, d := range data {
+		_, err := db.DbInstance.Exec(ctx, d)
+		if err != nil {
+			log.Fatal("Unable to seed data with db connection: " + err.Error())
+		}
+	}
+}
+
 func InitDb() *TestDatabase {
 	ctx := context.Background()
 
@@ -108,7 +118,7 @@ func migrateDb(connString string) error {
 	return nil
 }
 
-func (tdb *TestDatabase) TearDown() {
-	tdb.DbInstance.Close()
-	_ = tdb.container.Terminate(context.Background())
+func (db *TestDatabase) TearDown() {
+	db.DbInstance.Close()
+	_ = db.container.Terminate(context.Background())
 }
