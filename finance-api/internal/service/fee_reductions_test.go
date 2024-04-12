@@ -4,6 +4,7 @@ import (
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
+	"log"
 	"reflect"
 	"testing"
 	"time"
@@ -11,8 +12,8 @@ import (
 
 func TestService_GetFeeReductions(t *testing.T) {
 	testDB.SeedData(
-		"INSERT INTO finance_client VALUES (5, 3, '1234', 'DEMANDED', null, 12300, 2222);",
-		"INSERT INTO fee_reduction VALUES (2, 5, 'REMISSION', null, '2019-04-01', '2020-03-31', 'notes', false, '2019-05-01');",
+		"INSERT INTO finance_client VALUES (5, 5, '1234', 'DEMANDED', null, 12300, 2222);",
+		"INSERT INTO fee_reduction VALUES (5, 5, 'REMISSION', null, '2019-04-01', '2020-03-31', 'Remission to see the notes', false, '2019-05-01');",
 	)
 
 	Store := store.New(testDB.DbInstance)
@@ -25,15 +26,15 @@ func TestService_GetFeeReductions(t *testing.T) {
 	}{
 		{
 			name: "returns invoices when clientId matches clientId in invoice table",
-			id:   1,
+			id:   5,
 			want: &shared.FeeReductions{
 				shared.FeeReduction{
-					Id:           1,
+					Id:           5,
 					Type:         "REMISSION",
 					StartDate:    shared.NewDate("01/04/2019"),
 					EndDate:      shared.NewDate("31/03/2020"),
 					DateReceived: shared.NewDate("01/05/2019"),
-					Status:       "Active",
+					Status:       "Expired",
 					Notes:        "Remission to see the notes",
 				},
 			},
@@ -50,11 +51,12 @@ func TestService_GetFeeReductions(t *testing.T) {
 				Store: Store,
 			}
 			got, err := s.GetFeeReductions(tt.id)
+			log.Println(got)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetFeeReductions() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if (err == nil) && reflect.ValueOf(*got).IsZero() {
+			if (err == nil) && len(*tt.want) == 0 {
 				assert.Empty(t, got)
 				return
 			}
