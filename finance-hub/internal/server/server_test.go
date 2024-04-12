@@ -61,7 +61,7 @@ func (m mockApiClient) UpdateInvoice(context api.Context, i int, k int, s string
 	return m.error
 }
 
-func (m mockApiClient) GetInvoices(context api.Context, i int) (shared.Invoices, error) {
+func (m mockApiClient) GetInvoices(api.Context, int) (shared.Invoices, error) {
 	return m.Invoices, m.error
 }
 
