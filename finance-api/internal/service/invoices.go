@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/opg-sirius-finance-hub/shared"
-	"log"
 )
 
 func (s *Service) GetInvoices(clientID int) (*shared.Invoices, error) {
@@ -17,27 +16,25 @@ func (s *Service) GetInvoices(clientID int) (*shared.Invoices, error) {
 		return nil, err
 	}
 
-	for _, i := range invoicesRawData {
-		ledgerAllocations, totalOfLedgerAllocationsAmount, err := getLedgerAllocations(s, ctx, int(i.ID))
+	for _, inv := range invoicesRawData {
+		ledgerAllocations, totalOfLedgerAllocationsAmount, err := getLedgerAllocations(s, ctx, int(inv.ID))
 		if err != nil {
 			return nil, err
 		}
-		log.Println(ledgerAllocations)
 
-		supervisionLevels, err := getSupervisionLevels(s, ctx, int(i.ID))
-		log.Println(supervisionLevels)
+		supervisionLevels, err := getSupervisionLevels(s, ctx, int(inv.ID))
 		if err != nil {
 			return nil, err
 		}
 
 		var invoice = shared.Invoice{
-			Id:                 int(i.ID),
-			Ref:                i.Reference,
+			Id:                 int(inv.ID),
+			Ref:                inv.Reference,
 			Status:             "",
-			Amount:             int(i.Amount),
-			RaisedDate:         shared.Date{Time: i.Raiseddate.Time},
+			Amount:             int(inv.Amount),
+			RaisedDate:         shared.Date{Time: inv.Raiseddate.Time},
 			Received:           totalOfLedgerAllocationsAmount,
-			OutstandingBalance: int(i.Amount) - totalOfLedgerAllocationsAmount,
+			OutstandingBalance: int(inv.Amount) - totalOfLedgerAllocationsAmount,
 			Ledgers:            ledgerAllocations,
 			SupervisionLevels:  supervisionLevels,
 		}
