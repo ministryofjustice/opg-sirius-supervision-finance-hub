@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/opg-sirius-finance-hub/shared"
+	"log"
 )
 
 func (s *Service) GetInvoices(clientID int) (*shared.Invoices, error) {
@@ -21,8 +22,10 @@ func (s *Service) GetInvoices(clientID int) (*shared.Invoices, error) {
 		if err != nil {
 			return nil, err
 		}
+		log.Println(ledgerAllocations)
 
 		supervisionLevels, err := getSupervisionLevels(s, ctx, int(i.ID))
+		log.Println(supervisionLevels)
 		if err != nil {
 			return nil, err
 		}
