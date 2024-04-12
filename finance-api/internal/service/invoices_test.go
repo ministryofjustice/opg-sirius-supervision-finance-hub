@@ -77,7 +77,7 @@ func TestService_GetInvoices(t *testing.T) {
 				t.Errorf("GetInvoices() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if (err == nil) && reflect.ValueOf(*got).IsZero() {
+			if (err == nil) && len(*tt.want) == 0 {
 				assert.Empty(t, got)
 				return
 			}

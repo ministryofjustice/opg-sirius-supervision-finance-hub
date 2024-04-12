@@ -54,6 +54,28 @@ func TestServer_getInvoices(t *testing.T) {
 	assert.Equal(t, "application/json", res.Header.Get("Content-Type"))
 }
 
+func TestServer_getInvoices_returns_an_empty_array(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/clients/2/invoices", nil)
+	req.SetPathValue("id", "2")
+	w := httptest.NewRecorder()
+
+	invoicesInfo := &shared.Invoices{shared.Invoice{}}
+
+	mock := &mockService{invoices: invoicesInfo}
+	server := Server{Service: mock}
+	server.getInvoices(w, req)
+
+	res := w.Result()
+	defer res.Body.Close()
+	data, _ := io.ReadAll(res.Body)
+
+	expected := `[{"id":0,"ref":"","status":"","amount":0,"raisedDate":"01\/01\/0001","received":0,"outstandingBalance":0,"ledgers":null,"supervisionLevels":null}]`
+
+	assert.Equal(t, expected, string(data))
+	assert.Equal(t, 2, mock.expectedId)
+	assert.Equal(t, "application/json", res.Header.Get("Content-Type"))
+}
+
 func TestServer_getInvoices_error(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/clients/1/invoices", nil)
 	req.SetPathValue("id", "1")
