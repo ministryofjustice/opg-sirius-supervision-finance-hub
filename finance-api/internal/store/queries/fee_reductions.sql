@@ -8,5 +8,5 @@ select fr.id,
        deleted
 from fee_reduction fr
          inner join finance_client fc on fc.id = fr.finance_client_id
-where fr.finance_client_id = $1
+where fc.client_id = $1
 order by enddate desc, deleted;

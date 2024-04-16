@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/opg-sirius-finance-hub/shared"
 	"time"
 )
@@ -10,7 +9,7 @@ import (
 func (s *Service) GetFeeReductions(id int) (*shared.FeeReductions, error) {
 	ctx := context.Background()
 
-	feeReductionsRawData, err := s.Store.GetFeeReductions(ctx, pgtype.Int4{Int32: int32(id), Valid: true})
+	feeReductionsRawData, err := s.Store.GetFeeReductions(ctx, int32(id))
 	if err != nil {
 		return nil, err
 	}
