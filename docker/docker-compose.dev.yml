@@ -6,7 +6,7 @@ services:
     ports:
       - '2345:2345'
     volumes:
-      - ./finance-hub/.air.toml:/app/.air.toml
+      - ./finance-hub/.air.toml:/app/finance-hub/.air.toml
       - ./go.mod:/app/go.mod
       - ./go.sum:/app/go.sum
       - ./finance-hub/internal:/app/finance-hub/internal
@@ -22,7 +22,7 @@ services:
     ports:
       - '3456:2345'
     volumes:
-      - ./finance-api/.air.toml:/app/.air.toml
+      - ./finance-api/.air.toml:/app/finance-api/.air.toml
       - ./go.mod:/app/go.mod
       - ./go.sum:/app/go.sum
       - ./finance-api/cmd:/app/finance-api/cmd
