@@ -16,8 +16,8 @@ func TestFeeReductions(t *testing.T) {
 			StartDate:    shared.NewDate("2022-04-01T00:00:00+00:00"),
 			EndDate:      shared.NewDate("2021-03-31T00:00:00+00:00"),
 			DateReceived: shared.NewDate("2021-02-02T00:00:00+00:00"),
+			Status:       "Expired",
 			Notes:        "Exemption cancelled due to incorrect filing",
-			Deleted:      true,
 		},
 		{
 			Id:           2,
@@ -25,8 +25,8 @@ func TestFeeReductions(t *testing.T) {
 			StartDate:    shared.NewDate("2022-04-01T00:00:00+00:00"),
 			EndDate:      shared.NewDate("2021-03-31T00:00:00+00:00"),
 			DateReceived: shared.NewDate("2021-06-02T00:00:00+00:00"),
+			Status:       "Active",
 			Notes:        "Remission for 2021/2022",
-			Deleted:      false,
 		},
 	}
 
@@ -53,6 +53,7 @@ func TestFeeReductions(t *testing.T) {
 			StartDate:    "01/04/2022",
 			EndDate:      "31/03/2021",
 			DateReceived: "02/02/2021",
+			Status:       "Expired",
 			Notes:        "Exemption cancelled due to incorrect filing",
 		},
 		{
@@ -60,6 +61,7 @@ func TestFeeReductions(t *testing.T) {
 			StartDate:    "01/04/2022",
 			EndDate:      "31/03/2021",
 			DateReceived: "02/06/2021",
+			Status:       "Active",
 			Notes:        "Remission for 2021/2022",
 		},
 	}
