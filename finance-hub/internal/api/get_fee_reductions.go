@@ -10,8 +10,8 @@ import (
 func (c *ApiClient) GetFeeReductions(ctx Context, clientId int) (shared.FeeReductions, error) {
 	var v shared.FeeReductions
 
-	requestURL := fmt.Sprintf("/api/v1/clients/%d/fee-reductions", clientId)
-	req, err := c.newSiriusRequest(ctx, http.MethodGet, requestURL, nil)
+	url := fmt.Sprintf("/clients/%d/fee-reductions", clientId)
+	req, err := c.newBackendRequest(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		c.logErrorRequest(req, err)
 		return v, err

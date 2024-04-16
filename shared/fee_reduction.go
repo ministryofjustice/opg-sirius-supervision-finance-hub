@@ -6,8 +6,8 @@ type FeeReduction struct {
 	StartDate    Date   `json:"startDate"`
 	EndDate      Date   `json:"endDate"`
 	DateReceived Date   `json:"dateReceived"`
+	Status       string `json:"status"`
 	Notes        string `json:"notes"`
-	Deleted      bool   `json:"deleted"`
 }
 
 type FeeReductions []FeeReduction

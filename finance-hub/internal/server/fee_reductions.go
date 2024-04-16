@@ -14,8 +14,8 @@ type FeeReduction struct {
 	StartDate    string
 	EndDate      string
 	DateReceived string
-	Notes        string
 	Status       string
+	Notes        string
 }
 
 type FeeReductionsTab struct {
@@ -48,6 +48,7 @@ func (h *FeeReductionsHandler) transform(in shared.FeeReductions) FeeReductions 
 			StartDate:    f.StartDate.String(),
 			EndDate:      f.EndDate.String(),
 			DateReceived: f.DateReceived.String(),
+			Status:       f.Status,
 			Notes:        f.Notes,
 		})
 	}
