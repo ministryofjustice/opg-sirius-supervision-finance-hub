@@ -1,36 +1,16 @@
 package service
 
 import (
-	"context"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
-	"github.com/opg-sirius-finance-hub/finance-api/internal/testhelpers"
 	"github.com/opg-sirius-finance-hub/shared"
-	"log"
-	"os"
 	"reflect"
 	"testing"
 )
 
-var testDbInstance *pgxpool.Pool
-
-func TestMain(m *testing.M) {
-	testDB := testhelpers.InitDb()
-	testDbInstance = testDB.DbInstance
-	seedData(testDbInstance)
-	defer testDB.TearDown()
-	os.Exit(m.Run())
-}
-
-func seedData(db *pgxpool.Pool) {
-	_, err := db.Exec(context.Background(), "INSERT INTO finance_client VALUES (1, 2, 'sop123', 'DEMANDED', 3, 12300, 321)")
-	if err != nil {
-		log.Fatal("Unable to seed data with db connection")
-	}
-}
-
 func TestService_GetAccountInformation(t *testing.T) {
-	Store := store.New(testDbInstance)
+	testDB.SeedData("INSERT INTO finance_client VALUES (1, 2, 'sop123', 'DEMANDED', 3, 12300, 321)")
+
+	Store := store.New(testDB.DbInstance)
 	tests := []struct {
 		name    string
 		id      int

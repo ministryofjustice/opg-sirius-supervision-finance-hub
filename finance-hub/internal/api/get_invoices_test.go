@@ -20,13 +20,13 @@ func TestGetInvoicesCanReturn200(t *testing.T) {
 		 "id":3,
 		 "ref":"N2000001/20",
 		 "status":"Unpaid",
-		 "amount":"232",
+		 "amount":232,
 		 "raisedDate":"01/04/2222",
-		 "received":"22",
-		 "outstandingBalance":"210",
+		 "received":12,
+		 "outstandingBalance":210,
 		 "ledgers":[
 			{
-			   "amount":"123",
+			   "amount":12000,
 			   "receivedDate":"01/05/2222",
 			   "transactionType":"Online card payment",
 			   "status":"Applied"
@@ -35,7 +35,7 @@ func TestGetInvoicesCanReturn200(t *testing.T) {
 		 "supervisionLevels":[
 			{
 			   "Level":"General",
-			   "Amount":"320",
+			   "Amount":32000,
 			   "From":"01/04/2019",
 			   "To":"31/03/2020"
 			}
@@ -58,13 +58,13 @@ func TestGetInvoicesCanReturn200(t *testing.T) {
 			Id:                 3,
 			Ref:                "N2000001/20",
 			Status:             "Unpaid",
-			Amount:             "232",
+			Amount:             232,
 			RaisedDate:         shared.NewDate("01/04/2222"),
-			Received:           "22",
-			OutstandingBalance: "210",
+			Received:           12,
+			OutstandingBalance: 210,
 			Ledgers: []shared.Ledger{
 				{
-					Amount:          "123",
+					Amount:          12000,
 					ReceivedDate:    shared.NewDate("01/05/2222"),
 					TransactionType: "Online card payment",
 					Status:          "Applied",
@@ -73,7 +73,7 @@ func TestGetInvoicesCanReturn200(t *testing.T) {
 			SupervisionLevels: []shared.SupervisionLevel{
 				{
 					Level:  "General",
-					Amount: "320",
+					Amount: 32000,
 					From:   shared.NewDate("01/04/2019"),
 					To:     shared.NewDate("31/03/2020"),
 				},
@@ -94,17 +94,13 @@ func TestGetInvoicesCanThrow500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, "", logger)
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
 
-	clientList, err := client.GetInvoices(getContext(nil), 3)
-
-	var expectedResponse shared.Invoices
-
-	assert.Equal(t, expectedResponse, clientList)
+	_, err := client.GetInvoices(getContext(nil), 1)
 
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
-		URL:    svr.URL + "/api/v1/clients/3/invoices",
+		URL:    svr.URL + "/clients/1/invoices",
 		Method: http.MethodGet,
 	}, err)
 }
@@ -116,7 +112,7 @@ func TestGetInvoicesUnauthorised(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, "", logger)
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
 
 	clientList, err := client.GetInvoices(getContext(nil), 3)
 
