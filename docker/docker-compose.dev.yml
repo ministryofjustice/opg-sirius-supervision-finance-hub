@@ -10,6 +10,7 @@ services:
       - ./go.mod:/app/go.mod
       - ./go.sum:/app/go.sum
       - ./finance-hub/internal:/app/finance-hub/internal
+      - ./auth:/app/auth
       - ./shared:/app/shared
       - ./finance-hub/main_test.go:/app/finance-hub/main_test.go
       - ./finance-hub/main.go:/app/finance-hub/main.go
@@ -28,6 +29,7 @@ services:
       - ./finance-api/cmd:/app/finance-api/cmd
       - ./finance-api/internal:/app/finance-api/internal
       - ./finance-api/main.go:/app/finance-api/main.go
+      - ./auth:/app/auth
       - ./shared:/app/shared
 
   yarn:
