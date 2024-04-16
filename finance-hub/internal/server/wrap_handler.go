@@ -46,7 +46,17 @@ func wrapHandler(client ApiClient, logger *zap.SugaredLogger, tmplError Template
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
 
-			var err error
+			//cookie, _ := r.Cookie("OPG-TOKEN")
+			//token, err := middleware.VerifyToken(cookie, getEnv("jwt-secret", "MyTestSecret"))
+			//
+			//if err != nil {
+			//	logger.Errorw("Error in token verification :", err.Error())
+			//	w.WriteHeader(http.StatusUnauthorized)
+			//} else {
+			//	claims := token.Claims.(jwt.MapClaims)
+			//	email := claims["session-data"].(string)
+			//	log.Println(email)
+
 			vars, err := NewAppVars(r, envVars)
 			if err == nil {
 				err = next.render(vars, w, r)
@@ -96,6 +106,7 @@ func wrapHandler(client ApiClient, logger *zap.SugaredLogger, tmplError Template
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 				}
 			}
+			//}
 		})
 	}
 }
