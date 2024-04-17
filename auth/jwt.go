@@ -8,17 +8,26 @@ import (
 	"time"
 )
 
+type JwtConfig struct {
+	Enabled bool
+	Secret  string
+	Expiry  int
+}
+
 type Claims struct {
 	Roles []string `json:"roles"`
 	jwt.RegisteredClaims
 }
 
-func Verify(requestToken string, secret string) (*jwt.Token, error) {
+func (j JwtConfig) Verify(requestToken string) (*jwt.Token, error) {
+	if !j.Enabled {
+		return &jwt.Token{}, nil
+	}
 	token, err := jwt.Parse(requestToken, func(token *jwt.Token) (i interface{}, err error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return []byte(secret), nil
+		return []byte(j.Secret), nil
 	})
 
 	if err != nil {
@@ -28,8 +37,11 @@ func Verify(requestToken string, secret string) (*jwt.Token, error) {
 	return token, nil
 }
 
-func CreateToken(clientId int, secret string, expiry int) (accessToken string, err error) {
-	exp := time.Now().Add(time.Second * time.Duration(expiry))
+func (j JwtConfig) CreateToken(clientId int) (accessToken string, err error) {
+	if !j.Enabled {
+		return "", nil
+	}
+	exp := time.Now().Add(time.Second * time.Duration(j.Expiry))
 	claims := &Claims{
 		//Roles: user.Roles,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -42,7 +54,7 @@ func CreateToken(clientId int, secret string, expiry int) (accessToken string, e
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	t, err := token.SignedString([]byte(secret))
+	t, err := token.SignedString([]byte(j.Secret))
 	if err != nil {
 		return "", err
 	}

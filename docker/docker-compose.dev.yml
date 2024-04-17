@@ -16,6 +16,8 @@ services:
       - ./finance-hub/main.go:/app/finance-hub/main.go
       - ./finance-hub/web/static/javascript:/app/finance-hub/web/static/javascript
       - ./finance-hub/web/template:/app/finance-hub/web/template
+    environment:
+      TOGGLE_JWT_ENABLED: "true"
 
   finance-api:
     build:
@@ -31,6 +33,8 @@ services:
       - ./finance-api/main.go:/app/finance-api/main.go
       - ./auth:/app/auth
       - ./shared:/app/shared
+    environment:
+      TOGGLE_JWT_ENABLED: "true"
 
   yarn:
     command: watch

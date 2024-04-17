@@ -12,11 +12,13 @@ type EnvironmentVars struct {
 	SiriusPublicURL string
 	Prefix          string
 	BackendURL      string
+	JwtEnabled      bool
 	JwtSecret       string
 	JwtExpiry       int
 }
 
 func NewEnvironmentVars() (EnvironmentVars, error) {
+	jwtEnabled := getEnv("TOGGLE_JWT_ENABLED", "false") == "true"
 	jwtExpiry, _ := strconv.Atoi(getEnv("JWT_EXPIRY", "1"))
 	return EnvironmentVars{
 		Port:            getEnv("PORT", "1234"),
@@ -25,6 +27,7 @@ func NewEnvironmentVars() (EnvironmentVars, error) {
 		SiriusPublicURL: getEnv("SIRIUS_PUBLIC_URL", ""),
 		Prefix:          getEnv("PREFIX", ""),
 		BackendURL:      getEnv("BACKEND_URL", ""),
+		JwtEnabled:      jwtEnabled,
 		JwtSecret:       getEnv("JWT_SECRET", "mysupersecrettestkeythatis128bits"),
 		JwtExpiry:       jwtExpiry,
 	}, nil

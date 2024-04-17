@@ -6,7 +6,6 @@ import (
 	"github.com/opg-sirius-finance-hub/shared"
 	"go.uber.org/zap"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 )
@@ -18,8 +17,9 @@ type Service interface {
 }
 
 type Server struct {
-	Logger  *zap.SugaredLogger
-	Service Service
+	Logger    *zap.SugaredLogger
+	Service   Service
+	JwtConfig auth.JwtConfig
 }
 
 func (s *Server) SetupRoutes() {
@@ -31,32 +31,26 @@ func (s *Server) SetupRoutes() {
 
 func (s *Server) jwtAuth(next http.HandlerFunc) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authHeader := r.Header.Get("Authorization")
-		requestToken := strings.Split(authHeader, "Bearer ")[1]
-		token, err := auth.Verify(requestToken, getEnv("JWT_SECRET", "mysupersecrettestkeythatis128bits"))
+		if s.JwtConfig.Enabled {
+			authHeader := r.Header.Get("Authorization")
+			requestToken := strings.Split(authHeader, "Bearer ")[1]
+			token, err := s.JwtConfig.Verify(requestToken)
 
-		if err != nil {
-			s.Logger.Errorw("Error in token verification :", err.Error())
-			http.Error(w, err.Error(), http.StatusUnauthorized)
-			return
-		} else {
-			claims := token.Claims.(jwt.MapClaims)
-			var t *jwt.NumericDate
-			if t, err = claims.GetExpirationTime(); err != nil || t.After(time.Now()) {
-				s.Logger.Errorw("Token expired :", err.Error())
+			if err != nil {
+				s.Logger.Errorw("Error in token verification :", err.Error())
 				http.Error(w, err.Error(), http.StatusUnauthorized)
 				return
+			} else {
+				claims := token.Claims.(jwt.MapClaims)
+				var t *jwt.NumericDate
+				if t, err = claims.GetExpirationTime(); err != nil || t.After(time.Now()) {
+					s.Logger.Errorw("Token expired :", err.Error())
+					http.Error(w, err.Error(), http.StatusUnauthorized)
+					return
+				}
 			}
+			s.Logger.Infow("JWT successfully auth'd")
 		}
-		s.Logger.Infow("JWT successfully auth'd")
 		next.ServeHTTP(w, r)
 	})
-}
-
-func getEnv(key, def string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-
-	return def
 }
