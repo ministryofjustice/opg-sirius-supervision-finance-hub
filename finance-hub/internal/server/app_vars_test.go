@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/opg-sirius-finance-hub/finance-hub/internal/config"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"testing"
@@ -10,7 +11,7 @@ func TestNewAppVars(t *testing.T) {
 	r, _ := http.NewRequest("GET", "/path", nil)
 	r.SetPathValue("id", "1")
 
-	envVars := EnvironmentVars{}
+	envVars := config.EnvironmentVars{}
 	vars, err := NewAppVars(r, envVars)
 
 	assert.Nil(t, err)
