@@ -1,0 +1,13 @@
+version: "3.6"
+
+services:
+  finance-hub:
+    environment:
+      SIRIUS_URL: http://docker.for.mac.localhost:8080
+
+  finance-api:
+    environment:
+      - POSTGRES_CONN=docker.for.mac.localhost:5432
+      - POSTGRES_USER=api
+      - POSTGRES_PASSWORD=api
+      - POSTGRES_DB=api
