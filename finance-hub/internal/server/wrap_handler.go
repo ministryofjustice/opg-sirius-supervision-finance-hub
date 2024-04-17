@@ -3,7 +3,6 @@ package server
 import (
 	"errors"
 	"fmt"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/opg-sirius-finance-hub/auth"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/config"
@@ -118,16 +117,11 @@ func isJwtAuthenticated(logger *zap.SugaredLogger, r *http.Request, jwtConfig au
 		return false
 	}
 
-	token, err := jwtConfig.Verify(cookie.Value)
+	_, err := jwtConfig.Verify(cookie.Value)
 
 	if err != nil {
 		logger.Errorw("Error in token verification :", err.Error())
 		return false
-	} else {
-		claims := token.Claims.(jwt.MapClaims)
-		if t, e := claims.GetExpirationTime(); e != nil || t.Before(time.Now()) {
-			return false
-		}
 	}
 	return true
 }

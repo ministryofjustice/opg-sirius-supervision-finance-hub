@@ -23,7 +23,7 @@ func (j JwtConfig) Verify(requestToken string) (*jwt.Token, error) {
 	if !j.Enabled {
 		return &jwt.Token{}, nil
 	}
-	token, err := jwt.Parse(requestToken, func(token *jwt.Token) (i interface{}, err error) {
+	token, err := jwt.ParseWithClaims(requestToken, &Claims{}, func(token *jwt.Token) (i interface{}, err error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
@@ -43,7 +43,7 @@ func (j JwtConfig) CreateToken(clientId int) (accessToken string, err error) {
 	}
 	exp := time.Now().Add(time.Second * time.Duration(j.Expiry))
 	claims := &Claims{
-		//Roles: user.Roles,
+		Roles: []string{"urn:opg:sirius:private-finance-manager"},
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        strconv.Itoa(clientId),
 			Issuer:    "urn:opg:payments-hub",
