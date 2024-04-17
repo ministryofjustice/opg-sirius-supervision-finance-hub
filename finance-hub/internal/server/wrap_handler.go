@@ -45,79 +45,89 @@ type Handler interface {
 }
 
 func wrapHandler(logger *zap.SugaredLogger, tmplError Template, envVars config.EnvironmentVars) func(next Handler) http.Handler {
+	jwtConfig := auth.JwtConfig{Enabled: envVars.JwtEnabled, Secret: envVars.JwtSecret, Expiry: envVars.JwtExpiry}
 	return func(next Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
 
-			cookie, _ := r.Cookie("OPG-TOKEN")
-			if cookie == nil {
-				logger.Errorw("Missing cookie token")
+			if !isJwtAuthenticated(logger, r, jwtConfig) {
 				http.Redirect(w, r, envVars.SiriusURL+"/auth", http.StatusFound)
 				return
 			}
+			vars, err := NewAppVars(r, envVars)
+			if err == nil {
+				err = next.render(vars, w, r)
+			}
 
-			token, err := auth.Verify(cookie.Value, envVars.JwtSecret)
+			logger.Infow(
+				"Application Request",
+				"method", r.Method,
+				"uri", r.URL.RequestURI(),
+				"duration", time.Since(start),
+			)
 
 			if err != nil {
-				logger.Errorw("Error in token verification :", err.Error())
-				w.WriteHeader(http.StatusUnauthorized)
-			} else {
-				claims := token.Claims.(jwt.MapClaims)
-				if t, e := claims.GetExpirationTime(); e != nil || t.Before(time.Now()) {
+				if errors.Is(err, api.ErrUnauthorized) {
 					http.Redirect(w, r, envVars.SiriusURL+"/auth", http.StatusFound)
 					return
 				}
 
-				vars, err := NewAppVars(r, envVars)
-				if err == nil {
-					err = next.render(vars, w, r)
+				var redirect RedirectError
+				if errors.As(err, &redirect) {
+					http.Redirect(w, r, envVars.Prefix+redirect.To(), http.StatusFound)
+					return
 				}
 
-				logger.Infow(
-					"Application Request",
-					"method", r.Method,
-					"uri", r.URL.RequestURI(),
-					"duration", time.Since(start),
-				)
+				logger.Errorw("Error handler", err)
+
+				code := http.StatusInternalServerError
+				var serverStatusError StatusError
+				if errors.As(err, &serverStatusError) {
+					code = serverStatusError.Code()
+				}
+				var siriusStatusError api.StatusError
+				if errors.As(err, &siriusStatusError) {
+					code = siriusStatusError.Code
+				}
+
+				w.WriteHeader(code)
+				errVars := ErrorVars{
+					Code:            code,
+					Error:           err.Error(),
+					EnvironmentVars: envVars,
+				}
+				err = tmplError.Execute(w, errVars)
 
 				if err != nil {
-					if errors.Is(err, api.ErrUnauthorized) {
-						http.Redirect(w, r, envVars.SiriusURL+"/auth", http.StatusFound)
-						return
-					}
-
-					var redirect RedirectError
-					if errors.As(err, &redirect) {
-						http.Redirect(w, r, envVars.Prefix+redirect.To(), http.StatusFound)
-						return
-					}
-
-					logger.Errorw("Error handler", err)
-
-					code := http.StatusInternalServerError
-					var serverStatusError StatusError
-					if errors.As(err, &serverStatusError) {
-						code = serverStatusError.Code()
-					}
-					var siriusStatusError api.StatusError
-					if errors.As(err, &siriusStatusError) {
-						code = siriusStatusError.Code
-					}
-
-					w.WriteHeader(code)
-					errVars := ErrorVars{
-						Code:            code,
-						Error:           err.Error(),
-						EnvironmentVars: envVars,
-					}
-					err = tmplError.Execute(w, errVars)
-
-					if err != nil {
-						logger.Errorw("Failed to render error template", err)
-						http.Error(w, err.Error(), http.StatusInternalServerError)
-					}
+					logger.Errorw("Failed to render error template", err)
+					http.Error(w, err.Error(), http.StatusInternalServerError)
 				}
 			}
 		})
 	}
+}
+
+func isJwtAuthenticated(logger *zap.SugaredLogger, r *http.Request, jwtConfig auth.JwtConfig) bool {
+	if !jwtConfig.Enabled {
+		return true
+	}
+
+	cookie, _ := r.Cookie("OPG-TOKEN")
+	if cookie == nil {
+		logger.Errorw("Missing cookie token")
+		return false
+	}
+
+	token, err := jwtConfig.Verify(cookie.Value)
+
+	if err != nil {
+		logger.Errorw("Error in token verification :", err.Error())
+		return false
+	} else {
+		claims := token.Claims.(jwt.MapClaims)
+		if t, e := claims.GetExpirationTime(); e != nil || t.Before(time.Now()) {
+			return false
+		}
+	}
+	return true
 }

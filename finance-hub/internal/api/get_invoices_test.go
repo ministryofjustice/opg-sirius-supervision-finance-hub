@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"github.com/opg-sirius-finance-hub/finance-hub/internal/config"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"io"
@@ -11,8 +12,8 @@ import (
 )
 
 func TestGetInvoicesCanReturn200(t *testing.T) {
-	logger, mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "", logger)
+	logger, mockClient, envVars := SetUpTest()
+	client, _ := NewApiClient(mockClient, logger, envVars)
 
 	json := `
 	[
@@ -88,13 +89,14 @@ func TestGetInvoicesCanReturn200(t *testing.T) {
 }
 
 func TestGetInvoicesCanThrow500Error(t *testing.T) {
-	logger, _ := SetUpTest()
+	logger, _, _ := SetUpTest()
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
+	envVars := config.EnvironmentVars{SiriusURL: svr.URL, BackendURL: svr.URL}
+	client, _ := NewApiClient(http.DefaultClient, logger, envVars)
 
 	_, err := client.GetInvoices(getContext(nil), 1)
 
@@ -106,13 +108,14 @@ func TestGetInvoicesCanThrow500Error(t *testing.T) {
 }
 
 func TestGetInvoicesUnauthorised(t *testing.T) {
-	logger, _ := SetUpTest()
+	logger, _, _ := SetUpTest()
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
+	envVars := config.EnvironmentVars{SiriusURL: svr.URL, BackendURL: svr.URL}
+	client, _ := NewApiClient(http.DefaultClient, logger, envVars)
 
 	clientList, err := client.GetInvoices(getContext(nil), 3)
 

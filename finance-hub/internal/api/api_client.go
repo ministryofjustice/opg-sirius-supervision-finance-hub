@@ -71,13 +71,13 @@ func (ctx Context) With(c context.Context) Context {
 }
 
 func NewApiClient(httpClient HTTPClient, logger *logging.Logger, envVars config.EnvironmentVars) (*ApiClient, error) {
+	jwtConfig := auth.JwtConfig{Enabled: envVars.JwtEnabled, Secret: envVars.JwtSecret, Expiry: envVars.JwtExpiry}
 	return &ApiClient{
 		http:       httpClient,
 		siriusUrl:  envVars.SiriusURL,
 		backendUrl: envVars.BackendURL,
 		logger:     logger,
-		jwtSecret:  envVars.JwtSecret,
-		jwtExpiry:  envVars.JwtExpiry,
+		JwtConfig:  jwtConfig,
 	}, nil
 }
 
@@ -90,8 +90,7 @@ type ApiClient struct {
 	siriusUrl  string
 	logger     *logging.Logger
 	backendUrl string
-	jwtSecret  string
-	jwtExpiry  int
+	auth.JwtConfig
 }
 
 func (c *ApiClient) newSiriusRequest(ctx Context, method, path string, body io.Reader) (*http.Request, error) {
@@ -116,12 +115,15 @@ func (c *ApiClient) newBackendRequest(ctx Context, method, path string, body io.
 		return nil, err
 	}
 
-	token, err := auth.CreateToken(ctx.ClientId, c.jwtSecret, c.jwtExpiry)
-	if err != nil {
-		return nil, err
+	if c.JwtConfig.Enabled {
+		token, err := c.JwtConfig.CreateToken(ctx.ClientId)
+		if err != nil {
+			return nil, err
+		}
+
+		req.Header.Add("Authorization", "Bearer "+token)
 	}
 
-	req.Header.Add("Authorization", "Bearer "+token)
 	req.Header.Add("X-XSRF-TOKEN", ctx.XSRFToken)
 
 	return req, err
