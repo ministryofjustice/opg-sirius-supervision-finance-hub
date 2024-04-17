@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/ministryofjustice/opg-go-common/securityheaders"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
+	"github.com/opg-sirius-finance-hub/finance-hub/internal/config"
 	"github.com/opg-sirius-finance-hub/shared"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.uber.org/zap"
@@ -32,8 +33,8 @@ type Template interface {
 	ExecuteTemplate(wr io.Writer, name string, data any) error
 }
 
-func New(logger *zap.SugaredLogger, client ApiClient, templates map[string]*template.Template, envVars EnvironmentVars) http.Handler {
-	wrap := wrapHandler(client, logger, templates["error.gotmpl"], envVars)
+func New(logger *zap.SugaredLogger, client ApiClient, templates map[string]*template.Template, envVars config.EnvironmentVars) http.Handler {
+	wrap := wrapHandler(logger, templates["error.gotmpl"], envVars)
 
 	mux := http.NewServeMux()
 
