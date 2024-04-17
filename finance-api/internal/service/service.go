@@ -7,3 +7,10 @@ import (
 type Service struct {
 	Store *store.Queries
 }
+
+func normaliseNilArrays[T any](arr []T) []T {
+	if arr == nil {
+		arr = []T{}
+	}
+	return arr
+}
