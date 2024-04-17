@@ -1,13 +1,11 @@
 package api
 
 import (
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/opg-sirius-finance-hub/auth"
 	"github.com/opg-sirius-finance-hub/shared"
 	"go.uber.org/zap"
 	"net/http"
 	"strings"
-	"time"
 )
 
 type Service interface {
@@ -37,15 +35,14 @@ func (s *Server) jwtAuth(next http.HandlerFunc) http.Handler {
 			token, err := s.JwtConfig.Verify(requestToken)
 
 			if err != nil {
-				s.Logger.Errorw("Error in token verification :", err.Error())
+				s.Logger.Errorw("Error in token verification: ", err.Error())
 				http.Error(w, err.Error(), http.StatusUnauthorized)
 				return
-			} else {
-				claims := token.Claims.(jwt.MapClaims)
-				var t *jwt.NumericDate
-				if t, err = claims.GetExpirationTime(); err != nil || t.After(time.Now()) {
-					s.Logger.Errorw("Token expired :", err.Error())
-					http.Error(w, err.Error(), http.StatusUnauthorized)
+			}
+			if claims, ok := token.Claims.(*auth.Claims); ok {
+				if !contains(claims.Roles, "urn:opg:sirius:private-finance-manager") {
+					s.Logger.Errorw("Invalid user role")
+					http.Error(w, "Invalid user role", http.StatusUnauthorized)
 					return
 				}
 			}
@@ -53,4 +50,13 @@ func (s *Server) jwtAuth(next http.HandlerFunc) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+func contains(arr []string, v string) bool {
+	for _, s := range arr {
+		if s == v {
+			return true
+		}
+	}
+	return false
 }
