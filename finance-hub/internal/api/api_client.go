@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/ministryofjustice/opg-go-common/logging"
+	"github.com/opg-sirius-finance-hub/auth"
+	"github.com/opg-sirius-finance-hub/finance-hub/internal/config"
 	"io"
 	"net/http"
 )
@@ -68,12 +70,14 @@ func (ctx Context) With(c context.Context) Context {
 	}
 }
 
-func NewApiClient(httpClient HTTPClient, siriusUrl string, backendUrl string, logger *logging.Logger) (*ApiClient, error) {
+func NewApiClient(httpClient HTTPClient, logger *logging.Logger, envVars config.EnvironmentVars) (*ApiClient, error) {
+	jwtConfig := auth.JwtConfig{Enabled: envVars.JwtEnabled, Secret: envVars.JwtSecret, Expiry: envVars.JwtExpiry}
 	return &ApiClient{
 		http:       httpClient,
-		siriusUrl:  siriusUrl,
-		backendUrl: backendUrl,
+		siriusUrl:  envVars.SiriusURL,
+		backendUrl: envVars.BackendURL,
 		logger:     logger,
+		JwtConfig:  jwtConfig,
 	}, nil
 }
 
@@ -86,6 +90,7 @@ type ApiClient struct {
 	siriusUrl  string
 	logger     *logging.Logger
 	backendUrl string
+	auth.JwtConfig
 }
 
 func (c *ApiClient) newSiriusRequest(ctx Context, method, path string, body io.Reader) (*http.Request, error) {
@@ -110,11 +115,15 @@ func (c *ApiClient) newBackendRequest(ctx Context, method, path string, body io.
 		return nil, err
 	}
 
-	for _, c := range ctx.Cookies {
-		req.AddCookie(c)
+	if c.JwtConfig.Enabled {
+		token, err := c.JwtConfig.CreateToken(ctx.ClientId)
+		if err != nil {
+			return nil, err
+		}
+
+		req.Header.Add("Authorization", "Bearer "+token)
 	}
 
-	req.Header.Add("OPG-Bypass-Membrane", "1")
 	req.Header.Add("X-XSRF-TOKEN", ctx.XSRFToken)
 
 	return req, err
