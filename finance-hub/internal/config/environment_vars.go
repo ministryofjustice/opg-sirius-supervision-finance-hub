@@ -18,7 +18,7 @@ type EnvironmentVars struct {
 }
 
 func NewEnvironmentVars() (EnvironmentVars, error) {
-	jwtEnabled := getEnv("TOGGLE_JWT_ENABLED", "false") == "true"
+	jwtEnabled := getEnv("TOGGLE_JWT_ENABLED", "0") == "1"
 	jwtExpiry, _ := strconv.Atoi(getEnv("JWT_EXPIRY", "1"))
 	return EnvironmentVars{
 		Port:            getEnv("PORT", "1234"),
