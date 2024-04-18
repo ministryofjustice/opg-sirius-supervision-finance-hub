@@ -12,6 +12,7 @@ services:
       SIRIUS_PUBLIC_URL: http://localhost:8080
       SIRIUS_URL: http://json-server:3000
       BACKEND_URL: http://finance-api:8080
+      TOGGLE_JWT_ENABLED: false
     healthcheck:
       test: wget -O /dev/null -S 'http://localhost:8888/health-check' 2>&1 | grep 'HTTP/1.1 200 OK' || exit 1
       interval: 15s
@@ -29,10 +30,11 @@ services:
     ports:
       - "8181:8080"
     environment:
-      - POSTGRES_CONN=sirius-db:5432
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=finance
+      POSTGRES_CONN: sirius-db:5432
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: finance
+      TOGGLE_JWT_ENABLED: false
     healthcheck:
       test: wget -O /dev/null -S 'http://localhost:8080/health-check' 2>&1 | grep 'HTTP/1.1 200 OK' || exit 1
       interval: 15s
