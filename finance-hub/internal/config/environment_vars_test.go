@@ -15,7 +15,7 @@ func TestNewEnvironmentVars(t *testing.T) {
 		SiriusURL:       "http://host.docker.internal:8080",
 		SiriusPublicURL: "",
 		Prefix:          "",
-		JwtEnabled:      false,
+		JwtEnabled:      true,
 		JwtSecret:       "mysupersecrettestkeythatis128bits",
 		JwtExpiry:       1,
 	}, vars)
