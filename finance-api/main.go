@@ -79,7 +79,7 @@ func main() {
 	}
 	defer conn.Close(ctx)
 
-	jwtEnabled := getEnv("TOGGLE_JWT_ENABLED", "false") == "true"
+	jwtEnabled := getEnv("TOGGLE_JWT_ENABLED", "true") == "true"
 	jwtExpiry, _ := strconv.Atoi(getEnv("JWT_EXPIRY", "1"))
 	jwtSecret := getEnv("JWT_SECRET", "mysupersecrettestkeythatis128bits")
 	jwtConfig := auth.JwtConfig{Enabled: jwtEnabled, Secret: jwtSecret, Expiry: jwtExpiry}
