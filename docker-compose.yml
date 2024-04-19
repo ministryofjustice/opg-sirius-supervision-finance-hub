@@ -123,11 +123,10 @@ services:
     depends_on:
       sirius-db:
         condition: service_healthy
-    command:
-      [
-        "-dir",
-        "/database",
-        "postgres",
-        "postgres://user:password@sirius-db:5432/finance?sslmode=disable&search_path=supervision_finance",
-        "up"
-      ]
+    environment:
+      DB_USER: user
+      DB_PASSWORD: password
+      DB_CONNECTION: sirius-db:5432
+      DB_NAME: finance
+      DB_SCHEMA: supervision_finance
+    command: "up"

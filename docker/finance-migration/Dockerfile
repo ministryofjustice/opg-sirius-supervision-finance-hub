@@ -10,8 +10,9 @@ RUN rm /database/1_baseline.sql
 
 
 FROM scratch
-
+COPY --from=busybox:1.35.0-uclibc /bin/sh /bin/sh
 COPY --from=build /usr/local/bin/goose /usr/local/bin/goose
 COPY --from=build /database/ /database/
+COPY docker/finance-migration/migrate.sh /usr/local/bin/migrate.sh
 
-ENTRYPOINT [ "/usr/local/bin/goose" ]
+ENTRYPOINT [ "/bin/sh", "/usr/local/bin/migrate.sh" ]
