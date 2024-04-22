@@ -5,6 +5,7 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"net/http"
+	"strconv"
 )
 
 type FeeReductions []FeeReduction
@@ -19,7 +20,8 @@ type FeeReduction struct {
 }
 
 type FeeReductionsTab struct {
-	FeeReductions FeeReductions
+	FeeReductions   FeeReductions
+	FinanceClientId string
 	AppVars
 }
 
@@ -35,13 +37,16 @@ func (h *FeeReductionsHandler) render(v AppVars, w http.ResponseWriter, r *http.
 		return err
 	}
 
-	data := &FeeReductionsTab{h.transform(feeReductions), v}
+	feeReductionData, financeClientId := h.transform(feeReductions)
+
+	data := &FeeReductionsTab{feeReductionData, financeClientId, v}
 	data.selectTab("fee-reductions")
 	return h.execute(w, r, data)
 }
 
-func (h *FeeReductionsHandler) transform(in shared.FeeReductions) FeeReductions {
+func (h *FeeReductionsHandler) transform(in shared.FeeReductions) (FeeReductions, string) {
 	var out FeeReductions
+	var financeClientId string
 	for _, f := range in {
 		out = append(out, FeeReduction{
 			Type:         cases.Title(language.English).String(f.Type),
@@ -51,6 +56,7 @@ func (h *FeeReductionsHandler) transform(in shared.FeeReductions) FeeReductions 
 			Status:       f.Status,
 			Notes:        f.Notes,
 		})
+		financeClientId = strconv.Itoa(f.FinanceClientId)
 	}
-	return out
+	return out, financeClientId
 }

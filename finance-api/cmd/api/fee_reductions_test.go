@@ -20,13 +20,14 @@ func TestServer_getFeeReductions(t *testing.T) {
 
 	feeReductionInfo := &shared.FeeReductions{
 		shared.FeeReduction{
-			Id:           1,
-			Type:         "REMISSION",
-			StartDate:    shared.Date{Time: date},
-			EndDate:      shared.Date{Time: date},
-			DateReceived: shared.Date{Time: date},
-			Status:       "Active",
-			Notes:        "Remission notes and its active",
+			Id:              1,
+			FinanceClientId: 1,
+			Type:            "REMISSION",
+			StartDate:       shared.Date{Time: date},
+			EndDate:         shared.Date{Time: date},
+			DateReceived:    shared.Date{Time: date},
+			Status:          "Active",
+			Notes:           "Remission notes and its active",
 		},
 	}
 
@@ -38,7 +39,7 @@ func TestServer_getFeeReductions(t *testing.T) {
 	defer res.Body.Close()
 	data, _ := io.ReadAll(res.Body)
 
-	expected := `[{"id":1,"type":"REMISSION","startDate":"16\/03\/2020","endDate":"16\/03\/2020","dateReceived":"16\/03\/2020","status":"Active","notes":"Remission notes and its active"}]`
+	expected := `[{"id":1,"financeClientId":1,"type":"REMISSION","startDate":"16\/03\/2020","endDate":"16\/03\/2020","dateReceived":"16\/03\/2020","status":"Active","notes":"Remission notes and its active"}]`
 
 	assert.Equal(t, expected, string(data))
 	assert.Equal(t, 1, mock.expectedId)

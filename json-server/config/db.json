@@ -99,6 +99,14 @@
           "": "Enter an amount"
         }
       }
+    },
+    {
+      "id": "addFeeReductionError",
+      "validation_errors": {
+        "feeType": {
+          "": "A fee reduction type must be selected"
+        }
+      }
     }
   ]
 }
