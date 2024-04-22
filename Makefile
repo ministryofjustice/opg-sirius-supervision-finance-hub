@@ -34,6 +34,7 @@ clean:
 	docker compose down
 	docker compose run --rm yarn
 
+
 up: clean build-dev start-and-seed sqlc-gen
 	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml up finance-hub json-server finance-api yarn
 
