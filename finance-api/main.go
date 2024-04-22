@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/ministryofjustice/opg-go-common/env"
+	"github.com/opg-sirius-finance-hub/auth"
 	"github.com/opg-sirius-finance-hub/finance-api/cmd/api"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/service"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
@@ -17,6 +18,7 @@ import (
 	"google.golang.org/grpc"
 	"net/http"
 	"os"
+	"strconv"
 
 	_ "github.com/lib/pq"
 )
@@ -77,9 +79,14 @@ func main() {
 	}
 	defer conn.Close(ctx)
 
+	jwtEnabled := getEnv("TOGGLE_JWT_ENABLED", "0") == "1"
+	jwtExpiry, _ := strconv.Atoi(getEnv("JWT_EXPIRY", "1"))
+	jwtSecret := getEnv("JWT_SECRET", "mysupersecrettestkeythatis128bits")
+	jwtConfig := auth.JwtConfig{Enabled: jwtEnabled, Secret: jwtSecret, Expiry: jwtExpiry}
+
 	Store := store.New(conn)
 	Service := service.Service{Store: Store}
-	server := api.Server{Logger: logger, Service: &Service}
+	server := api.Server{Logger: logger, Service: &Service, JwtConfig: jwtConfig}
 
 	server.SetupRoutes()
 
