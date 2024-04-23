@@ -5,6 +5,8 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
+	"strconv"
+	"time"
 )
 
 func (s *Service) AddFeeReduction(body shared.AddFeeReduction) error {
@@ -14,8 +16,8 @@ func (s *Service) AddFeeReduction(body shared.AddFeeReduction) error {
 		ClientID:     int32(body.ClientId),
 		Type:         body.FeeType,
 		Evidencetype: pgtype.Text{},
-		Startdate:    pgtype.Date{Time: body.DateReceive.Time, Valid: true},
-		Enddate:      pgtype.Date{Time: body.DateReceive.Time, Valid: true},
+		Startdate:    calculateStartDate(body.StartYear),
+		Enddate:      calculateEndDate(body.StartYear, body.LengthOfAward),
 		Notes:        body.FeeReductionNotes,
 		Deleted:      false,
 		Datereceived: pgtype.Date{Time: body.DateReceive.Time, Valid: true},
@@ -27,4 +29,22 @@ func (s *Service) AddFeeReduction(body shared.AddFeeReduction) error {
 	}
 
 	return nil
+}
+
+func calculateEndDate(startYear string, lengthOfAward string) pgtype.Date {
+	startYearTransformed, _ := strconv.Atoi(startYear)
+	lengthOfAwardTransformed, _ := strconv.Atoi(lengthOfAward)
+
+	endDate := startYearTransformed + lengthOfAwardTransformed
+	financeYearEnd := "-03-31"
+	feeReductionEndDateString := strconv.Itoa(endDate) + financeYearEnd
+	feeReductionEndDate, _ := time.Parse("2006-01-02", feeReductionEndDateString)
+	return pgtype.Date{Time: feeReductionEndDate, Valid: true}
+}
+
+func calculateStartDate(startYear string) pgtype.Date {
+	financeYearStart := "-04-01"
+	feeReductionStartDateString := startYear + financeYearStart
+	feeReductionStartDate, _ := time.Parse("2006-01-02", feeReductionStartDateString)
+	return pgtype.Date{Time: feeReductionStartDate, Valid: true}
 }
