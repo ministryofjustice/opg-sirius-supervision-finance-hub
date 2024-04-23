@@ -12,14 +12,15 @@ import (
 )
 
 const addFeeReduction = `-- name: AddFeeReduction :one
-insert into fee_reduction (finance_client_id,
+insert into fee_reduction (id,
+                           finance_client_id,
                            type,
                            evidencetype,
                            startdate,
                            enddate,
                            notes,
                            deleted,
-                           datereceived) values ($1, $2, $3, $4, $5, $6, $7, $8) returning id, finance_client_id, type, evidencetype, startdate, enddate, notes, deleted, datereceived
+                           datereceived) values (nextval('fee_reduction_id_seq'::regclass), $1, $2, $3, $4, $5, $6, $7, $8) returning id, finance_client_id, type, evidencetype, startdate, enddate, notes, deleted, datereceived
 `
 
 type AddFeeReductionParams struct {

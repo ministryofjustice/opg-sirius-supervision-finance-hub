@@ -35,7 +35,7 @@ services:
 
   json-server:
     build:
-      dockerfile: ../json-server/Dockerfile
+      dockerfile: json-server/Dockerfile
     volumes:
       - ./json-server/config:/app/config
     ports:
