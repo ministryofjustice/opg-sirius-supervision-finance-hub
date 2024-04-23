@@ -15,14 +15,14 @@ func (s *Service) AddFeeReduction(body shared.AddFeeReduction) error {
 	date, _ := time.Parse("2006-01-02", dateString)
 
 	queryArgs := store.AddFeeReductionParams{
-		FinanceClientID: pgtype.Int4{Int32: int32(body.FinanceClientId)},
+		FinanceClientID: pgtype.Int4{Int32: int32(body.FinanceClientId), Valid: true},
 		Type:            body.FeeType,
 		Evidencetype:    pgtype.Text{},
-		Startdate:       pgtype.Date{Time: date},
-		Enddate:         pgtype.Date{Time: date},
+		Startdate:       pgtype.Date{Time: date, Valid: true},
+		Enddate:         pgtype.Date{Time: date, Valid: true},
 		Notes:           body.FeeReductionNotes,
 		Deleted:         false,
-		Datereceived:    pgtype.Date{Time: date},
+		Datereceived:    pgtype.Date{Time: date, Valid: true},
 	}
 
 	_, err := s.Store.AddFeeReduction(ctx, queryArgs)
