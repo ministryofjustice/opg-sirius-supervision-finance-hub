@@ -1,0 +1,118 @@
+{{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.UpdateFeeReductions*/ -}}
+{{ template "page" . }}
+
+{{ define "title" }}Award fee reduction{{ end }}
+
+{{ define "main-content" }}
+    {{ block "add-fee-reduction" .Data }}
+        <div class="govuk-grid-row govuk-!-margin-top-5">
+            <div class="govuk-grid-column-full">
+                <header>
+                    <h1 class="govuk-heading-l  govuk-!-margin-bottom-0  govuk-!-margin-top-0">Award fee reduction</h1>
+                </header>
+                <div class="govuk-grid-row">
+                    <form
+                        id="add-fee-reduction-form"
+                        class="add-note govuk-grid-column-one-third"
+                        method="post"
+                        hx-post="{{ (printf "/clients/%s/fee-reductions/add" .ClientId) }}"
+                        hx-target="#main-content">
+                        <input type="hidden" name="xsrfToken" value="{{ .AppVars.XSRFToken }}"/>
+                        <div class="govuk-form-group">
+                            <div class="govuk-form-group">
+                                <fieldset class="govuk-fieldset">
+                                    <legend class="govuk-fieldset__legend">Choose a fee reduction type</legend>
+                                    <span data-cy="fee-type-error">{{ template "error-message" (index .AppVars.Errors "feeType") }}</span>
+                                    <div class="govuk-radios" data-module="govuk-radios">
+                                        <div class="govuk-radios__item">
+                                            <input class="govuk-radios__input" id="remissionType" name="feeType" type="radio" value="remission">
+                                            <label class="govuk-label govuk-radios__label" for="remissionType">
+                                                Remission
+                                            </label>
+                                        </div>
+                                        <div class="govuk-radios__item">
+                                            <input class="govuk-radios__input" id="exemptionType" name="feeType" type="radio" value="exemption">
+                                            <label class="govuk-label govuk-radios__label" for="exemptionType">
+                                                Exemption
+                                            </label>
+                                        </div>
+                                        <div class="govuk-radios__item">
+                                            <input class="govuk-radios__input" id="hardshipType" name="feeType" type="radio" value="hardship">
+                                            <label class="govuk-label govuk-radios__label" for="hardshipType">
+                                                Hardship
+                                            </label>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </div>
+                        </div>
+                        <div class="govuk-form-group">
+                            <label class="govuk-label" for="date">
+                                Start year
+                            </label>
+                            <span data-cy="start-year-error">{{ template "error-message" (index .AppVars.Errors "startYear") }}</span>
+                            <div id="start-year" class="govuk-hint">
+                            </div>
+                            <input class="govuk-input" id="startDateYear" name="startDateYear" style="width: 40%" type="text">
+                        </div>
+                        <div class="govuk-form-group">
+                            <div class="govuk-form-group">
+                                <fieldset class="govuk-fieldset">
+                                    <legend class="govuk-fieldset__legend">
+                                        How long is the award for?
+                                    </legend>
+                                    <span data-cy="award-length-error">{{ template "error-message" (index .AppVars.Errors "awardLength") }}</span>
+                                    <div class="govuk-radios" data-module="govuk-radios">
+                                        <div class="govuk-radios__item">
+                                            <input class="govuk-radios__input" id="threeYears" name="lengthOfAward" type="radio" value="3">
+                                            <label class="govuk-label govuk-radios__label" for="threeYears">
+                                                Three years
+                                            </label>
+                                        </div>
+                                        <div class="govuk-radios__item">
+                                            <input class="govuk-radios__input" id="twoYears" name="lengthOfAward" type="radio" value="2">
+                                            <label class="govuk-label govuk-radios__label" for="twoYears">
+                                                Two years
+                                            </label>
+                                        </div>
+                                        <div class="govuk-radios__item">
+                                            <input class="govuk-radios__input" id="oneYear" name="lengthOfAward" type="radio" value="1">
+                                            <label class="govuk-label govuk-radios__label" for="oneYear">
+                                                One year
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                </fieldset>
+                            </div>
+                        </div>
+                        <div class="govuk-form-group">
+                            <label class="govuk-label" for="date">
+                                Date received
+                            </label>
+                            <span data-cy="date-received-error">{{ template "error-message" (index .AppVars.Errors "dateReceived") }}</span>
+                            <input class="govuk-input govuk-input--width-10" id="dateReceived" name="dateReceived" type="date">
+                        </div>
+                        <div class="govuk-character-count" data-module="govuk-character-count" data-maxlength="1000">
+                            <div class="govuk-form-group{{ if index .AppVars.Errors "notes" }} govuk-form-group--error{{ end }}">
+                                <label class="govuk-label" for="fee-reduction-notes">
+                                    Reasons for fee reduction {{ template "error-message" (index .AppVars.Errors "notes") }}
+                                </label>
+                                <textarea class="govuk-textarea govuk-js-character-count" id="fee-reduction-notes" name="feeReductionNotes" rows="10" aria-describedby="f-2-note-info notes-hint"></textarea>
+                            </div>
+                            <div id="f-2-note-info" class="govuk-hint govuk-character-count__message" aria-live="polite">
+                                You can enter up to 1000 characters
+                            </div>
+                        </div>
+                        <div class="govuk-button-group govuk-!-margin-top-7">
+                            <button class="govuk-button" data-module="govuk-button">
+                                Save and continue
+                            </button>
+                            <a class="govuk-link"  href="{{(printf "/clients/%s/fee-reductions" .ClientId) }}">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {{ end }}
+{{ end }}

@@ -33,7 +33,7 @@ clean:
 
 up: clean start-and-seed
 	docker compose run --rm yarn
-	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml up finance-hub yarn json-server finance-api sqlc-gen
+	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml up finance-hub yarn json-server finance-api sqlc-gen --force-recreate
 
 down:
 	docker compose down
