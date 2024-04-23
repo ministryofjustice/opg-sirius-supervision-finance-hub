@@ -20,23 +20,23 @@ insert into fee_reduction (id,
                            enddate,
                            notes,
                            deleted,
-                           datereceived) values (nextval('fee_reduction_id_seq'::regclass), $1, $2, $3, $4, $5, $6, $7, $8) returning id, finance_client_id, type, evidencetype, startdate, enddate, notes, deleted, datereceived
+                           datereceived) values (nextval('fee_reduction_id_seq'::regclass), (select id from finance_client where client_id = $1), $2, $3, $4, $5, $6, $7, $8) returning id, finance_client_id, type, evidencetype, startdate, enddate, notes, deleted, datereceived
 `
 
 type AddFeeReductionParams struct {
-	FinanceClientID pgtype.Int4
-	Type            string
-	Evidencetype    pgtype.Text
-	Startdate       pgtype.Date
-	Enddate         pgtype.Date
-	Notes           string
-	Deleted         bool
-	Datereceived    pgtype.Date
+	ClientID     int32
+	Type         string
+	Evidencetype pgtype.Text
+	Startdate    pgtype.Date
+	Enddate      pgtype.Date
+	Notes        string
+	Deleted      bool
+	Datereceived pgtype.Date
 }
 
 func (q *Queries) AddFeeReduction(ctx context.Context, arg AddFeeReductionParams) (FeeReduction, error) {
 	row := q.db.QueryRow(ctx, addFeeReduction,
-		arg.FinanceClientID,
+		arg.ClientID,
 		arg.Type,
 		arg.Evidencetype,
 		arg.Startdate,

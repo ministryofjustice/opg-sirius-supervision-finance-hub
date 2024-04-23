@@ -21,4 +21,4 @@ insert into fee_reduction (id,
                            enddate,
                            notes,
                            deleted,
-                           datereceived) values (nextval('fee_reduction_id_seq'::regclass), $1, $2, $3, $4, $5, $6, $7, $8) returning *;
+                           datereceived) values (nextval('fee_reduction_id_seq'::regclass), (select id from finance_client where client_id = $1), $2, $3, $4, $5, $6, $7, $8) returning *;

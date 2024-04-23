@@ -12,7 +12,10 @@ import (
 )
 
 const getInvoices = `-- name: GetInvoices :many
-SELECT i.id, i.reference, i.amount, i.raiseddate, i.cacheddebtamount FROM invoice i inner join finance_client fc on fc.id = i.finance_client_id  where fc.client_id = $1 order by i.raiseddate desc
+SELECT i.id, i.reference, i.amount, i.raiseddate, i.cacheddebtamount
+FROM invoice i
+         inner join finance_client fc on i.finance_client_id = fc.id
+where fc.client_id = $1 order by i.raiseddate desc
 `
 
 type GetInvoicesRow struct {

@@ -22,6 +22,6 @@ func (s *Server) SetupRoutes() {
 	http.HandleFunc("GET /clients/{id}", s.getAccountInformation)
 	http.HandleFunc("GET /clients/{id}/invoices", s.getInvoices)
 	http.HandleFunc("GET /clients/{id}/fee-reductions", s.getFeeReductions)
-	http.HandleFunc("POST /fee-reductions", s.addFeeReduction)
+	http.HandleFunc("POST /clients/{id}/fee-reductions", s.addFeeReduction)
 	http.Handle("/health-check", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 }
