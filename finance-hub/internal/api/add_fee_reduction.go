@@ -6,16 +6,19 @@ import (
 	"fmt"
 	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
+	"time"
 )
 
 func (c *ApiClient) AddFeeReduction(ctx Context, clientId int, feeType string, startYear string, lengthOfAward string, dateReceived string, feeReductionNotes string) error {
 	var body bytes.Buffer
+
+	dateReceivedTransformed, _ := time.Parse("2006-01-02", dateReceived)
 	err := json.NewEncoder(&body).Encode(shared.AddFeeReduction{
 		ClientId:          clientId,
 		FeeType:           feeType,
 		StartYear:         startYear,
 		LengthOfAward:     lengthOfAward,
-		DateReceive:       dateReceived,
+		DateReceive:       shared.Date{Time: dateReceivedTransformed},
 		FeeReductionNotes: feeReductionNotes,
 	})
 	if err != nil {
