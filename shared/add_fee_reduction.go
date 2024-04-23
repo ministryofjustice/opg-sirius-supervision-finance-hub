@@ -5,6 +5,6 @@ type AddFeeReduction struct {
 	FeeType           string `json:"feeType"`
 	StartYear         string `json:"startYear"`
 	LengthOfAward     string `json:"lengthOfAward"`
-	DateReceive       string `json:"dateReceived"`
+	DateReceive       Date   `json:"dateReceived"`
 	FeeReductionNotes string `json:"feeReductionNotes"`
 }
