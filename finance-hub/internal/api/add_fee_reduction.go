@@ -3,14 +3,15 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
 )
 
-func (c *ApiClient) AddFeeReduction(ctx Context, financeClientId int, feeType string, startYear string, lengthOfAward string, dateReceived string, feeReductionNotes string) error {
+func (c *ApiClient) AddFeeReduction(ctx Context, clientId int, feeType string, startYear string, lengthOfAward string, dateReceived string, feeReductionNotes string) error {
 	var body bytes.Buffer
 	err := json.NewEncoder(&body).Encode(shared.AddFeeReduction{
-		FinanceClientId:   financeClientId,
+		ClientId:          clientId,
 		FeeType:           feeType,
 		StartYear:         startYear,
 		LengthOfAward:     lengthOfAward,
@@ -21,7 +22,8 @@ func (c *ApiClient) AddFeeReduction(ctx Context, financeClientId int, feeType st
 		return err
 	}
 
-	req, err := c.newBackendRequest(ctx, http.MethodPost, "/fee-reductions", &body)
+	url := fmt.Sprintf("/clients/%d/fee-reductions", clientId)
+	req, err := c.newBackendRequest(ctx, http.MethodPost, url, &body)
 
 	if err != nil {
 		return err

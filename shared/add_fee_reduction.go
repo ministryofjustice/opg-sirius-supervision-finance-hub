@@ -1,7 +1,7 @@
 package shared
 
 type AddFeeReduction struct {
-	FinanceClientId   int    `json:"financeClientId"`
+	ClientId          int    `json:"clientId"`
 	FeeType           string `json:"feeType"`
 	StartYear         string `json:"startYear"`
 	LengthOfAward     string `json:"lengthOfAward"`

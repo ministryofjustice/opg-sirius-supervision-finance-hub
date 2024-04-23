@@ -4,7 +4,7 @@
 {{ define "title" }}Award fee reduction{{ end }}
 
 {{ define "main-content" }}
-    {{ block "add-fee-reduction" . }}
+    {{ block "add-fee-reduction" .Data }}
         <div class="govuk-grid-row govuk-!-margin-top-5">
             <div class="govuk-grid-column-full">
                 <header>
@@ -17,12 +17,12 @@
                         method="post"
                         hx-post="{{ (printf "/clients/%s/fee-reductions/add" .ClientId) }}"
                         hx-target="#main-content">
-                        <input type="hidden" name="xsrfToken" value="{{ .XSRFToken }}"/>
+                        <input type="hidden" name="xsrfToken" value="{{ .AppVars.XSRFToken }}"/>
                         <div class="govuk-form-group">
                             <div class="govuk-form-group">
                                 <fieldset class="govuk-fieldset">
                                     <legend class="govuk-fieldset__legend">Choose a fee reduction type</legend>
-                                    <span data-cy="fee-type-error">{{ template "error-message" (index .Errors "feeType") }}</span>
+                                    <span data-cy="fee-type-error">{{ template "error-message" (index .AppVars.Errors "feeType") }}</span>
                                     <div class="govuk-radios" data-module="govuk-radios">
                                         <div class="govuk-radios__item">
                                             <input class="govuk-radios__input" id="remissionType" name="feeType" type="radio" value="remission">
@@ -50,7 +50,7 @@
                             <label class="govuk-label" for="date">
                                 Start year
                             </label>
-                            <span data-cy="start-year-error">{{ template "error-message" (index .Errors "startYear") }}</span>
+                            <span data-cy="start-year-error">{{ template "error-message" (index .AppVars.Errors "startYear") }}</span>
                             <div id="start-year" class="govuk-hint">
                             </div>
                             <input class="govuk-input" id="startDateYear" name="startDateYear" style="width: 40%" type="text">
@@ -61,7 +61,7 @@
                                     <legend class="govuk-fieldset__legend">
                                         How long is the award for?
                                     </legend>
-                                    <span data-cy="award-length-error">{{ template "error-message" (index .Errors "awardLength") }}</span>
+                                    <span data-cy="award-length-error">{{ template "error-message" (index .AppVars.Errors "awardLength") }}</span>
                                     <div class="govuk-radios" data-module="govuk-radios">
                                         <div class="govuk-radios__item">
                                             <input class="govuk-radios__input" id="threeYears" name="lengthOfAward" type="radio" value="threeYears">
@@ -90,13 +90,13 @@
                             <label class="govuk-label" for="date">
                                 Date received
                             </label>
-                            <span data-cy="date-received-error">{{ template "error-message" (index .Errors "dateReceived") }}</span>
+                            <span data-cy="date-received-error">{{ template "error-message" (index .AppVars.Errors "dateReceived") }}</span>
                             <input class="govuk-input govuk-input--width-10" id="dateReceived" name="dateReceived" type="date">
                         </div>
                         <div class="govuk-character-count" data-module="govuk-character-count" data-maxlength="1000">
-                            <div class="govuk-form-group{{ if index .Errors "notes" }} govuk-form-group--error{{ end }}">
+                            <div class="govuk-form-group{{ if index .AppVars.Errors "notes" }} govuk-form-group--error{{ end }}">
                                 <label class="govuk-label" for="fee-reduction-notes">
-                                    Reasons for fee reduction {{ template "error-message" (index .Errors "notes") }}
+                                    Reasons for fee reduction {{ template "error-message" (index .AppVars.Errors "notes") }}
                                 </label>
                                 <textarea class="govuk-textarea govuk-js-character-count" id="fee-reduction-notes" name="feeReductionNotes" rows="10" aria-describedby="f-2-note-info notes-hint"></textarea>
                             </div>
