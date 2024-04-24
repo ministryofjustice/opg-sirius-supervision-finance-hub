@@ -12,7 +12,7 @@ import (
 )
 
 const getInvoices = `-- name: GetInvoices :many
-SELECT id, reference, amount, raiseddate, cacheddebtamount FROM invoice WHERE finance_client_id = $1 order by raiseddate desc
+SELECT i.id, i.reference, i.amount, i.raiseddate, i.cacheddebtamount FROM invoice i inner join finance_client fc on fc.id = i.finance_client_id  where fc.client_id = $1 order by i.raiseddate desc
 `
 
 type GetInvoicesRow struct {
@@ -23,8 +23,8 @@ type GetInvoicesRow struct {
 	Cacheddebtamount pgtype.Int4
 }
 
-func (q *Queries) GetInvoices(ctx context.Context, financeClientID pgtype.Int4) ([]GetInvoicesRow, error) {
-	rows, err := q.db.Query(ctx, getInvoices, financeClientID)
+func (q *Queries) GetInvoices(ctx context.Context, clientID int32) ([]GetInvoicesRow, error) {
+	rows, err := q.db.Query(ctx, getInvoices, clientID)
 	if err != nil {
 		return nil, err
 	}
