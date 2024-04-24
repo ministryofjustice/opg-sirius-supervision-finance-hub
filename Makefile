@@ -39,10 +39,10 @@ down:
 	docker compose down
 
 sqlc-gen:
-	docker compose up sqlc-gen
+	docker compose run sqlc-gen
 
 sqlc-diff:
-	docker compose up sqlc-diff
+	docker compose run sqlc-diff
 
 start-and-seed:
 	docker compose up -d --wait sirius-db
