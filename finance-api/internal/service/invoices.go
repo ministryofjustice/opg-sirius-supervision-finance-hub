@@ -11,7 +11,7 @@ func (s *Service) GetInvoices(clientID int) (*shared.Invoices, error) {
 
 	var invoices shared.Invoices
 
-	invoicesRawData, err := s.Store.GetInvoices(ctx, pgtype.Int4{Int32: int32(clientID), Valid: true})
+	invoicesRawData, err := s.Store.GetInvoices(ctx, int32(clientID))
 	if err != nil {
 		return nil, err
 	}
