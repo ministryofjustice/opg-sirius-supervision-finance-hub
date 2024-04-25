@@ -30,7 +30,7 @@ func TestNewAppVars(t *testing.T) {
 				Id:       "fee-reductions",
 			},
 			{
-				Title:    "Pending Invoice Adjustments",
+				Title:    "Pending InvoiceRef Adjustments",
 				BasePath: "/clients/1/pending-invoice-adjustments",
 				Id:       "pending-invoice-adjustments",
 			},
