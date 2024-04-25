@@ -31,18 +31,18 @@ clean:
 	docker compose down
 	docker compose run --rm yarn
 
-up: clean start-and-seed
+up: clean start-and-seed sqlc-gen
 	docker compose run --rm yarn
-	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml up finance-hub yarn json-server finance-api sqlc-gen
+	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml up finance-hub json-server finance-api
 
 down:
 	docker compose down
 
 sqlc-gen:
-	docker compose up sqlc-gen
+	docker compose run --rm sqlc-gen
 
 sqlc-diff:
-	docker compose up sqlc-diff
+	docker compose run --rm sqlc-diff
 
 start-and-seed:
 	docker compose up -d --wait sirius-db
