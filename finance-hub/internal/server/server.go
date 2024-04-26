@@ -20,6 +20,7 @@ type ApiClient interface {
 	GetInvoices(api.Context, int) (shared.Invoices, error)
 	UpdateInvoice(api.Context, int, int, string, string, string) error
 	GetAccountInformation(api.Context, int) (shared.AccountInformation, error)
+	GetInvoiceAdjustments(api.Context, int) (shared.InvoiceAdjustments, error)
 }
 
 type router interface {
