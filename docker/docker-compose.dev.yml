@@ -1,4 +1,3 @@
-version: "3.6"
 services:
   finance-hub:
     build:
@@ -35,7 +34,7 @@ services:
 
   json-server:
     build:
-      dockerfile: ../json-server/Dockerfile
+      dockerfile: ./json-server/Dockerfile
     volumes:
       - ./json-server/config:/app/config
     ports:
