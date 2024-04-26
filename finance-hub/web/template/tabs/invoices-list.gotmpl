@@ -66,61 +66,8 @@
 
           <tr class="hide" id="invoice-{{.Id}}-reveal">
             <td class="govuk-table__cell" colspan="4">
-              <div class="govuk-details__text">
-                <table class="govuk-table">
-                  <caption data-cy="ledger-title" class="govuk-table__caption govuk-table__caption--m">Invoice ledger allocations</caption>
-                  <thead class="govuk-table__head">
-                  <tr class="govuk-table__row">
-                    <th data-cy="ledger-amount" scope="col" class="govuk-table__header">Amount</th>
-                    <th data-cy="ledger-received-date" scope="col" class="govuk-table__header">Received date</th>
-                    <th data-cy="ledger-transaction-type" scope="col" class="govuk-table__header">Transaction type</th>
-                    <th data-cy="ledger-status" scope="col" class="govuk-table__header">Status</th>
-                  </tr>
-                  </thead>
-                  <tbody class="govuk-table__body">
-                  {{ $length := len .Ledgers }}
-                  <tr class="govuk-table__row">
-                  {{ if eq $length 0 }}
-                    <td data-cy="no-ledgers" class="govuk-table__cell">There are no invoice ledger allocations for this invoice</td>
-                  {{ else }}
-                  {{ range .Ledgers }}
-                    <td class="govuk-table__cell" data-cy="ledger-amount-data">£{{ .Amount }}</td>
-                    <td class="govuk-table__cell" data-cy="ledger-received-date-data">{{ .ReceivedDate }}</td>
-                    <td class="govuk-table__cell" data-cy="ledger-transaction-type-data">{{ .TransactionType}}</td>
-                    <td class="govuk-table__cell" data-cy="ledger-status-data">{{ .Status }}</td>
-                  {{ end }}
-                  </tbody>
-                </table>
-                {{ end }}
-              </div>
-
-              <div class="govuk-details__text">
-                {{ $supervisionLength := len .SupervisionLevels }}
-                {{ if ne $supervisionLength 0 }}
-                <table class="govuk-table">
-                  <caption data-cy="supervision-title" class="govuk-table__caption govuk-table__caption--m">Supervision level breakdown</caption>
-                  <thead class="govuk-table__head">
-                  <tr class="govuk-table__row">
-                    <th data-cy="supervision-level" scope="col" class="govuk-table__header">Supervision level</th>
-                    <th data-cy="supervision-amount" scope="col" class="govuk-table__header">Amount</th>
-                    <th data-cy="supervision-from" scope="col" class="govuk-table__header">From</th>
-                    <th data-cy="supervision-to" scope="col" class="govuk-table__header">To</th>
-                  </tr>
-                  </thead>
-
-                  <tbody class="govuk-table__body">
-                  {{ range .SupervisionLevels }}
-                  <tr class="govuk-table__row">
-                    <td class="govuk-table__cell" data-cy="supervision-level-data">{{ .Level }}</td>
-                    <td class="govuk-table__cell" data-cy="supervision-amount-data">£{{ .Amount }}</td>
-                    <td class="govuk-table__cell" data-cy="supervision-from-data">{{ .From }}</td>
-                    <td class="govuk-table__cell" data-cy="supervision-to-data">{{ .To }}</td>
-                  </tr>
-                  {{ end }}
-                  </tbody>
-                </table>
-                  {{ end }}
-              </div>
+              {{ template "invoice-ledger-allocations" .Ledgers }}
+              {{ template "supervision-levels" .SupervisionLevels }}
             </td>
           </tr>
           {{ end }}

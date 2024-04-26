@@ -21,7 +21,7 @@ describe("Pending Invoice Adjustments Tab", () => {
                 .should("have.length", 1)
                 .first()
                 .children()
-                .first().contains("S203531/19")
+                .first().contains("S206666/18")
                 .next().contains("11/04/2022")
                 .next().contains("Credit note")
                 .next().contains("£12")
