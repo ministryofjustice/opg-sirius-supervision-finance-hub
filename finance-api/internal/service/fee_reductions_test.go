@@ -79,10 +79,37 @@ func Test_calculateStatus(t *testing.T) {
 		want string
 	}{
 		{
+			name: "returns pending when today is before start date and not deleted",
+			args: args{
+				startDate: shared.Date{Time: time.Now().AddDate(-1, 0, 0).Truncate(time.Hour * 24)},
+				endDate:   shared.Date{Time: time.Now().AddDate(1, 0, 0).Truncate(time.Hour * 24)},
+				deleted:   false,
+			},
+			want: "Active",
+		},
+		{
+			name: "returns active when today is the start date and before end date and not deleted",
+			args: args{
+				startDate: shared.Date{Time: time.Now().Truncate(time.Hour * 24)},
+				endDate:   shared.Date{Time: time.Now().AddDate(1, 0, 0).Truncate(time.Hour * 24)},
+				deleted:   false,
+			},
+			want: "Active",
+		},
+		{
 			name: "returns active when today is after start date and before end date and not deleted",
 			args: args{
-				startDate: shared.Date{Time: time.Now().AddDate(-1, 0, 0)},
-				endDate:   shared.Date{Time: time.Now().AddDate(1, 0, 0)},
+				startDate: shared.Date{Time: time.Now().AddDate(-1, 0, 0).Truncate(time.Hour * 24)},
+				endDate:   shared.Date{Time: time.Now().AddDate(1, 0, 0).Truncate(time.Hour * 24)},
+				deleted:   false,
+			},
+			want: "Active",
+		},
+		{
+			name: "returns active when today is the end date and not deleted",
+			args: args{
+				startDate: shared.Date{Time: time.Now().AddDate(-2, 0, 0).Truncate(time.Hour * 24)},
+				endDate:   shared.Date{Time: time.Now().Truncate(time.Hour * 24)},
 				deleted:   false,
 			},
 			want: "Active",
@@ -90,8 +117,8 @@ func Test_calculateStatus(t *testing.T) {
 		{
 			name: "returns expired when today is after end date and not deleted",
 			args: args{
-				startDate: shared.Date{Time: time.Now().AddDate(-2, 0, 0)},
-				endDate:   shared.Date{Time: time.Now().AddDate(-1, 0, 0)},
+				startDate: shared.Date{Time: time.Now().AddDate(-2, 0, 0).Truncate(time.Hour * 24)},
+				endDate:   shared.Date{Time: time.Now().AddDate(-1, 0, 0).Truncate(time.Hour * 24)},
 				deleted:   false,
 			},
 			want: "Expired",
@@ -99,8 +126,8 @@ func Test_calculateStatus(t *testing.T) {
 		{
 			name: "returns cancelled the fee reduction is deleted",
 			args: args{
-				startDate: shared.Date{Time: time.Now().AddDate(-1, 0, 0)},
-				endDate:   shared.Date{Time: time.Now().AddDate(1, 0, 0)},
+				startDate: shared.Date{Time: time.Now().AddDate(-1, 0, 0).Truncate(time.Hour * 24)},
+				endDate:   shared.Date{Time: time.Now().AddDate(1, 0, 0).Truncate(time.Hour * 24)},
 				deleted:   true,
 			},
 			want: "Cancelled",
