@@ -4,12 +4,36 @@ describe("Pending Invoice Adjustments Tab", () => {
     });
 
     describe("Pending Invoice Adjustments", () => {
-        it("shows table header", () => {
-            cy.contains('[data-cy="invoice"]', "Invoice");
-            cy.contains('[data-cy="outstanding"]', "Outstanding invoice balance");
-            cy.contains('[data-cy="type"]', "Adjustment type");
-            cy.contains('[data-cy="amount"]', "Adjustment amount");
-            cy.contains('[data-cy="notes"]', "Notes");
+        it("displays table and content", () => {
+            cy.visit("/clients/1/pending-invoice-adjustments");
+
+            cy.get("table#pending-invoice-adjustments > thead > tr")
+                .children()
+                .first().contains("Invoice")
+                .next().contains("Date raised")
+                .next().contains("Adjustment type")
+                .next().contains("Adjustment amount")
+                .next().contains("Notes")
+                .next().contains("Status")
+                .next().contains("Actions");
+
+            cy.get("table#pending-invoice-adjustments > tbody > tr")
+                .should("have.length", 1)
+                .first()
+                .children()
+                .first().contains("S203531/19")
+                .next().contains("11/04/2022")
+                .next().contains("Credit note")
+                .next().contains("£12")
+                .next().contains("credit adjustment for 12.00")
+                .next().contains("Pending");
+
+            cy.get("table#pending-invoice-adjustments > tbody > tr")
+                .first()
+                .children()
+                .last().get(".moj-button-menu")
+                .first().contains("Approve")
+                .next().contains("Reject");
         });
     });
 });
