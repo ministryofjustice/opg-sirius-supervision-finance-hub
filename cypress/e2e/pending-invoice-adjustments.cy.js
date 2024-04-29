@@ -23,7 +23,7 @@ describe("Pending Invoice Adjustments Tab", () => {
                 .children()
                 .first().contains("S206666/18")
                 .next().contains("11/04/2022")
-                .next().contains("Credit note")
+                .next().contains("Credit")
                 .next().contains("£12")
                 .next().contains("credit adjustment for 12.00")
                 .next().contains("Pending");

@@ -44,7 +44,7 @@ func TestPendingInvoiceAdjustments(t *testing.T) {
 			Status:           "Pending",
 			AdjustmentAmount: "2.32",
 			DateRaised:       shared.NewDate("01/04/2222"),
-			AdjustmentType:   "Credit note",
+			AdjustmentType:   "Credit",
 			Notes:            "Some notes",
 		},
 	}
@@ -84,9 +84,9 @@ func TestTransformType(t *testing.T) {
 		want string
 	}{
 		{
-			"Credit note",
+			"Credit",
 			"CREDIT MEMO",
-			"Credit note",
+			"Credit",
 		},
 		{
 			"Write off",

@@ -60,7 +60,7 @@ func (h *PendingInvoiceAdjustmentsHandler) transform(in shared.InvoiceAdjustment
 
 func (h *PendingInvoiceAdjustmentsHandler) transformType(in string) string {
 	if in == "CREDIT MEMO" {
-		return "Credit note"
+		return "Credit"
 	} else if in == "CREDIT WRITE OFF" {
 		return "Write off"
 	} else {
