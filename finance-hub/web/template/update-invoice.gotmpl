@@ -33,10 +33,10 @@
                                     <div class="govuk-radios" >
                                         {{ range .InvoiceTypes }}
                                             <div class="govuk-radios__item">
-                                                <input class="govuk-radios__input {{ if .AmountRequired }}show{{else}}hide{{ end }}-input-field" id="{{.Handle}}" name="invoiceType"
-                                                       type="radio" value="{{.Handle}}">
+                                                <input class="govuk-radios__input {{ if .AmountRequired }}show{{else}}hide{{ end }}-input-field" id="{{.Key}}" name="invoiceType"
+                                                       type="radio" value="{{.Key}}">
                                                 <label class="govuk-label govuk-radios__label"
-                                                       for="{{.Handle}}">{{.Description}}</label>
+                                                       for="{{.Key}}">{{.Translation}}</label>
                                             </div>
                                         {{ end }}
                                     </div>
