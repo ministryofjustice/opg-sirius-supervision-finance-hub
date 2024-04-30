@@ -13,6 +13,9 @@ go-lint:
 build:
 	docker compose build --no-cache --parallel finance-hub finance-api finance-migration
 
+build-dev:
+	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml build --no-cache --parallel finance-hub finance-api
+
 build-all:
 	docker compose build --parallel finance-hub finance-api finance-migration json-server cypress sirius-db
 
