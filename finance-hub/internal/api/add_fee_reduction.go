@@ -43,14 +43,10 @@ func (c *ApiClient) AddFeeReduction(ctx Context, clientId int, feeType string, s
 	}
 
 	if resp.StatusCode != http.StatusCreated {
-		var v struct {
-			ValidationErrors ValidationErrors `json:"validation_errors"`
+		var v ValidationError
+		if err := json.NewDecoder(resp.Body).Decode(&v); err == nil && len(v.Errors) > 0 {
+			return ValidationError{Errors: v.Errors}
 		}
-
-		if err := json.NewDecoder(resp.Body).Decode(&v); err == nil && len(v.ValidationErrors) > 0 {
-			return ValidationError{Errors: v.ValidationErrors}
-		}
-
 		return newStatusError(resp)
 	}
 

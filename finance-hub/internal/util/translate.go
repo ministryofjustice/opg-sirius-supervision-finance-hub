@@ -19,6 +19,26 @@ var validationMappings = map[string]map[string]pair{
 		"isEmpty": pair{"amount", "Enter an amount"},
 		"tooHigh": pair{"amount", "Amount entered must be less than £"},
 	},
+	"FeeType": {
+		"required": pair{"FeeType", "A fee reduction type must be selected"},
+	},
+	"StartYear": {
+		"required": pair{"StartYear", "Enter a start year"},
+	},
+	"LengthOfAward": {
+		"required": pair{"LengthOfAward", "Confirm if an extended award is being given"},
+	},
+	"DateReceive": {
+		"required":          pair{"DateReceive", "Enter the date received"},
+		"check-in-the-past": pair{"DateReceive", "Date received must be in the past"},
+	},
+	"FeeReductionNotes": {
+		"required":              pair{"FeeReductionNotes", "Enter a reason for awarding fee reduction"},
+		"check-character-limit": pair{"FeeReductionNotes", "Reason for awarding fee reduction must be 1000 characters or less"},
+	},
+	"Overlap": {
+		"StartOrEndDate": pair{"StartOrEndDate", "A fee reduction already exists for the period specified"},
+	},
 }
 
 func RenameErrors(siriusError api.ValidationErrors) api.ValidationErrors {

@@ -69,50 +69,6 @@
       "deleted": true
     }
   ],
-  "ledger-entries": [
-    {
-      "adjustmentType": "CREDIT_WRITE_OFF",
-      "notes": "",
-      "amount": "",
-      "invoiceId": "1",
-      "id": 1
-    },
-    {
-      "adjustmentType": "CREDIT_WRITE_OFF",
-      "notes": "",
-      "amount": "",
-      "invoiceId": "1",
-      "id": 2
-    },
-    {
-      "adjustmentType": "CREDIT_WRITE_OFF",
-      "notes": "",
-      "amount": "",
-      "invoiceId": "1",
-      "id": 3
-    },
-    {
-      "adjustmentType": "CREDIT_WRITE_OFF",
-      "notes": "",
-      "amount": "",
-      "invoiceId": "1",
-      "id": 4
-    },
-    {
-      "adjustmentType": "",
-      "notes": "",
-      "amount": "",
-      "invoiceId": "1",
-      "id": 5
-    },
-    {
-      "adjustmentType": "CREDIT_WRITE_OFF",
-      "notes": "",
-      "amount": "",
-      "invoiceId": "1",
-      "id": 6
-    }
-  ],
   "errors": [
     {
       "id": "notesError",

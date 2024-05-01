@@ -60,6 +60,27 @@ func (q *Queries) AddFeeReduction(ctx context.Context, arg AddFeeReductionParams
 	return i, err
 }
 
+const checkForOverlappingFeeReduction = `-- name: CheckForOverlappingFeeReduction :one
+select count(*)
+from fee_reduction fr
+         inner join finance_client fc on fc.id = fr.finance_client_id
+where fc.client_id = $1 and fr.deleted = false
+    and fr.startdate = $2 or fr.enddate = $3
+`
+
+type CheckForOverlappingFeeReductionParams struct {
+	ClientID  int32
+	Startdate pgtype.Date
+	Enddate   pgtype.Date
+}
+
+func (q *Queries) CheckForOverlappingFeeReduction(ctx context.Context, arg CheckForOverlappingFeeReductionParams) (int64, error) {
+	row := q.db.QueryRow(ctx, checkForOverlappingFeeReduction, arg.ClientID, arg.Startdate, arg.Enddate)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const getFeeReductions = `-- name: GetFeeReductions :many
 select fr.id,
        finance_client_id,

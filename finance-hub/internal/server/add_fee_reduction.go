@@ -5,9 +5,16 @@ import (
 	"fmt"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/util"
-	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
 )
+
+type FormValues struct {
+	FeeType           string
+	StartYear         string
+	LengthOfAward     string
+	DateReceived      string
+	FeeReductionNotes string
+}
 
 type SubmitFeeReductionsHandler struct {
 	router
@@ -27,7 +34,14 @@ func (h *SubmitFeeReductionsHandler) render(v AppVars, w http.ResponseWriter, r 
 	err := h.Client().AddFeeReduction(ctx, ctx.ClientId, feeType, startYear, lengthOfAward, dateReceived, feeReductionNotes)
 	var verr api.ValidationError
 	if errors.As(err, &verr) {
-		data := UpdateInvoices{shared.InvoiceTypes, r.PathValue("id"), r.PathValue("invoiceId"), v}
+		formData := FormValues{
+			FeeType:           r.PostFormValue("feeType"),
+			StartYear:         r.PostFormValue("startDateYear"),
+			LengthOfAward:     r.PostFormValue("lengthOfAward"),
+			DateReceived:      r.PostFormValue("dateReceived"),
+			FeeReductionNotes: r.PostFormValue("feeReductionNotes"),
+		}
+		data := UpdateFeeReductions{formData, r.PathValue("id"), v}
 		data.Errors = util.RenameErrors(verr.Errors)
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return h.execute(w, r, data)
