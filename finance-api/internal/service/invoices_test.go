@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
@@ -10,6 +11,12 @@ import (
 )
 
 func TestService_GetInvoices(t *testing.T) {
+	t.Cleanup(func() {
+		err := testDB.Container.Restore(context.Background())
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
 	testDB.SeedData(
 		"INSERT INTO finance_client VALUES (7, 1, '1234', 'DEMANDED', null, 12300, 2222);",
 		"INSERT INTO finance_client VALUES (3, 2, '1234', 'DEMANDED', null, 12300, 2222);",

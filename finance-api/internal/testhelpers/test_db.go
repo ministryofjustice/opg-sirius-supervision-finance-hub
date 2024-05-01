@@ -31,7 +31,7 @@ var basePath string
 type TestDatabase struct {
 	DbInstance *pgxpool.Pool
 	DbAddress  string
-	container  testcontainers.Container
+	Container  *postgres.PostgresContainer
 	DbConn     *pgx.Conn
 }
 
@@ -94,7 +94,7 @@ func InitDb() *TestDatabase {
 	}
 
 	return &TestDatabase{
-		container:  container,
+		Container:  container,
 		DbInstance: db,
 		DbAddress:  connString,
 		DbConn:     conn,
@@ -128,5 +128,5 @@ func migrateDb(connString string) error {
 
 func (db *TestDatabase) TearDown() {
 	db.DbInstance.Close()
-	_ = db.container.Terminate(context.Background())
+	_ = db.Container.Terminate(context.Background())
 }
