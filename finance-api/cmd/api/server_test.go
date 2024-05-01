@@ -10,8 +10,8 @@ type mockService struct {
 	err           error
 }
 
-func (s *mockService) AddFeeReduction(body shared.AddFeeReduction) error {
-	return s.err
+func (s *mockService) AddFeeReduction(body shared.AddFeeReduction) (shared.ValidationError, error) {
+	return shared.ValidationError{}, nil
 }
 
 func (s *mockService) GetAccountInformation(id int) (*shared.AccountInformation, error) {

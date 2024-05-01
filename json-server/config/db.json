@@ -83,6 +83,20 @@
       "amount": "",
       "invoiceId": "1",
       "id": 2
+    },
+    {
+      "invoiceType": "",
+      "notes": "",
+      "amount": "",
+      "invoiceId": "1",
+      "id": 3
+    },
+    {
+      "invoiceType": "writeOff",
+      "notes": "",
+      "amount": "",
+      "invoiceId": "1",
+      "id": 4
     }
   ],
   "errors": [

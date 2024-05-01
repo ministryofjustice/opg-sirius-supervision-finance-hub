@@ -10,7 +10,7 @@ type Service interface {
 	GetAccountInformation(id int) (*shared.AccountInformation, error)
 	GetInvoices(id int) (*shared.Invoices, error)
 	GetFeeReductions(id int) (*shared.FeeReductions, error)
-	AddFeeReduction(body shared.AddFeeReduction) error
+	AddFeeReduction(body shared.AddFeeReduction) (shared.ValidationError, error)
 }
 
 type Server struct {
