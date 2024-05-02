@@ -1,4 +1,4 @@
-import { initAll } from 'govuk-frontend'
+import {initAll} from 'govuk-frontend'
 import "govuk-frontend/dist/govuk/all.mjs";
 import "opg-sirius-header/sirius-header.js";
 
@@ -9,43 +9,24 @@ window.htmx = require('htmx.org');
 
 htmx.logAll();
 
-if (document.querySelector(".summary")) {
-    const summaries = document.getElementsByClassName("summary")
-    for (const summary of summaries) {
-        summary.onclick = function () {
-            document
-                .getElementById(`${summary.id}-reveal`)
-                .classList.toggle("hide");
-        }
-    }
-}
+// adding event listeners inside the onLoad function will ensure they are re-added to partial content when loaded back in
+htmx.onLoad(content => {
+    htmx.findAll(content, ".summary").forEach((element => {
+        htmx.on(`#${element.id}`, "click", () => htmx.toggleClass(htmx.find(`#${element.id}-reveal`), "hide"));
+    }));
 
-if (document.querySelector(".show-input-field")) {
-    const inputFields = document.getElementsByClassName("show-input-field")
-    for (const inputField of inputFields) {
-        inputField.onclick = function () {
-            document
-                .getElementById(`field-input`)
-                .classList.remove("hide");
-        }
-    }
-}
+    htmx.findAll(".show-input-field").forEach((element) => {
+        element.addEventListener("click", () => htmx.removeClass(htmx.find("#field-input"), "hide"));
+    });
 
-if (document.querySelector(".hide-input-field")) {
-    const inputFields = document.getElementsByClassName("hide-input-field")
-    for (const inputField of inputFields) {
-        inputField.onclick = function () {
-            document
-                .getElementById(`field-input`)
-                .classList.add("hide");
-        }
-    }
-}
+    htmx.findAll(".hide-input-field").forEach((element) => {
+        element.addEventListener("click", () => htmx.addClass(htmx.find("#field-input"), "hide"));
+    });
 
-if (document.querySelector(".moj-banner--success")) {
-    const el = document.getElementsByClassName("moj-banner--success")[0];
-    el.onclick = () => el.classList.add("hide");
-}
+    htmx.findAll(".moj-banner--success").forEach((element) => {
+        element.addEventListener("click", () => htmx.addClass(htmx.find(".moj-banner--success"), "hide"));
+    });
+});
 
 // htmx by default doesn't swap on error. Status code 422 used to distinguish bad requests from validation errors.
 document.body.addEventListener('htmx:beforeOnLoad', function (evt) {

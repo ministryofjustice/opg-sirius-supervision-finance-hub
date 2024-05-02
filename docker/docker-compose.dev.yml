@@ -12,7 +12,7 @@ services:
       - ./shared:/app/shared
       - ./finance-hub/main_test.go:/app/finance-hub/main_test.go
       - ./finance-hub/main.go:/app/finance-hub/main.go
-      - ./finance-hub/web/static/javascript:/app/finance-hub/web/static/javascript
+      - ./finance-hub/web/static:/app/finance-hub/web/static
       - ./finance-hub/web/template:/app/finance-hub/web/template
 
   finance-api:
