@@ -13,6 +13,9 @@ go-lint:
 build:
 	docker compose build --no-cache --parallel finance-hub finance-api finance-migration
 
+build-dev:
+	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml build --parallel finance-hub finance-api yarn
+
 build-all:
 	docker compose build --parallel finance-hub finance-api finance-migration json-server cypress sirius-db
 
@@ -31,12 +34,14 @@ clean:
 	docker compose down
 	docker compose run --rm yarn
 
-up: clean start-and-seed sqlc-gen
-	docker compose run --rm yarn
-	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml up finance-hub json-server finance-api
+up: clean build-dev start-and-seed sqlc-gen
+	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml up finance-hub json-server finance-api yarn
 
 down:
 	docker compose down
+
+compile-assets:
+	docker compose run --rm yarn build
 
 sqlc-gen:
 	docker compose run --rm sqlc-gen
