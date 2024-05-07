@@ -4,18 +4,14 @@ import (
 	"context"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
-	"github.com/opg-sirius-finance-hub/finance-api/internal/validation"
 	"github.com/opg-sirius-finance-hub/shared"
 	"strconv"
+	"strings"
 	"time"
 )
 
 func (s *Service) AddFeeReduction(body shared.AddFeeReduction) (shared.ValidationError, error) {
 	ctx := context.Background()
-
-	vError := validation.New()                                                        //move this up to the service so it will be s.vaildation
-	vError.RegisterValidation("check-character-limit", vError.ValidateCharacterCount) //move to main
-	vError.RegisterValidation("check-in-the-past", vError.ValidateDateInThePast)      //move to main
 
 	checkForOverlappingFeeReductionParams := store.CheckForOverlappingFeeReductionParams{
 		ClientID:  int32(body.ClientId),
@@ -36,15 +32,15 @@ func (s *Service) AddFeeReduction(body shared.AddFeeReduction) (shared.Validatio
 		return validationError, err
 	}
 
-	validationError := vError.ValidateStruct(body)
+	validationError := s.VError.ValidateStruct(body)
 
 	if len(validationError.Errors) > 0 {
 		return validationError, nil
 	}
 
-	queryArgs := store.AddFeeReductionParams{
+	addFeeReductionQueryArgs := store.AddFeeReductionParams{
 		ClientID:     int32(body.ClientId),
-		Type:         body.FeeType,
+		Type:         strings.ToUpper(body.FeeType),
 		Evidencetype: pgtype.Text{},
 		Startdate:    calculateStartDate(body.StartYear),
 		Enddate:      calculateEndDate(body.StartYear, body.LengthOfAward),
@@ -53,7 +49,65 @@ func (s *Service) AddFeeReduction(body shared.AddFeeReduction) (shared.Validatio
 		Datereceived: pgtype.Date{Time: body.DateReceive.Time, Valid: true},
 	}
 
-	_, err = s.Store.AddFeeReduction(ctx, queryArgs)
+	tx, err := s.DB.Begin(ctx)
+	if err != nil {
+		return shared.ValidationError{}, err
+	}
+
+	defer tx.Rollback(ctx)
+
+	var feeReduction store.FeeReduction
+	_, err = s.Store.AddFeeReduction(ctx, addFeeReductionQueryArgs)
+	if err != nil {
+		return shared.ValidationError{}, err
+	}
+
+	var invoices []store.Invoice
+	invoices, err = s.Store.AddFeeReductionToInvoice(ctx, feeReduction.ID)
+	if err != nil {
+		return shared.ValidationError{}, err
+	}
+
+	for _, invoice := range invoices {
+		var amount int32 = 0
+		switch body.FeeType {
+		case "exemption", "hardship":
+			amount = invoice.Amount
+		case "remission":
+			invoiceFeeRangeParams := store.GetInvoiceFeeRangersAmountParams{
+				InvoiceID:        pgtype.Int4{Int32: invoice.ID, Valid: true},
+				Supervisionlevel: "GENERAL",
+			}
+			amount, err = s.Store.GetInvoiceFeeRangersAmount(ctx, invoiceFeeRangeParams)
+		}
+		ledgerQueryArgs := store.CreateLedgerForFeeReductionParams{
+			Method:          strings.ToUpper(string(body.FeeType[0])) + body.FeeType[1:] + " credit for invoice " + invoice.Reference,
+			Amount:          amount,
+			Notes:           pgtype.Text{String: "Credit due to approved " + strings.ToUpper(string(body.FeeType[0])) + body.FeeType[1:]},
+			Type:            "CREDIT " + strings.ToUpper(body.FeeType),
+			FinanceClientID: pgtype.Int4{Int32: invoice.FinanceClientID.Int32, Valid: true},
+			FeeReductionID:  pgtype.Int4{Int32: invoice.FeeReductionID.Int32, Valid: true},
+			CreatedbyID:     pgtype.Int4{Int32: 1},
+		}
+		var ledger store.Ledger
+		ledger, err = s.Store.CreateLedgerForFeeReduction(ctx, ledgerQueryArgs)
+		if err != nil {
+			return shared.ValidationError{}, err
+		}
+
+		queryArgs := store.CreateLedgerAllocationForFeeReductionParams{
+			LedgerID:  pgtype.Int4{Int32: ledger.ID, Valid: true},
+			InvoiceID: pgtype.Int4{Int32: invoice.ID, Valid: true},
+			Amount:    ledger.Amount,
+		}
+
+		_, err = s.Store.CreateLedgerAllocationForFeeReduction(ctx, queryArgs)
+		if err != nil {
+			return shared.ValidationError{}, err
+		}
+	}
+
+	err = tx.Commit(ctx)
 	if err != nil {
 		return shared.ValidationError{}, err
 	}

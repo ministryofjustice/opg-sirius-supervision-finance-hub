@@ -5,6 +5,6 @@ type AddFeeReduction struct {
 	FeeType           string `json:"feeType" validate:"required"`
 	StartYear         string `json:"startYear" validate:"required"`
 	LengthOfAward     string `json:"lengthOfAward" validate:"required"`
-	DateReceive       Date   `json:"dateReceived" validate:"required,check-in-the-past"`
-	FeeReductionNotes string `json:"feeReductionNotes" validate:"required,check-character-limit"`
+	DateReceive       Date   `json:"dateReceived" validate:"required,date-in-the-past"`
+	FeeReductionNotes string `json:"feeReductionNotes" validate:"required,thousand-character-limit"`
 }

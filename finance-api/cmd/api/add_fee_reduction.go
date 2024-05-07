@@ -26,11 +26,7 @@ func (s *Server) addFeeReduction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		//errorData, _ := json.Marshal(ValidationError{Message: "string here", Errors: ValidationErrors{"dateReportReceived": {"invalid-lte": "This must be on or before 25/04/2024"}, "dateReportLodged": {"invalid-lte": "This must be on or before 25/04/2024"}}})
-		//w.Header().Set("Content-Type", "application/json")
-		//// Write the JSON response body
-		//_, _ = w.Write(errorData)
-		//http.Error(w, "", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
