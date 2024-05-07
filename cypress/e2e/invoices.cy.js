@@ -39,13 +39,13 @@ describe("Invoices ledger allocations", () => {
 describe("Supervision level breakdown", () => {
     it("shows all the correct headers", () => {
         cy.visit("/clients/1/invoices");
-        cy.get('#invoice-1').click()
+        cy.get('#invoice-2').click()
         cy.contains('[data-cy="supervision-title"]', "Supervision level breakdown");
         cy.contains('[data-cy="supervision-level"]', "Supervision level");
         cy.contains('[data-cy="supervision-amount"]', "Amount");
         cy.contains('[data-cy="supervision-from"]', "From");
         cy.contains('[data-cy="supervision-to"]', "To");
-        cy.contains('[data-cy="supervision-level-data"]', "General").first();
+        cy.contains('[data-cy="supervision-level-data"]', "GENERAL").first();
         cy.contains('[data-cy="supervision-amount-data"]', "£123").first();
         cy.get('[data-cy="supervision-from-data"]').contains("01/04/2022").first();
         cy.get('[data-cy="supervision-to-data"]').contains("31/03/2023").first();

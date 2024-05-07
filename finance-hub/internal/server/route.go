@@ -96,6 +96,12 @@ func (r route) getSuccess(req *http.Request) string {
 	switch req.URL.Query().Get("success") {
 	case "writeOff":
 		return "The write off is now waiting for approval"
+	case "remission":
+		return "The remission has been successfully added"
+	case "exemption":
+		return "The exemption has been successfully added"
+	case "hardship":
+		return "The hardship has been successfully added"
 	}
 	return ""
 }
