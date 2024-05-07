@@ -5,6 +5,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -54,7 +55,11 @@ func (s *Service) AddFeeReduction(body shared.AddFeeReduction) (shared.Validatio
 		return shared.ValidationError{}, err
 	}
 
-	defer tx.Rollback(ctx)
+	defer func() {
+		if err := tx.Rollback(ctx); err != nil {
+			log.Println("Error rolling back transaction:", err)
+		}
+	}()
 
 	var feeReduction store.FeeReduction
 	_, err = s.Store.AddFeeReduction(ctx, addFeeReductionQueryArgs)
@@ -78,7 +83,7 @@ func (s *Service) AddFeeReduction(body shared.AddFeeReduction) (shared.Validatio
 				InvoiceID:        pgtype.Int4{Int32: invoice.ID, Valid: true},
 				Supervisionlevel: "GENERAL",
 			}
-			amount, err = s.Store.GetInvoiceFeeRangersAmount(ctx, invoiceFeeRangeParams)
+			amount, _ = s.Store.GetInvoiceFeeRangersAmount(ctx, invoiceFeeRangeParams)
 		}
 		ledgerQueryArgs := store.CreateLedgerForFeeReductionParams{
 			Method:          strings.ToUpper(string(body.FeeType[0])) + body.FeeType[1:] + " credit for invoice " + invoice.Reference,
