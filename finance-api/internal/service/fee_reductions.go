@@ -35,10 +35,12 @@ func (s *Service) GetFeeReductions(id int) (*shared.FeeReductions, error) {
 }
 
 func calculateStatus(startDate shared.Date, endDate shared.Date, deleted bool) string {
-	now := shared.Date{Time: time.Now()}
+	now := shared.Date{Time: time.Now().Truncate(time.Hour * 24)}
 	if deleted {
 		return "Cancelled"
-	} else if startDate.Before(now) && endDate.After(now) {
+	} else if startDate.After(now) {
+		return "Pending"
+	} else if !now.Before(startDate) && !now.After(endDate) {
 		return "Active"
 	} else if endDate.Before(now) {
 		return "Expired"
