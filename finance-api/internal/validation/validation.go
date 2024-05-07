@@ -19,7 +19,10 @@ func New() *Validate {
 }
 
 func (v *Validate) RegisterValidation(tag string, fn validator.Func) {
-	v.validator.RegisterValidation(tag, fn)
+	err := v.validator.RegisterValidation(tag, fn)
+	if err != nil {
+		return
+	}
 }
 
 func (v *Validate) ValidateStruct(s interface{}) shared.ValidationError {
