@@ -1,11 +1,10 @@
 describe("Add fee reduction form", () => {
     it("shows correct error message for all potential errors", () => {
         cy.setCookie("fail-route", "addFeeReductionError");
-        cy.visit("/clients/1/fee-reduction/add");
+        cy.visit("/clients/1/fee-reductions/add");
         cy.get('.govuk-button').click()
-        cy.get('.govuk-error-summary').contains("A fee reduction type must be selected")
-        cy.get('[data-cy="fee-type-error"').contains("A fee reduction type must be selected")
-        cy.get(".govuk-form-group--error").should('have.length', 1)
+        cy.get('.govuk-error-summary').contains("Date received must be in the past")
+        cy.get(".govuk-form-group--error").should('have.length', 5)
     });
 
     // it("shows correct success message", () => {
