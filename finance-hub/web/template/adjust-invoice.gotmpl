@@ -1,10 +1,10 @@
-{{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.UpdateInvoice*/ -}}
+{{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.AdjustInvoice*/ -}}
 {{ template "page" . }}
 
 {{ define "title" }}Adjust invoice{{ end }}
 
 {{ define "main-content" }}
-    {{ block "update-invoice" .Data}}
+    {{ block "adjust-invoice" .Data}}
         <div class="govuk-grid-row govuk-!-margin-top-5">
             <div class="govuk-grid-column-full">
                 <header>
@@ -15,10 +15,10 @@
                 {{ template "error-summary" .Errors }}
                 <div class="govuk-grid-row">
                     <form
-                        id="update-invoice-form"
+                        id="adjust-invoice-form"
                         class="add-note govuk-grid-column-one-third"
                         method="post"
-                        hx-post="{{ (printf "/clients/%s/invoices/%s/ledger-entries" .ClientId .InvoiceId) }}"
+                        hx-post="{{ (printf "/clients/%s/invoices/%s/adjust-invoice" .ClientId .InvoiceId) }}"
                         hx-target="#main-content">
                         <input
                                 type="hidden"

@@ -19,6 +19,10 @@ type descriptionTest struct {
 	Notes string `json:"notes" validate:"required"`
 }
 
+type isValidEnumTest struct {
+	Enum shared.AdjustmentType `json:"enum" validate:"valid-enum"`
+}
+
 func TestValidate_ValidateStruct(t *testing.T) {
 	validator, _ := New()
 	dateInFuture := time.Now().AddDate(0, 0, 1)
@@ -45,18 +49,26 @@ func TestValidate_ValidateStruct(t *testing.T) {
 			expected:    0,
 		},
 		{
-			name:        "Date is not in the past",
-			args:        dateTest{DateReceived: shared.Date{Time: dateInFuture}},
-			description: "",
-			expected:    1,
-			key:         "DateReceived",
-			want:        "date-in-the-past",
+			name:     "Date is not in the past",
+			args:     dateTest{DateReceived: shared.Date{Time: dateInFuture}},
+			expected: 1,
+			key:      "DateReceived",
+			want:     "date-in-the-past",
 		},
 		{
-			name:        "Date is in the past or today",
-			args:        dateTest{DateReceived: shared.Date{Time: time.Now()}},
-			description: "",
-			expected:    0,
+			name:     "Date is in the past or today",
+			args:     dateTest{DateReceived: shared.Date{Time: time.Now()}},
+			expected: 0,
+		},
+		{
+			name:     "Enum type is UNKNOWN",
+			args:     isValidEnumTest{Enum: shared.AdjustmentTypeUnknown},
+			expected: 1,
+		},
+		{
+			name:     "Enum type is valid",
+			args:     isValidEnumTest{Enum: shared.AdjustmentTypeAddCredit},
+			expected: 0,
 		},
 		{
 			name:        "Custom field being set from description",

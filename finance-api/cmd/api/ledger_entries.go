@@ -3,21 +3,23 @@ package api
 import (
 	"encoding/json"
 	"errors"
-	"github.com/opg-sirius-finance-hub/finance-api/internal/service"
 	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
 	"strconv"
 )
 
-func (s *Server) addFeeReduction(w http.ResponseWriter, r *http.Request) {
-	var addFeeReduction shared.AddFeeReduction
-	defer r.Body.Close()
+func (s *Server) PostLedgerEntry(w http.ResponseWriter, r *http.Request) {
+	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
+	invoiceId, _ := strconv.Atoi(r.PathValue("invoiceId"))
 
-	if err := json.NewDecoder(r.Body).Decode(&addFeeReduction); err != nil {
+	var ledgerEntry shared.CreateLedgerEntryRequest
+	err := json.NewDecoder(r.Body).Decode(&ledgerEntry)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	validationError := s.Validator.ValidateStruct(addFeeReduction, "")
+	validationError := s.Validator.ValidateStruct(ledgerEntry)
 
 	if len(validationError.Errors) != 0 {
 		errorData, _ := json.Marshal(validationError)
@@ -28,14 +30,17 @@ func (s *Server) addFeeReduction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	clientId, _ := strconv.Atoi(r.PathValue("id"))
-	err := s.Service.AddFeeReduction(clientId, addFeeReduction)
+	err = s.Service.CreateLedgerEntry(clientId, invoiceId, &ledgerEntry)
 
 	if err != nil {
-		var e service.BadRequest
+		var e shared.BadRequest
 		ok := errors.As(err, &e)
 		if ok {
+			errorData, _ := json.Marshal(e)
+			w.Header().Set("Content-Type", "application/json")
 			http.Error(w, e.Reason, http.StatusBadRequest)
+			_, _ = w.Write(errorData)
+
 			return
 		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)

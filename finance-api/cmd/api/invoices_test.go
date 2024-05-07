@@ -50,7 +50,7 @@ func TestServer_getInvoices(t *testing.T) {
 	expected := `[{"id":1,"ref":"S203531/19","status":"","amount":12,"raisedDate":"16\/03\/2020","received":123,"outstandingBalance":0,"ledgers":[{"amount":123,"receivedDate":"11\/04\/2022","transactionType":"unknown","status":"Confirmed"}],"supervisionLevels":null}]`
 
 	assert.Equal(t, expected, string(data))
-	assert.Equal(t, 1, mock.expectedId)
+	assert.Equal(t, 1, mock.expectedIds[0])
 	assert.Equal(t, "application/json", res.Header.Get("Content-Type"))
 }
 
@@ -72,7 +72,7 @@ func TestServer_getInvoices_returns_an_empty_array(t *testing.T) {
 	expected := `[]`
 
 	assert.Equal(t, expected, string(data))
-	assert.Equal(t, 2, mock.expectedId)
+	assert.Equal(t, 2, mock.expectedIds[0])
 	assert.Equal(t, "application/json", res.Header.Get("Content-Type"))
 }
 

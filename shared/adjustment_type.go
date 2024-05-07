@@ -4,6 +4,10 @@ import (
 	"encoding/json"
 )
 
+type Valid interface {
+	Valid() bool
+}
+
 var AdjustmentTypes = []AdjustmentType{
 	AdjustmentTypeWriteOff,
 	AdjustmentTypeAddCredit,
@@ -94,13 +98,11 @@ func (i AdjustmentType) AmountRequired() bool {
 	}
 }
 
-func (i AdjustmentType) IsValid() bool {
-	switch i {
-	case AdjustmentTypeAddCredit, AdjustmentTypeAddDebit, AdjustmentTypeUnapply, AdjustmentTypeReapply:
-		return true
-	default:
+func (i AdjustmentType) Valid() bool {
+	if i == AdjustmentTypeUnknown {
 		return false
 	}
+	return true
 }
 
 func ParseAdjustmentType(s string) AdjustmentType {

@@ -19,7 +19,6 @@ var validationMappings = map[string]map[string]pair{
 	},
 	"amount": {
 		"isEmpty": pair{"amount", "Enter an amount"},
-		"tooHigh": pair{"amount", "Amount entered must be less than £"},
 	},
 	"FeeType": {
 		"required": pair{"FeeType", "A fee reduction type must be selected"},

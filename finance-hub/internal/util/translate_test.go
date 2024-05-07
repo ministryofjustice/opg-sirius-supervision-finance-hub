@@ -21,14 +21,12 @@ func TestRenameErrorsForEmptyValues(t *testing.T) {
 	assert.Equal(t, expected, RenameErrors(siriusErrors))
 }
 
-func TestRenameErrorsForValuesTooHigh(t *testing.T) {
+func TestRenameErrorsForValuesTooLong(t *testing.T) {
 	siriusErrors := shared.ValidationErrors{
-		"notes":  map[string]string{"stringLengthTooLong": "stringLengthTooLong"},
-		"amount": map[string]string{"tooHigh": "Amount entered must be less than £"},
+		"notes": map[string]string{"stringLengthTooLong": "stringLengthTooLong"},
 	}
 	expected := shared.ValidationErrors{
-		"notes":  map[string]string{"stringLengthTooLong": "Reason for manual credit must be 1000 characters or less"},
-		"amount": map[string]string{"tooHigh": "Amount entered must be less than £"},
+		"notes": map[string]string{"stringLengthTooLong": "Reason for manual credit must be 1000 characters or less"},
 	}
 
 	assert.Equal(t, expected, RenameErrors(siriusErrors))

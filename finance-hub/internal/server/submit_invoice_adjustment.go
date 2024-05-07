@@ -9,11 +9,17 @@ import (
 	"strconv"
 )
 
-type SubmitInvoiceHandler struct {
+type SubmitInvoiceAdjustmentHandler struct {
 	router
 }
 
-func (h *SubmitInvoiceHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
+type InvoiceAdjustmentForm struct {
+	AdjustmentType shared.AdjustmentType
+	Notes          string
+	Amount         string
+}
+
+func (h *SubmitInvoiceAdjustmentHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
 	ctx := getContext(r)
 	var (
 		invoiceId, _   = strconv.Atoi(r.PathValue("id"))
@@ -22,14 +28,22 @@ func (h *SubmitInvoiceHandler) render(v AppVars, w http.ResponseWriter, r *http.
 		amount         = r.PostFormValue("amount")
 	)
 
-	err := h.Client().UpdateInvoice(ctx, ctx.ClientId, invoiceId, adjustmentType, notes, amount)
+	err := h.Client().AdjustInvoice(ctx, ctx.ClientId, invoiceId, adjustmentType, notes, amount)
+
 	var verr shared.ValidationError
 	if errors.As(err, &verr) {
-		data := UpdateInvoices{shared.AdjustmentTypes, r.PathValue("id"), r.PathValue("invoiceId"), v}
-		data.Errors = util.RenameErrors(verr.Errors)
+		data := AppVars{Errors: util.RenameErrors(verr.Errors)}
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return h.execute(w, r, data)
 	}
+
+	var be shared.BadRequest
+	if errors.As(err, &be) {
+		data := AppVars{Errors: shared.ValidationErrors{be.Field: map[string]string{"tooHigh": be.Reason}}}
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		return h.execute(w, r, data)
+	}
+
 	if err != nil {
 		return err
 	}

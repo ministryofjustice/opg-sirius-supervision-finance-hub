@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestUpdateInvoice(t *testing.T) {
+func TestAdjustInvoiceForm(t *testing.T) {
 	client := mockApiClient{}
 	ro := &mockRoute{client: client}
 
@@ -19,14 +19,14 @@ func TestUpdateInvoice(t *testing.T) {
 
 	appVars := AppVars{Path: "/path/"}
 
-	sut := UpdateInvoiceHandler{ro}
+	sut := AdjustInvoiceFormHandler{ro}
 	err := sut.render(appVars, w, r)
 
 	assert.Nil(t, err)
 	assert.True(t, ro.executed)
 
-	expected := UpdateInvoices{
-		shared.AdjustmentTypes,
+	expected := AdjustInvoiceVars{
+		&shared.AdjustmentTypes,
 		"1",
 		"9",
 		appVars,
