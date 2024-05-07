@@ -1,5 +1,3 @@
-// validation/validation.go
-
 package validation
 
 import (
@@ -53,7 +51,7 @@ func (v *Validate) ValidateStruct(s interface{}) shared.ValidationError {
 	return shared.ValidationError{}
 }
 
-func (v *Validate) ValidateCharacterCount(fl validator.FieldLevel) bool {
+func (v *Validate) ValidateThousandCharacterCount(fl validator.FieldLevel) bool {
 	return len(fl.Field().String()) < 1001
 }
 

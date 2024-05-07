@@ -29,12 +29,12 @@ var validationMappings = map[string]map[string]pair{
 		"required": pair{"LengthOfAward", "Confirm if an extended award is being given"},
 	},
 	"DateReceive": {
-		"required":          pair{"DateReceive", "Enter the date received"},
-		"check-in-the-past": pair{"DateReceive", "Date received must be in the past"},
+		"required":         pair{"DateReceive", "Enter the date received"},
+		"date-in-the-past": pair{"DateReceive", "Date received must be in the past"},
 	},
 	"FeeReductionNotes": {
-		"required":              pair{"FeeReductionNotes", "Enter a reason for awarding fee reduction"},
-		"check-character-limit": pair{"FeeReductionNotes", "Reason for awarding fee reduction must be 1000 characters or less"},
+		"required":                 pair{"FeeReductionNotes", "Enter a reason for awarding fee reduction"},
+		"thousand-character-limit": pair{"FeeReductionNotes", "Reason for awarding fee reduction must be 1000 characters or less"},
 	},
 	"Overlap": {
 		"StartOrEndDate": pair{"StartOrEndDate", "A fee reduction already exists for the period specified"},

@@ -8,6 +8,7 @@ import (
 	"github.com/opg-sirius-finance-hub/finance-api/cmd/api"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/service"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
+	"github.com/opg-sirius-finance-hub/finance-api/internal/validation"
 	"go.opentelemetry.io/contrib/detectors/aws/ecs"
 	"go.opentelemetry.io/contrib/propagators/aws/xray"
 	"go.opentelemetry.io/otel"
@@ -57,6 +58,10 @@ func initTracerProvider(ctx context.Context, logger *zap.SugaredLogger) func() {
 func main() {
 	logger := zap.Must(zap.NewProduction(zap.Fields(zap.String("service_name", "opg-sirius-finance-api")))).Sugar()
 
+	vError := validation.New()
+	vError.RegisterValidation("thousand-character-limit", vError.ValidateThousandCharacterCount)
+	vError.RegisterValidation("date-in-the-past", vError.ValidateDateInThePast)
+
 	defer func() { _ = logger.Sync() }()
 
 	if env.Get("TRACING_ENABLED", "0") == "1" {
@@ -78,7 +83,7 @@ func main() {
 	defer conn.Close(ctx)
 
 	Store := store.New(conn)
-	Service := service.Service{Store: Store}
+	Service := service.Service{DB: conn, Store: Store, VError: vError}
 	server := api.Server{Logger: logger, Service: &Service}
 
 	server.SetupRoutes()

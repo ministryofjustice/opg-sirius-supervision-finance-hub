@@ -11,6 +11,62 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const addFeeReductionToInvoice = `-- name: AddFeeReductionToInvoice :many
+WITH filtered_invoices AS (
+    SELECT i.id AS invoice_id, fr.id AS fee_reduction_id
+    FROM invoice i
+             JOIN fee_reduction fr
+                  ON i.finance_client_id = fr.finance_client_id
+    WHERE i.raiseddate >= (fr.datereceived - interval '6 months')
+      AND i.raiseddate BETWEEN fr.startdate AND fr.enddate
+      AND fr.id = $1
+)
+UPDATE invoice i
+SET fee_reduction_id = fi.fee_reduction_id
+FROM filtered_invoices fi
+WHERE i.id = fi.invoice_id
+returning i.id, i.person_id, i.finance_client_id, i.feetype, i.reference, i.startdate, i.enddate, i.amount, i.supervisionlevel, i.confirmeddate, i.batchnumber, i.raiseddate, i.source, i.scheduledfn14date, i.cacheddebtamount, i.createddate, i.createdby_id, i.fee_reduction_id
+`
+
+func (q *Queries) AddFeeReductionToInvoice(ctx context.Context, id int32) ([]Invoice, error) {
+	rows, err := q.db.Query(ctx, addFeeReductionToInvoice, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Invoice
+	for rows.Next() {
+		var i Invoice
+		if err := rows.Scan(
+			&i.ID,
+			&i.PersonID,
+			&i.FinanceClientID,
+			&i.Feetype,
+			&i.Reference,
+			&i.Startdate,
+			&i.Enddate,
+			&i.Amount,
+			&i.Supervisionlevel,
+			&i.Confirmeddate,
+			&i.Batchnumber,
+			&i.Raiseddate,
+			&i.Source,
+			&i.Scheduledfn14date,
+			&i.Cacheddebtamount,
+			&i.Createddate,
+			&i.CreatedbyID,
+			&i.FeeReductionID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getInvoices = `-- name: GetInvoices :many
 SELECT i.id, i.reference, i.amount, i.raiseddate, i.cacheddebtamount
 FROM invoice i
