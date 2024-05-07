@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
+	"github.com/opg-sirius-finance-hub/finance-hub/internal/config"
 	"net/http"
 )
 
@@ -9,7 +10,7 @@ type AppVars struct {
 	Path            string
 	XSRFToken       string
 	Tabs            []Tab
-	EnvironmentVars EnvironmentVars
+	EnvironmentVars config.EnvironmentVars
 	Errors          api.ValidationErrors
 }
 
@@ -20,7 +21,7 @@ type Tab struct {
 	Selected bool
 }
 
-func NewAppVars(r *http.Request, envVars EnvironmentVars) (AppVars, error) {
+func NewAppVars(r *http.Request, envVars config.EnvironmentVars) (AppVars, error) {
 	ctx := getContext(r)
 
 	clientId := r.PathValue("id")

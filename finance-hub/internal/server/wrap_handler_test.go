@@ -3,6 +3,7 @@ package server
 import (
 	"errors"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
+	"github.com/opg-sirius-finance-hub/finance-hub/internal/config"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
@@ -53,14 +54,12 @@ func Test_wrapHandler_successful_request(t *testing.T) {
 	w := httptest.NewRecorder()
 	r, _ := http.NewRequest(http.MethodGet, "test-url/1", nil)
 
-	mockClient := mockApiClient{}
-
 	observedZapCore, observedLogs := observer.New(zap.InfoLevel)
 	logger := zap.New(observedZapCore).Sugar()
 
 	errorTemplate := &mockTemplate{}
-	envVars := EnvironmentVars{}
-	nextHandlerFunc := wrapHandler(mockClient, logger, errorTemplate, envVars)
+	envVars := config.EnvironmentVars{}
+	nextHandlerFunc := wrapHandler(logger, errorTemplate, envVars)
 	next := &mockHandler{}
 	httpHandler := nextHandlerFunc(next)
 	httpHandler.ServeHTTP(w, r)
@@ -102,14 +101,12 @@ func Test_wrapHandler_status_error_handling(t *testing.T) {
 			w := httptest.NewRecorder()
 			r, _ := http.NewRequest(http.MethodGet, "test-url/1", nil)
 
-			mockClient := mockApiClient{}
-
 			observedZapCore, observedLogs := observer.New(zap.InfoLevel)
 			logger := zap.New(observedZapCore).Sugar()
 
 			errorTemplate := &mockTemplate{error: errors.New("some template error")}
-			envVars := EnvironmentVars{}
-			nextHandlerFunc := wrapHandler(mockClient, logger, errorTemplate, envVars)
+			envVars := config.EnvironmentVars{}
+			nextHandlerFunc := wrapHandler(logger, errorTemplate, envVars)
 			next := &mockHandler{Err: test.error}
 			httpHandler := nextHandlerFunc(next)
 			httpHandler.ServeHTTP(w, r)

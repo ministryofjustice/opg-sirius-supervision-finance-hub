@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"github.com/opg-sirius-finance-hub/finance-hub/internal/config"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"io"
@@ -11,8 +12,8 @@ import (
 )
 
 func TestGetPersonDetails(t *testing.T) {
-	logger, mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "", logger)
+	logger, mockClient, envVars := SetUpTest()
+	client, _ := NewApiClient(mockClient, logger, envVars)
 
 	json := `{
             "id": 2,
@@ -43,25 +44,28 @@ func TestGetPersonDetails(t *testing.T) {
 }
 
 func TestGetPersonDetailsReturnsUnauthorisedClientError(t *testing.T) {
-	logger, _ := SetUpTest()
+	logger, _, _ := SetUpTest()
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, "", logger)
+	envVars := config.EnvironmentVars{SiriusURL: svr.URL, BackendURL: svr.URL}
+	client, _ := NewApiClient(http.DefaultClient, logger, envVars)
+
 	_, err := client.GetPersonDetails(getContext(nil), 2)
 	assert.Equal(t, ErrUnauthorized, err)
 }
 
 func TestPersonDetailsReturns500Error(t *testing.T) {
-	logger, _ := SetUpTest()
+	logger, _, _ := SetUpTest()
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, "", logger)
+	envVars := config.EnvironmentVars{SiriusURL: svr.URL, BackendURL: svr.URL}
+	client, _ := NewApiClient(http.DefaultClient, logger, envVars)
 
 	_, err := client.GetPersonDetails(getContext(nil), 1)
 	assert.Equal(t, StatusError{

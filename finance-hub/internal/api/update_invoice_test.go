@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"github.com/opg-sirius-finance-hub/finance-hub/internal/config"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -11,8 +12,8 @@ import (
 )
 
 func TestUpdateInvoice(t *testing.T) {
-	logger, mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "", logger)
+	logger, mockClient, envVars := SetUpTest()
+	client, _ := NewApiClient(mockClient, logger, envVars)
 
 	json := `{
             "invoiceType": "writeOff",
@@ -34,13 +35,14 @@ func TestUpdateInvoice(t *testing.T) {
 }
 
 func TestUpdateInvoiceUnauthorised(t *testing.T) {
-	logger, _ := SetUpTest()
+	logger, _, _ := SetUpTest()
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, "", logger)
+	envVars := config.EnvironmentVars{SiriusURL: svr.URL, BackendURL: svr.URL}
+	client, _ := NewApiClient(http.DefaultClient, logger, envVars)
 
 	err := client.UpdateInvoice(getContext(nil), 2, 4, "writeOff", "notes here", "100")
 
@@ -48,13 +50,14 @@ func TestUpdateInvoiceUnauthorised(t *testing.T) {
 }
 
 func TestUpdateInvoiceReturns500Error(t *testing.T) {
-	logger, _ := SetUpTest()
+	logger, _, _ := SetUpTest()
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, "", logger)
+	envVars := config.EnvironmentVars{SiriusURL: svr.URL, BackendURL: svr.URL}
+	client, _ := NewApiClient(http.DefaultClient, logger, envVars)
 
 	err := client.UpdateInvoice(getContext(nil), 2, 4, "writeOff", "notes here", "100")
 	assert.Equal(t, StatusError{

@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"github.com/ministryofjustice/opg-go-common/logging"
+	"github.com/opg-sirius-finance-hub/finance-hub/internal/config"
 	"net/http"
 	"os"
 	"testing"
@@ -54,8 +55,12 @@ func TestStatusError(t *testing.T) {
 	assert.Equal(t, err, err.Data())
 }
 
-func SetUpTest() (*logging.Logger, *MockClient) {
+func SetUpTest() (*logging.Logger, *MockClient, config.EnvironmentVars) {
 	logger := logging.New(os.Stdout, "opg-sirius-finance-hub")
 	mockClient := &MockClient{}
-	return logger, mockClient
+	envVars := config.EnvironmentVars{
+		SiriusURL:  "http://localhost:3000",
+		BackendURL: "http://localhost:8181",
+	}
+	return logger, mockClient, envVars
 }

@@ -16,6 +16,8 @@ func (s *Service) GetInvoices(clientID int) (*shared.Invoices, error) {
 		return nil, err
 	}
 
+	invoicesRawData = normaliseNilArrays(invoicesRawData)
+
 	for _, inv := range invoicesRawData {
 		ledgerAllocations, totalOfLedgerAllocationsAmount, err := getLedgerAllocations(s, ctx, int(inv.ID))
 		if err != nil {
@@ -52,6 +54,8 @@ func getSupervisionLevels(s *Service, ctx context.Context, invoiceID int) ([]sha
 		return nil, err
 	}
 
+	supervisionLevelsRawData = normaliseNilArrays(supervisionLevelsRawData)
+
 	for _, supervision := range supervisionLevelsRawData {
 		var supervisionLevel = shared.SupervisionLevel{
 			Level:  supervision.Supervisionlevel,
@@ -71,6 +75,8 @@ func getLedgerAllocations(s *Service, ctx context.Context, invoiceID int) ([]sha
 	if err != nil {
 		return nil, 0, err
 	}
+
+	ledgerAllocationsRawData = normaliseNilArrays(ledgerAllocationsRawData)
 
 	for _, ledger := range ledgerAllocationsRawData {
 		var ledgerAllocation = shared.Ledger{

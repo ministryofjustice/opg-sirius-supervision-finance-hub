@@ -3,7 +3,9 @@ package server
 import (
 	"errors"
 	"fmt"
+	"github.com/opg-sirius-finance-hub/auth"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
+	"github.com/opg-sirius-finance-hub/finance-hub/internal/config"
 	"go.uber.org/zap"
 	"net/http"
 	"time"
@@ -12,7 +14,7 @@ import (
 type ErrorVars struct {
 	Code  int
 	Error string
-	EnvironmentVars
+	config.EnvironmentVars
 }
 
 type RedirectError string
@@ -41,12 +43,16 @@ type Handler interface {
 	render(app AppVars, w http.ResponseWriter, r *http.Request) error
 }
 
-func wrapHandler(client ApiClient, logger *zap.SugaredLogger, tmplError Template, envVars EnvironmentVars) func(next Handler) http.Handler {
+func wrapHandler(logger *zap.SugaredLogger, tmplError Template, envVars config.EnvironmentVars) func(next Handler) http.Handler {
+	jwtConfig := auth.JwtConfig{Enabled: envVars.JwtEnabled, Secret: envVars.JwtSecret, Expiry: envVars.JwtExpiry}
 	return func(next Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
 
-			var err error
+			if !isJwtAuthenticated(logger, r, jwtConfig) {
+				http.Redirect(w, r, envVars.SiriusURL+"/auth", http.StatusFound)
+				return
+			}
 			vars, err := NewAppVars(r, envVars)
 			if err == nil {
 				err = next.render(vars, w, r)
@@ -98,4 +104,24 @@ func wrapHandler(client ApiClient, logger *zap.SugaredLogger, tmplError Template
 			}
 		})
 	}
+}
+
+func isJwtAuthenticated(logger *zap.SugaredLogger, r *http.Request, jwtConfig auth.JwtConfig) bool {
+	if !jwtConfig.Enabled {
+		return true
+	}
+
+	cookie, _ := r.Cookie("OPG-TOKEN")
+	if cookie == nil {
+		logger.Errorw("Missing cookie token")
+		return false
+	}
+
+	_, err := jwtConfig.Verify(cookie.Value)
+
+	if err != nil {
+		logger.Errorw("Error in token verification :", err.Error())
+		return false
+	}
+	return true
 }

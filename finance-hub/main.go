@@ -6,6 +6,7 @@ import (
 	"github.com/ministryofjustice/opg-go-common/logging"
 	"github.com/ministryofjustice/opg-go-common/paginate"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
+	"github.com/opg-sirius-finance-hub/finance-hub/internal/config"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/server"
 	"go.opentelemetry.io/contrib/detectors/aws/ecs"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -72,12 +73,12 @@ func main() {
 	httpClient := http.DefaultClient
 	httpClient.Transport = otelhttp.NewTransport(httpClient.Transport)
 
-	envVars, err := server.NewEnvironmentVars()
+	envVars, err := config.NewEnvironmentVars()
 	if err != nil {
 		logger.Fatalw("Error creating EnvironmentVars", "error", err)
 	}
 
-	client, err := api.NewApiClient(http.DefaultClient, envVars.SiriusURL, envVars.BackendUrl, apiCallLogger)
+	client, err := api.NewApiClient(http.DefaultClient, apiCallLogger, envVars)
 	if err != nil {
 		logger.Fatalw("Error returned by Sirius New ApiClient", "error", err)
 	}
@@ -116,7 +117,7 @@ func main() {
 	}
 }
 
-func createTemplates(envVars server.EnvironmentVars) map[string]*template.Template {
+func createTemplates(envVars config.EnvironmentVars) map[string]*template.Template {
 	templates := map[string]*template.Template{}
 	templateFunctions := map[string]interface{}{
 		"contains": func(xs []string, needle string) bool {

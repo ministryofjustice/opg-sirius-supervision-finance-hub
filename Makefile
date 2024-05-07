@@ -37,6 +37,11 @@ clean:
 up: clean build-dev start-and-seed sqlc-gen
 	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml up finance-hub json-server finance-api yarn
 
+# stands up stack to integrate with local sirius instead of mock server
+sirius-up: clean
+	docker compose run --rm yarn
+	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml -f docker/docker-compose.sirius.yml up finance-hub yarn finance-api
+
 down:
 	docker compose down
 

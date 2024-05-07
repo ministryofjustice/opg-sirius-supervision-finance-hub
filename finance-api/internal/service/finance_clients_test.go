@@ -8,7 +8,7 @@ import (
 )
 
 func TestService_GetAccountInformation(t *testing.T) {
-	testDB.SeedData("INSERT INTO finance_client VALUES (1, 2, 'sop123', 'DEMANDED', 3, 12300, 321)")
+	testDB.SeedData("INSERT INTO finance_client VALUES (1, 1, 'sop123', 'DEMANDED', 3, 12300, 321)")
 
 	Store := store.New(testDB.DbInstance)
 	tests := []struct {
@@ -19,7 +19,7 @@ func TestService_GetAccountInformation(t *testing.T) {
 	}{
 		{
 			name: "returns account information when clientId matches clientId in finance_client table",
-			id:   2,
+			id:   1,
 			want: &shared.AccountInformation{
 				OutstandingBalance: 12300,
 				CreditBalance:      321,
@@ -28,7 +28,7 @@ func TestService_GetAccountInformation(t *testing.T) {
 		},
 		{
 			name:    "returns error when no match is found",
-			id:      1,
+			id:      0,
 			wantErr: true,
 		},
 	}
