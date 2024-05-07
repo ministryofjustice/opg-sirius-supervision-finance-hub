@@ -83,6 +83,20 @@
       "amount": "",
       "invoiceId": "1",
       "id": 2
+    },
+    {
+      "invoiceType": "",
+      "notes": "",
+      "amount": "",
+      "invoiceId": "1",
+      "id": 3
+    },
+    {
+      "invoiceType": "writeOff",
+      "notes": "",
+      "amount": "",
+      "invoiceId": "1",
+      "id": 4
     }
   ],
   "errors": [
@@ -97,6 +111,14 @@
         },
         "amount": {
           "": "Enter an amount"
+        }
+      }
+    },
+    {
+      "id": "addFeeReductionError",
+      "validation_errors": {
+        "feeType": {
+          "": "A fee reduction type must be selected"
         }
       }
     }
