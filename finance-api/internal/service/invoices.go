@@ -11,7 +11,7 @@ func (s *Service) GetInvoices(clientID int) (*shared.Invoices, error) {
 
 	var invoices shared.Invoices
 
-	invoicesRawData, err := s.Store.GetInvoices(ctx, int32(clientID))
+	invoicesRawData, err := s.store.GetInvoices(ctx, int32(clientID))
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func (s *Service) GetInvoices(clientID int) (*shared.Invoices, error) {
 
 func getSupervisionLevels(s *Service, ctx context.Context, invoiceID int) ([]shared.SupervisionLevel, error) {
 	var supervisionLevels []shared.SupervisionLevel
-	supervisionLevelsRawData, err := s.Store.GetSupervisionLevels(ctx, pgtype.Int4{Int32: int32(invoiceID), Valid: true})
+	supervisionLevelsRawData, err := s.store.GetSupervisionLevels(ctx, pgtype.Int4{Int32: int32(invoiceID), Valid: true})
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func getSupervisionLevels(s *Service, ctx context.Context, invoiceID int) ([]sha
 func getLedgerAllocations(s *Service, ctx context.Context, invoiceID int) ([]shared.Ledger, int, error) {
 	var ledgerAllocations []shared.Ledger
 	totalOfLedgerAllocationsAmount := 0
-	ledgerAllocationsRawData, err := s.Store.GetLedgerAllocations(ctx, pgtype.Int4{Int32: int32(invoiceID), Valid: true})
+	ledgerAllocationsRawData, err := s.store.GetLedgerAllocations(ctx, pgtype.Int4{Int32: int32(invoiceID), Valid: true})
 	if err != nil {
 		return nil, 0, err
 	}

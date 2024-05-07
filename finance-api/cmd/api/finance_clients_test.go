@@ -32,7 +32,7 @@ func TestServer_getAccountInformation(t *testing.T) {
 	expected := `{"outstandingBalance":12300,"creditBalance":123,"paymentMethod":"DEMANDED"}`
 
 	assert.Equal(t, expected, string(data))
-	assert.Equal(t, 1, mock.expectedId)
+	assert.Equal(t, 1, mock.expectedIds[0])
 	assert.Equal(t, "application/json", res.Header.Get("Content-Type"))
 }
 

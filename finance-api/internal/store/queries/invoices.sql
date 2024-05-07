@@ -3,14 +3,30 @@ SET SEARCH_PATH TO supervision_finance;
 -- name: GetInvoices :many
 SELECT i.id, i.reference, i.amount, i.raiseddate, i.cacheddebtamount
 FROM invoice i
-         inner join finance_client fc on i.finance_client_id = fc.id
-where fc.client_id = $1 order by i.raiseddate desc;
+         inner join finance_client fc on fc.id = i.finance_client_id
+where fc.client_id = $1
+order by i.raiseddate desc;
+
+-- name: GetInvoiceBalance :one
+SELECT i.amount initial, i.amount - SUM(la.amount) outstanding
+FROM invoice i
+         INNER JOIN ledger_allocation la on i.id = la.invoice_id
+WHERE i.id = $1
+  AND la.status <> 'PENDING'
+group by i.amount;
 
 -- name: GetLedgerAllocations :many
-select la.id, la.amount, la.datetime, l.bankdate, l.type, la.status from ledger_allocation la inner join ledger l on la.ledger_id = l.id where la.invoice_id = $1 order by la.id desc;
+select la.id, la.amount, la.datetime, l.bankdate, l.type, la.status
+from ledger_allocation la
+         inner join ledger l on la.ledger_id = l.id
+where la.invoice_id = $1
+order by la.id desc;
 
 -- name: GetSupervisionLevels :many
-select supervisionlevel, fromdate, todate, amount from invoice_fee_range where invoice_id = $1 order by todate desc;
+select supervisionlevel, fromdate, todate, amount
+from invoice_fee_range
+where invoice_id = $1
+order by todate desc;
 
 -- name: AddFeeReductionToInvoices :many
 WITH filtered_invoices AS (

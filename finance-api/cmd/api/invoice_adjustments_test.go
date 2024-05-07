@@ -41,7 +41,7 @@ func TestServer_getInvoiceAdjustments(t *testing.T) {
 	expected := `[{"id":1,"invoiceRef":"abc123/24","raisedDate":"16\/03\/2020","adjustmentType":"CREDIT_MEMO","amount":123400,"status":"PENDING","notes":"Credit memo for invoice"}]`
 
 	assert.Equal(t, expected, string(data))
-	assert.Equal(t, 1, mock.expectedId)
+	assert.Equal(t, 1, mock.expectedIds[0])
 	assert.Equal(t, "application/json", res.Header.Get("Content-Type"))
 }
 
@@ -63,7 +63,7 @@ func TestServer_getInvoiceAdjustments_returns_an_empty_array(t *testing.T) {
 	expected := `[]`
 
 	assert.Equal(t, expected, string(data))
-	assert.Equal(t, 2, mock.expectedId)
+	assert.Equal(t, 2, mock.expectedIds[0])
 	assert.Equal(t, "application/json", res.Header.Get("Content-Type"))
 }
 

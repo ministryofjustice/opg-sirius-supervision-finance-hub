@@ -82,7 +82,7 @@ func TestInvoice(t *testing.T) {
 		},
 	}
 
-	expected := &InvoiceTab{
+	expected := &InvoicesVars{
 		Invoices: out,
 		AppVars:  appVars,
 	}
