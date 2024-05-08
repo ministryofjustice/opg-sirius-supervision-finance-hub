@@ -13,7 +13,7 @@ The application needed to be able to check information that is sent to the api a
 ## Decision
 
 We went with the [validator](https://github.com/go-playground/validator) library as it was well maintained and part of a larger ecosystem of Go Playground.
-The library also offered away to do custom validation in a clear way.
+The library also offered away to do custom validation in a way.
 
 ## Consequences
 

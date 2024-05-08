@@ -69,36 +69,6 @@
       "deleted": true
     }
   ],
-  "ledger-entries": [
-    {
-      "invoiceType": "writeOff",
-      "notes": "",
-      "amount": "",
-      "invoiceId": "1",
-      "id": 1
-    },
-    {
-      "invoiceType": "writeOff",
-      "notes": "",
-      "amount": "",
-      "invoiceId": "1",
-      "id": 2
-    },
-    {
-      "invoiceType": "",
-      "notes": "",
-      "amount": "",
-      "invoiceId": "1",
-      "id": 3
-    },
-    {
-      "invoiceType": "writeOff",
-      "notes": "",
-      "amount": "",
-      "invoiceId": "1",
-      "id": 4
-    }
-  ],
   "errors": [
     {
       "id": "notesError",
@@ -111,14 +81,6 @@
         },
         "amount": {
           "": "Enter an amount"
-        }
-      }
-    },
-    {
-      "id": "addFeeReductionError",
-      "validation_errors": {
-        "feeType": {
-          "": "A fee reduction type must be selected"
         }
       }
     }

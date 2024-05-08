@@ -11,7 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const addFeeReductionToInvoice = `-- name: AddFeeReductionToInvoice :many
+const addFeeReductionToInvoices = `-- name: AddFeeReductionToInvoices :many
 WITH filtered_invoices AS (
     SELECT i.id AS invoice_id, fr.id AS fee_reduction_id
     FROM invoice i
@@ -28,8 +28,8 @@ WHERE i.id = fi.invoice_id
 returning i.id, i.person_id, i.finance_client_id, i.feetype, i.reference, i.startdate, i.enddate, i.amount, i.supervisionlevel, i.confirmeddate, i.batchnumber, i.raiseddate, i.source, i.scheduledfn14date, i.cacheddebtamount, i.createddate, i.createdby_id, i.fee_reduction_id
 `
 
-func (q *Queries) AddFeeReductionToInvoice(ctx context.Context, id int32) ([]Invoice, error) {
-	rows, err := q.db.Query(ctx, addFeeReductionToInvoice, id)
+func (q *Queries) AddFeeReductionToInvoices(ctx context.Context, id int32) ([]Invoice, error) {
+	rows, err := q.db.Query(ctx, addFeeReductionToInvoices, id)
 	if err != nil {
 		return nil, err
 	}

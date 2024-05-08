@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
+	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -12,12 +12,12 @@ import (
 
 func TestAddFeeReductionSuccess(t *testing.T) {
 	form := url.Values{
-		"id":                {"1"},
-		"feeType":           {"remission"},
-		"startYear":         {"2025"},
-		"lengthOfAward":     {"3"},
-		"dateReceived":      {"15/02/2024"},
-		"feeReductionNotes": {"Fee remission note for one award"},
+		"id":            {"1"},
+		"feeType":       {"remission"},
+		"startYear":     {"2025"},
+		"lengthOfAward": {"3"},
+		"dateReceived":  {"15/02/2024"},
+		"notes":         {"Fee remission note for one award"},
 	}
 
 	client := mockApiClient{}
@@ -47,13 +47,13 @@ func TestAddFeeReductionValidationErrors(t *testing.T) {
 	client := &mockApiClient{}
 	ro := &mockRoute{client: client}
 
-	validationErrors := api.ValidationErrors{
+	validationErrors := shared.ValidationErrors{
 		"notes": {
 			"stringLengthTooLong": "Reason for manual credit must be 1000 characters or less",
 		},
 	}
 
-	client.error = api.ValidationError{
+	client.error = shared.ValidationError{
 		Errors: validationErrors,
 	}
 

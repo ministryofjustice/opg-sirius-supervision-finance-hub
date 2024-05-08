@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
@@ -11,48 +12,33 @@ import (
 	"time"
 )
 
-func (s *Service) AddFeeReduction(body shared.AddFeeReduction) (shared.ValidationError, error) {
+func (s *Service) AddFeeReduction(id int, data shared.AddFeeReduction) error {
 	ctx := context.Background()
 
-	checkForOverlappingFeeReductionParams := store.CheckForOverlappingFeeReductionParams{
-		ClientID:  int32(body.ClientId),
-		Startdate: calculateStartDate(body.StartYear),
-		Enddate:   calculateEndDate(body.StartYear, body.LengthOfAward),
+	countOverlappingFeeReductionParams := store.CountOverlappingFeeReductionParams{
+		ClientID:  int32(id),
+		Startdate: calculateFeeReductionStartDate(data.StartYear),
+		Enddate:   calculateFeeReductionEndDate(data.StartYear, data.LengthOfAward),
 	}
 
-	hasFeeReduction, err := s.Store.CheckForOverlappingFeeReduction(ctx, checkForOverlappingFeeReductionParams)
+	hasFeeReduction, err := s.Store.CountOverlappingFeeReduction(ctx, countOverlappingFeeReductionParams)
 	if hasFeeReduction == 1 {
-		var validationError shared.ValidationError
-		var validationErrors = make(shared.ValidationErrors)
-		if validationErrors["Overlap"] == nil {
-			validationErrors["Overlap"] = make(map[string]string)
-		}
-		validationErrors["Overlap"]["StartOrEndDate"] = "A fee reduction already exists for the period specified"
-		validationError.Message = "This has not worked"
-		validationError.Errors = validationErrors
-		return validationError, err
-	}
-
-	validationError := s.VError.ValidateStruct(body)
-
-	if len(validationError.Errors) > 0 {
-		return validationError, nil
+		return errors.New("overlap")
 	}
 
 	addFeeReductionQueryArgs := store.AddFeeReductionParams{
-		ClientID:     int32(body.ClientId),
-		Type:         strings.ToUpper(body.FeeType),
-		Evidencetype: pgtype.Text{},
-		Startdate:    calculateStartDate(body.StartYear),
-		Enddate:      calculateEndDate(body.StartYear, body.LengthOfAward),
-		Notes:        body.FeeReductionNotes,
+		ClientID:     int32(id),
+		Type:         strings.ToUpper(data.FeeType),
+		Startdate:    calculateFeeReductionStartDate(data.StartYear),
+		Enddate:      calculateFeeReductionEndDate(data.StartYear, data.LengthOfAward),
+		Notes:        data.Notes,
 		Deleted:      false,
-		Datereceived: pgtype.Date{Time: body.DateReceive.Time, Valid: true},
+		Datereceived: pgtype.Date{Time: data.DateReceived.Time, Valid: true},
 	}
 
 	tx, err := s.DB.Begin(ctx)
 	if err != nil {
-		return shared.ValidationError{}, err
+		return err
 	}
 
 	defer func() {
@@ -61,43 +47,46 @@ func (s *Service) AddFeeReduction(body shared.AddFeeReduction) (shared.Validatio
 		}
 	}()
 
+	transaction := s.Store.WithTx(tx)
+
 	var feeReduction store.FeeReduction
-	_, err = s.Store.AddFeeReduction(ctx, addFeeReductionQueryArgs)
+	feeReduction, err = transaction.AddFeeReduction(ctx, addFeeReductionQueryArgs)
 	if err != nil {
-		return shared.ValidationError{}, err
+		return err
 	}
 
 	var invoices []store.Invoice
-	invoices, err = s.Store.AddFeeReductionToInvoice(ctx, feeReduction.ID)
+	invoices, err = transaction.AddFeeReductionToInvoices(ctx, feeReduction.ID)
 	if err != nil {
-		return shared.ValidationError{}, err
+		return err
 	}
 
 	for _, invoice := range invoices {
 		var amount int32 = 0
-		switch body.FeeType {
+		switch data.FeeType {
 		case "exemption", "hardship":
 			amount = invoice.Amount
 		case "remission":
-			invoiceFeeRangeParams := store.GetInvoiceFeeRangersAmountParams{
+			invoiceFeeRangeParams := store.GetInvoiceFeeRangerAmountParams{
 				InvoiceID:        pgtype.Int4{Int32: invoice.ID, Valid: true},
 				Supervisionlevel: "GENERAL",
 			}
-			amount, _ = s.Store.GetInvoiceFeeRangersAmount(ctx, invoiceFeeRangeParams)
+			amount, _ = transaction.GetInvoiceFeeRangerAmount(ctx, invoiceFeeRangeParams)
 		}
 		ledgerQueryArgs := store.CreateLedgerForFeeReductionParams{
-			Method:          strings.ToUpper(string(body.FeeType[0])) + body.FeeType[1:] + " credit for invoice " + invoice.Reference,
+			Method:          strings.ToUpper(string(data.FeeType[0])) + data.FeeType[1:] + " credit for invoice " + invoice.Reference,
 			Amount:          amount,
-			Notes:           pgtype.Text{String: "Credit due to approved " + strings.ToUpper(string(body.FeeType[0])) + body.FeeType[1:]},
-			Type:            "CREDIT " + strings.ToUpper(body.FeeType),
+			Notes:           pgtype.Text{String: "Credit due to approved " + strings.ToUpper(string(data.FeeType[0])) + data.FeeType[1:]},
+			Type:            "CREDIT " + strings.ToUpper(data.FeeType),
 			FinanceClientID: pgtype.Int4{Int32: invoice.FinanceClientID.Int32, Valid: true},
 			FeeReductionID:  pgtype.Int4{Int32: invoice.FeeReductionID.Int32, Valid: true},
-			CreatedbyID:     pgtype.Int4{Int32: 1},
+			//TODO make sure we have correct createdby ID
+			CreatedbyID: pgtype.Int4{Int32: 1},
 		}
 		var ledger store.Ledger
-		ledger, err = s.Store.CreateLedgerForFeeReduction(ctx, ledgerQueryArgs)
+		ledger, err = transaction.CreateLedgerForFeeReduction(ctx, ledgerQueryArgs)
 		if err != nil {
-			return shared.ValidationError{}, err
+			return err
 		}
 
 		queryArgs := store.CreateLedgerAllocationForFeeReductionParams{
@@ -106,32 +95,31 @@ func (s *Service) AddFeeReduction(body shared.AddFeeReduction) (shared.Validatio
 			Amount:    ledger.Amount,
 		}
 
-		_, err = s.Store.CreateLedgerAllocationForFeeReduction(ctx, queryArgs)
+		_, err = transaction.CreateLedgerAllocationForFeeReduction(ctx, queryArgs)
 		if err != nil {
-			return shared.ValidationError{}, err
+			return err
 		}
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		return shared.ValidationError{}, err
+		return err
 	}
 
-	return shared.ValidationError{}, nil
+	return nil
 }
 
-func calculateEndDate(startYear string, lengthOfAward string) pgtype.Date {
+func calculateFeeReductionEndDate(startYear string, lengthOfAward int) pgtype.Date {
 	startYearTransformed, _ := strconv.Atoi(startYear)
-	lengthOfAwardTransformed, _ := strconv.Atoi(lengthOfAward)
 
-	endDate := startYearTransformed + lengthOfAwardTransformed
+	endDate := startYearTransformed + lengthOfAward
 	financeYearEnd := "-03-31"
 	feeReductionEndDateString := strconv.Itoa(endDate) + financeYearEnd
 	feeReductionEndDate, _ := time.Parse("2006-01-02", feeReductionEndDateString)
 	return pgtype.Date{Time: feeReductionEndDate, Valid: true}
 }
 
-func calculateStartDate(startYear string) pgtype.Date {
+func calculateFeeReductionStartDate(startYear string) pgtype.Date {
 	financeYearStart := "-04-01"
 	feeReductionStartDateString := startYear + financeYearStart
 	feeReductionStartDate, _ := time.Parse("2006-01-02", feeReductionStartDateString)

@@ -17,9 +17,9 @@ func TestAddFeeReduction(t *testing.T) {
 			"id":                "1",
 			"feeType":           "remission",
 			"startYear":         "2025",
-			"lengthOfAward":     "3",
+			"lengthOfAward":     3,
 			"dateReceived":      "15/02/2024",
-			"feeReductionNotes": "Fee remission note for one award",
+			"notes": "Fee remission note for one award",
         }`
 
 	r := io.NopCloser(bytes.NewReader([]byte(json)))
@@ -42,13 +42,13 @@ func TestAddFeeReduction(t *testing.T) {
 //	}))
 //	defer svr.Close()
 //
-//	client, _ := NewApiClient(http.DefaultClient, svr.URL, "/api/v1/fee-reductions", logger)
+//	client, _ := NewApiClient(http.DefaultClient, svr.URL, "", logger)
 //
 //	err := client.AddFeeReduction(getContext(nil), 1, "remission", "2025", "3", "15/02/2024", "Fee remission note for one award")
 //
-//	assert.Equal(t, ErrUnauthorized, err.Error())
+//	assert.Equal(t, shared.ErrUnauthorized, err.Error())
 //}
-//
+
 //func TestFeeReductionReturns500Error(t *testing.T) {
 //	logger, _ := SetUpTest()
 //	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -59,9 +59,9 @@ func TestAddFeeReduction(t *testing.T) {
 //	client, _ := NewApiClient(http.DefaultClient, svr.URL, "", logger)
 //
 //	err := client.AddFeeReduction(getContext(nil), 1, "remission", "2025", "3", "15/02/2024", "Fee remission note for one award")
-//	assert.Equal(t, StatusError{
+//	assert.Equal(t, shared.StatusError{
 //		Code:   http.StatusInternalServerError,
-//		URL:    svr.URL + "/api/v1/invoices/4/ledger-entries",
+//		URL:    svr.URL + "/clients/1/fee-reductions",
 //		Method: http.MethodPost,
 //	}, err)
 //}

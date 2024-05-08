@@ -45,8 +45,7 @@ func (v *Validate) ValidateStruct(s interface{}) shared.ValidationError {
 
 		// Construct ValidationError
 		return shared.ValidationError{
-			Message: "Validation error",
-			Errors:  validationErrors,
+			Errors: validationErrors,
 		}
 	}
 
