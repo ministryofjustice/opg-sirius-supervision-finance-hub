@@ -51,7 +51,7 @@ func TestGetPersonDetailsReturnsUnauthorisedClientError(t *testing.T) {
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, "", logger)
 	_, err := client.GetPersonDetails(getContext(nil), 2)
-	assert.Equal(t, ErrUnauthorized, err)
+	assert.Equal(t, shared.ErrUnauthorized, err)
 }
 
 func TestPersonDetailsReturns500Error(t *testing.T) {
@@ -64,7 +64,7 @@ func TestPersonDetailsReturns500Error(t *testing.T) {
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, "", logger)
 
 	_, err := client.GetPersonDetails(getContext(nil), 1)
-	assert.Equal(t, StatusError{
+	assert.Equal(t, shared.StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/api/v1/clients/1",
 		Method: http.MethodGet,

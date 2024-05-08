@@ -1,6 +1,8 @@
 package util
 
-import "github.com/opg-sirius-finance-hub/finance-hub/internal/api"
+import (
+	"github.com/opg-sirius-finance-hub/shared"
+)
 
 type pair struct {
 	k string
@@ -27,22 +29,24 @@ var validationMappings = map[string]map[string]pair{
 	},
 	"LengthOfAward": {
 		"required": pair{"LengthOfAward", "Confirm if an extended award is being given"},
+		"lte":      pair{"LengthOfAward", "Award length is over 3 years"},
+		"gte":      pair{"LengthOfAward", "Award length is under 1 year"},
 	},
-	"DateReceive": {
-		"required":         pair{"DateReceive", "Enter the date received"},
-		"date-in-the-past": pair{"DateReceive", "Date received must be in the past"},
+	"DateReceived": {
+		"required":         pair{"DateReceived", "Enter the date received"},
+		"date-in-the-past": pair{"DateReceived", "Date received must be in the past"},
 	},
-	"FeeReductionNotes": {
-		"required":                 pair{"FeeReductionNotes", "Enter a reason for awarding fee reduction"},
-		"thousand-character-limit": pair{"FeeReductionNotes", "Reason for awarding fee reduction must be 1000 characters or less"},
+	"Notes": {
+		"required":                 pair{"Notes", "Enter a reason for awarding fee reduction"},
+		"thousand-character-limit": pair{"Notes", "Reason for awarding fee reduction must be 1000 characters or less"},
 	},
 	"Overlap": {
 		"StartOrEndDate": pair{"StartOrEndDate", "A fee reduction already exists for the period specified"},
 	},
 }
 
-func RenameErrors(siriusError api.ValidationErrors) api.ValidationErrors {
-	mappedErrors := api.ValidationErrors{}
+func RenameErrors(siriusError shared.ValidationErrors) shared.ValidationErrors {
+	mappedErrors := shared.ValidationErrors{}
 	for fieldName, value := range siriusError {
 		for errorType, errorMessage := range value {
 			err := make(map[string]string)

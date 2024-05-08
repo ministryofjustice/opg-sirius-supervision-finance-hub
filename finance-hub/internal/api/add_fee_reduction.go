@@ -6,20 +6,21 @@ import (
 	"fmt"
 	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
+	"strconv"
 	"time"
 )
 
-func (c *ApiClient) AddFeeReduction(ctx Context, clientId int, feeType string, startYear string, lengthOfAward string, dateReceived string, feeReductionNotes string) error {
+func (c *ApiClient) AddFeeReduction(ctx Context, clientId int, feeType string, startYear string, lengthOfAward string, dateReceived string, notes string) error {
 	var body bytes.Buffer
 
 	dateReceivedTransformed, _ := time.Parse("2006-01-02", dateReceived)
+	lengthOfAwardTransformed, _ := strconv.Atoi(lengthOfAward)
 	err := json.NewEncoder(&body).Encode(shared.AddFeeReduction{
-		ClientId:          clientId,
-		FeeType:           feeType,
-		StartYear:         startYear,
-		LengthOfAward:     lengthOfAward,
-		DateReceive:       shared.Date{Time: dateReceivedTransformed},
-		FeeReductionNotes: feeReductionNotes,
+		FeeType:       feeType,
+		StartYear:     startYear,
+		LengthOfAward: lengthOfAwardTransformed,
+		DateReceived:  shared.Date{Time: dateReceivedTransformed},
+		Notes:         notes,
 	})
 	if err != nil {
 		return err
@@ -38,17 +39,25 @@ func (c *ApiClient) AddFeeReduction(ctx Context, clientId int, feeType string, s
 		return err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusCreated {
+		return nil
+	}
+
 	if resp.StatusCode == http.StatusUnauthorized {
-		return ErrUnauthorized
+		return shared.ErrUnauthorized
 	}
 
-	if resp.StatusCode != http.StatusCreated {
-		var v ValidationError
+	if resp.StatusCode == http.StatusUnprocessableEntity {
+		var v shared.ValidationError
 		if err := json.NewDecoder(resp.Body).Decode(&v); err == nil && len(v.Errors) > 0 {
-			return ValidationError{Errors: v.Errors}
+			return shared.ValidationError{Errors: v.Errors}
 		}
-		return newStatusError(resp)
 	}
 
-	return nil
+	if resp.StatusCode == http.StatusBadRequest {
+		return shared.ValidationError{Errors: shared.ValidationErrors{"Overlap": {"StartOrEndDate": ""}}}
+	}
+
+	return shared.NewStatusError(resp)
 }

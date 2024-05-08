@@ -59,8 +59,8 @@ func main() {
 	logger := zap.Must(zap.NewProduction(zap.Fields(zap.String("service_name", "opg-sirius-finance-api")))).Sugar()
 
 	vError := validation.New()
-	vError.RegisterValidation("thousand-character-limit", vError.ValidateThousandCharacterCount)
-	vError.RegisterValidation("date-in-the-past", vError.ValidateDateInThePast)
+	//vError.RegisterValidation("thousand-character-limit", vError.ValidateThousandCharacterCount)
+	//vError.RegisterValidation("date-in-the-past", vError.ValidateDateInThePast)
 
 	defer func() { _ = logger.Sync() }()
 
@@ -83,8 +83,8 @@ func main() {
 	defer conn.Close(ctx)
 
 	Store := store.New(conn)
-	Service := service.Service{DB: conn, Store: Store, VError: vError}
-	server := api.Server{Logger: logger, Service: &Service}
+	Service := service.Service{DB: conn, Store: Store}
+	server := api.Server{Logger: logger, Service: &Service, Validator: vError}
 
 	server.SetupRoutes()
 

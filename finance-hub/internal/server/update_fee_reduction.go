@@ -5,8 +5,8 @@ import (
 )
 
 type UpdateFeeReductions struct {
-	FormValues FormValues
-	ClientId   string
+	FeeReductionFormValues FeeReductionFormValues
+	ClientId               string
 	AppVars
 }
 
@@ -16,7 +16,7 @@ type UpdateFeeReductionHandler struct {
 
 func (h *UpdateFeeReductionHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
 
-	data := UpdateFeeReductions{FormValues{}, r.PathValue("id"), v}
+	data := UpdateFeeReductions{FeeReductionFormValues{}, r.PathValue("id"), v}
 
 	return h.execute(w, r, data)
 }

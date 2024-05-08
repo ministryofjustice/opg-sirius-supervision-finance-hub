@@ -12,7 +12,7 @@ select la.id, la.amount, la.datetime, l.bankdate, l.type from ledger_allocation 
 -- name: GetSupervisionLevels :many
 select supervisionlevel, fromdate, todate, amount from invoice_fee_range where invoice_id = $1 order by todate desc;
 
--- name: AddFeeReductionToInvoice :many
+-- name: AddFeeReductionToInvoices :many
 WITH filtered_invoices AS (
     SELECT i.id AS invoice_id, fr.id AS fee_reduction_id
     FROM invoice i

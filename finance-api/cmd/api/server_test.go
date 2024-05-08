@@ -7,12 +7,14 @@ type mockService struct {
 	invoices           *shared.Invoices
 	feeReductions      *shared.FeeReductions
 	invoiceAdjustments *shared.InvoiceAdjustments
+	feeReduction       *shared.AddFeeReduction
 	expectedId         int
 	err                error
 }
 
-func (s *mockService) AddFeeReduction(body shared.AddFeeReduction) (shared.ValidationError, error) {
-	return shared.ValidationError{}, nil
+func (s *mockService) AddFeeReduction(id int, feeReduction shared.AddFeeReduction) error {
+	s.expectedId = id
+	return nil
 }
 
 func (s *mockService) GetAccountInformation(id int) (*shared.AccountInformation, error) {
