@@ -58,9 +58,10 @@ func initTracerProvider(ctx context.Context, logger *zap.SugaredLogger) func() {
 func main() {
 	logger := zap.Must(zap.NewProduction(zap.Fields(zap.String("service_name", "opg-sirius-finance-api")))).Sugar()
 
-	vError := validation.New()
-	vError.RegisterValidation("thousand-character-limit", vError.ValidateThousandCharacterCount)
-	vError.RegisterValidation("date-in-the-past", vError.ValidateDateInThePast)
+	validator, err := validation.New()
+	if err != nil {
+		logger.Fatal(err)
+	}
 
 	defer func() { _ = logger.Sync() }()
 
@@ -84,7 +85,7 @@ func main() {
 
 	Store := store.New(conn)
 	Service := service.Service{DB: conn, Store: Store}
-	server := api.Server{Logger: logger, Service: &Service, Validator: vError}
+	server := api.Server{Logger: logger, Service: &Service, Validator: validator}
 
 	server.SetupRoutes()
 

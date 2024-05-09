@@ -12,17 +12,19 @@ type Validate struct {
 	validator *validator.Validate
 }
 
-func New() *Validate {
-	return &Validate{
-		validator: validator.New(),
-	}
-}
-
-func (v *Validate) RegisterValidation(tag string, fn validator.Func) {
-	err := v.validator.RegisterValidation(tag, fn)
+func New() (*Validate, error) {
+	v := validator.New()
+	err := v.RegisterValidation("thousand-character-limit", ValidateThousandCharacterCount)
 	if err != nil {
-		return
+		return nil, err
 	}
+	_ = v.RegisterValidation("date-in-the-past", ValidateDateInThePast)
+	if err != nil {
+		return nil, err
+	}
+	return &Validate{
+		validator: v,
+	}, nil
 }
 
 func (v *Validate) ValidateStruct(s interface{}) shared.ValidationError {
@@ -53,15 +55,20 @@ func (v *Validate) ValidateStruct(s interface{}) shared.ValidationError {
 	return shared.ValidationError{}
 }
 
-func (v *Validate) ValidateThousandCharacterCount(fl validator.FieldLevel) bool {
+func ValidateThousandCharacterCount(fl validator.FieldLevel) bool {
 	return len(fl.Field().String()) < 1001
 }
 
-func (v *Validate) ValidateDateInThePast(fl validator.FieldLevel) bool {
-	r := fl.Field().Interface().(shared.Date).String() // Get the string value of the field
+func ValidateDateInThePast(fl validator.FieldLevel) bool {
+	d := fl.Field().Interface().(shared.Date)
+	if d.IsNull() {
+		return true
+	}
+	r := d.String() // Get the string value of the field
 	if r == "" {
 		return false // Field is empty, consider it invalid
 	}
+
 	parsedDate, err := time.Parse("02/01/2006", r)
 	if err != nil {
 		return false // Error parsing date, consider it invalid
