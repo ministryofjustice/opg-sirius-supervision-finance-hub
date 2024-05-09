@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"github.com/opg-sirius-finance-hub/shared"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -44,7 +45,7 @@ func TestUpdateInvoiceUnauthorised(t *testing.T) {
 
 	err := client.UpdateInvoice(getContext(nil), 2, 4, "writeOff", "notes here", "100")
 
-	assert.Equal(t, ErrUnauthorized, err)
+	assert.Equal(t, shared.ErrUnauthorized, err)
 }
 
 func TestUpdateInvoiceReturns500Error(t *testing.T) {
@@ -57,7 +58,7 @@ func TestUpdateInvoiceReturns500Error(t *testing.T) {
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, "", logger)
 
 	err := client.UpdateInvoice(getContext(nil), 2, 4, "writeOff", "notes here", "100")
-	assert.Equal(t, StatusError{
+	assert.Equal(t, shared.StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/api/v1/invoices/4/ledger-entries",
 		Method: http.MethodPost,

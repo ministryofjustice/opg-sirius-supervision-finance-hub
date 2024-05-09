@@ -1,13 +1,21 @@
 package api
 
-import "github.com/opg-sirius-finance-hub/shared"
+import (
+	"github.com/opg-sirius-finance-hub/shared"
+)
 
 type mockService struct {
 	accountInfo   *shared.AccountInformation
 	invoices      *shared.Invoices
 	feeReductions *shared.FeeReductions
+	feeReduction  *shared.AddFeeReduction
 	expectedId    int
 	err           error
+}
+
+func (s *mockService) AddFeeReduction(id int, feeReduction shared.AddFeeReduction) error {
+	s.expectedId = id
+	return s.err
 }
 
 func (s *mockService) GetAccountInformation(id int) (*shared.AccountInformation, error) {

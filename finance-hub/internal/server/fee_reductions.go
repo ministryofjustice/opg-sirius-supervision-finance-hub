@@ -5,6 +5,7 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"net/http"
+	"strconv"
 )
 
 type FeeReductions []FeeReduction
@@ -20,6 +21,7 @@ type FeeReduction struct {
 
 type FeeReductionsTab struct {
 	FeeReductions FeeReductions
+	ClientId      string
 	AppVars
 }
 
@@ -35,7 +37,7 @@ func (h *FeeReductionsHandler) render(v AppVars, w http.ResponseWriter, r *http.
 		return err
 	}
 
-	data := &FeeReductionsTab{h.transform(feeReductions), v}
+	data := &FeeReductionsTab{h.transform(feeReductions), strconv.Itoa(ctx.ClientId), v}
 	data.selectTab("fee-reductions")
 	return h.execute(w, r, data)
 }

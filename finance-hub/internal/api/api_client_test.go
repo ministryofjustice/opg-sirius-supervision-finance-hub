@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"github.com/ministryofjustice/opg-go-common/logging"
+	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
 	"os"
 	"testing"
@@ -32,11 +33,7 @@ func getContext(cookies []*http.Cookie) Context {
 }
 
 func TestClientError(t *testing.T) {
-	assert.Equal(t, "message", ClientError("message").Error())
-}
-
-func TestValidationError(t *testing.T) {
-	assert.Equal(t, "message", ValidationError{Message: "message"}.Error())
+	assert.Equal(t, "message", shared.ClientError("message").Error())
 }
 
 func TestStatusError(t *testing.T) {
@@ -47,7 +44,7 @@ func TestStatusError(t *testing.T) {
 		Request:    req,
 	}
 
-	err := newStatusError(resp)
+	err := shared.NewStatusError(resp)
 
 	assert.Equal(t, "POST /some/url returned 418", err.Error())
 	assert.Equal(t, "unexpected response from Sirius", err.Title())
