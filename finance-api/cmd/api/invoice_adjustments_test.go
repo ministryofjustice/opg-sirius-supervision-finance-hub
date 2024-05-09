@@ -23,7 +23,7 @@ func TestServer_getInvoiceAdjustments(t *testing.T) {
 			Id:             1,
 			InvoiceRef:     "abc123/24",
 			RaisedDate:     shared.Date{Time: date},
-			AdjustmentType: "CREDIT MEMO",
+			AdjustmentType: shared.AdjustmentTypeAddCredit,
 			Amount:         123400,
 			Status:         "PENDING",
 			Notes:          "Credit memo for invoice",
@@ -38,7 +38,7 @@ func TestServer_getInvoiceAdjustments(t *testing.T) {
 	defer res.Body.Close()
 	data, _ := io.ReadAll(res.Body)
 
-	expected := `[{"id":1,"invoiceRef":"abc123/24","raisedDate":"16\/03\/2020","adjustmentType":"CREDIT MEMO","amount":123400,"status":"PENDING","notes":"Credit memo for invoice"}]`
+	expected := `[{"id":1,"invoiceRef":"abc123/24","raisedDate":"16\/03\/2020","adjustmentType":"CREDIT_MEMO","amount":123400,"status":"PENDING","notes":"Credit memo for invoice"}]`
 
 	assert.Equal(t, expected, string(data))
 	assert.Equal(t, 1, mock.expectedId)

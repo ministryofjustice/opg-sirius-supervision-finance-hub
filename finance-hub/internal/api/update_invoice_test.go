@@ -15,7 +15,7 @@ func TestUpdateInvoice(t *testing.T) {
 	client, _ := NewApiClient(mockClient, "http://localhost:3000", "", logger)
 
 	json := `{
-            "invoiceType": "writeOff",
+            "adjustmentType": "credit write off",
             "notes": "notes here",
 			"amount": "100"
         }`
@@ -29,7 +29,7 @@ func TestUpdateInvoice(t *testing.T) {
 		}, nil
 	}
 
-	err := client.UpdateInvoice(getContext(nil), 2, 4, "writeOff", "notes here", "100")
+	err := client.UpdateInvoice(getContext(nil), 2, 4, "credit write off", "notes here", "100")
 	assert.Equal(t, nil, err)
 }
 
@@ -42,7 +42,7 @@ func TestUpdateInvoiceUnauthorised(t *testing.T) {
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, "", logger)
 
-	err := client.UpdateInvoice(getContext(nil), 2, 4, "writeOff", "notes here", "100")
+	err := client.UpdateInvoice(getContext(nil), 2, 4, "credit write off", "notes here", "100")
 
 	assert.Equal(t, ErrUnauthorized, err)
 }
@@ -56,7 +56,7 @@ func TestUpdateInvoiceReturns500Error(t *testing.T) {
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, "", logger)
 
-	err := client.UpdateInvoice(getContext(nil), 2, 4, "writeOff", "notes here", "100")
+	err := client.UpdateInvoice(getContext(nil), 2, 4, "credit write off", "notes here", "100")
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/api/v1/invoices/4/ledger-entries",

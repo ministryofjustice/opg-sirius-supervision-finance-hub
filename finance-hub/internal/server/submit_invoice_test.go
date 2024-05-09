@@ -12,10 +12,10 @@ import (
 
 func TestSubmitInvoiceSuccess(t *testing.T) {
 	form := url.Values{
-		"id":          {"1"},
-		"invoiceType": {"writeOff"},
-		"notes":       {"This is a note"},
-		"amount":      {"100"},
+		"id":             {"1"},
+		"adjustmentType": {"credit write off"},
+		"notes":          {"This is a note"},
+		"amount":         {"100"},
 	}
 
 	client := mockApiClient{}
@@ -37,15 +37,15 @@ func TestSubmitInvoiceSuccess(t *testing.T) {
 	err := sut.render(appVars, w, r)
 
 	assert.Nil(t, err)
-	assert.Equal(t, "prefix/clients/1/invoices?success=writeOff", w.Header().Get("HX-Redirect"))
+	assert.Equal(t, "prefix/clients/1/invoices?success=credit write off", w.Header().Get("HX-Redirect"))
 }
 
 func TestSubmitInvoiceError(t *testing.T) {
 	form := url.Values{
-		"id":          {"1"},
-		"invoiceType": {"writeOff"},
-		"notes":       {"This is a note"},
-		"amount":      {"100"},
+		"id":             {"1"},
+		"adjustmentType": {"credit write off"},
+		"notes":          {"This is a note"},
+		"amount":         {"100"},
 	}
 
 	client := mockApiClient{}
@@ -66,7 +66,7 @@ func TestSubmitInvoiceError(t *testing.T) {
 
 	err := sut.render(appVars, w, r)
 	assert.Nil(t, err)
-	assert.Equal(t, "prefix/clients/1/invoices?success=writeOff", w.Header().Get("HX-Redirect"))
+	assert.Equal(t, "prefix/clients/1/invoices?success=credit write off", w.Header().Get("HX-Redirect"))
 }
 
 func TestAddTaskValidationErrors(t *testing.T) {
