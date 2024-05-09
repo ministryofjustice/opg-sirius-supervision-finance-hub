@@ -34,7 +34,7 @@ var validationMappings = map[string]map[string]pair{
 	},
 	"DateReceived": {
 		"required":         pair{"DateReceived", "Enter the date received"},
-		"date-in-the-past": pair{"DateReceived", "Date received must be in the past"},
+		"date-in-the-past": pair{"DateReceived", "Date received must be today or in the past"},
 	},
 	"Notes": {
 		"required":                 pair{"Notes", "Enter a reason for awarding fee reduction"},

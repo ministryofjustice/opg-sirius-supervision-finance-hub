@@ -71,7 +71,7 @@ func TestServer_addFeeReductionsValidationErrors(t *testing.T) {
 	data, _ := io.ReadAll(res.Body)
 
 	expected := `
-{"Message":"","validation_errors":{"FeeType":{"required":"This field FeeType needs to be looked at required"},"LengthOfAward":{"required":"This field LengthOfAward needs to be looked at required"},"Notes":{"required":"This field Notes needs to be looked at required"},"StartYear":{"required":"This field StartYear needs to be looked at required"}}}`
+{"Message":"","validation_errors":{"DateReceived":{"date-in-the-past":"This field DateReceived needs to be looked at date-in-the-past"},"FeeType":{"required":"This field FeeType needs to be looked at required"},"LengthOfAward":{"required":"This field LengthOfAward needs to be looked at required"},"Notes":{"required":"This field Notes needs to be looked at required"},"StartYear":{"required":"This field StartYear needs to be looked at required"}}}`
 
 	assert.Equal(t, expected, string(data))
 	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)

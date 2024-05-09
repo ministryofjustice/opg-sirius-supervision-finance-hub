@@ -7,8 +7,11 @@ import (
 	"time"
 )
 
-type test struct {
-	Notes        string      `json:"notes" validate:"thousand-character-limit"`
+type notesTest struct {
+	Notes string `json:"notes" validate:"thousand-character-limit"`
+}
+
+type DateTest struct {
 	DateReceived shared.Date `json:"dateReceived" validate:"date-in-the-past"`
 }
 
@@ -24,26 +27,26 @@ func TestValidate_ValidateStruct(t *testing.T) {
 	}{
 		{
 			name:     "Count out of range of thousand",
-			args:     test{Notes: string(bytes.Repeat([]byte{byte('a')}, 1001))},
+			args:     notesTest{Notes: string(bytes.Repeat([]byte{byte('a')}, 1001))},
 			expected: 1,
 			key:      "Notes",
 			want:     "thousand-character-limit",
 		},
 		{
 			name:     "Count in range of thousand",
-			args:     test{Notes: string(bytes.Repeat([]byte{byte('a')}, 1000))},
+			args:     notesTest{Notes: string(bytes.Repeat([]byte{byte('a')}, 1000))},
 			expected: 0,
 		},
 		{
 			name:     "Date is not in the past",
-			args:     test{DateReceived: shared.Date{Time: dateInFuture}},
+			args:     DateTest{DateReceived: shared.Date{Time: dateInFuture}},
 			expected: 1,
 			key:      "DateReceived",
 			want:     "date-in-the-past",
 		},
 		{
 			name:     "Date is in the past or today",
-			args:     test{DateReceived: shared.Date{Time: time.Now()}},
+			args:     DateTest{DateReceived: shared.Date{Time: time.Now()}},
 			expected: 0,
 		},
 	}
