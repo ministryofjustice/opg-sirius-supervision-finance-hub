@@ -68,6 +68,7 @@ type Invoice struct {
 	Cacheddebtamount pgtype.Int4
 	Createddate      pgtype.Date
 	CreatedbyID      pgtype.Int4
+	FeeReductionID   pgtype.Int4
 }
 
 type InvoiceEmailStatus struct {
