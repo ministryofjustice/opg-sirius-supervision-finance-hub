@@ -61,9 +61,6 @@ func ValidateThousandCharacterCount(fl validator.FieldLevel) bool {
 
 func ValidateDateInThePast(fl validator.FieldLevel) bool {
 	d := fl.Field().Interface().(shared.Date)
-	if d.IsNull() {
-		return true
-	}
 	r := d.String() // Get the string value of the field
 	if r == "" {
 		return false // Field is empty, consider it invalid
