@@ -79,15 +79,18 @@
                   </thead>
                   <tbody class="govuk-table__body">
                   {{ $length := len .Ledgers }}
-                  <tr class="govuk-table__row">
                   {{ if eq $length 0 }}
+                  <tr class="govuk-table__row">
                     <td data-cy="no-ledgers" class="govuk-table__cell">There are no invoice ledger allocations for this invoice</td>
+                  </tr>
                   {{ else }}
                   {{ range .Ledgers }}
+                  <tr class="govuk-table__row">
                     <td class="govuk-table__cell" data-cy="ledger-amount-data">£{{ .Amount }}</td>
                     <td class="govuk-table__cell" data-cy="ledger-received-date-data">{{ .ReceivedDate }}</td>
                     <td class="govuk-table__cell" data-cy="ledger-transaction-type-data">{{ .TransactionType}}</td>
                     <td class="govuk-table__cell" data-cy="ledger-status-data">{{ .Status }}</td>
+                  </tr>
                   {{ end }}
                   </tbody>
                 </table>
