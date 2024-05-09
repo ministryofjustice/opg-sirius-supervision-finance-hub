@@ -8,17 +8,17 @@ import (
 )
 
 type updateInvoice struct {
-	InvoiceType string `json:"invoiceType"`
-	Notes       string `json:"notes"`
-	Amount      string `json:"amount"`
+	AdjustmentType string `json:"adjustmentType"`
+	Notes          string `json:"notes"`
+	Amount         string `json:"amount"`
 }
 
-func (c *ApiClient) UpdateInvoice(ctx Context, clientId int, invoiceId int, invoiceType string, notes string, amount string) error {
+func (c *ApiClient) UpdateInvoice(ctx Context, clientId int, invoiceId int, adjustmentType string, notes string, amount string) error {
 	var body bytes.Buffer
 	err := json.NewEncoder(&body).Encode(updateInvoice{
-		InvoiceType: invoiceType,
-		Notes:       notes,
-		Amount:      amount,
+		AdjustmentType: adjustmentType,
+		Notes:          notes,
+		Amount:         amount,
 	})
 	if err != nil {
 		return err

@@ -94,7 +94,7 @@ func (r route) execute(w http.ResponseWriter, req *http.Request, data any) error
 
 func (r route) getSuccess(req *http.Request) string {
 	switch req.URL.Query().Get("success") {
-	case "writeOff":
+	case "CREDIT WRITE OFF":
 		return "The write off is now waiting for approval"
 	}
 	return ""

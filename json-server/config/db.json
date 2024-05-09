@@ -71,25 +71,53 @@
   ],
   "ledger-entries": [
     {
-      "invoiceType": "writeOff",
+      "adjustmentType": "credit write off",
       "notes": "",
       "amount": "",
       "invoiceId": "1",
       "id": 1
     },
     {
-      "invoiceType": "writeOff",
+      "adjustmentType": "credit write off",
       "notes": "",
       "amount": "",
       "invoiceId": "1",
       "id": 2
+    },
+    {
+      "adjustmentType": "CREDIT WRITE OFF",
+      "notes": "",
+      "amount": "",
+      "invoiceId": "1",
+      "id": 3
+    },
+    {
+      "adjustmentType": "CREDIT WRITE OFF",
+      "notes": "",
+      "amount": "",
+      "invoiceId": "1",
+      "id": 4
+    },
+    {
+      "adjustmentType": "",
+      "notes": "",
+      "amount": "",
+      "invoiceId": "1",
+      "id": 5
+    },
+    {
+      "adjustmentType": "CREDIT WRITE OFF",
+      "notes": "",
+      "amount": "",
+      "invoiceId": "1",
+      "id": 6
     }
   ],
   "errors": [
     {
       "id": "notesError",
       "validation_errors": {
-        "invoiceType": {
+        "adjustmentType": {
           "": "Select the invoice type"
         },
         "notes": {
