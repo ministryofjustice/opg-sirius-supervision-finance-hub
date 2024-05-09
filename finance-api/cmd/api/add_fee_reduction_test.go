@@ -157,7 +157,7 @@ func TestServer_addFeeReductionsOverlapError(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
-func TestServer_addFeeReductions500rror(t *testing.T) {
+func TestServer_addFeeReductions500Error(t *testing.T) {
 	var b bytes.Buffer
 	dateString := "2020-03-16"
 	date, _ := time.Parse("2006-01-02", dateString)

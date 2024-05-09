@@ -1,6 +1,7 @@
 package util
 
 import (
+	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

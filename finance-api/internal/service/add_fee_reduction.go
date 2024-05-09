@@ -21,7 +21,7 @@ func (s *Service) AddFeeReduction(id int, data shared.AddFeeReduction) error {
 		Enddate:   calculateFeeReductionEndDate(data.StartYear, data.LengthOfAward),
 	}
 
-	hasFeeReduction, err := s.Store.CountOverlappingFeeReduction(ctx, countOverlappingFeeReductionParams)
+	hasFeeReduction, _ := s.Store.CountOverlappingFeeReduction(ctx, countOverlappingFeeReductionParams)
 	if hasFeeReduction == 1 {
 		return errors.New("overlap")
 	}
