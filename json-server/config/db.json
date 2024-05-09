@@ -71,14 +71,14 @@
   ],
   "ledger-entries": [
     {
-      "invoiceType": "writeOff",
+      "adjustmentType": "writeOff",
       "notes": "",
       "amount": "",
       "invoiceId": "1",
       "id": 1
     },
     {
-      "invoiceType": "writeOff",
+      "adjustmentType": "writeOff",
       "notes": "",
       "amount": "",
       "invoiceId": "1",
@@ -89,7 +89,7 @@
     {
       "id": "notesError",
       "validation_errors": {
-        "invoiceType": {
+        "adjustmentType": {
           "": "Select the invoice type"
         },
         "notes": {

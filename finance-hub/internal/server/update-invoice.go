@@ -6,9 +6,9 @@ import (
 )
 
 type UpdateInvoices struct {
-	InvoiceTypes []shared.InvoiceType
-	ClientId     string
-	InvoiceId    string
+	AdjustmentTypes []shared.AdjustmentType
+	ClientId        string
+	InvoiceId       string
 	AppVars
 }
 
@@ -18,7 +18,7 @@ type UpdateInvoiceHandler struct {
 
 func (h *UpdateInvoiceHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
 
-	data := UpdateInvoices{shared.InvoiceTypes, r.PathValue("id"), r.PathValue("invoiceId"), v}
+	data := UpdateInvoices{shared.AdjustmentTypes, r.PathValue("id"), r.PathValue("invoiceId"), v}
 
 	return h.execute(w, r, data)
 }

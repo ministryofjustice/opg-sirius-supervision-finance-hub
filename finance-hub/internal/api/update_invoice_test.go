@@ -15,7 +15,7 @@ func TestUpdateInvoice(t *testing.T) {
 	client, _ := NewApiClient(mockClient, "http://localhost:3000", "", logger)
 
 	json := `{
-            "invoiceType": "writeOff",
+            "adjustmentType": "writeOff",
             "notes": "notes here",
 			"amount": "100"
         }`
