@@ -4,7 +4,7 @@ describe("Add fee reduction form", () => {
         cy.visit("/clients/1/fee-reductions/add");
         cy.get('.govuk-button').click()
         cy.get('.govuk-error-summary').contains("Enter a reason for awarding fee reduction")
-        cy.get(".govuk-form-group--error").should('have.length', 4)
+        cy.get(".govuk-form-group--error").should('have.length', 5)
     });
 
     it("shows correct success message", () => {
