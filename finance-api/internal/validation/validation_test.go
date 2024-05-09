@@ -1,147 +1,67 @@
 package validation
 
 import (
-	"github.com/go-playground/validator/v10"
+	"bytes"
+	"github.com/opg-sirius-finance-hub/shared"
 	"testing"
+	"time"
 )
 
-func TestNew(t *testing.T) {
+type test struct {
+	Notes        string      `json:"notes" validate:"thousand-character-limit"`
+	DateReceived shared.Date `json:"dateReceived" validate:"date-in-the-past"`
+}
+
+func TestValidate_ValidateStruct(t *testing.T) {
+	validator, _ := New()
+	dateInFuture := time.Now().AddDate(0, 0, 1)
 	tests := []struct {
-		name string
-		want *Validate
+		name     string
+		args     interface{}
+		expected int
+		key      string
+		want     string
 	}{
 		{
-			name: "can create a new validator",
-			want: New(),
+			name:     "Count out of range of thousand",
+			args:     test{Notes: string(bytes.Repeat([]byte{byte('a')}, 1001))},
+			expected: 1,
+			key:      "Notes",
+			want:     "thousand-character-limit",
+		},
+		{
+			name:     "Count in range of thousand",
+			args:     test{Notes: string(bytes.Repeat([]byte{byte('a')}, 1000))},
+			expected: 0,
+		},
+		{
+			name:     "Date is not in the past",
+			args:     test{DateReceived: shared.Date{Time: dateInFuture}},
+			expected: 1,
+			key:      "DateReceived",
+			want:     "date-in-the-past",
+		},
+		{
+			name:     "Date is in the past or today",
+			args:     test{DateReceived: shared.Date{Time: time.Now()}},
+			expected: 0,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := New()
-			if got.validator == nil {
-				t.Errorf("New() = %v, validator is nil", got)
+			got := validator.ValidateStruct(tt.args)
+			if len(got.Errors) != tt.expected {
+				t.Errorf("ValidateStruct() = count %v, want %v", len(got.Errors), tt.expected)
+			}
+			for k1, value := range got.Errors {
+				if k1 == tt.key {
+					for k2 := range value {
+						if k2 != tt.want {
+							t.Errorf("ValidateStruct() = %v, want %v", got.Errors[tt.key], tt.want)
+						}
+					}
+				}
 			}
 		})
 	}
 }
-
-func TestValidate_RegisterValidation(t *testing.T) {
-	type fields struct {
-		validator *validator.Validate
-	}
-	type args struct {
-		tag string
-		fn  validator.Func
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-	}{
-		{
-			name: "Register new validation",
-			fields: fields{
-				validator: validator.New(),
-			},
-			args: args{
-				tag: "customTag",
-				fn: func(fl validator.FieldLevel) bool {
-					return fl.Field().String() == "valid"
-				},
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			v := &Validate{
-				validator: tt.fields.validator,
-			}
-			v.RegisterValidation(tt.args.tag, tt.args.fn)
-		})
-	}
-}
-
-//func TestValidate_ValidateDateInThePast(t *testing.T) {
-//	type fields struct {
-//		validator *validator.Validate
-//	}
-//	type args struct {
-//		fl validator.FieldLevel
-//	}
-//	tests := []struct {
-//		name   string
-//		fields fields
-//		args   args
-//		want   bool
-//	}{
-//		{
-//			name:   "The date is in the past",
-//			fields: fields{validator: validator.New()},
-//			args:   args{fl: validator.},
-//		},
-//	}
-//	for _, tt := range tests {
-//		t.Run(tt.name, func(t *testing.T) {
-//			v := &Validate{
-//				validator: tt.fields.validator,
-//			}
-//			if got := v.ValidateDateInThePast(tt.args.fl); got != tt.want {
-//				t.Errorf("ValidateDateInThePast() = %v, want %v", got, tt.want)
-//			}
-//		})
-//	}
-//}
-
-//func TestValidate_ValidateStruct(t *testing.T) {
-//	type fields struct {
-//		validator *validator.Validate
-//	}
-//	type args struct {
-//		s interface{}
-//	}
-//	tests := []struct {
-//		name   string
-//		fields fields
-//		args   args
-//		want   shared.ValidationError
-//	}{
-//		// TODO: Add test cases.
-//	}
-//	for _, tt := range tests {
-//		t.Run(tt.name, func(t *testing.T) {
-//			v := &Validate{
-//				validator: tt.fields.validator,
-//			}
-//			if got := v.ValidateStruct(tt.args.s); !reflect.DeepEqual(got, tt.want) {
-//				t.Errorf("ValidateStruct() = %v, want %v", got, tt.want)
-//			}
-//		})
-//	}
-//}
-
-//func TestValidate_ValidateThousandCharacterCount(t *testing.T) {
-//	type fields struct {
-//		validator *validator.Validate
-//	}
-//	type args struct {
-//		fl validator.FieldLevel
-//	}
-//	tests := []struct {
-//		name   string
-//		fields fields
-//		args   args
-//		want   bool
-//	}{
-//		// TODO: Add test cases.
-//	}
-//	for _, tt := range tests {
-//		t.Run(tt.name, func(t *testing.T) {
-//			v := &Validate{
-//				validator: tt.fields.validator,
-//			}
-//			if got := v.ValidateThousandCharacterCount(tt.args.fl); got != tt.want {
-//				t.Errorf("ValidateThousandCharacterCount() = %v, want %v", got, tt.want)
-//			}
-//		})
-//	}
-//}
