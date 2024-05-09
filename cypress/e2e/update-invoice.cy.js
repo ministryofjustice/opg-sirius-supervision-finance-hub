@@ -18,9 +18,9 @@ describe("Adjust invoice form", () => {
         cy.setCookie("success-route", "/invoices?clientId=1?");
         cy.visit("/clients/1/invoices");
         cy.get(':nth-child(1) > :nth-child(7) > .moj-button-menu > .moj-button-menu__wrapper > .govuk-button').click()
-        cy.get('#writeOff').check({force:true});
+        cy.get('#credit write off').check({force:true});
         cy.get('.govuk-button').click()
         cy.get('.moj-banner__message').contains("The write off is now waiting for approval")
-        cy.url().should('include', '/clients/1/invoices?success=writeOff')
+        cy.url().should('include', '/clients/1/invoices?success=CREDIT%20WRITE%20OFF')
     });
 });

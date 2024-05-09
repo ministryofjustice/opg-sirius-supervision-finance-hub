@@ -17,7 +17,7 @@ func TestPendingInvoiceAdjustments(t *testing.T) {
 			Status:         "PENDING",
 			Amount:         232,
 			RaisedDate:     shared.NewDate("01/04/2222"),
-			AdjustmentType: "CREDIT MEMO",
+			AdjustmentType: shared.AdjustmentTypeAddCredit,
 			Notes:          "Some notes",
 		},
 	}
@@ -80,22 +80,22 @@ func TestTransformType(t *testing.T) {
 
 	tests := []struct {
 		name string
-		in   string
+		in   shared.AdjustmentType
 		want string
 	}{
 		{
 			"Credit",
-			"CREDIT MEMO",
+			shared.AdjustmentTypeAddCredit,
 			"Credit",
 		},
 		{
 			"Write off",
-			"CREDIT WRITE OFF",
+			shared.AdjustmentTypeWriteOff,
 			"Write off",
 		},
 		{
 			"Unknown",
-			"UNKNOWN CREDIT",
+			shared.AdjustmentTypeAddDebit,
 			"",
 		},
 	}

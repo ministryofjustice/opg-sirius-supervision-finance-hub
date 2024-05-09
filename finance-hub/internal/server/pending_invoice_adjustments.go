@@ -58,24 +58,26 @@ func (h *PendingInvoiceAdjustmentsHandler) transform(in shared.InvoiceAdjustment
 	return out
 }
 
-func (h *PendingInvoiceAdjustmentsHandler) transformType(in string) string {
-	if in == "CREDIT MEMO" {
+func (h *PendingInvoiceAdjustmentsHandler) transformType(in shared.AdjustmentType) string {
+	switch in {
+	case shared.AdjustmentTypeAddCredit:
 		return "Credit"
-	} else if in == "CREDIT WRITE OFF" {
+	case shared.AdjustmentTypeWriteOff:
 		return "Write off"
-	} else {
+	default:
 		return ""
 	}
 }
 
 func (h *PendingInvoiceAdjustmentsHandler) transformStatus(in string) string {
-	if in == "PENDING" {
+	switch in {
+	case "PENDING":
 		return "Pending"
-	} else if in == "REJECTED" {
+	case "REJECTED":
 		return "Rejected"
-	} else if in == "APPROVED" {
+	case "APPROVED":
 		return "Approved"
-	} else {
+	default:
 		return ""
 	}
 }

@@ -21,7 +21,7 @@ func (s *Service) GetInvoiceAdjustments(clientID int) (*shared.InvoiceAdjustment
 			InvoiceRef:     ia.InvoiceRef,
 			RaisedDate:     shared.Date{Time: ia.RaisedDate.Time},
 			Amount:         int(ia.Amount),
-			AdjustmentType: ia.Type,
+			AdjustmentType: shared.ParseAdjustmentType(ia.Type),
 			Notes:          ia.Notes.String,
 			Status:         ia.Status,
 		}

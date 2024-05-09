@@ -8,8 +8,8 @@ type pair struct {
 }
 
 var validationMappings = map[string]map[string]pair{
-	"invoiceType": {
-		"isEmpty": pair{"invoiceType", "Select the invoice type"},
+	"adjustmentType": {
+		"isEmpty": pair{"adjustmentType", "Select the invoice type"},
 	},
 	"notes": {
 		"isEmpty":             pair{"notes", "Enter a reason for adjustment"},

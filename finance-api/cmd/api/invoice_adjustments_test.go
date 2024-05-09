@@ -23,7 +23,7 @@ func TestServer_getInvoiceAdjustments(t *testing.T) {
 			Id:             1,
 			InvoiceRef:     "abc123/24",
 			RaisedDate:     shared.Date{Time: date},
-			AdjustmentType: "CREDIT MEMO",
+			AdjustmentType: shared.AdjustmentTypeAddCredit,
 			Amount:         123400,
 			Status:         "PENDING",
 			Notes:          "Credit memo for invoice",
