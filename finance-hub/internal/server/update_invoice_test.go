@@ -26,7 +26,7 @@ func TestUpdateInvoice(t *testing.T) {
 	assert.True(t, ro.executed)
 
 	expected := UpdateInvoices{
-		shared.InvoiceTypes,
+		shared.AdjustmentTypes,
 		"1",
 		"9",
 		appVars,

@@ -1,0 +1,31 @@
+{{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.SupervisionLevels*/ -}}
+{{ define "supervision-levels" }}
+    <div class="govuk-details__text">
+        {{ if ne (len .) 0 }}
+            <table class="govuk-table">
+                <caption data-cy="supervision-title" class="govuk-table__caption govuk-table__caption--m">Supervision
+                    level breakdown
+                </caption>
+                <thead class="govuk-table__head">
+                <tr class="govuk-table__row">
+                    <th data-cy="supervision-level" scope="col" class="govuk-table__header">Supervision level</th>
+                    <th data-cy="supervision-amount" scope="col" class="govuk-table__header">Amount</th>
+                    <th data-cy="supervision-from" scope="col" class="govuk-table__header">From</th>
+                    <th data-cy="supervision-to" scope="col" class="govuk-table__header">To</th>
+                </tr>
+                </thead>
+
+                <tbody class="govuk-table__body">
+                {{ range . }}
+                    <tr class="govuk-table__row">
+                        <td class="govuk-table__cell" data-cy="supervision-level-data">{{ .Level }}</td>
+                        <td class="govuk-table__cell" data-cy="supervision-amount-data">£{{ .Amount }}</td>
+                        <td class="govuk-table__cell" data-cy="supervision-from-data">{{ .From }}</td>
+                        <td class="govuk-table__cell" data-cy="supervision-to-data">{{ .To }}</td>
+                    </tr>
+                {{ end }}
+                </tbody>
+            </table>
+        {{ end }}
+    </div>
+{{ end }}

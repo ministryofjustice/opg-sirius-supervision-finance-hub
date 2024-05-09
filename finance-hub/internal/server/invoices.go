@@ -8,12 +8,16 @@ import (
 
 type Invoices []Invoice
 
+type LedgerAllocations []LedgerAllocation
+
 type LedgerAllocation struct {
 	Amount          string
 	ReceivedDate    shared.Date
 	TransactionType string
 	Status          string
 }
+
+type SupervisionLevels []SupervisionLevel
 
 type SupervisionLevel struct {
 	Level  string
@@ -30,8 +34,8 @@ type Invoice struct {
 	RaisedDate         string
 	Received           string
 	OutstandingBalance string
-	Ledgers            []LedgerAllocation
-	SupervisionLevels  []SupervisionLevel
+	Ledgers            LedgerAllocations
+	SupervisionLevels  SupervisionLevels
 }
 
 type InvoiceTab struct {
@@ -74,8 +78,8 @@ func (h *InvoicesHandler) transform(in shared.Invoices) Invoices {
 	return out
 }
 
-func (h *InvoicesHandler) transformSupervisionLevels(in []shared.SupervisionLevel) []SupervisionLevel {
-	var out []SupervisionLevel
+func (h *InvoicesHandler) transformSupervisionLevels(in []shared.SupervisionLevel) SupervisionLevels {
+	var out SupervisionLevels
 	for _, supervisionLevel := range in {
 		out = append(out, SupervisionLevel{
 			Level:  supervisionLevel.Level,
@@ -87,8 +91,8 @@ func (h *InvoicesHandler) transformSupervisionLevels(in []shared.SupervisionLeve
 	return out
 }
 
-func (h *InvoicesHandler) transformLedgers(ledgers []shared.Ledger) []LedgerAllocation {
-	var out []LedgerAllocation
+func (h *InvoicesHandler) transformLedgers(ledgers []shared.Ledger) LedgerAllocations {
+	var out LedgerAllocations
 	for _, ledger := range ledgers {
 		out = append(out, LedgerAllocation{
 			Amount:          util.IntToDecimalString(ledger.Amount),

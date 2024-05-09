@@ -71,26 +71,54 @@
   ],
   "ledger-entries": [
     {
-      "invoiceType": "writeOff",
+      "adjustmentType": "CREDIT_WRITE_OFF",
       "notes": "",
       "amount": "",
       "invoiceId": "1",
       "id": 1
     },
     {
-      "invoiceType": "writeOff",
+      "adjustmentType": "CREDIT_WRITE_OFF",
       "notes": "",
       "amount": "",
       "invoiceId": "1",
       "id": 2
+    },
+    {
+      "adjustmentType": "CREDIT_WRITE_OFF",
+      "notes": "",
+      "amount": "",
+      "invoiceId": "1",
+      "id": 3
+    },
+    {
+      "adjustmentType": "CREDIT_WRITE_OFF",
+      "notes": "",
+      "amount": "",
+      "invoiceId": "1",
+      "id": 4
+    },
+    {
+      "adjustmentType": "",
+      "notes": "",
+      "amount": "",
+      "invoiceId": "1",
+      "id": 5
+    },
+    {
+      "adjustmentType": "CREDIT_WRITE_OFF",
+      "notes": "",
+      "amount": "",
+      "invoiceId": "1",
+      "id": 6
     }
   ],
   "errors": [
     {
       "id": "notesError",
       "validation_errors": {
-        "invoiceType": {
-          "": "Select the invoice type"
+        "adjustmentType": {
+          "": "Select the adjustment type"
         },
         "notes": {
           "": "Reason for manual credit must be 1000 characters or less"
