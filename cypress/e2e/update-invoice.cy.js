@@ -21,6 +21,6 @@ describe("Adjust invoice form", () => {
         cy.get('#writeOff').check({force:true});
         cy.get('.govuk-button').click()
         cy.get('.moj-banner__message').contains("The write off is now waiting for approval")
-        cy.url().should('include', '/clients/1/invoices?success=writeOff')
+        cy.url().should('include', '/clients/1/invoices?success=WRITE%20OFF')
     });
 });

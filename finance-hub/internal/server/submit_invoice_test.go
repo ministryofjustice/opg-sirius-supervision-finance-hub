@@ -12,10 +12,10 @@ import (
 
 func TestSubmitInvoiceSuccess(t *testing.T) {
 	form := url.Values{
-		"id":          {"1"},
-		"invoiceType": {"writeOff"},
-		"notes":       {"This is a note"},
-		"amount":      {"100"},
+		"id":             {"1"},
+		"adjustmentType": {"writeOff"},
+		"notes":          {"This is a note"},
+		"amount":         {"100"},
 	}
 
 	client := mockApiClient{}
@@ -42,10 +42,10 @@ func TestSubmitInvoiceSuccess(t *testing.T) {
 
 func TestSubmitInvoiceError(t *testing.T) {
 	form := url.Values{
-		"id":          {"1"},
-		"invoiceType": {"writeOff"},
-		"notes":       {"This is a note"},
-		"amount":      {"100"},
+		"id":             {"1"},
+		"adjustmentType": {"writeOff"},
+		"notes":          {"This is a note"},
+		"amount":         {"100"},
 	}
 
 	client := mockApiClient{}
