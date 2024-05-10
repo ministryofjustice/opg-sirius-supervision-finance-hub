@@ -53,7 +53,7 @@
 
                         <div class="govuk-form-group">
                             <div id="f-StartYear" class="govuk-form-group {{ if index .AppVars.Errors "StartYear" }}govuk-form-group--error{{ end }}">
-                            <label class="govuk-label" for="date">
+                            <label class="govuk-label" for="startYear">
                                 Start year
                             </label>
                             <span data-cy="start-year-error">{{ template "error-message" (index .AppVars.Errors "StartYear") }}</span>
@@ -97,7 +97,7 @@
 
                         <div class="govuk-form-group">
                             <div id="f-DateReceived" class="govuk-form-group {{ if index .AppVars.Errors "DateReceived" }}govuk-form-group--error{{ end }}">
-                                <label class="govuk-label" for="date">
+                                <label class="govuk-label" for="dateReceived">
                                     Date received
                                 </label>
                                 <span data-cy="date-received-error">{{ template "error-message" (index .AppVars.Errors "DateReceived") }}</span>
