@@ -48,7 +48,7 @@ func (c *ApiClient) UpdateInvoice(ctx Context, clientId int, invoiceId int, adju
 			return shared.ValidationError{Errors: v.Errors}
 		}
 
-		return shared.NewStatusError(resp)
+		return newStatusError(resp)
 	}
 
 	return nil

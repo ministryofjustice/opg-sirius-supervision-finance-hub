@@ -33,7 +33,7 @@ func (c *ApiClient) GetPersonDetails(ctx Context, ClientId int) (shared.Person, 
 
 	if resp.StatusCode != http.StatusOK {
 		c.logger.Request(req, err)
-		return v, shared.NewStatusError(resp)
+		return v, newStatusError(resp)
 	}
 
 	err = json.NewDecoder(resp.Body).Decode(&v)

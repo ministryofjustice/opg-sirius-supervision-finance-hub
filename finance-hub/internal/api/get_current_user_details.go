@@ -30,7 +30,7 @@ func (c *ApiClient) GetCurrentUserDetails(ctx Context) (shared.Assignee, error) 
 
 	if resp.StatusCode != http.StatusOK {
 		c.logger.Request(req, err)
-		return v, shared.NewStatusError(resp)
+		return v, newStatusError(resp)
 	}
 
 	err = json.NewDecoder(resp.Body).Decode(&v)

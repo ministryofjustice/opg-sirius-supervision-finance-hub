@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"encoding/json"
 	"github.com/opg-sirius-finance-hub/shared"
 	"io"
 	"net/http"
@@ -66,4 +67,42 @@ func TestFeeReductionReturns500Error(t *testing.T) {
 		URL:    svr.URL + "/clients/1/fee-reductions",
 		Method: http.MethodPost,
 	}, err)
+}
+
+func TestFeeReductionReturnsBadRequestError(t *testing.T) {
+	logger, _ := SetUpTest()
+	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusBadRequest)
+	}))
+	defer svr.Close()
+
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
+
+	err := client.AddFeeReduction(getContext(nil), 1, "remission", "2025", "3", "15/02/2024", "Fee remission note for one award")
+	expectedError := shared.ValidationError{Message: "", Errors: shared.ValidationErrors{"Overlap": map[string]string{"StartOrEndDate": ""}}}
+	assert.Equal(t, expectedError, err)
+}
+
+func TestFeeReductionReturnsValidationError(t *testing.T) {
+	logger, _ := SetUpTest()
+	validationErrors := shared.ValidationError{
+		Message: "Validation failed",
+		Errors: map[string]map[string]string{
+			"DateReceived": {
+				"date-in-the-past": "This field DateReceived needs to be looked at date-in-the-past",
+			},
+		},
+	}
+	responseBody, _ := json.Marshal(validationErrors)
+	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		w.Write(responseBody)
+	}))
+	defer svr.Close()
+
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
+
+	err := client.AddFeeReduction(getContext(nil), 0, "", "", "", "", "")
+	expectedError := shared.ValidationError{Message: "", Errors: shared.ValidationErrors{"DateReceived": map[string]string{"date-in-the-past": "This field DateReceived needs to be looked at date-in-the-past"}}}
+	assert.Equal(t, expectedError, err.(shared.ValidationError))
 }

@@ -34,7 +34,7 @@ func (c *ApiClient) GetInvoiceAdjustments(ctx Context, clientId int) (shared.Inv
 
 	if resp.StatusCode != http.StatusOK {
 		c.logger.Request(req, err)
-		return invoiceAdjustments, shared.NewStatusError(resp)
+		return invoiceAdjustments, newStatusError(resp)
 	}
 
 	if err = json.NewDecoder(resp.Body).Decode(&invoiceAdjustments); err != nil {

@@ -32,7 +32,7 @@ func (c *ApiClient) GetFeeReductions(ctx Context, clientId int) (shared.FeeReduc
 
 	if resp.StatusCode != http.StatusOK {
 		c.logger.Request(req, err)
-		return v, shared.NewStatusError(resp)
+		return v, newStatusError(resp)
 	}
 
 	err = json.NewDecoder(resp.Body).Decode(&v)

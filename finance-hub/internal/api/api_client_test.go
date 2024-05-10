@@ -44,10 +44,9 @@ func TestStatusError(t *testing.T) {
 		Request:    req,
 	}
 
-	err := shared.NewStatusError(resp)
+	err := newStatusError(resp)
 
 	assert.Equal(t, "POST /some/url returned 418", err.Error())
-	assert.Equal(t, "unexpected response from Sirius", err.Title())
 	assert.Equal(t, err, err.Data())
 }
 

@@ -59,7 +59,7 @@
                             <span data-cy="start-year-error">{{ template "error-message" (index .AppVars.Errors "StartYear") }}</span>
                             <div id="start-year" class="govuk-hint">
                             </div>
-                            <input class="govuk-input" id="startDateYear" name="startDateYear" style="width: 40%" type="text" {{ if ne .FeeReductionFormValues.StartYear "" }}value="{{.FeeReductionFormValues.StartYear}}"{{ end }}>
+                            <input class="govuk-input" id="startDateYear" name="startDateYear" style="width: 40%" type="number" {{ if ne .FeeReductionFormValues.StartYear "" }}value="{{.FeeReductionFormValues.StartYear}}"{{ end }}>
                         </div>
 
                         <div class="govuk-form-group">

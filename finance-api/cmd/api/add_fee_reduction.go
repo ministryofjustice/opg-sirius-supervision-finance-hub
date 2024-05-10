@@ -21,7 +21,6 @@ func (s *Server) addFeeReduction(w http.ResponseWriter, r *http.Request) {
 		errorData, _ := json.Marshal(validationError)
 		w.Header().Set("Content-Type", "application/json")
 		http.Error(w, "", http.StatusUnprocessableEntity)
-		// Write the JSON response body
 		_, _ = w.Write(errorData)
 
 		return
