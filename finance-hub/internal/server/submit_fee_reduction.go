@@ -8,14 +8,6 @@ import (
 	"net/http"
 )
 
-type FeeReductionFormValues struct {
-	FeeType       string
-	StartYear     string
-	LengthOfAward string
-	DateReceived  string
-	Notes         string
-}
-
 type SubmitFeeReductionsHandler struct {
 	router
 }
@@ -30,17 +22,11 @@ func (h *SubmitFeeReductionsHandler) render(v AppVars, w http.ResponseWriter, r 
 		dateReceived  = r.PostFormValue("dateReceived")
 		notes         = r.PostFormValue("notes")
 	)
+
 	err := h.Client().AddFeeReduction(ctx, ctx.ClientId, feeType, startYear, lengthOfAward, dateReceived, notes)
 	var verr shared.ValidationError
 	if errors.As(err, &verr) {
-		formData := FeeReductionFormValues{
-			FeeType:       feeType,
-			StartYear:     startYear,
-			LengthOfAward: lengthOfAward,
-			DateReceived:  dateReceived,
-			Notes:         notes,
-		}
-		data := UpdateFeeReductions{formData, r.PathValue("id"), v}
+		data := AppVars{Errors: util.RenameErrors(verr.Errors)}
 		data.Errors = util.RenameErrors(verr.Errors)
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return h.execute(w, r, data)
