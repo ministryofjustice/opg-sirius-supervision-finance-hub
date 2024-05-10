@@ -34,14 +34,7 @@ func (h *SubmitFeeReductionsHandler) render(v AppVars, w http.ResponseWriter, r 
 	err := h.Client().AddFeeReduction(ctx, ctx.ClientId, feeType, startYear, lengthOfAward, dateReceived, notes)
 	var verr shared.ValidationError
 	if errors.As(err, &verr) {
-		formData := FeeReductionFormValues{
-			FeeType:       r.PostFormValue("feeType"),
-			StartYear:     r.PostFormValue("startDateYear"),
-			LengthOfAward: r.PostFormValue("lengthOfAward"),
-			DateReceived:  r.PostFormValue("dateReceived"),
-			Notes:         r.PostFormValue("notes"),
-		}
-		data := UpdateFeeReductions{formData, r.PathValue("id"), v}
+		data := AppVars{Errors: util.RenameErrors(verr.Errors)}
 		data.Errors = util.RenameErrors(verr.Errors)
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return h.execute(w, r, data)
