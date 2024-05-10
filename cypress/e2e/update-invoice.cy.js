@@ -15,7 +15,7 @@ describe("Adjust invoice form", () => {
     });
 
     it("shows correct success message", () => {
-        cy.visit("/clients/1/invoices?success=writeOff");
+        cy.visit("/clients/1/invoices?success=CREDIT_WRITE_OFF");
         cy.get('.moj-banner__message').contains("The write off is now waiting for approval")
     });
 });

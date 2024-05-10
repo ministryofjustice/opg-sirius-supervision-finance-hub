@@ -122,7 +122,7 @@ func TestRoute_GetSuccess(t *testing.T) {
 		queryValue string
 		expected   string
 	}{
-		{"writeOff", "The write off is now waiting for approval"},
+		{"CREDIT_WRITE_OFF", "The write off is now waiting for approval"},
 		{"remission", "The remission has been successfully added"},
 		{"exemption", "The exemption has been successfully added"},
 		{"hardship", "The hardship has been successfully added"},
