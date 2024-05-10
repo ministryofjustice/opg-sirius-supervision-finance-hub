@@ -69,22 +69,6 @@
       "deleted": true
     }
   ],
-  "ledger-entries": [
-    {
-      "invoiceType": "writeOff",
-      "notes": "",
-      "amount": "",
-      "invoiceId": "1",
-      "id": 1
-    },
-    {
-      "invoiceType": "writeOff",
-      "notes": "",
-      "amount": "",
-      "invoiceId": "1",
-      "id": 2
-    }
-  ],
   "errors": [
     {
       "id": "notesError",

@@ -2,7 +2,7 @@ package server
 
 import (
 	"errors"
-	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
+	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
@@ -91,11 +91,11 @@ func Test_wrapHandler_status_error_handling(t *testing.T) {
 		{error: StatusError(403), wantCode: 403, wantError: "403 Forbidden"},
 		{error: StatusError(404), wantCode: 404, wantError: "404 Not Found"},
 		{error: StatusError(500), wantCode: 500, wantError: "500 Internal Server Error"},
-		{error: api.StatusError{Code: 400}, wantCode: 400, wantError: "  returned 400"},
-		{error: api.StatusError{Code: 401}, wantCode: 401, wantError: "  returned 401"},
-		{error: api.StatusError{Code: 403}, wantCode: 403, wantError: "  returned 403"},
-		{error: api.StatusError{Code: 404}, wantCode: 404, wantError: "  returned 404"},
-		{error: api.StatusError{Code: 500}, wantCode: 500, wantError: "  returned 500"},
+		{error: shared.StatusError{Code: 400}, wantCode: 400, wantError: "  returned 400"},
+		{error: shared.StatusError{Code: 401}, wantCode: 401, wantError: "  returned 401"},
+		{error: shared.StatusError{Code: 403}, wantCode: 403, wantError: "  returned 403"},
+		{error: shared.StatusError{Code: 404}, wantCode: 404, wantError: "  returned 404"},
+		{error: shared.StatusError{Code: 500}, wantCode: 500, wantError: "  returned 500"},
 	}
 	for i, test := range tests {
 		t.Run("Scenario "+strconv.Itoa(i), func(t *testing.T) {
