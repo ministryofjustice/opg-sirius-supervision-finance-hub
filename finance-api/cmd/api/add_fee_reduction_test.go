@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"github.com/opg-sirius-finance-hub/finance-api/internal/service"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/validation"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
@@ -139,7 +140,7 @@ func TestServer_addFeeReductionsOverlapError(t *testing.T) {
 
 	validator, _ := validation.New()
 
-	mock := &mockService{feeReduction: feeReductionInfo, err: errors.New("overlap")}
+	mock := &mockService{feeReduction: feeReductionInfo, err: service.BadRequest{Reason: "overlap"}}
 	server := Server{Service: mock, Validator: validator}
 	server.addFeeReduction(w, req)
 

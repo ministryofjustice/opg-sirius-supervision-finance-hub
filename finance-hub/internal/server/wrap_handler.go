@@ -3,6 +3,7 @@ package server
 import (
 	"errors"
 	"fmt"
+	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
 	"github.com/opg-sirius-finance-hub/shared"
 	"go.uber.org/zap"
 	"net/http"
@@ -78,7 +79,7 @@ func wrapHandler(client ApiClient, logger *zap.SugaredLogger, tmplError Template
 				if errors.As(err, &serverStatusError) {
 					code = serverStatusError.Code()
 				}
-				var siriusStatusError shared.StatusError
+				var siriusStatusError api.StatusError
 				if errors.As(err, &siriusStatusError) {
 					code = siriusStatusError.Code
 				}
