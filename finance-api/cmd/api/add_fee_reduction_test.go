@@ -17,13 +17,17 @@ import (
 
 func TestServer_addFeeReductions(t *testing.T) {
 	var b bytes.Buffer
+	var dateReceivedTransformed *shared.Date
+
 	dateString := "2020-03-16"
 	date, _ := time.Parse("2006-01-02", dateString)
+	dateReceivedTransformed = &shared.Date{Time: date}
+
 	feeReductionInfo := &shared.AddFeeReduction{
 		FeeType:       "remission",
 		StartYear:     "2022",
 		LengthOfAward: 1,
-		DateReceived:  shared.Date{Time: date},
+		DateReceived:  dateReceivedTransformed,
 		Notes:         "Adding a remission reduction",
 	}
 	_ = json.NewEncoder(&b).Encode(feeReductionInfo)
@@ -53,7 +57,7 @@ func TestServer_addFeeReductionsValidationErrors(t *testing.T) {
 		FeeType:       "",
 		StartYear:     "",
 		LengthOfAward: 0,
-		DateReceived:  shared.Date{},
+		DateReceived:  nil,
 		Notes:         "",
 	}
 	_ = json.NewEncoder(&b).Encode(feeReductionInfo)
@@ -72,7 +76,7 @@ func TestServer_addFeeReductionsValidationErrors(t *testing.T) {
 	data, _ := io.ReadAll(res.Body)
 
 	expected := `
-{"Message":"","validation_errors":{"DateReceived":{"date-in-the-past":"This field DateReceived needs to be looked at date-in-the-past"},"FeeType":{"required":"This field FeeType needs to be looked at required"},"LengthOfAward":{"required":"This field LengthOfAward needs to be looked at required"},"Notes":{"required":"This field Notes needs to be looked at required"},"StartYear":{"required":"This field StartYear needs to be looked at required"}}}`
+{"Message":"","validation_errors":{"DateReceived":{"required":"This field DateReceived needs to be looked at required"},"FeeType":{"required":"This field FeeType needs to be looked at required"},"LengthOfAward":{"required":"This field LengthOfAward needs to be looked at required"},"Notes":{"required":"This field Notes needs to be looked at required"},"StartYear":{"required":"This field StartYear needs to be looked at required"}}}`
 
 	assert.Equal(t, expected, string(data))
 	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
@@ -80,13 +84,16 @@ func TestServer_addFeeReductionsValidationErrors(t *testing.T) {
 
 func TestServer_addFeeReductionsValidationErrorsForThousandCharacters(t *testing.T) {
 	var b bytes.Buffer
+	var dateReceivedTransformed *shared.Date
+
 	dateString := "2020-03-16"
 	date, _ := time.Parse("2006-01-02", dateString)
+	dateReceivedTransformed = &shared.Date{Time: date}
 	feeReductionInfo := &shared.AddFeeReduction{
 		FeeType:       "remission",
 		StartYear:     "2024",
 		LengthOfAward: 1,
-		DateReceived:  shared.Date{Time: date},
+		DateReceived:  dateReceivedTransformed,
 		Notes: "wC6fABXtm7LvSQ8oa3HUKsdtZldvEuvRwfyEKkAp8RsCxHWQjT8sWfj6cS1NzKVpG8AfAQ507IQ6zfKol" +
 			"asWQ84zz6MzTLVbkXCbKWqx9jIsJn3klFGq4Q32O62FpiIsMUuJoGV1BsWFT9d9prh0sDIpyXTPdgXwCTL4iIAdydqpGlmHt" +
 			"5dhyD4ZFYZICH2VFEWnTSrCGbBWPfbHArXxqZRCADf5ut3htEncnu0KSfSJhU2lSbT8erAueypq5u0Aot6fR0LKvtGuuK1VH" +
@@ -124,13 +131,16 @@ func TestServer_addFeeReductionsValidationErrorsForThousandCharacters(t *testing
 
 func TestServer_addFeeReductionsOverlapError(t *testing.T) {
 	var b bytes.Buffer
+	var dateReceivedTransformed *shared.Date
+
 	dateString := "2020-03-16"
 	date, _ := time.Parse("2006-01-02", dateString)
+	dateReceivedTransformed = &shared.Date{Time: date}
 	feeReductionInfo := &shared.AddFeeReduction{
 		FeeType:       "remission",
 		StartYear:     "2022",
 		LengthOfAward: 1,
-		DateReceived:  shared.Date{Time: date},
+		DateReceived:  dateReceivedTransformed,
 		Notes:         "Adding a remission reduction",
 	}
 	_ = json.NewEncoder(&b).Encode(feeReductionInfo)
@@ -152,13 +162,16 @@ func TestServer_addFeeReductionsOverlapError(t *testing.T) {
 
 func TestServer_addFeeReductions500Error(t *testing.T) {
 	var b bytes.Buffer
+	var dateReceivedTransformed *shared.Date
+
 	dateString := "2020-03-16"
 	date, _ := time.Parse("2006-01-02", dateString)
+	dateReceivedTransformed = &shared.Date{Time: date}
 	feeReductionInfo := &shared.AddFeeReduction{
 		FeeType:       "remission",
 		StartYear:     "2022",
 		LengthOfAward: 1,
-		DateReceived:  shared.Date{Time: date},
+		DateReceived:  dateReceivedTransformed,
 		Notes:         "Adding a remission reduction",
 	}
 	_ = json.NewEncoder(&b).Encode(feeReductionInfo)

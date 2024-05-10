@@ -11,16 +11,18 @@ import (
 
 func setupServiceAndParams() (*Service, shared.AddFeeReduction) {
 	Store := store.New(testDB.DbInstance)
+	var dateReceivedTransformed *shared.Date
 
 	today := time.Now()
 	dateInRangeOfSixMonths := today.AddDate(0, -5, -29).Format("2006-01-02")
 	dateInRangeOfSixMonthsToTime, _ := time.Parse("2006-01-02", dateInRangeOfSixMonths)
+	dateReceivedTransformed = &shared.Date{Time: dateInRangeOfSixMonthsToTime}
 
 	params := shared.AddFeeReduction{
 		FeeType:       "remission",
 		StartYear:     "2021-04-01",
 		LengthOfAward: 3,
-		DateReceived:  shared.Date{Time: dateInRangeOfSixMonthsToTime},
+		DateReceived:  dateReceivedTransformed,
 		Notes:         "Testing",
 	}
 

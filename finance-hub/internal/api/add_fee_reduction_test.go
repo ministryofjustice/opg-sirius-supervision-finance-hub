@@ -62,7 +62,7 @@ func TestFeeReductionReturns500Error(t *testing.T) {
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
 
 	err := client.AddFeeReduction(getContext(nil), 1, "remission", "2025", "3", "15/02/2024", "Fee remission note for one award")
-	assert.Equal(t, shared.StatusError{
+	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/clients/1/fee-reductions",
 		Method: http.MethodPost,
@@ -96,7 +96,7 @@ func TestFeeReductionReturnsValidationError(t *testing.T) {
 	responseBody, _ := json.Marshal(validationErrors)
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnprocessableEntity)
-		w.Write(responseBody)
+		_, _ = w.Write(responseBody)
 	}))
 	defer svr.Close()
 

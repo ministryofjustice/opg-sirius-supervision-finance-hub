@@ -76,7 +76,7 @@ func TestMyDetailsReturns500Error(t *testing.T) {
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, "", logger)
 
 	_, err := client.GetCurrentUserDetails(getContext(nil))
-	assert.Equal(t, shared.StatusError{
+	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/api/v1/users/current",
 		Method: http.MethodGet,

@@ -12,14 +12,19 @@ import (
 
 func (c *ApiClient) AddFeeReduction(ctx Context, clientId int, feeType string, startYear string, lengthOfAward string, dateReceived string, notes string) error {
 	var body bytes.Buffer
+	var dateReceivedTransformed *shared.Date
 
-	dateReceivedTransformed, _ := time.Parse("2006-01-02", dateReceived)
+	if dateReceived != "" {
+		dateReceivedToTime, _ := time.Parse("2006-01-02", dateReceived)
+		dateReceivedTransformed = &shared.Date{Time: dateReceivedToTime}
+	}
+
 	lengthOfAwardTransformed, _ := strconv.Atoi(lengthOfAward)
 	err := json.NewEncoder(&body).Encode(shared.AddFeeReduction{
 		FeeType:       feeType,
 		StartYear:     startYear,
 		LengthOfAward: lengthOfAwardTransformed,
-		DateReceived:  shared.Date{Time: dateReceivedTransformed},
+		DateReceived:  dateReceivedTransformed,
 		Notes:         notes,
 	})
 	if err != nil {

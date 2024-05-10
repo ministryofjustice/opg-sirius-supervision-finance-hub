@@ -58,7 +58,7 @@ func TestUpdateInvoiceReturns500Error(t *testing.T) {
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, "", logger)
 
 	err := client.UpdateInvoice(getContext(nil), 2, 4, "credit write off", "notes here", "100")
-	assert.Equal(t, shared.StatusError{
+	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/api/v1/invoices/4/ledger-entries",
 		Method: http.MethodPost,
