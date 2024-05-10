@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"github.com/opg-sirius-finance-hub/shared"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -44,7 +45,7 @@ func TestUpdateInvoiceUnauthorised(t *testing.T) {
 
 	err := client.UpdateInvoice(getContext(nil), 2, 4, "credit write off", "notes here", "100")
 
-	assert.Equal(t, ErrUnauthorized, err)
+	assert.Equal(t, shared.ErrUnauthorized, err)
 }
 
 func TestUpdateInvoiceReturns500Error(t *testing.T) {

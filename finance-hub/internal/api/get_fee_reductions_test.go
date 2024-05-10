@@ -80,7 +80,7 @@ func TestGetFeeReductionsReturnsUnauthorisedClientError(t *testing.T) {
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
 	_, err := client.GetFeeReductions(getContext(nil), 1)
-	assert.Equal(t, ErrUnauthorized, err)
+	assert.Equal(t, shared.ErrUnauthorized, err)
 }
 
 func TestFeeReductionsReturns500Error(t *testing.T) {

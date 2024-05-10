@@ -3,7 +3,6 @@ package server
 import (
 	"errors"
 	"fmt"
-	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/util"
 	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
@@ -24,7 +23,7 @@ func (h *SubmitInvoiceHandler) render(v AppVars, w http.ResponseWriter, r *http.
 	)
 
 	err := h.Client().UpdateInvoice(ctx, ctx.ClientId, invoiceId, adjustmentType, notes, amount)
-	var verr api.ValidationError
+	var verr shared.ValidationError
 	if errors.As(err, &verr) {
 		data := UpdateInvoices{shared.AdjustmentTypes, r.PathValue("id"), r.PathValue("invoiceId"), v}
 		data.Errors = util.RenameErrors(verr.Errors)
