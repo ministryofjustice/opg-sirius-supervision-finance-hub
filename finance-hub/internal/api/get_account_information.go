@@ -28,12 +28,12 @@ func (c *ApiClient) GetAccountInformation(ctx Context, ClientId int) (shared.Acc
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		c.logger.Request(req, err)
-		return v, ErrUnauthorized
+		return v, shared.ErrUnauthorized
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		c.logger.Request(req, err)
-		return v, newStatusError(resp)
+		return v, shared.NewStatusError(resp)
 	}
 
 	err = json.NewDecoder(resp.Body).Decode(&v)

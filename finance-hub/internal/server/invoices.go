@@ -3,6 +3,8 @@ package server
 import (
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/util"
 	"github.com/opg-sirius-finance-hub/shared"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"net/http"
 )
 
@@ -76,9 +78,10 @@ func (h *InvoicesHandler) transform(in shared.Invoices) Invoices {
 
 func (h *InvoicesHandler) transformSupervisionLevels(in []shared.SupervisionLevel) []SupervisionLevel {
 	var out []SupervisionLevel
+	caser := cases.Title(language.English)
 	for _, supervisionLevel := range in {
 		out = append(out, SupervisionLevel{
-			Level:  supervisionLevel.Level,
+			Level:  caser.String(supervisionLevel.Level),
 			Amount: util.IntToDecimalString(supervisionLevel.Amount),
 			From:   supervisionLevel.From,
 			To:     supervisionLevel.To,
