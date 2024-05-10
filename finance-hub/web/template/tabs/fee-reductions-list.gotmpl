@@ -7,12 +7,18 @@
         <div style="float: right;">
 
             <div class="moj-button-menu">
-                <div class="moj-button-menu__wrapper">
-                    <a href="/fee-reduction/add" role="button" draggable="false"
-                       class="govuk-button moj-button-menu__item govuk-button--secondary " data-module="govuk-button">
-                        Award a fee reduction
-                    </a>
-                    <a href="/fee-reduction/cancel" role="button" draggable="false"
+                    <div class="moj-button-menu__wrapper">
+                        <a
+                            class="govuk-button moj-button-menu__item govuk-button--secondary"
+                            role="button"
+                            draggable="false"
+                            data-module="govuk-button"
+                            hx-get="{{ prefix (printf "/clients/%s/fee-reductions/add" .ClientId) }}"
+                            hx-target="#main-content"
+                            hx-push-url="{{ (printf "/clients/%s/fee-reductions/add" .ClientId) }}">
+                            Award a fee reduction
+                        </a>
+                       <a href="/fee-reduction/cancel" role="button" draggable="false"
                        class="govuk-button moj-button-menu__item govuk-button--secondary " data-module="govuk-button">
                         Cancel a fee reduction
                     </a>
@@ -31,12 +37,12 @@
             <th scope="col" data-cy="notes" class="govuk-table__header">Notes</th>
         </tr>
         </thead>
-        {{ if eq (len .) 0 }}
+        {{ if eq (len .FeeReductions) 0 }}
             <tr class="govuk-table__row">
                 <td colspan="100%" class="govuk-table__cell govuk-table__cell--no-data">There are no fee reductions</td>
             </tr>
         {{ else }}
-            {{ range . }}
+            {{ range .FeeReductions }}
                 <tbody class="govuk-table__body">
                     <tr>
                         <td class="govuk-table__cell">{{.Type}}</td>

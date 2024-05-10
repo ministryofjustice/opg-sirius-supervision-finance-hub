@@ -28,7 +28,7 @@ func (c *ApiClient) GetPersonDetails(ctx Context, ClientId int) (shared.Person, 
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		c.logger.Request(req, err)
-		return v, ErrUnauthorized
+		return v, shared.ErrUnauthorized
 	}
 
 	if resp.StatusCode != http.StatusOK {

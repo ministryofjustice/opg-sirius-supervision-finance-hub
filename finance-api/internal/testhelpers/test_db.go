@@ -3,6 +3,7 @@ package testhelpers
 import (
 	"context"
 	"database/sql"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
@@ -31,6 +32,7 @@ type TestDatabase struct {
 	DbInstance *pgxpool.Pool
 	DbAddress  string
 	container  testcontainers.Container
+	DbConn     *pgx.Conn
 }
 
 func (db *TestDatabase) SeedData(data ...string) {
@@ -86,10 +88,16 @@ func InitDb() *TestDatabase {
 		log.Fatal(err)
 	}
 
+	conn, err := pgx.Connect(ctx, connString)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	return &TestDatabase{
 		container:  container,
 		DbInstance: db,
 		DbAddress:  connString,
+		DbConn:     conn,
 	}
 }
 

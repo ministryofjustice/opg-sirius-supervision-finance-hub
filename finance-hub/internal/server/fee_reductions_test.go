@@ -35,6 +35,7 @@ func TestFeeReductions(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r, _ := http.NewRequest(http.MethodGet, "", nil)
+	r.SetPathValue("id", "1")
 
 	appVars := AppVars{
 		Path: "/1",
@@ -68,6 +69,7 @@ func TestFeeReductions(t *testing.T) {
 
 	expected := &FeeReductionsTab{
 		FeeReductions: out,
+		ClientId:      "1",
 		AppVars:       appVars,
 	}
 
