@@ -66,7 +66,7 @@ func TestGetInvoiceAdjustmentsCanThrow500Error(t *testing.T) {
 
 	_, err := client.GetInvoiceAdjustments(getContext(nil), 1)
 
-	assert.Equal(t, StatusError{
+	assert.Equal(t, shared.StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/clients/1/invoice-adjustments",
 		Method: http.MethodGet,
@@ -87,5 +87,5 @@ func TestGetInvoiceAdjustmentsUnauthorised(t *testing.T) {
 	var expectedResponse shared.InvoiceAdjustments
 
 	assert.Equal(t, expectedResponse, resp)
-	assert.Equal(t, ErrUnauthorized, err)
+	assert.Equal(t, shared.ErrUnauthorized, err)
 }
