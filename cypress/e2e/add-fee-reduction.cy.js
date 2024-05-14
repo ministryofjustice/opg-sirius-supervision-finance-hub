@@ -11,4 +11,13 @@ describe("Add fee reduction form", () => {
         cy.visit("/clients/1/fee-reductions?success=hardship");
         cy.get('.moj-banner__message').contains("The hardship has been successfully added")
     });
+
+    it("allows me to enter note information which amends character count", () => {
+        cy.visit("/clients/1/fee-reductions/add");
+        cy.get("#fee-reduction-notes").type("example note text");
+        cy.get("#fee-reduction-notes-info + .govuk-character-count__status").should(
+            "contain",
+            "You have 983 characters remaining"
+        );
+    });
 });

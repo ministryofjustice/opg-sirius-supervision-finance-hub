@@ -20,7 +20,7 @@ func setupServiceAndParams() (*Service, shared.AddFeeReduction) {
 
 	params := shared.AddFeeReduction{
 		FeeType:       "remission",
-		StartYear:     "2021-04-01",
+		StartYear:     "2021",
 		LengthOfAward: 3,
 		DateReceived:  dateReceivedTransformed,
 		Notes:         "Testing",
@@ -37,10 +37,29 @@ func setupServiceAndParams() (*Service, shared.AddFeeReduction) {
 func TestService_AddFeeReduction(t *testing.T) {
 	s, params := setupServiceAndParams()
 
-	err := s.AddFeeReduction(5, params)
+	err := s.AddFeeReduction(22, params)
 	if err == nil {
 		return
 	}
+	t.Error("Add fee reduction failed")
+}
+
+func TestService_AddFeeReductionOverlap(t *testing.T) {
+	testDB.SeedData(
+		"INSERT INTO finance_client VALUES (22, 22, '1234', 'DEMANDED', null, 12300, 2222);",
+		"INSERT INTO fee_reduction VALUES (22, 22, 'REMISSION', null, '2019-04-01', '2020-03-31', 'Remission to see the notes', false, '2019-05-01');",
+	)
+	s, params := setupServiceAndParams()
+	params.StartYear = "2018"
+
+	err := s.AddFeeReduction(22, params)
+	if err != nil {
+		if err.Error() == "overlap" {
+			assert.Equalf(t, "overlap", err.Error(), "StartYear has an overlap")
+			return
+		}
+	}
+	t.Error("Overlap was expected")
 }
 
 func Test_calculateEndDate(t *testing.T) {
