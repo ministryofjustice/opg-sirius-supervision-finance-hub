@@ -119,5 +119,5 @@ func TestGetInvoicesUnauthorised(t *testing.T) {
 	var expectedResponse shared.Invoices
 
 	assert.Equal(t, expectedResponse, clientList)
-	assert.Equal(t, shared.ErrUnauthorized, err)
+	assert.Equal(t, ErrUnauthorized, err)
 }

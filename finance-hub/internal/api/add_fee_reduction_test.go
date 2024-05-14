@@ -41,7 +41,7 @@ func TestAddFeeReduction(t *testing.T) {
 func TestAddFeeReductionUnauthorised(t *testing.T) {
 	logger, _ := SetUpTest()
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusUnauthorized)
+		w.WriteHeader(http.StatusForbidden)
 	}))
 	defer svr.Close()
 
@@ -49,7 +49,7 @@ func TestAddFeeReductionUnauthorised(t *testing.T) {
 
 	err := client.AddFeeReduction(getContext(nil), 1, "remission", "2025", "3", "15/02/2024", "Fee remission note for one award")
 
-	assert.Equal(t, shared.ErrUnauthorized.Error(), err.Error())
+	assert.Equal(t, ErrUnauthorized.Error(), err.Error())
 }
 
 func TestFeeReductionReturns500Error(t *testing.T) {

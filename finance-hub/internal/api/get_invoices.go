@@ -29,7 +29,7 @@ func (c *ApiClient) GetInvoices(ctx Context, clientId int) (shared.Invoices, err
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		c.logger.Request(req, err)
-		return invoices, shared.ErrUnauthorized
+		return invoices, ErrUnauthorized
 	}
 
 	if resp.StatusCode != http.StatusOK {

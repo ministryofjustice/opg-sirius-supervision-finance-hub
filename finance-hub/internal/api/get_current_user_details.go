@@ -25,7 +25,7 @@ func (c *ApiClient) GetCurrentUserDetails(ctx Context) (shared.Assignee, error) 
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		c.logger.Request(req, err)
-		return v, shared.ErrUnauthorized
+		return v, ErrUnauthorized
 	}
 
 	if resp.StatusCode != http.StatusOK {

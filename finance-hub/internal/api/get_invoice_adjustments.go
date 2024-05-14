@@ -29,7 +29,7 @@ func (c *ApiClient) GetInvoiceAdjustments(ctx Context, clientId int) (shared.Inv
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		c.logger.Request(req, err)
-		return invoiceAdjustments, shared.ErrUnauthorized
+		return invoiceAdjustments, ErrUnauthorized
 	}
 
 	if resp.StatusCode != http.StatusOK {
