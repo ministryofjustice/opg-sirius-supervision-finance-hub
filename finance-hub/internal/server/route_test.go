@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 )
 
@@ -114,4 +115,33 @@ func TestRoute_error(t *testing.T) {
 
 	assert.NotNil(t, err)
 	assert.Equal(t, "it broke", err.Error())
+}
+
+func TestRoute_GetSuccess(t *testing.T) {
+	testCases := []struct {
+		queryValue string
+		expected   string
+	}{
+		{"CREDIT_WRITE_OFF", "The write off is now waiting for approval"},
+		{"remission", "The remission has been successfully added"},
+		{"exemption", "The exemption has been successfully added"},
+		{"hardship", "The hardship has been successfully added"},
+		{"invalid", ""},
+	}
+
+	req := &http.Request{
+		URL: &url.URL{
+			RawQuery: "",
+		},
+	}
+
+	for _, tc := range testCases {
+		req.URL.RawQuery = "success=" + tc.queryValue
+		r := route{}
+		result := r.getSuccess(req)
+
+		if result != tc.expected {
+			t.Errorf("For query value %s, expected %s, but got %s", tc.queryValue, tc.expected, result)
+		}
+	}
 }
