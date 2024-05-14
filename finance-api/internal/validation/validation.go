@@ -14,8 +14,11 @@ type Validate struct {
 
 func New() (*Validate, error) {
 	v := validator.New()
-	_ = v.RegisterValidation("thousand-character-limit", ValidateThousandCharacterCount)
-	_ = v.RegisterValidation("date-in-the-past", ValidateDateInThePast)
+	err := v.RegisterValidation("thousand-character-limit", ValidateThousandCharacterCount)
+	err = v.RegisterValidation("date-in-the-past", ValidateDateInThePast)
+	if err != nil {
+		return nil, err
+	}
 	return &Validate{
 		validator: v,
 	}, nil
