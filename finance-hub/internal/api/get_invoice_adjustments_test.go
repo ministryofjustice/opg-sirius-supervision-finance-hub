@@ -87,5 +87,5 @@ func TestGetInvoiceAdjustmentsUnauthorised(t *testing.T) {
 	var expectedResponse shared.InvoiceAdjustments
 
 	assert.Equal(t, expectedResponse, resp)
-	assert.Equal(t, ErrUnauthorized, err)
+	assert.Equal(t, shared.ErrUnauthorized, err)
 }

@@ -8,5 +8,6 @@ module.exports = defineConfig({
             return require('./cypress/plugins')(on, config)
         },
         baseUrl: 'http://localhost:8888',
+        supportFile: false,
     },
 });
