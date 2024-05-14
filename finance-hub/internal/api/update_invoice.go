@@ -37,7 +37,7 @@ func (c *ApiClient) UpdateInvoice(ctx Context, clientId int, invoiceId int, adju
 		return err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode == http.StatusForbidden {
+	if resp.StatusCode == http.StatusUnauthorized {
 		return ErrUnauthorized
 	}
 

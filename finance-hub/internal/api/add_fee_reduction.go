@@ -49,7 +49,7 @@ func (c *ApiClient) AddFeeReduction(ctx Context, clientId int, feeType string, s
 		return nil
 	}
 
-	if resp.StatusCode == http.StatusForbidden {
+	if resp.StatusCode == http.StatusUnauthorized {
 		return ErrUnauthorized
 	}
 

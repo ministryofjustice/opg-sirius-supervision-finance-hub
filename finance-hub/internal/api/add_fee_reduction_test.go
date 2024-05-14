@@ -41,7 +41,7 @@ func TestAddFeeReduction(t *testing.T) {
 func TestAddFeeReductionUnauthorised(t *testing.T) {
 	logger, _ := SetUpTest()
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusForbidden)
+		w.WriteHeader(http.StatusUnauthorized)
 	}))
 	defer svr.Close()
 
