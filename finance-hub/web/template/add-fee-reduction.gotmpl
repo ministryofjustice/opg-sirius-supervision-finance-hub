@@ -17,7 +17,8 @@
                         class="add-note govuk-grid-column-one-third"
                         method="post"
                         hx-post="{{ prefix (printf "/clients/%s/fee-reductions/add" .ClientId) }}"
-                        hx-target="#error-summary">
+                        hx-target="#error-summary"
+                        >
                         <input type="hidden" name="xsrfToken" value="{{ .AppVars.XSRFToken }}"/>
 
                         <div id="f-FeeType" class="govuk-form-group">
@@ -109,7 +110,8 @@
                             </div>
                         </div>
                         <div class="govuk-button-group govuk-!-margin-top-7">
-                            <button class="govuk-button" data-module="govuk-button">
+                            <button class="govuk-button" data-module="govuk-button"
+                            >
                                 Save and continue
                             </button>
                             <a class="govuk-link"  href="{{ prefix (printf "/clients/%s/fee-reductions" .ClientId) }}">Cancel</a>

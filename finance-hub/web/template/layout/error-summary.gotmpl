@@ -24,9 +24,13 @@
     </div>
 
     {{ range $k, $v := .Errors }}
-        <span id="error-message__{{$k}}" hx-swap-oob="true">
+        <span id="error-message__{{$k}}" hx-swap-oob="true"
+{{/*              _="on load add .govuk-form-group--error to the closest parent .govuk-form-group"*/}}
+                _="on htmx:load log 'Loaded!'"
+        >
                 {{ range $type, $error := $v }}
-                    <p id="name-error{{ if $type}}-{{ $type }}{{ end }}" class="govuk-error-message">
+                    <p id="name-error{{ if $type}}-{{ $type }}{{ end }}" class="govuk-error-message"
+                       _="on htmx:beforeSend remove .govuk-form-group--error from the closest parent .govuk-form-group">
                       <span class="govuk-visually-hidden">Error:</span> {{ $error }}
                     </p>
                 {{ end }}
