@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
 )
 
@@ -41,12 +42,10 @@ func (c *ApiClient) UpdateInvoice(ctx Context, clientId int, invoiceId int, adju
 	}
 
 	if resp.StatusCode != http.StatusCreated {
-		var v struct {
-			ValidationErrors ValidationErrors `json:"validation_errors"`
-		}
+		var v shared.ValidationError
 
-		if err := json.NewDecoder(resp.Body).Decode(&v); err == nil && len(v.ValidationErrors) > 0 {
-			return ValidationError{Errors: v.ValidationErrors}
+		if err := json.NewDecoder(resp.Body).Decode(&v); err == nil && len(v.Errors) > 0 {
+			return shared.ValidationError{Errors: v.Errors}
 		}
 
 		return newStatusError(resp)
