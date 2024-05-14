@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 	"github.com/ministryofjustice/opg-go-common/logging"
-	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
 	"os"
 	"testing"
@@ -33,7 +32,7 @@ func getContext(cookies []*http.Cookie) Context {
 }
 
 func TestClientError(t *testing.T) {
-	assert.Equal(t, "message", shared.ClientError("message").Error())
+	assert.Equal(t, "message", ClientError("message").Error())
 }
 
 func TestStatusError(t *testing.T) {

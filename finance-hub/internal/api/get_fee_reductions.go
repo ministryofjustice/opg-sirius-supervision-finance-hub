@@ -27,7 +27,7 @@ func (c *ApiClient) GetFeeReductions(ctx Context, clientId int) (shared.FeeReduc
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		c.logger.Request(req, err)
-		return v, shared.ErrUnauthorized
+		return v, ErrUnauthorized
 	}
 
 	if resp.StatusCode != http.StatusOK {

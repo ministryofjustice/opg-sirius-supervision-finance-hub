@@ -49,8 +49,8 @@ func (c *ApiClient) AddFeeReduction(ctx Context, clientId int, feeType string, s
 		return nil
 	}
 
-	if resp.StatusCode == http.StatusUnauthorized {
-		return shared.ErrUnauthorized
+	if resp.StatusCode == http.StatusForbidden {
+		return ErrUnauthorized
 	}
 
 	if resp.StatusCode == http.StatusUnprocessableEntity {

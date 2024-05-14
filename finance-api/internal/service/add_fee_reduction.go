@@ -66,11 +66,11 @@ func (s *Service) AddFeeReduction(id int, data shared.AddFeeReduction) error {
 		case "exemption", "hardship":
 			amount = invoice.Amount
 		case "remission":
-			invoiceFeeRangeParams := store.GetInvoiceFeeRangerAmountParams{
+			invoiceFeeRangeParams := store.GetInvoiceFeeRangeAmountParams{
 				InvoiceID:        pgtype.Int4{Int32: invoice.ID, Valid: true},
 				Supervisionlevel: "GENERAL",
 			}
-			amount, _ = transaction.GetInvoiceFeeRangerAmount(ctx, invoiceFeeRangeParams)
+			amount, _ = transaction.GetInvoiceFeeRangeAmount(ctx, invoiceFeeRangeParams)
 		}
 		if amount != 0 {
 			ledgerQueryArgs := store.CreateLedgerForFeeReductionParams{
@@ -80,7 +80,7 @@ func (s *Service) AddFeeReduction(id int, data shared.AddFeeReduction) error {
 				Type:            "CREDIT " + strings.ToUpper(data.FeeType),
 				FinanceClientID: pgtype.Int4{Int32: invoice.FinanceClientID.Int32, Valid: true},
 				FeeReductionID:  pgtype.Int4{Int32: invoice.FeeReductionID.Int32, Valid: true},
-				//TODO make sure we have correct createdby ID
+				//TODO make sure we have correct createdby ID in ticket PFS-88
 				CreatedbyID: pgtype.Int4{Int32: 1},
 			}
 			var ledger store.Ledger

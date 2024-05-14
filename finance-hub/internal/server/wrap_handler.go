@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
-	"github.com/opg-sirius-finance-hub/shared"
 	"go.uber.org/zap"
 	"net/http"
 	"time"
@@ -61,7 +60,7 @@ func wrapHandler(client ApiClient, logger *zap.SugaredLogger, tmplError Template
 			)
 
 			if err != nil {
-				if errors.Is(err, shared.ErrUnauthorized) {
+				if errors.Is(err, api.ErrUnauthorized) {
 					http.Redirect(w, r, envVars.SiriusURL+"/auth", http.StatusFound)
 					return
 				}

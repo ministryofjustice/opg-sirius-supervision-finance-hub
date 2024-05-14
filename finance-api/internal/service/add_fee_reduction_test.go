@@ -1,6 +1,8 @@
 package service
 
 import (
+	"context"
+	"database/sql"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
@@ -35,9 +37,38 @@ func setupServiceAndParams() (*Service, shared.AddFeeReduction) {
 }
 
 func TestService_AddFeeReduction(t *testing.T) {
+	testDB.SeedData(
+		"INSERT INTO finance_client VALUES (22, 22, '1234', 'DEMANDED', null, 12300, 2222);",
+		"INSERT INTO fee_reduction VALUES (22, 22, 'REMISSION', null, '2019-04-01', '2021-03-31', 'Remission to see the notes', false, '2019-05-01');",
+	)
+	ctx := context.Background()
 	s, params := setupServiceAndParams()
 
 	err := s.AddFeeReduction(22, params)
+	rows, _ := testDB.DbInstance.Query(ctx, "SELECT * FROM supervision_finance.fee_reduction WHERE id = 1")
+	defer rows.Close()
+
+	for rows.Next() {
+		var (
+			id            int
+			financeClient int
+			feeType       string
+			evidenceType  sql.NullString
+			startDate     time.Time
+			endDate       time.Time
+			notes         string
+			deleted       bool
+			dateReceived  time.Time
+		)
+
+		_ = rows.Scan(&id, &financeClient, &feeType, &evidenceType, &startDate, &endDate, &notes, &deleted, &dateReceived)
+
+		assert.Equal(t, "REMISSION", feeType)
+		assert.Equal(t, "2021-04-01", startDate.Format("2006-01-02"))
+		assert.Equal(t, "2024-03-31", endDate.Format("2006-01-02"))
+		assert.Equal(t, params.Notes, notes)
+	}
+
 	if err == nil {
 		return
 	}
@@ -46,20 +77,50 @@ func TestService_AddFeeReduction(t *testing.T) {
 
 func TestService_AddFeeReductionOverlap(t *testing.T) {
 	testDB.SeedData(
-		"INSERT INTO finance_client VALUES (22, 22, '1234', 'DEMANDED', null, 12300, 2222);",
-		"INSERT INTO fee_reduction VALUES (22, 22, 'REMISSION', null, '2019-04-01', '2020-03-31', 'Remission to see the notes', false, '2019-05-01');",
+		"INSERT INTO finance_client VALUES (23, 23, '1234', 'DEMANDED', null, 12300, 2222);",
+		"INSERT INTO fee_reduction VALUES (23, 23, 'REMISSION', null, '2019-04-01', '2021-03-31', 'Remission to see the notes', false, '2019-05-01');",
 	)
 	s, params := setupServiceAndParams()
-	params.StartYear = "2018"
-
-	err := s.AddFeeReduction(22, params)
-	if err != nil {
-		if err.Error() == "overlap" {
-			assert.Equalf(t, "overlap", err.Error(), "StartYear has an overlap")
-			return
-		}
+	testCases := []struct {
+		testName      string
+		startYear     string
+		lengthOfAward int
+	}{
+		{
+			testName:      "Overlap starts one year before existing",
+			startYear:     "2018",
+			lengthOfAward: 2,
+		},
+		{
+			testName:      "Overlap starts the same date as existing",
+			startYear:     "2019",
+			lengthOfAward: 1,
+		},
+		{
+			testName:      "Overlap end date is the same as existing",
+			startYear:     "2018",
+			lengthOfAward: 3,
+		},
+		{
+			testName:      "Overlap both dates are different to existing and overlap",
+			startYear:     "2020",
+			lengthOfAward: 3,
+		},
 	}
-	t.Error("Overlap was expected")
+
+	for _, tc := range testCases {
+		t.Run(tc.testName, func(t *testing.T) {
+			params.StartYear = tc.startYear
+			params.LengthOfAward = tc.lengthOfAward
+
+			err := s.AddFeeReduction(22, params)
+			if err != nil {
+				assert.Equalf(t, "overlap", err.Error(), "StartYear %s has an overlap", tc.startYear)
+				return
+			}
+			t.Error("Overlap was expected")
+		})
+	}
 }
 
 func Test_calculateEndDate(t *testing.T) {

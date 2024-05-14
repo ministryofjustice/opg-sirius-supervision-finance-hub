@@ -15,6 +15,14 @@ type Context struct {
 	ClientId  int
 }
 
+const ErrUnauthorized ClientError = "unauthorized"
+
+type ClientError string
+
+func (e ClientError) Error() string {
+	return string(e)
+}
+
 func (ctx Context) With(c context.Context) Context {
 	return Context{
 		Context:   c,

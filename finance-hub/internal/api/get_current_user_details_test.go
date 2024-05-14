@@ -63,7 +63,7 @@ func TestGetCurrentUserDetailsReturnsUnauthorisedClientError(t *testing.T) {
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, "", logger)
 	_, err := client.GetCurrentUserDetails(getContext(nil))
-	assert.Equal(t, shared.ErrUnauthorized, err)
+	assert.Equal(t, ErrUnauthorized, err)
 }
 
 func TestMyDetailsReturns500Error(t *testing.T) {
