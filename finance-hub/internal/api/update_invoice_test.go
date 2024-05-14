@@ -36,7 +36,7 @@ func TestUpdateInvoice(t *testing.T) {
 func TestUpdateInvoiceUnauthorised(t *testing.T) {
 	logger, _ := SetUpTest()
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusUnauthorized)
+		w.WriteHeader(http.StatusForbidden)
 	}))
 	defer svr.Close()
 

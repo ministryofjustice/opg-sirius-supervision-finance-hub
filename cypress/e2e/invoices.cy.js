@@ -39,7 +39,7 @@ describe("Invoices ledger allocations", () => {
 describe("Supervision level breakdown", () => {
     it("shows all the correct headers", () => {
         cy.visit("/clients/1/invoices");
-        cy.get('#invoice-1').click()
+        cy.get('#invoice-2').click()
         cy.contains('[data-cy="supervision-title"]', "Supervision level breakdown");
         cy.contains('[data-cy="supervision-level"]', "Supervision level");
         cy.contains('[data-cy="supervision-amount"]', "Amount");
