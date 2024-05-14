@@ -15,13 +15,13 @@ func (s *Service) AddFeeReduction(id int, data shared.AddFeeReduction) error {
 	ctx := context.Background()
 
 	countOverlappingFeeReductionParams := store.CountOverlappingFeeReductionParams{
-		ClientID:  int32(id),
-		Startdate: calculateFeeReductionStartDate(data.StartYear),
-		Enddate:   calculateFeeReductionEndDate(data.StartYear, data.LengthOfAward),
+		ClientID:   int32(id),
+		Overlaps:   calculateFeeReductionStartDate(data.StartYear),
+		Overlaps_2: calculateFeeReductionEndDate(data.StartYear, data.LengthOfAward),
 	}
 
 	hasFeeReduction, _ := s.Store.CountOverlappingFeeReduction(ctx, countOverlappingFeeReductionParams)
-	if hasFeeReduction == 1 {
+	if hasFeeReduction != 0 {
 		return BadRequest{Reason: "overlap"}
 	}
 

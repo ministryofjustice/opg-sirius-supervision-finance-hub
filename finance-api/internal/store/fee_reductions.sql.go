@@ -58,21 +58,21 @@ func (q *Queries) AddFeeReduction(ctx context.Context, arg AddFeeReductionParams
 }
 
 const countOverlappingFeeReduction = `-- name: CountOverlappingFeeReduction :one
-select count(*)
+SELECT COUNT(*)
 from fee_reduction fr
          inner join finance_client fc on fc.id = fr.finance_client_id
 where fc.client_id = $1 and fr.deleted = false
-    and fr.startdate = $2 or fr.enddate = $3
+  and (fr.startdate, fr.enddate) OVERLAPS ($2, $3)
 `
 
 type CountOverlappingFeeReductionParams struct {
-	ClientID  int32
-	Startdate pgtype.Date
-	Enddate   pgtype.Date
+	ClientID   int32
+	Overlaps   interface{}
+	Overlaps_2 interface{}
 }
 
 func (q *Queries) CountOverlappingFeeReduction(ctx context.Context, arg CountOverlappingFeeReductionParams) (int64, error) {
-	row := q.db.QueryRow(ctx, countOverlappingFeeReduction, arg.ClientID, arg.Startdate, arg.Enddate)
+	row := q.db.QueryRow(ctx, countOverlappingFeeReduction, arg.ClientID, arg.Overlaps, arg.Overlaps_2)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
