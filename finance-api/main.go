@@ -84,7 +84,7 @@ func main() {
 	defer conn.Close(ctx)
 
 	Store := store.New(conn)
-	Service := service.Service{DB: conn, Store: Store}
+	Service := service.Service{TX: conn, Store: Store}
 	server := api.Server{Logger: logger, Service: &Service, Validator: validator}
 
 	server.SetupRoutes()

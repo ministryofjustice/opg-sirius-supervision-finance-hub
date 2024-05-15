@@ -5,14 +5,14 @@ import (
 	"database/sql"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
+	"github.com/opg-sirius-finance-hub/finance-api/internal/testhelpers"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
 
-func setupServiceAndParams() (*Service, shared.AddFeeReduction) {
-	Store := store.New(testDB.DbInstance)
+func setupServiceAndParams(conn testhelpers.TestConn) (*Service, shared.AddFeeReduction) {
 	var dateReceivedTransformed *shared.Date
 
 	today := time.Now()
@@ -29,23 +29,28 @@ func setupServiceAndParams() (*Service, shared.AddFeeReduction) {
 	}
 
 	s := &Service{
-		Store: Store,
-		DB:    testDB.DbConn,
+		Store: store.New(conn),
+		TX:    conn,
 	}
 
 	return s, params
 }
 
 func TestService_AddFeeReduction(t *testing.T) {
-	testDB.SeedData(
+	conn := testDB.GetConn()
+	t.Cleanup(func() {
+		testDB.Restore()
+	})
+
+	conn.SeedData(
 		"INSERT INTO finance_client VALUES (22, 22, '1234', 'DEMANDED', null, 12300, 2222);",
 		"INSERT INTO fee_reduction VALUES (22, 22, 'REMISSION', null, '2019-04-01', '2021-03-31', 'Remission to see the notes', false, '2019-05-01');",
 	)
 	ctx := context.Background()
-	s, params := setupServiceAndParams()
+	s, params := setupServiceAndParams(conn)
 
 	err := s.AddFeeReduction(22, params)
-	rows, _ := testDB.DbInstance.Query(ctx, "SELECT * FROM supervision_finance.fee_reduction WHERE id = 1")
+	rows, _ := conn.Query(ctx, "SELECT * FROM supervision_finance.fee_reduction WHERE id = 1")
 	defer rows.Close()
 
 	for rows.Next() {
@@ -76,11 +81,17 @@ func TestService_AddFeeReduction(t *testing.T) {
 }
 
 func TestService_AddFeeReductionOverlap(t *testing.T) {
-	testDB.SeedData(
+	conn := testDB.GetConn()
+	t.Cleanup(func() {
+		testDB.Restore()
+	})
+
+	conn.SeedData(
 		"INSERT INTO finance_client VALUES (23, 23, '1234', 'DEMANDED', null, 12300, 2222);",
 		"INSERT INTO fee_reduction VALUES (23, 23, 'REMISSION', null, '2019-04-01', '2021-03-31', 'Remission to see the notes', false, '2019-05-01');",
 	)
-	s, params := setupServiceAndParams()
+	s, params := setupServiceAndParams(conn)
+
 	testCases := []struct {
 		testName      string
 		startYear     string
@@ -113,7 +124,7 @@ func TestService_AddFeeReductionOverlap(t *testing.T) {
 			params.StartYear = tc.startYear
 			params.LengthOfAward = tc.lengthOfAward
 
-			err := s.AddFeeReduction(22, params)
+			err := s.AddFeeReduction(23, params)
 			if err != nil {
 				assert.Equalf(t, "overlap", err.Error(), "StartYear %s has an overlap", tc.startYear)
 				return
