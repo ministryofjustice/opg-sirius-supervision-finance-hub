@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
@@ -12,19 +11,17 @@ import (
 )
 
 func TestService_GetFeeReductions(t *testing.T) {
+	conn := testDB.GetConn()
 	t.Cleanup(func() {
-		err := testDB.Container.Restore(context.Background())
-		if err != nil {
-			t.Fatal(err)
-		}
+		testDB.Restore()
 	})
 
-	testDB.SeedData(
+	conn.SeedData(
 		"INSERT INTO finance_client VALUES (5, 5, '1234', 'DEMANDED', null, 12300, 2222);",
 		"INSERT INTO fee_reduction VALUES (5, 5, 'REMISSION', null, '2019-04-01', '2020-03-31', 'Remission to see the notes', false, '2019-05-01');",
 	)
 
-	Store := store.New(testDB.DbInstance)
+	Store := store.New(conn)
 
 	tests := []struct {
 		name    string

@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
 	"reflect"
@@ -9,16 +8,14 @@ import (
 )
 
 func TestService_GetAccountInformation(t *testing.T) {
+	conn := testDB.GetConn()
 	t.Cleanup(func() {
-		err := testDB.Container.Restore(context.Background())
-		if err != nil {
-			t.Fatal(err)
-		}
+		testDB.Restore()
 	})
 
-	testDB.SeedData("INSERT INTO finance_client VALUES (1, 2, 'sop123', 'DEMANDED', 3, 12300, 321)")
+	conn.SeedData("INSERT INTO finance_client VALUES (1, 2, 'sop123', 'DEMANDED', 3, 12300, 321)")
 
-	Store := store.New(testDB.DbInstance)
+	Store := store.New(conn)
 	tests := []struct {
 		name    string
 		id      int

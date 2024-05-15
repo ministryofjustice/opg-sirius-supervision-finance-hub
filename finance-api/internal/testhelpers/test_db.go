@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/pgconn"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
 	"github.com/testcontainers/testcontainers-go"
@@ -29,19 +29,15 @@ var basePath string
 // function and use the DbInstance to interact with the database as needed (e.g. to insert data prior to testing).
 // Ensure to run TearDown at the end of the tests to clean up.
 type TestDatabase struct {
-	DbInstance *pgxpool.Pool
-	DbAddress  string
-	Container  *postgres.PostgresContainer
-	DbConn     *pgx.Conn
+	Address   string
+	Container *postgres.PostgresContainer
 }
 
-func (db *TestDatabase) SeedData(data ...string) {
-	ctx := context.Background()
-	for _, d := range data {
-		_, err := db.DbInstance.Exec(ctx, d)
-		if err != nil {
-			log.Fatal("Unable to seed data with db connection: " + err.Error())
-		}
+// Restore restores the DB to the snapshot backup and re-establishes the connection
+func (db *TestDatabase) Restore() {
+	err := db.Container.Restore(context.Background())
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 
@@ -73,11 +69,6 @@ func InitDb() *TestDatabase {
 		log.Fatal(err)
 	}
 
-	db, err := pgxpool.New(ctx, connString)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	err = migrateDb(connString)
 	if err != nil {
 		log.Fatal(err)
@@ -88,16 +79,9 @@ func InitDb() *TestDatabase {
 		log.Fatal(err)
 	}
 
-	conn, err := pgx.Connect(ctx, connString)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	return &TestDatabase{
-		Container:  container,
-		DbInstance: db,
-		DbAddress:  connString,
-		DbConn:     conn,
+		Container: container,
+		Address:   connString,
 	}
 }
 
@@ -127,6 +111,43 @@ func migrateDb(connString string) error {
 }
 
 func (db *TestDatabase) TearDown() {
-	db.DbInstance.Close()
 	_ = db.Container.Terminate(context.Background())
+}
+
+func (db *TestDatabase) GetConn() TestConn {
+	conn, err := pgx.Connect(context.Background(), db.Address)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return TestConn{conn}
+}
+
+type TestConn struct {
+	Conn *pgx.Conn
+}
+
+func (c TestConn) Exec(ctx context.Context, s string, i ...interface{}) (pgconn.CommandTag, error) {
+	return c.Conn.Exec(ctx, s, i...)
+}
+
+func (c TestConn) Query(ctx context.Context, s string, i ...interface{}) (pgx.Rows, error) {
+	return c.Conn.Query(ctx, s, i...)
+}
+
+func (c TestConn) QueryRow(ctx context.Context, s string, i ...interface{}) pgx.Row {
+	return c.Conn.QueryRow(ctx, s, i...)
+}
+
+func (c TestConn) Begin(ctx context.Context) (pgx.Tx, error) {
+	return c.Conn.BeginTx(ctx, pgx.TxOptions{})
+}
+
+func (c TestConn) SeedData(data ...string) {
+	ctx := context.Background()
+	for _, d := range data {
+		_, err := c.Exec(ctx, d)
+		if err != nil {
+			log.Fatal("Unable to seed data with db connection: " + err.Error())
+		}
+	}
 }
