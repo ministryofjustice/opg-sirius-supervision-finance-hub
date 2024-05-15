@@ -24,7 +24,6 @@ func TestUpdateFeeReduction(t *testing.T) {
 	assert.True(t, ro.executed)
 
 	expected := UpdateFeeReductions{
-		FeeReductionFormValues{},
 		"1",
 		appVars,
 	}
