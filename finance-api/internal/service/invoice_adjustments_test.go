@@ -10,7 +10,12 @@ import (
 )
 
 func TestService_GetInvoiceAdjustments(t *testing.T) {
-	testDB.SeedData(
+	conn := testDB.GetConn()
+	t.Cleanup(func() {
+		testDB.Restore()
+	})
+
+	conn.SeedData(
 		"INSERT INTO finance_client VALUES (6, 6, '1234', 'DEMANDED', null, 12300, 2222);",
 		"INSERT INTO ledger VALUES (2, 'abc1', '2022-04-02T00:00:00+00:00', '', 12300, 'first credit', 'CREDIT MEMO', 'REJECTED', 6, null, null, null, null, null, null, null, null, '05/05/2022', 1);",
 		"INSERT INTO ledger VALUES (3, 'def2', '2022-04-03T00:00:00+00:00', '', 23001, 'first write off', 'CREDIT WRITE OFF', 'CONFIRMED', 6, null, null, null, null, null, null, null, null, '05/05/2022', 1);",
@@ -26,7 +31,7 @@ func TestService_GetInvoiceAdjustments(t *testing.T) {
 		"INSERT INTO ledger_allocation VALUES (4, 4, 3, '2022-04-02T00:00:00+00:00', 0, '', null, '', '2022-04-02', null);",
 	)
 
-	Store := store.New(testDB.DbInstance)
+	Store := store.New(conn)
 	dateString := "2022-04-02"
 	date, _ := time.Parse("2006-01-02", dateString)
 	tests := []struct {

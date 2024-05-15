@@ -11,12 +11,17 @@ import (
 )
 
 func TestService_GetFeeReductions(t *testing.T) {
-	testDB.SeedData(
+	conn := testDB.GetConn()
+	t.Cleanup(func() {
+		testDB.Restore()
+	})
+
+	conn.SeedData(
 		"INSERT INTO finance_client VALUES (5, 5, '1234', 'DEMANDED', null, 12300, 2222);",
 		"INSERT INTO fee_reduction VALUES (5, 5, 'REMISSION', null, '2019-04-01', '2020-03-31', 'Remission to see the notes', false, '2019-05-01');",
 	)
 
-	Store := store.New(testDB.DbInstance)
+	Store := store.New(conn)
 
 	tests := []struct {
 		name    string

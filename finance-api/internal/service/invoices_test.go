@@ -10,7 +10,12 @@ import (
 )
 
 func TestService_GetInvoices(t *testing.T) {
-	testDB.SeedData(
+	conn := testDB.GetConn()
+	t.Cleanup(func() {
+		testDB.Restore()
+	})
+
+	conn.SeedData(
 		"INSERT INTO finance_client VALUES (7, 1, '1234', 'DEMANDED', null, 12300, 2222);",
 		"INSERT INTO finance_client VALUES (3, 2, '1234', 'DEMANDED', null, 12300, 2222);",
 		"INSERT INTO fee_reduction VALUES (2, 7, 'REMISSION', null, '2019-04-01'::date, '2020-03-31'::date, 'notes', false, '2019-05-01'::date);",
@@ -20,7 +25,7 @@ func TestService_GetInvoices(t *testing.T) {
 		"INSERT INTO invoice_fee_range VALUES (1, 1, 'General', '2022-04-01', '2023-03-31', 12300);",
 	)
 
-	Store := store.New(testDB.DbInstance)
+	Store := store.New(conn)
 	dateString := "2020-03-16"
 	date, _ := time.Parse("2006-01-02", dateString)
 	tests := []struct {

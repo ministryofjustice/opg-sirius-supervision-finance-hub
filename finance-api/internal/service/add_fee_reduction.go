@@ -35,7 +35,7 @@ func (s *Service) AddFeeReduction(id int, data shared.AddFeeReduction) error {
 		Datereceived: pgtype.Date{Time: data.DateReceived.Time, Valid: true},
 	}
 
-	tx, err := s.DB.Begin(ctx)
+	tx, err := s.TX.Begin(ctx)
 	if err != nil {
 		return err
 	}
