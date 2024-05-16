@@ -40,8 +40,12 @@ var validationMappings = map[string]map[string]pair{
 		"required":                 pair{"Notes", "Enter a reason for awarding fee reduction"},
 		"thousand-character-limit": pair{"Notes", "Reason for awarding fee reduction must be 1000 characters or less"},
 	},
+	"CancelFeeReductionNotes": {
+		"required":                 pair{"Notes", "Enter a reason for cancelling fee reduction"},
+		"thousand-character-limit": pair{"Notes", "Reason for cancellation must be 1000 characters or less"},
+	},
 	"Overlap": {
-		"StartOrEndDate": pair{"StartOrEndDate", "A fee reduction already exists for the period specified"},
+		"start-or-end-date": pair{"start-or-end-date", "A fee reduction already exists for the period specified"},
 	},
 }
 

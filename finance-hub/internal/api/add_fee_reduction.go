@@ -61,7 +61,7 @@ func (c *ApiClient) AddFeeReduction(ctx Context, clientId int, feeType string, s
 	}
 
 	if resp.StatusCode == http.StatusBadRequest {
-		return shared.ValidationError{Errors: shared.ValidationErrors{"Overlap": {"StartOrEndDate": ""}}}
+		return shared.ValidationError{Errors: shared.ValidationErrors{"Overlap": {"start-or-end-date": ""}}}
 	}
 
 	return newStatusError(resp)
