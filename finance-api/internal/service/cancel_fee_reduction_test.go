@@ -10,21 +10,25 @@ import (
 )
 
 func TestService_CancelFeeReduction(t *testing.T) {
-	testDB.SeedData(
+	conn := testDB.GetConn()
+	t.Cleanup(func() {
+		testDB.Restore()
+	})
+	conn.SeedData(
 		"INSERT INTO finance_client VALUES (33, 33, '1234', 'DEMANDED', null, 12300, 2222);",
 		"INSERT INTO fee_reduction VALUES (33, 33, 'REMISSION', null, '2019-04-01', '2021-03-31', 'Remission to see the notes', false, '2019-05-01');",
 	)
 
 	ctx := context.Background()
-	Store := store.New(testDB.DbInstance)
+	Store := store.New(conn)
 
 	s := &Service{
 		Store: Store,
-		DB:    testDB.DbConn,
+		TX:    conn,
 	}
 
 	err := s.CancelFeeReduction(33)
-	rows, _ := testDB.DbInstance.Query(ctx, "SELECT * FROM supervision_finance.fee_reduction WHERE id = 33")
+	rows, _ := conn.Query(ctx, "SELECT * FROM supervision_finance.fee_reduction WHERE id = 33")
 	defer rows.Close()
 
 	for rows.Next() {

@@ -8,7 +8,7 @@ import (
 func (s *Service) CancelFeeReduction(id int) error {
 	ctx := context.Background()
 
-	tx, err := s.DB.Begin(ctx)
+	tx, err := s.TX.Begin(ctx)
 	if err != nil {
 		return err
 	}

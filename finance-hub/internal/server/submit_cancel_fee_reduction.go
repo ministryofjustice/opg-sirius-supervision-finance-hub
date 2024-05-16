@@ -27,10 +27,7 @@ func (h *SubmitCancelFeeReductionsHandler) render(v AppVars, w http.ResponseWrit
 	err := h.Client().CancelFeeReduction(ctx, ctx.ClientId, feeReductionId, notes)
 	var verr shared.ValidationError
 	if errors.As(err, &verr) {
-		formData := CancelFeeReductionFormValues{
-			Notes: notes,
-		}
-		data := CancelFeeReduction{formData, r.PathValue("id"), r.PathValue("feeReductionId"), v}
+		data := AppVars{Errors: util.RenameErrors(verr.Errors)}
 		data.Errors = util.RenameErrors(verr.Errors)
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return h.execute(w, r, data)
@@ -40,6 +37,6 @@ func (h *SubmitCancelFeeReductionsHandler) render(v AppVars, w http.ResponseWrit
 		return err
 	}
 
-	w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/fee-reductions?success=%s", v.EnvironmentVars.Prefix, ctx.ClientId, "fish"))
+	w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/fee-reductions?success=%s", v.EnvironmentVars.Prefix, ctx.ClientId, "feeReductionCancelled"))
 	return nil
 }
