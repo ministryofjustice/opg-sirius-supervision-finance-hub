@@ -9,7 +9,8 @@ describe("Fee Reductions Tab", () => {
             .next().contains("End date")
             .next().contains("Date received")
             .next().contains("Status")
-            .next().contains("Notes");
+            .next().contains("Reasons for fee reduction")
+            .next().contains("Actions");
 
         cy.get("table#fee-reductions > tbody > tr")
             .should("have.length", 1)

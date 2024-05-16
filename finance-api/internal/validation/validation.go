@@ -27,7 +27,7 @@ func New() (*Validate, error) {
 	}, nil
 }
 
-func (v *Validate) ValidateStruct(s interface{}) shared.ValidationError {
+func (v *Validate) ValidateStruct(s interface{}, description string) shared.ValidationError {
 	var validationErrors = make(shared.ValidationErrors)
 
 	err := v.validator.Struct(s)
@@ -37,11 +37,17 @@ func (v *Validate) ValidateStruct(s interface{}) shared.ValidationError {
 			field := fieldError.Field()
 			tag := fieldError.Tag()
 
-			if validationErrors[field] == nil {
-				validationErrors[field] = make(map[string]string)
+			if description != "" {
+				if validationErrors[description] == nil {
+					validationErrors[description] = make(map[string]string)
+				}
+				validationErrors[description][tag] = fmt.Sprintf("This field %s needs to be looked at %s", description, tag)
+			} else {
+				if validationErrors[field] == nil {
+					validationErrors[field] = make(map[string]string)
+				}
+				validationErrors[field][tag] = fmt.Sprintf("This field %s needs to be looked at %s", field, tag)
 			}
-
-			validationErrors[field][tag] = fmt.Sprintf("This field %s needs to be looked at %s", field, tag)
 		}
 
 		return shared.ValidationError{
