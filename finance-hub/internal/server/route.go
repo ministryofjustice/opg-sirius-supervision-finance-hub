@@ -102,6 +102,8 @@ func (r route) getSuccess(req *http.Request) string {
 		return "The exemption has been successfully added"
 	case "hardship":
 		return "The hardship has been successfully added"
+	case "feeReductionCancelled":
+		return "The fee reduction has been successfully cancelled"
 	}
 	return ""
 }

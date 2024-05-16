@@ -57,6 +57,27 @@ func (q *Queries) AddFeeReduction(ctx context.Context, arg AddFeeReductionParams
 	return i, err
 }
 
+const cancelFeeReduction = `-- name: CancelFeeReduction :one
+update fee_reduction set deleted = true where id = $1 returning id, finance_client_id, type, evidencetype, startdate, enddate, notes, deleted, datereceived
+`
+
+func (q *Queries) CancelFeeReduction(ctx context.Context, id int32) (FeeReduction, error) {
+	row := q.db.QueryRow(ctx, cancelFeeReduction, id)
+	var i FeeReduction
+	err := row.Scan(
+		&i.ID,
+		&i.FinanceClientID,
+		&i.Type,
+		&i.Evidencetype,
+		&i.Startdate,
+		&i.Enddate,
+		&i.Notes,
+		&i.Deleted,
+		&i.Datereceived,
+	)
+	return i, err
+}
+
 const countOverlappingFeeReduction = `-- name: CountOverlappingFeeReduction :one
 SELECT COUNT(*)
 from fee_reduction fr

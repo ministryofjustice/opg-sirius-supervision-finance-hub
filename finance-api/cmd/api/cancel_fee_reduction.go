@@ -7,15 +7,15 @@ import (
 	"strconv"
 )
 
-func (s *Server) addFeeReduction(w http.ResponseWriter, r *http.Request) {
-	var addFeeReduction shared.AddFeeReduction
+func (s *Server) cancelFeeReduction(w http.ResponseWriter, r *http.Request) {
+	var cancelFeeReduction shared.CancelFeeReduction
 	defer r.Body.Close()
 
-	if err := json.NewDecoder(r.Body).Decode(&addFeeReduction); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&cancelFeeReduction); err != nil {
 		return
 	}
 
-	validationError := s.Validator.ValidateStruct(addFeeReduction, "")
+	validationError := s.Validator.ValidateStruct(cancelFeeReduction, "CancelFeeReductionNotes")
 
 	if len(validationError.Errors) != 0 {
 		errorData, _ := json.Marshal(validationError)
@@ -26,13 +26,10 @@ func (s *Server) addFeeReduction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	clientId, _ := strconv.Atoi(r.PathValue("id"))
-	err := s.Service.AddFeeReduction(clientId, addFeeReduction)
+	feeReductionId, _ := strconv.Atoi(r.PathValue("feeReductionId"))
+	err := s.Service.CancelFeeReduction(feeReductionId)
 
 	if err != nil {
-		if err.Error() == "overlap" {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
