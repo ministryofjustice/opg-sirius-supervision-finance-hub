@@ -38,6 +38,7 @@ type Invoice struct {
 	OutstandingBalance string
 	Ledgers            LedgerAllocations
 	SupervisionLevels  SupervisionLevels
+	ClientId           int
 }
 
 type InvoiceTab struct {
@@ -57,12 +58,12 @@ func (h *InvoicesHandler) render(v AppVars, w http.ResponseWriter, r *http.Reque
 		return err
 	}
 
-	data := &InvoiceTab{h.transform(invoices), v}
+	data := &InvoiceTab{h.transform(invoices, ctx.ClientId), v}
 	data.selectTab("invoices")
 	return h.execute(w, r, data)
 }
 
-func (h *InvoicesHandler) transform(in shared.Invoices) Invoices {
+func (h *InvoicesHandler) transform(in shared.Invoices, clientId int) Invoices {
 	var out Invoices
 	for _, invoice := range in {
 		out = append(out, Invoice{
@@ -75,6 +76,7 @@ func (h *InvoicesHandler) transform(in shared.Invoices) Invoices {
 			OutstandingBalance: util.IntToDecimalString(invoice.OutstandingBalance),
 			Ledgers:            h.transformLedgers(invoice.Ledgers),
 			SupervisionLevels:  h.transformSupervisionLevels(invoice.SupervisionLevels),
+			ClientId:           clientId,
 		})
 	}
 	return out

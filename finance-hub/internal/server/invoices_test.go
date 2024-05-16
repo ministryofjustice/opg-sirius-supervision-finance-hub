@@ -78,6 +78,7 @@ func TestInvoice(t *testing.T) {
 					To:     shared.NewDate("31/03/2020"),
 				},
 			},
+			ClientId: 1,
 		},
 	}
 
