@@ -28,3 +28,6 @@ from fee_reduction fr
          inner join finance_client fc on fc.id = fr.finance_client_id
 where fc.client_id = $1 and fr.deleted = false
   and (fr.startdate, fr.enddate) OVERLAPS ($2, $3);
+
+-- name: CancelFeeReduction :one
+update fee_reduction set deleted = true where id = $1 returning *;

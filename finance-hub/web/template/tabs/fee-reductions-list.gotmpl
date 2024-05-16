@@ -34,7 +34,8 @@
             <th scope="col" data-cy="end-date" class="govuk-table__header">End date</th>
             <th scope="col" data-cy="date-received" class="govuk-table__header">Date received</th>
             <th scope="col" data-cy="status" class="govuk-table__header">Status</th>
-            <th scope="col" data-cy="notes" class="govuk-table__header">Notes</th>
+            <th scope="col" data-cy="notes" class="govuk-table__header">Reasons for fee reduction</th>
+            <th scope="col" data-cy="actions" class="govuk-table__header">Actions</th>
         </tr>
         </thead>
         {{ if eq (len .FeeReductions) 0 }}
@@ -51,6 +52,24 @@
                         <td class="govuk-table__cell">{{.DateReceived}}</td>
                         <td class="govuk-table__cell">{{.Status}}</td>
                         <td class="govuk-table__cell">{{.Notes}}</td>
+                        <td class="govuk-table__cell">
+                            {{ if .FeeReductionCancelAction }}
+                            <div class="moj-button-menu">
+                                <div class="moj-button-menu__wrapper">
+                                    <a
+                                    class="govuk-button moj-button-menu__item govuk-button--secondary"
+                                    role="button"
+                                    draggable="false"
+                                    data-module="govuk-button"
+                                    hx-get="{{ prefix (printf "/clients/%s/fee-reductions/%s/cancel" .ClientId .Id) }}"
+                                    hx-target="#main-content"
+                                    hx-push-url="{{ (printf "/clients/%s/fee-reductions/%s/cancel" .ClientId .Id) }}">
+                                    Cancel
+                                    </a>
+                                </div>
+                            </div>
+                            {{end}}
+                        </td>
                     </tr>
                 </tbody>
             {{end }}

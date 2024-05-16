@@ -19,6 +19,6 @@ INSERT INTO ledger_allocation VALUES (1, 1, 1, '2022-04-11T08:36:40+00:00', 1200
 INSERT INTO ledger_allocation VALUES (2, 2, 2, '2022-04-11T08:36:40+00:00', 12300, 'Confirmed', null, 'Notes here', '2022-04-11', null);
 ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 3;
 
-INSERT INTO invoice_fee_range VALUES (1, 1, 'General', '2022-04-01', '2023-03-31', 12300);
-INSERT INTO invoice_fee_range VALUES (2, 2, 'General', '2022-04-01', '2023-03-31', 12300);
+INSERT INTO invoice_fee_range VALUES (1, 1, 'GENERAL', '2022-04-01', '2023-03-31', 12300);
+INSERT INTO invoice_fee_range VALUES (2, 2, 'GENERAL', '2022-04-01', '2023-03-31', 12300);
 ALTER SEQUENCE invoice_fee_range_id_seq RESTART WITH 3;

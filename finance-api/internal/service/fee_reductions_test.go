@@ -34,13 +34,14 @@ func TestService_GetFeeReductions(t *testing.T) {
 			id:   5,
 			want: &shared.FeeReductions{
 				shared.FeeReduction{
-					Id:           5,
-					Type:         "REMISSION",
-					StartDate:    shared.NewDate("01/04/2019"),
-					EndDate:      shared.NewDate("31/03/2020"),
-					DateReceived: shared.NewDate("01/05/2019"),
-					Status:       "Expired",
-					Notes:        "Remission to see the notes",
+					Id:                       5,
+					Type:                     "REMISSION",
+					StartDate:                shared.NewDate("01/04/2019"),
+					EndDate:                  shared.NewDate("31/03/2020"),
+					DateReceived:             shared.NewDate("01/05/2019"),
+					Status:                   "Expired",
+					Notes:                    "Remission to see the notes",
+					FeeReductionCancelAction: false,
 				},
 			},
 		},
@@ -141,6 +142,40 @@ func Test_calculateStatus(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equalf(t, tt.want, calculateStatus(tt.args.startDate, tt.args.endDate, tt.args.deleted), "calculateStatus(%v, %v, %v)", tt.args.startDate, tt.args.endDate, tt.args.deleted)
+		})
+	}
+}
+
+func Test_showFeeReductionCancelBtn(t *testing.T) {
+	tests := []struct {
+		name   string
+		status string
+		want   bool
+	}{
+		{
+			name:   "returns false for expired status",
+			status: "Expired",
+			want:   false,
+		},
+		{
+			name:   "returns false for cancelled status",
+			status: "Cancelled",
+			want:   false,
+		},
+		{
+			name:   "returns true for active status",
+			status: "Active",
+			want:   true,
+		},
+		{
+			name:   "returns true for pending status",
+			status: "Pending",
+			want:   true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, showFeeReductionCancelBtn(tt.status), "showFeeReductionCancelBtn(%v)", tt.status)
 		})
 	}
 }

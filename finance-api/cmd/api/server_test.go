@@ -10,11 +10,17 @@ type mockService struct {
 	feeReductions      *shared.FeeReductions
 	invoiceAdjustments *shared.InvoiceAdjustments
 	feeReduction       *shared.AddFeeReduction
+	cancelFeeReduction *shared.CancelFeeReduction
 	expectedId         int
 	err                error
 }
 
 func (s *mockService) AddFeeReduction(id int, feeReduction shared.AddFeeReduction) error {
+	s.expectedId = id
+	return s.err
+}
+
+func (s *mockService) CancelFeeReduction(id int) error {
 	s.expectedId = id
 	return s.err
 }

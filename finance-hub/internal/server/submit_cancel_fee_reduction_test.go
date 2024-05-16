@@ -10,14 +10,11 @@ import (
 	"testing"
 )
 
-func TestAddFeeReductionSuccess(t *testing.T) {
+func TestCancelFeeReductionSuccess(t *testing.T) {
 	form := url.Values{
-		"id":            {"1"},
-		"feeType":       {"remission"},
-		"startYear":     {"2025"},
-		"lengthOfAward": {"3"},
-		"dateReceived":  {"15/02/2024"},
-		"notes":         {"Fee remission note for one award"},
+		"id":             {"1"},
+		"feeReductionId": {"1"},
+		"notes":          {"Fee remission note for one award"},
 	}
 
 	client := mockApiClient{}
@@ -29,27 +26,27 @@ func TestAddFeeReductionSuccess(t *testing.T) {
 	r.SetPathValue("id", "1")
 
 	appVars := AppVars{
-		Path: "/add",
+		Path: "/cancel",
 	}
 
 	appVars.EnvironmentVars.Prefix = "prefix"
 
-	sut := SubmitFeeReductionsHandler{ro}
+	sut := SubmitCancelFeeReductionsHandler{ro}
 
 	err := sut.render(appVars, w, r)
 
 	assert.Nil(t, err)
-	assert.Equal(t, "prefix/clients/1/fee-reductions?success=remission", w.Header().Get("HX-Redirect"))
+	assert.Equal(t, "prefix/clients/1/fee-reductions?success=feeReductionCancelled", w.Header().Get("HX-Redirect"))
 }
 
-func TestAddFeeReductionValidationErrors(t *testing.T) {
+func TestCancelFeeReductionValidationErrors(t *testing.T) {
 	assert := assert.New(t)
 	client := &mockApiClient{}
 	ro := &mockRoute{client: client}
 
 	validationErrors := shared.ValidationErrors{
-		"notes": {
-			"stringLengthTooLong": "Reason for manual credit must be 1000 characters or less",
+		"CancelFeeReductionNotes": {
+			"stringLengthTooLong": "Reason for cancellation must be 1000 characters or less",
 		},
 	}
 
@@ -61,12 +58,13 @@ func TestAddFeeReductionValidationErrors(t *testing.T) {
 	r, _ := http.NewRequest(http.MethodPost, "/add", nil)
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	r.SetPathValue("id", "1")
+	r.SetPathValue("feeReductionId", "1")
 
 	appVars := AppVars{
-		Path: "/add",
+		Path: "/cancel",
 	}
 
-	sut := SubmitFeeReductionsHandler{ro}
+	sut := SubmitCancelFeeReductionsHandler{ro}
 	err := sut.render(appVars, w, r)
 	assert.Nil(err)
 	assert.Equal("422 Unprocessable Entity", w.Result().Status)
