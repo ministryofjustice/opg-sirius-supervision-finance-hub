@@ -28,10 +28,18 @@ func (s *Service) GetFeeReductions(id int) (*shared.FeeReductions, error) {
 			Status:       calculateStatus(startDate, endDate, fee.Deleted),
 			Notes:        fee.Notes,
 		}
+		feeReduction.FeeReductionCancelAction = showFeeReductionCancelBtn(feeReduction.Status)
 		feeReductions = append(feeReductions, feeReduction)
 	}
 
 	return &feeReductions, nil
+}
+
+func showFeeReductionCancelBtn(status any) bool {
+	if status == "Pending" || status == "Active" {
+		return true
+	}
+	return false
 }
 
 func calculateStatus(startDate shared.Date, endDate shared.Date, deleted bool) string {

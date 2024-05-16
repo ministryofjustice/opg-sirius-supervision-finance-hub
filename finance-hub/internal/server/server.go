@@ -22,6 +22,7 @@ type ApiClient interface {
 	GetAccountInformation(api.Context, int) (shared.AccountInformation, error)
 	GetInvoiceAdjustments(api.Context, int) (shared.InvoiceAdjustments, error)
 	AddFeeReduction(api.Context, int, string, string, string, string, string) error
+	CancelFeeReduction(api.Context, int, int, string) error
 }
 
 type router interface {
@@ -46,6 +47,8 @@ func New(logger *zap.SugaredLogger, client ApiClient, templates map[string]*temp
 	mux.Handle("POST /clients/{id}/invoices/{invoiceId}/ledger-entries", wrap(&SubmitInvoiceHandler{&route{client: client, tmpl: templates["update-invoice.gotmpl"], partial: "error-summary"}}))
 	mux.Handle("GET /clients/{id}/fee-reductions/add", wrap(&UpdateFeeReductionHandler{&route{client: client, tmpl: templates["add-fee-reduction.gotmpl"], partial: "add-fee-reduction"}}))
 	mux.Handle("POST /clients/{id}/fee-reductions/add", wrap(&SubmitFeeReductionsHandler{&route{client: client, tmpl: templates["add-fee-reduction.gotmpl"], partial: "error-summary"}}))
+	mux.Handle("GET /clients/{id}/fee-reductions/{feeReductionId}/cancel", wrap(&CancelFeeReductionHandler{&route{client: client, tmpl: templates["cancel-fee-reduction.gotmpl"], partial: "cancel-fee-reduction"}}))
+	mux.Handle("POST /clients/{id}/fee-reductions/{feeReductionId}/cancel", wrap(&SubmitCancelFeeReductionsHandler{&route{client: client, tmpl: templates["cancel-fee-reduction.gotmpl"], partial: "cancel-fee-reduction"}}))
 
 	mux.Handle("/health-check", healthCheck())
 
