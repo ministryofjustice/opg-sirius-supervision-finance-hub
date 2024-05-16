@@ -79,7 +79,7 @@ func TestFeeReductionReturnsBadRequestError(t *testing.T) {
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
 
 	err := client.AddFeeReduction(getContext(nil), 1, "remission", "2025", "3", "15/02/2024", "Fee remission note for one award")
-	expectedError := shared.ValidationError{Message: "", Errors: shared.ValidationErrors{"Overlap": map[string]string{"StartOrEndDate": ""}}}
+	expectedError := shared.ValidationError{Message: "", Errors: shared.ValidationErrors{"Overlap": map[string]string{"start-or-end-date": ""}}}
 	assert.Equal(t, expectedError, err)
 }
 

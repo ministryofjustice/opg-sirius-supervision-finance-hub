@@ -45,7 +45,7 @@ var validationMappings = map[string]map[string]pair{
 		"thousand-character-limit": pair{"Notes", "Reason for cancellation must be 1000 characters or less"},
 	},
 	"Overlap": {
-		"StartOrEndDate": pair{"StartOrEndDate", "A fee reduction already exists for the period specified"},
+		"start-or-end-date": pair{"start-or-end-date", "A fee reduction already exists for the period specified"},
 	},
 }
 
