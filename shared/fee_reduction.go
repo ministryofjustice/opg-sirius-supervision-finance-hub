@@ -12,3 +12,8 @@ type FeeReduction struct {
 }
 
 type FeeReductions []FeeReduction
+
+const Pending string = "Pending"
+const Active string = "Active"
+const Expired string = "Expired"
+const Cancelled string = "Cancelled"

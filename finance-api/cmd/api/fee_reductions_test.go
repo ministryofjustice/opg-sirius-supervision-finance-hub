@@ -25,7 +25,7 @@ func TestServer_getFeeReductions(t *testing.T) {
 			StartDate:    shared.Date{Time: date},
 			EndDate:      shared.Date{Time: date},
 			DateReceived: shared.Date{Time: date},
-			Status:       "Active",
+			Status:       shared.Active,
 			Notes:        "Remission notes and its active",
 		},
 	}

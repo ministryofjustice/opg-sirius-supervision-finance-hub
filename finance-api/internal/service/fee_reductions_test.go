@@ -91,7 +91,7 @@ func Test_calculateStatus(t *testing.T) {
 				endDate:   shared.Date{Time: time.Now().AddDate(1, 0, 0).Truncate(time.Hour * 24)},
 				deleted:   false,
 			},
-			want: "Active",
+			want: shared.Active,
 		},
 		{
 			name: "returns active when today is the start date and before end date and not deleted",
@@ -100,7 +100,7 @@ func Test_calculateStatus(t *testing.T) {
 				endDate:   shared.Date{Time: time.Now().AddDate(1, 0, 0).Truncate(time.Hour * 24)},
 				deleted:   false,
 			},
-			want: "Active",
+			want: shared.Active,
 		},
 		{
 			name: "returns active when today is after start date and before end date and not deleted",
@@ -109,7 +109,7 @@ func Test_calculateStatus(t *testing.T) {
 				endDate:   shared.Date{Time: time.Now().AddDate(1, 0, 0).Truncate(time.Hour * 24)},
 				deleted:   false,
 			},
-			want: "Active",
+			want: shared.Active,
 		},
 		{
 			name: "returns active when today is the end date and not deleted",
@@ -118,7 +118,7 @@ func Test_calculateStatus(t *testing.T) {
 				endDate:   shared.Date{Time: time.Now().Truncate(time.Hour * 24)},
 				deleted:   false,
 			},
-			want: "Active",
+			want: shared.Active,
 		},
 		{
 			name: "returns expired when today is after end date and not deleted",
@@ -164,12 +164,12 @@ func Test_showFeeReductionCancelBtn(t *testing.T) {
 		},
 		{
 			name:   "returns true for active status",
-			status: "Active",
+			status: shared.Active,
 			want:   true,
 		},
 		{
 			name:   "returns true for pending status",
-			status: "Pending",
+			status: shared.Pending,
 			want:   true,
 		},
 	}

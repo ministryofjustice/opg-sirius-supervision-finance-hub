@@ -36,7 +36,7 @@ func (s *Service) GetFeeReductions(id int) (*shared.FeeReductions, error) {
 }
 
 func showFeeReductionCancelBtn(status any) bool {
-	if status == "Pending" || status == "Active" {
+	if status == shared.Pending || status == shared.Active {
 		return true
 	}
 	return false
@@ -45,13 +45,13 @@ func showFeeReductionCancelBtn(status any) bool {
 func calculateStatus(startDate shared.Date, endDate shared.Date, deleted bool) string {
 	now := shared.Date{Time: time.Now().Truncate(time.Hour * 24)}
 	if deleted {
-		return "Cancelled"
+		return shared.Cancelled
 	} else if startDate.After(now) {
-		return "Pending"
+		return shared.Pending
 	} else if !now.Before(startDate) && !now.After(endDate) {
-		return "Active"
+		return shared.Active
 	} else if endDate.Before(now) {
-		return "Expired"
+		return shared.Expired
 	}
 	return ""
 }
