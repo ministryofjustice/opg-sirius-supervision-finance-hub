@@ -1,83 +1,33 @@
 package server
 
 import (
-	"github.com/opg-sirius-finance-hub/finance-hub/internal/util"
-	"github.com/opg-sirius-finance-hub/shared"
+	"fmt"
 	"net/http"
+	"strconv"
 )
 
-type PendingInvoiceAdjustments []PendingInvoiceAdjustment
-
-type PendingInvoiceAdjustment struct {
-	Id               int
-	Invoice          string
-	DateRaised       shared.Date
-	AdjustmentType   string
-	AdjustmentAmount string
-	Notes            string
-	Status           string
-}
-
-type PendingInvoiceAdjustmentsTab struct {
-	PendingInvoiceAdjustments PendingInvoiceAdjustments
-	AppVars
-}
-
-type PendingInvoiceAdjustmentsHandler struct {
+type SubmitPendingInvoiceAdjustmentHandler struct {
 	router
 }
 
-func (h *PendingInvoiceAdjustmentsHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
+func (h *SubmitPendingInvoiceAdjustmentHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
 	ctx := getContext(r)
+	var (
+		invoiceId, _ = strconv.Atoi(r.PathValue("id"))
+	)
 
-	ia, err := h.Client().GetInvoiceAdjustments(ctx, ctx.ClientId)
+	err := h.Client().SubmitPendingInvoiceAdjustment(ctx, ctx.ClientId, invoiceId)
+	//var verr shared.ValidationError
+	//if errors.As(err, &verr) {
+	//	data := UpdateInvoices{shared.AdjustmentTypes, r.PathValue("id"), r.PathValue("invoiceId"), v}
+	//	data.Errors = util.RenameErrors(verr.Errors)
+	//	w.WriteHeader(http.StatusUnprocessableEntity)
+	//	return h.execute(w, r, data)
+	//}
 	if err != nil {
 		return err
 	}
 
-	data := &PendingInvoiceAdjustmentsTab{PendingInvoiceAdjustments: h.transform(ia), AppVars: v}
-	data.selectTab("pending-invoice-adjustments")
-
-	return h.execute(w, r, data)
-}
-
-func (h *PendingInvoiceAdjustmentsHandler) transform(in shared.InvoiceAdjustments) PendingInvoiceAdjustments {
-	var out PendingInvoiceAdjustments
-	for _, adjustment := range in {
-		out = append(out, PendingInvoiceAdjustment{
-			Id:               adjustment.Id,
-			Invoice:          adjustment.InvoiceRef,
-			DateRaised:       adjustment.RaisedDate,
-			AdjustmentType:   h.transformType(adjustment.AdjustmentType),
-			AdjustmentAmount: util.IntToDecimalString(adjustment.Amount),
-			Notes:            adjustment.Notes,
-			Status:           h.transformStatus(adjustment.Status),
-		})
-	}
-
-	return out
-}
-
-func (h *PendingInvoiceAdjustmentsHandler) transformType(in shared.AdjustmentType) string {
-	switch in {
-	case shared.AdjustmentTypeAddCredit:
-		return "Credit"
-	case shared.AdjustmentTypeWriteOff:
-		return "Write off"
-	default:
-		return ""
-	}
-}
-
-func (h *PendingInvoiceAdjustmentsHandler) transformStatus(in string) string {
-	switch in {
-	case "PENDING":
-		return "Pending"
-	case "REJECTED":
-		return "Rejected"
-	case "APPROVED":
-		return "Approved"
-	default:
-		return ""
-	}
+	w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices?success=%s", v.EnvironmentVars.Prefix, ctx.ClientId, adjustmentType))
+	return nil
 }
