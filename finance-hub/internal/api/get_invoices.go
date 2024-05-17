@@ -11,8 +11,7 @@ func (c *ApiClient) GetInvoices(ctx Context, clientId int) (shared.Invoices, err
 	var invoices shared.Invoices
 
 	url := fmt.Sprintf("/clients/%d/invoices", clientId)
-
-	req, err := c.newBackendRequest(ctx, http.MethodGet, url, nil)
+	req, err := c.newRequest(ctx, http.MethodGet, url, nil, "financeApi")
 
 	if err != nil {
 		return invoices, err

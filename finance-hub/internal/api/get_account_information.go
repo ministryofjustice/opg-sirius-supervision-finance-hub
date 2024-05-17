@@ -12,7 +12,7 @@ func (c *ApiClient) GetAccountInformation(ctx Context, ClientId int) (shared.Acc
 	var v shared.AccountInformation
 
 	requestURL := fmt.Sprintf("/clients/%d", ClientId)
-	req, err := c.newBackendRequest(ctx, http.MethodGet, requestURL, nil)
+	req, err := c.newRequest(ctx, http.MethodGet, requestURL, nil, "financeApi")
 	if err != nil {
 		c.logErrorRequest(req, err)
 		return v, err

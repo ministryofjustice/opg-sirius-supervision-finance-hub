@@ -12,7 +12,8 @@ func (c *ApiClient) GetPersonDetails(ctx Context, ClientId int) (shared.Person, 
 	var v shared.Person
 
 	requestURL := fmt.Sprintf("/api/v1/clients/%d", ClientId)
-	req, err := c.newSiriusRequest(ctx, http.MethodGet, requestURL, nil)
+	//req, err := c.newSiriusRequest(ctx, http.MethodGet, requestURL, nil)
+	req, err := c.newRequest(ctx, http.MethodGet, requestURL, nil, "sirius")
 	if err != nil {
 		c.logErrorRequest(req, err)
 		return v, err
