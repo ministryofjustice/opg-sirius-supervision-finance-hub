@@ -32,7 +32,7 @@ func (c *ApiClient) AddFeeReduction(ctx Context, clientId int, feeType string, s
 	}
 
 	url := fmt.Sprintf("/clients/%d/fee-reductions", clientId)
-	req, err := c.newBackendRequest(ctx, http.MethodPost, url, &body)
+	req, err := c.newRequest(ctx, http.MethodPost, url, &body, "financeApi")
 
 	if err != nil {
 		return err
