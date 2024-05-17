@@ -25,7 +25,8 @@ func (c *ApiClient) UpdateInvoice(ctx Context, clientId int, invoiceId int, adju
 		return err
 	}
 
-	req, err := c.newSiriusRequest(ctx, http.MethodPost, fmt.Sprintf("/api/v1/invoices/%d/ledger-entries", invoiceId), &body)
+	//req, err := c.newSiriusRequest(ctx, http.MethodPost, fmt.Sprintf("/api/v1/invoices/%d/ledger-entries", invoiceId), &body)
+	req, err := c.newRequest(ctx, http.MethodPost, fmt.Sprintf("/api/v1/invoices/%d/ledger-entries", invoiceId), &body, "sirius")
 
 	if err != nil {
 		return err

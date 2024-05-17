@@ -51,24 +51,15 @@ type ApiClient struct {
 	backendUrl string
 }
 
-func (c *ApiClient) newSiriusRequest(ctx Context, method, path string, body io.Reader) (*http.Request, error) {
-	req, err := http.NewRequestWithContext(ctx.Context, method, c.siriusUrl+path, body)
-	if err != nil {
-		return nil, err
+func (c *ApiClient) newRequest(ctx Context, method, path string, body io.Reader, apiUrl string) (*http.Request, error) {
+	var apiPath string
+	if apiUrl == "sirius" {
+		apiPath = c.siriusUrl + path
+	} else if apiUrl == "financeApi" {
+		apiPath = c.backendUrl + path
 	}
 
-	for _, c := range ctx.Cookies {
-		req.AddCookie(c)
-	}
-
-	req.Header.Add("OPG-Bypass-Membrane", "1")
-	req.Header.Add("X-XSRF-TOKEN", ctx.XSRFToken)
-
-	return req, err
-}
-
-func (c *ApiClient) newBackendRequest(ctx Context, method, path string, body io.Reader) (*http.Request, error) {
-	req, err := http.NewRequestWithContext(ctx.Context, method, c.backendUrl+path, body)
+	req, err := http.NewRequestWithContext(ctx.Context, method, apiPath, body)
 	if err != nil {
 		return nil, err
 	}

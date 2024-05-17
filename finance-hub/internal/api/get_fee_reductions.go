@@ -11,7 +11,7 @@ func (c *ApiClient) GetFeeReductions(ctx Context, clientId int) (shared.FeeReduc
 	var v shared.FeeReductions
 
 	url := fmt.Sprintf("/clients/%d/fee-reductions", clientId)
-	req, err := c.newBackendRequest(ctx, http.MethodGet, url, nil)
+	req, err := c.newRequest(ctx, http.MethodGet, url, nil, "financeApi")
 	if err != nil {
 		c.logErrorRequest(req, err)
 		return v, err
