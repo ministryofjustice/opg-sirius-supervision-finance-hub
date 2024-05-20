@@ -47,6 +47,7 @@ func (h *FeeReductionsHandler) render(v AppVars, w http.ResponseWriter, r *http.
 
 func (h *FeeReductionsHandler) transform(in shared.FeeReductions, clientId string) FeeReductions {
 	var out FeeReductions
+	caser := cases.Title(language.English)
 	for _, f := range in {
 		out = append(out, FeeReduction{
 			Type:                     cases.Title(language.English).String(f.Type),
@@ -55,10 +56,17 @@ func (h *FeeReductionsHandler) transform(in shared.FeeReductions, clientId strin
 			DateReceived:             f.DateReceived.String(),
 			Status:                   f.Status,
 			Notes:                    f.Notes,
-			FeeReductionCancelAction: f.FeeReductionCancelAction,
+			FeeReductionCancelAction: showFeeReductionCancelBtn(caser.String(f.Status)),
 			Id:                       strconv.Itoa(f.Id),
 			ClientId:                 clientId,
 		})
 	}
 	return out
+}
+
+func showFeeReductionCancelBtn(status string) bool {
+	if status == shared.StatusPending || status == shared.StatusActive {
+		return true
+	}
+	return false
 }

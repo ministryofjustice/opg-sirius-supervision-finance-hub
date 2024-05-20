@@ -1,6 +1,5 @@
 describe("Cancel fee reduction form", () => {
     it("shows correct error message for all potential errors", () => {
-        cy.setCookie("fail-route", "addFeeReductionError");
         cy.visit("/clients/1/fee-reductions/1/cancel");
         cy.get('.govuk-button').click()
         cy.get('.govuk-error-summary').contains("Enter a reason for cancelling fee reduction")
