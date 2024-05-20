@@ -32,7 +32,7 @@ describe("Invoices ledger allocations", () => {
         cy.get('[data-cy="ledger-amount-data"]').first().contains("£123")
         cy.get('[data-cy="ledger-received-date-data"]').first().contains("04/12/2022")
         cy.get('[data-cy="ledger-transaction-type-data"]').first().contains("Card Payment");
-        cy.get('[data-cy="ledger-status-data"]').first().contains("Applied");
+        cy.get('[data-cy="ledger-status-data"]').first().contains("Approved");
     });
 });
 

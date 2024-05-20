@@ -5,9 +5,9 @@ import (
 	"net/http"
 )
 
-func (c *ApiClient) UpdatePendingInvoiceAdjustment(ctx Context, clientId int, invoiceId int, adjustmentType string, notes string, amount string) error {
+func (c *ApiClient) UpdatePendingInvoiceAdjustment(ctx Context, clientId int, ledgerId int) error {
 
-	url := fmt.Sprintf("/clients/%d/invoice-adjustments/%d", clientId, invoiceId)
+	url := fmt.Sprintf("/clients/%d/invoice-adjustments/%d", clientId, ledgerId)
 	req, err := c.newBackendRequest(ctx, http.MethodPost, url, nil)
 
 	if err != nil {
@@ -24,15 +24,9 @@ func (c *ApiClient) UpdatePendingInvoiceAdjustment(ctx Context, clientId int, in
 		return ErrUnauthorized
 	}
 
-	//if resp.StatusCode != http.StatusCreated {
-	//	var v shared.ValidationError
-	//
-	//	if err := json.NewDecoder(resp.Body).Decode(&v); err == nil && len(v.Errors) > 0 {
-	//		return shared.ValidationError{Errors: v.Errors}
-	//	}
-	//
-	//	return newStatusError(resp)
-	//}
+	if resp.StatusCode != http.StatusOK {
+		return newStatusError(resp)
+	}
 
 	return nil
 }

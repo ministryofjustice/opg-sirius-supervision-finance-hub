@@ -15,6 +15,11 @@ type mockService struct {
 	err                error
 }
 
+func (s *mockService) UpdatePendingInvoiceAdjustment(id int) error {
+	s.expectedId = id
+	return s.err
+}
+
 func (s *mockService) AddFeeReduction(id int, feeReduction shared.AddFeeReduction) error {
 	s.expectedId = id
 	return s.err
