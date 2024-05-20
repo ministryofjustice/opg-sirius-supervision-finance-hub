@@ -26,9 +26,9 @@ func TestService_GetInvoiceAdjustments(t *testing.T) {
 		"INSERT INTO invoice VALUES (3, 1, 6, 'S2', 'S205753/20', '2022-04-02', '2022-04-02', 0, null, null, null, null, null, null, 0, '2022-04-02', 1);",
 
 		// one for each ledger
-		"INSERT INTO ledger_allocation VALUES (2, 2, 2, '2022-04-02T00:00:00+00:00', 0, '', null, '', '2022-04-02', null);",
-		"INSERT INTO ledger_allocation VALUES (3, 3, 2, '2022-04-02T00:00:00+00:00', 0, '', null, '', '2022-04-02', null);",
-		"INSERT INTO ledger_allocation VALUES (4, 4, 3, '2022-04-02T00:00:00+00:00', 0, '', null, '', '2022-04-02', null);",
+		"INSERT INTO ledger_allocation VALUES (2, 2, 2, '2022-04-02T00:00:00+00:00', 0, 'PENDING', null, '', '2022-04-02', null);",
+		"INSERT INTO ledger_allocation VALUES (3, 3, 2, '2022-04-02T00:00:00+00:00', 0, 'PENDING', null, '', '2022-04-02', null);",
+		"INSERT INTO ledger_allocation VALUES (4, 4, 3, '2022-04-02T00:00:00+00:00', 0, 'PENDING', null, '', '2022-04-02', null);",
 	)
 
 	Store := store.New(conn)
