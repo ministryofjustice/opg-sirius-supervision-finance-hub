@@ -9,9 +9,6 @@
     "clean": "rm -rf web/static",
     "test-sirius": "cd internal/sirius && go test",
     "test-server": "cd internal/server && go test",
-    "cypress": "cypress open",
-    "cypress-headless": "cypress run -b chrome",
-    "cypress-build-down": "docker compose down",
     "lint": "prettier --check .",
     "prettier": "prettier --write .",
     "fmt": "prettier --write .",
@@ -25,10 +22,6 @@
     "htmx.org": "^1.9.10"
   },
   "devDependencies": {
-    "axe-core": "^4.8.3",
-    "cypress": "^13.6.4",
-    "cypress-axe": "^1.5.0",
-    "cypress-failed-log": "^2.10.0",
     "esbuild": "^0.19.0",
     "eslint": "^8.56.0",
     "sass": "^1.70.0"
