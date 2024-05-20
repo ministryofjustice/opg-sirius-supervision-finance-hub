@@ -23,7 +23,7 @@ describe("Invoice Tab", () => {
 describe("Invoices ledger allocations", () => {
     it("table with correct headers and content", () => {
         cy.visit("/clients/1/invoices");
-        cy.get('#invoice-1').click()
+        cy.get('#invoice-2').click()
         cy.contains('[data-cy="ledger-title"]', "Invoice ledger allocations");
         cy.contains('[data-cy="ledger-amount"]', "Amount");
         cy.contains('[data-cy="ledger-received-date"]', "Received date");
@@ -47,7 +47,7 @@ describe("Supervision level breakdown", () => {
         cy.contains('[data-cy="supervision-to"]', "To");
         cy.contains('[data-cy="supervision-level-data"]', "General").first();
         cy.contains('[data-cy="supervision-amount-data"]', "£123").first();
-        cy.get('[data-cy="supervision-from-data"]').contains("01/04/2022").first();
-        cy.get('[data-cy="supervision-to-data"]').contains("31/03/2023").first();
+        cy.contains('[data-cy="supervision-from-data"]', "01/04/2022").first();
+        cy.contains('[data-cy="supervision-to-data"]', "31/03/2023").first();
     });
 });
