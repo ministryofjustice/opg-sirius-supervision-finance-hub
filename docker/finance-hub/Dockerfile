@@ -50,7 +50,7 @@ RUN apk --update --no-cache add \
     tzdata
 
 # Patch vulnerabilities
-RUN apk upgrade --no-cache libcrypto3 libssl3
+RUN apk upgrade --no-cache busybox libcrypto3 libssl3
 
 COPY --from=build-env /go/bin/finance-hub finance-hub
 COPY --from=build-env /app/finance-hub/web/template web/template
