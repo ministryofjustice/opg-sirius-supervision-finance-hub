@@ -9,5 +9,4 @@ RUN npm install cypress-axe
 ENV CYPRESS_VIDEO=false
 ENV CYPRESS_baseUrl=http://finance-hub:8888
 
-COPY cypress.config.js .
-COPY cypress cypress
+COPY cypress .
