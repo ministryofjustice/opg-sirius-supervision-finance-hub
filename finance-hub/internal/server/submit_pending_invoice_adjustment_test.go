@@ -29,5 +29,5 @@ func TestSubmitPendingInvoiceAdjustmentSuccess(t *testing.T) {
 	err := sut.render(appVars, w, r)
 
 	assert.Nil(t, err)
-	assert.Equal(t, "prefix/clients/1/pending-invoice-adjustments?success=Credit", w.Header().Get("HX-Redirect"))
+	assert.Equal(t, "prefix/clients/1/pending-invoice-adjustments?success=credit", w.Header().Get("HX-Redirect"))
 }
