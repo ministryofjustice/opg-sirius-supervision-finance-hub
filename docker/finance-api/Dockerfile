@@ -34,7 +34,7 @@ RUN apk --update --no-cache add \
     tzdata
 
 # Patch vulnerabilities
-RUN apk upgrade --no-cache libcrypto3 libssl3
+RUN apk upgrade --no-cache busybox libcrypto3 libssl3
 
 COPY --from=build-env /go/bin/finance-api finance-api
 ENTRYPOINT ["./finance-api"]
