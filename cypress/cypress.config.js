@@ -6,6 +6,7 @@ export default defineConfig({
         setupNodeEvents(on, config) {},
         baseUrl: 'http://localhost:8888',
         supportFile: false,
-        specPattern: "e2e/**/*.cy.{js,ts}"
+        specPattern: "e2e/**/*.cy.{js,ts}",
+        screenshotsFolder: "./screenshots"
     },
 })
