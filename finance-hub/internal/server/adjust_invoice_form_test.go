@@ -14,7 +14,7 @@ func TestAdjustInvoiceForm(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r, _ := http.NewRequest(http.MethodGet, "", nil)
-	r.SetPathValue("id", "1")
+	r.SetPathValue("clientId", "1")
 	r.SetPathValue("invoiceId", "9")
 
 	appVars := AppVars{Path: "/path/"}

@@ -94,7 +94,7 @@ func TestCreateLedgerEntryRequest_validation(t *testing.T) {
 		Amount:         -123,
 	}
 
-	errs := validator.ValidateStruct(arg).Errors
+	errs := validator.ValidateStruct(arg, "").Errors
 	expected := map[string]string{
 		"AdjustmentType": "valid-enum",
 		"Notes":          "thousand-character-limit",

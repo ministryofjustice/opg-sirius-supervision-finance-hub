@@ -12,7 +12,7 @@ import (
 
 func TestServer_getAccountInformation(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/clients/1", nil)
-	req.SetPathValue("id", "1")
+	req.SetPathValue("clientId", "1")
 	w := httptest.NewRecorder()
 
 	accountInfo := &shared.AccountInformation{
@@ -38,7 +38,7 @@ func TestServer_getAccountInformation(t *testing.T) {
 
 func TestServer_getAccountInformation_clientNotFound(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/clients/1", nil)
-	req.SetPathValue("id", "1")
+	req.SetPathValue("clientId", "1")
 	w := httptest.NewRecorder()
 
 	mock := &mockService{err: pgx.ErrNoRows}
@@ -52,7 +52,7 @@ func TestServer_getAccountInformation_clientNotFound(t *testing.T) {
 
 func TestServer_getAccountInformation_error(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/clients/1", nil)
-	req.SetPathValue("id", "1")
+	req.SetPathValue("clientId", "1")
 	w := httptest.NewRecorder()
 
 	mock := &mockService{err: pgx.ErrTooManyRows}
