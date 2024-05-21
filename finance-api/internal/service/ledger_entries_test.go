@@ -38,9 +38,9 @@ func TestService_CreateLedgerEntry(t *testing.T) {
 			invoiceId: 1,
 			clientId:  1,
 			data: &shared.CreateLedgerEntryRequest{
-				AdjustmentType: shared.AdjustmentTypeAddCredit,
-				Notes:          "credit",
-				Amount:         52000,
+				AdjustmentType:  shared.AdjustmentTypeAddCredit,
+				AdjustmentNotes: "credit",
+				Amount:          52000,
 			},
 			err: shared.BadRequest{Field: "Amount", Reason: "Amount entered must be equal to or less than £420"},
 		},
@@ -49,9 +49,9 @@ func TestService_CreateLedgerEntry(t *testing.T) {
 			invoiceId: 1,
 			clientId:  99,
 			data: &shared.CreateLedgerEntryRequest{
-				AdjustmentType: shared.AdjustmentTypeAddCredit,
-				Notes:          "credit",
-				Amount:         42000,
+				AdjustmentType:  shared.AdjustmentTypeAddCredit,
+				AdjustmentNotes: "credit",
+				Amount:          42000,
 			},
 			err: pgx.ErrNoRows,
 		},
@@ -60,9 +60,9 @@ func TestService_CreateLedgerEntry(t *testing.T) {
 			invoiceId: 1,
 			clientId:  1,
 			data: &shared.CreateLedgerEntryRequest{
-				AdjustmentType: shared.AdjustmentTypeAddCredit,
-				Notes:          "credit",
-				Amount:         32000,
+				AdjustmentType:  shared.AdjustmentTypeAddCredit,
+				AdjustmentNotes: "credit",
+				Amount:          32000,
 			},
 			err: nil,
 		},
@@ -85,10 +85,10 @@ func TestService_CreateLedgerEntry(t *testing.T) {
 				expected := store.Ledger{
 					ID:              2,
 					Amount:          int32(tt.data.Amount),
-					Notes:           pgtype.Text{tt.data.Notes, true},
+					Notes:           pgtype.Text{String: tt.data.AdjustmentNotes, Valid: true},
 					Type:            tt.data.AdjustmentType.DbValue(),
 					Status:          "PENDING",
-					FinanceClientID: pgtype.Int4{int32(1), true},
+					FinanceClientID: pgtype.Int4{Int32: int32(1), Valid: true},
 				}
 
 				assert.EqualValues(t, expected, ledger)
@@ -102,11 +102,11 @@ func TestService_CreateLedgerEntry(t *testing.T) {
 			} else {
 				expected := store.LedgerAllocation{
 					ID:        2,
-					LedgerID:  pgtype.Int4{int32(2), true},
-					InvoiceID: pgtype.Int4{int32(1), true},
+					LedgerID:  pgtype.Int4{Int32: int32(2), Valid: true},
+					InvoiceID: pgtype.Int4{Int32: int32(1), Valid: true},
 					Amount:    int32(tt.data.Amount),
 					Status:    "PENDING",
-					Notes:     pgtype.Text{tt.data.Notes, true},
+					Notes:     pgtype.Text{String: tt.data.AdjustmentNotes, Valid: true},
 				}
 
 				assert.EqualValues(t, expected, la)
