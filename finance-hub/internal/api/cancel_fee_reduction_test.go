@@ -60,7 +60,7 @@ func TestCancelFeeReductionReturns500Error(t *testing.T) {
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/clients/1/fee-reductions/1/cancel",
-		Method: http.MethodPost,
+		Method: http.MethodPut,
 	}, err)
 }
 

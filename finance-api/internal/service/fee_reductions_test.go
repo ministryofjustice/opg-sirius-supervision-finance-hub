@@ -34,14 +34,13 @@ func TestService_GetFeeReductions(t *testing.T) {
 			id:   5,
 			want: &shared.FeeReductions{
 				shared.FeeReduction{
-					Id:                       5,
-					Type:                     "REMISSION",
-					StartDate:                shared.NewDate("01/04/2019"),
-					EndDate:                  shared.NewDate("31/03/2020"),
-					DateReceived:             shared.NewDate("01/05/2019"),
-					Status:                   "Expired",
-					Notes:                    "Remission to see the notes",
-					FeeReductionCancelAction: false,
+					Id:           5,
+					Type:         "REMISSION",
+					StartDate:    shared.NewDate("01/04/2019"),
+					EndDate:      shared.NewDate("31/03/2020"),
+					DateReceived: shared.NewDate("01/05/2019"),
+					Status:       "Expired",
+					Notes:        "Remission to see the notes",
 				},
 			},
 		},
@@ -91,7 +90,7 @@ func Test_calculateStatus(t *testing.T) {
 				endDate:   shared.Date{Time: time.Now().AddDate(1, 0, 0).Truncate(time.Hour * 24)},
 				deleted:   false,
 			},
-			want: shared.Active,
+			want: shared.StatusActive,
 		},
 		{
 			name: "returns active when today is the start date and before end date and not deleted",
@@ -100,7 +99,7 @@ func Test_calculateStatus(t *testing.T) {
 				endDate:   shared.Date{Time: time.Now().AddDate(1, 0, 0).Truncate(time.Hour * 24)},
 				deleted:   false,
 			},
-			want: shared.Active,
+			want: shared.StatusActive,
 		},
 		{
 			name: "returns active when today is after start date and before end date and not deleted",
@@ -109,7 +108,7 @@ func Test_calculateStatus(t *testing.T) {
 				endDate:   shared.Date{Time: time.Now().AddDate(1, 0, 0).Truncate(time.Hour * 24)},
 				deleted:   false,
 			},
-			want: shared.Active,
+			want: shared.StatusActive,
 		},
 		{
 			name: "returns active when today is the end date and not deleted",
@@ -118,7 +117,7 @@ func Test_calculateStatus(t *testing.T) {
 				endDate:   shared.Date{Time: time.Now().Truncate(time.Hour * 24)},
 				deleted:   false,
 			},
-			want: shared.Active,
+			want: shared.StatusActive,
 		},
 		{
 			name: "returns expired when today is after end date and not deleted",
@@ -142,40 +141,6 @@ func Test_calculateStatus(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equalf(t, tt.want, calculateStatus(tt.args.startDate, tt.args.endDate, tt.args.deleted), "calculateStatus(%v, %v, %v)", tt.args.startDate, tt.args.endDate, tt.args.deleted)
-		})
-	}
-}
-
-func Test_showFeeReductionCancelBtn(t *testing.T) {
-	tests := []struct {
-		name   string
-		status string
-		want   bool
-	}{
-		{
-			name:   "returns false for expired status",
-			status: "Expired",
-			want:   false,
-		},
-		{
-			name:   "returns false for cancelled status",
-			status: "Cancelled",
-			want:   false,
-		},
-		{
-			name:   "returns true for active status",
-			status: shared.Active,
-			want:   true,
-		},
-		{
-			name:   "returns true for pending status",
-			status: shared.Pending,
-			want:   true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, showFeeReductionCancelBtn(tt.status), "showFeeReductionCancelBtn(%v)", tt.status)
 		})
 	}
 }

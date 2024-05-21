@@ -28,30 +28,22 @@ func (s *Service) GetFeeReductions(id int) (*shared.FeeReductions, error) {
 			Status:       calculateStatus(startDate, endDate, fee.Deleted),
 			Notes:        fee.Notes,
 		}
-		feeReduction.FeeReductionCancelAction = showFeeReductionCancelBtn(feeReduction.Status)
 		feeReductions = append(feeReductions, feeReduction)
 	}
 
 	return &feeReductions, nil
 }
 
-func showFeeReductionCancelBtn(status any) bool {
-	if status == shared.Pending || status == shared.Active {
-		return true
-	}
-	return false
-}
-
 func calculateStatus(startDate shared.Date, endDate shared.Date, deleted bool) string {
 	now := shared.Date{Time: time.Now().Truncate(time.Hour * 24)}
 	if deleted {
-		return shared.Cancelled
+		return shared.StatusCancelled
 	} else if startDate.After(now) {
-		return shared.Pending
+		return shared.StatusPending
 	} else if !now.Before(startDate) && !now.After(endDate) {
-		return shared.Active
+		return shared.StatusActive
 	} else if endDate.Before(now) {
-		return shared.Expired
+		return shared.StatusExpired
 	}
 	return ""
 }
