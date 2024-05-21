@@ -38,7 +38,7 @@ func (s *Server) PostLedgerEntry(w http.ResponseWriter, r *http.Request) {
 		if ok {
 			errorData, _ := json.Marshal(e)
 			w.Header().Set("Content-Type", "application/json")
-			http.Error(w, e.Reason, http.StatusBadRequest)
+			http.Error(w, "", http.StatusBadRequest)
 			_, _ = w.Write(errorData)
 
 			return

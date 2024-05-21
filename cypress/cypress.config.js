@@ -7,6 +7,6 @@ export default defineConfig({
         baseUrl: 'http://localhost:8888',
         supportFile: false,
         specPattern: "e2e/**/*.cy.{js,ts}",
-        screenshotsFolder: "/screenshots"
+        screenshotsFolder: "./screenshots"
     },
 })
