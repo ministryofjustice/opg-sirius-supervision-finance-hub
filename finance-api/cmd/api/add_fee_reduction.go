@@ -28,7 +28,7 @@ func (s *Server) addFeeReduction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	clientId, _ := strconv.Atoi(r.PathValue("id"))
+	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
 	err := s.Service.AddFeeReduction(clientId, addFeeReduction)
 
 	if err != nil {

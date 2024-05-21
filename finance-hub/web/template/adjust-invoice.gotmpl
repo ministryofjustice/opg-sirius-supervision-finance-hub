@@ -12,67 +12,65 @@
                         Adjust invoice
                     </h1>
                 </header>
-                {{ template "error-summary" .Errors }}
+                <div id="error-summary"></div>
                 <div class="govuk-grid-row">
                     <form
                         id="adjust-invoice-form"
                         class="add-note govuk-grid-column-one-third"
                         method="post"
-                        hx-post="{{ (printf "/clients/%s/invoices/%s/adjust-invoice" .ClientId .InvoiceId) }}"
-                        hx-target="#main-content">
+                        hx-post="{{ (printf "/clients/%s/invoices/%s/adjustments" .ClientId .InvoiceId) }}"
+                        hx-target="#error-summary">
                         <input
                                 type="hidden"
                                 name="xsrfToken"
                                 value="{{ .XSRFToken }}"/>
 
-                        <div class="govuk-form-group">
-                                <div id="f-adjustmentType" class="govuk-form-group {{ if index .Errors "adjustmentType" }}govuk-form-group--error{{ end }}">
-                                <fieldset class="govuk-fieldset" >
-                                    <legend class="govuk-fieldset__legend" id="adjustmentType">Choose an adjustment type</legend>
-                                    <span data-cy="invoice-error">{{ template "error-message" (index .Errors "adjustmentType") }}</span>
-                                    <div class="govuk-radios" >
-                                        {{ range .AdjustmentTypes }}
-                                            <div class="govuk-radios__item">
-                                                <input class="govuk-radios__input {{ if .AmountRequired }}show{{else}}hide{{ end }}-input-field" id="{{.Key}}" name="adjustmentType"
-                                                       type="radio" value="{{.Key}}">
-                                                <label class="govuk-label govuk-radios__label"
-                                                       for="{{.Key}}">{{.Translation}}</label>
-                                            </div>
-                                        {{ end }}
-                                    </div>
-                                </fieldset>
-                            </div>
-                            <div class="govuk-character-count" data-module="govuk-character-count"
-                                 data-maxlength="1000">
-                                <div class="govuk-form-group{{ if index .Errors "notes" }} govuk-form-group--error{{ end }}" >
-                                    <label class="govuk-label" for="f-notes" id="notes-label" data-cy="notes-error">
-                                        Reason for the adjustment
-                                        {{ template "error-message" (index .Errors "notes") }}
-                                    </label>
-                                    <textarea
-                                            class="govuk-textarea govuk-js-character-count"
-                                            id="f-notes"
-                                            name="notes"
-                                            rows="10"
-                                            aria-describedby="f-2-note-info notes-hint"
-                                    ></textarea>
-                                    <div
-                                            id="f-2-note-info"
-                                            class="govuk-hint govuk-character-count__message"
-                                            aria-live="polite">
-                                        You have 1,000 characters remaining
-                                    </div>
+                        <div id="f-AdjustmentType" class="govuk-form-group">
+                            <fieldset class="govuk-fieldset">
+                                <legend class="govuk-fieldset__legend" id="adjustmentType">Choose an adjustment type</legend>
+                                <span id="error-message__AdjustmentType"></span>
+                                <div class="govuk-radios" data-module="govuk-radios">
+                                    {{ range .AdjustmentTypes }}
+                                        <div class="govuk-radios__item">
+                                            <input class="govuk-radios__input {{ if .AmountRequired }}show{{else}}hide{{ end }}-input-field" id="{{.Key}}" name="adjustmentType"
+                                                   type="radio" value="{{.Key}}">
+                                            <label class="govuk-label govuk-radios__label"
+                                                   for="{{.Key}}">{{.Translation}}</label>
+                                        </div>
+                                    {{ end }}
+                                </div>
+                            </fieldset>
+                        </div>
+                        <div class="govuk-character-count" data-module="govuk-character-count"
+                             data-maxlength="1000">
+                            <div class="govuk-form-group" id="f-Notes">
+                                <label class="govuk-label" for="notes">
+                                    Reason for the adjustment
+                                </label>
+                                <span id="error-message__Notes"></span>
+                                <textarea
+                                        class="govuk-textarea govuk-js-character-count"
+                                        id="notes"
+                                        name="notes"
+                                        rows="10"
+                                        aria-describedby="f-2-note-info notes-hint"
+                                ></textarea>
+                                <div
+                                        id="f-2-note-info"
+                                        class="govuk-hint govuk-character-count__message"
+                                        aria-live="polite">
+                                    You have 1,000 characters remaining
                                 </div>
                             </div>
                         </div>
                         <div class="hide" id="field-input" style="display: block;">
-                            <div class="govuk-form-group {{ if index .Errors "amount" }}govuk-form-group--error{{ end }}">
-                                <label class="govuk-label govuk-body" for="f-amount">
+                            <div class="govuk-form-group" id="f-Amount">
+                                <label class="govuk-label govuk-body" for="amount">
                                     Amount
-                                    <span  data-cy="amount-error">{{ template "error-message" (index .Errors "amount") }}</span>
+                                    <span id="error-message__Amount"></span>
                                 </label>
                                 <div class="govuk-input__wrapper"><div class="govuk-input__prefix" aria-hidden="true">£</div>
-                                    <input class="govuk-input govuk-input--width-5" id="f-amount"  name="amount" type="text" spellcheck="false"></div>
+                                    <input class="govuk-input govuk-input--width-5" id="amount"  name="amount" type="text" spellcheck="false"></div>
                             </div>
                         </div>
                         <div class="govuk-button-group govuk-!-margin-top-7">

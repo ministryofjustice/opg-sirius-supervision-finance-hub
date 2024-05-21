@@ -22,12 +22,12 @@ func TestSubmitInvoiceAdjustmentSuccess(t *testing.T) {
 	ro := &mockRoute{client: client}
 
 	w := httptest.NewRecorder()
-	r, _ := http.NewRequest(http.MethodPost, "/adjust-invoice", strings.NewReader(form.Encode()))
+	r, _ := http.NewRequest(http.MethodPost, "/adjustments", strings.NewReader(form.Encode()))
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	r.SetPathValue("id", "1")
 
 	appVars := AppVars{
-		Path: "/adjust-invoice",
+		Path: "/adjustments",
 	}
 
 	appVars.EnvironmentVars.Prefix = "prefix"
@@ -52,12 +52,12 @@ func TestSubmitInvoiceAdjustmentError(t *testing.T) {
 	ro := &mockRoute{client: client}
 
 	w := httptest.NewRecorder()
-	r, _ := http.NewRequest(http.MethodPost, "/adjust-invoice", strings.NewReader(form.Encode()))
+	r, _ := http.NewRequest(http.MethodPost, "/adjustments", strings.NewReader(form.Encode()))
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	r.SetPathValue("id", "1")
 
 	appVars := AppVars{
-		Path: "/adjust-invoice",
+		Path: "/adjustments",
 	}
 
 	appVars.EnvironmentVars.Prefix = "prefix"
@@ -85,12 +85,12 @@ func TestAddTaskValidationErrors(t *testing.T) {
 	}
 
 	w := httptest.NewRecorder()
-	r, _ := http.NewRequest(http.MethodPost, "/adjust-invoice", nil)
+	r, _ := http.NewRequest(http.MethodPost, "/adjustments", nil)
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	r.SetPathValue("id", "1")
 
 	appVars := AppVars{
-		Path: "/adjust-invoice",
+		Path: "/adjustments",
 	}
 
 	sut := SubmitInvoiceAdjustmentHandler{ro}
@@ -110,12 +110,12 @@ func TestAddTaskBadRequest(t *testing.T) {
 	}
 
 	w := httptest.NewRecorder()
-	r, _ := http.NewRequest(http.MethodPost, "/adjust-invoice", nil)
+	r, _ := http.NewRequest(http.MethodPost, "/adjustments", nil)
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	r.SetPathValue("id", "1")
 
 	appVars := AppVars{
-		Path: "/adjust-invoice",
+		Path: "/adjustments",
 	}
 
 	sut := SubmitInvoiceAdjustmentHandler{ro}

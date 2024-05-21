@@ -22,7 +22,7 @@ type InvoiceAdjustmentForm struct {
 func (h *SubmitInvoiceAdjustmentHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
 	ctx := getContext(r)
 	var (
-		invoiceId, _   = strconv.Atoi(r.PathValue("id"))
+		invoiceId, _   = strconv.Atoi(r.PathValue("invoiceId"))
 		adjustmentType = r.PostFormValue("adjustmentType")
 		notes          = r.PostFormValue("notes")
 		amount         = r.PostFormValue("amount")

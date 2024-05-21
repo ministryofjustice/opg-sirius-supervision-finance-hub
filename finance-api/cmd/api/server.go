@@ -25,15 +25,15 @@ type Server struct {
 }
 
 func (s *Server) SetupRoutes() {
-	http.HandleFunc("GET /clients/{id}", s.getAccountInformation)
-	http.HandleFunc("GET /clients/{id}/invoices", s.getInvoices)
-	http.HandleFunc("GET /clients/{id}/fee-reductions", s.getFeeReductions)
-	http.HandleFunc("GET /clients/{id}/invoice-adjustments", s.getInvoiceAdjustments)
+	http.HandleFunc("GET /clients/{clientId}", s.getAccountInformation)
+	http.HandleFunc("GET /clients/{clientId}/invoices", s.getInvoices)
+	http.HandleFunc("GET /clients/{clientId}/fee-reductions", s.getFeeReductions)
+	http.HandleFunc("GET /clients/{clientId}/invoice-adjustments", s.getInvoiceAdjustments)
 
-	http.HandleFunc("POST /invoices/{id}/ledger-entries", s.PostLedgerEntry)
-	http.HandleFunc("PUT /clients/{id}/invoice-adjustments/{ledgerId}", s.updatePendingInvoiceAdjustment)
-	http.HandleFunc("POST /clients/{id}/fee-reductions", s.addFeeReduction)
-	http.HandleFunc("PUT /clients/{id}/fee-reductions/{feeReductionId}/cancel", s.cancelFeeReduction)
+	http.HandleFunc("POST /clients/{clientId}/invoices/{invoiceId}/ledger-entries", s.PostLedgerEntry)
+	http.HandleFunc("PUT /clients/{clientId}/invoice-adjustments/{ledgerId}", s.updatePendingInvoiceAdjustment)
+	http.HandleFunc("POST /clients/{clientId}/fee-reductions", s.addFeeReduction)
+	http.HandleFunc("PUT /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", s.cancelFeeReduction)
 
 	http.Handle("/health-check", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 }
