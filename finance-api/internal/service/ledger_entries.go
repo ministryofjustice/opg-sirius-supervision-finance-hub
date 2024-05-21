@@ -59,7 +59,7 @@ func (s *Service) validateAdjustmentAmount(invoiceId int, adjustment *shared.Cre
 		}
 		break
 	default:
-		return shared.BadRequest{Field: "AdjustmentType", Reason: fmt.Sprintf("Unimplemented adjustment type: %s", adjustment.AdjustmentType.Key())}
+		return shared.BadRequest{Field: "AdjustmentType", Reason: fmt.Sprint("Unimplemented adjustment type")}
 	}
 	return nil
 }

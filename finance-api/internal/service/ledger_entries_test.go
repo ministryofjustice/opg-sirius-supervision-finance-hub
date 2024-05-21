@@ -140,10 +140,10 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 			name:      "Unimplemented adjustment type",
 			invoiceId: 1,
 			data: &shared.CreateLedgerEntryRequest{
-				AdjustmentType: shared.AdjustmentTypeReapply,
+				AdjustmentType: shared.AdjustmentTypeUnknown,
 				Amount:         52000,
 			},
-			err: shared.BadRequest{Field: "AdjustmentType", Reason: "Unimplemented adjustment type: REAPPLY"},
+			err: shared.BadRequest{Field: "AdjustmentType", Reason: "Unimplemented adjustment type"},
 		},
 		{
 			name:      "Add Credit - too high",

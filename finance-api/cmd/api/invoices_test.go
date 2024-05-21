@@ -13,7 +13,7 @@ import (
 
 func TestServer_getInvoices(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/clients/1/invoices", nil)
-	req.SetPathValue("id", "1")
+	req.SetPathValue("clientId", "1")
 	w := httptest.NewRecorder()
 	dateString := "2020-03-16"
 	date, _ := time.Parse("2006-01-02", dateString)
@@ -56,7 +56,7 @@ func TestServer_getInvoices(t *testing.T) {
 
 func TestServer_getInvoices_returns_an_empty_array(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/clients/2/invoices", nil)
-	req.SetPathValue("id", "2")
+	req.SetPathValue("clientId", "2")
 	w := httptest.NewRecorder()
 
 	invoicesInfo := &shared.Invoices{}
@@ -78,7 +78,7 @@ func TestServer_getInvoices_returns_an_empty_array(t *testing.T) {
 
 func TestServer_getInvoices_error(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/clients/1/invoices", nil)
-	req.SetPathValue("id", "1")
+	req.SetPathValue("clientId", "1")
 	w := httptest.NewRecorder()
 
 	mock := &mockService{err: pgx.ErrTooManyRows}

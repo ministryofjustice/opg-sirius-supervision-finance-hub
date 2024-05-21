@@ -21,7 +21,7 @@ func TestServer_cancelFeeReduction(t *testing.T) {
 	}
 	_ = json.NewEncoder(&b).Encode(cancelFeeReductionInfo)
 	req := httptest.NewRequest(http.MethodPost, "/clients/1/fee-reductions/1/cancel", &b)
-	req.SetPathValue("id", "1")
+	req.SetPathValue("clientId", "1")
 	req.SetPathValue("feeReductionId", "1")
 	w := httptest.NewRecorder()
 
@@ -48,7 +48,7 @@ func TestServer_cancelFeeReductionsValidationErrors(t *testing.T) {
 	}
 	_ = json.NewEncoder(&b).Encode(cancelFeeReductionInfo)
 	req := httptest.NewRequest(http.MethodPost, "/clients/1/fee-reductions/1/cancel", &b)
-	req.SetPathValue("id", "1")
+	req.SetPathValue("clientId", "1")
 	req.SetPathValue("feeReductionId", "1")
 	w := httptest.NewRecorder()
 
@@ -87,7 +87,7 @@ func TestServer_cancelFeeReductionsValidationErrorsForThousandCharacters(t *test
 	}
 	_ = json.NewEncoder(&b).Encode(cancelFeeReductionInfo)
 	req := httptest.NewRequest(http.MethodPost, "/clients/1/fee-reductions/1/cancel", &b)
-	req.SetPathValue("id", "1")
+	req.SetPathValue("clientId", "1")
 	req.SetPathValue("feeReductionId", "1")
 	w := httptest.NewRecorder()
 
@@ -115,7 +115,7 @@ func TestServer_cancelFeeReductions500Error(t *testing.T) {
 	}
 	_ = json.NewEncoder(&b).Encode(cancelFeeReductionInfo)
 	req := httptest.NewRequest(http.MethodPost, "/clients/1/fee-reductions/1/cancel", &b)
-	req.SetPathValue("id", "1")
+	req.SetPathValue("clientId", "1")
 	w := httptest.NewRecorder()
 
 	validator, _ := validation.New()
