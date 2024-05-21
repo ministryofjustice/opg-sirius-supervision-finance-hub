@@ -12,23 +12,23 @@ WITH fc AS (SELECT id FROM finance_client WHERE client_id = $1),
      ledger AS (
          INSERT INTO ledger (id, datetime, amount, notes, type, finance_client_id, reference, method, status)
              SELECT nextval('ledger_id_seq'),
-                     now(),
-                     $3,
-                     $4,
-                     $5,
-                     fc.id,
-                     '',
-                     '',
-                     'PENDING'
+                    now(),
+                    $3,
+                    $4,
+                    $5,
+                    fc.id,
+                    gen_random_uuid(),
+                    '',
+                    'PENDING'
              FROM fc
              RETURNING id, datetime)
 INSERT
 INTO ledger_allocation (id, ledger_id, invoice_id, datetime, amount, status, notes)
 SELECT nextval('ledger_allocation_id_seq'),
-        ledger.id,
-        $2,
-        ledger.datetime,
-        $3,
-        'PENDING',
-        $4
+       ledger.id,
+       $2,
+       ledger.datetime,
+       $3,
+       'PENDING',
+       $4
 FROM ledger;
