@@ -68,11 +68,11 @@ func (q *Queries) AddFeeReductionToInvoices(ctx context.Context, id int32) ([]In
 }
 
 const getInvoiceBalance = `-- name: GetInvoiceBalance :one
-SELECT i.amount initial, i.amount - SUM(la.amount) outstanding
+SELECT i.amount initial, i.amount - COALESCE(SUM(la.amount), 0) outstanding
 FROM invoice i
-         INNER JOIN ledger_allocation la on i.id = la.invoice_id
+         LEFT JOIN ledger_allocation la on i.id = la.invoice_id
+    AND la.status <> 'PENDING'
 WHERE i.id = $1
-  AND la.status <> 'PENDING'
 group by i.amount
 `
 

@@ -18,7 +18,7 @@ type AdjustInvoiceFormHandler struct {
 
 func (h *AdjustInvoiceFormHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
 
-	data := AdjustInvoiceVars{&shared.AdjustmentTypes, r.PathValue("id"), r.PathValue("invoiceId"), v}
+	data := AdjustInvoiceVars{&shared.AdjustmentTypes, r.PathValue("clientId"), r.PathValue("invoiceId"), v}
 
 	return h.execute(w, r, data)
 }

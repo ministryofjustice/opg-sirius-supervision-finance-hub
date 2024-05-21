@@ -23,7 +23,7 @@ func (s *Service) CreateLedgerEntry(clientId int, invoiceId int, ledgerEntry *sh
 	}
 
 	defer func() {
-		if err := tx.Rollback(ctx); err != nil {
+		if err = tx.Rollback(ctx); err != nil {
 			log.Println("Error rolling back transaction:", err)
 		}
 	}()
@@ -40,6 +40,7 @@ func (s *Service) CreateLedgerEntry(clientId int, invoiceId int, ledgerEntry *sh
 	err = q.CreateLedger(ctx, params)
 
 	if err != nil {
+		log.Println("Error creating ledger entry: ", err)
 		return err
 	}
 

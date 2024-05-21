@@ -12,8 +12,6 @@ var AdjustmentTypes = []AdjustmentType{
 	AdjustmentTypeWriteOff,
 	AdjustmentTypeAddCredit,
 	AdjustmentTypeAddDebit,
-	AdjustmentTypeUnapply,
-	AdjustmentTypeReapply,
 }
 
 type AdjustmentType int
@@ -23,8 +21,6 @@ const (
 	AdjustmentTypeWriteOff
 	AdjustmentTypeAddCredit
 	AdjustmentTypeAddDebit
-	AdjustmentTypeUnapply
-	AdjustmentTypeReapply
 )
 
 var adjustmentTypeMap = map[string]AdjustmentType{
@@ -34,8 +30,6 @@ var adjustmentTypeMap = map[string]AdjustmentType{
 	"CREDIT_MEMO":      AdjustmentTypeAddCredit,
 	"UNKNOWN DEBIT":    AdjustmentTypeAddDebit,
 	"UNKNOWN_DEBIT":    AdjustmentTypeAddDebit,
-	"UNAPPLY":          AdjustmentTypeUnapply,
-	"REAPPLY":          AdjustmentTypeReapply,
 }
 
 func (i AdjustmentType) Translation() string {
@@ -46,10 +40,6 @@ func (i AdjustmentType) Translation() string {
 		return "Add credit"
 	case AdjustmentTypeAddDebit:
 		return "Add debit"
-	case AdjustmentTypeUnapply:
-		return "Unapply"
-	case AdjustmentTypeReapply:
-		return "Reapply"
 	default:
 		return ""
 	}
@@ -63,10 +53,6 @@ func (i AdjustmentType) Key() string {
 		return "CREDIT_MEMO"
 	case AdjustmentTypeAddDebit:
 		return "UNKNOWN_DEBIT"
-	case AdjustmentTypeUnapply:
-		return "UNAPPLY"
-	case AdjustmentTypeReapply:
-		return "REAPPLY"
 	default:
 		return ""
 	}
@@ -80,10 +66,6 @@ func (i AdjustmentType) DbValue() string {
 		return "CREDIT MEMO"
 	case AdjustmentTypeAddDebit:
 		return "UNKNOWN DEBIT"
-	case AdjustmentTypeUnapply:
-		return "UNAPPLY"
-	case AdjustmentTypeReapply:
-		return "REAPPLY"
 	default:
 		return ""
 	}
@@ -91,7 +73,7 @@ func (i AdjustmentType) DbValue() string {
 
 func (i AdjustmentType) AmountRequired() bool {
 	switch i {
-	case AdjustmentTypeAddCredit, AdjustmentTypeAddDebit, AdjustmentTypeUnapply, AdjustmentTypeReapply:
+	case AdjustmentTypeAddCredit, AdjustmentTypeAddDebit:
 		return true
 	default:
 		return false
