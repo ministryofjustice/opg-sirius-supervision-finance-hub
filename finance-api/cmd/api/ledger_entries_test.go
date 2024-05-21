@@ -89,16 +89,16 @@ func TestServer_PostLedgerEntry(t *testing.T) {
 func TestCreateLedgerEntryRequest_validation(t *testing.T) {
 	validator, _ := validation.New()
 	arg := shared.CreateLedgerEntryRequest{
-		AdjustmentType: shared.AdjustmentTypeUnknown,
-		Notes:          string(bytes.Repeat([]byte{byte('a')}, 1001)),
-		Amount:         -123,
+		AdjustmentType:  shared.AdjustmentTypeUnknown,
+		AdjustmentNotes: string(bytes.Repeat([]byte{byte('a')}, 1001)),
+		Amount:          -123,
 	}
 
 	errs := validator.ValidateStruct(arg, "").Errors
 	expected := map[string]string{
-		"AdjustmentType": "valid-enum",
-		"Notes":          "thousand-character-limit",
-		"Amount":         "gt",
+		"AdjustmentType":  "valid-enum",
+		"AdjustmentNotes": "thousand-character-limit",
+		"Amount":          "gt",
 	}
 
 	assert.Len(t, errs, 3)

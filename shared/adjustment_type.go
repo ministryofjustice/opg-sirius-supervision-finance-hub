@@ -81,10 +81,7 @@ func (i AdjustmentType) AmountRequired() bool {
 }
 
 func (i AdjustmentType) Valid() bool {
-	if i == AdjustmentTypeUnknown {
-		return false
-	}
-	return true
+	return i != AdjustmentTypeUnknown
 }
 
 func ParseAdjustmentType(s string) AdjustmentType {

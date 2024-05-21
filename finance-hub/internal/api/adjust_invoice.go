@@ -13,9 +13,9 @@ func (c *ApiClient) AdjustInvoice(ctx Context, clientId int, invoiceId int, adju
 	var body bytes.Buffer
 
 	adjustment := shared.CreateLedgerEntryRequest{
-		AdjustmentType: shared.ParseAdjustmentType(adjustmentType),
-		Notes:          notes,
-		Amount:         util.DecimalStringToInt(amount),
+		AdjustmentType:  shared.ParseAdjustmentType(adjustmentType),
+		AdjustmentNotes: notes,
+		Amount:          util.DecimalStringToInt(amount),
 	}
 
 	err := json.NewEncoder(&body).Encode(adjustment)

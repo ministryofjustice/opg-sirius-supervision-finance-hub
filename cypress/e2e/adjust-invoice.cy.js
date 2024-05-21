@@ -5,11 +5,11 @@ describe("Adjust invoice form", () => {
 
         // ensure validation is configured correctly
         cy.get('.govuk-button').click();
-        cy.get('.govuk-error-summary').contains("This field AdjustmentType needs to be looked at required");
-        cy.get('.govuk-error-summary').contains("Enter a reason for awarding fee reduction");
+        cy.get('.govuk-error-summary').contains("Select the adjustment type");
+        cy.get('.govuk-error-summary').contains("Enter a reason for adjustment");
 
-        cy.get('#error-message__AdjustmentType').contains("This field AdjustmentType needs to be looked at required");
-        cy.get('#error-message__Notes').contains("Enter a reason for awarding fee reduction");
+        cy.get('#error-message__AdjustmentType').contains("Select the adjustment type");
+        cy.get('#error-message__Notes').contains("Enter a reason for adjustment");
         cy.get(".govuk-form-group--error").should('have.length', 2);
 
         // successfully submit credit
