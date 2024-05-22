@@ -2,6 +2,8 @@ package api
 
 import (
 	"bytes"
+	"encoding/json"
+	"github.com/opg-sirius-finance-hub/shared"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -10,14 +12,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUpdateInvoice(t *testing.T) {
+func TestAdjustInvoice(t *testing.T) {
 	logger, mockClient := SetUpTest()
 	client, _ := NewApiClient(mockClient, "http://localhost:3000", "", logger)
 
 	json := `{
             "adjustmentType": "credit write off",
             "notes": "notes here",
-			"amount": "100"
+			"amount": "10000"
         }`
 
 	r := io.NopCloser(bytes.NewReader([]byte(json)))
@@ -33,7 +35,7 @@ func TestUpdateInvoice(t *testing.T) {
 	assert.Equal(t, nil, err)
 }
 
-func TestUpdateInvoiceUnauthorised(t *testing.T) {
+func TestAdjustInvoiceUnauthorised(t *testing.T) {
 	logger, _ := SetUpTest()
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -47,7 +49,7 @@ func TestUpdateInvoiceUnauthorised(t *testing.T) {
 	assert.Equal(t, ErrUnauthorized, err)
 }
 
-func TestUpdateInvoiceReturns500Error(t *testing.T) {
+func TestAdjustInvoiceReturns500Error(t *testing.T) {
 	logger, _ := SetUpTest()
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -56,10 +58,34 @@ func TestUpdateInvoiceReturns500Error(t *testing.T) {
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, "", logger)
 
-	err := client.UpdateInvoice(getContext(nil), 2, 4, "credit write off", "notes here", "100")
+	err := client.UpdateInvoice(getContext(nil), 2, 4, "CREDIT_MEMO", "notes here", "100")
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/api/v1/invoices/4/ledger-entries",
 		Method: http.MethodPost,
 	}, err)
+}
+
+func TestAdjustInvoiceReturnsValidationError(t *testing.T) {
+	logger, _ := SetUpTest()
+	validationErrors := shared.ValidationError{
+		Message: "Validation failed",
+		Errors: map[string]map[string]string{
+			"Field": {
+				"Tag": "Message",
+			},
+		},
+	}
+	responseBody, _ := json.Marshal(validationErrors)
+	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		_, _ = w.Write(responseBody)
+	}))
+	defer svr.Close()
+
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
+
+	err := client.UpdateInvoice(getContext(nil), 2, 4, "CREDIT_MEMO", "notes here", "100")
+	expectedError := shared.ValidationError{Message: "", Errors: shared.ValidationErrors{"Field": map[string]string{"Tag": "Message"}}}
+	assert.Equal(t, expectedError, err.(shared.ValidationError))
 }

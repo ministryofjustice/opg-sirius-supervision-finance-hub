@@ -7,7 +7,7 @@ import (
 )
 
 func (s *Server) getFeeReductions(w http.ResponseWriter, r *http.Request) {
-	clientId, _ := strconv.Atoi(r.PathValue("id"))
+	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
 	accountInfo, err := s.Service.GetFeeReductions(clientId)
 
 	if err != nil {
