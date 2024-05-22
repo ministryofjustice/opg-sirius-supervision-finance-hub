@@ -9,4 +9,8 @@ export default defineConfig({
         specPattern: "e2e/**/*.cy.{js,ts}",
         screenshotsFolder: "screenshots"
     },
+    env: {
+        grepOmitFiltered: true,
+        grepFilterSpecs: true,
+    }
 });

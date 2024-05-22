@@ -1,7 +1,7 @@
 describe("Adjust invoice form", () => {
     it("adds a manual credit to an invoice", () => {
         cy.visit("/clients/1/invoices");
-        cy.get(':nth-child(1) > :nth-child(7) > .moj-button-menu > .moj-button-menu__wrapper > .govuk-button').click();
+        cy.contains('.govuk-table__row', 'S206666/18').contains("Adjust invoice").click();
 
         // ensure validation is configured correctly
         cy.get('.govuk-button').click();
