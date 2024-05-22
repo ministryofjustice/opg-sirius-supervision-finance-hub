@@ -8,7 +8,7 @@ import (
 func (s *Service) GetAccountInformation(id int) (*shared.AccountInformation, error) {
 	ctx := context.Background()
 
-	fc, err := s.Store.GetAccountInformation(ctx, int32(id))
+	fc, err := s.store.GetAccountInformation(ctx, int32(id))
 	if err != nil {
 		return nil, err
 	}

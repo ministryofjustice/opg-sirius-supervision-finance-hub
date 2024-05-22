@@ -7,7 +7,7 @@ import (
 )
 
 func (s *Server) getInvoices(w http.ResponseWriter, r *http.Request) {
-	clientId, _ := strconv.Atoi(r.PathValue("id"))
+	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
 	accountInfo, err := s.Service.GetInvoices(clientId)
 
 	if err != nil {
