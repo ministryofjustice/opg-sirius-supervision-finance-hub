@@ -1,7 +1,8 @@
 describe("Adjust invoice form", () => {
     it("adds a manual credit to an invoice", () => {
-        cy.visit("/clients/1/invoices");
-        cy.contains('.govuk-table__row', 'S206666/18').contains("Adjust invoice").click();
+        // navigate to form
+        cy.visit("/clients/3/invoices");
+        cy.contains('.govuk-table__row', 'S203532/24').contains("Adjust invoice").click();
 
         // ensure validation is configured correctly
         cy.get('.govuk-button').click();
@@ -27,7 +28,7 @@ describe("Adjust invoice form", () => {
         cy.get('.govuk-button').click();
 
         // navigation and success message
-        cy.url().should('include', "clients/1/invoices?success=CREDIT_MEMO");
+        cy.url().should('include', "clients/3/invoices?success=CREDIT_MEMO");
         cy.get('.moj-banner__message').contains("Manual credit successfully created");
     });
 });
