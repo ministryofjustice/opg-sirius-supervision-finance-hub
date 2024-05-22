@@ -38,3 +38,37 @@ func Test_intToDecimalString(t *testing.T) {
 		})
 	}
 }
+
+func TestDecimalStringToInt(t *testing.T) {
+	tests := []struct {
+		name string
+		arg  string
+		want int
+	}{
+		{
+			"converts two decimal places to string",
+			"123.45",
+			12345,
+		},
+		{
+			"converts trailing zero",
+			"123.40",
+			12340,
+		},
+		{
+			"converts no decimals",
+			"123",
+			12300,
+		},
+		{
+			"converts leading zero",
+			"0.12",
+			12,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, DecimalStringToInt(tt.arg), "DecimalStringToInt(%v)", tt.arg)
+		})
+	}
+}

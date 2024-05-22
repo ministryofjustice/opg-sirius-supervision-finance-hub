@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"reflect"
@@ -31,9 +30,10 @@ func TestService_GetInvoiceAdjustments(t *testing.T) {
 		"INSERT INTO ledger_allocation VALUES (4, 4, 3, '2022-04-02T00:00:00+00:00', 0, '', null, '', '2022-04-02', null);",
 	)
 
-	Store := store.New(conn)
 	dateString := "2022-04-02"
 	date, _ := time.Parse("2006-01-02", dateString)
+	s := NewService(conn.Conn)
+
 	tests := []struct {
 		name    string
 		id      int
@@ -81,9 +81,6 @@ func TestService_GetInvoiceAdjustments(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &Service{
-				Store: Store,
-			}
 			got, err := s.GetInvoiceAdjustments(tt.id)
 
 			if (err != nil) != tt.wantErr {

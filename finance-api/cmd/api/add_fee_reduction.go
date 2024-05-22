@@ -2,6 +2,8 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
+	"github.com/opg-sirius-finance-hub/finance-api/internal/service"
 	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
 	"strconv"
@@ -26,12 +28,15 @@ func (s *Server) addFeeReduction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	clientId, _ := strconv.Atoi(r.PathValue("id"))
+	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
 	err := s.Service.AddFeeReduction(clientId, addFeeReduction)
 
 	if err != nil {
-		if err.Error() == "overlap" {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+		var e service.BadRequest
+		ok := errors.As(err, &e)
+		if ok {
+			http.Error(w, e.Reason, http.StatusBadRequest)
+			return
 		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
