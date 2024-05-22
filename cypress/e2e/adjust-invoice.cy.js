@@ -9,12 +9,12 @@ describe("Adjust invoice form", () => {
         cy.get('.govuk-error-summary').contains("Enter a reason for adjustment");
 
         cy.get('#error-message__AdjustmentType').contains("Select the adjustment type");
-        cy.get('#error-message__Notes').contains("Enter a reason for adjustment");
+        cy.get('#error-message__AdjustmentNotes').contains("Enter a reason for adjustment");
         cy.get(".govuk-form-group--error").should('have.length', 2);
 
         // successfully submit credit
         cy.get('#f-AdjustmentType').contains(".govuk-radios__item", "Add credit").click();
-        cy.get('#f-Notes').type("manual credit for £100");
+        cy.get('#f-AdjustmentNotes').type("manual credit for £100");
         cy.get('#f-Amount').type("10000");
         cy.get('.govuk-button').click();
 
