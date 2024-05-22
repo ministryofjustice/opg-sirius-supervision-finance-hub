@@ -53,7 +53,7 @@ func TestService_GetFeeReductions(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Service{
-				Store: Store,
+				store: Store,
 			}
 			got, err := s.GetFeeReductions(tt.id)
 			log.Println(got)

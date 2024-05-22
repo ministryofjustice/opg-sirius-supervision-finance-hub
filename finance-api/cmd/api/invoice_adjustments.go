@@ -7,7 +7,7 @@ import (
 )
 
 func (s *Server) getInvoiceAdjustments(w http.ResponseWriter, r *http.Request) {
-	clientId, _ := strconv.Atoi(r.PathValue("id"))
+	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
 	data, err := s.Service.GetInvoiceAdjustments(clientId)
 
 	if err != nil {
