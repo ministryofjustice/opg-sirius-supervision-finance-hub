@@ -43,7 +43,7 @@ func TestInvoice(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r, _ := http.NewRequest(http.MethodGet, "", nil)
-	r.SetPathValue("id", "1")
+	r.SetPathValue("clientId", "1")
 
 	appVars := AppVars{Path: "/path/"}
 
@@ -82,7 +82,7 @@ func TestInvoice(t *testing.T) {
 		},
 	}
 
-	expected := &InvoiceTab{
+	expected := &InvoicesVars{
 		Invoices: out,
 		AppVars:  appVars,
 	}
@@ -97,7 +97,7 @@ func TestInvoiceErrors(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r, _ := http.NewRequest(http.MethodGet, "", nil)
-	r.SetPathValue("id", "1")
+	r.SetPathValue("clientId", "1")
 
 	appVars := AppVars{Path: "/path/"}
 

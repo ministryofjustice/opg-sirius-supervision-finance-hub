@@ -54,9 +54,9 @@
                       role="button"
                       draggable="false"
                       data-module="govuk-button"
-                      hx-get="{{ (printf "/clients/%d/invoices/%d/ledger-entries" .ClientId .Id) }}"
+                      hx-get="{{ (printf "/clients/%d/invoices/%d/adjustments" .ClientId .Id) }}"
                       hx-target="#main-content"
-                      hx-push-url="{{ (printf "/clients/%d/invoices/%d/ledger-entries" .ClientId .Id) }}">
+                      hx-push-url="{{ (printf "/clients/%d/invoices/%d/adjustments" .ClientId .Id) }}">
                       Adjust invoice
                     </a>
                   </div>

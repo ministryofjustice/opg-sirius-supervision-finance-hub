@@ -27,7 +27,7 @@ func TestPendingInvoiceAdjustments(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r, _ := http.NewRequest(http.MethodGet, "", nil)
-	r.SetPathValue("id", "1")
+	r.SetPathValue("clientId", "1")
 
 	appVars := AppVars{Path: "/path/"}
 
@@ -64,7 +64,7 @@ func TestPendingInvoiceAdjustments_Errors(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r, _ := http.NewRequest(http.MethodGet, "", nil)
-	r.SetPathValue("id", "1")
+	r.SetPathValue("clientId", "1")
 
 	appVars := AppVars{Path: "/path/"}
 

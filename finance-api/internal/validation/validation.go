@@ -13,12 +13,16 @@ type Validate struct {
 }
 
 func New() (*Validate, error) {
-	v := validator.New()
-	err := v.RegisterValidation("thousand-character-limit", ValidateThousandCharacterCount)
+	v := validator.New(validator.WithRequiredStructEnabled())
+	err := v.RegisterValidation("thousand-character-limit", validateThousandCharacterCount)
 	if err != nil {
 		return nil, err
 	}
-	err = v.RegisterValidation("date-in-the-past", ValidateDateInThePast)
+	err = v.RegisterValidation("date-in-the-past", validateDateInThePast)
+	if err != nil {
+		return nil, err
+	}
+	err = v.RegisterValidation("valid-enum", validateEnum)
 	if err != nil {
 		return nil, err
 	}
@@ -58,11 +62,11 @@ func (v *Validate) ValidateStruct(s interface{}, description string) shared.Vali
 	return shared.ValidationError{}
 }
 
-func ValidateThousandCharacterCount(fl validator.FieldLevel) bool {
+func validateThousandCharacterCount(fl validator.FieldLevel) bool {
 	return len(fl.Field().String()) < 1001
 }
 
-func ValidateDateInThePast(fl validator.FieldLevel) bool {
+func validateDateInThePast(fl validator.FieldLevel) bool {
 	d := fl.Field().Interface().(shared.Date)
 	r := d.String()
 	if r == "" {
@@ -75,4 +79,13 @@ func ValidateDateInThePast(fl validator.FieldLevel) bool {
 	}
 
 	return parsedDate.Before(time.Now())
+}
+
+func validateEnum(fl validator.FieldLevel) bool {
+	if v, ok := fl.Field().Interface().(shared.Valid); ok {
+		if v.Valid() {
+			return true
+		}
+	}
+	return false
 }

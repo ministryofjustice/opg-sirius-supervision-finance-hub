@@ -13,7 +13,7 @@ func TestCancelFeeReduction(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r, _ := http.NewRequest(http.MethodGet, "", nil)
-	r.SetPathValue("id", "1")
+	r.SetPathValue("clientId", "1")
 	r.SetPathValue("feeReductionId", "1")
 
 	appVars := AppVars{Path: "/path/"}
