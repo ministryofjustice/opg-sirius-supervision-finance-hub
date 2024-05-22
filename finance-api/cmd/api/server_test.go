@@ -11,36 +11,43 @@ type mockService struct {
 	invoiceAdjustments *shared.InvoiceAdjustments
 	feeReduction       *shared.AddFeeReduction
 	cancelFeeReduction *shared.CancelFeeReduction
-	expectedId         int
+	ledger             *shared.CreateLedgerEntryRequest
+	expectedIds        []int
 	err                error
 }
 
 func (s *mockService) AddFeeReduction(id int, feeReduction shared.AddFeeReduction) error {
-	s.expectedId = id
+	s.expectedIds = []int{id}
 	return s.err
 }
 
 func (s *mockService) CancelFeeReduction(id int) error {
-	s.expectedId = id
+	s.expectedIds = []int{id}
 	return s.err
 }
 
 func (s *mockService) GetAccountInformation(id int) (*shared.AccountInformation, error) {
-	s.expectedId = id
+	s.expectedIds = []int{id}
 	return s.accountInfo, s.err
 }
 
 func (s *mockService) GetInvoices(id int) (*shared.Invoices, error) {
-	s.expectedId = id
+	s.expectedIds = []int{id}
 	return s.invoices, s.err
 }
 
 func (s *mockService) GetFeeReductions(id int) (*shared.FeeReductions, error) {
-	s.expectedId = id
+	s.expectedIds = []int{id}
 	return s.feeReductions, s.err
 }
 
 func (s *mockService) GetInvoiceAdjustments(id int) (*shared.InvoiceAdjustments, error) {
-	s.expectedId = id
+	s.expectedIds = []int{id}
 	return s.invoiceAdjustments, s.err
+}
+
+func (s *mockService) CreateLedgerEntry(clientId int, invoiceId int, ledger *shared.CreateLedgerEntryRequest) error {
+	s.ledger = ledger
+	s.expectedIds = []int{clientId, invoiceId}
+	return s.err
 }

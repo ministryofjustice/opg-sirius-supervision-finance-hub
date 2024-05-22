@@ -74,7 +74,7 @@ func TestService_GetInvoices(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Service{
-				Store: Store,
+				store: Store,
 			}
 			got, err := s.GetInvoices(tt.id)
 

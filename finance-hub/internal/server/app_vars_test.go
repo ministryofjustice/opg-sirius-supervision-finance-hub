@@ -8,7 +8,7 @@ import (
 
 func TestNewAppVars(t *testing.T) {
 	r, _ := http.NewRequest("GET", "/path", nil)
-	r.SetPathValue("id", "1")
+	r.SetPathValue("clientId", "1")
 
 	envVars := EnvironmentVars{}
 	vars, err := NewAppVars(r, envVars)

@@ -23,8 +23,8 @@ func TestService_CancelFeeReduction(t *testing.T) {
 	Store := store.New(conn)
 
 	s := &Service{
-		Store: Store,
-		TX:    conn,
+		store: Store,
+		tx:    conn,
 	}
 
 	err := s.CancelFeeReduction(33)
