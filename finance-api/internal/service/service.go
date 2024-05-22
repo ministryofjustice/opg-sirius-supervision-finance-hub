@@ -19,6 +19,13 @@ type TX interface {
 }
 
 type Service struct {
-	Store *store.Queries
-	TX    TX
+	store *store.Queries
+	tx    TX
+}
+
+func NewService(conn *pgx.Conn) Service {
+	return Service{
+		store: store.New(conn),
+		tx:    conn,
+	}
 }

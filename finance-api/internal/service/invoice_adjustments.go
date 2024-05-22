@@ -10,7 +10,7 @@ func (s *Service) GetInvoiceAdjustments(clientID int) (*shared.InvoiceAdjustment
 
 	var adjustments shared.InvoiceAdjustments
 
-	data, err := s.Store.GetInvoiceAdjustments(ctx, int32(clientID))
+	data, err := s.store.GetInvoiceAdjustments(ctx, int32(clientID))
 	if err != nil {
 		return nil, err
 	}
