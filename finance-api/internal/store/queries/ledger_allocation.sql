@@ -10,10 +10,10 @@ WITH filtered_ledger_allocation AS (
     SELECT lc.id
     from ledger l
              inner join ledger_allocation lc on lc.ledger_id = l.id
-    where l.id = $1
+    where l.id = $2
       and l.type IN ('CREDIT MEMO', 'CREDIT WRITE OFF')
 )
 UPDATE ledger_allocation
-SET status = 'APPROVED'
+SET status = $1
 FROM filtered_ledger_allocation fla
 WHERE ledger_allocation.id = fla.id;
