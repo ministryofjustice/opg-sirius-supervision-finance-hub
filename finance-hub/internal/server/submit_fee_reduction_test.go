@@ -26,7 +26,7 @@ func TestAddFeeReductionSuccess(t *testing.T) {
 	w := httptest.NewRecorder()
 	r, _ := http.NewRequest(http.MethodPost, "/add", strings.NewReader(form.Encode()))
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	r.SetPathValue("id", "1")
+	r.SetPathValue("clientId", "1")
 
 	appVars := AppVars{
 		Path: "/add",
@@ -39,7 +39,7 @@ func TestAddFeeReductionSuccess(t *testing.T) {
 	err := sut.render(appVars, w, r)
 
 	assert.Nil(t, err)
-	assert.Equal(t, "prefix/clients/1/fee-reductions?success=remission", w.Header().Get("HX-Redirect"))
+	assert.Equal(t, "prefix/clients/1/fee-reductions?success=fee-reduction[remission]", w.Header().Get("HX-Redirect"))
 }
 
 func TestAddFeeReductionValidationErrors(t *testing.T) {
@@ -60,7 +60,7 @@ func TestAddFeeReductionValidationErrors(t *testing.T) {
 	w := httptest.NewRecorder()
 	r, _ := http.NewRequest(http.MethodPost, "/add", nil)
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	r.SetPathValue("id", "1")
+	r.SetPathValue("clientId", "1")
 
 	appVars := AppVars{
 		Path: "/add",

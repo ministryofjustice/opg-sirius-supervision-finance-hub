@@ -24,8 +24,8 @@ func TestService_UpdatePendingInvoiceAdjustment(t *testing.T) {
 	Store := store.New(conn)
 
 	s := &Service{
-		Store: Store,
-		TX:    conn,
+		store: Store,
+		tx:    conn,
 	}
 
 	err := s.UpdatePendingInvoiceAdjustment(15)

@@ -9,7 +9,7 @@ import (
 )
 
 func (s *Server) getAccountInformation(w http.ResponseWriter, r *http.Request) {
-	clientId, _ := strconv.Atoi(r.PathValue("id"))
+	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
 	accountInfo, err := s.Service.GetAccountInformation(clientId)
 
 	if errors.Is(err, pgx.ErrNoRows) {

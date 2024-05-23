@@ -20,7 +20,7 @@ func (s *Service) AddFeeReduction(id int, data shared.AddFeeReduction) error {
 		Overlaps_2: calculateFeeReductionEndDate(data.StartYear, data.LengthOfAward),
 	}
 
-	hasFeeReduction, _ := s.Store.CountOverlappingFeeReduction(ctx, countOverlappingFeeReductionParams)
+	hasFeeReduction, _ := s.store.CountOverlappingFeeReduction(ctx, countOverlappingFeeReductionParams)
 	if hasFeeReduction != 0 {
 		return BadRequest{Reason: "overlap"}
 	}
@@ -35,7 +35,7 @@ func (s *Service) AddFeeReduction(id int, data shared.AddFeeReduction) error {
 		Datereceived: pgtype.Date{Time: data.DateReceived.Time, Valid: true},
 	}
 
-	tx, err := s.TX.Begin(ctx)
+	tx, err := s.tx.Begin(ctx)
 	if err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func (s *Service) AddFeeReduction(id int, data shared.AddFeeReduction) error {
 		}
 	}()
 
-	transaction := s.Store.WithTx(tx)
+	transaction := s.store.WithTx(tx)
 
 	var feeReduction store.FeeReduction
 	feeReduction, err = transaction.AddFeeReduction(ctx, addFeeReductionQueryArgs)
