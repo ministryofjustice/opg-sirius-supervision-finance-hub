@@ -38,6 +38,7 @@
                                     role="button"
                                     draggable="false"
                                     data-module="govuk-button"
+                                    hx-post="{{ prefix (printf "/clients/%s/pending-invoice-adjustments/%s/%s" .ClientId .Id .AdjustmentType) }}"
                             >
                                 Approve
                             </a>

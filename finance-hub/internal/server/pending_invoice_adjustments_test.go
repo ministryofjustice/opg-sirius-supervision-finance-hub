@@ -39,13 +39,14 @@ func TestPendingInvoiceAdjustments(t *testing.T) {
 
 	out := PendingInvoiceAdjustments{
 		PendingInvoiceAdjustment{
-			Id:               3,
+			Id:               "3",
 			Invoice:          "N2000001/20",
 			Status:           "Pending",
 			AdjustmentAmount: "2.32",
 			DateRaised:       shared.NewDate("01/04/2222"),
 			AdjustmentType:   "Credit",
 			Notes:            "Some notes",
+			ClientId:         "1",
 		},
 	}
 

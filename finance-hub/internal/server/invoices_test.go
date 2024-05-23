@@ -24,12 +24,12 @@ func TestInvoice(t *testing.T) {
 					Amount:          12300,
 					ReceivedDate:    shared.NewDate("01/05/2222"),
 					TransactionType: "Online card payment",
-					Status:          "Applied",
+					Status:          "APPLIED",
 				},
 			},
 			SupervisionLevels: []shared.SupervisionLevel{
 				{
-					Level:  "General",
+					Level:  "GENERAL",
 					Amount: 32000,
 					From:   shared.NewDate("01/04/2019"),
 					To:     shared.NewDate("31/03/2020"),

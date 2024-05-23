@@ -77,10 +77,12 @@ func getLedgerAllocations(s *Service, ctx context.Context, invoiceID int) ([]sha
 			Amount:          int(ledger.Amount),
 			ReceivedDate:    calculateReceivedDate(ledger.Bankdate, ledger.Datetime),
 			TransactionType: ledger.Type,
-			Status:          "Applied",
+			Status:          ledger.Status,
 		}
 		ledgerAllocations = append(ledgerAllocations, ledgerAllocation)
-		totalOfLedgerAllocationsAmount = totalOfLedgerAllocationsAmount + int(ledger.Amount)
+		if ledger.Status == "APPROVED" {
+			totalOfLedgerAllocationsAmount = totalOfLedgerAllocationsAmount + int(ledger.Amount)
+		}
 	}
 	return ledgerAllocations, totalOfLedgerAllocationsAmount, nil
 }
