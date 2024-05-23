@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/testhelpers"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
@@ -12,7 +11,7 @@ import (
 	"time"
 )
 
-func setupServiceAndParams(conn testhelpers.TestConn) (*Service, shared.AddFeeReduction) {
+func addFeeReductionSetup(conn testhelpers.TestConn) (Service, shared.AddFeeReduction) {
 	var dateReceivedTransformed *shared.Date
 
 	today := time.Now()
@@ -28,10 +27,7 @@ func setupServiceAndParams(conn testhelpers.TestConn) (*Service, shared.AddFeeRe
 		Notes:         "Testing",
 	}
 
-	s := &Service{
-		Store: store.New(conn),
-		TX:    conn,
-	}
+	s := NewService(conn.Conn)
 
 	return s, params
 }
@@ -47,7 +43,7 @@ func TestService_AddFeeReduction(t *testing.T) {
 		"INSERT INTO fee_reduction VALUES (22, 22, 'REMISSION', null, '2019-04-01', '2021-03-31', 'Remission to see the notes', false, '2019-05-01');",
 	)
 	ctx := context.Background()
-	s, params := setupServiceAndParams(conn)
+	s, params := addFeeReductionSetup(conn)
 
 	err := s.AddFeeReduction(22, params)
 	rows, _ := conn.Query(ctx, "SELECT * FROM supervision_finance.fee_reduction WHERE id = 1")
@@ -90,7 +86,7 @@ func TestService_AddFeeReductionOverlap(t *testing.T) {
 		"INSERT INTO finance_client VALUES (23, 23, '1234', 'DEMANDED', null, 12300, 2222);",
 		"INSERT INTO fee_reduction VALUES (23, 23, 'REMISSION', null, '2019-04-01', '2021-03-31', 'Remission to see the notes', false, '2019-05-01');",
 	)
-	s, params := setupServiceAndParams(conn)
+	s, params := addFeeReductionSetup(conn)
 
 	testCases := []struct {
 		testName      string

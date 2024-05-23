@@ -15,7 +15,7 @@ func TestSubmitPendingInvoiceAdjustmentSuccess(t *testing.T) {
 	r, _ := http.NewRequest(http.MethodPost, "/pending-invoice-adjustment", nil)
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	r.SetPathValue("ledgerId", "1")
-	r.SetPathValue("id", "1")
+	r.SetPathValue("clientId", "1")
 	r.SetPathValue("adjustmentType", "Credit")
 
 	appVars := AppVars{
