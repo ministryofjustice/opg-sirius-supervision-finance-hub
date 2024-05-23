@@ -15,6 +15,9 @@ func (c *ApiClient) UpdatePendingInvoiceAdjustment(ctx Context, clientId int, le
 	}{
 		Status: status,
 	})
+	if err != nil {
+		return err
+	}
 
 	url := fmt.Sprintf("/clients/%d/invoice-adjustments/%d", clientId, ledgerId)
 	req, err := c.newBackendRequest(ctx, http.MethodPut, url, &body)
