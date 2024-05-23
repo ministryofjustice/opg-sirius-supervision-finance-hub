@@ -19,7 +19,7 @@ func (c *ApiClient) CancelFeeReduction(ctx Context, clientId int, feeReductionId
 	}
 
 	url := fmt.Sprintf("/clients/%d/fee-reductions/%d/cancel", clientId, feeReductionId)
-	req, err := c.newBackendRequest(ctx, http.MethodPost, url, &body)
+	req, err := c.newBackendRequest(ctx, http.MethodPut, url, &body)
 
 	if err != nil {
 		return err
