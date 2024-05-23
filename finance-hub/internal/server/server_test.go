@@ -58,7 +58,7 @@ type mockApiClient struct {
 	invoiceAdjustments shared.InvoiceAdjustments
 }
 
-func (m mockApiClient) UpdatePendingInvoiceAdjustment(context api.Context, i int, i2 int) error {
+func (m mockApiClient) UpdatePendingInvoiceAdjustment(context api.Context, i int, i2 int, i3 string) error {
 	return m.error
 }
 

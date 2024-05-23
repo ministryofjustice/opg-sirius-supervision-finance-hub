@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestSubmitPendingInvoiceAdjustmentSuccess(t *testing.T) {
+func TestSubmitRejectPendingInvoiceAdjustmentSuccess(t *testing.T) {
 	client := mockApiClient{}
 	ro := &mockRoute{client: client}
 
@@ -24,10 +24,10 @@ func TestSubmitPendingInvoiceAdjustmentSuccess(t *testing.T) {
 
 	appVars.EnvironmentVars.Prefix = "prefix"
 
-	sut := SubmitPendingInvoiceAdjustmentHandler{ro}
+	sut := SubmitRejectPendingInvoiceAdjustmentHandler{ro}
 
 	err := sut.render(appVars, w, r)
 
 	assert.Nil(t, err)
-	assert.Equal(t, "prefix/clients/1/pending-invoice-adjustments?success=credit", w.Header().Get("HX-Redirect"))
+	assert.Equal(t, "prefix/clients/1/pending-invoice-adjustments?success=credit rejected", w.Header().Get("HX-Redirect"))
 }
