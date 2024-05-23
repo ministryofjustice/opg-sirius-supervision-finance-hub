@@ -65,37 +65,13 @@ func (q *Queries) CreateLedgerForFeeReduction(ctx context.Context, arg CreateLed
 	return i, err
 }
 
-const updateLedgerAdjustment = `-- name: UpdateLedgerAdjustment :one
-WITH filtered_ledger_allocation AS (
-    SELECT lc.id
-    from ledger l
-             inner join ledger_allocation lc on lc.ledger_id = l.id
-    where l.id = $1
-      and l.type IN ('CREDIT MEMO', 'CREDIT WRITE OFF')
-)
-UPDATE ledger_allocation
+const updateLedgerAdjustment = `-- name: UpdateLedgerAdjustment :exec
+UPDATE ledger l
 SET status = 'APPROVED'
-FROM filtered_ledger_allocation fla
-WHERE ledger_allocation.id = fla.id
-returning ledger_allocation.id, ledger_allocation.ledger_id, ledger_allocation.invoice_id, ledger_allocation.datetime, ledger_allocation.amount, ledger_allocation.status, ledger_allocation.reference, ledger_allocation.notes, ledger_allocation.allocateddate, ledger_allocation.batchnumber, ledger_allocation.source, ledger_allocation.transaction_type
+WHERE l.id = $1
 `
 
-func (q *Queries) UpdateLedgerAdjustment(ctx context.Context, id int32) (LedgerAllocation, error) {
-	row := q.db.QueryRow(ctx, updateLedgerAdjustment, id)
-	var i LedgerAllocation
-	err := row.Scan(
-		&i.ID,
-		&i.LedgerID,
-		&i.InvoiceID,
-		&i.Datetime,
-		&i.Amount,
-		&i.Status,
-		&i.Reference,
-		&i.Notes,
-		&i.Allocateddate,
-		&i.Batchnumber,
-		&i.Source,
-		&i.TransactionType,
-	)
-	return i, err
+func (q *Queries) UpdateLedgerAdjustment(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, updateLedgerAdjustment, id)
+	return err
 }

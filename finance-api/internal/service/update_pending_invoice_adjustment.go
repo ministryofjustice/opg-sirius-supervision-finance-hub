@@ -22,12 +22,12 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ledgerId int) error {
 	transaction := s.Store.WithTx(tx)
 	ledgerIdTransformed := int32(ledgerId)
 
-	_, err = transaction.UpdateLedgerAdjustment(ctx, ledgerIdTransformed)
+	err = transaction.UpdateLedgerAdjustment(ctx, ledgerIdTransformed)
 	if err != nil {
 		return err
 	}
 
-	_, err = transaction.UpdateLedgerAllocationAdjustment(ctx, ledgerIdTransformed)
+	err = transaction.UpdateLedgerAllocationAdjustment(ctx, ledgerIdTransformed)
 	if err != nil {
 		return err
 	}

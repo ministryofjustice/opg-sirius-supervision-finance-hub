@@ -17,7 +17,7 @@ func TestUpdatePendingInvoiceAdjustment(t *testing.T) {
 
 	GetDoFunc = func(*http.Request) (*http.Response, error) {
 		return &http.Response{
-			StatusCode: 200,
+			StatusCode: 204,
 			Body:       r,
 		}, nil
 	}
@@ -53,6 +53,6 @@ func TestUpdatePendingInvoiceAdjustmentReturns500Error(t *testing.T) {
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/clients/1/invoice-adjustments/2",
-		Method: http.MethodPost,
+		Method: http.MethodPut,
 	}, err)
 }

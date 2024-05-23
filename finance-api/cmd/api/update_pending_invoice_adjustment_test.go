@@ -16,7 +16,7 @@ func TestServer_updatePendingInvoiceAdjustment(t *testing.T) {
 	var b bytes.Buffer
 
 	_ = json.NewEncoder(&b).Encode(nil)
-	req := httptest.NewRequest(http.MethodPost, "/clients/1/invoice-adjustments/1", &b)
+	req := httptest.NewRequest(http.MethodPut, "/clients/1/invoice-adjustments/1", &b)
 	req.SetPathValue("id", "1")
 	req.SetPathValue("ledgerId", "1")
 	w := httptest.NewRecorder()
@@ -34,14 +34,14 @@ func TestServer_updatePendingInvoiceAdjustment(t *testing.T) {
 	expected := ""
 
 	assert.Equal(t, expected, string(data))
-	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, http.StatusNoContent, w.Code)
 }
 
 func TestServer_updatePendingInvoiceAdjustment500Error(t *testing.T) {
 	var b bytes.Buffer
 
 	_ = json.NewEncoder(&b).Encode(nil)
-	req := httptest.NewRequest(http.MethodPost, "/clients/1/invoice-adjustments/1", &b)
+	req := httptest.NewRequest(http.MethodPut, "/clients/1/invoice-adjustments/1", &b)
 	req.SetPathValue("id", "1")
 	req.SetPathValue("ledgerId", "1")
 	w := httptest.NewRecorder()
