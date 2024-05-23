@@ -192,7 +192,7 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 	}
 }
 
-func Service_CalculateAdjustmentAmount(t *testing.T) {
+func TestService_CalculateAdjustmentAmount(t *testing.T) {
 	s := Service{}
 
 	testCases := []struct {
@@ -228,7 +228,7 @@ func Service_CalculateAdjustmentAmount(t *testing.T) {
 	}
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.expected, s.validateAdjustmentAmount(tt.adjustment, tt.balance))
+			assert.Equal(t, tt.expected, s.calculateAdjustmentAmount(tt.adjustment, tt.balance))
 		})
 	}
 }

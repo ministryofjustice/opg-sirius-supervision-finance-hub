@@ -39,7 +39,7 @@ func TestAddFeeReductionSuccess(t *testing.T) {
 	err := sut.render(appVars, w, r)
 
 	assert.Nil(t, err)
-	assert.Equal(t, "prefix/clients/1/fee-reductions?success=fee-reduction[remission]", w.Header().Get("HX-Redirect"))
+	assert.Equal(t, "prefix/clients/1/fee-reductions?success=fee-reduction[REMISSION]", w.Header().Get("HX-Redirect"))
 }
 
 func TestAddFeeReductionValidationErrors(t *testing.T) {
