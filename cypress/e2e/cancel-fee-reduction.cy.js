@@ -7,7 +7,7 @@ describe("Cancel fee reduction form", () => {
     });
 
     it("shows correct success message", () => {
-        cy.visit("/clients/1/fee-reductions?success=feeReductionCancelled");
+        cy.visit("/clients/1/fee-reductions?success=fee-reduction[CANCELLED]");
         cy.get('.moj-banner__message').contains("The fee reduction has been successfully cancelled")
     });
 
