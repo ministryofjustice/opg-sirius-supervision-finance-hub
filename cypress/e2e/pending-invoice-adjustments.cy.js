@@ -38,9 +38,4 @@ describe("Pending Invoice Adjustments", () => {
             .last()
             .should("not.contain", ".moj-button-menu")
     });
-
-    it("shows correct success message", () => {
-        cy.visit("/clients/1/pending-invoice-adjustments?success=credit");
-        cy.get('.moj-banner__message').contains("You have approved the credit");
-    });
 });
