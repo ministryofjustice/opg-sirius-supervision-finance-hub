@@ -52,7 +52,7 @@ describe("Adjust invoice form", () => {
         cy.get('#f-Amount').should("be.hidden");
         cy.get('.govuk-button').click();
 
-        cy.url().should('include', "clients/3/invoices?success=CREDIT_WRITE_OFF");
+        cy.url().should('include', "clients/3/invoices?success=invoice-adjustment[CREDIT%20WRITE%20OFF]");
         cy.get('.moj-banner__message').contains("Write-off successfully created");
     });
 });
