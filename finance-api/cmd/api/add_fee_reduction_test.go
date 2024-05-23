@@ -32,7 +32,7 @@ func TestServer_addFeeReductions(t *testing.T) {
 	}
 	_ = json.NewEncoder(&b).Encode(feeReductionInfo)
 	req := httptest.NewRequest(http.MethodPost, "/clients/1/fee-reductions", &b)
-	req.SetPathValue("id", "1")
+	req.SetPathValue("clientId", "1")
 	w := httptest.NewRecorder()
 
 	validator, _ := validation.New()
@@ -62,7 +62,7 @@ func TestServer_addFeeReductionsValidationErrors(t *testing.T) {
 	}
 	_ = json.NewEncoder(&b).Encode(feeReductionInfo)
 	req := httptest.NewRequest(http.MethodPost, "/clients/1/fee-reductions", &b)
-	req.SetPathValue("id", "1")
+	req.SetPathValue("clientId", "1")
 	w := httptest.NewRecorder()
 
 	validator, _ := validation.New()
@@ -109,7 +109,7 @@ func TestServer_addFeeReductionsValidationErrorsForThousandCharacters(t *testing
 	_ = json.NewEncoder(&b).Encode(feeReductionInfo)
 	req := httptest.NewRequest(http.MethodPost, "/clients/1/fee-reductions", &b)
 	//req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.SetPathValue("id", "1")
+	req.SetPathValue("clientId", "1")
 	w := httptest.NewRecorder()
 
 	validator, _ := validation.New()
@@ -145,7 +145,7 @@ func TestServer_addFeeReductionsOverlapError(t *testing.T) {
 	}
 	_ = json.NewEncoder(&b).Encode(feeReductionInfo)
 	req := httptest.NewRequest(http.MethodPost, "/clients/1/fee-reductions", &b)
-	req.SetPathValue("id", "1")
+	req.SetPathValue("clientId", "1")
 	w := httptest.NewRecorder()
 
 	validator, _ := validation.New()
@@ -176,7 +176,7 @@ func TestServer_addFeeReductions500Error(t *testing.T) {
 	}
 	_ = json.NewEncoder(&b).Encode(feeReductionInfo)
 	req := httptest.NewRequest(http.MethodPost, "/clients/1/fee-reductions", &b)
-	req.SetPathValue("id", "1")
+	req.SetPathValue("clientId", "1")
 	w := httptest.NewRecorder()
 
 	validator, _ := validation.New()

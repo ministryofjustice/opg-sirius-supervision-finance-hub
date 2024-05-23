@@ -9,7 +9,7 @@ import (
 func (s *Service) GetFeeReductions(id int) (*shared.FeeReductions, error) {
 	ctx := context.Background()
 
-	feeReductionsRawData, err := s.Store.GetFeeReductions(ctx, int32(id))
+	feeReductionsRawData, err := s.store.GetFeeReductions(ctx, int32(id))
 	if err != nil {
 		return nil, err
 	}

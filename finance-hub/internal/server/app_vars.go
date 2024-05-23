@@ -23,7 +23,7 @@ type Tab struct {
 func NewAppVars(r *http.Request, envVars EnvironmentVars) (AppVars, error) {
 	ctx := getContext(r)
 
-	clientId := r.PathValue("id")
+	clientId := r.PathValue("clientId")
 	tabs := []Tab{
 		{
 			Id:       "invoices",

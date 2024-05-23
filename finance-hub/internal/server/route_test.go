@@ -45,7 +45,7 @@ func TestRoute_fullPage(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r, _ := http.NewRequest(http.MethodGet, "", nil)
-	r.SetPathValue("id", "1")
+	r.SetPathValue("clientId", "1")
 
 	client.PersonDetails = shared.Person{
 		ID:        1,
@@ -100,7 +100,7 @@ func TestRoute_error(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	r, _ := http.NewRequest(http.MethodGet, "", nil)
-	r.SetPathValue("id", "abc")
+	r.SetPathValue("clientId", "abc")
 
 	data := PageData{
 		Data: mockRouteData{

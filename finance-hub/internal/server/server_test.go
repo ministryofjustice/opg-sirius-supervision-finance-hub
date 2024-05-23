@@ -62,6 +62,10 @@ func (m mockApiClient) UpdatePendingInvoiceAdjustment(context api.Context, i int
 	return m.error
 }
 
+func (m mockApiClient) AdjustInvoice(api.Context, int, int, string, string, string) error {
+	return m.error
+}
+
 func (m mockApiClient) CancelFeeReduction(context api.Context, i int, i2 int, s string) error {
 	return m.error
 }

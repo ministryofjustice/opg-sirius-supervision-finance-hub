@@ -58,4 +58,4 @@ cypress: setup-directories clean start-and-seed
 	docker compose run --build --rm cypress
 
 axe: setup-directories start-and-seed
-	docker compose run --rm cypress run --env grepTags="@axe"
+	docker compose run --rm cypress run --env grepTags=@axe

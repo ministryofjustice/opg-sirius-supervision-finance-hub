@@ -10,7 +10,7 @@ import (
 func (s *Service) UpdatePendingInvoiceAdjustment(ledgerId int, status string) error {
 	ctx := context.Background()
 
-	tx, err := s.TX.Begin(ctx)
+	tx, err := s.tx.Begin(ctx)
 	if err != nil {
 		return err
 	}
@@ -21,7 +21,7 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ledgerId int, status string) er
 		}
 	}()
 
-	transaction := s.Store.WithTx(tx)
+	transaction := s.store.WithTx(tx)
 
 	ledgerAdjustmentParams := store.UpdateLedgerAdjustmentParams{
 		Status: strings.ToUpper(status),

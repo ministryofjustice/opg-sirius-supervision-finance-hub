@@ -25,6 +25,15 @@
       "outstandingBalance": "£1000000",
       "creditBalance": "£0",
       "paymentMethod": "Demanded"
+    },
+    {
+      "id": 3,
+      "firstname": "Mandy",
+      "surname": "Moneybags",
+      "caseRecNumber": "12345678",
+      "outstandingBalance": "£1000000",
+      "creditBalance": "£0",
+      "paymentMethod": "Demanded"
     }
   ],
   "errors": [

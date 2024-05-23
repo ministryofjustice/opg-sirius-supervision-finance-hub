@@ -23,7 +23,7 @@ func TestCancelFeeReductionSuccess(t *testing.T) {
 	w := httptest.NewRecorder()
 	r, _ := http.NewRequest(http.MethodPost, "/add", strings.NewReader(form.Encode()))
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	r.SetPathValue("id", "1")
+	r.SetPathValue("clientId", "1")
 
 	appVars := AppVars{
 		Path: "/cancel",
@@ -57,7 +57,7 @@ func TestCancelFeeReductionValidationErrors(t *testing.T) {
 	w := httptest.NewRecorder()
 	r, _ := http.NewRequest(http.MethodPost, "/add", nil)
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	r.SetPathValue("id", "1")
+	r.SetPathValue("clientId", "1")
 	r.SetPathValue("feeReductionId", "1")
 
 	appVars := AppVars{
