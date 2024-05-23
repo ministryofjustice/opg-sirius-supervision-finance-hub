@@ -8,5 +8,5 @@ VALUES (nextval('ledger_id_seq'::regclass), gen_random_uuid(), now(), $1, $2, $3
 
 -- name: UpdateLedgerAdjustment :exec
 UPDATE ledger l
-SET status = 'APPROVED'
-WHERE l.id = $1;
+SET status = $1
+WHERE l.id = $2;

@@ -54,7 +54,7 @@ start-and-seed:
 	docker compose run --rm --build finance-migration
 	docker compose exec sirius-db psql -U user -d finance -a -f ./seed_data.sql
 
-cypress: setup-directories start-and-seed
+cypress: setup-directories clean start-and-seed
 	docker compose run --build --rm cypress
 
 axe: setup-directories start-and-seed

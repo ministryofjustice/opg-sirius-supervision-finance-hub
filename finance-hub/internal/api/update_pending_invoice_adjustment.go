@@ -1,14 +1,25 @@
 package api
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 )
 
-func (c *ApiClient) UpdatePendingInvoiceAdjustment(ctx Context, clientId int, ledgerId int) error {
+func (c *ApiClient) UpdatePendingInvoiceAdjustment(ctx Context, clientId int, ledgerId int, status string) error {
+	var body bytes.Buffer
+
+	err := json.NewEncoder(&body).Encode(struct {
+		Status string `json:"status"`
+	}{Status: status})
+
+	if err != nil {
+		return err
+	}
 
 	url := fmt.Sprintf("/clients/%d/invoice-adjustments/%d", clientId, ledgerId)
-	req, err := c.newBackendRequest(ctx, http.MethodPut, url, nil)
+	req, err := c.newBackendRequest(ctx, http.MethodPut, url, &body)
 
 	if err != nil {
 		return err

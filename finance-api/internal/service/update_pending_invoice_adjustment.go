@@ -2,10 +2,12 @@ package service
 
 import (
 	"context"
+	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"log"
+	"strings"
 )
 
-func (s *Service) UpdatePendingInvoiceAdjustment(ledgerId int) error {
+func (s *Service) UpdatePendingInvoiceAdjustment(ledgerId int, status string) error {
 	ctx := context.Background()
 
 	tx, err := s.TX.Begin(ctx)
@@ -20,14 +22,20 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ledgerId int) error {
 	}()
 
 	transaction := s.Store.WithTx(tx)
-	ledgerIdTransformed := int32(ledgerId)
 
-	err = transaction.UpdateLedgerAdjustment(ctx, ledgerIdTransformed)
+	ledgerAdjustmentParams := store.UpdateLedgerAdjustmentParams{
+		Status: strings.ToUpper(status),
+		ID:     int32(ledgerId),
+	}
+
+	err = transaction.UpdateLedgerAdjustment(ctx, ledgerAdjustmentParams)
 	if err != nil {
 		return err
 	}
 
-	err = transaction.UpdateLedgerAllocationAdjustment(ctx, ledgerIdTransformed)
+	ledgerAllocationAdjustmentParams := store.UpdateLedgerAllocationAdjustmentParams(ledgerAdjustmentParams)
+
+	err = transaction.UpdateLedgerAllocationAdjustment(ctx, ledgerAllocationAdjustmentParams)
 	if err != nil {
 		return err
 	}
