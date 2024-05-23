@@ -22,7 +22,9 @@ func TestUpdatePendingInvoiceAdjustment(t *testing.T) {
 		}, nil
 	}
 
-	err := client.UpdatePendingInvoiceAdjustment(getContext(nil), 2, 4)
+	status := "approved"
+
+	err := client.UpdatePendingInvoiceAdjustment(getContext(nil), 2, 4, status)
 	assert.Equal(t, nil, err)
 }
 
@@ -35,7 +37,9 @@ func TestUpdatePendingInvoiceAdjustmentUnauthorised(t *testing.T) {
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
 
-	err := client.UpdatePendingInvoiceAdjustment(getContext(nil), 1, 5)
+	status := "approved"
+
+	err := client.UpdatePendingInvoiceAdjustment(getContext(nil), 1, 5, status)
 
 	assert.Equal(t, ErrUnauthorized.Error(), err.Error())
 }
@@ -49,7 +53,9 @@ func TestUpdatePendingInvoiceAdjustmentReturns500Error(t *testing.T) {
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
 
-	err := client.UpdatePendingInvoiceAdjustment(getContext(nil), 1, 2)
+	status := "approved"
+
+	err := client.UpdatePendingInvoiceAdjustment(getContext(nil), 1, 2, status)
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/clients/1/invoice-adjustments/2",

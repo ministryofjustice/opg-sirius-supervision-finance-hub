@@ -15,7 +15,7 @@ type mockService struct {
 	err                error
 }
 
-func (s *mockService) UpdatePendingInvoiceAdjustment(id int) error {
+func (s *mockService) UpdatePendingInvoiceAdjustment(id int, status string) error {
 	s.expectedId = id
 	return s.err
 }
