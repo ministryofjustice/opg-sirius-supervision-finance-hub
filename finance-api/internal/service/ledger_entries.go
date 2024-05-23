@@ -49,10 +49,6 @@ func (s *Service) validateAdjustmentAmount(adjustment *shared.CreateLedgerEntryR
 		if int32(balance.Outstanding) < 1 {
 			return shared.BadRequest{Field: "Amount", Reason: "No outstanding balance to write off"}
 		}
-	case shared.AdjustmentTypeWriteOff:
-		if int32(b.Outstanding) < 1 {
-			return shared.BadRequest{Field: "Amount", Reason: "No outstanding balance to write off"}
-		}
 	default:
 		return shared.BadRequest{Field: "AdjustmentType", Reason: "Unimplemented adjustment type"}
 	}
