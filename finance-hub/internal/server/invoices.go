@@ -41,7 +41,7 @@ type Invoice struct {
 	ClientId           int
 }
 
-type InvoiceTab struct {
+type InvoicesVars struct {
 	Invoices Invoices
 	AppVars
 }
@@ -58,7 +58,7 @@ func (h *InvoicesHandler) render(v AppVars, w http.ResponseWriter, r *http.Reque
 		return err
 	}
 
-	data := &InvoiceTab{h.transform(invoices, ctx.ClientId), v}
+	data := &InvoicesVars{h.transform(invoices, ctx.ClientId), v}
 	data.selectTab("invoices")
 	return h.execute(w, r, data)
 }

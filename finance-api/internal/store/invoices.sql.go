@@ -67,11 +67,33 @@ func (q *Queries) AddFeeReductionToInvoices(ctx context.Context, id int32) ([]In
 	return items, nil
 }
 
+const getInvoiceBalance = `-- name: GetInvoiceBalance :one
+SELECT i.amount initial, i.amount - COALESCE(SUM(la.amount), 0) outstanding
+FROM invoice i
+         LEFT JOIN ledger_allocation la on i.id = la.invoice_id
+    AND la.status <> 'PENDING'
+WHERE i.id = $1
+group by i.amount
+`
+
+type GetInvoiceBalanceRow struct {
+	Initial     int32
+	Outstanding int32
+}
+
+func (q *Queries) GetInvoiceBalance(ctx context.Context, id int32) (GetInvoiceBalanceRow, error) {
+	row := q.db.QueryRow(ctx, getInvoiceBalance, id)
+	var i GetInvoiceBalanceRow
+	err := row.Scan(&i.Initial, &i.Outstanding)
+	return i, err
+}
+
 const getInvoices = `-- name: GetInvoices :many
 SELECT i.id, i.reference, i.amount, i.raiseddate, i.cacheddebtamount
 FROM invoice i
-         inner join finance_client fc on i.finance_client_id = fc.id
-where fc.client_id = $1 order by i.raiseddate desc
+         inner join finance_client fc on fc.id = i.finance_client_id
+where fc.client_id = $1
+order by i.raiseddate desc
 `
 
 type GetInvoicesRow struct {
@@ -109,7 +131,11 @@ func (q *Queries) GetInvoices(ctx context.Context, clientID int32) ([]GetInvoice
 }
 
 const getLedgerAllocations = `-- name: GetLedgerAllocations :many
-select la.id, la.amount, la.datetime, l.bankdate, l.type, la.status from ledger_allocation la inner join ledger l on la.ledger_id = l.id where la.invoice_id = $1 order by la.id desc
+select la.id, la.amount, la.datetime, l.bankdate, l.type, la.status
+from ledger_allocation la
+         inner join ledger l on la.ledger_id = l.id
+where la.invoice_id = $1
+order by la.id desc
 `
 
 type GetLedgerAllocationsRow struct {
@@ -149,7 +175,10 @@ func (q *Queries) GetLedgerAllocations(ctx context.Context, invoiceID pgtype.Int
 }
 
 const getSupervisionLevels = `-- name: GetSupervisionLevels :many
-select supervisionlevel, fromdate, todate, amount from invoice_fee_range where invoice_id = $1 order by todate desc
+select supervisionlevel, fromdate, todate, amount
+from invoice_fee_range
+where invoice_id = $1
+order by todate desc
 `
 
 type GetSupervisionLevelsRow struct {

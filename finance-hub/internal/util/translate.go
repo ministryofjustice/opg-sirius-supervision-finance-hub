@@ -10,16 +10,17 @@ type pair struct {
 }
 
 var validationMappings = map[string]map[string]pair{
-	"adjustmentType": {
-		"isEmpty": pair{"adjustmentType", "Select the adjustment type"},
+	"AdjustmentType": {
+		"required":   pair{"AdjustmentType", "Select the adjustment type"},
+		"valid-enum": pair{"AdjustmentType", "Select the adjustment type"},
 	},
-	"notes": {
-		"isEmpty":             pair{"notes", "Enter a reason for adjustment"},
-		"stringLengthTooLong": pair{"notes", "Reason for manual credit must be 1000 characters or less"},
+	"AdjustmentNotes": {
+		"required":            pair{"AdjustmentNotes", "Enter a reason for adjustment"},
+		"stringLengthTooLong": pair{"AdjustmentNotes", "Reason for manual credit must be 1000 characters or less"},
 	},
-	"amount": {
-		"isEmpty": pair{"amount", "Enter an amount"},
-		"tooHigh": pair{"amount", "Amount entered must be less than £"},
+	"Amount": {
+		"required":    pair{"Amount", "Enter an amount"},
+		"required_if": pair{"Amount", "Enter an amount"},
 	},
 	"FeeType": {
 		"required": pair{"FeeType", "A fee reduction type must be selected"},

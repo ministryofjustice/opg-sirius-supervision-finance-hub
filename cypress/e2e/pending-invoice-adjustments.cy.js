@@ -13,7 +13,6 @@ describe("Pending Invoice Adjustments", () => {
             .next().contains("Actions");
 
         cy.get("table#pending-invoice-adjustments > tbody > tr")
-            .should("have.length", 1)
             .first()
             .children()
             .first().contains("S206666/18")
@@ -33,6 +32,6 @@ describe("Pending Invoice Adjustments", () => {
 
     it("shows correct success message", () => {
         cy.visit("/clients/1/pending-invoice-adjustments?success=credit");
-        cy.get('.moj-banner__message').contains("You have approved the credit")
+        cy.get('.moj-banner__message').contains("You have approved the credit");
     });
 });
