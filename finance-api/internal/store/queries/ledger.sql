@@ -10,8 +10,6 @@ VALUES (nextval('ledger_id_seq'::regclass), gen_random_uuid(), now(), $1, $2, $3
 UPDATE ledger l
 SET status = 'APPROVED'
 WHERE l.id = $1;
-        null, null, null, null, null, now(), $7)
-returning *;
 
 -- name: CreateLedger :exec
 WITH fc AS (SELECT id FROM finance_client WHERE client_id = $1),
