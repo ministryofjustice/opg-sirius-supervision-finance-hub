@@ -5,7 +5,6 @@
 
         {{/* move the style into css file */}}
         <div style="float: right;">
-
             <div class="moj-button-menu">
                     <div class="moj-button-menu__wrapper">
                         <a
@@ -18,10 +17,6 @@
                             hx-push-url="{{ (printf "/clients/%s/fee-reductions/add" .ClientId) }}">
                             Award a fee reduction
                         </a>
-                       <a href="/fee-reduction/cancel" role="button" draggable="false"
-                       class="govuk-button moj-button-menu__item govuk-button--secondary " data-module="govuk-button">
-                        Cancel a fee reduction
-                    </a>
                 </div>
             </div>
         </div>
@@ -43,6 +38,7 @@
                 <td colspan="100%" class="govuk-table__cell govuk-table__cell--no-data">There are no fee reductions</td>
             </tr>
         {{ else }}
+            {{ $clientId := .ClientId }}
             {{ range .FeeReductions }}
                 <tbody class="govuk-table__body">
                     <tr>
@@ -61,9 +57,9 @@
                                     role="button"
                                     draggable="false"
                                     data-module="govuk-button"
-                                    hx-get="{{ prefix (printf "/clients/%s/fee-reductions/%s/cancel" .ClientId .Id) }}"
+                                    hx-get="{{ prefix (printf "/clients/%s/fee-reductions/%s/cancel" $clientId .Id) }}"
                                     hx-target="#main-content"
-                                    hx-push-url="{{ (printf "/clients/%s/fee-reductions/%s/cancel" .ClientId .Id) }}">
+                                    hx-push-url="{{ (printf "/clients/%s/fee-reductions/%s/cancel" $clientId .Id) }}">
                                     Cancel
                                     </a>
                                 </div>

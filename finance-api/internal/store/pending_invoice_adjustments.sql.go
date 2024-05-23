@@ -25,6 +25,7 @@ from ledger l
          inner join finance_client fc on fc.id = i.finance_client_id
 where fc.client_id = $1
 and l.type IN ('CREDIT MEMO', 'CREDIT WRITE OFF')
+and lc.status = 'PENDING'
 order by l.datetime desc
 `
 

@@ -4,18 +4,20 @@ import (
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/util"
 	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
+	"strconv"
 )
 
 type PendingInvoiceAdjustments []PendingInvoiceAdjustment
 
 type PendingInvoiceAdjustment struct {
-	Id               int
+	Id               string
 	Invoice          string
 	DateRaised       shared.Date
 	AdjustmentType   string
 	AdjustmentAmount string
 	Notes            string
 	Status           string
+	ClientId         string
 }
 
 type PendingInvoiceAdjustmentsTab struct {
@@ -35,23 +37,24 @@ func (h *PendingInvoiceAdjustmentsHandler) render(v AppVars, w http.ResponseWrit
 		return err
 	}
 
-	data := &PendingInvoiceAdjustmentsTab{PendingInvoiceAdjustments: h.transform(ia), AppVars: v}
+	data := &PendingInvoiceAdjustmentsTab{PendingInvoiceAdjustments: h.transform(ia, strconv.Itoa(ctx.ClientId)), AppVars: v}
 	data.selectTab("pending-invoice-adjustments")
 
 	return h.execute(w, r, data)
 }
 
-func (h *PendingInvoiceAdjustmentsHandler) transform(in shared.InvoiceAdjustments) PendingInvoiceAdjustments {
+func (h *PendingInvoiceAdjustmentsHandler) transform(in shared.InvoiceAdjustments, clientId string) PendingInvoiceAdjustments {
 	var out PendingInvoiceAdjustments
 	for _, adjustment := range in {
 		out = append(out, PendingInvoiceAdjustment{
-			Id:               adjustment.Id,
+			Id:               strconv.Itoa(adjustment.Id),
 			Invoice:          adjustment.InvoiceRef,
 			DateRaised:       adjustment.RaisedDate,
 			AdjustmentType:   h.transformType(adjustment.AdjustmentType),
 			AdjustmentAmount: util.IntToDecimalString(adjustment.Amount),
 			Notes:            adjustment.Notes,
 			Status:           h.transformStatus(adjustment.Status),
+			ClientId:         clientId,
 		})
 	}
 

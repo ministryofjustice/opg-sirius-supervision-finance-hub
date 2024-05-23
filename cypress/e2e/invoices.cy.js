@@ -29,10 +29,10 @@ describe("Invoices ledger allocations", () => {
         cy.contains('[data-cy="ledger-received-date"]', "Received date");
         cy.contains('[data-cy="ledger-transaction-type"]', "Transaction type");
         cy.contains('[data-cy="ledger-status"]', "Status");
-        cy.contains('[data-cy="ledger-amount-data"]', "£123").first();
-        cy.contains('[data-cy="ledger-received-date-data"]', "04/12/2022").first();
-        cy.contains('[data-cy="ledger-transaction-type-data"]', "Card Payment").first();
-        cy.contains('[data-cy="ledger-status-data"]', "Applied").first();
+        cy.get('[data-cy="ledger-amount-data"]').first().contains("£123")
+        cy.get('[data-cy="ledger-received-date-data"]').first().contains("04/12/2022")
+        cy.get('[data-cy="ledger-transaction-type-data"]').first().contains("Card Payment");
+        cy.get('[data-cy="ledger-status-data"]').first().contains("Approved");
     });
 });
 

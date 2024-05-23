@@ -58,7 +58,6 @@ func TestFeeReductions(t *testing.T) {
 			Notes:                    "Exemption cancelled due to incorrect filing",
 			FeeReductionCancelAction: false,
 			Id:                       "1",
-			ClientId:                 "1",
 		},
 		{
 			Type:                     "Remission",
@@ -69,7 +68,6 @@ func TestFeeReductions(t *testing.T) {
 			Notes:                    "Remission for 2021/2022",
 			FeeReductionCancelAction: true,
 			Id:                       "2",
-			ClientId:                 "1",
 		},
 	}
 

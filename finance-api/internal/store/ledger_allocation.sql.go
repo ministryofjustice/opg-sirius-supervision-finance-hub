@@ -44,3 +44,22 @@ func (q *Queries) CreateLedgerAllocationForFeeReduction(ctx context.Context, arg
 	)
 	return i, err
 }
+
+const updateLedgerAllocationAdjustment = `-- name: UpdateLedgerAllocationAdjustment :exec
+WITH filtered_ledger_allocation AS (
+    SELECT lc.id
+    from ledger l
+             inner join ledger_allocation lc on lc.ledger_id = l.id
+    where l.id = $1
+      and l.type IN ('CREDIT MEMO', 'CREDIT WRITE OFF')
+)
+UPDATE ledger_allocation
+SET status = 'APPROVED'
+FROM filtered_ledger_allocation fla
+WHERE ledger_allocation.id = fla.id
+`
+
+func (q *Queries) UpdateLedgerAllocationAdjustment(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, updateLedgerAllocationAdjustment, id)
+	return err
+}
