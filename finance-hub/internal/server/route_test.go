@@ -126,6 +126,8 @@ func TestRoute_GetSuccess(t *testing.T) {
 		{"remission", "The remission has been successfully added"},
 		{"exemption", "The exemption has been successfully added"},
 		{"hardship", "The hardship has been successfully added"},
+		{"credit", "You have approved the credit"},
+		{"write off", "You have approved the write off"},
 		{"invalid", ""},
 	}
 

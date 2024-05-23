@@ -39,7 +39,7 @@ func TestPendingInvoiceAdjustments(t *testing.T) {
 
 	out := PendingInvoiceAdjustments{
 		PendingInvoiceAdjustment{
-			Id:               3,
+			Id:               "3",
 			Invoice:          "N2000001/20",
 			Status:           "Pending",
 			AdjustmentAmount: "2.32",
@@ -51,6 +51,7 @@ func TestPendingInvoiceAdjustments(t *testing.T) {
 
 	expected := &PendingInvoiceAdjustmentsTab{
 		PendingInvoiceAdjustments: out,
+		ClientId:                  "1",
 		AppVars:                   appVars,
 	}
 
