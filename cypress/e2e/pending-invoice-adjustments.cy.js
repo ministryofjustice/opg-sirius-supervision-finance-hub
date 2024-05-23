@@ -30,6 +30,8 @@ describe("Pending Invoice Adjustments", () => {
             .next().contains("Reject")
             .click()
 
+        cy.url().should('include', '/pending-invoice-adjustments?success=credit%20rejected')
+
         cy.get('.moj-banner__message').contains("You have rejected the credit")
 
         cy.get("table#pending-invoice-adjustments > tbody > tr")
