@@ -28,7 +28,7 @@ describe("Adjust invoice form", () => {
         cy.get('.govuk-button').click();
 
         // navigation and success message
-        cy.url().should('include', "clients/3/invoices?success=CREDIT_MEMO");
+        cy.url().should('include', "clients/3/invoices?success=invoice-adjustment[CREDIT MEMO]");
         cy.get('.moj-banner__message').contains("Manual credit successfully created");
     });
 
@@ -40,7 +40,7 @@ describe("Adjust invoice form", () => {
         cy.get('#f-Amount').should("be.hidden");
         cy.get('.govuk-button').click();
 
-        cy.url().should('include', "clients/3/invoices?success=CREDIT_WRITE_OFF");
+        cy.url().should('include', "clients/3/invoices?success=invoice-adjustment[CREDIT WRITE OFF]");
         cy.get('.moj-banner__message').contains("Write-off successfully created");
     });
 });
