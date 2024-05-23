@@ -106,10 +106,14 @@ func (r route) getSuccess(req *http.Request) string {
 		return "The hardship has been successfully added"
 	case "feeReductionCancelled":
 		return "The fee reduction has been successfully cancelled"
-	case "credit":
-		return "You have approved the " + req.URL.Query().Get("success")
-	case "write off":
-		return "You have approved the " + req.URL.Query().Get("success")
+	case "credit approved":
+		return "You have approved the credit"
+	case "credit rejected":
+		return "You have rejected the credit"
+	case "write off approved":
+		return "You have approved the write off"
+	case "write off rejected":
+		return "You have rejected the write off"
 	}
 	return ""
 }

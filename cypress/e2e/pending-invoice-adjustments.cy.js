@@ -27,7 +27,16 @@ describe("Pending Invoice Adjustments", () => {
             .children()
             .last().get(".moj-button-menu")
             .first().contains("Approve")
-            .next().contains("Reject");
+            .next().contains("Reject")
+            .click()
+
+        cy.get('.moj-banner__message').contains("You have rejected the credit")
+
+        cy.get("table#pending-invoice-adjustments > tbody > tr")
+            .first()
+            .children()
+            .last()
+            .should("not.contain", ".moj-button-menu")
     });
 
     it("shows correct success message", () => {
