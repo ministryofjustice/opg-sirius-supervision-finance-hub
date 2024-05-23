@@ -116,69 +116,69 @@ func TestService_CreateLedgerEntry(t *testing.T) {
 }
 
 func TestService_ValidateAdjustmentAmount(t *testing.T) {
-	conn := testDB.GetConn()
-	t.Cleanup(func() {
-		testDB.Restore()
-	})
-
-	conn.SeedData(
-		"INSERT INTO finance_client VALUES (1, 1, '1234', 'DEMANDED', null, 0, 0);",
-		"INSERT INTO invoice VALUES (1, 1, 1, 'S2', 'S204642/19', '2022-04-02', '2022-04-02', 32000, null, null, null, null, null, null, 0, '2022-04-02', 1);",
-		"INSERT INTO ledger VALUES (1, 'abc1', '2022-04-02T00:00:00+00:00', '', 22000, 'Initial payment', 'UNKNOWN DEBIT', 'CONFIRMED', 1, null, null, null, null, null, null, null, null, '05/05/2022', 1);",
-		"INSERT INTO ledger_allocation VALUES (1, 1, 1, '2022-04-02T00:00:00+00:00', 22000, '', null, '', '2022-04-02', null);",
-		"INSERT INTO invoice VALUES (2, 1, 1, 'S2', 'S204643/19', '2022-04-02', '2022-04-02', 32000, null, null, null, null, null, null, 0, '2022-04-02', 1);",
-		"INSERT INTO ledger VALUES (2, 'abc2', '2022-04-02T00:00:00+00:00', '', 32000, 'Initial payment', 'UNKNOWN DEBIT', 'CONFIRMED', 1, null, null, null, null, null, null, null, null, '05/05/2022', 1);",
-		"INSERT INTO ledger_allocation VALUES (2, 2, 2, '2022-04-02T00:00:00+00:00', 32000, '', null, '', '2022-04-02', null);",
-	)
-
-	s := NewService(conn.Conn)
+	s := Service{}
 
 	testCases := []struct {
-		name      string
-		invoiceId int
-		data      *shared.CreateLedgerEntryRequest
-		err       error
+		name       string
+		adjustment *shared.CreateLedgerEntryRequest
+		balance    store.GetInvoiceBalanceRow
+		err        error
 	}{
 		{
-			name:      "Unimplemented adjustment type",
-			invoiceId: 1,
-			data: &shared.CreateLedgerEntryRequest{
+			name: "Unimplemented adjustment type",
+			adjustment: &shared.CreateLedgerEntryRequest{
 				AdjustmentType: shared.AdjustmentTypeUnknown,
 				Amount:         52000,
+			},
+			balance: store.GetInvoiceBalanceRow{
+				Initial:     32000,
+				Outstanding: 10000,
 			},
 			err: shared.BadRequest{Field: "AdjustmentType", Reason: "Unimplemented adjustment type"},
 		},
 		{
-			name:      "Add Credit - too high",
-			invoiceId: 1,
-			data: &shared.CreateLedgerEntryRequest{
+			name: "Add Credit - too high",
+			adjustment: &shared.CreateLedgerEntryRequest{
 				AdjustmentType: shared.AdjustmentTypeAddCredit,
 				Amount:         52000,
+			},
+			balance: store.GetInvoiceBalanceRow{
+				Initial:     32000,
+				Outstanding: 10000,
 			},
 			err: shared.BadRequest{Field: "Amount", Reason: "Amount entered must be equal to or less than £420"},
 		},
 		{
-			name:      "Add Credit - valid",
-			invoiceId: 1,
-			data: &shared.CreateLedgerEntryRequest{
+			name: "Add Credit - valid",
+			adjustment: &shared.CreateLedgerEntryRequest{
 				AdjustmentType: shared.AdjustmentTypeAddCredit,
 				Amount:         42000,
+			},
+			balance: store.GetInvoiceBalanceRow{
+				Initial:     32000,
+				Outstanding: 10000,
 			},
 			err: nil,
 		},
 		{
-			name:      "Write off - no outstanding balance",
-			invoiceId: 2,
-			data: &shared.CreateLedgerEntryRequest{
+			name: "Write off - no outstanding balance",
+			adjustment: &shared.CreateLedgerEntryRequest{
 				AdjustmentType: shared.AdjustmentTypeWriteOff,
+			},
+			balance: store.GetInvoiceBalanceRow{
+				Initial:     32000,
+				Outstanding: 0,
 			},
 			err: shared.BadRequest{Field: "Amount", Reason: "No outstanding balance to write off"},
 		},
 		{
-			name:      "Write off - valid",
-			invoiceId: 1,
-			data: &shared.CreateLedgerEntryRequest{
+			name: "Write off - valid",
+			adjustment: &shared.CreateLedgerEntryRequest{
 				AdjustmentType: shared.AdjustmentTypeWriteOff,
+			},
+			balance: store.GetInvoiceBalanceRow{
+				Initial:     32000,
+				Outstanding: 10000,
 			},
 			err: nil,
 		},
@@ -186,8 +186,49 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			err := s.validateAdjustmentAmount(tt.invoiceId, tt.data)
+			err := s.validateAdjustmentAmount(tt.adjustment, tt.balance)
 			assert.ErrorIs(t, err, tt.err)
+		})
+	}
+}
+
+func Service_CalculateAdjustmentAmount(t *testing.T) {
+	s := Service{}
+
+	testCases := []struct {
+		name       string
+		adjustment *shared.CreateLedgerEntryRequest
+		balance    store.GetInvoiceBalanceRow
+		expected   int32
+	}{
+		{
+			name: "Write off returns outstanding balance",
+			adjustment: &shared.CreateLedgerEntryRequest{
+				AdjustmentType: shared.AdjustmentTypeWriteOff,
+				Amount:         52000,
+			},
+			balance: store.GetInvoiceBalanceRow{
+				Initial:     32000,
+				Outstanding: 10000,
+			},
+			expected: 10000,
+		},
+		{
+			name: "Add credit returns amount",
+			adjustment: &shared.CreateLedgerEntryRequest{
+				AdjustmentType: shared.AdjustmentTypeAddCredit,
+				Amount:         52000,
+			},
+			balance: store.GetInvoiceBalanceRow{
+				Initial:     32000,
+				Outstanding: 10000,
+			},
+			expected: 52000,
+		},
+	}
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.expected, s.validateAdjustmentAmount(tt.adjustment, tt.balance))
 		})
 	}
 }
