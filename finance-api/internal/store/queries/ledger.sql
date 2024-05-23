@@ -5,3 +5,8 @@ insert into ledger (id, reference, datetime, method, amount, notes, type, status
                                         createddate, createdby_id)
 VALUES (nextval('ledger_id_seq'::regclass), gen_random_uuid(), now(), $1, $2, $3, $4, 'Status', $5, null, $6, null,
         null, null, null, null, null, now(), $7) returning *;
+
+-- name: UpdateLedgerAdjustment :exec
+UPDATE ledger l
+SET status = 'APPROVED'
+WHERE l.id = $1;

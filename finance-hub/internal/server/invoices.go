@@ -65,26 +65,26 @@ func (h *InvoicesHandler) render(v AppVars, w http.ResponseWriter, r *http.Reque
 
 func (h *InvoicesHandler) transform(in shared.Invoices, clientId int) Invoices {
 	var out Invoices
+	caser := cases.Title(language.English)
 	for _, invoice := range in {
 		out = append(out, Invoice{
 			Id:                 invoice.Id,
 			Ref:                invoice.Ref,
-			Status:             invoice.Status,
+			Status:             caser.String(invoice.Status),
 			Amount:             util.IntToDecimalString(invoice.Amount),
 			RaisedDate:         invoice.RaisedDate.String(),
 			Received:           util.IntToDecimalString(invoice.Received),
 			OutstandingBalance: util.IntToDecimalString(invoice.OutstandingBalance),
-			Ledgers:            h.transformLedgers(invoice.Ledgers),
-			SupervisionLevels:  h.transformSupervisionLevels(invoice.SupervisionLevels),
+			Ledgers:            h.transformLedgers(invoice.Ledgers, caser),
+			SupervisionLevels:  h.transformSupervisionLevels(invoice.SupervisionLevels, caser),
 			ClientId:           clientId,
 		})
 	}
 	return out
 }
 
-func (h *InvoicesHandler) transformSupervisionLevels(in []shared.SupervisionLevel) SupervisionLevels {
+func (h *InvoicesHandler) transformSupervisionLevels(in []shared.SupervisionLevel, caser cases.Caser) SupervisionLevels {
 	var out SupervisionLevels
-	caser := cases.Title(language.English)
 	for _, supervisionLevel := range in {
 		out = append(out, SupervisionLevel{
 			Level:  caser.String(supervisionLevel.Level),
@@ -96,14 +96,14 @@ func (h *InvoicesHandler) transformSupervisionLevels(in []shared.SupervisionLeve
 	return out
 }
 
-func (h *InvoicesHandler) transformLedgers(ledgers []shared.Ledger) LedgerAllocations {
+func (h *InvoicesHandler) transformLedgers(ledgers []shared.Ledger, caser cases.Caser) LedgerAllocations {
 	var out LedgerAllocations
 	for _, ledger := range ledgers {
 		out = append(out, LedgerAllocation{
 			Amount:          util.IntToDecimalString(ledger.Amount),
 			ReceivedDate:    ledger.ReceivedDate,
 			TransactionType: ledger.TransactionType,
-			Status:          ledger.Status,
+			Status:          caser.String(ledger.Status),
 		})
 	}
 	return out

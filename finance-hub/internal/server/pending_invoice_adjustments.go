@@ -4,12 +4,13 @@ import (
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/util"
 	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
+	"strconv"
 )
 
 type PendingInvoiceAdjustments []PendingInvoiceAdjustment
 
 type PendingInvoiceAdjustment struct {
-	Id               int
+	Id               string
 	Invoice          string
 	DateRaised       shared.Date
 	AdjustmentType   string
@@ -20,6 +21,7 @@ type PendingInvoiceAdjustment struct {
 
 type PendingInvoiceAdjustmentsTab struct {
 	PendingInvoiceAdjustments PendingInvoiceAdjustments
+	ClientId                  string
 	AppVars
 }
 
@@ -35,7 +37,7 @@ func (h *PendingInvoiceAdjustmentsHandler) render(v AppVars, w http.ResponseWrit
 		return err
 	}
 
-	data := &PendingInvoiceAdjustmentsTab{PendingInvoiceAdjustments: h.transform(ia), AppVars: v}
+	data := &PendingInvoiceAdjustmentsTab{PendingInvoiceAdjustments: h.transform(ia), ClientId: strconv.Itoa(ctx.ClientId), AppVars: v}
 	data.selectTab("pending-invoice-adjustments")
 
 	return h.execute(w, r, data)
@@ -45,7 +47,7 @@ func (h *PendingInvoiceAdjustmentsHandler) transform(in shared.InvoiceAdjustment
 	var out PendingInvoiceAdjustments
 	for _, adjustment := range in {
 		out = append(out, PendingInvoiceAdjustment{
-			Id:               adjustment.Id,
+			Id:               strconv.Itoa(adjustment.Id),
 			Invoice:          adjustment.InvoiceRef,
 			DateRaised:       adjustment.RaisedDate,
 			AdjustmentType:   h.transformType(adjustment.AdjustmentType),

@@ -19,7 +19,6 @@ type FeeReduction struct {
 	Notes                    string
 	FeeReductionCancelAction bool
 	Id                       string
-	ClientId                 string
 }
 
 type FeeReductionsTab struct {
@@ -39,13 +38,13 @@ func (h *FeeReductionsHandler) render(v AppVars, w http.ResponseWriter, r *http.
 	if err != nil {
 		return err
 	}
-	clientIDString := strconv.Itoa(ctx.ClientId)
-	data := &FeeReductionsTab{h.transform(feeReductions, clientIDString), clientIDString, v}
+
+	data := &FeeReductionsTab{h.transform(feeReductions), strconv.Itoa(ctx.ClientId), v}
 	data.selectTab("fee-reductions")
 	return h.execute(w, r, data)
 }
 
-func (h *FeeReductionsHandler) transform(in shared.FeeReductions, clientId string) FeeReductions {
+func (h *FeeReductionsHandler) transform(in shared.FeeReductions) FeeReductions {
 	var out FeeReductions
 	caser := cases.Title(language.English)
 	for _, f := range in {
@@ -58,7 +57,6 @@ func (h *FeeReductionsHandler) transform(in shared.FeeReductions, clientId strin
 			Notes:                    f.Notes,
 			FeeReductionCancelAction: showFeeReductionCancelBtn(caser.String(f.Status)),
 			Id:                       strconv.Itoa(f.Id),
-			ClientId:                 clientId,
 		})
 	}
 	return out

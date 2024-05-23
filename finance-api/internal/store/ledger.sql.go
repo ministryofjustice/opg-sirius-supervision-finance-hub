@@ -64,3 +64,14 @@ func (q *Queries) CreateLedgerForFeeReduction(ctx context.Context, arg CreateLed
 	)
 	return i, err
 }
+
+const updateLedgerAdjustment = `-- name: UpdateLedgerAdjustment :exec
+UPDATE ledger l
+SET status = 'APPROVED'
+WHERE l.id = $1
+`
+
+func (q *Queries) UpdateLedgerAdjustment(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, updateLedgerAdjustment, id)
+	return err
+}
