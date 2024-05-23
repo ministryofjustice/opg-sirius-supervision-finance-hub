@@ -28,12 +28,12 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ledgerId int, status string) er
 		ID:     int32(ledgerId),
 	}
 
-	ledgerAllocationAdjustmentParams := store.UpdateLedgerAllocationAdjustmentParams(ledgerAdjustmentParams)
-
 	err = transaction.UpdateLedgerAdjustment(ctx, ledgerAdjustmentParams)
 	if err != nil {
 		return err
 	}
+
+	ledgerAllocationAdjustmentParams := store.UpdateLedgerAllocationAdjustmentParams(ledgerAdjustmentParams)
 
 	err = transaction.UpdateLedgerAllocationAdjustment(ctx, ledgerAllocationAdjustmentParams)
 	if err != nil {

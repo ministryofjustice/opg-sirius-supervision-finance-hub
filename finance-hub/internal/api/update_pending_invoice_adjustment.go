@@ -12,9 +12,8 @@ func (c *ApiClient) UpdatePendingInvoiceAdjustment(ctx Context, clientId int, le
 
 	err := json.NewEncoder(&body).Encode(struct {
 		Status string `json:"status"`
-	}{
-		Status: status,
-	})
+	}{Status: status})
+
 	if err != nil {
 		return err
 	}
