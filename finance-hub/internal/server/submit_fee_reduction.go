@@ -36,6 +36,6 @@ func (h *SubmitFeeReductionsHandler) render(v AppVars, w http.ResponseWriter, r 
 		return err
 	}
 
-	w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/fee-reductions?success=%s", v.EnvironmentVars.Prefix, ctx.ClientId, feeType))
+	w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/fee-reductions?success=fee-reduction[%s]", v.EnvironmentVars.Prefix, ctx.ClientId, feeType))
 	return nil
 }
