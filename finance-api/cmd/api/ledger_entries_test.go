@@ -24,7 +24,7 @@ func TestServer_PostLedgerEntry(t *testing.T) {
 		{
 			name: "success",
 			body: `{
-				"adjustmentType": "CREDIT_MEMO",
+				"adjustmentType": "CREDIT MEMO",
 				"notes":"Some notes here", 
 				"amount": 12345
 			 }`,
@@ -34,7 +34,7 @@ func TestServer_PostLedgerEntry(t *testing.T) {
 		{
 			name: "internal server error",
 			body: `{
-				"adjustmentType": "CREDIT_MEMO",
+				"adjustmentType": "CREDIT MEMO",
 				"notes":"Some notes here", 
 				"amount": 12345
 			 }`,
@@ -44,7 +44,7 @@ func TestServer_PostLedgerEntry(t *testing.T) {
 		{
 			name: "bad request",
 			body: `{
-				"adjustmentType": "CREDIT_MEMO",
+				"adjustmentType": "CREDIT MEMO",
 				"notes":"Some notes here", 
 				"amount": 12345678
 			 }`,
