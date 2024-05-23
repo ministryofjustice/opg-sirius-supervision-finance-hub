@@ -86,7 +86,7 @@ func TestService_CreateLedgerEntry(t *testing.T) {
 					ID:              2,
 					Amount:          int32(tt.data.Amount),
 					Notes:           pgtype.Text{String: tt.data.AdjustmentNotes, Valid: true},
-					Type:            tt.data.AdjustmentType.DbValue(),
+					Type:            tt.data.AdjustmentType.Key(),
 					Status:          "PENDING",
 					FinanceClientID: pgtype.Int4{Int32: int32(1), Valid: true},
 				}
