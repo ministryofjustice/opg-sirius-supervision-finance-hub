@@ -88,21 +88,49 @@ func TestServer_PostLedgerEntry(t *testing.T) {
 
 func TestCreateLedgerEntryRequest_validation(t *testing.T) {
 	validator, _ := validation.New()
-	arg := shared.CreateLedgerEntryRequest{
-		AdjustmentType:  shared.AdjustmentTypeUnknown,
-		AdjustmentNotes: string(bytes.Repeat([]byte{byte('a')}, 1001)),
-		Amount:          -123,
-	}
 
-	errs := validator.ValidateStruct(arg, "").Errors
-	expected := map[string]string{
-		"AdjustmentType":  "valid-enum",
-		"AdjustmentNotes": "thousand-character-limit",
-		"Amount":          "gt",
+	tests := []struct {
+		name     string
+		arg      shared.CreateLedgerEntryRequest
+		expected map[string]string
+	}{
+		{
+			name: "adjustment type and notes",
+			arg: shared.CreateLedgerEntryRequest{
+				AdjustmentType:  shared.AdjustmentTypeUnknown,
+				AdjustmentNotes: string(bytes.Repeat([]byte{byte('a')}, 1001)),
+			},
+			expected: map[string]string{
+				"AdjustmentType":  "valid-enum",
+				"AdjustmentNotes": "thousand-character-limit",
+			},
+		},
+		{
+			name: "amount when required",
+			arg: shared.CreateLedgerEntryRequest{
+				AdjustmentType:  shared.AdjustmentTypeAddCredit,
+				AdjustmentNotes: "abc",
+			},
+			expected: map[string]string{
+				"Amount": "required_if",
+			},
+		},
+		{
+			name: "missing amount valid when not required",
+			arg: shared.CreateLedgerEntryRequest{
+				AdjustmentType:  shared.AdjustmentTypeWriteOff,
+				AdjustmentNotes: "abc",
+			},
+			expected: map[string]string{},
+		},
 	}
-
-	assert.Len(t, errs, 3)
-	for key, val := range errs {
-		assert.NotEmpty(t, val[expected[key]])
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			errs := validator.ValidateStruct(tt.arg, "").Errors
+			assert.Len(t, errs, len(tt.expected))
+			for key, val := range errs {
+				assert.NotEmpty(t, val[tt.expected[key]])
+			}
+		})
 	}
 }

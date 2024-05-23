@@ -57,6 +57,10 @@ func (s *Service) validateAdjustmentAmount(invoiceId int, adjustment *shared.Cre
 		if int32(adjustment.Amount)-b.Outstanding > b.Initial {
 			return shared.BadRequest{Field: "Amount", Reason: fmt.Sprintf("Amount entered must be equal to or less than £%d", (b.Initial+b.Outstanding)/100)}
 		}
+	case shared.AdjustmentTypeWriteOff:
+		if int32(b.Outstanding) < 1 {
+			return shared.BadRequest{Field: "Amount", Reason: fmt.Sprintf("No outstanding balance to write off")}
+		}
 	default:
 		return shared.BadRequest{Field: "AdjustmentType", Reason: "Unimplemented adjustment type"}
 	}
