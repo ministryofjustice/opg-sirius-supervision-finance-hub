@@ -15,7 +15,7 @@ func TestSubmitPendingInvoiceAdjustmentSuccess(t *testing.T) {
 	r, _ := http.NewRequest(http.MethodPost, "/pending-invoice-adjustment", nil)
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	r.SetPathValue("ledgerId", "1")
-	r.SetPathValue("id", "1")
+	r.SetPathValue("clientId", "1")
 	r.SetPathValue("adjustmentType", "Credit")
 
 	appVars := AppVars{
@@ -29,5 +29,5 @@ func TestSubmitPendingInvoiceAdjustmentSuccess(t *testing.T) {
 	err := sut.render(appVars, w, r)
 
 	assert.Nil(t, err)
-	assert.Equal(t, "prefix/clients/1/pending-invoice-adjustments?success=credit", w.Header().Get("HX-Redirect"))
+	assert.Equal(t, "prefix/clients/1/pending-invoice-adjustments?success=approve-invoice-adjustment[CREDIT]", w.Header().Get("HX-Redirect"))
 }

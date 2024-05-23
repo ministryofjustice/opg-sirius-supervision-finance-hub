@@ -7,7 +7,6 @@ import (
 	"github.com/ministryofjustice/opg-go-common/env"
 	"github.com/opg-sirius-finance-hub/finance-api/cmd/api"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/service"
-	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/validation"
 	"go.opentelemetry.io/contrib/detectors/aws/ecs"
 	"go.opentelemetry.io/contrib/propagators/aws/xray"
@@ -83,8 +82,7 @@ func main() {
 	}
 	defer conn.Close(ctx)
 
-	Store := store.New(conn)
-	Service := service.Service{TX: conn, Store: Store}
+	Service := service.NewService(conn)
 	server := api.Server{Logger: logger, Service: &Service, Validator: validator}
 
 	server.SetupRoutes()

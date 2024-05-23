@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func TestSubmitInvoiceSuccess(t *testing.T) {
+func TestSubmitInvoiceAdjustmentSuccess(t *testing.T) {
 	form := url.Values{
 		"id":             {"1"},
 		"adjustmentType": {"credit write off"},
@@ -22,25 +22,25 @@ func TestSubmitInvoiceSuccess(t *testing.T) {
 	ro := &mockRoute{client: client}
 
 	w := httptest.NewRecorder()
-	r, _ := http.NewRequest(http.MethodPost, "/ledger-entries", strings.NewReader(form.Encode()))
+	r, _ := http.NewRequest(http.MethodPost, "/adjustments", strings.NewReader(form.Encode()))
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	r.SetPathValue("id", "1")
+	r.SetPathValue("clientId", "1")
 
 	appVars := AppVars{
-		Path: "/ledger-entries",
+		Path: "/adjustments",
 	}
 
 	appVars.EnvironmentVars.Prefix = "prefix"
 
-	sut := SubmitInvoiceHandler{ro}
+	sut := SubmitInvoiceAdjustmentHandler{ro}
 
 	err := sut.render(appVars, w, r)
 
 	assert.Nil(t, err)
-	assert.Equal(t, "prefix/clients/1/invoices?success=credit write off", w.Header().Get("HX-Redirect"))
+	assert.Equal(t, "prefix/clients/1/invoices?success=invoice-adjustment[credit write off]", w.Header().Get("HX-Redirect"))
 }
 
-func TestSubmitInvoiceError(t *testing.T) {
+func TestSubmitInvoiceAdjustmentError(t *testing.T) {
 	form := url.Values{
 		"id":             {"1"},
 		"adjustmentType": {"credit write off"},
@@ -52,21 +52,21 @@ func TestSubmitInvoiceError(t *testing.T) {
 	ro := &mockRoute{client: client}
 
 	w := httptest.NewRecorder()
-	r, _ := http.NewRequest(http.MethodPost, "/ledger-entries", strings.NewReader(form.Encode()))
+	r, _ := http.NewRequest(http.MethodPost, "/adjustments", strings.NewReader(form.Encode()))
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	r.SetPathValue("id", "1")
+	r.SetPathValue("clientId", "1")
 
 	appVars := AppVars{
-		Path: "/ledger-entries",
+		Path: "/adjustments",
 	}
 
 	appVars.EnvironmentVars.Prefix = "prefix"
 
-	sut := SubmitInvoiceHandler{ro}
+	sut := SubmitInvoiceAdjustmentHandler{ro}
 
 	err := sut.render(appVars, w, r)
 	assert.Nil(t, err)
-	assert.Equal(t, "prefix/clients/1/invoices?success=credit write off", w.Header().Get("HX-Redirect"))
+	assert.Equal(t, "prefix/clients/1/invoices?success=invoice-adjustment[credit write off]", w.Header().Get("HX-Redirect"))
 }
 
 func TestAddTaskValidationErrors(t *testing.T) {
@@ -85,15 +85,40 @@ func TestAddTaskValidationErrors(t *testing.T) {
 	}
 
 	w := httptest.NewRecorder()
-	r, _ := http.NewRequest(http.MethodPost, "/ledger-entries", nil)
+	r, _ := http.NewRequest(http.MethodPost, "/adjustments", nil)
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	r.SetPathValue("id", "1")
+	r.SetPathValue("clientId", "1")
 
 	appVars := AppVars{
-		Path: "/ledger-entries",
+		Path: "/adjustments",
 	}
 
-	sut := SubmitInvoiceHandler{ro}
+	sut := SubmitInvoiceAdjustmentHandler{ro}
+	err := sut.render(appVars, w, r)
+	assert.Nil(err)
+	assert.Equal("422 Unprocessable Entity", w.Result().Status)
+}
+
+func TestAddTaskBadRequest(t *testing.T) {
+	assert := assert.New(t)
+	client := &mockApiClient{}
+	ro := &mockRoute{client: client}
+
+	client.error = shared.BadRequest{
+		Field:  "Amount",
+		Reason: "Too high",
+	}
+
+	w := httptest.NewRecorder()
+	r, _ := http.NewRequest(http.MethodPost, "/adjustments", nil)
+	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	r.SetPathValue("clientId", "1")
+
+	appVars := AppVars{
+		Path: "/adjustments",
+	}
+
+	sut := SubmitInvoiceAdjustmentHandler{ro}
 	err := sut.render(appVars, w, r)
 	assert.Nil(err)
 	assert.Equal("422 Unprocessable Entity", w.Result().Status)
