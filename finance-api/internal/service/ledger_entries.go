@@ -22,19 +22,6 @@ func (s *Service) CreateLedgerEntry(clientId int, invoiceId int, ledgerEntry *sh
 		return err
 	}
 
-	tx, err := s.tx.Begin(ctx)
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		if err = tx.Rollback(ctx); err != nil {
-			log.Println("Error rolling back transaction:", err)
-		}
-	}()
-
-	q := s.store.WithTx(tx)
-
 	params := store.CreateLedgerParams{
 		Amount:    s.calculateAdjustmentAmount(ledgerEntry, balance),
 		Notes:     pgtype.Text{String: ledgerEntry.AdjustmentNotes, Valid: true},
@@ -42,14 +29,14 @@ func (s *Service) CreateLedgerEntry(clientId int, invoiceId int, ledgerEntry *sh
 		InvoiceID: pgtype.Int4{Int32: int32(invoiceId), Valid: true},
 		ClientID:  int32(clientId),
 	}
-	err = q.CreateLedger(ctx, params)
+	err = s.store.CreateLedger(ctx, params)
 
 	if err != nil {
 		log.Println("Error creating ledger entry: ", err)
 		return err
 	}
 
-	return tx.Commit(ctx)
+	return nil
 }
 
 func (s *Service) validateAdjustmentAmount(adjustment *shared.CreateLedgerEntryRequest, balance store.GetInvoiceBalanceRow) error {
