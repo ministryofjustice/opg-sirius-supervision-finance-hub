@@ -12,7 +12,7 @@
     "lint": "prettier --check .",
     "prettier": "prettier --write .",
     "fmt": "prettier --write .",
-    "watch": "yarn build:js --watch=forever"
+    "watch": "yarn build:css && yarn build:js --watch=forever"
   },
   "dependencies": {
     "@cypress/grep": "^4.0.1",
