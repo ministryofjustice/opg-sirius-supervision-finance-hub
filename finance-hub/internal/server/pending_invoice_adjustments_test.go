@@ -46,12 +46,12 @@ func TestPendingInvoiceAdjustments(t *testing.T) {
 			DateRaised:       shared.NewDate("01/04/2222"),
 			AdjustmentType:   "Credit",
 			Notes:            "Some notes",
-			ClientId:         "1",
 		},
 	}
 
 	expected := &PendingInvoiceAdjustmentsTab{
 		PendingInvoiceAdjustments: out,
+		ClientId:                  "1",
 		AppVars:                   appVars,
 	}
 

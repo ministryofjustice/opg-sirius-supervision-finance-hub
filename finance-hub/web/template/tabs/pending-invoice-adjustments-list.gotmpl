@@ -15,14 +15,15 @@
             <th scope="col" data-cy="actions" class="govuk-table__header">Actions</th>
         </tr>
         </thead>
-        {{ if eq (len .) 0 }}
+        {{ if eq (len .PendingInvoiceAdjustments) 0 }}
             <tr class="govuk-table__row">
                 <td colspan="100%" class="govuk-table__cell govuk-table__cell--no-data">There are no pending invoice
                     adjustments
                 </td>
             </tr>
         {{ else }}
-            {{ range . }}
+            {{ $clientId := .ClientId }}
+            {{ range .PendingInvoiceAdjustments }}
                 <tbody class="govuk-table__body">
                 <tr>
                     <td class="govuk-table__cell">{{.Invoice}}</td>
@@ -32,13 +33,14 @@
                     <td class="govuk-table__cell">{{.Notes}}</td>
                     <td class="govuk-table__cell">{{.Status}}</td>
                     <td class="govuk-table__cell">
+                       {{ if eq .Status "Pending"}}
                         <div class="moj-button-menu">
                             <a
                                     class="govuk-button moj-button-menu__item govuk-button--secondary"
                                     role="button"
                                     draggable="false"
                                     data-module="govuk-button"
-                                    hx-post="{{ prefix (printf "/clients/%s/pending-invoice-adjustments/%s/%s" .ClientId .Id .AdjustmentType) }}"
+                                    hx-post="{{ prefix (printf "/clients/%s/pending-invoice-adjustments/%s/%s" $clientId .Id .AdjustmentType) }}"
                             >
                                 Approve
                             </a>
@@ -51,6 +53,7 @@
                                 Reject
                             </a>
                         </div>
+                        {{ end }}
                     </td>
                 </tr>
                 </tbody>

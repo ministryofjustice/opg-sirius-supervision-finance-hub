@@ -17,11 +17,11 @@ type PendingInvoiceAdjustment struct {
 	AdjustmentAmount string
 	Notes            string
 	Status           string
-	ClientId         string
 }
 
 type PendingInvoiceAdjustmentsTab struct {
 	PendingInvoiceAdjustments PendingInvoiceAdjustments
+	ClientId                  string
 	AppVars
 }
 
@@ -37,13 +37,13 @@ func (h *PendingInvoiceAdjustmentsHandler) render(v AppVars, w http.ResponseWrit
 		return err
 	}
 
-	data := &PendingInvoiceAdjustmentsTab{PendingInvoiceAdjustments: h.transform(ia, strconv.Itoa(ctx.ClientId)), AppVars: v}
+	data := &PendingInvoiceAdjustmentsTab{PendingInvoiceAdjustments: h.transform(ia), ClientId: strconv.Itoa(ctx.ClientId), AppVars: v}
 	data.selectTab("pending-invoice-adjustments")
 
 	return h.execute(w, r, data)
 }
 
-func (h *PendingInvoiceAdjustmentsHandler) transform(in shared.InvoiceAdjustments, clientId string) PendingInvoiceAdjustments {
+func (h *PendingInvoiceAdjustmentsHandler) transform(in shared.InvoiceAdjustments) PendingInvoiceAdjustments {
 	var out PendingInvoiceAdjustments
 	for _, adjustment := range in {
 		out = append(out, PendingInvoiceAdjustment{
@@ -54,7 +54,6 @@ func (h *PendingInvoiceAdjustmentsHandler) transform(in shared.InvoiceAdjustment
 			AdjustmentAmount: util.IntToDecimalString(adjustment.Amount),
 			Notes:            adjustment.Notes,
 			Status:           h.transformStatus(adjustment.Status),
-			ClientId:         clientId,
 		})
 	}
 
