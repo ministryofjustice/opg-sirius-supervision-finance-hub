@@ -5,7 +5,6 @@
 
         {{/* move the style into css file */}}
         <div style="float: right;">
-
             <div class="moj-button-menu">
                     <div class="moj-button-menu__wrapper">
                         <a
@@ -18,10 +17,6 @@
                             hx-push-url="{{ (printf "/clients/%s/fee-reductions/add" .ClientId) }}">
                             Award a fee reduction
                         </a>
-                       <a href="/fee-reduction/cancel" role="button" draggable="false"
-                       class="govuk-button moj-button-menu__item govuk-button--secondary " data-module="govuk-button">
-                        Cancel a fee reduction
-                    </a>
                 </div>
             </div>
         </div>
