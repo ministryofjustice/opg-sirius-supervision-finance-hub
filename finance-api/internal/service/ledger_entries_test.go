@@ -161,6 +161,30 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 			err: nil,
 		},
 		{
+			name: "Add Debit - too high",
+			adjustment: &shared.CreateLedgerEntryRequest{
+				AdjustmentType: shared.AdjustmentTypeAddDebit,
+				Amount:         52000,
+			},
+			balance: store.GetInvoiceBalanceRow{
+				Initial:     32000,
+				Outstanding: 10000,
+			},
+			err: shared.BadRequest{Field: "Amount", Reason: "Amount entered must be equal to or less than £420"},
+		},
+		{
+			name: "Add Debit - valid",
+			adjustment: &shared.CreateLedgerEntryRequest{
+				AdjustmentType: shared.AdjustmentTypeAddDebit,
+				Amount:         42000,
+			},
+			balance: store.GetInvoiceBalanceRow{
+				Initial:     32000,
+				Outstanding: 10000,
+			},
+			err: nil,
+		},
+		{
 			name: "Write off - no outstanding balance",
 			adjustment: &shared.CreateLedgerEntryRequest{
 				AdjustmentType: shared.AdjustmentTypeWriteOff,
