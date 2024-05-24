@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/stretchr/testify/assert"
 )
@@ -16,7 +15,7 @@ func (suite *IntegrationSuite) TestService_UpdatePendingInvoiceAdjustment() {
 		"INSERT INTO ledger_allocation VALUES (15, 15, 15, '2022-04-11T08:36:40+00:00', 12300, 'PENDING', NULL, 'Notes here', '2022-04-11', NULL);",
 	)
 
-	ctx := context.Background()
+	ctx := suite.ctx
 	Store := store.New(conn)
 
 	s := &Service{
@@ -24,7 +23,7 @@ func (suite *IntegrationSuite) TestService_UpdatePendingInvoiceAdjustment() {
 		tx:    conn,
 	}
 
-	err := s.UpdatePendingInvoiceAdjustment(15, "APPROVED")
+	err := s.UpdatePendingInvoiceAdjustment(ctx, 15, "APPROVED")
 	if err != nil {
 		suite.T().Error("update pending invoice failed")
 	}

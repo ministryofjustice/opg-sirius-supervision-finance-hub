@@ -8,6 +8,8 @@ import (
 )
 
 func (s *Server) cancelFeeReduction(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	var cancelFeeReduction shared.CancelFeeReduction
 	defer r.Body.Close()
 
@@ -27,7 +29,7 @@ func (s *Server) cancelFeeReduction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	feeReductionId, _ := strconv.Atoi(r.PathValue("feeReductionId"))
-	err := s.Service.CancelFeeReduction(feeReductionId)
+	err := s.Service.CancelFeeReduction(ctx, feeReductionId)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

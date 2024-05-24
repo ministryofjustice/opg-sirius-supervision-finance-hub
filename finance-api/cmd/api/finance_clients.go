@@ -9,8 +9,10 @@ import (
 )
 
 func (s *Server) getAccountInformation(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
-	accountInfo, err := s.Service.GetAccountInformation(clientId)
+	accountInfo, err := s.Service.GetAccountInformation(ctx, clientId)
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		http.Error(w, err.Error(), http.StatusNotFound)

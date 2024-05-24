@@ -3,19 +3,12 @@ package main
 import (
 	"context"
 	"github.com/ministryofjustice/opg-go-common/env"
-	"github.com/ministryofjustice/opg-go-common/logging"
 	"github.com/ministryofjustice/opg-go-common/paginate"
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/server"
-	"go.opentelemetry.io/contrib/detectors/aws/ecs"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	"go.opentelemetry.io/contrib/propagators/aws/xray"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
-	"go.opentelemetry.io/otel/sdk/trace"
-	"go.uber.org/zap"
-	"google.golang.org/grpc"
 	"html/template"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -25,95 +18,62 @@ import (
 	"unicode"
 )
 
-func initTracerProvider(ctx context.Context, logger *zap.SugaredLogger) func() {
-	resource, err := ecs.NewResourceDetector().Detect(ctx)
+func main() {
+	ctx := context.Background()
+	logger := telemetry.NewLogger("opg-sirius-finance-hub")
+
+	err := run(ctx, logger)
 	if err != nil {
-		logger.Fatal(err)
-	}
-
-	traceExporter, err := otlptracegrpc.New(ctx,
-		otlptracegrpc.WithInsecure(),
-		otlptracegrpc.WithEndpoint("0.0.0.0:4317"),
-		otlptracegrpc.WithDialOption(grpc.WithBlock()),
-	)
-	if err != nil {
-		logger.Fatal(err)
-	}
-
-	idg := xray.NewIDGenerator()
-	tp := trace.NewTracerProvider(
-		trace.WithResource(resource),
-		trace.WithSampler(trace.AlwaysSample()),
-		trace.WithBatcher(traceExporter),
-		trace.WithIDGenerator(idg),
-	)
-
-	otel.SetTracerProvider(tp)
-	otel.SetTextMapPropagator(xray.Propagator{})
-
-	return func() {
-		if err := tp.Shutdown(ctx); err != nil {
-			logger.Fatal(err)
-		}
+		logger.Error("fatal startup error", slog.Any("err", err.Error()))
+		os.Exit(1)
 	}
 }
 
-func main() {
-	logger := zap.Must(zap.NewProduction(zap.Fields(zap.String("service_name", "opg-sirius-finance-hub")))).Sugar()
-	apiCallLogger := logging.New(os.Stdout, "opg-sirius-finance-hub")
+func run(ctx context.Context, logger *slog.Logger) error {
+	exportTraces := env.Get("TRACING_ENABLED", "0") == "1"
 
-	defer func() { _ = logger.Sync() }()
-
-	if env.Get("TRACING_ENABLED", "0") == "1" {
-		shutdown := initTracerProvider(context.Background(), logger)
-		defer shutdown()
+	shutdown, err := telemetry.StartTracerProvider(ctx, logger, exportTraces)
+	defer shutdown()
+	if err != nil {
+		return err
 	}
-
-	httpClient := http.DefaultClient
-	httpClient.Transport = otelhttp.NewTransport(httpClient.Transport)
 
 	envVars, err := server.NewEnvironmentVars()
 	if err != nil {
-		logger.Fatalw("Error creating EnvironmentVars", "error", err)
+		return err
 	}
 
-	client, err := api.NewApiClient(http.DefaultClient, envVars.SiriusURL, envVars.BackendUrl, apiCallLogger)
+	client, err := api.NewApiClient(http.DefaultClient, envVars.SiriusURL, envVars.BackendUrl)
 	if err != nil {
-		logger.Fatalw("Error returned by Sirius New ApiClient", "error", err)
+		return err
 	}
 
 	templates := createTemplates(envVars)
 
-	server := &http.Server{
+	s := &http.Server{
 		Addr:    ":" + envVars.Port,
 		Handler: server.New(logger, client, templates, envVars),
 	}
 
 	go func() {
-		if err := server.ListenAndServe(); err != nil {
-			logger.Infow("Error returned by server.ListenAndServe()",
-				"error", err,
-			)
-			logger.Fatal(err)
+		if err := s.ListenAndServe(); err != nil {
+			logger.Error("listen and server error", slog.Any("err", err.Error()))
+			os.Exit(1)
 		}
 	}()
 
-	logger.Infow("Running at :" + envVars.Port)
+	logger.Info("Running at :" + envVars.Port)
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
 
 	sig := <-c
-	logger.Infow("signal received: ", sig)
+	logger.Info("signal received: ", "sig", sig)
 
-	tc, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	tc, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	if err := server.Shutdown(tc); err != nil {
-		logger.Infow("Error returned by server.Shutdown",
-			"error", err,
-		)
-	}
+	return s.Shutdown(tc)
 }
 
 func createTemplates(envVars server.EnvironmentVars) map[string]*template.Template {

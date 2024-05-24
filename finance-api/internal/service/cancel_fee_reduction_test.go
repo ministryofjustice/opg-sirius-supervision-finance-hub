@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"database/sql"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/stretchr/testify/assert"
@@ -16,7 +15,7 @@ func (suite *IntegrationSuite) TestService_CancelFeeReduction() {
 		"INSERT INTO fee_reduction VALUES (33, 33, 'REMISSION', NULL, '2019-04-01', '2021-03-31', 'Remission to see the notes', FALSE, '2019-05-01');",
 	)
 
-	ctx := context.Background()
+	ctx := suite.ctx
 	Store := store.New(conn)
 
 	s := &Service{
@@ -24,7 +23,7 @@ func (suite *IntegrationSuite) TestService_CancelFeeReduction() {
 		tx:    conn,
 	}
 
-	err := s.CancelFeeReduction(33)
+	err := s.CancelFeeReduction(ctx, 33)
 	rows, _ := conn.Query(ctx, "SELECT * FROM supervision_finance.fee_reduction WHERE id = 33")
 	defer rows.Close()
 

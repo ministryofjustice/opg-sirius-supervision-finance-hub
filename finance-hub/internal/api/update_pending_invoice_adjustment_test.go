@@ -11,8 +11,8 @@ import (
 )
 
 func TestUpdatePendingInvoiceAdjustment(t *testing.T) {
-	logger, mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "", logger)
+	mockClient := SetUpTest()
+	client, _ := NewApiClient(mockClient, "http://localhost:3000", "")
 	r := io.NopCloser(bytes.NewReader([]byte(nil)))
 
 	GetDoFunc = func(*http.Request) (*http.Response, error) {
@@ -27,13 +27,12 @@ func TestUpdatePendingInvoiceAdjustment(t *testing.T) {
 }
 
 func TestUpdatePendingInvoiceAdjustmentUnauthorised(t *testing.T) {
-	logger, _ := SetUpTest()
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
 	err := client.UpdatePendingInvoiceAdjustment(getContext(nil), 1, 5, "APPROVED")
 
@@ -41,13 +40,12 @@ func TestUpdatePendingInvoiceAdjustmentUnauthorised(t *testing.T) {
 }
 
 func TestUpdatePendingInvoiceAdjustmentReturns500Error(t *testing.T) {
-	logger, _ := SetUpTest()
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
 	err := client.UpdatePendingInvoiceAdjustment(getContext(nil), 1, 2, "APPROVED")
 	assert.Equal(t, StatusError{

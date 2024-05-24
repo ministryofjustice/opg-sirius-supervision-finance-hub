@@ -1,11 +1,11 @@
 package server
 
 import (
+	"context"
 	"errors"
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zaptest/observer"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -51,32 +51,21 @@ func (m *mockHandler) render(app AppVars, w http.ResponseWriter, r *http.Request
 
 func Test_wrapHandler_successful_request(t *testing.T) {
 	w := httptest.NewRecorder()
-	r, _ := http.NewRequest(http.MethodGet, "test-url/1", nil)
-
-	mockClient := mockApiClient{}
-
-	observedZapCore, observedLogs := observer.New(zap.InfoLevel)
-	logger := zap.New(observedZapCore).Sugar()
+	ctx := telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("opg-sirius-finance-hub"))
+	r, _ := http.NewRequestWithContext(ctx, http.MethodGet, "test-url/1", nil)
 
 	errorTemplate := &mockTemplate{}
 	envVars := EnvironmentVars{}
-	nextHandlerFunc := wrapHandler(mockClient, logger, errorTemplate, envVars)
+	nextHandlerFunc := wrapHandler(errorTemplate, envVars)
 	next := &mockHandler{}
 	httpHandler := nextHandlerFunc(next)
 	httpHandler.ServeHTTP(w, r)
-
-	logs := observedLogs.All()
 
 	assert.Nil(t, next.Err)
 	assert.Equal(t, w, next.w)
 	assert.Equal(t, r, next.r)
 	assert.Equal(t, 1, next.Called)
 	assert.Equal(t, "test-url/1", next.app.Path)
-	assert.Len(t, logs, 1)
-	assert.Equal(t, "Application Request", logs[0].Message)
-	assert.Len(t, logs[0].ContextMap(), 3)
-	assert.Equal(t, "GET", logs[0].ContextMap()["method"])
-	assert.Equal(t, "test-url/1", logs[0].ContextMap()["uri"])
 	assert.Equal(t, 200, w.Result().StatusCode)
 }
 
@@ -100,34 +89,19 @@ func Test_wrapHandler_status_error_handling(t *testing.T) {
 	for i, test := range tests {
 		t.Run("Scenario "+strconv.Itoa(i), func(t *testing.T) {
 			w := httptest.NewRecorder()
-			r, _ := http.NewRequest(http.MethodGet, "test-url/1", nil)
-
-			mockClient := mockApiClient{}
-
-			observedZapCore, observedLogs := observer.New(zap.InfoLevel)
-			logger := zap.New(observedZapCore).Sugar()
+			ctx := telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("opg-sirius-finance-hub"))
+			r, _ := http.NewRequestWithContext(ctx, http.MethodGet, "test-url/1", nil)
 
 			errorTemplate := &mockTemplate{error: errors.New("some template error")}
 			envVars := EnvironmentVars{}
-			nextHandlerFunc := wrapHandler(mockClient, logger, errorTemplate, envVars)
+			nextHandlerFunc := wrapHandler(errorTemplate, envVars)
 			next := &mockHandler{Err: test.error}
 			httpHandler := nextHandlerFunc(next)
 			httpHandler.ServeHTTP(w, r)
 
-			logs := observedLogs.All()
-
 			assert.Equal(t, 1, next.Called)
 			assert.Equal(t, w, next.w)
 			assert.Equal(t, r, next.r)
-			assert.Len(t, logs, 3)
-			assert.Equal(t, "Application Request", logs[0].Message)
-			assert.Len(t, logs[0].ContextMap(), 3)
-			assert.Equal(t, "GET", logs[0].ContextMap()["method"])
-			assert.Equal(t, "test-url/1", logs[0].ContextMap()["uri"])
-			assert.Equal(t, "Error handler", logs[1].Message)
-			assert.Equal(t, map[string]interface{}{"error": test.wantError}, logs[1].ContextMap())
-			assert.Equal(t, "Failed to render error template", logs[2].Message)
-			assert.Equal(t, map[string]interface{}{"error": "some template error"}, logs[2].ContextMap())
 			assert.True(t, errorTemplate.executed)
 			assert.IsType(t, ErrorVars{}, errorTemplate.lastVars)
 			assert.Equal(t, test.wantCode, errorTemplate.lastVars.(ErrorVars).Code)
