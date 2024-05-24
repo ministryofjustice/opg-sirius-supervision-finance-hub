@@ -3,8 +3,8 @@ package api
 import (
 	"context"
 	"fmt"
-	"github.com/ministryofjustice/opg-go-common/logging"
 	"io"
+	"log/slog"
 	"net/http"
 )
 
@@ -31,7 +31,7 @@ func (ctx Context) With(c context.Context) Context {
 	}
 }
 
-func NewApiClient(httpClient HTTPClient, siriusUrl string, backendUrl string, logger *logging.Logger) (*ApiClient, error) {
+func NewApiClient(httpClient HTTPClient, siriusUrl string, backendUrl string, logger *slog.Logger) (*ApiClient, error) {
 	return &ApiClient{
 		http:       httpClient,
 		siriusUrl:  siriusUrl,
@@ -47,7 +47,7 @@ type HTTPClient interface {
 type ApiClient struct {
 	http       HTTPClient
 	siriusUrl  string
-	logger     *logging.Logger
+	logger     *slog.Logger
 	backendUrl string
 }
 
@@ -84,9 +84,9 @@ func (c *ApiClient) newBackendRequest(ctx Context, method, path string, body io.
 }
 
 func (c *ApiClient) logErrorRequest(req *http.Request, err error) {
-	c.logger.Print("method: " + req.Method + ", url: " + req.URL.Path)
+	c.logger.Info("method: " + req.Method + ", url: " + req.URL.Path)
 	if err != nil {
-		c.logger.Print(err)
+		c.logger.Error("", err)
 	}
 }
 

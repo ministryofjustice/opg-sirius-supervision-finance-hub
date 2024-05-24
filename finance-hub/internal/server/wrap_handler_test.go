@@ -60,7 +60,7 @@ func Test_wrapHandler_successful_request(t *testing.T) {
 
 	errorTemplate := &mockTemplate{}
 	envVars := EnvironmentVars{}
-	nextHandlerFunc := wrapHandler(mockClient, logger, errorTemplate, envVars)
+	nextHandlerFunc := wrapHandler(logger, errorTemplate, envVars)
 	next := &mockHandler{}
 	httpHandler := nextHandlerFunc(next)
 	httpHandler.ServeHTTP(w, r)
@@ -109,7 +109,7 @@ func Test_wrapHandler_status_error_handling(t *testing.T) {
 
 			errorTemplate := &mockTemplate{error: errors.New("some template error")}
 			envVars := EnvironmentVars{}
-			nextHandlerFunc := wrapHandler(mockClient, logger, errorTemplate, envVars)
+			nextHandlerFunc := wrapHandler(logger, errorTemplate, envVars)
 			next := &mockHandler{Err: test.error}
 			httpHandler := nextHandlerFunc(next)
 			httpHandler.ServeHTTP(w, r)
