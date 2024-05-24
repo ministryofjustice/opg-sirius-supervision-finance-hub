@@ -21,24 +21,20 @@ func (c *ApiClient) GetInvoiceAdjustments(ctx Context, clientId int) (shared.Inv
 	resp, err := c.http.Do(req)
 
 	if err != nil {
-		c.logger.Request(req, err)
 		return invoiceAdjustments, err
 	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusUnauthorized {
-		c.logger.Request(req, err)
 		return invoiceAdjustments, ErrUnauthorized
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		c.logger.Request(req, err)
 		return invoiceAdjustments, newStatusError(resp)
 	}
 
 	if err = json.NewDecoder(resp.Body).Decode(&invoiceAdjustments); err != nil {
-		c.logger.Request(req, err)
 		return invoiceAdjustments, err
 	}
 

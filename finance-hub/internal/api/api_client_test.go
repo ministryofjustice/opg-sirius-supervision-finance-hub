@@ -2,9 +2,7 @@ package api
 
 import (
 	"context"
-	"github.com/ministryofjustice/opg-go-common/logging"
 	"net/http"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -50,8 +48,7 @@ func TestStatusError(t *testing.T) {
 	assert.Equal(t, err, err.Data())
 }
 
-func SetUpTest() (*logging.Logger, *MockClient) {
-	logger := logging.New(os.Stdout, "opg-sirius-finance-hub")
+func SetUpTest() *MockClient {
 	mockClient := &MockClient{cache: newCaches()}
-	return logger, mockClient
+	return mockClient
 }

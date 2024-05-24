@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
-	"log"
 )
 
-func (s *Service) CreateLedgerEntry(clientId int, invoiceId int, ledgerEntry *shared.CreateLedgerEntryRequest) (*shared.InvoiceReference, error) {
-	ctx := context.Background()
+func (s *Service) CreateLedgerEntry(ctx context.Context, clientId int, invoiceId int, ledgerEntry *shared.CreateLedgerEntryRequest) (*shared.InvoiceReference, error) {
+	logger := telemetry.LoggerFromContext(ctx)
 
 	balance, err := s.store.GetInvoiceBalanceDetails(ctx, int32(invoiceId))
 	if err != nil {
@@ -32,7 +32,7 @@ func (s *Service) CreateLedgerEntry(clientId int, invoiceId int, ledgerEntry *sh
 	invoiceReference, err := s.store.CreateLedger(ctx, params)
 
 	if err != nil {
-		log.Println("Error creating ledger entry: ", err)
+		logger.Error("Error creating ledger entry: ", err)
 		return nil, err
 	}
 

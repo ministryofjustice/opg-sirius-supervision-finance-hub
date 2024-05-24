@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 	"fmt"
-	"github.com/ministryofjustice/opg-go-common/logging"
 	"io"
 	"net/http"
 )
@@ -31,12 +30,11 @@ func (ctx Context) With(c context.Context) Context {
 	}
 }
 
-func NewApiClient(httpClient HTTPClient, siriusUrl string, backendUrl string, logger *logging.Logger) (*ApiClient, error) {
+func NewApiClient(httpClient HTTPClient, siriusUrl string, backendUrl string) (*ApiClient, error) {
 	return &ApiClient{
 		http:       httpClient,
 		siriusUrl:  siriusUrl,
 		backendUrl: backendUrl,
-		logger:     logger,
 		caches:     newCaches(),
 	}, nil
 }
@@ -48,7 +46,6 @@ type HTTPClient interface {
 type ApiClient struct {
 	http       HTTPClient
 	siriusUrl  string
-	logger     *logging.Logger
 	backendUrl string
 	caches     *Caches
 }
@@ -83,13 +80,6 @@ func (c *ApiClient) newBackendRequest(ctx Context, method, path string, body io.
 	req.Header.Add("X-XSRF-TOKEN", ctx.XSRFToken)
 
 	return req, err
-}
-
-func (c *ApiClient) logErrorRequest(req *http.Request, err error) {
-	c.logger.Print("method: " + req.Method + ", url: " + req.URL.Path)
-	if err != nil {
-		c.logger.Print(err)
-	}
 }
 
 type StatusError struct {

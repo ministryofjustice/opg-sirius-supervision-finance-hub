@@ -99,7 +99,7 @@ func (suite *IntegrationSuite) TestService_GetPermittedAdjustments() {
 			s := &Service{
 				store: Store,
 			}
-			got, err := s.GetPermittedAdjustments(tt.id)
+			got, err := s.GetPermittedAdjustments(suite.ctx, tt.id)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetPermittedAdjustments() error = %v, wantErr %v", err, tt.wantErr)
 				return

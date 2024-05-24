@@ -4,13 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
-	"log"
 	"strings"
 )
 
-func (s *Service) UpdatePendingInvoiceAdjustment(ledgerId int, status string) error {
-	ctx := context.Background()
+func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, ledgerId int, status string) error {
+	logger := telemetry.LoggerFromContext(ctx)
 
 	tx, err := s.tx.Begin(ctx)
 	if err != nil {
@@ -19,7 +19,7 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ledgerId int, status string) er
 
 	defer func() {
 		if err := tx.Rollback(ctx); !errors.Is(err, sql.ErrTxDone) {
-			log.Println("Error rolling back update pending invoice adjustment transaction:", err)
+			logger.Error("Error rolling back update pending invoice adjustment transaction:", err)
 		}
 	}()
 

@@ -4,7 +4,6 @@ import (
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"log"
 	"reflect"
 	"testing"
 	"time"
@@ -52,8 +51,7 @@ func (suite *IntegrationSuite) TestService_GetFeeReductions() {
 			s := &Service{
 				store: Store,
 			}
-			got, err := s.GetFeeReductions(tt.id)
-			log.Println(got)
+			got, err := s.GetFeeReductions(suite.ctx, tt.id)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetFeeReductions() error = %v, wantErr %v", err, tt.wantErr)
 				return

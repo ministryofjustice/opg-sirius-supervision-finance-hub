@@ -12,8 +12,8 @@ import (
 )
 
 func TestGetUser_cacheHit(t *testing.T) {
-	logger, mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "http://localhost:8181", logger)
+	mockClient := SetUpTest()
+	client, _ := NewApiClient(mockClient, "http://localhost:3000", "http://localhost:8181")
 
 	user := shared.Assignee{
 		Id:          1,
@@ -31,8 +31,8 @@ func TestGetUser_cacheHit(t *testing.T) {
 }
 
 func TestGetUser_cacheRefresh(t *testing.T) {
-	logger, mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "http://localhost:8181", logger)
+	mockClient := SetUpTest()
+	client, _ := NewApiClient(mockClient, "http://localhost:3000", "http://localhost:8181")
 
 	json := `[
 				{
@@ -92,25 +92,23 @@ func TestGetUser_cacheRefresh(t *testing.T) {
 }
 
 func TestGetUserReturnsUnauthorisedClientError(t *testing.T) {
-	logger, _ := SetUpTest()
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, "", logger)
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, "")
 	_, err := client.GetUser(getContext(nil), 1)
 	assert.Equal(t, ErrUnauthorized, err)
 }
 
 func TestGetUserReturns500Error(t *testing.T) {
-	logger, _ := SetUpTest()
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, "", logger)
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, "")
 
 	_, err := client.GetUser(getContext(nil), 1)
 	assert.Equal(t, StatusError{

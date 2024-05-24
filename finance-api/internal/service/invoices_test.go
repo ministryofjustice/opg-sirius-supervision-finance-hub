@@ -74,7 +74,7 @@ func (suite *IntegrationSuite) TestService_GetInvoices() {
 			s := &Service{
 				store: Store,
 			}
-			got, err := s.GetInvoices(tt.id)
+			got, err := s.GetInvoices(suite.ctx, tt.id)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetInvoices() error = %v, wantErr %v", err, tt.wantErr)
