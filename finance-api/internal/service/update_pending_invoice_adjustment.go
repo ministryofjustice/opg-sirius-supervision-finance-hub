@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"log"
 )
 
@@ -14,7 +16,7 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ledgerId int) error {
 	}
 
 	defer func() {
-		if err := tx.Rollback(ctx); err != nil {
+		if err := tx.Rollback(ctx); !errors.Is(err, sql.ErrTxDone) {
 			log.Println("Error rolling back update pending invoice adjustment transaction:", err)
 		}
 	}()
