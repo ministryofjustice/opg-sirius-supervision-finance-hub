@@ -37,7 +37,7 @@ func TestSubmitInvoiceAdjustmentSuccess(t *testing.T) {
 	err := sut.render(appVars, w, r)
 
 	assert.Nil(t, err)
-	assert.Equal(t, "prefix/clients/1/invoices?success=credit write off", w.Header().Get("HX-Redirect"))
+	assert.Equal(t, "prefix/clients/1/invoices?success=invoice-adjustment[credit write off]", w.Header().Get("HX-Redirect"))
 }
 
 func TestSubmitInvoiceAdjustmentError(t *testing.T) {
@@ -66,7 +66,7 @@ func TestSubmitInvoiceAdjustmentError(t *testing.T) {
 
 	err := sut.render(appVars, w, r)
 	assert.Nil(t, err)
-	assert.Equal(t, "prefix/clients/1/invoices?success=credit write off", w.Header().Get("HX-Redirect"))
+	assert.Equal(t, "prefix/clients/1/invoices?success=invoice-adjustment[credit write off]", w.Header().Get("HX-Redirect"))
 }
 
 func TestAddTaskValidationErrors(t *testing.T) {
