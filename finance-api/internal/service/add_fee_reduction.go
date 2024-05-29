@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
@@ -41,8 +43,8 @@ func (s *Service) AddFeeReduction(id int, data shared.AddFeeReduction) error {
 	}
 
 	defer func() {
-		if err := tx.Rollback(ctx); err != nil {
-			log.Println("Error rolling back transaction:", err)
+		if err := tx.Rollback(ctx); !errors.Is(err, sql.ErrTxDone) {
+			log.Println("Error rolling back add fee reduction transaction:", err)
 		}
 	}()
 

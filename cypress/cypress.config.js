@@ -7,7 +7,8 @@ export default defineConfig({
         baseUrl: "http://localhost:8888",
         supportFile: "support/e2e.js",
         specPattern: "e2e/**/*.cy.{js,ts}",
-        screenshotsFolder: "screenshots"
+        screenshotsFolder: "screenshots",
+        modifyObstructiveCode: false,
     },
     env: {
         grepOmitFiltered: true,

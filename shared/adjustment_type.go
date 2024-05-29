@@ -25,11 +25,8 @@ const (
 
 var adjustmentTypeMap = map[string]AdjustmentType{
 	"CREDIT WRITE OFF": AdjustmentTypeWriteOff,
-	"CREDIT_WRITE_OFF": AdjustmentTypeWriteOff,
 	"CREDIT MEMO":      AdjustmentTypeAddCredit,
-	"CREDIT_MEMO":      AdjustmentTypeAddCredit,
-	"UNKNOWN DEBIT":    AdjustmentTypeAddDebit,
-	"UNKNOWN_DEBIT":    AdjustmentTypeAddDebit,
+	"DEBIT MEMO":       AdjustmentTypeAddDebit,
 }
 
 func (i AdjustmentType) Translation() string {
@@ -48,24 +45,11 @@ func (i AdjustmentType) Translation() string {
 func (i AdjustmentType) Key() string {
 	switch i {
 	case AdjustmentTypeWriteOff:
-		return "CREDIT_WRITE_OFF"
-	case AdjustmentTypeAddCredit:
-		return "CREDIT_MEMO"
-	case AdjustmentTypeAddDebit:
-		return "UNKNOWN_DEBIT"
-	default:
-		return ""
-	}
-}
-
-func (i AdjustmentType) DbValue() string {
-	switch i {
-	case AdjustmentTypeWriteOff:
 		return "CREDIT WRITE OFF"
 	case AdjustmentTypeAddCredit:
 		return "CREDIT MEMO"
 	case AdjustmentTypeAddDebit:
-		return "UNKNOWN DEBIT"
+		return "DEBIT MEMO"
 	default:
 		return ""
 	}

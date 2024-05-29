@@ -20,7 +20,7 @@ func TestGetInvoiceAdjustmentsCanReturn200(t *testing.T) {
 		 "id":3,
 		 "invoiceRef":"N2000001/20",
 		 "raisedDate":"01/04/2222",
-		 "adjustmentType":"CREDIT_MEMO",
+		 "adjustmentType":"CREDIT MEMO",
 		 "amount":232,
 		 "status":"PENDING",
 		 "notes":"Some notes here"
