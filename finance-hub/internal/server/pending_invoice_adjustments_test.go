@@ -96,7 +96,7 @@ func TestTransformType(t *testing.T) {
 		},
 		{
 			"Unknown",
-			shared.AdjustmentTypeAddDebit,
+			shared.AdjustmentTypeUnknown,
 			"",
 		},
 	}
