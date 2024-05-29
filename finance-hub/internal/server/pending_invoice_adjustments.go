@@ -64,6 +64,8 @@ func (h *PendingInvoiceAdjustmentsHandler) transformType(in shared.AdjustmentTyp
 	switch in {
 	case shared.AdjustmentTypeAddCredit:
 		return "Credit"
+	case shared.AdjustmentTypeAddDebit:
+		return "Debit"
 	case shared.AdjustmentTypeWriteOff:
 		return "Write off"
 	default:
