@@ -169,18 +169,46 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 			balance: store.GetInvoiceBalanceRow{
 				Initial:     32000,
 				Outstanding: 10000,
+				Feetype:     "S2",
 			},
-			err: shared.BadRequest{Field: "Amount", Reason: "Amount entered must be equal to or less than £420"},
+			err: shared.BadRequest{Field: "Amount", Reason: "Amount entered must be equal to or less than £220"},
+		},
+		{
+			name: "Add Debit - too high (AD)",
+			adjustment: &shared.CreateLedgerEntryRequest{
+				AdjustmentType: shared.AdjustmentTypeAddDebit,
+				Amount:         10001,
+			},
+			balance: store.GetInvoiceBalanceRow{
+				Initial:     10000,
+				Outstanding: 0,
+				Feetype:     "AD",
+			},
+			err: shared.BadRequest{Field: "Amount", Reason: "Amount entered must be equal to or less than £100"},
 		},
 		{
 			name: "Add Debit - valid",
 			adjustment: &shared.CreateLedgerEntryRequest{
 				AdjustmentType: shared.AdjustmentTypeAddDebit,
-				Amount:         42000,
+				Amount:         22000,
 			},
 			balance: store.GetInvoiceBalanceRow{
-				Initial:     32000,
+				Initial:     16000, // invoice calculated at £160 instead of £320 in error at creation
 				Outstanding: 10000,
+				Feetype:     "S2",
+			},
+			err: nil,
+		},
+		{
+			name: "Add Debit - valid (AD)",
+			adjustment: &shared.CreateLedgerEntryRequest{
+				AdjustmentType: shared.AdjustmentTypeAddDebit,
+				Amount:         5000,
+			},
+			balance: store.GetInvoiceBalanceRow{
+				Initial:     10000,
+				Outstanding: 5000,
+				Feetype:     "AD",
 			},
 			err: nil,
 		},
