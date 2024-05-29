@@ -52,8 +52,8 @@ func (s *Service) validateAdjustmentAmount(adjustment *shared.CreateLedgerEntryR
 		} else {
 			maxBalance = 32000
 		}
-		if int32(adjustment.Amount)-balance.Outstanding > maxBalance {
-			return shared.BadRequest{Field: "Amount", Reason: fmt.Sprintf("Amount entered must be equal to or less than £%d", (balance.Initial+balance.Outstanding)/100)}
+		if int32(adjustment.Amount)+balance.Outstanding > maxBalance {
+			return shared.BadRequest{Field: "Amount", Reason: fmt.Sprintf("Amount entered must be equal to or less than £%d", (maxBalance-balance.Outstanding)/100)}
 		}
 	case shared.AdjustmentTypeWriteOff:
 		if balance.Outstanding < 1 {
