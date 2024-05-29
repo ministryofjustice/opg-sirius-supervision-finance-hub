@@ -8,7 +8,7 @@ describe("Add fee reduction form", () => {
     });
 
     it("shows correct success message", () => {
-        cy.visit("/clients/1/fee-reductions?success=hardship");
+        cy.visit("/clients/1/fee-reductions?success=fee-reduction[HARDSHIP]");
         cy.get('.moj-banner__message').contains("The hardship has been successfully added")
     });
 
