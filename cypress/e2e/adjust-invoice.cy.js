@@ -32,6 +32,27 @@ describe("Adjust invoice form", () => {
         cy.get('.moj-banner__message').contains("Manual credit successfully created");
     });
 
+    it("adds debit to an invoice", () => {
+        cy.visit("/clients/3/invoices/3/adjustments");
+
+        cy.get('#f-AdjustmentType').contains(".govuk-radios__item", "Add debit").click();
+        cy.get('#f-AdjustmentNotes').type("manual debit for £100");
+        cy.get('#f-Amount').type("10000");
+        cy.get('.govuk-button').click();
+
+        // validation for amount
+        cy.get('.govuk-error-summary').contains("Amount entered must be equal to or less than £");
+        cy.get(".govuk-form-group--error").should('have.length', 1);
+
+        cy.get('#f-Amount').find('input').clear();
+        cy.get('#f-Amount').type("100");
+        cy.get('.govuk-button').click();
+
+        // navigation and success message
+        cy.url().should('include', "clients/3/invoices?success=invoice-adjustment[DEBIT%20MEMO]");
+        cy.get('.moj-banner__message').contains("Manual debit successfully created");
+    });
+
     it("writes off an invoice", () => {
         cy.visit("/clients/3/invoices/3/adjustments");
 
