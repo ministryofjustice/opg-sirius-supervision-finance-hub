@@ -35,7 +35,6 @@ describe("Adjust invoice form", () => {
     it("adds debit to an invoice", () => {
         cy.visit("/clients/3/invoices/3/adjustments");
 
-        // successfully submit credit
         cy.get('#f-AdjustmentType').contains(".govuk-radios__item", "Add debit").click();
         cy.get('#f-AdjustmentNotes').type("manual debit for £100");
         cy.get('#f-Amount').type("10000");

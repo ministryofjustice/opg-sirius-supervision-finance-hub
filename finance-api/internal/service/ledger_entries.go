@@ -69,6 +69,8 @@ func (s *Service) calculateAdjustmentAmount(adjustment *shared.CreateLedgerEntry
 	switch adjustment.AdjustmentType {
 	case shared.AdjustmentTypeWriteOff:
 		return balance.Outstanding
+	case shared.AdjustmentTypeAddDebit:
+		return -int32(adjustment.Amount)
 	default:
 		return int32(adjustment.Amount)
 	}

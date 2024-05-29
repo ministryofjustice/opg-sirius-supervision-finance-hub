@@ -266,6 +266,18 @@ func TestService_CalculateAdjustmentAmount(t *testing.T) {
 			expected: 10000,
 		},
 		{
+			name: "Add debit returns the amount as a negative",
+			adjustment: &shared.CreateLedgerEntryRequest{
+				AdjustmentType: shared.AdjustmentTypeAddDebit,
+				Amount:         22000,
+			},
+			balance: store.GetInvoiceBalanceRow{
+				Initial:     32000,
+				Outstanding: 10000,
+			},
+			expected: -22000,
+		},
+		{
 			name: "Add credit returns amount",
 			adjustment: &shared.CreateLedgerEntryRequest{
 				AdjustmentType: shared.AdjustmentTypeAddCredit,
