@@ -51,5 +51,10 @@
         }
       }
     }
+  ],
+  "tasks": [
+    {
+      "name": "Test task"
+    }
   ]
 }

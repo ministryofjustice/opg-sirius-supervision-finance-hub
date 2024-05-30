@@ -28,7 +28,7 @@ func (h *SubmitInvoiceAdjustmentHandler) render(v AppVars, w http.ResponseWriter
 		amount         = r.PostFormValue("amount")
 	)
 
-	err := h.Client().AdjustInvoice(ctx, ctx.ClientId, invoiceId, adjustmentType, notes, amount)
+	err := h.Client().AdjustInvoice(ctx, ctx.ClientId, v.EnvironmentVars.SupervisionBillingTeam, invoiceId, adjustmentType, notes, amount)
 
 	var verr shared.ValidationError
 	if errors.As(err, &verr) {
