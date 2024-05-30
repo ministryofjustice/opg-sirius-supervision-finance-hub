@@ -15,20 +15,20 @@
             </thead>
             <tbody class="govuk-table__body">
             {{ if eq (len .) 0 }}
-            <td data-cy="no-ledgers" class="govuk-table__cell">There are no invoice ledger allocations for this
-                invoice
-            </td>
+                <td data-cy="no-ledgers" class="govuk-table__cell">There are no invoice ledger allocations for this
+                    invoice
+                </td>
             {{ else }}
-            {{ range . }}
-                <tr class="govuk-table__row">
-                    <td class="govuk-table__cell" data-cy="ledger-amount-data">£{{ .Amount }}</td>
-                    <td class="govuk-table__cell" data-cy="ledger-received-date-data">{{ .ReceivedDate }}</td>
-                    <td class="govuk-table__cell" data-cy="ledger-transaction-type-data">{{ .TransactionType}}</td>
-                    <td class="govuk-table__cell" data-cy="ledger-status-data">{{ .Status }}</td>
-                </tr>
+                {{ range . }}
+                    <tr class="govuk-table__row">
+                        <td class="govuk-table__cell" data-cy="ledger-amount-data">£{{ .Amount }}</td>
+                        <td class="govuk-table__cell" data-cy="ledger-received-date-data">{{ .ReceivedDate }}</td>
+                        <td class="govuk-table__cell" data-cy="ledger-transaction-type-data">{{ .TransactionType}}</td>
+                        <td class="govuk-table__cell" data-cy="ledger-status-data">{{ .Status }}</td>
+                    </tr>
+                {{ end }}
             {{ end }}
             </tbody>
         </table>
-        {{ end }}
     </div>
 {{ end }}
