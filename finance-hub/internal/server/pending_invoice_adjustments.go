@@ -1,7 +1,6 @@
 package server
 
 import (
-	"github.com/opg-sirius-finance-hub/finance-hub/internal/util"
 	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
 	"strconv"
@@ -51,7 +50,7 @@ func (h *PendingInvoiceAdjustmentsHandler) transform(in shared.InvoiceAdjustment
 			Invoice:          adjustment.InvoiceRef,
 			DateRaised:       adjustment.RaisedDate,
 			AdjustmentType:   h.transformType(adjustment.AdjustmentType),
-			AdjustmentAmount: util.IntToDecimalString(adjustment.Amount),
+			AdjustmentAmount: shared.IntToDecimalString(adjustment.Amount),
 			Notes:            adjustment.Notes,
 			Status:           h.transformStatus(adjustment.Status),
 		})
