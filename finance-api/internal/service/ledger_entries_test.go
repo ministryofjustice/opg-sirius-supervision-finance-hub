@@ -146,7 +146,7 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 				Initial:     32000,
 				Outstanding: 10001,
 			},
-			err: shared.BadRequest{Field: "Amount", Reason: "Amount entered must be equal to or less than £419.99"},
+			err: shared.BadRequest{Field: "Amount", Reason: "Amount entered must be equal to or less than £420.01"},
 		},
 		{
 			name: "Add Credit - valid",
