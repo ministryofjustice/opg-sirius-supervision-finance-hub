@@ -33,7 +33,7 @@ describe("Adjust invoice form", () => {
     });
 
     it("adds debit to an invoice", () => {
-        cy.visit("/clients/3/invoices/3/adjustments");
+        cy.visit("/clients/3/invoices/4/adjustments");
 
         cy.get('#f-AdjustmentType').contains(".govuk-radios__item", "Add debit").click();
         cy.get('#f-AdjustmentNotes').type("manual debit for £100");
