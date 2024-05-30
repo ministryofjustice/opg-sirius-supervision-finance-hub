@@ -1,7 +1,6 @@
 package server
 
 import (
-	"github.com/opg-sirius-finance-hub/finance-hub/internal/util"
 	"github.com/opg-sirius-finance-hub/shared"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/text/cases"
@@ -125,8 +124,8 @@ func (r route) transformFinanceClient(person shared.Person, accountInfo shared.A
 		FirstName:          person.FirstName,
 		Surname:            person.Surname,
 		CourtRef:           person.CourtRef,
-		OutstandingBalance: util.IntToDecimalString(accountInfo.OutstandingBalance),
-		CreditBalance:      util.IntToDecimalString(accountInfo.CreditBalance),
+		OutstandingBalance: shared.IntToDecimalString(accountInfo.OutstandingBalance),
+		CreditBalance:      shared.IntToDecimalString(accountInfo.CreditBalance),
 		PaymentMethod:      cases.Title(language.English).String(accountInfo.PaymentMethod),
 	}
 }
