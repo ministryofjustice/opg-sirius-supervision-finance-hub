@@ -23,8 +23,6 @@ func (h *SubmitRejectPendingInvoiceAdjustmentHandler) render(v AppVars, w http.R
 		return err
 	}
 
-	successMessage := strings.ToLower(r.PathValue("adjustmentType")) + " " + status
-
-	w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/pending-invoice-adjustments?success=%s", v.EnvironmentVars.Prefix, ctx.ClientId, successMessage))
+	w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/pending-invoice-adjustments?success=reject-invoice-adjustment[%s]", v.EnvironmentVars.Prefix, ctx.ClientId, strings.ToUpper(r.PathValue("adjustmentType"))))
 	return nil
 }

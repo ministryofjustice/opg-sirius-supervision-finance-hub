@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"log"
 	"strings"
@@ -16,7 +18,7 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ledgerId int, status string) er
 	}
 
 	defer func() {
-		if err := tx.Rollback(ctx); err != nil {
+		if err := tx.Rollback(ctx); !errors.Is(err, sql.ErrTxDone) {
 			log.Println("Error rolling back update pending invoice adjustment transaction:", err)
 		}
 	}()

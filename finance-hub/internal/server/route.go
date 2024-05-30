@@ -94,25 +94,25 @@ func (r route) execute(w http.ResponseWriter, req *http.Request, data any) error
 
 func (r route) getSuccess(req *http.Request) string {
 	switch req.URL.Query().Get("success") {
-	case "CREDIT_WRITE_OFF":
-		return "The write off is now waiting for approval"
-	case "CREDIT_MEMO":
+	case "invoice-adjustment[CREDIT WRITE OFF]":
+		return "Write-off successfully created"
+	case "invoice-adjustment[CREDIT MEMO]":
 		return "Manual credit successfully created"
-	case "remission":
+	case "fee-reduction[REMISSION]":
 		return "The remission has been successfully added"
-	case "exemption":
+	case "fee-reduction[EXEMPTION]":
 		return "The exemption has been successfully added"
-	case "hardship":
+	case "fee-reduction[HARDSHIP]":
 		return "The hardship has been successfully added"
-	case "feeReductionCancelled":
+	case "fee-reduction[CANCELLED]":
 		return "The fee reduction has been successfully cancelled"
-	case "credit approved":
+	case "approve-invoice-adjustment[CREDIT]":
 		return "You have approved the credit"
-	case "credit rejected":
-		return "You have rejected the credit"
-	case "write off approved":
+	case "approve-invoice-adjustment[WRITE OFF]":
 		return "You have approved the write off"
-	case "write off rejected":
+	case "reject-invoice-adjustment[CREDIT]":
+		return "You have rejected the credit"
+	case "reject-invoice-adjustment[WRITE OFF]":
 		return "You have rejected the write off"
 	}
 	return ""
