@@ -64,12 +64,12 @@
               </td>
             </tr>
 
-          <tr class="hide" id="invoice-{{.Id}}-reveal">
-            <td class="govuk-table__cell" colspan="4">
-              {{ template "invoice-ledger-allocations" .Ledgers }}
-              {{ template "supervision-levels" .SupervisionLevels }}
-            </td>
-          </tr>
+            <tr class="hide" id="invoice-{{.Id}}-reveal">
+              <td class="govuk-table__cell" colspan="4">
+                {{ template "invoice-ledger-allocations" .Ledgers }}
+                {{ template "supervision-levels" .SupervisionLevels }}
+              </td>
+            </tr>
           {{ end }}
           </tbody>
         </table>
