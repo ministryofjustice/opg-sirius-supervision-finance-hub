@@ -110,6 +110,10 @@ func (r route) getSuccess(req *http.Request) string {
 		return "You have approved the credit"
 	case "approve-invoice-adjustment[WRITE OFF]":
 		return "You have approved the write off"
+	case "reject-invoice-adjustment[CREDIT]":
+		return "You have rejected the credit"
+	case "reject-invoice-adjustment[WRITE OFF]":
+		return "You have rejected the write off"
 	}
 	return ""
 }

@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestSubmitPendingInvoiceAdjustmentSuccess(t *testing.T) {
+func TestSubmitApprovePendingInvoiceAdjustmentSuccess(t *testing.T) {
 	client := mockApiClient{}
 	ro := &mockRoute{client: client}
 
@@ -24,7 +24,7 @@ func TestSubmitPendingInvoiceAdjustmentSuccess(t *testing.T) {
 
 	appVars.EnvironmentVars.Prefix = "prefix"
 
-	sut := SubmitPendingInvoiceAdjustmentHandler{ro}
+	sut := SubmitApprovePendingInvoiceAdjustmentHandler{ro}
 
 	err := sut.render(appVars, w, r)
 
