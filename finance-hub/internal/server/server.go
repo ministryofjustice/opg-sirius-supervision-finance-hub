@@ -2,12 +2,12 @@ package server
 
 import (
 	"github.com/ministryofjustice/opg-go-common/securityheaders"
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
 	"github.com/opg-sirius-finance-hub/shared"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	"go.uber.org/zap"
 	"html/template"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -36,8 +36,8 @@ type Template interface {
 	ExecuteTemplate(wr io.Writer, name string, data any) error
 }
 
-func New(logger *zap.SugaredLogger, client ApiClient, templates map[string]*template.Template, envVars EnvironmentVars) http.Handler {
-	wrap := wrapHandler(client, logger, templates["error.gotmpl"], envVars)
+func New(logger *slog.Logger, client ApiClient, templates map[string]*template.Template, envVars EnvironmentVars) http.Handler {
+	wrap := wrapHandler(templates["error.gotmpl"], envVars)
 
 	mux := http.NewServeMux()
 
@@ -60,7 +60,7 @@ func New(logger *zap.SugaredLogger, client ApiClient, templates map[string]*temp
 	mux.Handle("/javascript/", static)
 	mux.Handle("/stylesheets/", static)
 
-	return otelhttp.NewHandler(http.StripPrefix(envVars.Prefix, securityheaders.Use(mux)), "supervision-finance")
+	return http.StripPrefix(envVars.Prefix, telemetry.Middleware(logger)(securityheaders.Use(mux)))
 }
 
 func getContext(r *http.Request) api.Context {

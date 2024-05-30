@@ -19,19 +19,19 @@ func (c *ApiClient) GetFeeReductions(ctx Context, clientId int) (shared.FeeReduc
 
 	resp, err := c.http.Do(req)
 	if err != nil {
-		c.logger.Request(req, err)
+		//c.logger.Request(req, err)
 		return v, err
 	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusUnauthorized {
-		c.logger.Request(req, err)
+		//c.logger.Request(req, err)
 		return v, ErrUnauthorized
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		c.logger.Request(req, err)
+		//c.logger.Request(req, err)
 		return v, newStatusError(resp)
 	}
 
