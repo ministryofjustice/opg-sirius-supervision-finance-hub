@@ -39,14 +39,14 @@ func (suite *IntegrationSuite) TestService_GetInvoices() {
 				shared.Invoice{
 					Id:                 1,
 					Ref:                "S203531/19",
-					Status:             "",
-					Amount:             12300,
+					Status:             "Unpaid",
+					Amount:             32000,
 					RaisedDate:         shared.Date{Time: date},
-					Received:           12300,
-					OutstandingBalance: 0,
+					Received:           12345,
+					OutstandingBalance: 19655,
 					Ledgers: []shared.Ledger{
 						{
-							Amount:          12300,
+							Amount:          12345,
 							ReceivedDate:    shared.NewDate("04/12/2022"),
 							TransactionType: "CARD PAYMENT",
 							Status:          "ALLOCATED",
@@ -55,7 +55,7 @@ func (suite *IntegrationSuite) TestService_GetInvoices() {
 					SupervisionLevels: []shared.SupervisionLevel{
 						{
 							Level:  "General",
-							Amount: 12300,
+							Amount: 32000,
 							From:   shared.NewDate("01/04/2022"),
 							To:     shared.NewDate("31/03/2023"),
 						},
@@ -91,31 +91,206 @@ func (suite *IntegrationSuite) TestService_GetInvoices() {
 	}
 }
 
-func Test_newInvoiceBuilder(t *testing.T) {
-	now := time.Now()
-	in := []store.GetInvoicesRow{
+func Test_invoiceBuilder_addLedgerAllocations(t *testing.T) {
+	tests := []struct {
+		name    string
+		ilas    []store.GetLedgerAllocationsRow
+		status  string
+		balance int
+	}{
 		{
-			ID:        1,
-			Reference: "abc",
-			Amount:    100000,
-			Raiseddate: pgtype.Date{
-				Time:  now,
-				Valid: true,
+			name:    "Unpaid - no ledgers",
+			ilas:    []store.GetLedgerAllocationsRow{},
+			status:  "Unpaid",
+			balance: 32000,
+		},
+		{
+			name: "Unpaid",
+			ilas: []store.GetLedgerAllocationsRow{
+				{
+					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
+					ID:        2,
+					Amount:    22000,
+					Type:      "CARD PAYMENT",
+					Status:    "APPROVED",
+				},
 			},
+			status:  "Unpaid",
+			balance: 10000,
+		},
+		{
+			name: "Paid",
+			ilas: []store.GetLedgerAllocationsRow{
+				{
+					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
+					ID:        2,
+					Amount:    22000,
+					Type:      "CARD PAYMENT",
+					Status:    "APPROVED",
+				},
+				{
+					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
+					ID:        3,
+					Amount:    10000,
+					Type:      "CARD PAYMENT",
+					Status:    "APPROVED",
+				},
+			},
+			status:  "Paid",
+			balance: 0,
+		},
+		{
+			name: "Overpaid",
+			ilas: []store.GetLedgerAllocationsRow{
+				{
+					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
+					ID:        2,
+					Amount:    22000,
+					Type:      "CARD PAYMENT",
+					Status:    "APPROVED",
+				},
+				{
+					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
+					ID:        3,
+					Amount:    20000,
+					Type:      "CARD PAYMENT",
+					Status:    "APPROVED",
+				},
+			},
+			status:  "Overpaid",
+			balance: -10000,
+		},
+		{
+			name: "Write-off pending",
+			ilas: []store.GetLedgerAllocationsRow{
+				{
+					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
+					ID:        2,
+					Amount:    22000,
+					Type:      "CREDIT WRITE OFF",
+					Status:    "PENDING", // ignored for balance but not for status
+				},
+				{
+					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
+					ID:        3,
+					Amount:    10000,
+					Type:      "REMISSION",
+					Status:    "APPROVED",
+				},
+			},
+			status:  "Unpaid - Write-off pending",
+			balance: 22000,
+		},
+		{
+			name: "Write-off",
+			ilas: []store.GetLedgerAllocationsRow{
+				{
+					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
+					ID:        2,
+					Amount:    22000,
+					Type:      "CREDIT WRITE OFF",
+					Status:    "APPROVED",
+				},
+				{
+					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
+					ID:        3,
+					Amount:    10000,
+					Type:      "REMISSION",
+					Status:    "APPROVED",
+				},
+			},
+			status:  "Closed - Write-off",
+			balance: 0,
+		},
+		{
+			name: "Closed",
+			ilas: []store.GetLedgerAllocationsRow{
+				{
+					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
+					ID:        2,
+					Amount:    22000,
+					Type:      "CARD PAYMENT",
+					Status:    "APPROVED",
+				},
+				{
+					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
+					ID:        3,
+					Amount:    10000,
+					Type:      "CREDIT MEMO",
+					Status:    "APPROVED",
+				},
+			},
+			status:  "Closed",
+			balance: 0,
+		},
+		{
+			name: "Remission",
+			ilas: []store.GetLedgerAllocationsRow{
+				{
+					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
+					ID:        2,
+					Amount:    10000,
+					Type:      "REMISSION",
+					Status:    "APPROVED",
+				},
+			},
+			status:  "Unpaid - Remission",
+			balance: 22000,
+		},
+		{
+			name: "Hardship",
+			ilas: []store.GetLedgerAllocationsRow{
+				{
+					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
+					ID:        2,
+					Amount:    10000,
+					Type:      "HARDSHIP",
+					Status:    "APPROVED",
+				},
+			},
+			status:  "Unpaid - Hardship",
+			balance: 22000,
+		},
+		{
+			name: "Pending reduction not added as context",
+			ilas: []store.GetLedgerAllocationsRow{
+				{
+					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
+					ID:        2,
+					Amount:    10000,
+					Type:      "HARDSHIP",
+					Status:    "PENDING",
+				},
+			},
+			status:  "Unpaid",
+			balance: 32000,
+		},
+		{
+			name: "Exemption",
+			ilas: []store.GetLedgerAllocationsRow{
+				{
+					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
+					ID:        2,
+					Amount:    10000,
+					Type:      "EXEMPTION",
+					Status:    "APPROVED",
+				},
+			},
+			status:  "Unpaid - Exemption",
+			balance: 22000,
 		},
 	}
-
-	expected := &shared.Invoice{
-		Id:     1,
-		Ref:    "abc",
-		Amount: 100000,
-		RaisedDate: shared.Date{
-			Time: now,
-		},
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ib := newInvoiceBuilder([]store.GetInvoicesRow{
+				{
+					ID:     1,
+					Amount: 32000,
+				},
+			})
+			ib.addLedgerAllocations(tt.ilas)
+			assert.Equal(t, tt.status, ib.invoices[1].invoice.Status)
+			assert.Equal(t, tt.balance, ib.invoices[1].invoice.OutstandingBalance)
+		})
 	}
-
-	out := newInvoiceBuilder(in)
-
-	assert.Len(t, out.invoices, 1)
-	assert.EqualValues(t, out.invoices[1], expected)
 }

@@ -104,6 +104,10 @@ type GetInvoicesRow struct {
 	Reference  string
 	Amount     int32
 	Raiseddate pgtype.Date
+	ID         int32
+	Reference  string
+	Amount     int32
+	Raiseddate pgtype.Date
 	Received   int32
 }
 
