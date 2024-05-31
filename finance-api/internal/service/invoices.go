@@ -56,9 +56,10 @@ func (ib *invoiceBuilder) addLedgerAllocations(ilas []store.GetLedgerAllocations
 	}
 
 	for id, ledgers := range ledgersByInvoice {
-		ib.invoices[id].Ledgers = ledgers
-		ib.invoices[id].Received = totalByInvoice[id]
-		ib.invoices[id].OutstandingBalance = ib.invoices[id].Amount - totalByInvoice[id]
+		invoice := ib.invoices[id]
+		invoice.Ledgers = ledgers
+		invoice.Received = totalByInvoice[id]
+		invoice.OutstandingBalance = invoice.Amount - totalByInvoice[id]
 	}
 }
 
