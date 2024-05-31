@@ -87,7 +87,7 @@ func (q *Queries) GetInvoiceBalance(ctx context.Context, id int32) (GetInvoiceBa
 }
 
 const getInvoices = `-- name: GetInvoices :many
-SELECT i.id, i.reference, i.amount, i.raiseddate, i.cacheddebtamount
+SELECT i.id, i.reference, i.amount, i.raiseddate
 FROM invoice i
          INNER JOIN finance_client fc ON fc.id = i.finance_client_id
 WHERE fc.client_id = $1
@@ -95,11 +95,10 @@ ORDER BY i.raiseddate DESC
 `
 
 type GetInvoicesRow struct {
-	ID               int32
-	Reference        string
-	Amount           int32
-	Raiseddate       pgtype.Date
-	Cacheddebtamount pgtype.Int4
+	ID         int32
+	Reference  string
+	Amount     int32
+	Raiseddate pgtype.Date
 }
 
 func (q *Queries) GetInvoices(ctx context.Context, clientID int32) ([]GetInvoicesRow, error) {
@@ -116,7 +115,6 @@ func (q *Queries) GetInvoices(ctx context.Context, clientID int32) ([]GetInvoice
 			&i.Reference,
 			&i.Amount,
 			&i.Raiseddate,
-			&i.Cacheddebtamount,
 		); err != nil {
 			return nil, err
 		}
