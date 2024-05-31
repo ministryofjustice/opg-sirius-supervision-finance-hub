@@ -10,15 +10,12 @@ import (
 	"time"
 )
 
-func TestService_GetFeeReductions(t *testing.T) {
-	conn := testDB.GetConn()
-	t.Cleanup(func() {
-		testDB.Restore()
-	})
+func (suite *IntegrationSuite) TestService_GetFeeReductions() {
+	conn := suite.testDB.GetConn()
 
 	conn.SeedData(
-		"INSERT INTO finance_client VALUES (5, 5, '1234', 'DEMANDED', null, 12300, 2222);",
-		"INSERT INTO fee_reduction VALUES (5, 5, 'REMISSION', null, '2019-04-01', '2020-03-31', 'Remission to see the notes', false, '2019-05-01');",
+		"INSERT INTO finance_client VALUES (5, 5, '1234', 'DEMANDED', NULL, 12300, 2222);",
+		"INSERT INTO fee_reduction VALUES (5, 5, 'REMISSION', NULL, '2019-04-01', '2020-03-31', 'Remission to see the notes', FALSE, '2019-05-01');",
 	)
 
 	Store := store.New(conn)
@@ -51,7 +48,7 @@ func TestService_GetFeeReductions(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		suite.T().Run(tt.name, func(t *testing.T) {
 			s := &Service{
 				store: Store,
 			}
