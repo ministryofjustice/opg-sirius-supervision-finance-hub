@@ -2,24 +2,43 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
 	"golang.org/x/exp/maps"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+	"slices"
 )
 
+var (
+	FeeReductionTypes = []string{"EXEMPTION", "HARDSHIP", "REMISSION"}
+)
+
+type invoiceMetadata struct {
+	invoice     *shared.Invoice
+	total       int
+	contextType string
+	creditAdded bool
+}
+
 type invoiceBuilder struct {
-	invoices map[int32]*shared.Invoice
+	invoices map[int32]*invoiceMetadata
 }
 
 func newInvoiceBuilder(invoices []store.GetInvoicesRow) *invoiceBuilder {
-	ib := invoiceBuilder{make(map[int32]*shared.Invoice)}
+	ib := invoiceBuilder{make(map[int32]*invoiceMetadata)}
 	for _, inv := range invoices {
-		ib.invoices[inv.ID] = &shared.Invoice{
-			Id:         int(inv.ID),
-			Ref:        inv.Reference,
-			Amount:     int(inv.Amount),
-			RaisedDate: shared.Date{Time: inv.Raiseddate.Time},
+		ib.invoices[inv.ID] = &invoiceMetadata{
+			invoice: &shared.Invoice{
+				Id:                 int(inv.ID),
+				Ref:                inv.Reference,
+				Amount:             int(inv.Amount),
+				RaisedDate:         shared.Date{Time: inv.Raiseddate.Time},
+				Status:             "Unpaid",
+				OutstandingBalance: int(inv.Amount),
+			},
 		}
 	}
 	return &ib
@@ -32,14 +51,13 @@ func (ib *invoiceBuilder) IDs() []int32 {
 func (ib *invoiceBuilder) Invoices() *shared.Invoices {
 	var invoices shared.Invoices
 	for _, inv := range ib.invoices {
-		invoices = append(invoices, *inv)
+		invoices = append(invoices, *inv.invoice)
 	}
 	return &invoices
 }
 
 func (ib *invoiceBuilder) addLedgerAllocations(ilas []store.GetLedgerAllocationsRow) {
 	ledgersByInvoice := map[int32][]shared.Ledger{}
-	totalByInvoice := map[int32]int{}
 
 	for _, il := range ilas {
 		ledgersByInvoice[il.InvoiceID.Int32] = append(
@@ -50,16 +68,50 @@ func (ib *invoiceBuilder) addLedgerAllocations(ilas []store.GetLedgerAllocations
 				TransactionType: il.Type,
 				Status:          il.Status,
 			})
+
+		metadata := ib.invoices[il.InvoiceID.Int32]
 		if il.Status == "APPROVED" {
-			totalByInvoice[il.InvoiceID.Int32] += int(il.Amount)
+			metadata.total += int(il.Amount)
+			if slices.Contains(FeeReductionTypes, il.Type) && metadata.contextType == "" {
+				metadata.contextType = cases.Title(language.English).String(il.Type)
+			}
+			if il.Type == "CREDIT MEMO" {
+				metadata.creditAdded = true
+			}
+		}
+		if il.Type == "CREDIT WRITE OFF" {
+			if il.Status == "APPROVED" {
+				metadata.contextType = "Write-off"
+			} else {
+				metadata.contextType = "Write-off pending"
+			}
 		}
 	}
 
 	for id, ledgers := range ledgersByInvoice {
-		invoice := ib.invoices[id]
+		metadata := ib.invoices[id]
+		invoice := metadata.invoice
 		invoice.Ledgers = ledgers
-		invoice.Received = totalByInvoice[id]
-		invoice.OutstandingBalance = invoice.Amount - totalByInvoice[id]
+		invoice.Received = metadata.total
+		invoice.OutstandingBalance -= metadata.total
+
+		var status string
+		if invoice.OutstandingBalance > 0 {
+			status = "Unpaid"
+		} else if invoice.OutstandingBalance < 0 {
+			status = "Overpaid"
+		} else if invoice.OutstandingBalance == 0 {
+			if metadata.contextType != "" || metadata.creditAdded {
+				status = "Closed"
+			} else {
+				status = "Paid"
+			}
+		}
+		invoice.Status = status
+
+		if metadata.contextType != "" {
+			invoice.Status = fmt.Sprintf("%s - %s", invoice.Status, metadata.contextType)
+		}
 	}
 }
 
@@ -77,12 +129,8 @@ func (ib *invoiceBuilder) addSupervisionLevels(supervisionLevels []store.GetSupe
 	}
 
 	for id, sls := range supervisionLevelsByInvoice {
-		ib.invoices[id].SupervisionLevels = sls
+		ib.invoices[id].invoice.SupervisionLevels = sls
 	}
-}
-
-func (ib *invoiceBuilder) calculateStatus() {
-	// do me
 }
 
 func (s *Service) GetInvoices(clientID int) (*shared.Invoices, error) {
@@ -108,8 +156,6 @@ func (s *Service) GetInvoices(clientID int) (*shared.Invoices, error) {
 	}
 
 	builder.addSupervisionLevels(supervisionLevels)
-
-	builder.calculateStatus()
 
 	return builder.Invoices(), nil
 }
