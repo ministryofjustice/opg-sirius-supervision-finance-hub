@@ -32,15 +32,12 @@ func addFeeReductionSetup(conn testhelpers.TestConn) (Service, shared.AddFeeRedu
 	return s, params
 }
 
-func TestService_AddFeeReduction(t *testing.T) {
-	conn := testDB.GetConn()
-	t.Cleanup(func() {
-		testDB.Restore()
-	})
+func (suite *IntegrationSuite) TestService_AddFeeReduction() {
+	conn := suite.testDB.GetConn()
 
 	conn.SeedData(
-		"INSERT INTO finance_client VALUES (22, 22, '1234', 'DEMANDED', null, 12300, 2222);",
-		"INSERT INTO fee_reduction VALUES (22, 22, 'REMISSION', null, '2019-04-01', '2021-03-31', 'Remission to see the notes', false, '2019-05-01');",
+		"INSERT INTO finance_client VALUES (22, 22, '1234', 'DEMANDED', NULL, 12300, 2222);",
+		"INSERT INTO fee_reduction VALUES (22, 22, 'REMISSION', NULL, '2019-04-01', '2021-03-31', 'Remission to see the notes', FALSE, '2019-05-01');",
 	)
 	ctx := context.Background()
 	s, params := addFeeReductionSetup(conn)
@@ -64,27 +61,24 @@ func TestService_AddFeeReduction(t *testing.T) {
 
 		_ = rows.Scan(&id, &financeClient, &feeType, &evidenceType, &startDate, &endDate, &notes, &deleted, &dateReceived)
 
-		assert.Equal(t, "REMISSION", feeType)
-		assert.Equal(t, "2021-04-01", startDate.Format("2006-01-02"))
-		assert.Equal(t, "2024-03-31", endDate.Format("2006-01-02"))
-		assert.Equal(t, params.Notes, notes)
+		assert.Equal(suite.T(), "REMISSION", feeType)
+		assert.Equal(suite.T(), "2021-04-01", startDate.Format("2006-01-02"))
+		assert.Equal(suite.T(), "2024-03-31", endDate.Format("2006-01-02"))
+		assert.Equal(suite.T(), params.Notes, notes)
 	}
 
 	if err == nil {
 		return
 	}
-	t.Error("Add fee reduction failed")
+	suite.T().Error("Add fee reduction failed")
 }
 
-func TestService_AddFeeReductionOverlap(t *testing.T) {
-	conn := testDB.GetConn()
-	t.Cleanup(func() {
-		testDB.Restore()
-	})
+func (suite *IntegrationSuite) TestService_AddFeeReductionOverlap() {
+	conn := suite.testDB.GetConn()
 
 	conn.SeedData(
-		"INSERT INTO finance_client VALUES (23, 23, '1234', 'DEMANDED', null, 12300, 2222);",
-		"INSERT INTO fee_reduction VALUES (23, 23, 'REMISSION', null, '2019-04-01', '2021-03-31', 'Remission to see the notes', false, '2019-05-01');",
+		"INSERT INTO finance_client VALUES (23, 23, '1234', 'DEMANDED', NULL, 12300, 2222);",
+		"INSERT INTO fee_reduction VALUES (23, 23, 'REMISSION', NULL, '2019-04-01', '2021-03-31', 'Remission to see the notes', FALSE, '2019-05-01');",
 	)
 	s, params := addFeeReductionSetup(conn)
 
@@ -116,7 +110,7 @@ func TestService_AddFeeReductionOverlap(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.testName, func(t *testing.T) {
+		suite.T().Run(tc.testName, func(t *testing.T) {
 			params.StartYear = tc.startYear
 			params.LengthOfAward = tc.lengthOfAward
 
