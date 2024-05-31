@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
@@ -88,4 +89,33 @@ func (suite *IntegrationSuite) TestService_GetInvoices() {
 			}
 		})
 	}
+}
+
+func Test_newInvoiceBuilder(t *testing.T) {
+	now := time.Now()
+	in := []store.GetInvoicesRow{
+		{
+			ID:        1,
+			Reference: "abc",
+			Amount:    100000,
+			Raiseddate: pgtype.Date{
+				Time:  now,
+				Valid: true,
+			},
+		},
+	}
+
+	expected := &shared.Invoice{
+		Id:     1,
+		Ref:    "abc",
+		Amount: 100000,
+		RaisedDate: shared.Date{
+			Time: now,
+		},
+	}
+
+	out := newInvoiceBuilder(in)
+
+	assert.Len(t, out.invoices, 1)
+	assert.EqualValues(t, out.invoices[1], expected)
 }
