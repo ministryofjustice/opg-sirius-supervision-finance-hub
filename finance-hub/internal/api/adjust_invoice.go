@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func AddWorkdays(date time.Time, days int) time.Time {
+func AddWorkingDays(date time.Time, days int) time.Time {
 	for {
 		if days == 0 {
 			return date
@@ -21,10 +21,10 @@ func AddWorkdays(date time.Time, days int) time.Time {
 
 		if date.Weekday() == time.Saturday {
 			date = date.AddDate(0, 0, 2)
-			return AddWorkdays(date, days-1)
+			return AddWorkingDays(date, days-1)
 		} else if date.Weekday() == time.Sunday {
 			date = date.AddDate(0, 0, 1)
-			return AddWorkdays(date, days-1)
+			return AddWorkingDays(date, days-1)
 		}
 
 		days--
@@ -34,7 +34,7 @@ func AddWorkdays(date time.Time, days int) time.Time {
 func (c *ApiClient) CreatePendingInvoiceAdjustmentTask(ctx Context, clientId int, supervisionBillingTeamId int, invoiceId int, adjustmentType string) error {
 	var body bytes.Buffer
 
-	dueDate := AddWorkdays(time.Now(), 20)
+	dueDate := AddWorkingDays(time.Now(), 20)
 	adjustmentTypeLabel := strings.ToLower(strings.Replace(adjustmentType, "_", " ", -1))
 
 	task := shared.Task{

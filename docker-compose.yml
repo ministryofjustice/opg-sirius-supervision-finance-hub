@@ -32,11 +32,6 @@ services:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=finance
-#    environment:
-#      - POSTGRES_CONN=http://localhost:5432
-#      - POSTGRES_USER:api
-#      - POSTGRES_PASSWORD:api
-#      - POSTGRES_DB:api
     healthcheck:
       test: wget -O /dev/null -S 'http://localhost:8080/health-check' 2>&1 | grep 'HTTP/1.1 200 OK' || exit 1
       interval: 15s
