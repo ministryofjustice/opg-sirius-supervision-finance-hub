@@ -8,12 +8,12 @@ where fc.client_id = $1
 order by i.raiseddate desc;
 
 -- name: GetInvoiceBalance :one
-SELECT i.amount initial, i.amount - COALESCE(SUM(la.amount), 0) outstanding
+SELECT i.amount initial, i.amount - COALESCE(SUM(la.amount), 0) outstanding, i.feetype
 FROM invoice i
          LEFT JOIN ledger_allocation la on i.id = la.invoice_id
     AND la.status <> 'PENDING'
 WHERE i.id = $1
-group by i.amount;
+group by i.amount, i.feetype;
 
 -- name: GetLedgerAllocations :many
 select la.id, la.amount, la.datetime, l.bankdate, l.type, la.status
