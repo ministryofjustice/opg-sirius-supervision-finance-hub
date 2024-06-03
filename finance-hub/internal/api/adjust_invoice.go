@@ -36,9 +36,15 @@ func (c *ApiClient) AdjustInvoice(ctx Context, clientId int, supervisionBillingT
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusCreated {
+	var invoiceRef string
 
-		err := c.CreatePendingInvoiceAdjustmentTask(ctx, clientId, supervisionBillingTeamId, invoiceId, adjustmentType)
+	if err = json.NewDecoder(resp.Body).Decode(&invoiceRef); err != nil {
+		c.logger.Request(req, err)
+		return err
+	}
+
+	if resp.StatusCode == http.StatusCreated {
+		err := c.CreatePendingInvoiceAdjustmentTask(ctx, clientId, supervisionBillingTeamId, invoiceRef, adjustmentType)
 		if err != nil {
 			return err
 		}

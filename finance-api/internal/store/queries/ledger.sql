@@ -11,7 +11,7 @@ UPDATE ledger l
 SET status = 'APPROVED'
 WHERE l.id = $1;
 
--- name: CreateLedger :exec
+-- name: CreateLedger :one
 WITH fc AS (SELECT id FROM finance_client WHERE client_id = $1),
      ledger AS (
          INSERT INTO ledger (id, datetime, amount, notes, type, finance_client_id, reference, method, status)
@@ -35,4 +35,5 @@ SELECT nextval('ledger_allocation_id_seq'),
        $3,
        'PENDING',
        $4
-FROM ledger;
+FROM ledger
+returning (SELECT reference FROM invoice WHERE id = invoice_id);

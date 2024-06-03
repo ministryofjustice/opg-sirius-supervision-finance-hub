@@ -12,7 +12,7 @@ type Service interface {
 	GetInvoices(id int) (*shared.Invoices, error)
 	GetInvoice(id int) (*shared.Invoice, error)
 	GetFeeReductions(id int) (*shared.FeeReductions, error)
-	CreateLedgerEntry(clientId int, invoiceId int, ledgerEntry *shared.CreateLedgerEntryRequest) error
+	CreateLedgerEntry(clientId int, invoiceId int, ledgerEntry *shared.CreateLedgerEntryRequest) (string, error)
 	GetInvoiceAdjustments(id int) (*shared.InvoiceAdjustments, error)
 	AddFeeReduction(id int, data shared.AddFeeReduction) error
 	CancelFeeReduction(id int) error

@@ -9,17 +9,17 @@ import (
 	"log"
 )
 
-func (s *Service) CreateLedgerEntry(clientId int, invoiceId int, ledgerEntry *shared.CreateLedgerEntryRequest) error {
+func (s *Service) CreateLedgerEntry(clientId int, invoiceId int, ledgerEntry *shared.CreateLedgerEntryRequest) (string, error) {
 	ctx := context.Background()
 
 	err := s.validateAdjustmentAmount(invoiceId, ledgerEntry)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	tx, err := s.tx.Begin(ctx)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	defer func() {
@@ -37,14 +37,15 @@ func (s *Service) CreateLedgerEntry(clientId int, invoiceId int, ledgerEntry *sh
 		InvoiceID: pgtype.Int4{Int32: int32(invoiceId), Valid: true},
 		ClientID:  int32(clientId),
 	}
-	err = q.CreateLedger(ctx, params)
+
+	invoiceRef, err := q.CreateLedger(ctx, params)
 
 	if err != nil {
 		log.Println("Error creating ledger entry: ", err)
-		return err
+		return "", err
 	}
 
-	return tx.Commit(ctx)
+	return invoiceRef, tx.Commit(ctx)
 }
 
 func (s *Service) validateAdjustmentAmount(invoiceId int, adjustment *shared.CreateLedgerEntryRequest) error {
