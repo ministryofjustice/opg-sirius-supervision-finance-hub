@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/opg-sirius-finance-hub/finance-hub/internal/util"
 	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
 )
@@ -15,7 +14,7 @@ func (c *ApiClient) AdjustInvoice(ctx Context, clientId int, supervisionBillingT
 	adjustment := shared.CreateLedgerEntryRequest{
 		AdjustmentType:  shared.ParseAdjustmentType(adjustmentType),
 		AdjustmentNotes: notes,
-		Amount:          util.DecimalStringToInt(amount),
+		Amount:          shared.DecimalStringToInt(amount),
 	}
 
 	err := json.NewEncoder(&body).Encode(adjustment)
