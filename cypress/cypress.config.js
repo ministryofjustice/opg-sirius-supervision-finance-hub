@@ -13,5 +13,7 @@ export default defineConfig({
     env: {
         grepOmitFiltered: true,
         grepFilterSpecs: true,
-    }
+    },
+    viewportWidth: 1000,
+    viewportHeight: 1000,
 });
