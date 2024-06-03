@@ -4,10 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"log"
+	"strings"
 )
 
-func (s *Service) UpdatePendingInvoiceAdjustment(ledgerId int) error {
+func (s *Service) UpdatePendingInvoiceAdjustment(ledgerId int, status string) error {
 	ctx := context.Background()
 
 	tx, err := s.tx.Begin(ctx)
@@ -22,14 +24,20 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ledgerId int) error {
 	}()
 
 	transaction := s.store.WithTx(tx)
-	ledgerIdTransformed := int32(ledgerId)
 
-	err = transaction.UpdateLedgerAdjustment(ctx, ledgerIdTransformed)
+	ledgerAdjustmentParams := store.UpdateLedgerAdjustmentParams{
+		Status: strings.ToUpper(status),
+		ID:     int32(ledgerId),
+	}
+
+	err = transaction.UpdateLedgerAdjustment(ctx, ledgerAdjustmentParams)
 	if err != nil {
 		return err
 	}
 
-	err = transaction.UpdateLedgerAllocationAdjustment(ctx, ledgerIdTransformed)
+	ledgerAllocationAdjustmentParams := store.UpdateLedgerAllocationAdjustmentParams(ledgerAdjustmentParams)
+
+	err = transaction.UpdateLedgerAllocationAdjustment(ctx, ledgerAllocationAdjustmentParams)
 	if err != nil {
 		return err
 	}
