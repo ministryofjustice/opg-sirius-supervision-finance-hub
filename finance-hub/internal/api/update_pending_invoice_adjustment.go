@@ -4,15 +4,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
 )
 
 func (c *ApiClient) UpdatePendingInvoiceAdjustment(ctx Context, clientId int, ledgerId int, status string) error {
 	var body bytes.Buffer
 
-	err := json.NewEncoder(&body).Encode(struct {
-		Status string `json:"status"`
-	}{Status: status})
+	err := json.NewEncoder(&body).Encode(shared.UpdateInvoiceAdjustment{
+		Status: status,
+	})
 
 	if err != nil {
 		return err
