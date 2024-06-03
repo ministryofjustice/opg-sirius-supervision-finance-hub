@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func (c *ApiClient) AdjustInvoice(ctx Context, clientId int, invoiceId int, adjustmentType string, notes string, amount string) error {
+func (c *ApiClient) AdjustInvoice(ctx Context, clientId int, supervisionBillingTeamId int, invoiceId int, adjustmentType string, notes string, amount string) error {
 	var body bytes.Buffer
 
 	adjustment := shared.CreateLedgerEntryRequest{
@@ -37,6 +37,12 @@ func (c *ApiClient) AdjustInvoice(ctx Context, clientId int, invoiceId int, adju
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusCreated {
+
+		err := c.CreatePendingInvoiceAdjustmentTask(ctx, clientId, supervisionBillingTeamId, invoiceId, adjustmentType)
+		if err != nil {
+			return err
+		}
+
 		return nil
 	}
 	if resp.StatusCode == http.StatusUnauthorized {

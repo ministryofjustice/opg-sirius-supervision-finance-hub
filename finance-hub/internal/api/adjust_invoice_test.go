@@ -4,12 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/opg-sirius-finance-hub/shared"
+	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestAdjustInvoice(t *testing.T) {
@@ -31,7 +30,7 @@ func TestAdjustInvoice(t *testing.T) {
 		}, nil
 	}
 
-	err := client.AdjustInvoice(getContext(nil), 2, 4, "CREDIT_MEMO", "notes here", "100")
+	err := client.AdjustInvoice(getContext(nil), 2, 41, 4, "CREDIT_MEMO", "notes here", "100")
 	assert.Equal(t, nil, err)
 }
 
@@ -44,7 +43,7 @@ func TestAdjustInvoiceUnauthorised(t *testing.T) {
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
 
-	err := client.AdjustInvoice(getContext(nil), 2, 4, "CREDIT_MEMO", "notes here", "100")
+	err := client.AdjustInvoice(getContext(nil), 2, 41, 4, "CREDIT_MEMO", "notes here", "100")
 
 	assert.Equal(t, ErrUnauthorized.Error(), err.Error())
 }
@@ -58,7 +57,7 @@ func TestAdjustInvoiceReturns500Error(t *testing.T) {
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
 
-	err := client.AdjustInvoice(getContext(nil), 2, 4, "CREDIT_MEMO", "notes here", "100")
+	err := client.AdjustInvoice(getContext(nil), 2, 41, 4, "CREDIT_MEMO", "notes here", "100")
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/clients/2/invoices/4/ledger-entries",
@@ -85,7 +84,7 @@ func TestAdjustInvoiceReturnsValidationError(t *testing.T) {
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
 
-	err := client.AdjustInvoice(getContext(nil), 2, 4, "CREDIT_MEMO", "notes here", "100")
+	err := client.AdjustInvoice(getContext(nil), 2, 41, 4, "CREDIT_MEMO", "notes here", "100")
 	expectedError := shared.ValidationError{Message: "", Errors: shared.ValidationErrors{"Field": map[string]string{"Tag": "Message"}}}
 	assert.Equal(t, expectedError, err.(shared.ValidationError))
 }
