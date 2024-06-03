@@ -10,6 +10,7 @@ import (
 type Service interface {
 	GetAccountInformation(id int) (*shared.AccountInformation, error)
 	GetInvoices(id int) (*shared.Invoices, error)
+	GetInvoice(id int) (*shared.Invoice, error)
 	GetFeeReductions(id int) (*shared.FeeReductions, error)
 	CreateLedgerEntry(clientId int, invoiceId int, ledgerEntry *shared.CreateLedgerEntryRequest) error
 	GetInvoiceAdjustments(id int) (*shared.InvoiceAdjustments, error)
@@ -29,6 +30,7 @@ func (s *Server) SetupRoutes() {
 	http.HandleFunc("GET /clients/{clientId}/invoices", s.getInvoices)
 	http.HandleFunc("GET /clients/{clientId}/fee-reductions", s.getFeeReductions)
 	http.HandleFunc("GET /clients/{clientId}/invoice-adjustments", s.getInvoiceAdjustments)
+	http.HandleFunc("GET /clients/{clientId}/invoices/{invoiceId}", s.getInvoice)
 
 	http.HandleFunc("POST /clients/{clientId}/invoices/{invoiceId}/ledger-entries", s.PostLedgerEntry)
 	http.HandleFunc("PUT /clients/{clientId}/invoice-adjustments/{ledgerId}", s.updatePendingInvoiceAdjustment)

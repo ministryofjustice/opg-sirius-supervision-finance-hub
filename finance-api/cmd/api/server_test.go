@@ -7,6 +7,7 @@ import (
 type mockService struct {
 	accountInfo        *shared.AccountInformation
 	invoices           *shared.Invoices
+	invoice            *shared.Invoice
 	feeReductions      *shared.FeeReductions
 	invoiceAdjustments *shared.InvoiceAdjustments
 	feeReduction       *shared.AddFeeReduction
@@ -39,6 +40,11 @@ func (s *mockService) GetAccountInformation(id int) (*shared.AccountInformation,
 func (s *mockService) GetInvoices(id int) (*shared.Invoices, error) {
 	s.expectedIds = []int{id}
 	return s.invoices, s.err
+}
+
+func (s *mockService) GetInvoice(id int) (*shared.Invoice, error) {
+	s.expectedIds = []int{id}
+	return s.invoice, s.err
 }
 
 func (s *mockService) GetFeeReductions(id int) (*shared.FeeReductions, error) {

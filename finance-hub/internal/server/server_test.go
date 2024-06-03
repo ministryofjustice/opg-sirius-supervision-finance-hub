@@ -54,6 +54,7 @@ type mockApiClient struct {
 	PersonDetails      shared.Person
 	FeeReductions      shared.FeeReductions
 	Invoices           shared.Invoices
+	Invoice            shared.Invoice
 	AccountInformation shared.AccountInformation
 	invoiceAdjustments shared.InvoiceAdjustments
 }
@@ -80,6 +81,10 @@ func (m mockApiClient) AddFeeReduction(api.Context, int, string, string, string,
 
 func (m mockApiClient) GetInvoices(api.Context, int) (shared.Invoices, error) {
 	return m.Invoices, m.error
+}
+
+func (m mockApiClient) GetInvoice(api.Context, int, int) (shared.Invoice, error) {
+	return m.Invoice, m.error
 }
 
 func (m mockApiClient) GetPersonDetails(api.Context, int) (shared.Person, error) {

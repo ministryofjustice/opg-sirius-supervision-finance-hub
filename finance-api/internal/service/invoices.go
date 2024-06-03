@@ -87,6 +87,25 @@ func getLedgerAllocations(s *Service, ctx context.Context, invoiceID int) ([]sha
 	return ledgerAllocations, totalOfLedgerAllocationsAmount, nil
 }
 
+func (s *Service) GetInvoice(invoiceID int) (*shared.Invoice, error) {
+	ctx := context.Background()
+
+	rawInvoice, err := s.store.GetInvoice(ctx, int32(invoiceID))
+	if err != nil {
+		return nil, err
+	}
+
+	var invoice = shared.Invoice{
+		Id:         int(rawInvoice.ID),
+		Ref:        rawInvoice.Reference,
+		Status:     "",
+		Amount:     int(rawInvoice.Amount),
+		RaisedDate: shared.Date{Time: rawInvoice.Raiseddate.Time},
+	}
+
+	return &invoice, nil
+}
+
 func calculateReceivedDate(bankDate pgtype.Date, datetime pgtype.Timestamp) shared.Date {
 	if !bankDate.Time.IsZero() {
 		return shared.Date{Time: bankDate.Time}

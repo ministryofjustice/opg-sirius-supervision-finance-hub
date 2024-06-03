@@ -67,6 +67,33 @@ func (q *Queries) AddFeeReductionToInvoices(ctx context.Context, id int32) ([]In
 	return items, nil
 }
 
+const getInvoice = `-- name: GetInvoice :one
+SELECT i.id, i.reference, i.amount, i.raiseddate, i.cacheddebtamount
+FROM invoice i
+WHERE i.id = $1
+`
+
+type GetInvoiceRow struct {
+	ID               int32
+	Reference        string
+	Amount           int32
+	Raiseddate       pgtype.Date
+	Cacheddebtamount pgtype.Int4
+}
+
+func (q *Queries) GetInvoice(ctx context.Context, id int32) (GetInvoiceRow, error) {
+	row := q.db.QueryRow(ctx, getInvoice, id)
+	var i GetInvoiceRow
+	err := row.Scan(
+		&i.ID,
+		&i.Reference,
+		&i.Amount,
+		&i.Raiseddate,
+		&i.Cacheddebtamount,
+	)
+	return i, err
+}
+
 const getInvoiceBalance = `-- name: GetInvoiceBalance :one
 SELECT i.amount initial, i.amount - COALESCE(SUM(la.amount), 0) outstanding
 FROM invoice i

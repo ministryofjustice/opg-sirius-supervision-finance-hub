@@ -33,6 +33,11 @@ func AddWorkingDays(date time.Time, days int) time.Time {
 func (c *ApiClient) CreatePendingInvoiceAdjustmentTask(ctx Context, clientId int, supervisionBillingTeamId int, invoiceId int, adjustmentType string) error {
 	var body bytes.Buffer
 
+	invoice, err := c.GetInvoice(ctx, clientId, invoiceId)
+	if err != nil {
+		return err
+	}
+
 	dueDate := AddWorkingDays(time.Now(), 20)
 	adjustmentTypeLabel := strings.ToLower(strings.Replace(adjustmentType, "_", " ", -1))
 
@@ -41,10 +46,10 @@ func (c *ApiClient) CreatePendingInvoiceAdjustmentTask(ctx Context, clientId int
 		Type:     "FPIA",
 		DueDate:  dueDate.Format("02/01/2006"),
 		Assignee: supervisionBillingTeamId,
-		Notes:    fmt.Sprintf("Pending %s added to %d requires manager approval", adjustmentTypeLabel, invoiceId),
+		Notes:    fmt.Sprintf("Pending %s added to %s requires manager approval", adjustmentTypeLabel, invoice.Ref),
 	}
 
-	err := json.NewEncoder(&body).Encode(task)
+	err = json.NewEncoder(&body).Encode(task)
 	if err != nil {
 		return err
 	}
