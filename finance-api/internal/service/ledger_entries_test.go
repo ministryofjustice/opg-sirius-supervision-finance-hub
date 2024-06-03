@@ -17,11 +17,11 @@ func TestService_CreateLedgerEntry(t *testing.T) {
 	})
 
 	conn.SeedData(
-		"INSERT INTO finance_client VALUES (1, 1, '1234', 'DEMANDED', null, 0, 0);",
-		"INSERT INTO invoice VALUES (1, 1, 1, 'S2', 'S204642/19', '2022-04-02', '2022-04-02', 32000, null, null, null, null, null, null, 0, '2022-04-02', 1);",
-		"INSERT INTO ledger VALUES (1, 'abc1', '2022-04-02T00:00:00+00:00', '', 22000, 'Initial payment', 'UNKNOWN DEBIT', 'CONFIRMED', 1, null, null, null, null, null, null, null, null, '05/05/2022', 1);",
+		"INSERT INTO finance_client VALUES (1, 1, '1234', 'DEMANDED', NULL, 0, 0);",
+		"INSERT INTO invoice VALUES (1, 1, 1, 'S2', 'S204642/19', '2022-04-02', '2022-04-02', 32000, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2022-04-02', 1);",
+		"INSERT INTO ledger VALUES (1, 'abc1', '2022-04-02T00:00:00+00:00', '', 22000, 'Initial payment', 'UNKNOWN DEBIT', 'CONFIRMED', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '05/05/2022', 1);",
 		"ALTER SEQUENCE ledger_id_seq RESTART WITH 2;",
-		"INSERT INTO ledger_allocation VALUES (1, 1, 1, '2022-04-02T00:00:00+00:00', 22000, '', null, '', '2022-04-02', null);",
+		"INSERT INTO ledger_allocation VALUES (1, 1, 1, '2022-04-02T00:00:00+00:00', 22000, '', NULL, '', '2022-04-02', NULL);",
 		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 2;",
 	)
 	s := NewService(conn.Conn)
@@ -193,7 +193,7 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 				Amount:         22000,
 			},
 			balance: store.GetInvoiceBalanceRow{
-				Initial:     16000, // invoice calculated at £160 instead of £320 in error at creation
+				Initial:     16000,
 				Outstanding: 10000,
 				Feetype:     "S2",
 			},
