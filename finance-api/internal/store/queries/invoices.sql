@@ -28,19 +28,6 @@ FROM invoice i
 WHERE i.id = $1
 group by i.amount, i.feetype;
 
--- name: GetLedgerAllocations :many
-select la.id, la.amount, la.datetime, l.bankdate, l.type, la.status
-from ledger_allocation la
-         inner join ledger l on la.ledger_id = l.id
-where la.invoice_id = $1
-order by la.id desc;
-
--- name: GetSupervisionLevels :many
-select supervisionlevel, fromdate, todate, amount
-from invoice_fee_range
-where invoice_id = $1
-order by todate desc;
-
 -- name: AddFeeReductionToInvoices :many
 WITH filtered_invoices AS (SELECT i.id AS invoice_id, fr.id AS fee_reduction_id
                            FROM invoice i
