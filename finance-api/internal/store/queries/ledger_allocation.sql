@@ -1,19 +1,15 @@
 -- name: CreateLedgerAllocationForFeeReduction :one
-insert into ledger_allocation (id, ledger_id, invoice_id, datetime, amount, status, reference,
-                                                   notes, allocateddate, batchnumber, source,
-                                                   transaction_type)
-VALUES (nextval('ledger_allocation_id_seq'::regclass), $1, $2, now(), $3, 'Confirmed', null, null, null, null, null,
-        null) returning *;
+INSERT INTO ledger_allocation (id, ledger_id, invoice_id, datetime, amount, status, reference,
+                               notes, allocateddate, batchnumber, source,
+                               transaction_type)
+VALUES (NEXTVAL('ledger_allocation_id_seq'::REGCLASS), $1, $2, NOW(), $3, 'Confirmed', NULL, NULL, NULL, NULL, NULL,
+        NULL)
+RETURNING *;
 
 -- name: UpdateLedgerAllocationAdjustment :exec
-WITH filtered_ledger_allocation AS (
-    SELECT lc.id
-    from ledger l
-             inner join ledger_allocation lc on lc.ledger_id = l.id
-    where l.id = $1
-      and l.type IN ('CREDIT MEMO', 'CREDIT WRITE OFF')
-)
-UPDATE ledger_allocation
+UPDATE ledger_allocation la
 SET status = 'APPROVED'
-FROM filtered_ledger_allocation fla
-WHERE ledger_allocation.id = fla.id;
+FROM ledger l
+WHERE l.id = $1
+  AND l.id = la.ledger_id
+  AND l.type IN ('CREDIT MEMO', 'CREDIT WRITE OFF', 'DEBIT MEMO');

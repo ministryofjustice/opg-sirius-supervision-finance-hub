@@ -26,7 +26,7 @@ const (
 var adjustmentTypeMap = map[string]AdjustmentType{
 	"CREDIT WRITE OFF": AdjustmentTypeWriteOff,
 	"CREDIT MEMO":      AdjustmentTypeAddCredit,
-	"UNKNOWN DEBIT":    AdjustmentTypeAddDebit,
+	"DEBIT MEMO":       AdjustmentTypeAddDebit,
 }
 
 func (i AdjustmentType) Translation() string {
@@ -49,7 +49,7 @@ func (i AdjustmentType) Key() string {
 	case AdjustmentTypeAddCredit:
 		return "CREDIT MEMO"
 	case AdjustmentTypeAddDebit:
-		return "UNKNOWN DEBIT"
+		return "DEBIT MEMO"
 	default:
 		return ""
 	}

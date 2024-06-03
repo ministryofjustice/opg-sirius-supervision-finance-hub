@@ -43,10 +43,20 @@ func (s *Service) validateAdjustmentAmount(adjustment *shared.CreateLedgerEntryR
 	switch adjustment.AdjustmentType {
 	case shared.AdjustmentTypeAddCredit:
 		if int32(adjustment.Amount)-balance.Outstanding > balance.Initial {
-			return shared.BadRequest{Field: "Amount", Reason: fmt.Sprintf("Amount entered must be equal to or less than £%d", (balance.Initial+balance.Outstanding)/100)}
+			return shared.BadRequest{Field: "Amount", Reason: fmt.Sprintf("Amount entered must be equal to or less than £%s", shared.IntToDecimalString(int(balance.Initial+balance.Outstanding)))}
+		}
+	case shared.AdjustmentTypeAddDebit:
+		var maxBalance int32
+		if balance.Feetype == "AD" {
+			maxBalance = 10000
+		} else {
+			maxBalance = 32000
+		}
+		if int32(adjustment.Amount)+balance.Outstanding > maxBalance {
+			return shared.BadRequest{Field: "Amount", Reason: fmt.Sprintf("Amount entered must be equal to or less than £%s", shared.IntToDecimalString(int(maxBalance-balance.Outstanding)))}
 		}
 	case shared.AdjustmentTypeWriteOff:
-		if int32(balance.Outstanding) < 1 {
+		if balance.Outstanding < 1 {
 			return shared.BadRequest{Field: "Amount", Reason: "No outstanding balance to write off"}
 		}
 	default:
@@ -59,6 +69,8 @@ func (s *Service) calculateAdjustmentAmount(adjustment *shared.CreateLedgerEntry
 	switch adjustment.AdjustmentType {
 	case shared.AdjustmentTypeWriteOff:
 		return balance.Outstanding
+	case shared.AdjustmentTypeAddDebit:
+		return -int32(adjustment.Amount)
 	default:
 		return int32(adjustment.Amount)
 	}

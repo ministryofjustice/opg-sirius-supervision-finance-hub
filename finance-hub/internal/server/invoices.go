@@ -1,7 +1,6 @@
 package server
 
 import (
-	"github.com/opg-sirius-finance-hub/finance-hub/internal/util"
 	"github.com/opg-sirius-finance-hub/shared"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -71,10 +70,10 @@ func (h *InvoicesHandler) transform(in shared.Invoices, clientId int) Invoices {
 			Id:                 invoice.Id,
 			Ref:                invoice.Ref,
 			Status:             caser.String(invoice.Status),
-			Amount:             util.IntToDecimalString(invoice.Amount),
+			Amount:             shared.IntToDecimalString(invoice.Amount),
 			RaisedDate:         invoice.RaisedDate.String(),
-			Received:           util.IntToDecimalString(invoice.Received),
-			OutstandingBalance: util.IntToDecimalString(invoice.OutstandingBalance),
+			Received:           shared.IntToDecimalString(invoice.Received),
+			OutstandingBalance: shared.IntToDecimalString(invoice.OutstandingBalance),
 			Ledgers:            h.transformLedgers(invoice.Ledgers, caser),
 			SupervisionLevels:  h.transformSupervisionLevels(invoice.SupervisionLevels, caser),
 			ClientId:           clientId,
@@ -88,7 +87,7 @@ func (h *InvoicesHandler) transformSupervisionLevels(in []shared.SupervisionLeve
 	for _, supervisionLevel := range in {
 		out = append(out, SupervisionLevel{
 			Level:  caser.String(supervisionLevel.Level),
-			Amount: util.IntToDecimalString(supervisionLevel.Amount),
+			Amount: shared.IntToDecimalString(supervisionLevel.Amount),
 			From:   supervisionLevel.From,
 			To:     supervisionLevel.To,
 		})
@@ -100,7 +99,7 @@ func (h *InvoicesHandler) transformLedgers(ledgers []shared.Ledger, caser cases.
 	var out LedgerAllocations
 	for _, ledger := range ledgers {
 		out = append(out, LedgerAllocation{
-			Amount:          util.IntToDecimalString(ledger.Amount),
+			Amount:          shared.IntToDecimalString(ledger.Amount),
 			ReceivedDate:    ledger.ReceivedDate,
 			TransactionType: ledger.TransactionType,
 			Status:          caser.String(ledger.Status),
