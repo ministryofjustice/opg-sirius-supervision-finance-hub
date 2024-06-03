@@ -31,7 +31,7 @@ describe("Pending Invoice Adjustments", () => {
     });
 
     it("shows correct success message", () => {
-        cy.visit("/clients/1/pending-invoice-adjustments?success=credit");
+        cy.visit("/clients/1/pending-invoice-adjustments?success=approve-invoice-adjustment[CREDIT]");
         cy.get('.moj-banner__message').contains("You have approved the credit");
     });
 });

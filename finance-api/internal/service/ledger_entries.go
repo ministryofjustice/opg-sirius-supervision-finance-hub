@@ -12,54 +12,54 @@ import (
 func (s *Service) CreateLedgerEntry(clientId int, invoiceId int, ledgerEntry *shared.CreateLedgerEntryRequest) (string, error) {
 	ctx := context.Background()
 
-	err := s.validateAdjustmentAmount(invoiceId, ledgerEntry)
+	balance, err := s.store.GetInvoiceBalance(context.Background(), int32(invoiceId))
 	if err != nil {
 		return "", err
 	}
 
-	tx, err := s.tx.Begin(ctx)
+	err = s.validateAdjustmentAmount(ledgerEntry, balance)
 	if err != nil {
 		return "", err
 	}
-
-	defer func() {
-		if err = tx.Rollback(ctx); err != nil {
-			log.Println("Error rolling back transaction:", err)
-		}
-	}()
-
-	q := s.store.WithTx(tx)
 
 	params := store.CreateLedgerParams{
-		Amount:    int32(ledgerEntry.Amount),
+		Amount:    s.calculateAdjustmentAmount(ledgerEntry, balance),
 		Notes:     pgtype.Text{String: ledgerEntry.AdjustmentNotes, Valid: true},
-		Type:      ledgerEntry.AdjustmentType.DbValue(),
+		Type:      ledgerEntry.AdjustmentType.Key(),
 		InvoiceID: pgtype.Int4{Int32: int32(invoiceId), Valid: true},
 		ClientID:  int32(clientId),
 	}
-
-	invoiceRef, err := q.CreateLedger(ctx, params)
+	invoiceRef, err := s.store.CreateLedger(ctx, params)
 
 	if err != nil {
 		log.Println("Error creating ledger entry: ", err)
 		return "", err
 	}
 
-	return invoiceRef, tx.Commit(ctx)
+	return invoiceRef, nil
 }
 
-func (s *Service) validateAdjustmentAmount(invoiceId int, adjustment *shared.CreateLedgerEntryRequest) error {
-	b, err := s.store.GetInvoiceBalance(context.Background(), int32(invoiceId))
-	if err != nil {
-		return err
-	}
+func (s *Service) validateAdjustmentAmount(adjustment *shared.CreateLedgerEntryRequest, balance store.GetInvoiceBalanceRow) error {
 	switch adjustment.AdjustmentType {
 	case shared.AdjustmentTypeAddCredit:
-		if int32(adjustment.Amount)-b.Outstanding > b.Initial {
-			return shared.BadRequest{Field: "Amount", Reason: fmt.Sprintf("Amount entered must be equal to or less than £%d", (b.Initial+b.Outstanding)/100)}
+		if int32(adjustment.Amount)-balance.Outstanding > balance.Initial {
+			return shared.BadRequest{Field: "Amount", Reason: fmt.Sprintf("Amount entered must be equal to or less than £%d", (balance.Initial+balance.Outstanding)/100)}
+		}
+	case shared.AdjustmentTypeWriteOff:
+		if int32(balance.Outstanding) < 1 {
+			return shared.BadRequest{Field: "Amount", Reason: "No outstanding balance to write off"}
 		}
 	default:
 		return shared.BadRequest{Field: "AdjustmentType", Reason: "Unimplemented adjustment type"}
 	}
 	return nil
+}
+
+func (s *Service) calculateAdjustmentAmount(adjustment *shared.CreateLedgerEntryRequest, balance store.GetInvoiceBalanceRow) int32 {
+	switch adjustment.AdjustmentType {
+	case shared.AdjustmentTypeWriteOff:
+		return balance.Outstanding
+	default:
+		return int32(adjustment.Amount)
+	}
 }
