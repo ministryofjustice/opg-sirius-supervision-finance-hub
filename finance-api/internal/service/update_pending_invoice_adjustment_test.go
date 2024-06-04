@@ -25,7 +25,7 @@ func (suite *IntegrationSuite) TestService_UpdatePendingInvoiceAdjustment() {
 		tx:    conn,
 	}
 
-	err := s.UpdatePendingInvoiceAdjustment(15)
+	err := s.UpdatePendingInvoiceAdjustment(15, "APPROVED")
 	rows, _ := conn.Query(ctx, "SELECT * FROM supervision_finance.ledger_allocation WHERE id = 15")
 	defer rows.Close()
 
