@@ -40,7 +40,7 @@
                                     role="button"
                                     draggable="false"
                                     data-module="govuk-button"
-                                    hx-post="{{ prefix (printf "/clients/%s/pending-invoice-adjustments/%s/%s" $clientId .Id .AdjustmentType) }}"
+                                    hx-post="{{ prefix (printf "/clients/%s/pending-invoice-adjustments/%s/%s/approved" $clientId .Id .AdjustmentType) }}"
                             >
                                 Approve
                             </a>
@@ -49,6 +49,7 @@
                                     role="button"
                                     draggable="false"
                                     data-module="govuk-button"
+                                    hx-post="{{ prefix (printf "/clients/%s/pending-invoice-adjustments/%s/%s/rejected" $clientId .Id .AdjustmentType) }}"
                             >
                                 Reject
                             </a>
