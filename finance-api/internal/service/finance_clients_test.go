@@ -7,11 +7,8 @@ import (
 	"testing"
 )
 
-func TestService_GetAccountInformation(t *testing.T) {
-	conn := testDB.GetConn()
-	t.Cleanup(func() {
-		testDB.Restore()
-	})
+func (suite *IntegrationSuite) TestService_GetAccountInformation() {
+	conn := suite.testDB.GetConn()
 
 	conn.SeedData("INSERT INTO finance_client VALUES (1, 2, 'sop123', 'DEMANDED', 3, 12300, 321)")
 
@@ -38,7 +35,7 @@ func TestService_GetAccountInformation(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		suite.T().Run(tt.name, func(t *testing.T) {
 			s := &Service{
 				store: Store,
 			}
