@@ -56,8 +56,6 @@ func (c *ApiClient) AdjustInvoice(ctx Context, clientId int, supervisionBillingT
 		var v shared.ValidationError
 		if err = json.NewDecoder(resp.Body).Decode(&v); err == nil && len(v.Errors) > 0 {
 			return shared.ValidationError{Errors: v.Errors}
-		} else {
-			return v
 		}
 	}
 	if resp.StatusCode == http.StatusBadRequest {
