@@ -9,17 +9,17 @@ import (
 	"log"
 )
 
-func (s *Service) CreateLedgerEntry(clientId int, invoiceId int, ledgerEntry *shared.CreateLedgerEntryRequest) (string, error) {
+func (s *Service) CreateLedgerEntry(clientId int, invoiceId int, ledgerEntry *shared.CreateLedgerEntryRequest) (*shared.InvoiceAdjustment, error) {
 	ctx := context.Background()
 
 	balance, err := s.store.GetInvoiceBalance(context.Background(), int32(invoiceId))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	err = s.validateAdjustmentAmount(ledgerEntry, balance)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	params := store.CreateLedgerParams{
@@ -29,14 +29,14 @@ func (s *Service) CreateLedgerEntry(clientId int, invoiceId int, ledgerEntry *sh
 		InvoiceID: pgtype.Int4{Int32: int32(invoiceId), Valid: true},
 		ClientID:  int32(clientId),
 	}
-	invoiceRef, err := s.store.CreateLedger(ctx, params)
+	invoiceReference, err := s.store.CreateLedger(ctx, params)
 
 	if err != nil {
 		log.Println("Error creating ledger entry: ", err)
-		return "", err
+		return nil, err
 	}
 
-	return invoiceRef, nil
+	return &shared.InvoiceAdjustment{InvoiceRef: invoiceReference}, nil
 }
 
 func (s *Service) validateAdjustmentAmount(adjustment *shared.CreateLedgerEntryRequest, balance store.GetInvoiceBalanceRow) error {
