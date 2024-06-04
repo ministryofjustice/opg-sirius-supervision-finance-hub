@@ -15,7 +15,7 @@ type Service interface {
 	GetInvoiceAdjustments(id int) (*shared.InvoiceAdjustments, error)
 	AddFeeReduction(id int, data shared.AddFeeReduction) error
 	CancelFeeReduction(id int) error
-	UpdatePendingInvoiceAdjustment(id int) error
+	UpdatePendingInvoiceAdjustment(id int, status string) error
 }
 
 type Server struct {
