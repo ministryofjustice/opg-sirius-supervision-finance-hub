@@ -42,11 +42,6 @@ func (s *mockService) GetInvoices(id int) (*shared.Invoices, error) {
 	return s.invoices, s.err
 }
 
-func (s *mockService) GetInvoice(id int) (*shared.Invoice, error) {
-	s.expectedIds = []int{id}
-	return s.invoice, s.err
-}
-
 func (s *mockService) GetFeeReductions(id int) (*shared.FeeReductions, error) {
 	s.expectedIds = []int{id}
 	return s.feeReductions, s.err

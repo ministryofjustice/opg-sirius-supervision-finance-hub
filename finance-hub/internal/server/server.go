@@ -18,7 +18,6 @@ type ApiClient interface {
 	GetPersonDetails(api.Context, int) (shared.Person, error)
 	GetFeeReductions(api.Context, int) (shared.FeeReductions, error)
 	GetInvoices(api.Context, int) (shared.Invoices, error)
-	GetInvoice(api.Context, int, int) (shared.Invoice, error)
 	AdjustInvoice(api.Context, int, int, int, string, string, string) error
 	GetAccountInformation(api.Context, int) (shared.AccountInformation, error)
 	GetInvoiceAdjustments(api.Context, int) (shared.InvoiceAdjustments, error)

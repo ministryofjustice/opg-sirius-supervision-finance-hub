@@ -15,11 +15,6 @@ FROM invoice i
 WHERE i.id = $1
 group by i.amount;
 
--- name: GetInvoice :one
-SELECT i.id, i.reference, i.amount, i.raiseddate, i.cacheddebtamount
-FROM invoice i
-WHERE i.id = $1;
-
 -- name: GetLedgerAllocations :many
 select la.id, la.amount, la.datetime, l.bankdate, l.type, la.status
 from ledger_allocation la
