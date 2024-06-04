@@ -16,10 +16,8 @@ func TestAdjustInvoice(t *testing.T) {
 	client, _ := NewApiClient(mockClient, "http://localhost:3000", "", logger)
 
 	json := `{
-            "adjustmentType": "credit write off",
-            "notes": "notes here",
-			"amount": "10000"
-        }`
+	       "reference": "01234"
+	   }`
 
 	r := io.NopCloser(bytes.NewReader([]byte(json)))
 

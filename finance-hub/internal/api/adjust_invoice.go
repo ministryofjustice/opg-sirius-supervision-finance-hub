@@ -36,15 +36,14 @@ func (c *ApiClient) AdjustInvoice(ctx Context, clientId int, supervisionBillingT
 	}
 	defer resp.Body.Close()
 
-	var invoiceRef string
-
-	if err = json.NewDecoder(resp.Body).Decode(&invoiceRef); err != nil {
-		c.logger.Request(req, err)
-		return err
-	}
-
 	if resp.StatusCode == http.StatusCreated {
-		err := c.CreatePendingInvoiceAdjustmentTask(ctx, clientId, supervisionBillingTeamId, invoiceRef, adjustmentType)
+		var response shared.InvoiceAdjustment
+		if err = json.NewDecoder(resp.Body).Decode(&response); err != nil {
+			c.logger.Request(req, err)
+			return err
+		}
+
+		err := c.CreatePendingInvoiceAdjustmentTask(ctx, clientId, supervisionBillingTeamId, response.InvoiceRef, adjustmentType)
 		if err != nil {
 			return err
 		}
@@ -58,6 +57,8 @@ func (c *ApiClient) AdjustInvoice(ctx Context, clientId int, supervisionBillingT
 		var v shared.ValidationError
 		if err = json.NewDecoder(resp.Body).Decode(&v); err == nil && len(v.Errors) > 0 {
 			return shared.ValidationError{Errors: v.Errors}
+		} else {
+			return v
 		}
 	}
 	if resp.StatusCode == http.StatusBadRequest {

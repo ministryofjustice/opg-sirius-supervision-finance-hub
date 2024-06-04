@@ -7,7 +7,6 @@ import (
 type mockService struct {
 	accountInfo        *shared.AccountInformation
 	invoices           *shared.Invoices
-	invoice            *shared.Invoice
 	feeReductions      *shared.FeeReductions
 	invoiceAdjustments *shared.InvoiceAdjustments
 	feeReduction       *shared.AddFeeReduction
@@ -52,8 +51,8 @@ func (s *mockService) GetInvoiceAdjustments(id int) (*shared.InvoiceAdjustments,
 	return s.invoiceAdjustments, s.err
 }
 
-func (s *mockService) CreateLedgerEntry(clientId int, invoiceId int, ledger *shared.CreateLedgerEntryRequest) error {
+func (s *mockService) CreateLedgerEntry(clientId int, invoiceId int, ledger *shared.CreateLedgerEntryRequest) (string, error) {
 	s.ledger = ledger
 	s.expectedIds = []int{clientId, invoiceId}
-	return s.err
+	return "", s.err
 }

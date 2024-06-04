@@ -70,7 +70,7 @@ func TestService_CreateLedgerEntry(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			err := s.CreateLedgerEntry(tt.clientId, tt.invoiceId, tt.data)
+			_, err := s.CreateLedgerEntry(tt.clientId, tt.invoiceId, tt.data)
 			if err != nil {
 				assert.ErrorIs(t, err, tt.err)
 				return

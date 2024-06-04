@@ -47,9 +47,14 @@ func (s *Server) PostLedgerEntry(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	jsonData, err := json.Marshal(invoiceRef)
+	jsonData, err := json.Marshal(shared.InvoiceAdjustment{InvoiceRef: invoiceRef})
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	_, err = w.Write(jsonData)
+	_, _ = w.Write(jsonData)
 }
