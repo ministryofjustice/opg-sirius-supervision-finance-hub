@@ -12,20 +12,18 @@ import (
 )
 
 const addFeeReductionToInvoices = `-- name: AddFeeReductionToInvoices :many
-WITH filtered_invoices AS (
-    SELECT i.id AS invoice_id, fr.id AS fee_reduction_id
-    FROM invoice i
-             JOIN fee_reduction fr
-                  ON i.finance_client_id = fr.finance_client_id
-    WHERE i.raiseddate >= (fr.datereceived - interval '6 months')
-      AND i.raiseddate BETWEEN fr.startdate AND fr.enddate
-      AND fr.id = $1
-)
+WITH filtered_invoices AS (SELECT i.id AS invoice_id, fr.id AS fee_reduction_id
+                           FROM invoice i
+                                    JOIN fee_reduction fr
+                                         ON i.finance_client_id = fr.finance_client_id
+                           WHERE i.raiseddate >= (fr.datereceived - INTERVAL '6 months')
+                             AND i.raiseddate BETWEEN fr.startdate AND fr.enddate
+                             AND fr.id = $1)
 UPDATE invoice i
 SET fee_reduction_id = fi.fee_reduction_id
 FROM filtered_invoices fi
 WHERE i.id = fi.invoice_id
-returning i.id, i.person_id, i.finance_client_id, i.feetype, i.reference, i.startdate, i.enddate, i.amount, i.supervisionlevel, i.confirmeddate, i.batchnumber, i.raiseddate, i.source, i.scheduledfn14date, i.cacheddebtamount, i.createddate, i.createdby_id, i.fee_reduction_id
+RETURNING i.id, i.person_id, i.finance_client_id, i.feetype, i.reference, i.startdate, i.enddate, i.amount, i.supervisionlevel, i.confirmeddate, i.batchnumber, i.raiseddate, i.source, i.scheduledfn14date, i.cacheddebtamount, i.createddate, i.createdby_id, i.fee_reduction_id
 `
 
 func (q *Queries) AddFeeReductionToInvoices(ctx context.Context, id int32) ([]Invoice, error) {
@@ -70,7 +68,7 @@ func (q *Queries) AddFeeReductionToInvoices(ctx context.Context, id int32) ([]In
 const getInvoiceBalance = `-- name: GetInvoiceBalance :one
 SELECT i.amount initial, i.amount - COALESCE(SUM(la.amount), 0) outstanding, i.feetype
 FROM invoice i
-         LEFT JOIN ledger_allocation la on i.id = la.invoice_id
+         LEFT JOIN ledger_allocation la ON i.id = la.invoice_id
     AND la.status <> 'PENDING'
 WHERE i.id = $1
 group by i.amount, i.feetype
@@ -90,19 +88,18 @@ func (q *Queries) GetInvoiceBalance(ctx context.Context, id int32) (GetInvoiceBa
 }
 
 const getInvoices = `-- name: GetInvoices :many
-SELECT i.id, i.reference, i.amount, i.raiseddate, i.cacheddebtamount
+SELECT i.id, i.reference, i.amount, i.raiseddate
 FROM invoice i
-         inner join finance_client fc on fc.id = i.finance_client_id
-where fc.client_id = $1
-order by i.raiseddate desc
+         INNER JOIN finance_client fc ON fc.id = i.finance_client_id
+WHERE fc.client_id = $1
+ORDER BY i.raiseddate DESC
 `
 
 type GetInvoicesRow struct {
-	ID               int32
-	Reference        string
-	Amount           int32
-	Raiseddate       pgtype.Date
-	Cacheddebtamount pgtype.Int4
+	ID         int32
+	Reference  string
+	Amount     int32
+	Raiseddate pgtype.Date
 }
 
 func (q *Queries) GetInvoices(ctx context.Context, clientID int32) ([]GetInvoicesRow, error) {
@@ -119,7 +116,6 @@ func (q *Queries) GetInvoices(ctx context.Context, clientID int32) ([]GetInvoice
 			&i.Reference,
 			&i.Amount,
 			&i.Raiseddate,
-			&i.Cacheddebtamount,
 		); err != nil {
 			return nil, err
 		}
@@ -132,24 +128,25 @@ func (q *Queries) GetInvoices(ctx context.Context, clientID int32) ([]GetInvoice
 }
 
 const getLedgerAllocations = `-- name: GetLedgerAllocations :many
-select la.id, la.amount, la.datetime, l.bankdate, l.type, la.status
-from ledger_allocation la
-         inner join ledger l on la.ledger_id = l.id
-where la.invoice_id = $1
-order by la.id desc
+SELECT la.invoice_id, la.id, la.amount, la.datetime, l.bankdate, l.type, la.status
+FROM ledger_allocation la
+         INNER JOIN ledger l ON la.ledger_id = l.id
+WHERE la.invoice_id = ANY($1::int[])
+ORDER BY la.id DESC
 `
 
 type GetLedgerAllocationsRow struct {
-	ID       int32
-	Amount   int32
-	Datetime pgtype.Timestamp
-	Bankdate pgtype.Date
-	Type     string
-	Status   string
+	InvoiceID pgtype.Int4
+	ID        int32
+	Amount    int32
+	Datetime  pgtype.Timestamp
+	Bankdate  pgtype.Date
+	Type      string
+	Status    string
 }
 
-func (q *Queries) GetLedgerAllocations(ctx context.Context, invoiceID pgtype.Int4) ([]GetLedgerAllocationsRow, error) {
-	rows, err := q.db.Query(ctx, getLedgerAllocations, invoiceID)
+func (q *Queries) GetLedgerAllocations(ctx context.Context, dollar_1 []int32) ([]GetLedgerAllocationsRow, error) {
+	rows, err := q.db.Query(ctx, getLedgerAllocations, dollar_1)
 	if err != nil {
 		return nil, err
 	}
@@ -158,6 +155,7 @@ func (q *Queries) GetLedgerAllocations(ctx context.Context, invoiceID pgtype.Int
 	for rows.Next() {
 		var i GetLedgerAllocationsRow
 		if err := rows.Scan(
+			&i.InvoiceID,
 			&i.ID,
 			&i.Amount,
 			&i.Datetime,
@@ -176,21 +174,22 @@ func (q *Queries) GetLedgerAllocations(ctx context.Context, invoiceID pgtype.Int
 }
 
 const getSupervisionLevels = `-- name: GetSupervisionLevels :many
-select supervisionlevel, fromdate, todate, amount
-from invoice_fee_range
-where invoice_id = $1
-order by todate desc
+SELECT invoice_id, supervisionlevel, fromdate, todate, amount
+FROM invoice_fee_range
+WHERE invoice_id = ANY($1::int[])
+ORDER BY todate DESC
 `
 
 type GetSupervisionLevelsRow struct {
+	InvoiceID        pgtype.Int4
 	Supervisionlevel string
 	Fromdate         pgtype.Date
 	Todate           pgtype.Date
 	Amount           int32
 }
 
-func (q *Queries) GetSupervisionLevels(ctx context.Context, invoiceID pgtype.Int4) ([]GetSupervisionLevelsRow, error) {
-	rows, err := q.db.Query(ctx, getSupervisionLevels, invoiceID)
+func (q *Queries) GetSupervisionLevels(ctx context.Context, dollar_1 []int32) ([]GetSupervisionLevelsRow, error) {
+	rows, err := q.db.Query(ctx, getSupervisionLevels, dollar_1)
 	if err != nil {
 		return nil, err
 	}
@@ -199,6 +198,7 @@ func (q *Queries) GetSupervisionLevels(ctx context.Context, invoiceID pgtype.Int
 	for rows.Next() {
 		var i GetSupervisionLevelsRow
 		if err := rows.Scan(
+			&i.InvoiceID,
 			&i.Supervisionlevel,
 			&i.Fromdate,
 			&i.Todate,
