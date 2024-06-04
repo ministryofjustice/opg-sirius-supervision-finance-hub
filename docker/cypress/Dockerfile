@@ -8,6 +8,6 @@ RUN npm install cypress-axe
 RUN npm install @cypress/grep
 
 ENV CYPRESS_VIDEO=false
-ENV CYPRESS_baseUrl=http://finance-hub:8888
+ENV CYPRESS_baseUrl=http://finance-hub:8888/finance
 
 COPY cypress .
