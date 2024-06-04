@@ -18,7 +18,7 @@
                         id="adjust-invoice-form"
                         class="add-note govuk-grid-column-one-third"
                         method="post"
-                        hx-post="{{ (printf "/clients/%s/invoices/%s/adjustments" .ClientId .InvoiceId) }}"
+                        hx-post="{{ prefix (printf "/clients/%s/invoices/%s/adjustments" .ClientId .InvoiceId) }}"
                         hx-target="#error-summary">
                         <input
                                 type="hidden"
