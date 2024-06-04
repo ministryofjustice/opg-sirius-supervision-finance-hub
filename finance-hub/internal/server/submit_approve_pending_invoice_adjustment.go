@@ -7,17 +7,18 @@ import (
 	"strings"
 )
 
-type SubmitPendingInvoiceAdjustmentHandler struct {
+type SubmitApprovePendingInvoiceAdjustmentHandler struct {
 	router
 }
 
-func (h *SubmitPendingInvoiceAdjustmentHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
+func (h *SubmitApprovePendingInvoiceAdjustmentHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
 	ctx := getContext(r)
 	var (
 		ledgerId, _ = strconv.Atoi(r.PathValue("ledgerId"))
+		status      = "approved"
 	)
 
-	err := h.Client().UpdatePendingInvoiceAdjustment(ctx, ctx.ClientId, ledgerId)
+	err := h.Client().UpdatePendingInvoiceAdjustment(ctx, ctx.ClientId, ledgerId, status)
 	if err != nil {
 		return err
 	}
