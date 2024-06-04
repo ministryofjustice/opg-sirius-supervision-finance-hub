@@ -30,7 +30,7 @@ func (s *Server) PostLedgerEntry(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.Service.CreateLedgerEntry(clientId, invoiceId, &ledgerEntry)
+	invoiceAdjustment, err := s.Service.CreateLedgerEntry(clientId, invoiceId, &ledgerEntry)
 
 	if err != nil {
 		var e shared.BadRequest
@@ -47,6 +47,14 @@ func (s *Server) PostLedgerEntry(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	jsonData, err := json.Marshal(invoiceAdjustment)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
+	_, _ = w.Write(jsonData)
 }
