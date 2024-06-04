@@ -42,7 +42,9 @@ describe("Pending Invoice Adjustments", () => {
     });
 
     it("shows correct success message", () => {
-        cy.visit("/clients/1/pending-invoice-adjustments?success=approve-invoice-adjustment[CREDIT]");
-        cy.get('.moj-banner__message').contains("You have approved the credit");
+        cy.visit("/clients/1/pending-invoice-adjustments?success=approve-invoice-adjustment[DEBIT]");
+        cy.get('.moj-banner__message').contains("You have approved the debit");
+        cy.visit("/clients/1/pending-invoice-adjustments?success=reject-invoice-adjustment[WRITE OFF]");
+        cy.get('.moj-banner__message').contains("You have rejected the write off");
     });
 });
