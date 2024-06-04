@@ -10,11 +10,8 @@ import (
 	"testing"
 )
 
-func TestService_CreateLedgerEntry(t *testing.T) {
-	conn := testDB.GetConn()
-	t.Cleanup(func() {
-		testDB.Restore()
-	})
+func (suite *IntegrationSuite) TestService_CreateLedgerEntry() {
+	conn := suite.testDB.GetConn()
 
 	conn.SeedData(
 		"INSERT INTO finance_client VALUES (1, 1, '1234', 'DEMANDED', NULL, 0, 0);",
