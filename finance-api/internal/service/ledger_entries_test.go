@@ -66,7 +66,7 @@ func (suite *IntegrationSuite) TestService_CreateLedgerEntry() {
 	}
 
 	for _, tt := range testCases {
-		t.Run(tt.name, func(t *testing.T) {
+		suite.T().Run(tt.name, func(t *testing.T) {
 			_, err := s.CreateLedgerEntry(tt.clientId, tt.invoiceId, tt.data)
 			if err != nil {
 				assert.ErrorIs(t, err, tt.err)
