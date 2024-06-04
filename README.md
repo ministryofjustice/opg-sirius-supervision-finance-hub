@@ -16,7 +16,7 @@
 
 ## Local development
 
-The application ran through Docker can be accessed on `localhost:8888/clients/1/invoices`.
+The application ran through Docker can be accessed on `localhost:8888/finance/clients/1/invoices`.
 
 To enable debugging and hot-reloading of Go files:
 
