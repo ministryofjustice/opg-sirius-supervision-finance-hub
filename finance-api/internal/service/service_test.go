@@ -2,14 +2,27 @@ package service
 
 import (
 	"github.com/opg-sirius-finance-hub/finance-api/internal/testhelpers"
-	"os"
+	"github.com/stretchr/testify/suite"
 	"testing"
 )
 
-var testDB *testhelpers.TestDatabase
+type IntegrationSuite struct {
+	suite.Suite
+	testDB *testhelpers.TestDatabase
+}
 
-func TestMain(m *testing.M) {
-	testDB = testhelpers.InitDb()
-	defer testDB.TearDown()
-	os.Exit(m.Run())
+func (suite *IntegrationSuite) SetupTest() {
+	suite.testDB = testhelpers.InitDb()
+}
+
+func TestSuite(t *testing.T) {
+	suite.Run(t, new(IntegrationSuite))
+}
+
+func (suite *IntegrationSuite) TearDownSuite() {
+	suite.testDB.TearDown()
+}
+
+func (suite *IntegrationSuite) AfterTest(suiteName, testName string) {
+	suite.testDB.Restore()
 }
