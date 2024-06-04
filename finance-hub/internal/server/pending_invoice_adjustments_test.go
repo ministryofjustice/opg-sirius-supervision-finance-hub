@@ -90,13 +90,18 @@ func TestTransformType(t *testing.T) {
 			"Credit",
 		},
 		{
+			"Debit",
+			shared.AdjustmentTypeAddDebit,
+			"Debit",
+		},
+		{
 			"Write off",
 			shared.AdjustmentTypeWriteOff,
 			"Write off",
 		},
 		{
 			"Unknown",
-			shared.AdjustmentTypeAddDebit,
+			shared.AdjustmentTypeUnknown,
 			"",
 		},
 	}
