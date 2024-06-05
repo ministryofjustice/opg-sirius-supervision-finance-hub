@@ -53,6 +53,10 @@
     }
   ],
   "tasks": {
-      "id": 1
+    "personId": 1,
+    "type": "FPIA",
+    "dueDate": "03/07/2024",
+    "assigneeId": 41,
+    "description": "Pending credit memo added to S203531/19 requires manager approval"
   }
 }

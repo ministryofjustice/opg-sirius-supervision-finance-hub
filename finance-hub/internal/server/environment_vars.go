@@ -16,7 +16,7 @@ type EnvironmentVars struct {
 }
 
 func NewEnvironmentVars() (EnvironmentVars, error) {
-	supervisionBillingTeamId, err := strconv.Atoi(getEnv("SUPERVISION_BILLING_TEAM", "41"))
+	supervisionBillingTeamId, err := strconv.Atoi(getEnv("SUPERVISION_BILLING_TEAM_ID", "41"))
 
 	if err != nil {
 		return EnvironmentVars{}, err
