@@ -10,7 +10,12 @@ import (
 func (suite *IntegrationSuite) TestService_GetAccountInformation() {
 	conn := suite.testDB.GetConn()
 
-	conn.SeedData("INSERT INTO finance_client VALUES (1, 2, 'sop123', 'DEMANDED', 3, 12300, 321)")
+	conn.SeedData(
+		"INSERT INTO finance_client VALUES (1, 1, 'sop123', 'DEMANDED', NULL)",
+		"INSERT INTO invoice VALUES (1, 1, 1, 'S2', 'S203531/19', '2019-04-01', '2020-03-31', 32000, NULL, '2020-03-20',1, '2020-03-16', 10, NULL, 0, '2019-06-06', 99);",
+		"INSERT INTO ledger VALUES (1, 'random1223', '2022-04-11T08:36:40+00:00', '', 12000, '', 'CARD PAYMENT', 'APPROVED', 1, NULL, NULL, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 65);",
+		"INSERT INTO ledger_allocation VALUES (1, 1, 1, '2022-04-11T08:36:40+00:00', 12000, 'APPROVED', NULL, 'Notes here', '2022-04-11', NULL);",
+	)
 
 	Store := store.New(conn)
 	tests := []struct {
@@ -21,16 +26,16 @@ func (suite *IntegrationSuite) TestService_GetAccountInformation() {
 	}{
 		{
 			name: "returns account information when clientId matches clientId in finance_client table",
-			id:   2,
+			id:   1,
 			want: &shared.AccountInformation{
-				OutstandingBalance: 12300,
-				CreditBalance:      321,
+				OutstandingBalance: 20000,
+				CreditBalance:      0,
 				PaymentMethod:      "DEMANDED",
 			},
 		},
 		{
 			name:    "returns error when no match is found",
-			id:      1,
+			id:      2,
 			wantErr: true,
 		},
 	}
