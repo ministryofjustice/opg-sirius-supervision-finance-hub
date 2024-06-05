@@ -16,7 +16,7 @@ INSERT INTO invoice VALUES (4, 3, 3, 'AD', 'AD03532/24', '2023-04-01', '2024-03-
 ALTER SEQUENCE invoice_id_seq RESTART WITH 5;
 
 INSERT INTO ledger VALUES (1, 'adjustment123', '2022-04-11T08:36:40+00:00', '', 1200, 'credit adjustment for 12.00', 'CREDIT MEMO', 'PENDING', 1, 1, null, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 65);
-INSERT INTO ledger VALUES (2, 'random1223', '2022-04-11T08:36:40+00:00', '', 8800, '', 'CARD PAYMENT', 'APPROVED', 1, 1, 1, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 65);
+INSERT INTO ledger VALUES (2, 'random1223', '2022-04-11T08:36:40+00:00', '', 18500, '', 'REMISSION', 'CONFIRMED', 1, 1, 1, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 65);
 INSERT INTO ledger VALUES (3, 'addcredit', '2022-04-11T08:36:40+00:00', '', 10000, '', 'CREDIT MEMO', 'APPROVED', 3, null, null, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 65);
 ALTER SEQUENCE ledger_id_seq RESTART WITH 4;
 
