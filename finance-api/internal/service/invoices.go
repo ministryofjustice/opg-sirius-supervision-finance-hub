@@ -70,7 +70,7 @@ func (ib *invoiceBuilder) addLedgerAllocations(ilas []store.GetLedgerAllocations
 			})
 
 		metadata := ib.invoices[il.InvoiceID.Int32]
-		if il.Status == "APPROVED" {
+		if il.Status == "APPROVED" || il.Status == "CONFIRMED" {
 			metadata.total += int(il.Amount)
 			if slices.Contains(FeeReductionTypes, il.Type) && metadata.contextType == "" {
 				metadata.contextType = cases.Title(language.English).String(il.Type)
