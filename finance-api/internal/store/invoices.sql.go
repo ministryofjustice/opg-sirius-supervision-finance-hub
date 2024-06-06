@@ -67,6 +67,48 @@ func (q *Queries) AddFeeReductionToInvoices(ctx context.Context, id int32) ([]In
 	return items, nil
 }
 
+const getGeneratedInvoices = `-- name: GetGeneratedInvoices :many
+SELECT reference, feetype, amount, createddate, createdby_id
+FROM invoice i
+JOIN finance_client fc ON fc.id = i.finance_client_id
+WHERE fc.client_id = $1
+ORDER BY createddate DESC
+`
+
+type GetGeneratedInvoicesRow struct {
+	Reference   string
+	Feetype     string
+	Amount      int32
+	Createddate pgtype.Date
+	CreatedbyID pgtype.Int4
+}
+
+func (q *Queries) GetGeneratedInvoices(ctx context.Context, clientID int32) ([]GetGeneratedInvoicesRow, error) {
+	rows, err := q.db.Query(ctx, getGeneratedInvoices, clientID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetGeneratedInvoicesRow
+	for rows.Next() {
+		var i GetGeneratedInvoicesRow
+		if err := rows.Scan(
+			&i.Reference,
+			&i.Feetype,
+			&i.Amount,
+			&i.Createddate,
+			&i.CreatedbyID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getInvoiceBalance = `-- name: GetInvoiceBalance :one
 SELECT i.amount initial, i.amount - COALESCE(SUM(la.amount), 0) outstanding, i.feetype
 FROM invoice i
