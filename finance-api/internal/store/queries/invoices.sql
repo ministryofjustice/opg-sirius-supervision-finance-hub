@@ -43,10 +43,3 @@ SET fee_reduction_id = fi.fee_reduction_id
 FROM filtered_invoices fi
 WHERE i.id = fi.invoice_id
 returning i.*;
-
--- name: GetGeneratedInvoices :many
-SELECT reference, feetype, amount, createddate, createdby_id
-FROM invoice i
-JOIN finance_client fc ON fc.id = i.finance_client_id
-WHERE fc.client_id = $1
-ORDER BY createddate DESC;

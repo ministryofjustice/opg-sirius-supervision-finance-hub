@@ -37,13 +37,3 @@ SELECT nextval('ledger_allocation_id_seq'),
        $4
 FROM ledger
 returning (SELECT reference invoiceReference FROM invoice WHERE id = invoice_id);
-
--- name: GetAddedInvoiceAdjustments :many
-SELECT i.reference, l.type, fr.type fee_reduction_type, l.amount, l.notes, l.createddate, l.createdby_id
-FROM ledger_allocation la
-JOIN ledger l ON l.id = la.ledger_id
-LEFT JOIN fee_reduction fr ON fr.id = l.fee_reduction_id
-JOIN invoice i ON i.id = la.invoice_id
-JOIN finance_client fc ON fc.id = i.finance_client_id
-WHERE fc.client_id = $1
-ORDER BY l.createddate DESC;

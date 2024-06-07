@@ -114,55 +114,6 @@ func (q *Queries) CreateLedgerForFeeReduction(ctx context.Context, arg CreateLed
 	return i, err
 }
 
-const getAddedInvoiceAdjustments = `-- name: GetAddedInvoiceAdjustments :many
-SELECT i.reference, l.type, fr.type fee_reduction_type, l.amount, l.notes, l.createddate, l.createdby_id
-FROM ledger_allocation la
-JOIN ledger l ON l.id = la.ledger_id
-LEFT JOIN fee_reduction fr ON fr.id = l.fee_reduction_id
-JOIN invoice i ON i.id = la.invoice_id
-JOIN finance_client fc ON fc.id = i.finance_client_id
-WHERE fc.client_id = $1
-ORDER BY l.createddate DESC
-`
-
-type GetAddedInvoiceAdjustmentsRow struct {
-	Reference        string
-	Type             string
-	FeeReductionType pgtype.Text
-	Amount           int32
-	Notes            pgtype.Text
-	Createddate      pgtype.Date
-	CreatedbyID      pgtype.Int4
-}
-
-func (q *Queries) GetAddedInvoiceAdjustments(ctx context.Context, clientID int32) ([]GetAddedInvoiceAdjustmentsRow, error) {
-	rows, err := q.db.Query(ctx, getAddedInvoiceAdjustments, clientID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetAddedInvoiceAdjustmentsRow
-	for rows.Next() {
-		var i GetAddedInvoiceAdjustmentsRow
-		if err := rows.Scan(
-			&i.Reference,
-			&i.Type,
-			&i.FeeReductionType,
-			&i.Amount,
-			&i.Notes,
-			&i.Createddate,
-			&i.CreatedbyID,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const updateLedgerAdjustment = `-- name: UpdateLedgerAdjustment :exec
 UPDATE ledger l
 SET status = $1
