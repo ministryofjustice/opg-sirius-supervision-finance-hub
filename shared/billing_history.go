@@ -45,6 +45,7 @@ type InvoiceAdjustmentApproved struct {
 
 type PaymentProcessed struct {
 	PaymentType string             `json:"payment_type"`
+	Total       int                `json:"total"`
 	Breakdown   []PaymentBreakdown `json:"breakdown"`
 }
 

@@ -1,0 +1,20 @@
+{{ define "invoice-generated-event" }}
+    <div class="moj-timeline__item">
+        <div class="moj-timeline__header">
+            <h2 class="moj-timeline__title">{{ .Event.Data.InvoiceType }} - created for {{ .Event.Data.Amount }}</h2>
+            <p class="moj-timeline__byline">
+                {{ printf "by %v, %v" .User .Date }}
+            </p>
+        </div>
+        <p class="moj-timeline__outstanding-balance">
+            {{ printf "Outstanding balance: £%v Credit balance: £0" .OutstandingBalance }}
+        </p>
+        <div class="moj-timeline__description">
+            <ul class="govuk-list govuk-list--bullet">
+                    <li>
+                        <a href="#">{{ .Event.Data.InvoiceReference.Reference }}</a>
+                    </li>
+            </ul>
+        </div>
+    </div>
+{{ end }}

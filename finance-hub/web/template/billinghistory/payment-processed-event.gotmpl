@@ -1,0 +1,25 @@
+{{ define "payment-processed-event" }}
+    <div class="moj-timeline__item">
+        <div class="moj-timeline__header">
+            <h2 class="moj-timeline__title">
+                {{ printf "%v received for %v" .Event.Data.PaymentType .Event.Data.Total }}
+            </h2>
+            <p class="moj-timeline__byline">
+                {{ printf "by %v, %v" .User .Date }}
+            </p>
+        </div>
+        <p class="moj-timeline__outstanding-balance">
+            {{ printf "Outstanding balance: £%v Credit balance: £0" .OutstandingBalance }}
+        </p>
+        <div class="moj-timeline__description">
+            <ul class="govuk-list govuk-list--bullet">
+                {{ range .Event.Data.Breakdown }}
+                    <li>
+                        £320 applied to S2000001/21
+                        {{ printf "%v applied to %v" .Event.Data.Amount .Event.Data.InvoiceReference.Reference }}
+                    </li>
+                {{ end }}
+            </ul>
+        </div>
+    </div>
+{{ end }}

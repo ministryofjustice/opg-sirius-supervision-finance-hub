@@ -87,6 +87,11 @@ func (s *Service) GetBillingHistory(clientID int) ([]shared.BillingHistory, erro
 
 	// now range through the row arrays to compile the events
 	for _, allo := range allocationsByLedger {
+		var amount int
+		for _, breakdown := range allo.breakdown {
+			amount += breakdown.Amount
+		}
+
 		bh := shared.BillingHistory{
 			User: allo.user, // need assignees table access
 			Date: allo.createdDate,
@@ -115,13 +120,9 @@ func (s *Service) GetBillingHistory(clientID int) ([]shared.BillingHistory, erro
 				Data: shared.PaymentProcessed{
 					PaymentType: allo.ledgerType,
 					Breakdown:   allo.breakdown,
+					Total:       amount,
 				},
 			}
-		}
-
-		var amount int
-		for _, breakdown := range allo.breakdown {
-			amount += breakdown.Amount
 		}
 
 		history = append(history, historyHolder{
