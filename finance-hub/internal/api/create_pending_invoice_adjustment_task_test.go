@@ -56,7 +56,7 @@ func TestAddWorkingDays(t *testing.T) {
 			startDate, _ = time.Parse("2006-01-02", test.startDate)
 			expectedDate, _ = time.Parse("2006-01-02", test.expectedDate)
 
-			assert.Equal(t, expectedDate, AddWorkingDays(startDate, test.workDays))
+			assert.Equal(t, expectedDate, addWorkingDays(startDate, test.workDays))
 		})
 	}
 }
@@ -65,7 +65,7 @@ func TestCreatePendingInvoiceAdjustmentTask(t *testing.T) {
 	logger, mockClient := SetUpTest()
 	client, _ := NewApiClient(mockClient, "http://localhost:3000", "", logger)
 
-	dueDate := AddWorkingDays(time.Now(), 20).Format("02/01/2006")
+	dueDate := addWorkingDays(time.Now(), 20).Format("02/01/2006")
 
 	json := fmt.Sprintf(
 		`{

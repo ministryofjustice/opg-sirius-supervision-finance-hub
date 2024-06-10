@@ -9,7 +9,7 @@ import (
 	"log"
 )
 
-func (s *Service) CreateLedgerEntry(clientId int, invoiceId int, ledgerEntry *shared.CreateLedgerEntryRequest) (*shared.InvoiceAdjustment, error) {
+func (s *Service) CreateLedgerEntry(clientId int, invoiceId int, ledgerEntry *shared.CreateLedgerEntryRequest) (*shared.InvoiceReference, error) {
 	ctx := context.Background()
 
 	balance, err := s.store.GetInvoiceBalance(context.Background(), int32(invoiceId))
@@ -36,7 +36,7 @@ func (s *Service) CreateLedgerEntry(clientId int, invoiceId int, ledgerEntry *sh
 		return nil, err
 	}
 
-	return &shared.InvoiceAdjustment{InvoiceRef: invoiceReference}, nil
+	return &shared.InvoiceReference{InvoiceRef: invoiceReference}, nil
 }
 
 func (s *Service) validateAdjustmentAmount(adjustment *shared.CreateLedgerEntryRequest, balance store.GetInvoiceBalanceRow) error {

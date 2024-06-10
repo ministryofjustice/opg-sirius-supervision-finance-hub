@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func AddWorkingDays(date time.Time, days int) time.Time {
+func addWorkingDays(date time.Time, days int) time.Time {
 	for {
 		if days == 0 {
 			return date
@@ -20,10 +20,10 @@ func AddWorkingDays(date time.Time, days int) time.Time {
 
 		if date.Weekday() == time.Saturday {
 			date = date.AddDate(0, 0, 2)
-			return AddWorkingDays(date, days-1)
+			return addWorkingDays(date, days-1)
 		} else if date.Weekday() == time.Sunday {
 			date = date.AddDate(0, 0, 1)
-			return AddWorkingDays(date, days-1)
+			return addWorkingDays(date, days-1)
 		}
 
 		days--
@@ -33,13 +33,13 @@ func AddWorkingDays(date time.Time, days int) time.Time {
 func (c *ApiClient) CreatePendingInvoiceAdjustmentTask(ctx Context, clientId int, supervisionBillingTeamId int, invoiceRef string, adjustmentType string) error {
 	var body bytes.Buffer
 
-	dueDate := AddWorkingDays(time.Now(), 20)
+	dueDate := addWorkingDays(time.Now(), 20)
 	adjustmentTypeLabel := strings.ToLower(strings.Replace(adjustmentType, "_", " ", -1))
 
 	task := shared.Task{
 		ClientId: clientId,
 		Type:     "FPIA",
-		DueDate:  dueDate.Format("02/01/2006"),
+		DueDate:  shared.Date{Time: dueDate},
 		Assignee: supervisionBillingTeamId,
 		Notes:    fmt.Sprintf("Pending %s added to %s requires manager approval", adjustmentTypeLabel, invoiceRef),
 	}
