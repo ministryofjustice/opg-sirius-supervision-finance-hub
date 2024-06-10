@@ -20,7 +20,7 @@ func TestBillingHistory_UnmarshalJSON(t *testing.T) {
 					BaseBillingEvent: BaseBillingEvent{
 						Type: EventTypeInvoiceGenerated,
 					},
-					InvoiceReference: InvoiceReference{
+					InvoiceReference: InvoiceEvent{
 						ID:        123,
 						Reference: "123abc",
 					},

@@ -41,7 +41,7 @@ func (b *BillingHistory) UnmarshalJSON(data []byte) (err error) {
 	return err
 }
 
-type InvoiceReference struct {
+type InvoiceEvent struct {
 	ID        int    `json:"id"`
 	Reference string `json:"reference"`
 }
@@ -55,9 +55,9 @@ func (d BaseBillingEvent) GetType() BillingEventType {
 }
 
 type InvoiceGenerated struct {
-	InvoiceReference InvoiceReference `json:"invoice_reference"`
-	InvoiceType      string           `json:"invoice_type"`
-	Amount           int              `json:"amount"`
+	InvoiceReference InvoiceEvent `json:"invoice_reference"`
+	InvoiceType      string       `json:"invoice_type"`
+	Amount           int          `json:"amount"`
 	BaseBillingEvent
 }
 
@@ -90,8 +90,8 @@ type PaymentProcessed struct {
 }
 
 type PaymentBreakdown struct {
-	InvoiceReference InvoiceReference `json:"invoice_reference"`
-	Amount           int              `json:"amount"`
+	InvoiceReference InvoiceEvent `json:"invoice_reference"`
+	Amount           int          `json:"amount"`
 }
 
 type BillingEventType int

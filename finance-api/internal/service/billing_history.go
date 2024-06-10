@@ -42,7 +42,7 @@ func (s *Service) GetBillingHistory(clientID int) ([]shared.BillingHistory, erro
 				BaseBillingEvent: shared.BaseBillingEvent{
 					Type: shared.EventTypeInvoiceGenerated,
 				},
-				InvoiceReference: shared.InvoiceReference{
+				InvoiceReference: shared.InvoiceEvent{
 					ID:        int(inv.InvoiceID),
 					Reference: inv.Reference,
 				},
@@ -77,7 +77,7 @@ func (s *Service) GetBillingHistory(clientID int) ([]shared.BillingHistory, erro
 			}
 		}
 		a.breakdown = append(a.breakdown, shared.PaymentBreakdown{
-			InvoiceReference: shared.InvoiceReference{
+			InvoiceReference: shared.InvoiceEvent{
 				ID:        int(allo.InvoiceID),
 				Reference: allo.Reference,
 			},
@@ -134,7 +134,7 @@ func (s *Service) GetBillingHistory(clientID int) ([]shared.BillingHistory, erro
 
 	// oldest first
 	sort.Slice(history, func(i, j int) bool {
-		return history[i].billingHistory.Date.Time.After(history[j].billingHistory.Date.Time)
+		return history[i].billingHistory.Date.Time.Before(history[j].billingHistory.Date.Time)
 	})
 
 	// calculate balances by iterating through (approved) ledgers and invoices, then extract history from holder
@@ -148,8 +148,8 @@ func (s *Service) GetBillingHistory(clientID int) ([]shared.BillingHistory, erro
 	}
 
 	// sort in the correct order
-	sort.Slice(history, func(i, j int) bool {
-		return history[i].billingHistory.Date.Time.Before(history[j].billingHistory.Date.Time)
+	sort.Slice(billingHistory, func(i, j int) bool {
+		return billingHistory[i].Date.Time.After(billingHistory[j].Date.Time)
 	})
 
 	return billingHistory, nil
