@@ -2,7 +2,7 @@
     <div class="moj-timeline__item">
         <div class="moj-timeline__header">
             <h2 class="moj-timeline__title">
-                {{ printf "Fee %v applied to %v for %v" .Event.Data.ReductionType .Event.Data.InvoiceReference.Reference .Event.Data.Amount }}
+                {{ printf "Fee %v applied to %v for %v" .Event.AdjustmentType .Event.InvoiceReference.Reference .Event.Amount }}
             </h2>
             <p class="moj-timeline__byline">
                 {{ printf "by %v, %v" .User .Date }}
@@ -14,7 +14,7 @@
         <div class="moj-timeline__description">
             <ul class="govuk-list govuk-list--bullet">
                     <li>
-                        <a href="#">{{ .Event.Data.InvoiceReference.Reference }}</a>
+                        <a href="#">{{ .Event.InvoiceReference.Reference }}</a>
                     </li>
             </ul>
         </div>

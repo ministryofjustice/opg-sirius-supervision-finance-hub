@@ -1,7 +1,7 @@
 {{ define "invoice-generated-event" }}
     <div class="moj-timeline__item">
         <div class="moj-timeline__header">
-            <h2 class="moj-timeline__title">{{ .Event.Data.InvoiceType }} - created for {{ .Event.Data.Amount }}</h2>
+            <h2 class="moj-timeline__title">{{ .Event.InvoiceType }} - created for {{ .Event.Amount }}</h2>
             <p class="moj-timeline__byline">
                 {{ printf "by %v, %v" .User .Date }}
             </p>
@@ -12,7 +12,7 @@
         <div class="moj-timeline__description">
             <ul class="govuk-list govuk-list--bullet">
                     <li>
-                        <a href="#">{{ .Event.Data.InvoiceReference.Reference }}</a>
+                        <a href="#">{{ .Event.InvoiceReference.Reference }}</a>
                     </li>
             </ul>
         </div>

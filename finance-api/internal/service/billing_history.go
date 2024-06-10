@@ -38,16 +38,16 @@ func (s *Service) GetBillingHistory(clientID int) ([]shared.BillingHistory, erro
 		bh := shared.BillingHistory{
 			User: strconv.Itoa(int(inv.CreatedbyID.Int32)), // need assignees table access
 			Date: shared.Date{Time: inv.Createddate.Time},
-			Event: shared.BillingEvent{
-				Type: shared.EventTypeInvoiceGenerated,
-				Data: shared.InvoiceGenerated{
-					InvoiceReference: shared.InvoiceReference{
-						ID:        int(inv.InvoiceID),
-						Reference: inv.Reference,
-					},
-					InvoiceType: inv.Feetype,
-					Amount:      int(inv.Amount),
+			Event: shared.InvoiceGenerated{
+				BaseBillingEvent: shared.BaseBillingEvent{
+					Type: shared.EventTypeInvoiceGenerated,
 				},
+				InvoiceReference: shared.InvoiceReference{
+					ID:        int(inv.InvoiceID),
+					Reference: inv.Reference,
+				},
+				InvoiceType: inv.Feetype,
+				Amount:      int(inv.Amount),
 			},
 		}
 
@@ -83,6 +83,7 @@ func (s *Service) GetBillingHistory(clientID int) ([]shared.BillingHistory, erro
 			},
 			Amount: int(allo.Amount),
 		})
+		allocationsByLedger[allo.LedgerID] = a
 	}
 
 	// now range through the row arrays to compile the events
@@ -99,41 +100,41 @@ func (s *Service) GetBillingHistory(clientID int) ([]shared.BillingHistory, erro
 
 		switch allo.ledgerType {
 		case "CREDIT MEMO", "DEBIT MEMO", "CREDIT WRITE OFF":
-			bh.Event = shared.BillingEvent{
-				Type: shared.EventTypeInvoiceAdjustmentApproved,
-				Data: shared.InvoiceAdjustmentApproved{
-					AdjustmentType:   allo.ledgerType,
-					PaymentBreakdown: allo.breakdown[0], // adjustments apply to a single invoice
+			bh.Event = shared.InvoiceAdjustmentApproved{
+				BaseBillingEvent: shared.BaseBillingEvent{
+					Type: shared.EventTypeInvoiceAdjustmentApproved,
 				},
+				AdjustmentType:   allo.ledgerType,
+				PaymentBreakdown: allo.breakdown[0], // adjustments apply to a single invoice
 			}
 		case "CREDIT EXEMPTION", "CREDIT HARDSHIP", "CREDIT REMISSION":
-			bh.Event = shared.BillingEvent{
-				Type: shared.EventTypeFeeReductionApplied,
-				Data: shared.FeeReductionApplied{
-					ReductionType:    allo.ledgerType,   // could combine with above?
-					PaymentBreakdown: allo.breakdown[0], // adjustments apply to a single invoice
+			bh.Event = shared.FeeReductionApplied{
+				BaseBillingEvent: shared.BaseBillingEvent{
+					Type: shared.EventTypeFeeReductionApplied,
 				},
+				ReductionType:    allo.ledgerType,   // could combine with above?
+				PaymentBreakdown: allo.breakdown[0], // adjustments apply to a single invoice
 			}
 		case "BACS TRANSFER", "CARD PAYMENT", "UNKNOWN CREDIT", "UNKNOWN DEBIT": // check types
-			bh.Event = shared.BillingEvent{
-				Type: shared.EventTypePaymentProcessed,
-				Data: shared.PaymentProcessed{
-					PaymentType: allo.ledgerType,
-					Breakdown:   allo.breakdown,
-					Total:       amount,
+			bh.Event = shared.PaymentProcessed{
+				BaseBillingEvent: shared.BaseBillingEvent{
+					Type: shared.EventTypePaymentProcessed,
 				},
+				PaymentType: allo.ledgerType,
+				Breakdown:   allo.breakdown,
+				Total:       amount,
 			}
 		}
 
 		history = append(history, historyHolder{
 			billingHistory:    bh,
-			balanceAdjustment: -amount, //
+			balanceAdjustment: -amount, // allocated funds subtract from the outstanding balance
 		})
 	}
 
 	// oldest first
 	sort.Slice(history, func(i, j int) bool {
-		return history[i].billingHistory.Date.Time.Before(history[j].billingHistory.Date.Time)
+		return history[i].billingHistory.Date.Time.After(history[j].billingHistory.Date.Time)
 	})
 
 	// calculate balances by iterating through (approved) ledgers and invoices, then extract history from holder
@@ -148,7 +149,7 @@ func (s *Service) GetBillingHistory(clientID int) ([]shared.BillingHistory, erro
 
 	// sort in the correct order
 	sort.Slice(history, func(i, j int) bool {
-		return history[i].billingHistory.Date.Time.After(history[j].billingHistory.Date.Time)
+		return history[i].billingHistory.Date.Time.Before(history[j].billingHistory.Date.Time)
 	})
 
 	return billingHistory, nil

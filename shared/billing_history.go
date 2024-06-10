@@ -9,9 +9,36 @@ type BillingHistory struct {
 	OutstandingBalance int          `json:"outstanding_balance"`
 }
 
-type BillingEvent struct {
-	Type BillingEventType `json:"type"`
-	Data interface{}      `json:"data"`
+type BillingEvent interface {
+	GetType() BillingEventType
+}
+
+func (b *BillingHistory) UnmarshalJSON(data []byte) (err error) {
+	var typ struct {
+		Event struct {
+			Type BillingEventType `json:"type"`
+		} `json:"event"`
+	}
+	if err := json.Unmarshal(data, &typ); err != nil {
+		return err
+	}
+	switch typ.Event.Type {
+	case EventTypeInvoiceGenerated:
+		b.Event = new(InvoiceGenerated)
+	case EventTypeFeeReductionAwarded:
+		b.Event = new(FeeReductionAwarded)
+	case EventTypeFeeReductionApplied:
+		b.Event = new(FeeReductionApplied)
+	case EventTypeInvoiceAdjustmentApproved:
+		b.Event = new(InvoiceAdjustmentApproved)
+	case EventTypePaymentProcessed:
+		b.Event = new(PaymentProcessed)
+	default:
+		// ignore
+	}
+	type tmp BillingHistory // avoids infinite recursion
+	err = json.Unmarshal(data, (*tmp)(b))
+	return err
 }
 
 type InvoiceReference struct {
@@ -19,10 +46,19 @@ type InvoiceReference struct {
 	Reference string `json:"reference"`
 }
 
+type BaseBillingEvent struct {
+	Type BillingEventType `json:"type"`
+}
+
+func (d BaseBillingEvent) GetType() BillingEventType {
+	return d.Type
+}
+
 type InvoiceGenerated struct {
 	InvoiceReference InvoiceReference `json:"invoice_reference"`
 	InvoiceType      string           `json:"invoice_type"`
 	Amount           int              `json:"amount"`
+	BaseBillingEvent
 }
 
 type FeeReductionAwarded struct {
@@ -31,22 +67,26 @@ type FeeReductionAwarded struct {
 	EndDate       Date   `json:"end_date"`
 	DateReceived  Date   `json:"date_received"`
 	Notes         string `json:"notes"`
+	BaseBillingEvent
 }
 
 type FeeReductionApplied struct {
 	ReductionType string `json:"reduction_type"`
 	PaymentBreakdown
+	BaseBillingEvent
 }
 
 type InvoiceAdjustmentApproved struct {
 	AdjustmentType string `json:"adjustment_type"`
 	PaymentBreakdown
+	BaseBillingEvent
 }
 
 type PaymentProcessed struct {
 	PaymentType string             `json:"payment_type"`
 	Total       int                `json:"total"`
 	Breakdown   []PaymentBreakdown `json:"breakdown"`
+	BaseBillingEvent
 }
 
 type PaymentBreakdown struct {
