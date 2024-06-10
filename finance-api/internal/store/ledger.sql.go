@@ -36,7 +36,7 @@ SELECT nextval('ledger_allocation_id_seq'),
        'PENDING',
        $4
 FROM ledger
-returning (SELECT reference FROM invoice WHERE id = invoice_id)
+returning (SELECT reference invoiceReference FROM invoice WHERE id = invoice_id)
 `
 
 type CreateLedgerParams struct {
@@ -55,9 +55,9 @@ func (q *Queries) CreateLedger(ctx context.Context, arg CreateLedgerParams) (str
 		arg.Notes,
 		arg.Type,
 	)
-	var reference string
-	err := row.Scan(&reference)
-	return reference, err
+	var invoicereference string
+	err := row.Scan(&invoicereference)
+	return invoicereference, err
 }
 
 const createLedgerForFeeReduction = `-- name: CreateLedgerForFeeReduction :one

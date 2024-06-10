@@ -36,4 +36,4 @@ SELECT nextval('ledger_allocation_id_seq'),
        'PENDING',
        $4
 FROM ledger
-returning (SELECT reference FROM invoice WHERE id = invoice_id);
+returning (SELECT reference invoiceReference FROM invoice WHERE id = invoice_id);
