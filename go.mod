@@ -7,7 +7,7 @@ require (
 	github.com/jackc/pgx/v5 v5.5.5
 	github.com/lib/pq v1.10.9
 	github.com/ministryofjustice/opg-go-common v0.0.0-20231128145056-24628fba649c
-	github.com/pressly/goose/v3 v3.19.2
+	github.com/pressly/goose/v3 v3.20.0
 	github.com/stretchr/testify v1.9.0
 	github.com/testcontainers/testcontainers-go v0.31.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.31.0
@@ -18,7 +18,7 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.24.0
 	go.opentelemetry.io/otel/sdk v1.24.0
 	go.uber.org/zap v1.27.0
-	golang.org/x/sync v0.6.0
+	golang.org/x/sync v0.7.0
 	golang.org/x/text v0.14.0
 	google.golang.org/grpc v1.62.1
 )

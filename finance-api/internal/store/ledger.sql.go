@@ -11,7 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const createLedger = `-- name: CreateLedger :exec
+const createLedger = `-- name: CreateLedger :one
 WITH fc AS (SELECT id FROM finance_client WHERE client_id = $1),
      ledger AS (
          INSERT INTO ledger (id, datetime, amount, notes, type, finance_client_id, reference, method, status)
@@ -36,6 +36,7 @@ SELECT nextval('ledger_allocation_id_seq'),
        'PENDING',
        $4
 FROM ledger
+returning (SELECT reference invoiceReference FROM invoice WHERE id = invoice_id)
 `
 
 type CreateLedgerParams struct {
@@ -46,15 +47,17 @@ type CreateLedgerParams struct {
 	Type      string
 }
 
-func (q *Queries) CreateLedger(ctx context.Context, arg CreateLedgerParams) error {
-	_, err := q.db.Exec(ctx, createLedger,
+func (q *Queries) CreateLedger(ctx context.Context, arg CreateLedgerParams) (string, error) {
+	row := q.db.QueryRow(ctx, createLedger,
 		arg.ClientID,
 		arg.InvoiceID,
 		arg.Amount,
 		arg.Notes,
 		arg.Type,
 	)
-	return err
+	var invoicereference string
+	err := row.Scan(&invoicereference)
+	return invoicereference, err
 }
 
 const createLedgerForFeeReduction = `-- name: CreateLedgerForFeeReduction :one
