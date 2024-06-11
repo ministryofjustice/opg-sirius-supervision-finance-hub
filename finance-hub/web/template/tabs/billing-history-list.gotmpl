@@ -1,0 +1,15 @@
+{{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.BillingHistoryVars*/ -}}
+{{ define "billing-history-list" }}
+  <header>
+    <h1 class="govuk-heading-l  govuk-!-margin-bottom-0  govuk-!-margin-top-0">Billing History</h1>
+  </header>
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+      <div class="moj-timeline">
+        {{ range .BillingHistory }}
+          {{ template "template-renderer" . }}
+        {{ end }}
+      </div>
+    </div>
+  </div>
+{{ end }}
