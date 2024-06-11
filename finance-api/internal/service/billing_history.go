@@ -37,7 +37,7 @@ func (s *Service) GetBillingHistory(clientID int) ([]shared.BillingHistory, erro
 	for _, inv := range invoices {
 		bh := shared.BillingHistory{
 			User: strconv.Itoa(int(inv.CreatedbyID.Int32)), // need assignees table access
-			Date: shared.Date{Time: inv.Createddate.Time},
+			Date: shared.Date{Time: inv.Confirmeddate.Time},
 			Event: shared.InvoiceGenerated{
 				BaseBillingEvent: shared.BaseBillingEvent{
 					Type: shared.EventTypeInvoiceGenerated,
@@ -71,7 +71,7 @@ func (s *Service) GetBillingHistory(clientID int) ([]shared.BillingHistory, erro
 			a = allocationHolder{
 				ledgerType:  allo.Type,
 				notes:       allo.Notes.String,
-				createdDate: shared.Date{Time: allo.Createddate.Time},
+				createdDate: shared.Date{Time: allo.Confirmeddate.Time},
 				user:        strconv.Itoa(int(allo.CreatedbyID.Int32)),
 				breakdown:   []shared.PaymentBreakdown{},
 			}

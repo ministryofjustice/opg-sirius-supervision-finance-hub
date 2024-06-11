@@ -12,25 +12,25 @@ import (
 )
 
 const getAppliedLedgerAllocations = `-- name: GetAppliedLedgerAllocations :many
-SELECT i.id invoice_id, l.id ledger_id, i.reference, l.type, la.amount, l.notes, l.createddate, l.createdby_id
+SELECT i.id invoice_id, l.id ledger_id, i.reference, l.type, la.amount, l.notes, l.confirmeddate, l.createdby_id
 FROM ledger_allocation la
          JOIN ledger l ON l.id = la.ledger_id
          JOIN invoice i ON i.id = la.invoice_id
          JOIN finance_client fc ON fc.id = i.finance_client_id
 WHERE fc.client_id = $1
 AND l.status IN ('APPROVED', 'CONFIRMED')
-ORDER BY l.createddate DESC
+ORDER BY l.confirmeddate DESC
 `
 
 type GetAppliedLedgerAllocationsRow struct {
-	InvoiceID   int32
-	LedgerID    int32
-	Reference   string
-	Type        string
-	Amount      int32
-	Notes       pgtype.Text
-	Createddate pgtype.Date
-	CreatedbyID pgtype.Int4
+	InvoiceID     int32
+	LedgerID      int32
+	Reference     string
+	Type          string
+	Amount        int32
+	Notes         pgtype.Text
+	Confirmeddate pgtype.Date
+	CreatedbyID   pgtype.Int4
 }
 
 func (q *Queries) GetAppliedLedgerAllocations(ctx context.Context, clientID int32) ([]GetAppliedLedgerAllocationsRow, error) {
@@ -49,7 +49,7 @@ func (q *Queries) GetAppliedLedgerAllocations(ctx context.Context, clientID int3
 			&i.Type,
 			&i.Amount,
 			&i.Notes,
-			&i.Createddate,
+			&i.Confirmeddate,
 			&i.CreatedbyID,
 		); err != nil {
 			return nil, err
@@ -63,20 +63,20 @@ func (q *Queries) GetAppliedLedgerAllocations(ctx context.Context, clientID int3
 }
 
 const getGeneratedInvoices = `-- name: GetGeneratedInvoices :many
-SELECT i.id invoice_id, reference, feetype, amount, createddate, createdby_id
+SELECT i.id invoice_id, reference, feetype, amount, confirmeddate, createdby_id
 FROM invoice i
          JOIN finance_client fc ON fc.id = i.finance_client_id
 WHERE fc.client_id = $1
-ORDER BY createddate DESC
+ORDER BY confirmeddate DESC
 `
 
 type GetGeneratedInvoicesRow struct {
-	InvoiceID   int32
-	Reference   string
-	Feetype     string
-	Amount      int32
-	Createddate pgtype.Date
-	CreatedbyID pgtype.Int4
+	InvoiceID     int32
+	Reference     string
+	Feetype       string
+	Amount        int32
+	Confirmeddate pgtype.Date
+	CreatedbyID   pgtype.Int4
 }
 
 func (q *Queries) GetGeneratedInvoices(ctx context.Context, clientID int32) ([]GetGeneratedInvoicesRow, error) {
@@ -93,7 +93,7 @@ func (q *Queries) GetGeneratedInvoices(ctx context.Context, clientID int32) ([]G
 			&i.Reference,
 			&i.Feetype,
 			&i.Amount,
-			&i.Createddate,
+			&i.Confirmeddate,
 			&i.CreatedbyID,
 		); err != nil {
 			return nil, err
