@@ -17,6 +17,11 @@ type mockService struct {
 	err                error
 }
 
+func (s *mockService) GetBillingHistory(id int) ([]shared.BillingHistory, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (s *mockService) UpdatePendingInvoiceAdjustment(id int, status string) error {
 	s.expectedIds = []int{id}
 	return s.err
