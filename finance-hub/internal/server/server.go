@@ -17,6 +17,7 @@ type ApiClient interface {
 	GetCurrentUserDetails(api.Context) (shared.Assignee, error)
 	GetPersonDetails(api.Context, int) (shared.Person, error)
 	GetFeeReductions(api.Context, int) (shared.FeeReductions, error)
+	GetBillingHistory(api.Context, int) ([]shared.BillingHistory, error)
 	GetInvoices(api.Context, int) (shared.Invoices, error)
 	AdjustInvoice(api.Context, int, int, int, string, string, string) error
 	GetAccountInformation(api.Context, int) (shared.AccountInformation, error)
@@ -41,6 +42,7 @@ func New(logger *zap.SugaredLogger, client ApiClient, templates map[string]*temp
 
 	mux := http.NewServeMux()
 
+	mux.Handle("GET /clients/{clientId}/billing-history", wrap(&BillingHistoryHandler{&route{client: client, tmpl: templates["billing-history.gotmpl"], partial: "billing-history"}}))
 	mux.Handle("GET /clients/{clientId}/invoices", wrap(&InvoicesHandler{&route{client: client, tmpl: templates["invoices.gotmpl"], partial: "invoices"}}))
 	mux.Handle("GET /clients/{clientId}/fee-reductions", wrap(&FeeReductionsHandler{&route{client: client, tmpl: templates["fee-reductions.gotmpl"], partial: "fee-reductions"}}))
 	mux.Handle("GET /clients/{clientId}/pending-invoice-adjustments", wrap(&PendingInvoiceAdjustmentsHandler{&route{client: client, tmpl: templates["pending-invoice-adjustments.gotmpl"], partial: "pending-invoice-adjustments"}}))
