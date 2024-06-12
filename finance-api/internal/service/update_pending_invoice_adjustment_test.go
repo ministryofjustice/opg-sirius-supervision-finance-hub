@@ -47,7 +47,7 @@ func (suite *IntegrationSuite) TestService_UpdatePendingInvoiceAdjustment() {
 
 		_ = rows.Scan(&ID, &LedgerID, &InvoiceID, &Datetime, &Amount, &Status, &Reference, &Notes, &Allocateddate, &Batchnumber, &Source, &TransactionType)
 
-		assert.Equal(suite.T(), "APPROVED", Status)
+		assert.Equal(suite.T(), "ALLOCATED", Status)
 	}
 
 	if err == nil {
