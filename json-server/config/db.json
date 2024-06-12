@@ -12,28 +12,19 @@
       "id": 1,
       "firstname": "Finance",
       "surname": "Person",
-      "caseRecNumber": "12345678",
-      "outstandingBalance": "£22.22",
-      "creditBalance": "£1.01",
-      "paymentMethod": "Demanded"
+      "caseRecNumber": "12345678"
     },
     {
       "id": 2,
       "firstname": "Ian",
       "surname": "Finance",
-      "caseRecNumber": "12345678",
-      "outstandingBalance": "£1000000",
-      "creditBalance": "£0",
-      "paymentMethod": "Demanded"
+      "caseRecNumber": "12345678"
     },
     {
       "id": 3,
       "firstname": "Mandy",
       "surname": "Moneybags",
-      "caseRecNumber": "12345678",
-      "outstandingBalance": "£1000000",
-      "creditBalance": "£0",
-      "paymentMethod": "Demanded"
+      "caseRecNumber": "12345678"
     }
   ],
   "errors": [
@@ -53,10 +44,10 @@
     }
   ],
   "tasks": {
-    "personId": 1,
+    "personId": 3,
     "type": "FPIA",
-    "dueDate": "03/07/2024",
+    "dueDate": "10/07/2024",
     "assigneeId": 41,
-    "description": "Pending credit memo added to S203531/19 requires manager approval"
+    "description": "Pending credit write off added to S203532/24 requires manager approval"
   }
 }
