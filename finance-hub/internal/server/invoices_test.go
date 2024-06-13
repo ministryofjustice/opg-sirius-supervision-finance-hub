@@ -84,6 +84,7 @@ func TestInvoice(t *testing.T) {
 
 	expected := &InvoicesVars{
 		Invoices: out,
+		ClientId: "1",
 		AppVars:  appVars,
 	}
 
