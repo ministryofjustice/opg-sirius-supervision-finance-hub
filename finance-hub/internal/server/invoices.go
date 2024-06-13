@@ -5,6 +5,7 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"net/http"
+	"strconv"
 )
 
 type Invoices []Invoice
@@ -42,6 +43,7 @@ type Invoice struct {
 
 type InvoicesVars struct {
 	Invoices Invoices
+	ClientId string
 	AppVars
 }
 
@@ -57,7 +59,7 @@ func (h *InvoicesHandler) render(v AppVars, w http.ResponseWriter, r *http.Reque
 		return err
 	}
 
-	data := &InvoicesVars{h.transform(invoices, ctx.ClientId), v}
+	data := &InvoicesVars{h.transform(invoices, ctx.ClientId), strconv.Itoa(ctx.ClientId), v}
 	data.selectTab("invoices")
 	return h.execute(w, r, data)
 }
