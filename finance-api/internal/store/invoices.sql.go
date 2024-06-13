@@ -11,16 +11,41 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const addFeeReductionToInvoice = `-- name: AddFeeReductionToInvoice :one
+WITH filtered_invoices AS (SELECT i.id AS invoice_id, fr.id AS fee_reduction_id
+                           FROM invoice i
+                                    JOIN fee_reduction fr
+                                         ON i.finance_client_id = fr.finance_client_id
+                           WHERE i.raiseddate >= (fr.datereceived - interval '6 months')
+                             AND i.raiseddate BETWEEN fr.startdate AND fr.enddate
+                             AND fr.id = ANY($1::int[]) AND i.id = $2)
+UPDATE invoice i
+SET fee_reduction_id = fi.fee_reduction_id
+FROM filtered_invoices fi
+WHERE i.id = fi.invoice_id
+returning fi.fee_reduction_id
+`
+
+type AddFeeReductionToInvoiceParams struct {
+	Column1 []int32
+	ID      int32
+}
+
+func (q *Queries) AddFeeReductionToInvoice(ctx context.Context, arg AddFeeReductionToInvoiceParams) (int32, error) {
+	row := q.db.QueryRow(ctx, addFeeReductionToInvoice, arg.Column1, arg.ID)
+	var fee_reduction_id int32
+	err := row.Scan(&fee_reduction_id)
+	return fee_reduction_id, err
+}
+
 const addFeeReductionToInvoices = `-- name: AddFeeReductionToInvoices :many
-WITH filtered_invoices AS (
-    SELECT i.id AS invoice_id, fr.id AS fee_reduction_id
-    FROM invoice i
-             JOIN fee_reduction fr
-                  ON i.finance_client_id = fr.finance_client_id
-    WHERE i.raiseddate >= (fr.datereceived - interval '6 months')
-      AND i.raiseddate BETWEEN fr.startdate AND fr.enddate
-      AND fr.id = $1
-)
+WITH filtered_invoices AS (SELECT i.id AS invoice_id, fr.id AS fee_reduction_id
+                           FROM invoice i
+                                    JOIN fee_reduction fr
+                                         ON i.finance_client_id = fr.finance_client_id
+                           WHERE i.raiseddate >= (fr.datereceived - interval '6 months')
+                             AND i.raiseddate BETWEEN fr.startdate AND fr.enddate
+                             AND fr.id = $1)
 UPDATE invoice i
 SET fee_reduction_id = fi.fee_reduction_id
 FROM filtered_invoices fi
@@ -67,6 +92,120 @@ func (q *Queries) AddFeeReductionToInvoices(ctx context.Context, id int32) ([]In
 	return items, nil
 }
 
+const addManualInvoice = `-- name: AddManualInvoice :one
+INSERT INTO invoice (id, person_id, finance_client_id, feetype, reference, startdate, enddate, amount, confirmeddate,
+                     batchnumber, raiseddate, source, scheduledfn14date, cacheddebtamount, createddate, createdby_id,
+                     fee_reduction_id)
+VALUES (
+        nextval('invoice_id_seq'),
+        $1,
+        (select id from finance_client where client_id = $1),
+        $2,
+        $3,
+        $4,
+        $5,
+        $6,
+        $7,
+        $8,
+        $9,
+        $10,
+        $11,
+        $12,
+        $13,
+        $14,
+        $15
+       )
+returning id, person_id, finance_client_id, feetype, reference, startdate, enddate, amount, supervisionlevel, confirmeddate, batchnumber, raiseddate, source, scheduledfn14date, cacheddebtamount, createddate, createdby_id, fee_reduction_id
+`
+
+type AddManualInvoiceParams struct {
+	PersonID          pgtype.Int4
+	Feetype           string
+	Reference         string
+	Startdate         pgtype.Date
+	Enddate           pgtype.Date
+	Amount            int32
+	Confirmeddate     pgtype.Date
+	Batchnumber       pgtype.Int4
+	Raiseddate        pgtype.Date
+	Source            pgtype.Text
+	Scheduledfn14date pgtype.Date
+	Cacheddebtamount  pgtype.Int4
+	Createddate       pgtype.Date
+	CreatedbyID       pgtype.Int4
+	FeeReductionID    pgtype.Int4
+}
+
+func (q *Queries) AddManualInvoice(ctx context.Context, arg AddManualInvoiceParams) (Invoice, error) {
+	row := q.db.QueryRow(ctx, addManualInvoice,
+		arg.PersonID,
+		arg.Feetype,
+		arg.Reference,
+		arg.Startdate,
+		arg.Enddate,
+		arg.Amount,
+		arg.Confirmeddate,
+		arg.Batchnumber,
+		arg.Raiseddate,
+		arg.Source,
+		arg.Scheduledfn14date,
+		arg.Cacheddebtamount,
+		arg.Createddate,
+		arg.CreatedbyID,
+		arg.FeeReductionID,
+	)
+	var i Invoice
+	err := row.Scan(
+		&i.ID,
+		&i.PersonID,
+		&i.FinanceClientID,
+		&i.Feetype,
+		&i.Reference,
+		&i.Startdate,
+		&i.Enddate,
+		&i.Amount,
+		&i.Supervisionlevel,
+		&i.Confirmeddate,
+		&i.Batchnumber,
+		&i.Raiseddate,
+		&i.Source,
+		&i.Scheduledfn14date,
+		&i.Cacheddebtamount,
+		&i.Createddate,
+		&i.CreatedbyID,
+		&i.FeeReductionID,
+	)
+	return i, err
+}
+
+const checkCounterForInvoiceRefYear = `-- name: CheckCounterForInvoiceRefYear :one
+SELECT EXISTS (
+    SELECT 1
+    FROM counter
+    WHERE key = $1
+) AS exists
+`
+
+func (q *Queries) CheckCounterForInvoiceRefYear(ctx context.Context, key string) (bool, error) {
+	row := q.db.QueryRow(ctx, checkCounterForInvoiceRefYear, key)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
+const createCounterForInvoiceRefYear = `-- name: CreateCounterForInvoiceRefYear :one
+INSERT INTO counter (id, key, counter)
+SELECT nextval('counter_id_seq'), $1, 1
+RETURNING id, key, counter
+`
+
+func (q *Queries) CreateCounterForInvoiceRefYear(ctx context.Context, key string) (Counter, error) {
+	row := q.db.QueryRow(ctx, createCounterForInvoiceRefYear, key)
+	var i Counter
+	err := row.Scan(&i.ID, &i.Key, &i.Counter)
+	return i, err
+}
+
 const getInvoiceBalance = `-- name: GetInvoiceBalance :one
 SELECT i.amount initial, i.amount - COALESCE(SUM(la.amount), 0) outstanding, i.feetype
 FROM invoice i
@@ -86,6 +225,26 @@ func (q *Queries) GetInvoiceBalance(ctx context.Context, id int32) (GetInvoiceBa
 	row := q.db.QueryRow(ctx, getInvoiceBalance, id)
 	var i GetInvoiceBalanceRow
 	err := row.Scan(&i.Initial, &i.Outstanding, &i.Feetype)
+	return i, err
+}
+
+const getInvoiceRefCount = `-- name: GetInvoiceRefCount :one
+WITH updated AS (
+    UPDATE counter c
+        SET counter = c.counter + 1
+        WHERE key = $1
+        RETURNING id, key, counter
+)
+INSERT INTO counter (id, key, counter)
+SELECT nextval('counter_id_seq'), $1, 1
+WHERE NOT EXISTS (SELECT 1 FROM updated)
+RETURNING id, key, counter
+`
+
+func (q *Queries) GetInvoiceRefCount(ctx context.Context, key string) (Counter, error) {
+	row := q.db.QueryRow(ctx, getInvoiceRefCount, key)
+	var i Counter
+	err := row.Scan(&i.ID, &i.Key, &i.Counter)
 	return i, err
 }
 
@@ -212,4 +371,18 @@ func (q *Queries) GetSupervisionLevels(ctx context.Context, invoiceID pgtype.Int
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateCounterForInvoiceRefYear = `-- name: UpdateCounterForInvoiceRefYear :one
+UPDATE counter c
+SET counter = c.counter + 1
+WHERE key = $1
+RETURNING id, key, counter
+`
+
+func (q *Queries) UpdateCounterForInvoiceRefYear(ctx context.Context, key string) (Counter, error) {
+	row := q.db.QueryRow(ctx, updateCounterForInvoiceRefYear, key)
+	var i Counter
+	err := row.Scan(&i.ID, &i.Key, &i.Counter)
+	return i, err
 }
