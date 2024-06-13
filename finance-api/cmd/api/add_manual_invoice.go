@@ -37,7 +37,10 @@ func (s *Server) addManualInvoice(w http.ResponseWriter, r *http.Request) {
 		if ok {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(e)
+			err = json.NewEncoder(w).Encode(e)
+			if err != nil {
+				return
+			}
 			return
 		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -43,7 +43,7 @@ func TestSubmitManualInvoiceSuccess(t *testing.T) {
 	err := sut.render(appVars, w, r)
 
 	assert.Nil(t, err)
-	assert.Equal(t, "prefix/clients/1/manual-invoice?success=invoice-type[SO]", w.Header().Get("HX-Redirect"))
+	assert.Equal(t, "prefix/clients/1/invoices?success=invoice-type[SO]", w.Header().Get("HX-Redirect"))
 }
 
 func TestSubmitManualInvoiceValidationErrors(t *testing.T) {
