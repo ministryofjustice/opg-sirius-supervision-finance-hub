@@ -33,11 +33,8 @@ func addManualInvoiceSetup(conn testhelpers.TestConn) (Service, shared.AddManual
 	return s, params
 }
 
-func TestService_AddManualInvoice(t *testing.T) {
-	conn := testDB.GetConn()
-	t.Cleanup(func() {
-		testDB.Restore()
-	})
+func (suite *IntegrationSuite) TestService_AddManualInvoice() {
+	conn := suite.testDB.GetConn()
 
 	conn.SeedData(
 		"INSERT INTO finance_client VALUES (24, 24, '1234', 'DEMANDED', null, 12300, 2222);",
@@ -92,70 +89,56 @@ func TestService_AddManualInvoice(t *testing.T) {
 			&createdById,
 			&feeReductionId)
 
-		assert.Equal(t, "S2", feeType)
-		assert.Equal(t, 50000, amount)
-		assert.Equal(t, "2024-04-12", startDate.Format("2006-01-02"))
-		assert.Equal(t, "2025-03-31", endDate.Format("2006-01-02"))
+		assert.Equal(suite.T(), "S2", feeType)
+		assert.Equal(suite.T(), 50000, amount)
+		assert.Equal(suite.T(), "2024-04-12", startDate.Format("2006-01-02"))
+		assert.Equal(suite.T(), "2025-03-31", endDate.Format("2006-01-02"))
 	}
 
 	if err == nil {
 		return
 	}
-	t.Error("Add manual invoice failed")
+	suite.T().Error("Add manual invoice failed")
 }
 
-func TestService_AddManualInvoiceRaisedDateForAnInvoiceReturnsErrorForInvalidDates(t *testing.T) {
-	conn := testDB.GetConn()
-	t.Cleanup(func() {
-
-		testDB.Restore()
-	})
+func (suite *IntegrationSuite) TestService_AddManualInvoiceRaisedDateForAnInvoiceReturnsErrorForInvalidDates() {
+	conn := suite.testDB.GetConn()
 
 	conn.SeedData(
 		"INSERT INTO finance_client VALUES (24, 24, '1234', 'DEMANDED', null, 12300, 2222);",
 		"INSERT INTO fee_reduction VALUES (24, 24, 'REMISSION', null, '2023-04-01', '2024-03-31', 'Remission to see the notes', false, '2023-05-01');",
 	)
 	s, params := addManualInvoiceSetup(conn)
-	var raisedDateTransform *shared.Date
-	raisedDateTransform = &shared.Date{Time: time.Now().AddDate(0, 0, 1)}
-	var startDateTransform *shared.Date
-	startDateTransform = &shared.Date{Time: time.Now().AddDate(0, 0, 1)}
-	var endDateTransform *shared.Date
-	endDateTransform = &shared.Date{Time: time.Now().AddDate(0, 0, -1)}
-	params.RaisedDate = raisedDateTransform
-	params.StartDate = startDateTransform
-	params.EndDate = endDateTransform
+
+	params.RaisedDate = &shared.Date{Time: time.Now().AddDate(0, 0, 1)}
+	params.StartDate = &shared.Date{Time: time.Now().AddDate(0, 0, 1)}
+	params.EndDate = &shared.Date{Time: time.Now().AddDate(0, 0, -1)}
 	params.InvoiceType = "SO"
 
 	err := s.AddManualInvoice(24, params)
 	if err != nil {
-		assert.Equalf(t, "bad requests: RaisedDateForAnInvoice, StartDate, EndDate", err.Error(), "Raised date %s is not in the past", raisedDateTransform)
+		assert.Equalf(suite.T(), "bad requests: RaisedDateForAnInvoice, StartDate, EndDate", err.Error(), "Raised date %s is not in the past", params.RaisedDate)
 		return
 
 	}
 }
 
-func TestService_AddManualInvoiceRaisedDateForAnInvoiceReturnsNoError(t *testing.T) {
-	conn := testDB.GetConn()
-	t.Cleanup(func() {
-		testDB.Restore()
-	})
+func (suite *IntegrationSuite) TestService_AddManualInvoiceRaisedDateForAnInvoiceReturnsNoError() {
+	conn := suite.testDB.GetConn()
 
 	conn.SeedData(
 		"INSERT INTO finance_client VALUES (24, 24, '1234', 'DEMANDED', null, 12300, 2222);",
 		"INSERT INTO fee_reduction VALUES (24, 24, 'REMISSION', null, '2023-04-01', '2024-03-31', 'Remission to see the notes', false, '2023-05-01');",
 	)
 	s, params := addManualInvoiceSetup(conn)
-	var raisedDateTransform *shared.Date
-	raisedDateTransform = &shared.Date{Time: time.Now().AddDate(0, 0, -1)}
-	params.RaisedDate = raisedDateTransform
+	params.RaisedDate = &shared.Date{Time: time.Now().AddDate(0, 0, -1)}
 	params.InvoiceType = "SO"
 
 	err := s.AddManualInvoice(24, params)
 	if err == nil {
 		return
 	}
-	t.Error("validRaisedDateInThePast failed")
+	suite.T().Error("validRaisedDateInThePast failed")
 }
 
 func TestService_AddManualInvoiceAddLeadingZeros(t *testing.T) {

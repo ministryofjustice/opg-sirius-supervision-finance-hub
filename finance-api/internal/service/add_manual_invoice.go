@@ -74,8 +74,14 @@ func (s *Service) AddManualInvoice(id int, data shared.AddManualInvoice) error {
 	var getInvoiceCounterForYear store.Counter
 	if hasCounterGotInvoiceRefYear {
 		getInvoiceCounterForYear, err = transaction.UpdateCounterForInvoiceRefYear(ctx, strconv.Itoa(data.StartDate.Time.Year())+"InvoiceNumber")
+		if err != nil {
+			return err
+		}
 	} else {
 		getInvoiceCounterForYear, err = transaction.CreateCounterForInvoiceRefYear(ctx, strconv.Itoa(data.StartDate.Time.Year())+"InvoiceNumber")
+		if err != nil {
+			return err
+		}
 	}
 
 	invoiceRef := addLeadingZeros(int(getInvoiceCounterForYear.Counter))
@@ -144,21 +150,21 @@ func (s *Service) AddManualInvoice(id int, data shared.AddManualInvoice) error {
 			return err
 		}
 
-		err2 := s.AddLedgerAndAllocations(feeReduction.Type, feeReduction.ID, feeReduction.FinanceClientID.Int32, invoice, transaction, ctx, err)
+		err2 := s.AddLedgerAndAllocations(feeReduction.Type, feeReduction.ID, feeReduction.FinanceClientID.Int32, invoice, transaction, ctx)
 		if err2 != nil {
 			return err2
 		}
 	}
 
-	err = tx.Commit(ctx)
-	if err != nil {
-		return err
+	commitErr := tx.Commit(ctx)
+	if commitErr != nil {
+		return commitErr
 	}
 
 	return nil
 }
 
-func (s *Service) AddLedgerAndAllocations(feeReductionFeeType string, feeReductionId int32, feeReductionFinanceClientID int32, invoice store.Invoice, transaction *store.Queries, ctx context.Context, err error) error {
+func (s *Service) AddLedgerAndAllocations(feeReductionFeeType string, feeReductionId int32, feeReductionFinanceClientID int32, invoice store.Invoice, transaction *store.Queries, ctx context.Context) error {
 	var amount int32 = 0
 	switch strings.ToLower(feeReductionFeeType) {
 	case "exemption", "hardship":
@@ -182,7 +188,7 @@ func (s *Service) AddLedgerAndAllocations(feeReductionFeeType string, feeReducti
 			CreatedbyID: pgtype.Int4{Int32: 1},
 		}
 		var ledger store.Ledger
-		ledger, err = transaction.CreateLedgerForFeeReduction(ctx, ledgerQueryArgs)
+		ledger, err := transaction.CreateLedgerForFeeReduction(ctx, ledgerQueryArgs)
 		if err != nil {
 			return err
 		}

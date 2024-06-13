@@ -63,7 +63,7 @@ func (s *Service) AddFeeReduction(id int, data shared.AddFeeReduction) error {
 	}
 
 	for _, invoice := range invoices {
-		err2 := s.AddLedgerAndAllocations(data.FeeType, feeReduction.ID, feeReduction.FinanceClientID.Int32, invoice, transaction, ctx, err)
+		err2 := s.AddLedgerAndAllocations(data.FeeType, feeReduction.ID, feeReduction.FinanceClientID.Int32, invoice, transaction, ctx)
 		if err2 != nil {
 			return err2
 		}

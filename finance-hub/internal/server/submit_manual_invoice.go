@@ -57,7 +57,7 @@ func (h *SubmitManualInvoiceHandler) render(v AppVars, w http.ResponseWriter, r 
 		return err
 	}
 
-	w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/manual-invoice?success=invoice-type[%s]", v.EnvironmentVars.Prefix, ctx.ClientId, strings.ToUpper(invoiceType)))
+	w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices?success=invoice-type[%s]", v.EnvironmentVars.Prefix, ctx.ClientId, strings.ToUpper(invoiceType)))
 	return nil
 }
 

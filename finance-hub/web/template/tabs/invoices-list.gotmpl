@@ -12,7 +12,7 @@
             data-module="govuk-button"
             hx-get="{{ prefix (printf "/clients/%s/manual-invoice" .ClientId) }}"
             hx-target="#main-content"
-            hx-push-url="{{ (printf "/clients/%s/manual-invoice" .ClientId) }}">
+            hx-push-url="{{ prefix  (printf "/clients/%s/manual-invoice" .ClientId) }}">
             Add manual invoice
           </a>
         </div>
