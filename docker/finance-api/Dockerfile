@@ -8,7 +8,7 @@ RUN update-ca-certificates
 FROM base AS dev
 WORKDIR /app/finance-api
 
-RUN go install github.com/cosmtrek/air@latest && go install github.com/go-delve/delve/cmd/dlv@latest
+RUN go install github.com/cosmtrek/air@v1.52.1 && go install github.com/go-delve/delve/cmd/dlv@latest
 EXPOSE 8080
 EXPOSE 2345
 
