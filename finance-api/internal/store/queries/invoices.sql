@@ -1,7 +1,7 @@
 SET SEARCH_PATH TO supervision_finance;
 
 -- name: GetInvoices :many
-SELECT i.id, i.reference, i.amount, i.raiseddate, i.amount - COALESCE(SUM(la.amount), 0) outstanding
+SELECT i.id, i.reference, i.amount, i.raiseddate, COALESCE(SUM(la.amount), 0)::int received
 FROM invoice i
          JOIN finance_client fc ON fc.id = i.finance_client_id
          LEFT JOIN ledger_allocation la ON i.id = la.invoice_id AND la.status <> 'PENDING'
