@@ -94,6 +94,10 @@ func ParseInvoiceType(s string) InvoiceType {
 	return value
 }
 
+func (i InvoiceType) Valid() bool {
+	return i != InvoiceTypeUnknown
+}
+
 func (i InvoiceType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(i.Key())
 }
@@ -105,4 +109,12 @@ func (i *InvoiceType) UnmarshalJSON(data []byte) (err error) {
 	}
 	*i = ParseInvoiceType(s)
 	return nil
+}
+
+func (i InvoiceType) IsRaisedDateValid() bool {
+	switch i {
+	case InvoiceTypeAD, InvoiceTypeSF, InvoiceTypeSE, InvoiceTypeSO:
+		return true
+	}
+	return false
 }

@@ -37,7 +37,7 @@ func (c *ApiClient) AddManualInvoice(ctx Context, clientId int, invoiceType stri
 	}
 
 	err := json.NewEncoder(&body).Encode(shared.AddManualInvoice{
-		InvoiceType:      invoiceType,
+		InvoiceType:      shared.ParseInvoiceType(invoiceType),
 		Amount:           shared.DecimalStringToInt(amount),
 		RaisedDate:       raisedDateTransformed,
 		StartDate:        startDateTransformed,
@@ -48,7 +48,7 @@ func (c *ApiClient) AddManualInvoice(ctx Context, clientId int, invoiceType stri
 		return err
 	}
 
-	url := fmt.Sprintf("/clients/%d/manual-invoice", clientId)
+	url := fmt.Sprintf("/clients/%d/invoices", clientId)
 	req, err := c.newBackendRequest(ctx, http.MethodPost, url, &body)
 
 	if err != nil {

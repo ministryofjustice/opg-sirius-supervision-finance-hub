@@ -27,7 +27,7 @@ func TestServer_addManualInvoice(t *testing.T) {
 	endDateTransformed = &shared.Date{Time: endDateToTime}
 
 	manualInvoiceInfo := &shared.AddManualInvoice{
-		InvoiceType:      "S2",
+		InvoiceType:      shared.InvoiceTypeS2,
 		Amount:           32000,
 		RaisedDate:       endDateTransformed,
 		StartDate:        startDateTransformed,
@@ -35,7 +35,7 @@ func TestServer_addManualInvoice(t *testing.T) {
 		SupervisionLevel: "GENERAL",
 	}
 	_ = json.NewEncoder(&b).Encode(manualInvoiceInfo)
-	req := httptest.NewRequest(http.MethodPost, "/clients/1/manual-invoice", &b)
+	req := httptest.NewRequest(http.MethodPost, "/clients/1/invoices", &b)
 	req.SetPathValue("clientId", "1")
 	w := httptest.NewRecorder()
 
@@ -58,7 +58,7 @@ func TestServer_addManualInvoice(t *testing.T) {
 func TestServer_addManualInvoiceValidationErrors(t *testing.T) {
 	var b bytes.Buffer
 	manualInvoiceInfo := &shared.AddManualInvoice{
-		InvoiceType:      "",
+		InvoiceType:      shared.InvoiceTypeUnknown,
 		Amount:           0,
 		RaisedDate:       nil,
 		StartDate:        nil,
@@ -66,7 +66,7 @@ func TestServer_addManualInvoiceValidationErrors(t *testing.T) {
 		SupervisionLevel: "",
 	}
 	_ = json.NewEncoder(&b).Encode(manualInvoiceInfo)
-	req := httptest.NewRequest(http.MethodPost, "/clients/1/manual-invoice", &b)
+	req := httptest.NewRequest(http.MethodPost, "/clients/1/invoices", &b)
 	req.SetPathValue("clientId", "1")
 	w := httptest.NewRecorder()
 
@@ -98,7 +98,7 @@ func TestServer_addManualInvoiceValidationErrorsForAmountTooHigh(t *testing.T) {
 	endDateToTime, _ := time.Parse("2006-01-02", "2025-03-31")
 	endDateTransformed = &shared.Date{Time: endDateToTime}
 	manualInvoiceInfo := &shared.AddManualInvoice{
-		InvoiceType:      "S2",
+		InvoiceType:      shared.InvoiceTypeS2,
 		Amount:           320000,
 		RaisedDate:       endDateTransformed,
 		StartDate:        startDateTransformed,
@@ -106,7 +106,7 @@ func TestServer_addManualInvoiceValidationErrorsForAmountTooHigh(t *testing.T) {
 		SupervisionLevel: "GENERAL",
 	}
 	_ = json.NewEncoder(&b).Encode(manualInvoiceInfo)
-	req := httptest.NewRequest(http.MethodPost, "/clients/1/manual-invoice", &b)
+	req := httptest.NewRequest(http.MethodPost, "/clients/1/invoices", &b)
 	req.SetPathValue("clientId", "1")
 	w := httptest.NewRecorder()
 
@@ -138,7 +138,7 @@ func TestServer_addManualInvoiceDateErrors(t *testing.T) {
 	endDateToTime, _ := time.Parse("2006-01-02", "2025-03-31")
 	endDateTransformed = &shared.Date{Time: endDateToTime}
 	manualInvoiceInfo := &shared.AddManualInvoice{
-		InvoiceType:      "S2",
+		InvoiceType:      shared.InvoiceTypeS2,
 		Amount:           320000,
 		RaisedDate:       endDateTransformed,
 		StartDate:        startDateTransformed,
@@ -146,7 +146,7 @@ func TestServer_addManualInvoiceDateErrors(t *testing.T) {
 		SupervisionLevel: "GENERAL",
 	}
 	_ = json.NewEncoder(&b).Encode(manualInvoiceInfo)
-	req := httptest.NewRequest(http.MethodPost, "/clients/1/manual-invoice", &b)
+	req := httptest.NewRequest(http.MethodPost, "/clients/1/invoices", &b)
 	req.SetPathValue("clientId", "1")
 	w := httptest.NewRecorder()
 
@@ -174,7 +174,7 @@ func TestServer_addManualInvoice422Error(t *testing.T) {
 	endDateTransformed = &shared.Date{Time: endDateToTime}
 
 	manualInvoiceInfo := &shared.AddManualInvoice{
-		InvoiceType:      "S2",
+		InvoiceType:      shared.InvoiceTypeS2,
 		Amount:           32000,
 		RaisedDate:       endDateTransformed,
 		StartDate:        startDateTransformed,
@@ -182,7 +182,7 @@ func TestServer_addManualInvoice422Error(t *testing.T) {
 		SupervisionLevel: "GENERAL",
 	}
 	_ = json.NewEncoder(&b).Encode(manualInvoiceInfo)
-	req := httptest.NewRequest(http.MethodPost, "/clients/1/manual-invoice", &b)
+	req := httptest.NewRequest(http.MethodPost, "/clients/1/invoices", &b)
 	req.SetPathValue("clientId", "1")
 	w := httptest.NewRecorder()
 

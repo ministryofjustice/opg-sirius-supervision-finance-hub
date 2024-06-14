@@ -7,11 +7,11 @@ describe("Invoice Tab", () => {
             cy.contains('[data-cy="raised"]', "Raised");
             cy.contains('[data-cy="received"]', "Received");
             cy.contains('[data-cy="outstanding-balance"]', "Outstanding Balance");
-            cy.contains('[data-cy="ref"]', "S203531/19").first();
-            cy.contains('[data-cy="invoice-amount"]', "£123").first();
-            cy.contains('[data-cy="invoice-raised-date"]',"16/03/2020").first();
-            cy.contains('[data-cy="invoice-received"]', "£123").first();
-            cy.contains('[data-cy="invoice-outstanding-balance"]', "£0").first();
+            cy.contains('[data-cy="ref"]', "S203531/19");
+            cy.contains('[data-cy="invoice-amount"]', "£123");
+            cy.contains('[data-cy="invoice-raised-date"]',"16/03/2020");
+            cy.contains('[data-cy="invoice-received"]', "£123");
+            cy.contains('[data-cy="invoice-outstanding-balance"]', "£0");
         });
 
         it("does not show table for no invoices", () => {

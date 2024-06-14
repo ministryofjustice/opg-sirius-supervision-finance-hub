@@ -5,12 +5,6 @@ import (
 	"net/http"
 )
 
-type InvoiceType struct {
-	Value  string
-	Name   string
-	Amount bool
-}
-
 type UpdateManualInvoice struct {
 	ClientId     string
 	InvoiceTypes *[]shared.InvoiceType

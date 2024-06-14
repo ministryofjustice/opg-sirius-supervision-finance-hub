@@ -28,12 +28,12 @@ func TestSubmitManualInvoiceSuccess(t *testing.T) {
 	ro := &mockRoute{client: client}
 
 	w := httptest.NewRecorder()
-	r, _ := http.NewRequest(http.MethodPost, "/manual-invoice", strings.NewReader(form.Encode()))
+	r, _ := http.NewRequest(http.MethodPost, "/invoices", strings.NewReader(form.Encode()))
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	r.SetPathValue("clientId", "1")
 
 	appVars := AppVars{
-		Path: "/manual-invoice",
+		Path: "/invoices",
 	}
 
 	appVars.EnvironmentVars.Prefix = "prefix"
@@ -62,7 +62,7 @@ func TestSubmitManualInvoiceValidationErrors(t *testing.T) {
 	}
 
 	w := httptest.NewRecorder()
-	r, _ := http.NewRequest(http.MethodPost, "/manual-invoice", nil)
+	r, _ := http.NewRequest(http.MethodPost, "/invoices", nil)
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	r.SetPathValue("clientId", "1")
 
@@ -74,4 +74,121 @@ func TestSubmitManualInvoiceValidationErrors(t *testing.T) {
 	err := sut.render(appVars, w, r)
 	assert.Nil(err)
 	assert.Equal("422 Unprocessable Entity", w.Result().Status)
+}
+
+func Test_invoiceData(t *testing.T) {
+	type args struct {
+		invoiceType      string
+		amount           string
+		startDate        string
+		raisedDate       string
+		endDate          string
+		raisedDateYear   string
+		supervisionLevel string
+	}
+	tests := []struct {
+		name             string
+		args             args
+		amount           string
+		startDate        string
+		raisedDate       string
+		endDate          string
+		supervisionLevel string
+	}{
+		{
+			name: "AD invoice returns correct values",
+			args: args{
+				invoiceType:      "AD",
+				amount:           "",
+				startDate:        "",
+				raisedDate:       "2023-04-01",
+				endDate:          "",
+				raisedDateYear:   "",
+				supervisionLevel: "",
+			},
+			amount:           "100",
+			startDate:        "2023-04-01",
+			raisedDate:       "2023-04-01",
+			endDate:          "2024-03-31",
+			supervisionLevel: "",
+		},
+		{
+			name: "S2 invoice returns correct values",
+			args: args{
+				invoiceType:      "S2",
+				amount:           "100",
+				startDate:        "2033-04-01",
+				raisedDate:       "",
+				endDate:          "",
+				raisedDateYear:   "2025",
+				supervisionLevel: "",
+			},
+			amount:           "100",
+			startDate:        "2033-04-01",
+			raisedDate:       "2025-03-31",
+			endDate:          "2025-03-31",
+			supervisionLevel: "GENERAL",
+		},
+		{
+			name: "B2 invoice returns correct values",
+			args: args{
+				invoiceType:      "B2",
+				amount:           "100",
+				startDate:        "2033-04-01",
+				raisedDate:       "",
+				endDate:          "",
+				raisedDateYear:   "2025",
+				supervisionLevel: "",
+			},
+			amount:           "100",
+			startDate:        "2033-04-01",
+			raisedDate:       "2025-03-31",
+			endDate:          "2025-03-31",
+			supervisionLevel: "GENERAL",
+		},
+		{
+			name: "S3 invoice returns correct values",
+			args: args{
+				invoiceType:      "S3",
+				amount:           "100",
+				startDate:        "2033-04-01",
+				raisedDate:       "",
+				endDate:          "",
+				raisedDateYear:   "2025",
+				supervisionLevel: "",
+			},
+			amount:           "100",
+			startDate:        "2033-04-01",
+			raisedDate:       "2025-03-31",
+			endDate:          "2025-03-31",
+			supervisionLevel: "MINIMAL",
+		},
+		{
+			name: "B3 invoice returns correct values",
+			args: args{
+				invoiceType:      "S3",
+				amount:           "100",
+				startDate:        "2033-04-01",
+				raisedDate:       "",
+				endDate:          "",
+				raisedDateYear:   "2025",
+				supervisionLevel: "",
+			},
+			amount:           "100",
+			startDate:        "2033-04-01",
+			raisedDate:       "2025-03-31",
+			endDate:          "2025-03-31",
+			supervisionLevel: "MINIMAL",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, got1, got2, got3, got4 := invoiceData(tt.args.invoiceType, tt.args.amount, tt.args.startDate, tt.args.raisedDate, tt.args.endDate, tt.args.raisedDateYear, tt.args.supervisionLevel)
+			assert.Equalf(t, tt.amount, got, "invoiceData(%v, %v, %v, %v, %v, %v, %v)", tt.args.invoiceType, tt.args.amount, tt.args.startDate, tt.args.raisedDate, tt.args.endDate, tt.args.raisedDateYear, tt.args.supervisionLevel)
+			assert.Equalf(t, tt.startDate, got1, "invoiceData(%v, %v, %v, %v, %v, %v, %v)", tt.args.invoiceType, tt.args.amount, tt.args.startDate, tt.args.raisedDate, tt.args.endDate, tt.args.raisedDateYear, tt.args.supervisionLevel)
+			assert.Equalf(t, tt.raisedDate, got2, "invoiceData(%v, %v, %v, %v, %v, %v, %v)", tt.args.invoiceType, tt.args.amount, tt.args.startDate, tt.args.raisedDate, tt.args.endDate, tt.args.raisedDateYear, tt.args.supervisionLevel)
+			assert.Equalf(t, tt.endDate, got3, "invoiceData(%v, %v, %v, %v, %v, %v, %v)", tt.args.invoiceType, tt.args.amount, tt.args.startDate, tt.args.raisedDate, tt.args.endDate, tt.args.raisedDateYear, tt.args.supervisionLevel)
+			assert.Equalf(t, tt.supervisionLevel, got4, "invoiceData(%v, %v, %v, %v, %v, %v, %v)", tt.args.invoiceType, tt.args.amount, tt.args.startDate, tt.args.raisedDate, tt.args.endDate, tt.args.raisedDateYear, tt.args.supervisionLevel)
+		})
+	}
 }
