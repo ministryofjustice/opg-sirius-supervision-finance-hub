@@ -1,0 +1,145 @@
+{{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.UpdateManualInvoiceHandler*/ -}}
+{{ template "page" . }}
+
+{{ define "title" }}Add manual invoice{{ end }}
+
+{{ define "main-content" }}
+    {{ block "add-manual-invoice" .Data }}
+        <div class="govuk-grid-row govuk-!-margin-top-5">
+            <div class="govuk-grid-column-full">
+                <header>
+                    <h1 class="govuk-heading-l  govuk-!-margin-bottom-0  govuk-!-margin-top-0">Add manual invoice</h1>
+                </header>
+                <div id="error-summary"></div>
+                <div class="govuk-grid-row">
+                    <form
+                        id="add-manual-invoice-form"
+                        class="govuk-grid-column-one-third"
+                        method="post"
+                        hx-post="{{ prefix (printf "/clients/%s/invoices" .ClientId) }}"
+                        hx-target="#error-summary">
+                        <input type="hidden" name="xsrfToken" value="{{ .AppVars.XSRFToken }}"/>
+
+                        <div class="govuk-form-group" id="f-InvoiceType">
+                            <label class="govuk-label" for="invoiceType">
+                                Choose an invoice type
+                                <span id="error-message__InvoiceType"></span>
+                            </label>
+                            <select data-cy="invoice-type" class="govuk-select" id="invoice-type" name="invoiceType">
+                                <option value=""></option>
+                                {{ range .InvoiceTypes }}
+                                    <option value="{{ .Key }}" id="{{.Key}}">{{.Translation}}</option>
+                                {{end}}
+                            </select>
+
+                        </div>
+
+                        <div class="hide" id="amount-field-input">
+                            <div class="govuk-form-group" id="f-Amount">
+                                <label class="govuk-label govuk-body" for="amount">
+                                    Amount
+                                    <span id="error-message__Amount"></span>
+                                </label>
+                                <div class="govuk-input__wrapper"><div class="govuk-input__prefix" aria-hidden="true">£</div>
+                                    <input data-cy="amount" class="govuk-input govuk-input--width-5" id="amount"  name="amount" type="text" spellcheck="false"></div>
+                            </div>
+                        </div>
+
+                        <div  id="f-RaisedDateNotInPast">
+                            <div class="hide" id="raised-date-field-input">
+                                <div class="govuk-form-group" id="f-RaisedDateNotInPast">
+                                    <label class="govuk-label" for="raisedDate">
+                                        Raised date
+                                        <span id="error-message__RaisedDateNotInPast"></span>
+                                    </label>
+                                    <input data-cy="raised-date-field-input"] class="govuk-input govuk-input--width-10" id="raisedDate" name="raisedDate" type="date">
+                                </div>
+                            </div>
+
+                            <div class="hide " id="raised-year-field-input">
+                                <label class="govuk-label" for="raisedYear" >
+                                    Raised date
+                                    <span id="error-message__RaisedDate"></span>
+                                </label>
+                                <div class="govuk-date-input__item">
+                                    <div class="govuk-form-group" id="f-RaisedDate">
+                                        <label class="govuk-label govuk-date-input__label" for="raisedDateDay">
+                                            Day
+                                        </label>
+                                        <input readonly tabindex="-1" aria-readonly="true" aria-label="Day field, read-only" class="govuk-input govuk-date-input__input govuk-input--width-2" id="raisedDateDay" name="raisedDateDay" type="text" inputmode="numeric">
+                                    </div>
+                                </div>
+                                <div class="govuk-date-input__item">
+                                    <div class="govuk-form-group">
+                                        <label class="govuk-label govuk-date-input__label" for="raisedDateMonth">
+                                            Month
+                                        </label>
+                                        <input readonly tabindex="-1" aria-readonly="true" aria-label="Month field, read-only" class="govuk-input govuk-date-input__input govuk-input--width-2" id="raisedDateMonth" name="raisedDateMonth" type="text" inputmode="numeric">
+                                    </div>
+                                </div>
+                                <div class="govuk-date-input__item">
+                                    <div class="govuk-form-group">
+                                        <label class="govuk-label govuk-date-input__label" for="raisedDateYear">
+                                            Year
+                                        </label>
+                                        <input class="govuk-input govuk-date-input__input govuk-input--width-4" id="raisedDateYear" name="raisedDateYear" type="text" inputmode="numeric">
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+
+                        <div class="hide" id="start-date-field-input">
+                            <div class="govuk-form-group" id="f-StartDate">
+                                <label class="govuk-label" for="startDate">
+                                    Start date
+                                    <span id="error-message__StartDate"></span>
+                                </label>
+                                <input data-cy="startDate" class="govuk-input govuk-input--width-10" id="startDate" name="startDate" type="date">
+                            </div>
+                        </div>
+
+                        <div class="hide govuk-form-group" id="end-date-field-input">
+                            <label class="govuk-label" for="date">
+                                End date
+                            </label>
+                            <input data-cy="endDate" class="govuk-input govuk-input--width-10" id="endDate" name="endDate" type="date">
+                        </div>
+
+                        <div class="hide govuk-form-group" id="supervision-level-field-input">
+                            <fieldset class="govuk-fieldset" aria-describedby="changedName-hint">
+                                <legend class="govuk-fieldset__legend">
+                                    <h1 class="govuk-fieldset__heading">
+                                        Supervision level
+                                    </h1>
+                                </legend>
+                                <div class="govuk-radios govuk-radios--inline" data-module="govuk-radios">
+                                    <div class="govuk-radios__item">
+                                        <input class="govuk-radios__input" id="generalSupervisionLevel" name="supervisionLevel" type="radio" value="GENERAL">
+                                        <label class="govuk-label govuk-radios__label" for="generalSupervisionLevel">
+                                            General
+                                        </label>
+                                    </div>
+                                    <div class="govuk-radios__item">
+                                        <input class="govuk-radios__input" id="minimalSupervisionLevel" name="supervisionlevel" type="radio" value="MINIMAL">
+                                        <label class="govuk-label govuk-radios__label" for="minimalSupervisionLevel">
+                                            Minimal
+                                        </label>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
+
+                        <div class="govuk-button-group govuk-!-margin-top-7">
+                            <button class="govuk-button" data-module="govuk-button">
+                                Save and continue
+                            </button>
+                            <a class="govuk-link"  href="{{ prefix (printf "/clients/%s/invoices" .ClientId) }}">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {{ end }}
+{{ end }}
