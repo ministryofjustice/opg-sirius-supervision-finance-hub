@@ -71,7 +71,7 @@ const getInvoiceBalance = `-- name: GetInvoiceBalance :one
 SELECT i.amount initial, i.amount - COALESCE(SUM(la.amount), 0) outstanding, i.feetype
 FROM invoice i
          LEFT JOIN ledger_allocation la on i.id = la.invoice_id
-    AND la.status <> 'PENDING'
+    AND la.status = 'ALLOCATED'
 WHERE i.id = $1
 group by i.amount, i.feetype
 `
@@ -93,7 +93,7 @@ const getInvoices = `-- name: GetInvoices :many
 SELECT i.id, i.reference, i.amount, i.raiseddate, COALESCE(SUM(la.amount), 0)::int received
 FROM invoice i
          JOIN finance_client fc ON fc.id = i.finance_client_id
-         LEFT JOIN ledger_allocation la ON i.id = la.invoice_id AND la.status <> 'PENDING'
+         LEFT JOIN ledger_allocation la ON i.id = la.invoice_id AND la.status = 'ALLOCATED'
 WHERE fc.client_id = $1
 GROUP BY i.id, i.raiseddate
 ORDER BY i.raiseddate DESC
