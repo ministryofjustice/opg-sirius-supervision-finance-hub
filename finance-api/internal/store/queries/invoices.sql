@@ -49,7 +49,11 @@ WITH filtered_invoices AS (SELECT i.id AS invoice_id, fr.id AS fee_reduction_id
                                          ON i.finance_client_id = fr.finance_client_id
                            WHERE i.raiseddate >= (fr.datereceived - interval '6 months')
                              AND i.raiseddate BETWEEN fr.startdate AND fr.enddate
-                             AND fr.id = ANY($1::int[]) AND i.id = $2)
+                             AND fr.id in (SELECT fere.id
+                                          FROM fee_reduction fere
+                                                   JOIN finance_client fc on fere.finance_client_id = fc.client_id
+                                          WHERE fc.client_id = $1)
+                             AND i.id = $2)
 UPDATE invoice i
 SET fee_reduction_id = fi.fee_reduction_id
 FROM filtered_invoices fi
@@ -60,8 +64,7 @@ returning fi.fee_reduction_id;
 INSERT INTO invoice (id, person_id, finance_client_id, feetype, reference, startdate, enddate, amount, confirmeddate,
                      batchnumber, raiseddate, source, scheduledfn14date, cacheddebtamount, createddate, createdby_id,
                      fee_reduction_id)
-VALUES (
-        nextval('invoice_id_seq'),
+VALUES (nextval('invoice_id_seq'),
         $1,
         (select id from finance_client where client_id = $1),
         $2,
@@ -77,37 +80,12 @@ VALUES (
         $12,
         $13,
         $14,
-        $15
-       )
+        $15)
 returning *;
 
--- name: GetInvoiceRefCount :one
-WITH updated AS (
-    UPDATE counter c
-        SET counter = c.counter + 1
-        WHERE key = $1
-        RETURNING *
-)
+-- name: UpsertCounterForInvoiceRefYear :one
 INSERT INTO counter (id, key, counter)
-SELECT nextval('counter_id_seq'), $1, 1
-WHERE NOT EXISTS (SELECT 1 FROM updated)
-RETURNING *;
-
-
--- name: CheckCounterForInvoiceRefYear :one
-SELECT EXISTS (
-    SELECT 1
-    FROM counter
-    WHERE key = $1
-) AS exists;
-
--- name: CreateCounterForInvoiceRefYear :one
-INSERT INTO counter (id, key, counter)
-SELECT nextval('counter_id_seq'), $1, 1
-RETURNING *;
-
--- name: UpdateCounterForInvoiceRefYear :one
-UPDATE counter c
-SET counter = c.counter + 1
-WHERE key = $1
+VALUES (nextval('counter_id_seq'), $1, 1)
+ON CONFLICT (key) DO UPDATE
+    SET counter = counter.counter + 1
 RETURNING *;

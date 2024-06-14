@@ -20,7 +20,7 @@ func addManualInvoiceSetup(conn testhelpers.TestConn) (Service, shared.AddManual
 	endDateTransformed = &shared.Date{Time: endDateToTime}
 
 	params := shared.AddManualInvoice{
-		InvoiceType:      "S2",
+		InvoiceType:      shared.InvoiceTypeS2,
 		Amount:           50000,
 		RaisedDate:       endDateTransformed,
 		StartDate:        startDateTransformed,
@@ -89,7 +89,7 @@ func (suite *IntegrationSuite) TestService_AddManualInvoice() {
 			&createdById,
 			&feeReductionId)
 
-		assert.Equal(suite.T(), "S2", feeType)
+		assert.Equal(suite.T(), shared.InvoiceTypeS2.Key(), feeType)
 		assert.Equal(suite.T(), 50000, amount)
 		assert.Equal(suite.T(), "2024-04-12", startDate.Format("2006-01-02"))
 		assert.Equal(suite.T(), "2025-03-31", endDate.Format("2006-01-02"))
@@ -113,7 +113,7 @@ func (suite *IntegrationSuite) TestService_AddManualInvoiceRaisedDateForAnInvoic
 	params.RaisedDate = &shared.Date{Time: time.Now().AddDate(0, 0, 1)}
 	params.StartDate = &shared.Date{Time: time.Now().AddDate(0, 0, 1)}
 	params.EndDate = &shared.Date{Time: time.Now().AddDate(0, 0, -1)}
-	params.InvoiceType = "SO"
+	params.InvoiceType = shared.InvoiceTypeSO
 
 	err := s.AddManualInvoice(24, params)
 	if err != nil {
@@ -132,7 +132,7 @@ func (suite *IntegrationSuite) TestService_AddManualInvoiceRaisedDateForAnInvoic
 	)
 	s, params := addManualInvoiceSetup(conn)
 	params.RaisedDate = &shared.Date{Time: time.Now().AddDate(0, 0, -1)}
-	params.InvoiceType = "SO"
+	params.InvoiceType = shared.InvoiceTypeSO
 
 	err := s.AddManualInvoice(24, params)
 	if err == nil {
@@ -229,40 +229,6 @@ func Test_validateStartDate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equalf(t, tt.want, validateStartDate(tt.args.startDate, tt.args.endDate), "validateStartDate(%v, %v)", tt.args.startDate, tt.args.endDate)
-		})
-	}
-}
-
-func Test_isSameFinancialYear(t *testing.T) {
-	type args struct {
-		startDate *shared.Date
-		endDate   *shared.Date
-	}
-	tests := []struct {
-		name string
-		args args
-		want bool
-	}{
-		{
-			name: "returns false if the start date and end date are not in the same financial year",
-			args: args{
-				startDate: &shared.Date{Time: time.Date(2024, 5, 1, 0, 0, 0, 0, time.UTC)},
-				endDate:   &shared.Date{Time: time.Date(2025, 5, 2, 0, 0, 0, 0, time.UTC)},
-			},
-			want: false,
-		},
-		{
-			name: "returns true if the start date and end date are in the same financial year",
-			args: args{
-				startDate: &shared.Date{Time: time.Date(2024, 4, 01, 0, 0, 0, 0, time.UTC)},
-				endDate:   &shared.Date{Time: time.Date(2025, 3, 31, 0, 0, 0, 0, time.UTC)},
-			},
-			want: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, isSameFinancialYear(tt.args.startDate, tt.args.endDate), "isSameFinancialYear(%v, %v)", tt.args.startDate, tt.args.endDate)
 		})
 	}
 }

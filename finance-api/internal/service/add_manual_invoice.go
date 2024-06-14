@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
@@ -14,25 +13,10 @@ import (
 	"time"
 )
 
-type BadRequests struct {
-	Reasons []string `json:"reasons"`
-}
-
-func (b BadRequests) Error() string {
-	return fmt.Sprintf("bad requests: %s", strings.Join(b.Reasons, ", "))
-}
-
-func (s *Service) AddManualInvoice(id int, data shared.AddManualInvoice) error {
+func (s *Service) AddManualInvoice(clientId int, data shared.AddManualInvoice) error {
 	var validationsErrors []string
 
-	validInvoiceTypesRaisedDateInPast := []string{
-		shared.InvoiceTypeAD.Key(),
-		shared.InvoiceTypeSF.Key(),
-		shared.InvoiceTypeSE.Key(),
-		shared.InvoiceTypeSO.Key(),
-	}
-
-	if contains(validInvoiceTypesRaisedDateInPast, data.InvoiceType) {
+	if data.InvoiceType.IsRaisedDateValid() {
 		if !data.RaisedDate.Time.Before(time.Now()) {
 			validationsErrors = append(validationsErrors, "RaisedDateForAnInvoice")
 		}
@@ -66,42 +50,24 @@ func (s *Service) AddManualInvoice(id int, data shared.AddManualInvoice) error {
 	}()
 
 	transaction := s.store.WithTx(tx)
-	hasCounterGotInvoiceRefYear, err := transaction.CheckCounterForInvoiceRefYear(ctx, strconv.Itoa(data.StartDate.Time.Year())+"InvoiceNumber")
+	getInvoiceCounterForYear, err := transaction.UpsertCounterForInvoiceRefYear(ctx, strconv.Itoa(data.StartDate.Time.Year())+"InvoiceNumber")
 	if err != nil {
 		return err
-	}
-
-	var getInvoiceCounterForYear store.Counter
-	if hasCounterGotInvoiceRefYear {
-		getInvoiceCounterForYear, err = transaction.UpdateCounterForInvoiceRefYear(ctx, strconv.Itoa(data.StartDate.Time.Year())+"InvoiceNumber")
-		if err != nil {
-			return err
-		}
-	} else {
-		getInvoiceCounterForYear, err = transaction.CreateCounterForInvoiceRefYear(ctx, strconv.Itoa(data.StartDate.Time.Year())+"InvoiceNumber")
-		if err != nil {
-			return err
-		}
 	}
 
 	invoiceRef := addLeadingZeros(int(getInvoiceCounterForYear.Counter))
 
 	addManualInvoiceQueryArgs := store.AddManualInvoiceParams{
-		PersonID:          pgtype.Int4{Int32: int32(id), Valid: true},
-		Feetype:           data.InvoiceType,
-		Reference:         data.InvoiceType + invoiceRef + "/" + strconv.Itoa(data.StartDate.Time.Year()%100),
-		Startdate:         pgtype.Date{Time: data.StartDate.Time, Valid: true},
-		Enddate:           pgtype.Date{Time: data.EndDate.Time, Valid: true},
-		Amount:            int32(data.Amount),
-		Confirmeddate:     pgtype.Date{Time: time.Now(), Valid: true},
-		Batchnumber:       pgtype.Int4{},
-		Raiseddate:        pgtype.Date{Time: data.RaisedDate.Time, Valid: true},
-		Source:            pgtype.Text{String: "Created manually", Valid: true},
-		Scheduledfn14date: pgtype.Date{},
-		Cacheddebtamount:  pgtype.Int4{},
-		Createddate:       pgtype.Date{Time: time.Now(), Valid: true},
-		CreatedbyID:       pgtype.Int4{},
-		FeeReductionID:    pgtype.Int4{},
+		PersonID:      pgtype.Int4{Int32: int32(clientId), Valid: true},
+		Feetype:       data.InvoiceType.Key(),
+		Reference:     data.InvoiceType.Key() + invoiceRef + "/" + strconv.Itoa(data.StartDate.Time.Year()%100),
+		Startdate:     pgtype.Date{Time: data.StartDate.Time, Valid: true},
+		Enddate:       pgtype.Date{Time: data.EndDate.Time, Valid: true},
+		Amount:        int32(data.Amount),
+		Confirmeddate: pgtype.Date{Time: time.Now(), Valid: true},
+		Raiseddate:    pgtype.Date{Time: data.RaisedDate.Time, Valid: true},
+		Source:        pgtype.Text{String: "Created manually", Valid: true},
+		Createddate:   pgtype.Date{Time: time.Now(), Valid: true},
 	}
 
 	var invoice store.Invoice
@@ -125,22 +91,10 @@ func (s *Service) AddManualInvoice(id int, data shared.AddManualInvoice) error {
 		}
 	}
 
-	feeReductionsRawData, err := transaction.GetFeeReductions(ctx, invoice.FinanceClientID.Int32)
-	if err != nil {
-		return err
-	}
-
-	var feeReductionIds []int32
-
-	for _, fee := range feeReductionsRawData {
-		feeReductionIds = append(feeReductionIds, fee.ID)
-	}
-
 	AddFeeReductionToInvoiceParams := store.AddFeeReductionToInvoiceParams{
-		Column1: feeReductionIds,
-		ID:      invoice.ID,
+		ClientID: int32(clientId),
+		ID:       invoice.ID,
 	}
-
 	feeReductionId, _ := transaction.AddFeeReductionToInvoice(ctx, AddFeeReductionToInvoiceParams)
 
 	if feeReductionId != 0 {
@@ -150,9 +104,9 @@ func (s *Service) AddManualInvoice(id int, data shared.AddManualInvoice) error {
 			return err
 		}
 
-		err2 := s.AddLedgerAndAllocations(feeReduction.Type, feeReduction.ID, feeReduction.FinanceClientID.Int32, invoice, transaction, ctx)
-		if err2 != nil {
-			return err2
+		err = s.AddLedgerAndAllocations(feeReduction.Type, feeReduction.ID, feeReduction.FinanceClientID.Int32, invoice, transaction, ctx)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -209,25 +163,16 @@ func (s *Service) AddLedgerAndAllocations(feeReductionFeeType string, feeReducti
 
 func addLeadingZeros(number int) string {
 	strNumber := strconv.Itoa(number)
-	paddedNumber := fmt.Sprintf("%0*s", 6, strNumber)
-
-	if len(paddedNumber) > 6 {
-		paddedNumber = paddedNumber[len(paddedNumber)-6:]
+	strNumberLength := len(strNumber)
+	if strNumberLength != 6 {
+		numOfZeros := 6 - strNumberLength
+		return strings.Repeat("0", numOfZeros) + strNumber
 	}
-
-	return paddedNumber
+	return strNumber
 }
 
 func validateEndDate(startDate *shared.Date, endDate *shared.Date) bool {
-	if endDate.Time.Before(startDate.Time) {
-		return false
-	}
-
-	if !isSameFinancialYear(startDate, endDate) {
-		return false
-	}
-
-	return true
+	return !endDate.Time.Before(startDate.Time)
 }
 
 func validateStartDate(startDate *shared.Date, endDate *shared.Date) bool {
@@ -235,40 +180,9 @@ func validateStartDate(startDate *shared.Date, endDate *shared.Date) bool {
 		return false
 	}
 
-	if !isSameFinancialYear(startDate, endDate) {
+	if !startDate.IsSameFinancialYear(endDate) {
 		return false
 	}
 
 	return true
-}
-
-func isSameFinancialYear(startDate *shared.Date, endDate *shared.Date) bool {
-	var financialYearOneStartYear int
-	if startDate.Time.Month() < time.April {
-		financialYearOneStartYear = startDate.Time.Year() - 1
-	} else {
-		financialYearOneStartYear = startDate.Time.Year()
-	}
-	financialYearOneStart := time.Date(financialYearOneStartYear, time.April, 1, 0, 0, 0, 0, time.UTC)
-	financialYearOneEnd := time.Date(financialYearOneStartYear+1, time.March, 31, 23, 59, 59, 999999999, time.UTC)
-
-	var financialYearTwoStartYear int
-	if endDate.Time.Month() < time.April {
-		financialYearTwoStartYear = endDate.Time.Year() - 1
-	} else {
-		financialYearTwoStartYear = endDate.Time.Year()
-	}
-	financialYearTwoStart := time.Date(financialYearTwoStartYear, time.April, 1, 0, 0, 0, 0, time.UTC)
-	financialYearTwoEnd := time.Date(financialYearTwoStartYear+1, time.March, 31, 23, 59, 59, 999999999, time.UTC)
-
-	return financialYearOneStart == financialYearTwoStart && financialYearOneEnd == financialYearTwoEnd
-}
-
-func contains(slice []string, value string) bool {
-	for _, v := range slice {
-		if v == value {
-			return true
-		}
-	}
-	return false
 }

@@ -66,7 +66,7 @@ func TestAddManualInvoiceReturns500Error(t *testing.T) {
 
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
-		URL:    svr.URL + "/clients/1/manual-invoice",
+		URL:    svr.URL + "/clients/1/invoices",
 		Method: http.MethodPost,
 	}, err)
 }
