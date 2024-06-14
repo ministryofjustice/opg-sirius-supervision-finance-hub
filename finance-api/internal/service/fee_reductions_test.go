@@ -14,7 +14,7 @@ func (suite *IntegrationSuite) TestService_GetFeeReductions() {
 	conn := suite.testDB.GetConn()
 
 	conn.SeedData(
-		"INSERT INTO finance_client VALUES (5, 5, '1234', 'DEMANDED', NULL, 12300, 2222);",
+		"INSERT INTO finance_client VALUES (5, 5, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO fee_reduction VALUES (5, 5, 'REMISSION', NULL, '2019-04-01', '2020-03-31', 'Remission to see the notes', FALSE, '2019-05-01');",
 	)
 
