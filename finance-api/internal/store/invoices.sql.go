@@ -90,19 +90,21 @@ func (q *Queries) GetInvoiceBalance(ctx context.Context, id int32) (GetInvoiceBa
 }
 
 const getInvoices = `-- name: GetInvoices :many
-SELECT i.id, i.reference, i.amount, i.raiseddate, i.cacheddebtamount
+SELECT i.id, i.reference, i.amount, i.raiseddate, i.amount - COALESCE(SUM(la.amount), 0) outstanding
 FROM invoice i
-         inner join finance_client fc on fc.id = i.finance_client_id
-where fc.client_id = $1
-order by i.raiseddate desc
+         JOIN finance_client fc ON fc.id = i.finance_client_id
+         LEFT JOIN ledger_allocation la ON i.id = la.invoice_id AND la.status <> 'PENDING'
+WHERE fc.client_id = $1
+GROUP BY i.id, i.raiseddate
+ORDER BY i.raiseddate DESC
 `
 
 type GetInvoicesRow struct {
-	ID               int32
-	Reference        string
-	Amount           int32
-	Raiseddate       pgtype.Date
-	Cacheddebtamount pgtype.Int4
+	ID          int32
+	Reference   string
+	Amount      int32
+	Raiseddate  pgtype.Date
+	Outstanding int32
 }
 
 func (q *Queries) GetInvoices(ctx context.Context, clientID int32) ([]GetInvoicesRow, error) {
@@ -119,7 +121,7 @@ func (q *Queries) GetInvoices(ctx context.Context, clientID int32) ([]GetInvoice
 			&i.Reference,
 			&i.Amount,
 			&i.Raiseddate,
-			&i.Cacheddebtamount,
+			&i.Outstanding,
 		); err != nil {
 			return nil, err
 		}
