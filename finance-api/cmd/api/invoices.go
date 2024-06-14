@@ -8,14 +8,14 @@ import (
 
 func (s *Server) getInvoices(w http.ResponseWriter, r *http.Request) {
 	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
-	accountInfo, err := s.Service.GetInvoices(clientId)
+	invoices, err := s.Service.GetInvoices(clientId)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	jsonData, err := json.Marshal(accountInfo)
+	jsonData, err := json.Marshal(invoices)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
