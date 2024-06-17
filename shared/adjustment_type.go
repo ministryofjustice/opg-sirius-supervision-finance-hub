@@ -8,12 +8,6 @@ type Valid interface {
 	Valid() bool
 }
 
-var AdjustmentTypes = []AdjustmentType{
-	AdjustmentTypeWriteOff,
-	AdjustmentTypeAddCredit,
-	AdjustmentTypeAddDebit,
-}
-
 type AdjustmentType int
 
 const (
@@ -25,9 +19,10 @@ const (
 )
 
 var adjustmentTypeMap = map[string]AdjustmentType{
-	"CREDIT WRITE OFF": AdjustmentTypeWriteOff,
-	"CREDIT MEMO":      AdjustmentTypeAddCredit,
-	"DEBIT MEMO":       AdjustmentTypeAddDebit,
+	"CREDIT WRITE OFF":   AdjustmentTypeWriteOff,
+	"CREDIT MEMO":        AdjustmentTypeAddCredit,
+	"DEBIT MEMO":         AdjustmentTypeAddDebit,
+	"WRITE OFF REVERSAL": AdjustmentTypeWriteOffReversal,
 }
 
 func (i AdjustmentType) Translation() string {
@@ -38,6 +33,8 @@ func (i AdjustmentType) Translation() string {
 		return "Add credit"
 	case AdjustmentTypeAddDebit:
 		return "Add debit"
+	case AdjustmentTypeWriteOffReversal:
+		return "Write off reversal (Not yet implemented)"
 	default:
 		return ""
 	}
@@ -51,6 +48,8 @@ func (i AdjustmentType) Key() string {
 		return "CREDIT MEMO"
 	case AdjustmentTypeAddDebit:
 		return "DEBIT MEMO"
+	case AdjustmentTypeWriteOffReversal:
+		return "WRITE OFF REVERSAL"
 	default:
 		return ""
 	}

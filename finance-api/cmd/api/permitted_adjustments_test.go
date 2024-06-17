@@ -25,7 +25,7 @@ func TestServer_getPermittedAdjustments(t *testing.T) {
 	defer res.Body.Close()
 	data, _ := io.ReadAll(res.Body)
 
-	expected := `{["CREDIT MEMO", "DEBIT MEMO"]}`
+	expected := `["CREDIT MEMO","DEBIT MEMO"]`
 
 	assert.Equal(t, expected, string(data))
 	assert.Equal(t, 1, mock.expectedIds[0])
