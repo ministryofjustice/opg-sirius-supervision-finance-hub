@@ -34,25 +34,17 @@ func (d Date) String() string {
 }
 
 func (d Date) IsSameFinancialYear(d1 *Date) bool {
-	var financialYearOneStartYear int
+	financialYearOneStartYear := d.Time.Year()
 	if d.Time.Month() < time.April {
 		financialYearOneStartYear = d.Time.Year() - 1
-	} else {
-		financialYearOneStartYear = d.Time.Year()
 	}
-	financialYearOneStart := time.Date(financialYearOneStartYear, time.April, 1, 0, 0, 0, 0, time.UTC)
-	financialYearOneEnd := time.Date(financialYearOneStartYear+1, time.March, 31, 23, 59, 59, 999999999, time.UTC)
 
-	var financialYearTwoStartYear int
+	financialYearTwoStartYear := d1.Time.Year()
 	if d1.Time.Month() < time.April {
 		financialYearTwoStartYear = d1.Time.Year() - 1
-	} else {
-		financialYearTwoStartYear = d1.Time.Year()
 	}
-	financialYearTwoStart := time.Date(financialYearTwoStartYear, time.April, 1, 0, 0, 0, 0, time.UTC)
-	financialYearTwoEnd := time.Date(financialYearTwoStartYear+1, time.March, 31, 23, 59, 59, 999999999, time.UTC)
 
-	return financialYearOneStart == financialYearTwoStart && financialYearOneEnd == financialYearTwoEnd
+	return financialYearOneStartYear == financialYearTwoStartYear
 }
 
 func (d Date) IsNull() bool {

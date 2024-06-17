@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"errors"
-	"github.com/opg-sirius-finance-hub/finance-api/internal/service"
 	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
 	"strconv"
@@ -32,7 +31,7 @@ func (s *Server) addManualInvoice(w http.ResponseWriter, r *http.Request) {
 	err := s.Service.AddManualInvoice(clientId, addManualInvoice)
 
 	if err != nil {
-		var e service.BadRequests
+		var e shared.BadRequests
 		ok := errors.As(err, &e)
 		if ok {
 			w.Header().Set("Content-Type", "application/json")

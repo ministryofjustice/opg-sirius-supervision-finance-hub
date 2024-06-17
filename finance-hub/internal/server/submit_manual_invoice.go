@@ -53,11 +53,15 @@ func invoiceData(invoiceType string, amount string, startDate string, raisedDate
 		startDate = raisedDate
 		endDate = calculateOneYearMinusOneDay(startDate)
 	case shared.InvoiceTypeS2.Key(), shared.InvoiceTypeB2.Key():
-		raisedDate = raisedDateYear + "-03" + "-31"
+		if raisedDateYear != "" {
+			raisedDate = raisedDateYear + "-03" + "-31"
+		}
 		endDate = raisedDate
 		supervisionLevel = "GENERAL"
 	case shared.InvoiceTypeS3.Key(), shared.InvoiceTypeB3.Key():
-		raisedDate = raisedDateYear + "-03" + "-31"
+		if raisedDateYear != "" {
+			raisedDate = raisedDateYear + "-03" + "-31"
+		}
 		endDate = raisedDate
 		supervisionLevel = "MINIMAL"
 	}

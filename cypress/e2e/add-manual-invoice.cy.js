@@ -3,7 +3,7 @@ describe("Add manual invoice form", () => {
         cy.visit("/clients/1/invoices/add");
         cy.get('.govuk-button').click()
         cy.get('.govuk-error-summary').contains("Enter an amount")
-        cy.get(".govuk-form-group--error").should('have.length', 4)
+        cy.get(".govuk-form-group--error").should('have.length', 6)
     });
 
     it("adds a manual invoice", () => {

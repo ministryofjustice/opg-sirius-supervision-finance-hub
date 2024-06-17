@@ -2,10 +2,8 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
-	"strings"
 )
 
 type BadRequest struct {
@@ -14,14 +12,6 @@ type BadRequest struct {
 
 func (b BadRequest) Error() string {
 	return b.Reason
-}
-
-type BadRequests struct {
-	Reasons []string `json:"reasons"`
-}
-
-func (b BadRequests) Error() string {
-	return fmt.Sprintf("bad requests: %s", strings.Join(b.Reasons, ", "))
 }
 
 type TX interface {
