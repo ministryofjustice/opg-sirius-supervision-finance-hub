@@ -57,7 +57,7 @@ func (i InvoiceType) Translation() string {
 	case InvoiceTypeSE:
 		return "SE - Full order expired final fee invoice"
 	case InvoiceTypeSO:
-		return "SO - Client regained capacity final fee invoice}"
+		return "SO - Client regained capacity final fee invoice"
 	default:
 		return ""
 	}

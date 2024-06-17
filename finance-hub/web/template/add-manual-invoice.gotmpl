@@ -45,18 +45,21 @@
                             </div>
                         </div>
 
-                        <div  id="f-RaisedDateNotInPast">
                             <div class="hide" id="raised-date-field-input">
-                                <div class="govuk-form-group" id="f-RaisedDateNotInPast">
+                                <div class="govuk-form-group" id="f-RaisedDate">
+                                <div class="govuk-form-group" id="f-RaisedDateForAnInvoice">
                                     <label class="govuk-label" for="raisedDate">
                                         Raised date
-                                        <span id="error-message__RaisedDateNotInPast"></span>
+                                        <span id="error-message__RaisedDate"></span>
+                                        <span id="error-message__RaisedDateForAnInvoice"></span>
                                     </label>
-                                    <input data-cy="raised-date-field-input"] class="govuk-input govuk-input--width-10" id="raisedDate" name="raisedDate" type="date">
+                                    <input data-cy="raised-date-field-input" class="govuk-input govuk-input--width-10" id="raisedDate" name="raisedDate" type="date">
+                                </div>
                                 </div>
                             </div>
 
                             <div class="hide " id="raised-year-field-input">
+                                <div class="govuk-form-group">
                                 <label class="govuk-label" for="raisedYear" >
                                     Raised date
                                     <span id="error-message__RaisedDate"></span>
@@ -85,9 +88,8 @@
                                         <input class="govuk-input govuk-date-input__input govuk-input--width-4" id="raisedDateYear" name="raisedDateYear" type="text" inputmode="numeric">
                                     </div>
                                 </div>
+                                </div>
                             </div>
-
-                        </div>
 
 
                         <div class="hide" id="start-date-field-input">
@@ -100,11 +102,14 @@
                             </div>
                         </div>
 
-                        <div class="hide govuk-form-group" id="end-date-field-input">
+                        <div class="hide" id="end-date-field-input">
+                            <div class="govuk-form-group" id="f-EndDate">
                             <label class="govuk-label" for="date">
                                 End date
+                                <span id="error-message__EndDate"></span>
                             </label>
                             <input data-cy="endDate" class="govuk-input govuk-input--width-10" id="endDate" name="endDate" type="date">
+                            </div>
                         </div>
 
                         <div class="hide govuk-form-group" id="supervision-level-field-input">

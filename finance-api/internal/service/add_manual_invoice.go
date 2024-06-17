@@ -33,7 +33,7 @@ func (s *Service) AddManualInvoice(clientId int, data shared.AddManualInvoice) e
 	}
 
 	if len(validationsErrors) != 0 {
-		return BadRequests{Reasons: validationsErrors}
+		return shared.BadRequests{Reasons: validationsErrors}
 	}
 
 	ctx := context.Background()
