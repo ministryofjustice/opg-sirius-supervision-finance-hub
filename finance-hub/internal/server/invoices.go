@@ -119,9 +119,10 @@ func translate(transactionType string) string {
 		return "Manual Debit"
 	}
 
+	caser := cases.Title(language.English)
 	words := strings.Fields(transactionType)
 	for i, word := range words {
-		words[i] = strings.ToUpper(string(word[0])) + strings.ToLower(word[1:])
+		words[i] = caser.String(word)
 	}
 	return strings.Join(words, " ")
 }
