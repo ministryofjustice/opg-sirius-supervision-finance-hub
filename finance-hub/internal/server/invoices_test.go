@@ -66,7 +66,7 @@ func TestInvoice(t *testing.T) {
 				{
 					Amount:          "123",
 					ReceivedDate:    shared.NewDate("01/05/2222"),
-					TransactionType: "Online card payment",
+					TransactionType: "Online Card Payment",
 					Status:          "Applied",
 				},
 			},
@@ -106,4 +106,43 @@ func TestInvoiceErrors(t *testing.T) {
 
 	assert.Equal(t, "this has failed", err.Error())
 	assert.False(t, ro.executed)
+}
+
+func Test_translate(t *testing.T) {
+	tests := []struct {
+		name       string
+		ledgerType string
+		want       string
+	}{
+		{
+			name:       "returns a value for something that does not match",
+			ledgerType: "THIS WILL not MatcH Any Of thEm",
+			want:       "This Will Not Match Any Of Them",
+		},
+		{
+			name:       "returns nothing for no value given in",
+			ledgerType: "",
+			want:       "",
+		},
+		{
+			name:       "returns a correct value for CREDIT WRITE OFF",
+			ledgerType: shared.AdjustmentTypeWriteOff.Key(),
+			want:       "Write Off",
+		},
+		{
+			name:       "returns a correct value for CREDIT MEMO",
+			ledgerType: shared.AdjustmentTypeAddCredit.Key(),
+			want:       "Manual Credit",
+		},
+		{
+			name:       "returns a correct value for DEBIT MEMO",
+			ledgerType: shared.AdjustmentTypeAddDebit.Key(),
+			want:       "Manual Debit",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, translate(tt.ledgerType), "translate(%v)", tt.ledgerType)
+		})
+	}
 }
