@@ -9,7 +9,8 @@ import (
 )
 
 func TestAdjustInvoiceForm(t *testing.T) {
-	client := mockApiClient{}
+	permittedAdjustments := []shared.AdjustmentType{shared.AdjustmentTypeAddDebit, shared.AdjustmentTypeAddCredit}
+	client := mockApiClient{adjustmentTypes: permittedAdjustments}
 	ro := &mockRoute{client: client}
 
 	w := httptest.NewRecorder()
@@ -26,7 +27,7 @@ func TestAdjustInvoiceForm(t *testing.T) {
 	assert.True(t, ro.executed)
 
 	expected := AdjustInvoiceVars{
-		&shared.AdjustmentTypes,
+		&permittedAdjustments,
 		"1",
 		"9",
 		appVars,
