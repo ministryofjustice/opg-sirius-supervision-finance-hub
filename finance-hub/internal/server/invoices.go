@@ -5,6 +5,7 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"net/http"
+	"strings"
 )
 
 type Invoices []Invoice
@@ -101,9 +102,26 @@ func (h *InvoicesHandler) transformLedgers(ledgers []shared.Ledger, caser cases.
 		out = append(out, LedgerAllocation{
 			Amount:          shared.IntToDecimalString(ledger.Amount),
 			ReceivedDate:    ledger.ReceivedDate,
-			TransactionType: ledger.TransactionType,
+			TransactionType: translate(ledger.TransactionType),
 			Status:          caser.String(ledger.Status),
 		})
 	}
 	return out
+}
+
+func translate(transactionType string) string {
+	switch transactionType {
+	case shared.AdjustmentTypeWriteOff.Key():
+		return "Write Off"
+	case shared.AdjustmentTypeAddCredit.Key():
+		return "Manual Credit"
+	case shared.AdjustmentTypeAddDebit.Key():
+		return "Manual Debit"
+	}
+
+	words := strings.Fields(transactionType)
+	for i, word := range words {
+		words[i] = strings.ToUpper(string(word[0])) + strings.ToLower(word[1:])
+	}
+	return strings.Join(words, " ")
 }
