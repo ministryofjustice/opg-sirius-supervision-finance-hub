@@ -15,7 +15,7 @@ func TestGetPermittedAdjustments(t *testing.T) {
 	logger, mockClient := SetUpTest()
 	client, _ := NewApiClient(mockClient, "http://localhost:3000", "http://localhost:8181", logger)
 
-	json := `{["CREDIT MEMO","DEBIT MEMO"]}`
+	json := `["CREDIT MEMO","DEBIT MEMO"]`
 
 	r := io.NopCloser(bytes.NewReader([]byte(json)))
 
