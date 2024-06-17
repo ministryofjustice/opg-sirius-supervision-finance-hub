@@ -57,6 +57,11 @@ type mockApiClient struct {
 	Invoice            shared.Invoice
 	AccountInformation shared.AccountInformation
 	invoiceAdjustments shared.InvoiceAdjustments
+	adjustmentTypes    []shared.AdjustmentType
+}
+
+func (m mockApiClient) GetPermittedAdjustments(api.Context, int, int) ([]shared.AdjustmentType, error) {
+	return m.adjustmentTypes, nil
 }
 
 func (m mockApiClient) UpdatePendingInvoiceAdjustment(context api.Context, i int, i2 int, i3 string) error {
