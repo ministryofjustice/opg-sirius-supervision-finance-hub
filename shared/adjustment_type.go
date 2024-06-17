@@ -21,6 +21,7 @@ const (
 	AdjustmentTypeWriteOff
 	AdjustmentTypeAddCredit
 	AdjustmentTypeAddDebit
+	AdjustmentTypeWriteOffReversal
 )
 
 var adjustmentTypeMap = map[string]AdjustmentType{
