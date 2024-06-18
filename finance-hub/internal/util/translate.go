@@ -21,12 +21,17 @@ var validationMappings = map[string]map[string]pair{
 	"Amount": {
 		"required":    pair{"Amount", "Enter an amount"},
 		"required_if": pair{"Amount", "Enter an amount"},
+		"lte":         pair{"Amount", "Amount cant be above £320"},
 	},
 	"FeeType": {
 		"required": pair{"FeeType", "A fee reduction type must be selected"},
 	},
 	"StartYear": {
 		"required": pair{"StartYear", "Enter a start year"},
+	},
+	"RaisedDate": {
+		"required":         pair{"RaisedDate", "Enter a raised date"},
+		"date-in-the-past": pair{"RaisedDate", "Enter a raised date in the past"},
 	},
 	"LengthOfAward": {
 		"required": pair{"LengthOfAward", "Confirm if an extended award is being given"},
@@ -47,6 +52,18 @@ var validationMappings = map[string]map[string]pair{
 	},
 	"Overlap": {
 		"start-or-end-date": pair{"start-or-end-date", "A fee reduction already exists for the period specified"},
+	},
+	"StartDate": {
+		"StartDate": pair{"StartDate", "Start date must be before end date and in same financial year"},
+	},
+	"EndDate": {
+		"EndDate": pair{"EndDate", "End date must be after start date and in same financial year"},
+	},
+	"RaisedDateNotInPast": {
+		"RaisedDateNotInPast": pair{"RaisedDateNotInPast", "Raised date not in the past"},
+	},
+	"RaisedDateForAnInvoice": {
+		"RaisedDateForAnInvoice": pair{"RaisedDateForAnInvoice", "Raised date not in the past"},
 	},
 }
 

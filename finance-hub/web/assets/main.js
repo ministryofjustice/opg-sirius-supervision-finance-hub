@@ -1,6 +1,7 @@
 import {initAll} from 'govuk-frontend'
 import "govuk-frontend/dist/govuk/all.mjs";
 import "opg-sirius-header/sirius-header.js";
+import {values} from "htmx.org";
 
 document.body.className += ' js-enabled' + ('noModule' in HTMLScriptElement.prototype ? ' govuk-frontend-supported' : '');
 initAll();
@@ -39,6 +40,46 @@ htmx.onLoad(content => {
 
     htmx.findAll(".moj-banner--success").forEach((element) => {
         element.addEventListener("click", () => htmx.addClass(htmx.find(".moj-banner--success"), "hide"));
+    });
+
+    htmx.findAll("#invoice-type").forEach((element) => {
+        element.addEventListener("change", function() {
+            const elements = document.querySelectorAll('[id$="-field-input"]');
+            elements.forEach(element => {
+                htmx.addClass(element, 'hide');
+            });
+            const form = document.querySelector('form');
+            const invoiceTypeSelect = document.getElementById('invoice-type');
+            const invoiceTypeSelectValue = invoiceTypeSelect.value
+            form.reset();
+            invoiceTypeSelect.value =  invoiceTypeSelectValue
+            switch (invoiceTypeSelect.value) {
+                case "AD":
+                    htmx.removeClass(htmx.find("#raised-date-field-input"), "hide")
+                break;
+                case "S2":
+                case "S3":
+                case "B2":
+                case "B3":
+                    htmx.removeClass(htmx.find("#amount-field-input"), "hide")
+                    htmx.removeClass(htmx.find("#raised-year-field-input"), "hide")
+                    document.getElementById('raisedDateDay').defaultValue = 31
+                    document.getElementById('raisedDateMonth').defaultValue = 3
+                    htmx.removeClass(htmx.find("#start-date-field-input"), "hide")
+                    break;
+                case "SF":
+                case "SE":
+                case "SO":
+                    htmx.removeClass(htmx.find("#amount-field-input"), "hide")
+                    htmx.removeClass(htmx.find("#raised-date-field-input"), "hide")
+                    htmx.removeClass(htmx.find("#start-date-field-input"), "hide")
+                    htmx.removeClass(htmx.find("#end-date-field-input"), "hide")
+                    htmx.removeClass(htmx.find("#supervision-level-field-input"), "hide")
+                    break;
+                default:
+                    break;
+            }
+        }, false)
     });
 
     // validation errors are loaded in as a partial, with oob-swaps for the field error messages,
