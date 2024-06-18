@@ -95,10 +95,10 @@ func (s *Service) AddManualInvoice(clientId int, data shared.AddManualInvoice) e
 		ClientID: int32(clientId),
 		ID:       invoice.ID,
 	}
-	feeReductionId, _ := transaction.AddFeeReductionToInvoice(ctx, AddFeeReductionToInvoiceParams)
+	feeReduction, _ := transaction.AddFeeReductionToInvoice(ctx, AddFeeReductionToInvoiceParams)
 
-	if feeReductionId.FeeReductionID != 0 {
-		err = s.AddLedgerAndAllocations(feeReductionId.Type, feeReductionId.FeeReductionID, feeReductionId.FinanceClientID.Int32, invoice, transaction, ctx)
+	if feeReduction.FeeReductionID != 0 {
+		err = s.AddLedgerAndAllocations(feeReduction.Type, feeReduction.FeeReductionID, feeReduction.FinanceClientID.Int32, invoice, transaction, ctx)
 		if err != nil {
 			return err
 		}
