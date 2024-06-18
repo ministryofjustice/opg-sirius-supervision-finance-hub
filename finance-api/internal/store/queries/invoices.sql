@@ -43,7 +43,7 @@ WHERE i.id = fi.invoice_id
 returning i.*;
 
 -- name: AddFeeReductionToInvoice :one
-WITH filtered_invoices AS (SELECT i.id AS invoice_id, fr.id AS fee_reduction_id
+WITH filtered_invoices AS (SELECT i.id AS invoice_id, fr.id AS fee_reduction_id, fr.type, fr.finance_client_id
                            FROM invoice i
                                     JOIN fee_reduction fr
                                          ON i.finance_client_id = fr.finance_client_id
@@ -58,7 +58,7 @@ UPDATE invoice i
 SET fee_reduction_id = fi.fee_reduction_id
 FROM filtered_invoices fi
 WHERE i.id = fi.invoice_id
-returning fi.fee_reduction_id;
+returning fi.fee_reduction_id, fi.type, fi.finance_client_id;
 
 -- name: AddManualInvoice :one
 INSERT INTO invoice (id, person_id, finance_client_id, feetype, reference, startdate, enddate, amount, confirmeddate,

@@ -12,18 +12,6 @@ from fee_reduction fr
 where fc.client_id = $1
 order by enddate desc, deleted;
 
--- name: GetFeeReduction :one
-select id,
-       finance_client_id,
-       type,
-       startdate,
-       enddate,
-       datereceived,
-       notes,
-       deleted
-from fee_reduction fr
-where id = $1;
-
 -- name: AddFeeReduction :one
 insert into fee_reduction (id,
                            finance_client_id,

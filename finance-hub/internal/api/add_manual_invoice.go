@@ -8,10 +8,6 @@ import (
 	"net/http"
 )
 
-type BadRequest struct {
-	Reasons []string `json:"reasons"`
-}
-
 func (c *ApiClient) AddManualInvoice(ctx Context, clientId int, invoiceType string, amount string, raisedDate string, startDate string, endDate string, supervisionLevel string) error {
 	var body bytes.Buffer
 	var raisedDateTransformed *shared.Date

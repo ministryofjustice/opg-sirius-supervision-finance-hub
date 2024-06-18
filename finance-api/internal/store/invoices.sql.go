@@ -12,7 +12,7 @@ import (
 )
 
 const addFeeReductionToInvoice = `-- name: AddFeeReductionToInvoice :one
-WITH filtered_invoices AS (SELECT i.id AS invoice_id, fr.id AS fee_reduction_id
+WITH filtered_invoices AS (SELECT i.id AS invoice_id, fr.id AS fee_reduction_id, fr.type, fr.finance_client_id
                            FROM invoice i
                                     JOIN fee_reduction fr
                                          ON i.finance_client_id = fr.finance_client_id
@@ -27,7 +27,7 @@ UPDATE invoice i
 SET fee_reduction_id = fi.fee_reduction_id
 FROM filtered_invoices fi
 WHERE i.id = fi.invoice_id
-returning fi.fee_reduction_id
+returning fi.fee_reduction_id, fi.type, fi.finance_client_id
 `
 
 type AddFeeReductionToInvoiceParams struct {
@@ -35,11 +35,17 @@ type AddFeeReductionToInvoiceParams struct {
 	ID       int32
 }
 
-func (q *Queries) AddFeeReductionToInvoice(ctx context.Context, arg AddFeeReductionToInvoiceParams) (int32, error) {
+type AddFeeReductionToInvoiceRow struct {
+	FeeReductionID  int32
+	Type            string
+	FinanceClientID pgtype.Int4
+}
+
+func (q *Queries) AddFeeReductionToInvoice(ctx context.Context, arg AddFeeReductionToInvoiceParams) (AddFeeReductionToInvoiceRow, error) {
 	row := q.db.QueryRow(ctx, addFeeReductionToInvoice, arg.ClientID, arg.ID)
-	var fee_reduction_id int32
-	err := row.Scan(&fee_reduction_id)
-	return fee_reduction_id, err
+	var i AddFeeReductionToInvoiceRow
+	err := row.Scan(&i.FeeReductionID, &i.Type, &i.FinanceClientID)
+	return i, err
 }
 
 const addFeeReductionToInvoices = `-- name: AddFeeReductionToInvoices :many
