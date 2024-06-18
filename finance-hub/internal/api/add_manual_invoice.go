@@ -5,10 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/opg-sirius-finance-hub/shared"
-	"io/ioutil"
 	"net/http"
-	"strings"
-	"time"
 )
 
 type BadRequest struct {
@@ -22,18 +19,18 @@ func (c *ApiClient) AddManualInvoice(ctx Context, clientId int, invoiceType stri
 	var endDateTransformed *shared.Date
 
 	if raisedDate != "" {
-		raisedDateToTime, _ := time.Parse("2006-01-02", raisedDate)
-		raisedDateTransformed = &shared.Date{Time: raisedDateToTime}
+		raisedDateFormatted := shared.NewDate(raisedDate)
+		raisedDateTransformed = &raisedDateFormatted
 	}
 
 	if startDate != "" {
-		startDateToTime, _ := time.Parse("2006-01-02", startDate)
-		startDateTransformed = &shared.Date{Time: startDateToTime}
+		startDateFormatted := shared.NewDate(startDate)
+		startDateTransformed = &startDateFormatted
 	}
 
 	if endDate != "" {
-		endDateToTime, _ := time.Parse("2006-01-02", endDate)
-		endDateTransformed = &shared.Date{Time: endDateToTime}
+		endDateFormatted := shared.NewDate(endDate)
+		endDateTransformed = &endDateFormatted
 	}
 
 	err := json.NewEncoder(&body).Encode(shared.AddManualInvoice{
@@ -78,16 +75,13 @@ func (c *ApiClient) AddManualInvoice(ctx Context, clientId int, invoiceType stri
 	}
 
 	if resp.StatusCode == http.StatusBadRequest {
-		bodyBytes, _ := ioutil.ReadAll(resp.Body)
-		bodyString := strings.TrimRight(string(bodyBytes), "\n")
-
-		var badRequest BadRequest
-		if err := json.Unmarshal([]byte(bodyString), &badRequest); err != nil {
+		var badRequests shared.BadRequests
+		if err := json.NewDecoder(resp.Body).Decode(&badRequests); err != nil {
 			return err
 		}
 
 		validationErrors := make(shared.ValidationErrors)
-		for _, reason := range badRequest.Reasons {
+		for _, reason := range badRequests.Reasons {
 			innerMap := make(map[string]string)
 			innerMap[reason] = reason
 			validationErrors[reason] = innerMap

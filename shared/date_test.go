@@ -143,9 +143,37 @@ func TestDate_MarshalJSON(t *testing.T) {
 }
 
 func TestDate_String(t *testing.T) {
-	assert.Equal(t, "01/01/2020", NewDate("01/01/2020").String())
-	assert.Equal(t, "", NewDate("01/01/0001").String())
-
+	tests := []struct {
+		name      string
+		inputDate string
+		want      string
+	}{
+		{
+			name:      "returns correct format for slashers",
+			inputDate: "01/01/2020",
+			want:      "01/01/2020",
+		},
+		{
+			name:      "returns correct format for dashers",
+			inputDate: "2024-10-01",
+			want:      "01/10/2024",
+		},
+		{
+			name:      "returns correct format for date time string",
+			inputDate: "2025-01-02T18:07:10+00:00",
+			want:      "02/01/2025",
+		},
+		{
+			name:      "returns nothing for default date string",
+			inputDate: "01/01/0001",
+			want:      "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, NewDate(tt.inputDate).String(), "stringToTime(%v)", tt.inputDate)
+		})
+	}
 }
 
 func TestDate_UnmarshalJSON(t *testing.T) {

@@ -63,7 +63,7 @@ func (d *Date) UnmarshalJSON(b []byte) error {
 }
 
 func stringToTime(s string) (time.Time, error) {
-	value := strings.Trim(string(s), `"`)
+	value := strings.Trim(s, `"`)
 	if value == "" || value == "null" {
 		return time.Time{}, nil
 	}
@@ -72,6 +72,7 @@ func stringToTime(s string) (time.Time, error) {
 	supportedFormats := []string{
 		"02/01/2006",
 		"2006-01-02T15:04:05+00:00",
+		"2006-01-02",
 	}
 
 	var t time.Time
