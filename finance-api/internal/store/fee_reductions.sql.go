@@ -99,6 +99,46 @@ func (q *Queries) CountOverlappingFeeReduction(ctx context.Context, arg CountOve
 	return count, err
 }
 
+const getFeeReduction = `-- name: GetFeeReduction :one
+select id,
+       finance_client_id,
+       type,
+       startdate,
+       enddate,
+       datereceived,
+       notes,
+       deleted
+from fee_reduction fr
+where id = $1
+`
+
+type GetFeeReductionRow struct {
+	ID              int32
+	FinanceClientID pgtype.Int4
+	Type            string
+	Startdate       pgtype.Date
+	Enddate         pgtype.Date
+	Datereceived    pgtype.Date
+	Notes           string
+	Deleted         bool
+}
+
+func (q *Queries) GetFeeReduction(ctx context.Context, id int32) (GetFeeReductionRow, error) {
+	row := q.db.QueryRow(ctx, getFeeReduction, id)
+	var i GetFeeReductionRow
+	err := row.Scan(
+		&i.ID,
+		&i.FinanceClientID,
+		&i.Type,
+		&i.Startdate,
+		&i.Enddate,
+		&i.Datereceived,
+		&i.Notes,
+		&i.Deleted,
+	)
+	return i, err
+}
+
 const getFeeReductions = `-- name: GetFeeReductions :many
 select fr.id,
        finance_client_id,
