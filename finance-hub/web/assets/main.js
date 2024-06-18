@@ -25,6 +25,9 @@ document.body.addEventListener('htmx:beforeOnLoad', function (evt) {
 
 // adding event listeners inside the onLoad function will ensure they are re-added to partial content when loaded back in
 htmx.onLoad(content => {
+    document.body.className += ' js-enabled' + ('noModule' in HTMLScriptElement.prototype ? ' govuk-frontend-supported' : '');
+    initAll();
+
     htmx.findAll(content, ".summary").forEach((element => {
         htmx.on(`#${element.id}`, "click", () => htmx.toggleClass(htmx.find(`#${element.id}-reveal`), "hide"));
     }));
