@@ -76,7 +76,7 @@ func main() {
 	// Open a connection to the PostgreSQL database
 	ctx := context.Background()
 
-	conn, err := pgx.Connect(ctx, fmt.Sprintf("postgresql://%s:%s@%s/%s?search_path=supervision_finance", dbUser, dbPassword, dbConn, pgDb))
+	conn, err := pgx.Connect(ctx, fmt.Sprintf("postgresql://%s:%s@%s/%s", dbUser, dbPassword, dbConn, pgDb))
 	if err != nil {
 		logger.Fatal(err)
 	}

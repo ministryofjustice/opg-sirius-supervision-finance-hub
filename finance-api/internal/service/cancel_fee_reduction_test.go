@@ -12,6 +12,7 @@ func (suite *IntegrationSuite) TestService_CancelFeeReduction() {
 	conn := suite.testDB.GetConn()
 
 	conn.SeedData(
+		"SET SEARCH_PATH to supervision_finance;",
 		"INSERT INTO finance_client VALUES (33, 33, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO fee_reduction VALUES (33, 33, 'REMISSION', NULL, '2019-04-01', '2021-03-31', 'Remission to see the notes', FALSE, '2019-05-01');",
 	)

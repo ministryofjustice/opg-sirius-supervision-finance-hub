@@ -36,6 +36,7 @@ func (suite *IntegrationSuite) TestService_AddFeeReduction() {
 	conn := suite.testDB.GetConn()
 
 	conn.SeedData(
+		"SET SEARCH_PATH to supervision_finance;",
 		"INSERT INTO finance_client VALUES (22, 22, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO fee_reduction VALUES (22, 22, 'REMISSION', NULL, '2019-04-01', '2021-03-31', 'Remission to see the notes', FALSE, '2019-05-01');",
 	)
@@ -77,6 +78,7 @@ func (suite *IntegrationSuite) TestService_AddFeeReductionOverlap() {
 	conn := suite.testDB.GetConn()
 
 	conn.SeedData(
+		"SET SEARCH_PATH to supervision_finance;",
 		"INSERT INTO finance_client VALUES (23, 23, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO fee_reduction VALUES (23, 23, 'REMISSION', NULL, '2019-04-01', '2021-03-31', 'Remission to see the notes', FALSE, '2019-05-01');",
 	)

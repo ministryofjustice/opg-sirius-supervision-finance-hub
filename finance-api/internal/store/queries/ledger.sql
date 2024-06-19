@@ -1,22 +1,25 @@
 -- name: CreateLedgerForFeeReduction :one
-insert into ledger (id, reference, datetime, method, amount, notes, type, status, finance_client_id,
-                    parent_id, fee_reduction_id, confirmeddate, bankdate, batchnumber, bankaccount,
-                    line, source,
-                    createddate, createdby_id)
-VALUES (nextval('ledger_id_seq'::regclass), gen_random_uuid(), now(), $1, $2, $3, $4, 'Status', $5, null, $6, null,
-        null, null, null, null, null, now(), $7) returning *;
+INSERT INTO supervision_finance.ledger (id, reference, datetime, method, amount, notes, type, status, finance_client_id,
+                                        parent_id, fee_reduction_id, confirmeddate, bankdate, batchnumber, bankaccount,
+                                        line, source,
+                                        createddate, createdby_id)
+VALUES (NEXTVAL('supervision_finance.ledger_id_seq'::REGCLASS), gen_random_uuid(), NOW(), $1, $2, $3, $4, 'Status', $5,
+        NULL, $6, NULL,
+        NULL, NULL, NULL, NULL, NULL, NOW(), $7)
+RETURNING *;
 
 -- name: UpdateLedgerAdjustment :exec
-UPDATE ledger l
+UPDATE supervision_finance.ledger l
 SET status = $1
 WHERE l.id = $2;
 
 -- name: CreateLedger :one
-WITH fc AS (SELECT id FROM finance_client WHERE client_id = $1),
+WITH fc AS (SELECT id FROM supervision_finance.finance_client WHERE client_id = $1),
      ledger AS (
-         INSERT INTO ledger (id, datetime, amount, notes, type, finance_client_id, reference, method, status)
-             SELECT nextval('ledger_id_seq'),
-                    now(),
+         INSERT INTO supervision_finance.ledger (id, datetime, amount, notes, type, finance_client_id, reference,
+                                                 method, status)
+             SELECT NEXTVAL('supervision_finance.ledger_id_seq'),
+                    NOW(),
                     $3,
                     $4,
                     $5,
@@ -27,8 +30,8 @@ WITH fc AS (SELECT id FROM finance_client WHERE client_id = $1),
              FROM fc
              RETURNING id, datetime)
 INSERT
-INTO ledger_allocation (id, ledger_id, invoice_id, datetime, amount, status, notes)
-SELECT nextval('ledger_allocation_id_seq'),
+INTO supervision_finance.ledger_allocation (id, ledger_id, invoice_id, datetime, amount, status, notes)
+SELECT NEXTVAL('supervision_finance.ledger_allocation_id_seq'),
        ledger.id,
        $2,
        ledger.datetime,
@@ -36,4 +39,4 @@ SELECT nextval('ledger_allocation_id_seq'),
        'PENDING',
        $4
 FROM ledger
-returning (SELECT reference invoiceReference FROM invoice WHERE id = invoice_id);
+RETURNING (SELECT reference invoicereference FROM supervision_finance.invoice WHERE id = invoice_id);

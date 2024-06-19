@@ -12,10 +12,10 @@ import (
 )
 
 const createLedgerAllocationForFeeReduction = `-- name: CreateLedgerAllocationForFeeReduction :one
-INSERT INTO ledger_allocation (id, ledger_id, invoice_id, datetime, amount, status, reference,
+INSERT INTO supervision_finance.ledger_allocation (id, ledger_id, invoice_id, datetime, amount, status, reference,
                                notes, allocateddate, batchnumber, source,
                                transaction_type)
-VALUES (NEXTVAL('ledger_allocation_id_seq'::REGCLASS), $1, $2, NOW(), $3, 'ALLOCATED', NULL, NULL, NULL, NULL, NULL,
+VALUES (NEXTVAL('supervision_finance.ledger_allocation_id_seq'::REGCLASS), $1, $2, NOW(), $3, 'ALLOCATED', NULL, NULL, NULL, NULL, NULL,
         NULL)
 RETURNING id, ledger_id, invoice_id, datetime, amount, status, reference, notes, allocateddate, batchnumber, source, transaction_type
 `
@@ -26,9 +26,9 @@ type CreateLedgerAllocationForFeeReductionParams struct {
 	Amount    int32
 }
 
-func (q *Queries) CreateLedgerAllocationForFeeReduction(ctx context.Context, arg CreateLedgerAllocationForFeeReductionParams) (LedgerAllocation, error) {
+func (q *Queries) CreateLedgerAllocationForFeeReduction(ctx context.Context, arg CreateLedgerAllocationForFeeReductionParams) (SupervisionFinanceLedgerAllocation, error) {
 	row := q.db.QueryRow(ctx, createLedgerAllocationForFeeReduction, arg.LedgerID, arg.InvoiceID, arg.Amount)
-	var i LedgerAllocation
+	var i SupervisionFinanceLedgerAllocation
 	err := row.Scan(
 		&i.ID,
 		&i.LedgerID,
@@ -47,9 +47,9 @@ func (q *Queries) CreateLedgerAllocationForFeeReduction(ctx context.Context, arg
 }
 
 const updateLedgerAllocationAdjustment = `-- name: UpdateLedgerAllocationAdjustment :exec
-UPDATE ledger_allocation la
+UPDATE supervision_finance.ledger_allocation la
 SET status = $1
-FROM ledger l
+FROM supervision_finance.ledger l
 WHERE l.id = $2
   AND l.id = la.ledger_id
   AND l.type IN ('CREDIT MEMO', 'CREDIT WRITE OFF', 'DEBIT MEMO')

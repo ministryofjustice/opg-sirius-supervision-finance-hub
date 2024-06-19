@@ -14,6 +14,7 @@ func (suite *IntegrationSuite) TestService_CreateLedgerEntry() {
 	conn := suite.testDB.GetConn()
 
 	conn.SeedData(
+		"SET SEARCH_PATH to supervision_finance;",
 		"INSERT INTO finance_client VALUES (1, 1, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO invoice VALUES (1, 1, 1, 'S2', 'S204642/19', '2022-04-02', '2022-04-02', 32000, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2022-04-02', 1);",
 		"INSERT INTO ledger VALUES (1, 'abc1', '2022-04-02T00:00:00+00:00', '', 22000, 'Initial payment', 'UNKNOWN DEBIT', 'CONFIRMED', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '05/05/2022', 1);",
@@ -73,13 +74,13 @@ func (suite *IntegrationSuite) TestService_CreateLedgerEntry() {
 				return
 			}
 
-			var ledger store.Ledger
+			var ledger store.SupervisionFinanceLedger
 			q := conn.QueryRow(context.Background(), "SELECT id, amount, notes, type, status, finance_client_id FROM ledger WHERE id = 2")
 			err = q.Scan(&ledger.ID, &ledger.Amount, &ledger.Notes, &ledger.Type, &ledger.Status, &ledger.FinanceClientID)
 			if err != nil {
 				assert.ErrorIs(t, err, tt.err)
 			} else {
-				expected := store.Ledger{
+				expected := store.SupervisionFinanceLedger{
 					ID:              2,
 					Amount:          int32(tt.data.Amount),
 					Notes:           pgtype.Text{String: tt.data.AdjustmentNotes, Valid: true},
@@ -91,13 +92,13 @@ func (suite *IntegrationSuite) TestService_CreateLedgerEntry() {
 				assert.EqualValues(t, expected, ledger)
 			}
 
-			var la store.LedgerAllocation
+			var la store.SupervisionFinanceLedgerAllocation
 			q = conn.QueryRow(context.Background(), "SELECT id, ledger_id, invoice_id, amount, status, notes FROM ledger_allocation WHERE id = 2")
 			err = q.Scan(&la.ID, &la.LedgerID, &la.InvoiceID, &la.Amount, &la.Status, &la.Notes)
 			if err != nil {
 				assert.ErrorIs(t, err, tt.err)
 			} else {
-				expected := store.LedgerAllocation{
+				expected := store.SupervisionFinanceLedgerAllocation{
 					ID:        2,
 					LedgerID:  pgtype.Int4{Int32: int32(2), Valid: true},
 					InvoiceID: pgtype.Int4{Int32: int32(1), Valid: true},

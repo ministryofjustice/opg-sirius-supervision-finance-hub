@@ -127,5 +127,4 @@ services:
       DB_PASSWORD: password
       DB_CONNECTION: sirius-db:5432
       DB_NAME: finance
-      DB_SCHEMA: supervision_finance
     command: "up"
