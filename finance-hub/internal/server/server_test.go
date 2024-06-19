@@ -59,6 +59,11 @@ type mockApiClient struct {
 	invoiceAdjustments shared.InvoiceAdjustments
 }
 
+func (m mockApiClient) GetBillingHistory(context api.Context, i int) ([]shared.BillingHistory, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (m mockApiClient) UpdatePendingInvoiceAdjustment(context api.Context, i int, i2 int, i3 string) error {
 	return m.error
 }

@@ -16,6 +16,7 @@ type Service interface {
 	AddFeeReduction(id int, data shared.AddFeeReduction) error
 	CancelFeeReduction(id int) error
 	UpdatePendingInvoiceAdjustment(id int, status string) error
+	GetBillingHistory(id int) ([]shared.BillingHistory, error)
 }
 
 type Server struct {
@@ -29,6 +30,7 @@ func (s *Server) SetupRoutes() {
 	http.HandleFunc("GET /clients/{clientId}/invoices", s.getInvoices)
 	http.HandleFunc("GET /clients/{clientId}/fee-reductions", s.getFeeReductions)
 	http.HandleFunc("GET /clients/{clientId}/invoice-adjustments", s.getInvoiceAdjustments)
+	http.HandleFunc("GET /clients/{clientId}/billing-history", s.getBillingHistory)
 
 	http.HandleFunc("POST /clients/{clientId}/invoices/{invoiceId}/ledger-entries", s.PostLedgerEntry)
 	http.HandleFunc("PUT /clients/{clientId}/invoice-adjustments/{ledgerId}", s.updatePendingInvoiceAdjustment)

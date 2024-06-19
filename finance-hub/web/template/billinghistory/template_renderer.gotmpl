@@ -1,0 +1,14 @@
+{{ define "template-renderer" }}
+    {{ if eq .Event.Type.String "INVOICE_GENERATED" }}
+        {{ template "invoice-generated-event" . }}
+    {{ end }}
+    {{ if eq .Event.Type.String "FEE_REDUCTION_APPLIED" }}
+        {{ template "fee-reduction-applied-event" . }}
+    {{ end }}
+    {{ if eq .Event.Type.String "INVOICE_ADJUSTMENT_APPLIED" }}
+        {{ template "adjustment-applied-event" . }}
+    {{ end }}
+    {{ if eq .Event.Type.String "PAYMENT_PROCESSED" }}
+        {{ template "payment-processed-event" . }}
+    {{ end }}
+{{ end }}
