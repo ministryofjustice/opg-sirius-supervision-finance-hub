@@ -2,7 +2,7 @@
 INSERT INTO ledger_allocation (id, ledger_id, invoice_id, datetime, amount, status, reference,
                                notes, allocateddate, batchnumber, source,
                                transaction_type)
-VALUES (NEXTVAL('ledger_allocation_id_seq'::REGCLASS), $1, $2, NOW(), $3, 'APPROVED', NULL, NULL, NULL, NULL, NULL,
+VALUES (NEXTVAL('ledger_allocation_id_seq'::REGCLASS), $1, $2, NOW(), $3, 'ALLOCATED', NULL, NULL, NULL, NULL, NULL,
         NULL)
 RETURNING *;
 

@@ -29,7 +29,7 @@ describe("Invoices ledger allocations", () => {
         cy.contains('[data-cy="ledger-received-date"]', "Received date");
         cy.contains('[data-cy="ledger-transaction-type"]', "Transaction type");
         cy.contains('[data-cy="ledger-status"]', "Status");
-        cy.get('[data-cy="ledger-amount-data"]').first().contains("£123")
+        cy.get('[data-cy="ledger-amount-data"]').first().contains("£88")
         cy.get('[data-cy="ledger-received-date-data"]').first().contains("04/12/2022")
         cy.get('[data-cy="ledger-transaction-type-data"]').first().contains("Card Payment");
         cy.get('[data-cy="ledger-status-data"]').first().contains("Approved");
@@ -46,7 +46,7 @@ describe("Supervision level breakdown", () => {
         cy.contains('[data-cy="supervision-from"]', "From");
         cy.contains('[data-cy="supervision-to"]', "To");
         cy.contains('[data-cy="supervision-level-data"]', "General").first();
-        cy.contains('[data-cy="supervision-amount-data"]', "£123").first();
+        cy.contains('[data-cy="supervision-amount-data"]', "£100").first();
         cy.contains('[data-cy="supervision-from-data"]', "01/04/2022").first();
         cy.contains('[data-cy="supervision-to-data"]', "31/03/2023").first();
     });
