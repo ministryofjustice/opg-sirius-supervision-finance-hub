@@ -14,6 +14,13 @@ describe("Add fee reduction form", () => {
 
     it("allows me to enter note information which amends character count", () => {
         cy.visit("/clients/1/fee-reductions/add");
+            cy.get(
+                ".govuk-character-count > .govuk-form-group > .govuk-label"
+            ).should("contain", "Reasons for fee reduction");
+            cy.get("#fee-reduction-notes-info + .govuk-character-count__status").should(
+                "contain",
+                "You have 1,000 characters remaining"
+            );
         cy.get("#fee-reduction-notes").type("example note text");
         cy.get("#fee-reduction-notes-info + .govuk-character-count__status").should(
             "contain",
