@@ -14,6 +14,7 @@ import (
 
 var (
 	FeeReductionTypes = []string{"EXEMPTION", "HARDSHIP", "REMISSION"}
+	AllocatedStatuses = []string{"ALLOCATED", "APPROVED", "CONFIRMED"} // TODO: PFS-107 & PFS-110 to investigate
 )
 
 type invoiceMetadata struct {
@@ -70,21 +71,19 @@ func (ib *invoiceBuilder) addLedgerAllocations(ilas []store.GetLedgerAllocations
 			})
 
 		metadata := ib.invoices[il.InvoiceID.Int32]
-		if il.Status == "APPROVED" || il.Status == "CONFIRMED" {
+		if slices.Contains(AllocatedStatuses, il.Status) {
 			metadata.total += int(il.Amount)
 			if slices.Contains(FeeReductionTypes, il.Type) && metadata.contextType == "" {
 				metadata.contextType = cases.Title(language.English).String(il.Type)
 			}
 			if il.Type == "CREDIT MEMO" {
 				metadata.creditAdded = true
+			} else if il.Type == "CREDIT WRITE OFF" {
+				metadata.contextType = "Write-off"
 			}
 		}
-		if il.Type == "CREDIT WRITE OFF" {
-			if il.Status == "APPROVED" {
-				metadata.contextType = "Write-off"
-			} else {
-				metadata.contextType = "Write-off pending"
-			}
+		if metadata.contextType == "" && il.Type == "CREDIT WRITE OFF" {
+			metadata.contextType = "Write-off pending"
 		}
 	}
 
