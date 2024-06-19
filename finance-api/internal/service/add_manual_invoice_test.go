@@ -37,7 +37,7 @@ func (suite *IntegrationSuite) TestService_AddManualInvoice() {
 	conn := suite.testDB.GetConn()
 
 	conn.SeedData(
-		"INSERT INTO finance_client VALUES (24, 24, '1234', 'DEMANDED', null, 12300, 2222);",
+		"INSERT INTO finance_client VALUES (24, 24, '1234', 'DEMANDED', null);",
 		"INSERT INTO fee_reduction VALUES (24, 24, 'REMISSION', null, '2023-04-01', '2024-03-31', 'Remission to see the notes', false, '2023-05-01');",
 	)
 	ctx := context.Background()
@@ -105,7 +105,7 @@ func (suite *IntegrationSuite) TestService_AddManualInvoiceRaisedDateForAnInvoic
 	conn := suite.testDB.GetConn()
 
 	conn.SeedData(
-		"INSERT INTO finance_client VALUES (24, 24, '1234', 'DEMANDED', null, 12300, 2222);",
+		"INSERT INTO finance_client VALUES (24, 24, '1234', 'DEMANDED', null);",
 		"INSERT INTO fee_reduction VALUES (24, 24, 'REMISSION', null, '2023-04-01', '2024-03-31', 'Remission to see the notes', false, '2023-05-01');",
 	)
 	s, params := addManualInvoiceSetup(conn)
@@ -127,7 +127,7 @@ func (suite *IntegrationSuite) TestService_AddManualInvoiceRaisedDateForAnInvoic
 	conn := suite.testDB.GetConn()
 
 	conn.SeedData(
-		"INSERT INTO finance_client VALUES (24, 24, '1234', 'DEMANDED', null, 12300, 2222);",
+		"INSERT INTO finance_client VALUES (24, 24, '1234', 'DEMANDED', null);",
 		"INSERT INTO fee_reduction VALUES (24, 24, 'REMISSION', null, '2023-04-01', '2024-03-31', 'Remission to see the notes', false, '2023-05-01');",
 	)
 	s, params := addManualInvoiceSetup(conn)
