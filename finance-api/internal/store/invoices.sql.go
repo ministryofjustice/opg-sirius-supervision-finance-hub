@@ -130,3 +130,90 @@ func (q *Queries) GetInvoices(ctx context.Context, clientID int32) ([]GetInvoice
 	}
 	return items, nil
 }
+
+const getLedgerAllocations = `-- name: GetLedgerAllocations :many
+SELECT la.invoice_id, la.id, la.amount, la.datetime, l.bankdate, l.type, la.status
+FROM ledger_allocation la
+         INNER JOIN ledger l ON la.ledger_id = l.id
+WHERE la.invoice_id = ANY($1::int[])
+ORDER BY la.id DESC
+`
+
+type GetLedgerAllocationsRow struct {
+	InvoiceID pgtype.Int4
+	ID        int32
+	Amount    int32
+	Datetime  pgtype.Timestamp
+	Bankdate  pgtype.Date
+	Type      string
+	Status    string
+}
+
+func (q *Queries) GetLedgerAllocations(ctx context.Context, dollar_1 []int32) ([]GetLedgerAllocationsRow, error) {
+	rows, err := q.db.Query(ctx, getLedgerAllocations, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetLedgerAllocationsRow
+	for rows.Next() {
+		var i GetLedgerAllocationsRow
+		if err := rows.Scan(
+			&i.InvoiceID,
+			&i.ID,
+			&i.Amount,
+			&i.Datetime,
+			&i.Bankdate,
+			&i.Type,
+			&i.Status,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSupervisionLevels = `-- name: GetSupervisionLevels :many
+SELECT invoice_id, supervisionlevel, fromdate, todate, amount
+FROM invoice_fee_range
+WHERE invoice_id = ANY($1::int[])
+ORDER BY todate DESC
+`
+
+type GetSupervisionLevelsRow struct {
+	InvoiceID        pgtype.Int4
+	Supervisionlevel string
+	Fromdate         pgtype.Date
+	Todate           pgtype.Date
+	Amount           int32
+}
+
+func (q *Queries) GetSupervisionLevels(ctx context.Context, dollar_1 []int32) ([]GetSupervisionLevelsRow, error) {
+	rows, err := q.db.Query(ctx, getSupervisionLevels, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetSupervisionLevelsRow
+	for rows.Next() {
+		var i GetSupervisionLevelsRow
+		if err := rows.Scan(
+			&i.InvoiceID,
+			&i.Supervisionlevel,
+			&i.Fromdate,
+			&i.Todate,
+			&i.Amount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

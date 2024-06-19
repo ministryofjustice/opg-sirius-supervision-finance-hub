@@ -9,6 +9,19 @@ WHERE fc.client_id = $1
 GROUP BY i.id, i.raiseddate
 ORDER BY i.raiseddate DESC;
 
+-- name: GetLedgerAllocations :many
+SELECT la.invoice_id, la.id, la.amount, la.datetime, l.bankdate, l.type, la.status
+FROM ledger_allocation la
+         INNER JOIN ledger l ON la.ledger_id = l.id
+WHERE la.invoice_id = ANY($1::int[])
+ORDER BY la.id DESC;
+
+-- name: GetSupervisionLevels :many
+SELECT invoice_id, supervisionlevel, fromdate, todate, amount
+FROM invoice_fee_range
+WHERE invoice_id = ANY($1::int[])
+ORDER BY todate DESC;
+
 -- name: GetInvoiceBalance :one
 SELECT i.amount initial, i.amount - COALESCE(SUM(la.amount), 0) outstanding, i.feetype
 FROM invoice i

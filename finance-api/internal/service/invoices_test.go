@@ -17,10 +17,10 @@ func (suite *IntegrationSuite) TestService_GetInvoices() {
 		"INSERT INTO finance_client VALUES (7, 1, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO finance_client VALUES (3, 2, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO fee_reduction VALUES (2, 7, 'REMISSION', NULL, '2019-04-01'::DATE, '2020-03-31'::DATE, 'notes', FALSE, '2019-05-01'::DATE);",
-		"INSERT INTO invoice VALUES (1, 1, 7, 'S2', 'S203531/19', '2019-04-01', '2020-03-31', 12300, NULL, '2020-03-20',1, '2020-03-16', 10, NULL, 12300, '2019-06-06', 99);",
+		"INSERT INTO invoice VALUES (1, 1, 7, 'S2', 'S203531/19', '2019-04-01', '2020-03-31', 32000, NULL, '2020-03-20',1, '2020-03-16', 10, NULL, NULL, '2019-06-06', 99);",
 		"INSERT INTO ledger VALUES (1, 'random1223', '2022-04-11T08:36:40+00:00', '', 12300, '', 'CARD PAYMENT', 'APPROVED', 7, 1, 2, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 65);",
 		"INSERT INTO ledger_allocation VALUES (1, 1, 1, '2022-04-11T08:36:40+00:00', 12300, 'ALLOCATED', NULL, 'Notes here', '2022-04-11', NULL);",
-		"INSERT INTO invoice_fee_range VALUES (1, 1, 'General', '2022-04-01', '2023-03-31', 12300);",
+		"INSERT INTO invoice_fee_range VALUES (1, 1, 'GENERAL', '2022-04-01', '2023-03-31', 32000);",
 	)
 
 	Store := store.New(conn)
@@ -42,11 +42,11 @@ func (suite *IntegrationSuite) TestService_GetInvoices() {
 					Status:             "Unpaid",
 					Amount:             32000,
 					RaisedDate:         shared.Date{Time: date},
-					Received:           12345,
-					OutstandingBalance: 19655,
+					Received:           12300,
+					OutstandingBalance: 19700,
 					Ledgers: []shared.Ledger{
 						{
-							Amount:          12345,
+							Amount:          12300,
 							ReceivedDate:    shared.NewDate("04/12/2022"),
 							TransactionType: "CARD PAYMENT",
 							Status:          "ALLOCATED",
@@ -54,7 +54,7 @@ func (suite *IntegrationSuite) TestService_GetInvoices() {
 					},
 					SupervisionLevels: []shared.SupervisionLevel{
 						{
-							Level:  "General",
+							Level:  "GENERAL",
 							Amount: 32000,
 							From:   shared.NewDate("01/04/2022"),
 							To:     shared.NewDate("31/03/2023"),
