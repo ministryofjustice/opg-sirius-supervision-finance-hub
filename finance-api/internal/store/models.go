@@ -41,10 +41,8 @@ type FinanceClient struct {
 	ClientID  int32
 	SopNumber string
 	// (DC2Type:refdata)
-	PaymentMethod      string
-	Batchnumber        pgtype.Int4
-	Cacheddebtamount   pgtype.Int4
-	Cachedcreditamount pgtype.Int4
+	PaymentMethod string
+	Batchnumber   pgtype.Int4
 }
 
 type Invoice struct {
