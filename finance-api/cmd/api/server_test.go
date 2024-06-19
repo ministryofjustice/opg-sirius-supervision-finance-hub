@@ -13,8 +13,14 @@ type mockService struct {
 	feeReduction       *shared.AddFeeReduction
 	cancelFeeReduction *shared.CancelFeeReduction
 	ledger             *shared.CreateLedgerEntryRequest
+	manualInvoice      *shared.AddManualInvoice
 	expectedIds        []int
 	err                error
+}
+
+func (s *mockService) AddManualInvoice(id int, invoice shared.AddManualInvoice) error {
+	s.expectedIds = []int{id}
+	return s.err
 }
 
 func (s *mockService) UpdatePendingInvoiceAdjustment(id int, status string) error {
