@@ -17,7 +17,7 @@ func (s *Service) GetInvoices(clientID int) (*shared.Invoices, error) {
 	}
 
 	for _, inv := range invoicesRawData {
-		ledgerAllocations, totalOfLedgerAllocationsAmount, err := getLedgerAllocations(s, ctx, int(inv.ID))
+		ledgerAllocations, err := getLedgerAllocations(s, ctx, int(inv.ID))
 		if err != nil {
 			return nil, err
 		}
@@ -33,8 +33,8 @@ func (s *Service) GetInvoices(clientID int) (*shared.Invoices, error) {
 			Status:             "",
 			Amount:             int(inv.Amount),
 			RaisedDate:         shared.Date{Time: inv.Raiseddate.Time},
-			Received:           totalOfLedgerAllocationsAmount,
-			OutstandingBalance: int(inv.Amount) - totalOfLedgerAllocationsAmount,
+			Received:           int(inv.Received),
+			OutstandingBalance: int(inv.Amount - inv.Received),
 			Ledgers:            ledgerAllocations,
 			SupervisionLevels:  supervisionLevels,
 		}
@@ -64,12 +64,11 @@ func getSupervisionLevels(s *Service, ctx context.Context, invoiceID int) ([]sha
 	return supervisionLevels, nil
 }
 
-func getLedgerAllocations(s *Service, ctx context.Context, invoiceID int) ([]shared.Ledger, int, error) {
+func getLedgerAllocations(s *Service, ctx context.Context, invoiceID int) ([]shared.Ledger, error) {
 	var ledgerAllocations []shared.Ledger
-	totalOfLedgerAllocationsAmount := 0
 	ledgerAllocationsRawData, err := s.store.GetLedgerAllocations(ctx, pgtype.Int4{Int32: int32(invoiceID), Valid: true})
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	for _, ledger := range ledgerAllocationsRawData {
@@ -80,11 +79,8 @@ func getLedgerAllocations(s *Service, ctx context.Context, invoiceID int) ([]sha
 			Status:          ledger.Status,
 		}
 		ledgerAllocations = append(ledgerAllocations, ledgerAllocation)
-		if ledger.Status == "APPROVED" {
-			totalOfLedgerAllocationsAmount = totalOfLedgerAllocationsAmount + int(ledger.Amount)
-		}
 	}
-	return ledgerAllocations, totalOfLedgerAllocationsAmount, nil
+	return ledgerAllocations, nil
 }
 
 func calculateReceivedDate(bankDate pgtype.Date, datetime pgtype.Timestamp) shared.Date {

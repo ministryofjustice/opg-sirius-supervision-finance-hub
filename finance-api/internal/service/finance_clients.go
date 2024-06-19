@@ -14,8 +14,8 @@ func (s *Service) GetAccountInformation(id int) (*shared.AccountInformation, err
 	}
 
 	return &shared.AccountInformation{
-		CreditBalance:      int(fc.Cachedcreditamount.Int32),
-		OutstandingBalance: int(fc.Cacheddebtamount.Int32),
+		CreditBalance:      int(fc.Credit),
+		OutstandingBalance: int(fc.Outstanding),
 		PaymentMethod:      fc.PaymentMethod,
 	}, nil
 }
