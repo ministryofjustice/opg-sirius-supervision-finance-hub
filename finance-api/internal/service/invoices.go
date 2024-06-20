@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	FeeReductionTypes = []string{"EXEMPTION", "HARDSHIP", "REMISSION"}
+	FeeReductionTypes = []string{"CREDIT EXEMPTION", "CREDIT HARDSHIP", "CREDIT REMISSION"}
 	AllocatedStatuses = []string{"ALLOCATED", "APPROVED", "CONFIRMED"} // TODO: PFS-107 & PFS-110 to investigate
 )
 
