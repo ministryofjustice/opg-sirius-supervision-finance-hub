@@ -7,7 +7,6 @@ import (
 
 type BillingHistoryVars struct {
 	BillingHistory []shared.BillingHistory
-	ClientId       int
 	AppVars
 }
 
@@ -23,7 +22,7 @@ func (h *BillingHistoryHandler) render(v AppVars, w http.ResponseWriter, r *http
 		return err
 	}
 
-	data := &BillingHistoryVars{billingHistory, ctx.ClientId, v}
+	data := &BillingHistoryVars{billingHistory, v}
 	data.selectTab("billing_history")
 	return h.execute(w, r, data)
 }

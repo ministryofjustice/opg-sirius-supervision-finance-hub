@@ -10,9 +10,8 @@ import (
 func (c *ApiClient) GetBillingHistory(ctx Context, clientId int) ([]shared.BillingHistory, error) {
 	var billingHistory []shared.BillingHistory
 
-	url := fmt.Sprintf("/clients/%d/billing-history", clientId)
-
-	req, err := c.newBackendRequest(ctx, http.MethodGet, url, nil)
+	requestURL := fmt.Sprintf("/api/v1/clients/%d/billing-history", clientId)
+	req, err := c.newSiriusRequest(ctx, http.MethodGet, requestURL, nil)
 
 	if err != nil {
 		return billingHistory, err

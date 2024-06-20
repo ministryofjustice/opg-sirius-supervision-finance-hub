@@ -55,8 +55,10 @@ func (d BaseBillingEvent) GetType() BillingEventType {
 }
 
 type InvoiceGenerated struct {
+	ClientId         string       `json:"client_id"`
 	InvoiceReference InvoiceEvent `json:"invoice_reference"`
 	InvoiceType      string       `json:"invoice_type"`
+	InvoiceName      string       `json:"invoice_name"`
 	Amount           int          `json:"amount"`
 	BaseBillingEvent
 }
@@ -71,14 +73,16 @@ type FeeReductionAwarded struct {
 }
 
 type FeeReductionApplied struct {
-	ReductionType string `json:"reduction_type"`
-	PaymentBreakdown
+	ClientId         string `json:"client_id"`
+	ReductionType    string `json:"reduction_type"`
+	PaymentBreakdown `json:"payment_breakdown"`
 	BaseBillingEvent
 }
 
 type InvoiceAdjustmentApproved struct {
-	AdjustmentType string `json:"adjustment_type"`
-	PaymentBreakdown
+	AdjustmentType   string `json:"adjustment_type"`
+	ClientId         string `json:"client_id"`
+	PaymentBreakdown `json:"payment_breakdown"`
 	BaseBillingEvent
 }
 

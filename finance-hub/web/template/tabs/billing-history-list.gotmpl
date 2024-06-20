@@ -5,9 +5,13 @@
   </header>
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-full">
+      {{ if eq (len .BillingHistory) 0 }}
+        <h2 data-cy="no-billing-history" class="moj-timeline__title">No billing history for this client</h2>
+      {{ else }}
       <div class="moj-timeline">
-        {{ range .BillingHistory }}
-          {{ template "template-renderer" . }}
+          {{ range .BillingHistory }}
+            {{ template "template-renderer" . }}
+          {{ end }}
         {{ end }}
       </div>
     </div>

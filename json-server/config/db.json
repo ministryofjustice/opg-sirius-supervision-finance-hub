@@ -36,20 +36,108 @@
       "paymentMethod": "Demanded"
     }
   ],
-  "errors": [
+  "billing-history": [
     {
-      "id": "notesError",
-      "validation_errors": {
-        "adjustmentType": {
-          "": "Select the adjustment type"
+      "clientId": 1,
+      "user": "65",
+      "date": "2099-11-04T15:04:05+00:00",
+      "event": {
+        "client_id": "1",
+        "type": "INVOICE_ADJUSTMENT_APPLIED",
+        "adjustment_type": "Write off",
+        "total": 12300,
+        "payment_breakdown": {
+          "invoice_reference": {
+            "id": 1,
+            "reference": "S203531/19"
+          },
+          "amount": 12300
         },
-        "notes": {
-          "": "Reason for manual credit must be 1000 characters or less"
-        },
-        "amount": {
-          "": "Enter an amount"
+        "baseBillingEvent": {
+          "type": 4
         }
-      }
+      },
+      "outstanding_balance": 0
+    },
+    {
+      "clientId": 1,
+      "user": "2630",
+      "date": "2030-11-04T15:04:05+00:00",
+      "event": {
+        "client_id": "1",
+        "reduction_type": "Fee exemption credit",
+        "type": "FEE_REDUCTION_APPLIED",
+        "payment_breakdown": {
+          "invoice_reference": {
+            "id": 1,
+            "reference": "S206666/18"
+          },
+          "amount": 50000
+        },
+        "baseBillingEvent": {
+          "type": 3
+        }
+      },
+      "outstanding_balance": 0
+    },
+    {
+      "clientId": 1,
+      "user": "2630",
+      "date": "2029-11-04T15:04:05+00:00",
+      "event": {
+        "client_id": "1",
+        "reduction_type": "Exemption",
+        "type": "FEE_REDUCTION_AWARDED",
+        "start_date":  "2029-04-01T15:04:05+00:00",
+        "end_date":  "2030-03-31T15:04:05+00:00",
+        "date_received":  "2029-05-31T15:04:05+00:00",
+        "notes":  "Dummy notes for a fee exemption credit",
+        "baseBillingEvent": {
+          "type": 2
+        }
+      },
+      "outstanding_balance": 62300
+    },
+    {
+      "clientId": 1,
+      "user": "99",
+      "date": "2023-03-20T15:04:05+00:00",
+      "event": {
+        "client_id": "1",
+        "type": "INVOICE_GENERATED",
+        "invoice_reference": {
+          "id": 1,
+          "reference": "S206666/18"
+        },
+        "invoice_type": "S2",
+        "invoice_name": "General annual fee invoice (Non-direct debit)",
+        "amount": 50000,
+        "baseBillingEvent": {
+          "type": 1
+        }
+      },
+      "outstanding_balance": 62300
+    },
+    {
+      "clientId": 1,
+      "user": "65",
+      "date": "2022-11-04T15:04:05+00:00",
+      "event": {
+        "type": "PAYMENT_PROCESSED",
+        "payment_type": "Card payment",
+        "total": 12300,
+        "breakdown": [{
+          "invoice_reference": {
+            "id": 1,
+            "reference": "S203531/19"
+          },
+          "amount": 12300
+        }],
+        "baseBillingEvent": {
+          "type": 5
+        }
+      },
+      "outstanding_balance": 12300
     }
   ],
   "tasks": {
@@ -60,3 +148,5 @@
     "description": "Pending credit memo added to S203531/19 requires manager approval"
   }
 }
+
+
