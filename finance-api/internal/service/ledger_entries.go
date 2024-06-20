@@ -12,7 +12,7 @@ import (
 func (s *Service) CreateLedgerEntry(clientId int, invoiceId int, ledgerEntry *shared.CreateLedgerEntryRequest) (*shared.InvoiceReference, error) {
 	ctx := context.Background()
 
-	balance, err := s.store.GetInvoiceBalance(context.Background(), int32(invoiceId))
+	balance, err := s.store.GetInvoiceBalanceDetails(ctx, int32(invoiceId))
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func (s *Service) CreateLedgerEntry(clientId int, invoiceId int, ledgerEntry *sh
 	return &shared.InvoiceReference{InvoiceRef: invoiceReference}, nil
 }
 
-func (s *Service) validateAdjustmentAmount(adjustment *shared.CreateLedgerEntryRequest, balance store.GetInvoiceBalanceRow) error {
+func (s *Service) validateAdjustmentAmount(adjustment *shared.CreateLedgerEntryRequest, balance store.GetInvoiceBalanceDetailsRow) error {
 	switch adjustment.AdjustmentType {
 	case shared.AdjustmentTypeAddCredit:
 		if int32(adjustment.Amount)-balance.Outstanding > balance.Initial {
@@ -65,7 +65,7 @@ func (s *Service) validateAdjustmentAmount(adjustment *shared.CreateLedgerEntryR
 	return nil
 }
 
-func (s *Service) calculateAdjustmentAmount(adjustment *shared.CreateLedgerEntryRequest, balance store.GetInvoiceBalanceRow) int32 {
+func (s *Service) calculateAdjustmentAmount(adjustment *shared.CreateLedgerEntryRequest, balance store.GetInvoiceBalanceDetailsRow) int32 {
 	switch adjustment.AdjustmentType {
 	case shared.AdjustmentTypeWriteOff:
 		return balance.Outstanding
