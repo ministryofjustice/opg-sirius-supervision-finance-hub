@@ -16,9 +16,9 @@ func (suite *IntegrationSuite) TestService_GetInvoices() {
 	conn.SeedData(
 		"INSERT INTO finance_client VALUES (7, 1, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO finance_client VALUES (3, 2, '1234', 'DEMANDED', NULL);",
-		"INSERT INTO fee_reduction VALUES (2, 7, 'REMISSION', NULL, '2019-04-01'::DATE, '2020-03-31'::DATE, 'notes', FALSE, '2019-05-01'::DATE);",
-		"INSERT INTO invoice VALUES (1, 1, 7, 'S2', 'S203531/19', '2019-04-01', '2020-03-31', 32000, NULL, '2020-03-20',1, '2020-03-16', 10, NULL, NULL, '2019-06-06', 99);",
-		"INSERT INTO ledger VALUES (1, 'random1223', '2022-04-11T08:36:40+00:00', '', 12300, '', 'CARD PAYMENT', 'APPROVED', 7, 1, 2, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 65);",
+		"INSERT INTO fee_reduction VALUES (1, 7, 'REMISSION', NULL, '2019-04-01'::DATE, '2020-03-31'::DATE, 'notes', FALSE, '2019-05-01'::DATE);",
+		"INSERT INTO invoice VALUES (1, 1, 7, 'S2', 'S203531/19', '2019-04-01', '2020-03-31', 32000, NULL, '2020-03-20',1, '2020-03-16', 10, NULL, NULL, '2019-06-06', 99, 1);",
+		"INSERT INTO ledger VALUES (1, 'random1223', '2022-04-11T08:36:40+00:00', '', 12300, '', 'CREDIT REMISSION', 'APPROVED', 7, 1, 1, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 65);",
 		"INSERT INTO ledger_allocation VALUES (1, 1, 1, '2022-04-11T08:36:40+00:00', 12300, 'ALLOCATED', NULL, 'Notes here', '2022-04-11', NULL);",
 		"INSERT INTO invoice_fee_range VALUES (1, 1, 'GENERAL', '2022-04-01', '2023-03-31', 32000);",
 	)
@@ -39,7 +39,7 @@ func (suite *IntegrationSuite) TestService_GetInvoices() {
 				shared.Invoice{
 					Id:                 1,
 					Ref:                "S203531/19",
-					Status:             "Unpaid",
+					Status:             "Unpaid - Remission",
 					Amount:             32000,
 					RaisedDate:         shared.Date{Time: date},
 					Received:           12300,
@@ -48,7 +48,7 @@ func (suite *IntegrationSuite) TestService_GetInvoices() {
 						{
 							Amount:          12300,
 							ReceivedDate:    shared.NewDate("04/12/2022"),
-							TransactionType: "CARD PAYMENT",
+							TransactionType: "CREDIT REMISSION",
 							Status:          "ALLOCATED",
 						},
 					},
@@ -91,12 +91,13 @@ func (suite *IntegrationSuite) TestService_GetInvoices() {
 	}
 }
 
-func Test_invoiceBuilder_addLedgerAllocations(t *testing.T) {
+func Test_invoiceBuilder_statuses(t *testing.T) {
 	tests := []struct {
-		name    string
-		ilas    []store.GetLedgerAllocationsRow
-		status  string
-		balance int
+		name         string
+		ilas         []store.GetLedgerAllocationsRow
+		status       string
+		balance      int
+		feeReduction string
 	}{
 		{
 			name:    "Unpaid - no ledgers",
@@ -174,12 +175,13 @@ func Test_invoiceBuilder_addLedgerAllocations(t *testing.T) {
 					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
 					ID:        3,
 					Amount:    10000,
-					Type:      "CREDIT REMISSION",
+					Type:      "REMISSION",
 					Status:    "APPROVED",
 				},
 			},
-			status:  "Unpaid - Write-off pending",
-			balance: 22000,
+			status:       "Unpaid - Write-off pending",
+			balance:      22000,
+			feeReduction: "REMISSION",
 		},
 		{
 			name: "Write-off",
@@ -195,15 +197,16 @@ func Test_invoiceBuilder_addLedgerAllocations(t *testing.T) {
 					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
 					ID:        3,
 					Amount:    10000,
-					Type:      "CREDIT REMISSION",
+					Type:      "REMISSION",
 					Status:    "APPROVED",
 				},
 			},
-			status:  "Closed - Write-off",
-			balance: 0,
+			status:       "Closed - Write-off",
+			balance:      0,
+			feeReduction: "REMISSION",
 		},
 		{
-			name: "Closed",
+			name: "Paid - with credit applied",
 			ilas: []store.GetLedgerAllocationsRow{
 				{
 					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
@@ -220,7 +223,7 @@ func Test_invoiceBuilder_addLedgerAllocations(t *testing.T) {
 					Status:    "APPROVED",
 				},
 			},
-			status:  "Closed",
+			status:  "Paid",
 			balance: 0,
 		},
 		{
@@ -230,12 +233,13 @@ func Test_invoiceBuilder_addLedgerAllocations(t *testing.T) {
 					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
 					ID:        2,
 					Amount:    10000,
-					Type:      "CREDIT REMISSION",
+					Type:      "REMISSION",
 					Status:    "APPROVED",
 				},
 			},
-			status:  "Unpaid - Remission",
-			balance: 22000,
+			status:       "Unpaid - Remission",
+			balance:      22000,
+			feeReduction: "REMISSION",
 		},
 		{
 			name: "Hardship",
@@ -244,26 +248,13 @@ func Test_invoiceBuilder_addLedgerAllocations(t *testing.T) {
 					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
 					ID:        2,
 					Amount:    10000,
-					Type:      "CREDIT HARDSHIP",
+					Type:      "HARDSHIP",
 					Status:    "APPROVED",
 				},
 			},
-			status:  "Unpaid - Hardship",
-			balance: 22000,
-		},
-		{
-			name: "Pending reduction not added as context",
-			ilas: []store.GetLedgerAllocationsRow{
-				{
-					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
-					ID:        2,
-					Amount:    10000,
-					Type:      "CREDIT HARDSHIP",
-					Status:    "PENDING",
-				},
-			},
-			status:  "Unpaid",
-			balance: 32000,
+			status:       "Unpaid - Hardship",
+			balance:      22000,
+			feeReduction: "HARDSHIP",
 		},
 		{
 			name: "Exemption",
@@ -272,25 +263,27 @@ func Test_invoiceBuilder_addLedgerAllocations(t *testing.T) {
 					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
 					ID:        2,
 					Amount:    10000,
-					Type:      "CREDIT EXEMPTION",
+					Type:      "EXEMPTION",
 					Status:    "APPROVED",
 				},
 			},
-			status:  "Unpaid - Exemption",
-			balance: 22000,
+			status:       "Unpaid - Exemption",
+			balance:      22000,
+			feeReduction: "EXEMPTION",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ib := newInvoiceBuilder([]store.GetInvoicesRow{
 				{
-					ID:     1,
-					Amount: 32000,
+					ID:               1,
+					Amount:           int32(tt.balance),
+					FeeReductionType: pgtype.Text{String: tt.feeReduction},
 				},
 			})
 			ib.addLedgerAllocations(tt.ilas)
-			assert.Equal(t, tt.status, ib.invoices[1].invoice.Status)
-			assert.Equal(t, tt.balance, ib.invoices[1].invoice.OutstandingBalance)
+			invoices := *ib.Build()
+			assert.Equal(t, tt.status, invoices[0].Status)
 		})
 	}
 }

@@ -13,15 +13,15 @@ import (
 )
 
 var (
-	FeeReductionTypes = []string{"CREDIT EXEMPTION", "CREDIT HARDSHIP", "CREDIT REMISSION"}
+	PaymentTypes      = []string{"CARD PAYMENT", "BACS TRANSFER"}
 	AllocatedStatuses = []string{"ALLOCATED", "APPROVED", "CONFIRMED"} // TODO: PFS-107 & PFS-110 to investigate
 )
 
 type invoiceMetadata struct {
-	invoice     *shared.Invoice
-	total       int
-	contextType string
-	creditAdded bool
+	invoice          *shared.Invoice
+	contextType      string
+	paymentReceived  bool
+	feeReductionType string
 }
 
 type invoiceBuilder struct {
@@ -38,8 +38,10 @@ func newInvoiceBuilder(invoices []store.GetInvoicesRow) *invoiceBuilder {
 				Amount:             int(inv.Amount),
 				RaisedDate:         shared.Date{Time: inv.Raiseddate.Time},
 				Status:             "Unpaid",
-				OutstandingBalance: int(inv.Amount),
+				Received:           int(inv.Received),
+				OutstandingBalance: int(inv.Amount) - int(inv.Received),
 			},
+			feeReductionType: inv.FeeReductionType.String,
 		}
 	}
 	return &ib
@@ -49,20 +51,43 @@ func (ib *invoiceBuilder) IDs() []int32 {
 	return maps.Keys(ib.invoices)
 }
 
-func (ib *invoiceBuilder) Invoices() *shared.Invoices {
+func (ib *invoiceBuilder) Build() *shared.Invoices {
 	var invoices shared.Invoices
 	for _, inv := range ib.invoices {
+		invoice := inv.invoice
+		var status string
+		if invoice.OutstandingBalance > 0 {
+			status = "Unpaid"
+		} else if invoice.OutstandingBalance < 0 {
+			status = "Overpaid"
+		} else if invoice.OutstandingBalance == 0 {
+			if inv.paymentReceived {
+				status = "Paid"
+			} else {
+				status = "Closed"
+			}
+		}
+
+		if inv.feeReductionType != "" && inv.contextType == "" {
+			inv.contextType = cases.Title(language.English).String(inv.feeReductionType)
+		}
+
+		if inv.contextType != "" {
+			status = fmt.Sprintf("%s - %s", status, inv.contextType)
+		}
+
+		invoice.Status = status
 		invoices = append(invoices, *inv.invoice)
 	}
 	return &invoices
 }
 
 func (ib *invoiceBuilder) addLedgerAllocations(ilas []store.GetLedgerAllocationsRow) {
-	ledgersByInvoice := map[int32][]shared.Ledger{}
-
 	for _, il := range ilas {
-		ledgersByInvoice[il.InvoiceID.Int32] = append(
-			ledgersByInvoice[il.InvoiceID.Int32],
+		metadata := ib.invoices[il.InvoiceID.Int32]
+
+		metadata.invoice.Ledgers = append(
+			metadata.invoice.Ledgers,
 			shared.Ledger{
 				Amount:          int(il.Amount),
 				ReceivedDate:    calculateReceivedDate(il.Bankdate, il.Datetime),
@@ -70,14 +95,9 @@ func (ib *invoiceBuilder) addLedgerAllocations(ilas []store.GetLedgerAllocations
 				Status:          il.Status,
 			})
 
-		metadata := ib.invoices[il.InvoiceID.Int32]
 		if slices.Contains(AllocatedStatuses, il.Status) {
-			metadata.total += int(il.Amount)
-			if slices.Contains(FeeReductionTypes, il.Type) && metadata.contextType == "" {
-				metadata.contextType = cases.Title(language.English).String(il.Type)
-			}
-			if il.Type == "CREDIT MEMO" {
-				metadata.creditAdded = true
+			if slices.Contains(PaymentTypes, il.Type) {
+				metadata.paymentReceived = true
 			} else if il.Type == "CREDIT WRITE OFF" {
 				metadata.contextType = "Write-off"
 			}
@@ -86,49 +106,18 @@ func (ib *invoiceBuilder) addLedgerAllocations(ilas []store.GetLedgerAllocations
 			metadata.contextType = "Write-off pending"
 		}
 	}
-
-	for id, ledgers := range ledgersByInvoice {
-		metadata := ib.invoices[id]
-		invoice := metadata.invoice
-		invoice.Ledgers = ledgers
-		invoice.Received = metadata.total
-		invoice.OutstandingBalance -= metadata.total
-
-		var status string
-		if invoice.OutstandingBalance > 0 {
-			status = "Unpaid"
-		} else if invoice.OutstandingBalance < 0 {
-			status = "Overpaid"
-		} else if invoice.OutstandingBalance == 0 {
-			if metadata.contextType != "" || metadata.creditAdded {
-				status = "Closed"
-			} else {
-				status = "Paid"
-			}
-		}
-		invoice.Status = status
-
-		if metadata.contextType != "" {
-			invoice.Status = fmt.Sprintf("%s - %s", invoice.Status, metadata.contextType)
-		}
-	}
 }
 
 func (ib *invoiceBuilder) addSupervisionLevels(supervisionLevels []store.GetSupervisionLevelsRow) {
-	supervisionLevelsByInvoice := map[int32][]shared.SupervisionLevel{}
 	for _, sl := range supervisionLevels {
-		supervisionLevelsByInvoice[sl.InvoiceID.Int32] = append(
-			supervisionLevelsByInvoice[sl.InvoiceID.Int32],
+		ib.invoices[sl.InvoiceID.Int32].invoice.SupervisionLevels = append(
+			ib.invoices[sl.InvoiceID.Int32].invoice.SupervisionLevels,
 			shared.SupervisionLevel{
 				Level:  sl.Supervisionlevel,
 				Amount: int(sl.Amount),
 				From:   shared.Date{Time: sl.Fromdate.Time},
 				To:     shared.Date{Time: sl.Todate.Time},
 			})
-	}
-
-	for id, sls := range supervisionLevelsByInvoice {
-		ib.invoices[id].invoice.SupervisionLevels = sls
 	}
 }
 
@@ -156,7 +145,7 @@ func (s *Service) GetInvoices(clientID int) (*shared.Invoices, error) {
 
 	builder.addSupervisionLevels(supervisionLevels)
 
-	return builder.Invoices(), nil
+	return builder.Build(), nil
 }
 
 func calculateReceivedDate(bankDate pgtype.Date, datetime pgtype.Timestamp) shared.Date {
