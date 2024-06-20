@@ -13,11 +13,9 @@ import (
 
 const createLedgerAllocationForFeeReduction = `-- name: CreateLedgerAllocationForFeeReduction :one
 INSERT INTO ledger_allocation (id, ledger_id, invoice_id, datetime, amount, status, reference,
-                               notes, allocateddate, batchnumber, source,
-                               transaction_type)
-VALUES (NEXTVAL('ledger_allocation_id_seq'::REGCLASS), $1, $2, NOW(), $3, 'ALLOCATED', NULL, NULL, NULL, NULL, NULL,
-        NULL)
-RETURNING id, ledger_id, invoice_id, datetime, amount, status, reference, notes, allocateddate, batchnumber, source, transaction_type
+                               notes, allocateddate, batchnumber, source)
+VALUES (NEXTVAL('ledger_allocation_id_seq'::REGCLASS), $1, $2, NOW(), $3, 'ALLOCATED', NULL, NULL, NULL, NULL, NULL)
+RETURNING id, ledger_id, invoice_id, datetime, amount, status, reference, notes, allocateddate, batchnumber, source
 `
 
 type CreateLedgerAllocationForFeeReductionParams struct {
@@ -41,7 +39,6 @@ func (q *Queries) CreateLedgerAllocationForFeeReduction(ctx context.Context, arg
 		&i.Allocateddate,
 		&i.Batchnumber,
 		&i.Source,
-		&i.TransactionType,
 	)
 	return i, err
 }
