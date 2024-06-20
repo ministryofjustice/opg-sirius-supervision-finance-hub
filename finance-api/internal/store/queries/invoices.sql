@@ -9,6 +9,18 @@ WHERE fc.client_id = $1
 GROUP BY i.id, i.raiseddate
 ORDER BY i.raiseddate DESC;
 
+-- name: GetInvoiceBalanceDetails :one
+SELECT i.amount                                                    initial,
+       i.amount - COALESCE(SUM(la.amount), 0)                      outstanding,
+       i.feetype,
+       COALESCE(BOOL_OR(l.type = 'CREDIT WRITE OFF'), FALSE)::BOOL written_off
+FROM invoice i
+         LEFT JOIN ledger_allocation la ON i.id = la.invoice_id
+         LEFT JOIN ledger l ON l.id = la.ledger_id
+    AND la.status IN ('ALLOCATED', 'APPROVED')
+WHERE i.id = $1
+GROUP BY i.amount, i.feetype;
+
 -- name: GetLedgerAllocations :many
 SELECT la.invoice_id, la.id, la.amount, la.datetime, l.bankdate, l.type, la.status
 FROM ledger_allocation la
@@ -21,14 +33,6 @@ SELECT invoice_id, supervisionlevel, fromdate, todate, amount
 FROM invoice_fee_range
 WHERE invoice_id = ANY($1::int[])
 ORDER BY todate DESC;
-
--- name: GetInvoiceBalance :one
-SELECT i.amount initial, i.amount - COALESCE(SUM(la.amount), 0) outstanding, i.feetype
-FROM invoice i
-         LEFT JOIN ledger_allocation la on i.id = la.invoice_id
-    AND la.status IN ('ALLOCATED', 'APPROVED')
-WHERE i.id = $1
-group by i.amount, i.feetype;
 
 -- name: AddFeeReductionToInvoices :many
 WITH filtered_invoices AS (SELECT i.id AS invoice_id, fr.id AS fee_reduction_id
