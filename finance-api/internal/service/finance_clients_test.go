@@ -11,6 +11,7 @@ func (suite *IntegrationSuite) TestService_GetAccountInformation() {
 	conn := suite.testDB.GetConn()
 
 	conn.SeedData(
+		"SET SEARCH_PATH to supervision_finance;",
 		"INSERT INTO finance_client VALUES (1, 1, 'sop123', 'DEMANDED', NULL)",
 		"INSERT INTO finance_client VALUES (3, 3, 'sop123', 'DEMANDED', NULL)",
 		"INSERT INTO invoice VALUES (1, 1, 1, 'S2', 'S203531/19', '2019-04-01', '2020-03-31', 32000, NULL, '2020-03-20',1, '2020-03-16', 10, NULL, 0, '2019-06-06', 99);",

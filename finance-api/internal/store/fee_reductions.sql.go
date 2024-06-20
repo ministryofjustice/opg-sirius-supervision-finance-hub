@@ -12,14 +12,17 @@ import (
 )
 
 const addFeeReduction = `-- name: AddFeeReduction :one
-insert into fee_reduction (id,
-                           finance_client_id,
-                           type,
-                           startdate,
-                           enddate,
-                           notes,
-                           deleted,
-                           datereceived) values (nextval('fee_reduction_id_seq'::regclass), (select id from finance_client where client_id = $1), $2, $3, $4, $5, $6, $7) returning id, finance_client_id, type, evidencetype, startdate, enddate, notes, deleted, datereceived
+INSERT INTO supervision_finance.fee_reduction (id,
+                                               finance_client_id,
+                                               type,
+                                               startdate,
+                                               enddate,
+                                               notes,
+                                               deleted,
+                                               datereceived)
+VALUES (NEXTVAL('supervision_finance.fee_reduction_id_seq'::REGCLASS),
+        (SELECT id FROM supervision_finance.finance_client WHERE client_id = $1), $2, $3, $4, $5, $6, $7)
+RETURNING id, finance_client_id, type, evidencetype, startdate, enddate, notes, deleted, datereceived
 `
 
 type AddFeeReductionParams struct {
@@ -32,7 +35,7 @@ type AddFeeReductionParams struct {
 	Datereceived pgtype.Date
 }
 
-func (q *Queries) AddFeeReduction(ctx context.Context, arg AddFeeReductionParams) (FeeReduction, error) {
+func (q *Queries) AddFeeReduction(ctx context.Context, arg AddFeeReductionParams) (SupervisionFinanceFeeReduction, error) {
 	row := q.db.QueryRow(ctx, addFeeReduction,
 		arg.ClientID,
 		arg.Type,
@@ -42,7 +45,7 @@ func (q *Queries) AddFeeReduction(ctx context.Context, arg AddFeeReductionParams
 		arg.Deleted,
 		arg.Datereceived,
 	)
-	var i FeeReduction
+	var i SupervisionFinanceFeeReduction
 	err := row.Scan(
 		&i.ID,
 		&i.FinanceClientID,
@@ -58,12 +61,15 @@ func (q *Queries) AddFeeReduction(ctx context.Context, arg AddFeeReductionParams
 }
 
 const cancelFeeReduction = `-- name: CancelFeeReduction :one
-update fee_reduction set deleted = true where id = $1 returning id, finance_client_id, type, evidencetype, startdate, enddate, notes, deleted, datereceived
+UPDATE supervision_finance.fee_reduction
+SET deleted = TRUE
+WHERE id = $1
+RETURNING id, finance_client_id, type, evidencetype, startdate, enddate, notes, deleted, datereceived
 `
 
-func (q *Queries) CancelFeeReduction(ctx context.Context, id int32) (FeeReduction, error) {
+func (q *Queries) CancelFeeReduction(ctx context.Context, id int32) (SupervisionFinanceFeeReduction, error) {
 	row := q.db.QueryRow(ctx, cancelFeeReduction, id)
-	var i FeeReduction
+	var i SupervisionFinanceFeeReduction
 	err := row.Scan(
 		&i.ID,
 		&i.FinanceClientID,
@@ -80,10 +86,11 @@ func (q *Queries) CancelFeeReduction(ctx context.Context, id int32) (FeeReductio
 
 const countOverlappingFeeReduction = `-- name: CountOverlappingFeeReduction :one
 SELECT COUNT(*)
-from fee_reduction fr
-         inner join finance_client fc on fc.id = fr.finance_client_id
-where fc.client_id = $1 and fr.deleted = false
-  and (fr.startdate, fr.enddate) OVERLAPS ($2, $3)
+FROM supervision_finance.fee_reduction fr
+         INNER JOIN supervision_finance.finance_client fc ON fc.id = fr.finance_client_id
+WHERE fc.client_id = $1
+  AND fr.deleted = FALSE
+  AND (fr.startdate, fr.enddate) OVERLAPS ($2, $3)
 `
 
 type CountOverlappingFeeReductionParams struct {
@@ -100,7 +107,7 @@ func (q *Queries) CountOverlappingFeeReduction(ctx context.Context, arg CountOve
 }
 
 const getFeeReductions = `-- name: GetFeeReductions :many
-select fr.id,
+SELECT fr.id,
        finance_client_id,
        type,
        startdate,
@@ -108,10 +115,10 @@ select fr.id,
        datereceived,
        notes,
        deleted
-from fee_reduction fr
-         inner join finance_client fc on fc.id = fr.finance_client_id
-where fc.client_id = $1
-order by enddate desc, deleted
+FROM supervision_finance.fee_reduction fr
+         INNER JOIN supervision_finance.finance_client fc ON fc.id = fr.finance_client_id
+WHERE fc.client_id = $1
+ORDER BY enddate DESC, deleted
 `
 
 type GetFeeReductionsRow struct {

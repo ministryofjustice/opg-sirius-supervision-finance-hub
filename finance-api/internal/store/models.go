@@ -8,7 +8,22 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type BillingPeriod struct {
+type Assignee struct {
+	ID          int32
+	Name        string
+	Type        string
+	Email       pgtype.Text
+	Surname     pgtype.Text
+	Roles       []byte
+	Suspended   pgtype.Bool
+	Phonenumber pgtype.Text
+	Deleted     pgtype.Timestamp
+	Teamtype    pgtype.Text
+	Updateddate pgtype.Timestamp
+	Permanent   pgtype.Bool
+}
+
+type SupervisionFinanceBillingPeriod struct {
 	ID              int32
 	FinanceClientID pgtype.Int4
 	OrderID         pgtype.Int4
@@ -16,13 +31,13 @@ type BillingPeriod struct {
 	EndDate         pgtype.Date
 }
 
-type Counter struct {
+type SupervisionFinanceCounter struct {
 	ID      int32
 	Key     string
 	Counter int32
 }
 
-type FeeReduction struct {
+type SupervisionFinanceFeeReduction struct {
 	ID              int32
 	FinanceClientID pgtype.Int4
 	// (DC2Type:refdata)
@@ -36,7 +51,7 @@ type FeeReduction struct {
 	Datereceived pgtype.Date
 }
 
-type FinanceClient struct {
+type SupervisionFinanceFinanceClient struct {
 	ID        int32
 	ClientID  int32
 	SopNumber string
@@ -45,7 +60,7 @@ type FinanceClient struct {
 	Batchnumber   pgtype.Int4
 }
 
-type Invoice struct {
+type SupervisionFinanceInvoice struct {
 	ID              int32
 	PersonID        pgtype.Int4
 	FinanceClientID pgtype.Int4
@@ -69,7 +84,7 @@ type Invoice struct {
 	FeeReductionID   pgtype.Int4
 }
 
-type InvoiceEmailStatus struct {
+type SupervisionFinanceInvoiceEmailStatus struct {
 	ID        int32
 	InvoiceID pgtype.Int4
 	// (DC2Type:refdata)
@@ -79,7 +94,7 @@ type InvoiceEmailStatus struct {
 	Createddate pgtype.Date
 }
 
-type InvoiceFeeRange struct {
+type SupervisionFinanceInvoiceFeeRange struct {
 	ID        int32
 	InvoiceID pgtype.Int4
 	// (DC2Type:refdata)
@@ -90,7 +105,7 @@ type InvoiceFeeRange struct {
 	Amount int32
 }
 
-type Ledger struct {
+type SupervisionFinanceLedger struct {
 	ID        int32
 	Reference string
 	Datetime  pgtype.Timestamp
@@ -116,7 +131,7 @@ type Ledger struct {
 	CreatedbyID pgtype.Int4
 }
 
-type LedgerAllocation struct {
+type SupervisionFinanceLedgerAllocation struct {
 	ID        int32
 	LedgerID  pgtype.Int4
 	InvoiceID pgtype.Int4
@@ -133,13 +148,13 @@ type LedgerAllocation struct {
 	TransactionType pgtype.Text
 }
 
-type Property struct {
+type SupervisionFinanceProperty struct {
 	ID    int32
 	Key   string
 	Value string
 }
 
-type Rate struct {
+type SupervisionFinanceRate struct {
 	ID        int32
 	Type      string
 	Startdate pgtype.Date
@@ -148,7 +163,7 @@ type Rate struct {
 	Amount int32
 }
 
-type Report struct {
+type SupervisionFinanceReport struct {
 	ID          int32
 	Batchnumber int32
 	// (DC2Type:refdata)

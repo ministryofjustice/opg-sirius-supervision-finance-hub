@@ -1,3 +1,7 @@
+SET SEARCH_PATH TO public;
+
+INSERT INTO assignees VALUES (65, 'Finance', 'assignee_user', 'finance.manager@opgtest.com', 'Manager', '"{""OPG User"":""OPG User"",""Case Manager"":""Case Manager"",""Finance Manager"":""Finance Manager""}"', false, '12345678', NULL, NULL, '2024-06-13 13:19:37', false);
+
 SET SEARCH_PATH TO supervision_finance;
 
 INSERT INTO finance_client VALUES (1, 1, '1234', 'DEMANDED', null);

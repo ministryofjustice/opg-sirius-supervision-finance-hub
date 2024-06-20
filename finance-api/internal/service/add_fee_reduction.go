@@ -50,13 +50,13 @@ func (s *Service) AddFeeReduction(id int, data shared.AddFeeReduction) error {
 
 	transaction := s.store.WithTx(tx)
 
-	var feeReduction store.FeeReduction
+	var feeReduction store.SupervisionFinanceFeeReduction
 	feeReduction, err = transaction.AddFeeReduction(ctx, addFeeReductionQueryArgs)
 	if err != nil {
 		return err
 	}
 
-	var invoices []store.Invoice
+	var invoices []store.SupervisionFinanceInvoice
 	invoices, err = transaction.AddFeeReductionToInvoices(ctx, feeReduction.ID)
 	if err != nil {
 		return err
@@ -85,7 +85,7 @@ func (s *Service) AddFeeReduction(id int, data shared.AddFeeReduction) error {
 				//TODO make sure we have correct createdby ID in ticket PFS-88
 				CreatedbyID: pgtype.Int4{Int32: 1},
 			}
-			var ledger store.Ledger
+			var ledger store.SupervisionFinanceLedger
 			ledger, err = transaction.CreateLedgerForFeeReduction(ctx, ledgerQueryArgs)
 			if err != nil {
 				return err

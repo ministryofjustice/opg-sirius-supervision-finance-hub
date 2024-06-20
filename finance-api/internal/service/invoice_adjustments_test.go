@@ -12,6 +12,7 @@ func (suite *IntegrationSuite) TestService_GetInvoiceAdjustments() {
 	conn := suite.testDB.GetConn()
 
 	conn.SeedData(
+		"SET SEARCH_PATH to supervision_finance;",
 		"INSERT INTO finance_client VALUES (6, 6, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO ledger VALUES (2, 'abc1', '2022-04-02T00:00:00+00:00', '', 12300, 'first credit', 'CREDIT MEMO', 'REJECTED', 6, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '05/05/2022', 1);",
 		"INSERT INTO ledger VALUES (3, 'def2', '2022-04-03T00:00:00+00:00', '', 23001, 'first write off', 'CREDIT WRITE OFF', 'CONFIRMED', 6, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '05/05/2022', 1);",
