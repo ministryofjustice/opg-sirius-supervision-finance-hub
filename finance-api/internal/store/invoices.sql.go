@@ -11,101 +11,9 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const addFeeReductionToInvoice = `-- name: AddFeeReductionToInvoice :one
-WITH filtered_invoices AS (SELECT i.id AS invoice_id, fr.id AS fee_reduction_id, fr.type, fr.finance_client_id
-                           FROM invoice i
-                                    JOIN fee_reduction fr
-                                         ON i.finance_client_id = fr.finance_client_id
-                           WHERE i.raiseddate >= (fr.datereceived - interval '6 months')
-                             AND i.raiseddate BETWEEN fr.startdate AND fr.enddate
-                             AND fr.id in (SELECT fere.id
-                                          FROM fee_reduction fere
-                                                   JOIN finance_client fc on fere.finance_client_id = fc.client_id
-                                          WHERE fc.client_id = $1)
-                             AND i.id = $2)
-UPDATE invoice i
-SET fee_reduction_id = fi.fee_reduction_id
-FROM filtered_invoices fi
-WHERE i.id = fi.invoice_id
-returning fi.fee_reduction_id, fi.type, fi.finance_client_id
-`
-
-type AddFeeReductionToInvoiceParams struct {
-	ClientID int32
-	ID       int32
-}
-
-type AddFeeReductionToInvoiceRow struct {
-	FeeReductionID  int32
-	Type            string
-	FinanceClientID pgtype.Int4
-}
-
-func (q *Queries) AddFeeReductionToInvoice(ctx context.Context, arg AddFeeReductionToInvoiceParams) (AddFeeReductionToInvoiceRow, error) {
-	row := q.db.QueryRow(ctx, addFeeReductionToInvoice, arg.ClientID, arg.ID)
-	var i AddFeeReductionToInvoiceRow
-	err := row.Scan(&i.FeeReductionID, &i.Type, &i.FinanceClientID)
-	return i, err
-}
-
-const addFeeReductionToInvoices = `-- name: AddFeeReductionToInvoices :many
-WITH filtered_invoices AS (SELECT i.id AS invoice_id, fr.id AS fee_reduction_id
-                           FROM invoice i
-                                    JOIN fee_reduction fr
-                                         ON i.finance_client_id = fr.finance_client_id
-                           WHERE i.raiseddate >= (fr.datereceived - interval '6 months')
-                             AND i.raiseddate BETWEEN fr.startdate AND fr.enddate
-                             AND fr.id = $1)
-UPDATE invoice i
-SET fee_reduction_id = fi.fee_reduction_id
-FROM filtered_invoices fi
-WHERE i.id = fi.invoice_id
-returning i.id, i.person_id, i.finance_client_id, i.feetype, i.reference, i.startdate, i.enddate, i.amount, i.supervisionlevel, i.confirmeddate, i.batchnumber, i.raiseddate, i.source, i.scheduledfn14date, i.cacheddebtamount, i.createddate, i.createdby_id, i.fee_reduction_id
-`
-
-func (q *Queries) AddFeeReductionToInvoices(ctx context.Context, id int32) ([]Invoice, error) {
-	rows, err := q.db.Query(ctx, addFeeReductionToInvoices, id)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Invoice
-	for rows.Next() {
-		var i Invoice
-		if err := rows.Scan(
-			&i.ID,
-			&i.PersonID,
-			&i.FinanceClientID,
-			&i.Feetype,
-			&i.Reference,
-			&i.Startdate,
-			&i.Enddate,
-			&i.Amount,
-			&i.Supervisionlevel,
-			&i.Confirmeddate,
-			&i.Batchnumber,
-			&i.Raiseddate,
-			&i.Source,
-			&i.Scheduledfn14date,
-			&i.Cacheddebtamount,
-			&i.Createddate,
-			&i.CreatedbyID,
-			&i.FeeReductionID,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const addManualInvoice = `-- name: AddManualInvoice :one
 INSERT INTO invoice (id, person_id, finance_client_id, feetype, reference, startdate, enddate, amount, confirmeddate,
-                     batchnumber, raiseddate, source, scheduledfn14date, cacheddebtamount, createddate, createdby_id,
-                     fee_reduction_id)
+                     batchnumber, raiseddate, source, scheduledfn14date, cacheddebtamount, createddate, createdby_id)
 VALUES (nextval('invoice_id_seq'),
         $1,
         (select id from finance_client where client_id = $1),
@@ -121,9 +29,8 @@ VALUES (nextval('invoice_id_seq'),
         $11,
         $12,
         $13,
-        $14,
-        $15)
-returning id, person_id, finance_client_id, feetype, reference, startdate, enddate, amount, supervisionlevel, confirmeddate, batchnumber, raiseddate, source, scheduledfn14date, cacheddebtamount, createddate, createdby_id, fee_reduction_id
+        $14)
+returning id, person_id, finance_client_id, feetype, reference, startdate, enddate, amount, supervisionlevel, confirmeddate, batchnumber, raiseddate, source, scheduledfn14date, cacheddebtamount, createddate, createdby_id
 `
 
 type AddManualInvoiceParams struct {
@@ -141,7 +48,6 @@ type AddManualInvoiceParams struct {
 	Cacheddebtamount  pgtype.Int4
 	Createddate       pgtype.Date
 	CreatedbyID       pgtype.Int4
-	FeeReductionID    pgtype.Int4
 }
 
 func (q *Queries) AddManualInvoice(ctx context.Context, arg AddManualInvoiceParams) (Invoice, error) {
@@ -160,7 +66,6 @@ func (q *Queries) AddManualInvoice(ctx context.Context, arg AddManualInvoicePara
 		arg.Cacheddebtamount,
 		arg.Createddate,
 		arg.CreatedbyID,
-		arg.FeeReductionID,
 	)
 	var i Invoice
 	err := row.Scan(
@@ -181,7 +86,6 @@ func (q *Queries) AddManualInvoice(ctx context.Context, arg AddManualInvoicePara
 		&i.Cacheddebtamount,
 		&i.Createddate,
 		&i.CreatedbyID,
-		&i.FeeReductionID,
 	)
 	return i, err
 }
@@ -205,6 +109,38 @@ func (q *Queries) GetInvoiceBalance(ctx context.Context, id int32) (GetInvoiceBa
 	row := q.db.QueryRow(ctx, getInvoiceBalance, id)
 	var i GetInvoiceBalanceRow
 	err := row.Scan(&i.Initial, &i.Outstanding, &i.Feetype)
+	return i, err
+}
+
+const getInvoiceValidForFeeReduction = `-- name: GetInvoiceValidForFeeReduction :one
+SELECT fr.id AS fee_reduction_id, fr.type, fr.finance_client_id
+                           FROM invoice i
+                                    JOIN fee_reduction fr
+                                         ON i.finance_client_id = fr.finance_client_id
+                           WHERE i.raiseddate >= (fr.datereceived - interval '6 months')
+                             AND i.raiseddate BETWEEN fr.startdate AND fr.enddate
+                             AND fr.id in (SELECT fere.id
+                                          FROM fee_reduction fere
+                                                   JOIN finance_client fc on fere.finance_client_id = fc.client_id
+                                          WHERE fc.client_id = $1)
+                             AND i.id = $2
+`
+
+type GetInvoiceValidForFeeReductionParams struct {
+	ClientID int32
+	ID       int32
+}
+
+type GetInvoiceValidForFeeReductionRow struct {
+	FeeReductionID  int32
+	Type            string
+	FinanceClientID pgtype.Int4
+}
+
+func (q *Queries) GetInvoiceValidForFeeReduction(ctx context.Context, arg GetInvoiceValidForFeeReductionParams) (GetInvoiceValidForFeeReductionRow, error) {
+	row := q.db.QueryRow(ctx, getInvoiceValidForFeeReduction, arg.ClientID, arg.ID)
+	var i GetInvoiceValidForFeeReductionRow
+	err := row.Scan(&i.FeeReductionID, &i.Type, &i.FinanceClientID)
 	return i, err
 }
 
@@ -241,6 +177,54 @@ func (q *Queries) GetInvoices(ctx context.Context, clientID int32) ([]GetInvoice
 			&i.Amount,
 			&i.Raiseddate,
 			&i.Received,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getInvoicesValidForFeeReduction = `-- name: GetInvoicesValidForFeeReduction :many
+SELECT i.id, i.person_id, i.finance_client_id, i.feetype, i.reference, i.startdate, i.enddate, i.amount, i.supervisionlevel, i.confirmeddate, i.batchnumber, i.raiseddate, i.source, i.scheduledfn14date, i.cacheddebtamount, i.createddate, i.createdby_id
+FROM invoice i
+        JOIN fee_reduction fr
+             ON i.finance_client_id = fr.finance_client_id
+WHERE i.raiseddate >= (fr.datereceived - interval '6 months')
+ AND i.raiseddate BETWEEN fr.startdate AND fr.enddate
+ AND fr.id = $1
+`
+
+func (q *Queries) GetInvoicesValidForFeeReduction(ctx context.Context, id int32) ([]Invoice, error) {
+	rows, err := q.db.Query(ctx, getInvoicesValidForFeeReduction, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Invoice
+	for rows.Next() {
+		var i Invoice
+		if err := rows.Scan(
+			&i.ID,
+			&i.PersonID,
+			&i.FinanceClientID,
+			&i.Feetype,
+			&i.Reference,
+			&i.Startdate,
+			&i.Enddate,
+			&i.Amount,
+			&i.Supervisionlevel,
+			&i.Confirmeddate,
+			&i.Batchnumber,
+			&i.Raiseddate,
+			&i.Source,
+			&i.Scheduledfn14date,
+			&i.Cacheddebtamount,
+			&i.Createddate,
+			&i.CreatedbyID,
 		); err != nil {
 			return nil, err
 		}

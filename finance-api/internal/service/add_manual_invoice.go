@@ -91,11 +91,12 @@ func (s *Service) AddManualInvoice(clientId int, data shared.AddManualInvoice) e
 		}
 	}
 
-	AddFeeReductionToInvoiceParams := store.AddFeeReductionToInvoiceParams{
+	AddFeeReductionToInvoiceParams := store.GetInvoiceValidForFeeReductionParams{
 		ClientID: int32(clientId),
 		ID:       invoice.ID,
 	}
-	feeReduction, _ := transaction.AddFeeReductionToInvoice(ctx, AddFeeReductionToInvoiceParams)
+
+	feeReduction, _ := transaction.GetInvoiceValidForFeeReduction(ctx, AddFeeReductionToInvoiceParams)
 
 	if feeReduction.FeeReductionID != 0 {
 		err = s.AddLedgerAndAllocations(feeReduction.Type, feeReduction.FeeReductionID, feeReduction.FinanceClientID.Int32, invoice, transaction, ctx)

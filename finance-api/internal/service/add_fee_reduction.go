@@ -57,7 +57,7 @@ func (s *Service) AddFeeReduction(id int, data shared.AddFeeReduction) error {
 	}
 
 	var invoices []store.Invoice
-	invoices, err = transaction.AddFeeReductionToInvoices(ctx, feeReduction.ID)
+	invoices, err = transaction.GetInvoicesValidForFeeReduction(ctx, feeReduction.ID)
 	if err != nil {
 		return err
 	}

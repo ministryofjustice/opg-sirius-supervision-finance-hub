@@ -66,7 +66,6 @@ func (suite *IntegrationSuite) TestService_AddManualInvoice() {
 			cachedDebtAmount  int
 			createdDate       time.Time
 			createdById       int
-			feeReductionId    int
 		)
 
 		_ = rows.Scan(
@@ -86,8 +85,7 @@ func (suite *IntegrationSuite) TestService_AddManualInvoice() {
 			&scheduledFn14Date,
 			&cachedDebtAmount,
 			&createdDate,
-			&createdById,
-			&feeReductionId)
+			&createdById)
 
 		assert.Equal(suite.T(), shared.InvoiceTypeS2.Key(), feeType)
 		assert.Equal(suite.T(), 50000, amount)
