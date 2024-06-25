@@ -39,19 +39,6 @@ WHERE i.raiseddate >= (fr.datereceived - interval '6 months')
  AND i.raiseddate BETWEEN fr.startdate AND fr.enddate
  AND fr.id = $1;
 
--- name: GetInvoiceValidForFeeReduction :one
-SELECT fr.id AS fee_reduction_id, fr.type, fr.finance_client_id
-                           FROM invoice i
-                                    JOIN fee_reduction fr
-                                         ON i.finance_client_id = fr.finance_client_id
-                           WHERE i.raiseddate >= (fr.datereceived - interval '6 months')
-                             AND i.raiseddate BETWEEN fr.startdate AND fr.enddate
-                             AND fr.id in (SELECT fere.id
-                                          FROM fee_reduction fere
-                                                   JOIN finance_client fc on fere.finance_client_id = fc.client_id
-                                          WHERE fc.client_id = $1)
-                             AND i.id = $2;
-
 -- name: AddManualInvoice :one
 INSERT INTO invoice (id, person_id, finance_client_id, feetype, reference, startdate, enddate, amount, confirmeddate,
                      batchnumber, raiseddate, source, scheduledfn14date, cacheddebtamount, createddate, createdby_id)

@@ -112,38 +112,6 @@ func (q *Queries) GetInvoiceBalance(ctx context.Context, id int32) (GetInvoiceBa
 	return i, err
 }
 
-const getInvoiceValidForFeeReduction = `-- name: GetInvoiceValidForFeeReduction :one
-SELECT fr.id AS fee_reduction_id, fr.type, fr.finance_client_id
-                           FROM invoice i
-                                    JOIN fee_reduction fr
-                                         ON i.finance_client_id = fr.finance_client_id
-                           WHERE i.raiseddate >= (fr.datereceived - interval '6 months')
-                             AND i.raiseddate BETWEEN fr.startdate AND fr.enddate
-                             AND fr.id in (SELECT fere.id
-                                          FROM fee_reduction fere
-                                                   JOIN finance_client fc on fere.finance_client_id = fc.client_id
-                                          WHERE fc.client_id = $1)
-                             AND i.id = $2
-`
-
-type GetInvoiceValidForFeeReductionParams struct {
-	ClientID int32
-	ID       int32
-}
-
-type GetInvoiceValidForFeeReductionRow struct {
-	FeeReductionID  int32
-	Type            string
-	FinanceClientID pgtype.Int4
-}
-
-func (q *Queries) GetInvoiceValidForFeeReduction(ctx context.Context, arg GetInvoiceValidForFeeReductionParams) (GetInvoiceValidForFeeReductionRow, error) {
-	row := q.db.QueryRow(ctx, getInvoiceValidForFeeReduction, arg.ClientID, arg.ID)
-	var i GetInvoiceValidForFeeReductionRow
-	err := row.Scan(&i.FeeReductionID, &i.Type, &i.FinanceClientID)
-	return i, err
-}
-
 const getInvoices = `-- name: GetInvoices :many
 SELECT i.id, i.reference, i.amount, i.raiseddate, COALESCE(SUM(la.amount), 0)::int received
 FROM invoice i
