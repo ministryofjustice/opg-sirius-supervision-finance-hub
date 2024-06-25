@@ -109,7 +109,7 @@ func Test_invoiceData(t *testing.T) {
 			amount:           "100",
 			startDate:        "2023-04-01",
 			raisedDate:       "2023-04-01",
-			endDate:          "2024-03-31",
+			endDate:          "2023-04-01",
 			supervisionLevel: "",
 		},
 		{

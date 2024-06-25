@@ -7,7 +7,6 @@ import (
 	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
 	"strings"
-	"time"
 )
 
 type SubmitManualInvoiceHandler struct {
@@ -51,7 +50,7 @@ func invoiceData(invoiceType string, amount string, startDate string, raisedDate
 	case shared.InvoiceTypeAD.Key():
 		amount = "100"
 		startDate = raisedDate
-		endDate = calculateOneYearMinusOneDay(startDate)
+		endDate = raisedDate
 	case shared.InvoiceTypeS2.Key(), shared.InvoiceTypeB2.Key():
 		if raisedDateYear != "" {
 			raisedDate = raisedDateYear + "-03" + "-31"
@@ -66,17 +65,4 @@ func invoiceData(invoiceType string, amount string, startDate string, raisedDate
 		supervisionLevel = "MINIMAL"
 	}
 	return amount, startDate, raisedDate, endDate, supervisionLevel
-}
-
-func calculateOneYearMinusOneDay(startDate string) string {
-	if startDate == "" {
-		return ""
-	}
-	inputDate, _ := time.Parse("2006-01-02", startDate)
-	newDate := inputDate.AddDate(1, 0, 0)
-
-	oneDay := 24 * time.Hour
-	newDate = newDate.Add(-oneDay)
-
-	return newDate.Format("2006-01-02")
 }
