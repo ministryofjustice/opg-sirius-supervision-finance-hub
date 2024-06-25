@@ -57,50 +57,15 @@ func (s *Service) AddFeeReduction(id int, data shared.AddFeeReduction) error {
 	}
 
 	var invoices []store.Invoice
-	invoices, err = transaction.AddFeeReductionToInvoices(ctx, feeReduction.ID)
+	invoices, err = transaction.GetInvoicesValidForFeeReduction(ctx, feeReduction.ID)
 	if err != nil {
 		return err
 	}
 
 	for _, invoice := range invoices {
-		var amount int32 = 0
-		switch data.FeeType {
-		case "exemption", "hardship":
-			amount = invoice.Amount
-		case "remission":
-			invoiceFeeRangeParams := store.GetInvoiceFeeRangeAmountParams{
-				InvoiceID:        pgtype.Int4{Int32: invoice.ID, Valid: true},
-				Supervisionlevel: "GENERAL",
-			}
-			amount, _ = transaction.GetInvoiceFeeRangeAmount(ctx, invoiceFeeRangeParams)
-		}
-		if amount != 0 {
-			ledgerQueryArgs := store.CreateLedgerForFeeReductionParams{
-				Method:          strings.ToUpper(string(data.FeeType[0])) + data.FeeType[1:] + " credit for invoice " + invoice.Reference,
-				Amount:          amount,
-				Notes:           pgtype.Text{String: "Credit due to approved " + strings.ToUpper(string(data.FeeType[0])) + data.FeeType[1:]},
-				Type:            "CREDIT " + strings.ToUpper(data.FeeType),
-				FinanceClientID: pgtype.Int4{Int32: invoice.FinanceClientID.Int32, Valid: true},
-				FeeReductionID:  pgtype.Int4{Int32: invoice.FeeReductionID.Int32, Valid: true},
-				//TODO make sure we have correct createdby ID in ticket PFS-88
-				CreatedbyID: pgtype.Int4{Int32: 1},
-			}
-			var ledger store.Ledger
-			ledger, err = transaction.CreateLedgerForFeeReduction(ctx, ledgerQueryArgs)
-			if err != nil {
-				return err
-			}
-
-			queryArgs := store.CreateLedgerAllocationForFeeReductionParams{
-				LedgerID:  pgtype.Int4{Int32: ledger.ID, Valid: true},
-				InvoiceID: pgtype.Int4{Int32: invoice.ID, Valid: true},
-				Amount:    ledger.Amount,
-			}
-
-			_, err = transaction.CreateLedgerAllocationForFeeReduction(ctx, queryArgs)
-			if err != nil {
-				return err
-			}
+		err = s.AddLedgerAndAllocations(data.FeeType, feeReduction.ID, feeReduction.FinanceClientID.Int32, invoice, transaction, ctx)
+		if err != nil {
+			return err
 		}
 	}
 
