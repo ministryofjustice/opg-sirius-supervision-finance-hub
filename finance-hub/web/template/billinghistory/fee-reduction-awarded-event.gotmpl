@@ -1,0 +1,31 @@
+{{ define "fee-reduction-awarded-event" }}
+    <div class="moj-timeline__item">
+        <div class="moj-timeline__header">
+            <h2 class="moj-timeline__title">
+                {{ printf "%v awarded" .Event.ReductionType }}
+            </h2>
+            <p class="moj-timeline__byline">
+                {{ printf "by %v, %v" .User .Date }}
+            </p>
+        </div>
+        <p class="moj-timeline__outstanding-balance">
+            {{ printf "Outstanding balance: £%v Credit balance: £0" .OutstandingBalance }}
+        </p>
+        <div class="moj-timeline__description">
+            <ul class="govuk-list govuk-list--bullet">
+                <li>
+                    {{ printf "Start date: %v" .Event.StartDate}}
+                </li>
+                <li>
+                    {{ printf "End date: %v" .Event.EndDate}}
+                </li>
+                <li>
+                    {{ printf "Received date: %v" .Event.DateReceived}}
+                </li>
+                <li>
+                    {{ printf "Notes: %v" .Event.Notes}}
+                </li>
+            </ul>
+        </div>
+    </div>
+{{ end }}
