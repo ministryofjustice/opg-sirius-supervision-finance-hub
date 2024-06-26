@@ -40,6 +40,11 @@ func NewAppVars(r *http.Request, envVars EnvironmentVars) (AppVars, error) {
 			Title:    "Pending Adjustments",
 			BasePath: "/clients/" + clientId + "/pending-invoice-adjustments",
 		},
+		{
+			Id:       "billing-history",
+			Title:    "Billing History",
+			BasePath: "/clients/" + clientId + "/billing-history",
+		},
 	}
 
 	vars := AppVars{
