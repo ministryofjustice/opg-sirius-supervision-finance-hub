@@ -57,7 +57,12 @@ type mockApiClient struct {
 	Invoice            shared.Invoice
 	AccountInformation shared.AccountInformation
 	invoiceAdjustments shared.InvoiceAdjustments
+	adjustmentTypes    []shared.AdjustmentType
 	BillingHistory     []shared.BillingHistory
+}
+
+func (m mockApiClient) GetPermittedAdjustments(api.Context, int, int) ([]shared.AdjustmentType, error) {
+	return m.adjustmentTypes, nil
 }
 
 func (m mockApiClient) GetBillingHistory(context api.Context, i int) ([]shared.BillingHistory, error) {

@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/stretchr/testify/assert"
 )
@@ -26,32 +25,13 @@ func (suite *IntegrationSuite) TestService_UpdatePendingInvoiceAdjustment() {
 	}
 
 	err := s.UpdatePendingInvoiceAdjustment(15, "APPROVED")
-	rows, _ := conn.Query(ctx, "SELECT * FROM supervision_finance.ledger_allocation WHERE id = 15")
-	defer rows.Close()
-
-	for rows.Next() {
-		var (
-			ID              int32
-			LedgerID        pgtype.Int4
-			InvoiceID       pgtype.Int4
-			Datetime        pgtype.Timestamp
-			Amount          int32
-			Status          string
-			Reference       pgtype.Text
-			Notes           pgtype.Text
-			Allocateddate   pgtype.Date
-			Batchnumber     pgtype.Int4
-			Source          pgtype.Text
-			TransactionType pgtype.Text
-		)
-
-		_ = rows.Scan(&ID, &LedgerID, &InvoiceID, &Datetime, &Amount, &Status, &Reference, &Notes, &Allocateddate, &Batchnumber, &Source, &TransactionType)
-
-		assert.Equal(suite.T(), "APPROVED", Status)
+	if err != nil {
+		suite.T().Error("update pending invoice failed")
 	}
+	row := conn.QueryRow(ctx, "SELECT status FROM supervision_finance.ledger_allocation WHERE id = 15")
 
-	if err == nil {
-		return
-	}
-	suite.T().Error("update pending invoice failed")
+	var status string
+	_ = row.Scan(&status)
+
+	assert.Equal(suite.T(), "APPROVED", status)
 }
