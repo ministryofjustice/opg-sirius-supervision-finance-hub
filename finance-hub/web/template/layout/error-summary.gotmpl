@@ -26,7 +26,8 @@
     {{ range $k, $v := .Errors }}
         <span id="error-message__{{$k}}" hx-swap-oob="true">
                 {{ range $type, $error := $v }}
-                    <p id="name-error{{ if $type}}-{{ $type }}{{ end }}" class="govuk-error-message">
+                    <p id="name-error{{ if $type}}-{{ $type }}{{ end }}" class="govuk-error-message"
+                       _="on every htmx:oobBeforeSwap remove me then log 'Loaded!'">
                       <span class="govuk-visually-hidden">Error:</span> {{ $error }}
                     </p>
                 {{ end }}

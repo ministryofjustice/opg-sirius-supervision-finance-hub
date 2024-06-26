@@ -32,7 +32,14 @@
                                 <div class="govuk-radios" data-module="govuk-radios">
                                     {{ range .AdjustmentTypes }}
                                         <div class="govuk-radios__item">
-                                            <input class="govuk-radios__input {{ if .AmountRequired }}show{{else}}hide{{ end }}-input-field" id="{{.Key}}" name="adjustmentType"
+                                            <input class="govuk-radios__input {{ if .AmountRequired }}show{{else}}hide{{ end }}-input-field"
+                                                   _="on click
+                                                        if {{ .AmountRequired }}
+                                                            remove .hide from #field-input
+                                                        else
+                                                            add .hide to #field-input
+                                                    "
+                                                   id="{{.Key}}" name="adjustmentType"
                                                    type="radio" value="{{.Key}}">
                                             <label class="govuk-label govuk-radios__label"
                                                    for="{{.Key}}">{{.Translation}}</label>
