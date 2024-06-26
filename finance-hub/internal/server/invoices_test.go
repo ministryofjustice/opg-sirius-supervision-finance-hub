@@ -147,3 +147,191 @@ func Test_translate(t *testing.T) {
 		})
 	}
 }
+
+func TestInvoicesHandler_transform(t *testing.T) {
+	type args struct {
+		in       shared.Invoices
+		clientId int
+	}
+	tests := []struct {
+		name string
+		args args
+		want Invoices
+	}{
+		{
+			name: "Returns invoices in the correct order of most recent raised date first",
+			args: args{
+				in: shared.Invoices{
+					shared.Invoice{
+						Id:                 3,
+						Ref:                "N2000001/20",
+						Status:             "Unpaid",
+						Amount:             232,
+						RaisedDate:         shared.NewDate("01/04/2222"),
+						Received:           22,
+						OutstandingBalance: 210,
+						Ledgers: []shared.Ledger{
+							{
+								Amount:          12300,
+								ReceivedDate:    shared.NewDate("01/05/2222"),
+								TransactionType: "Online card payment",
+								Status:          "APPLIED",
+							},
+						},
+						SupervisionLevels: []shared.SupervisionLevel{
+							{
+								Level:  "GENERAL",
+								Amount: 32000,
+								From:   shared.NewDate("01/04/2019"),
+								To:     shared.NewDate("31/03/2020"),
+							},
+						},
+					},
+					shared.Invoice{
+						Id:                 3,
+						Ref:                "N2000001/20",
+						Status:             "Unpaid",
+						Amount:             232,
+						RaisedDate:         shared.NewDate("01/04/1111"),
+						Received:           22,
+						OutstandingBalance: 210,
+						Ledgers: []shared.Ledger{
+							{
+								Amount:          12300,
+								ReceivedDate:    shared.NewDate("01/05/2222"),
+								TransactionType: "Online card payment",
+								Status:          "APPLIED",
+							},
+						},
+						SupervisionLevels: []shared.SupervisionLevel{
+							{
+								Level:  "GENERAL",
+								Amount: 32000,
+								From:   shared.NewDate("01/04/2019"),
+								To:     shared.NewDate("31/03/2020"),
+							},
+						},
+					},
+					shared.Invoice{
+						Id:                 3,
+						Ref:                "N2000001/20",
+						Status:             "Unpaid",
+						Amount:             232,
+						RaisedDate:         shared.NewDate("01/04/3333"),
+						Received:           22,
+						OutstandingBalance: 210,
+						Ledgers: []shared.Ledger{
+							{
+								Amount:          12300,
+								ReceivedDate:    shared.NewDate("01/05/2222"),
+								TransactionType: "Online card payment",
+								Status:          "APPLIED",
+							},
+						},
+						SupervisionLevels: []shared.SupervisionLevel{
+							{
+								Level:  "GENERAL",
+								Amount: 32000,
+								From:   shared.NewDate("01/04/2019"),
+								To:     shared.NewDate("31/03/2020"),
+							},
+						},
+					},
+				},
+				clientId: 1,
+			},
+			want: Invoices{
+				{
+					Id:                 3,
+					Ref:                "N2000001/20",
+					Status:             "Unpaid",
+					Amount:             "2.32",
+					RaisedDate:         "01/04/3333",
+					Received:           "0.22",
+					OutstandingBalance: "2.10",
+					Ledgers: []LedgerAllocation{
+						{
+							Amount:          "123",
+							ReceivedDate:    shared.NewDate("01/05/2222"),
+							TransactionType: "Online Card Payment",
+							Status:          "Applied",
+						},
+					},
+					SupervisionLevels: []SupervisionLevel{
+						{
+							Level:  "General",
+							Amount: "320",
+							From:   shared.NewDate("01/04/2019"),
+							To:     shared.NewDate("31/03/2020"),
+						},
+					},
+					ClientId: 1,
+				},
+				{
+					Id:                 3,
+					Ref:                "N2000001/20",
+					Status:             "Unpaid",
+					Amount:             "2.32",
+					RaisedDate:         "01/04/2222",
+					Received:           "0.22",
+					OutstandingBalance: "2.10",
+					Ledgers: []LedgerAllocation{
+						{
+							Amount:          "123",
+							ReceivedDate:    shared.NewDate("01/05/2222"),
+							TransactionType: "Online Card Payment",
+							Status:          "Applied",
+						},
+					},
+					SupervisionLevels: []SupervisionLevel{
+						{
+							Level:  "General",
+							Amount: "320",
+							From:   shared.NewDate("01/04/2019"),
+							To:     shared.NewDate("31/03/2020"),
+						},
+					},
+					ClientId: 1,
+				},
+				{
+					Id:                 3,
+					Ref:                "N2000001/20",
+					Status:             "Unpaid",
+					Amount:             "2.32",
+					RaisedDate:         "01/04/1111",
+					Received:           "0.22",
+					OutstandingBalance: "2.10",
+					Ledgers: []LedgerAllocation{
+						{
+							Amount:          "123",
+							ReceivedDate:    shared.NewDate("01/05/2222"),
+							TransactionType: "Online Card Payment",
+							Status:          "Applied",
+						},
+					},
+					SupervisionLevels: []SupervisionLevel{
+						{
+							Level:  "General",
+							Amount: "320",
+							From:   shared.NewDate("01/04/2019"),
+							To:     shared.NewDate("31/03/2020"),
+						},
+					},
+					ClientId: 1,
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := &InvoicesHandler{
+				route{
+					client:  nil,
+					tmpl:    nil,
+					partial: "",
+				},
+			}
+			assert.Equalf(t, tt.want, h.transform(tt.args.in, tt.args.clientId), "transform(%v, %v)", tt.args.in, tt.args.clientId)
+		})
+	}
+}

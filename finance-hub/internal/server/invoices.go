@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/opg-sirius-finance-hub/shared"
+	"golang.org/x/exp/slices"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"net/http"
@@ -66,8 +67,19 @@ func (h *InvoicesHandler) render(v AppVars, w http.ResponseWriter, r *http.Reque
 }
 
 func (h *InvoicesHandler) transform(in shared.Invoices, clientId int) Invoices {
+	slices.SortFunc(in, func(a, b shared.Invoice) int {
+		if a.RaisedDate.Time.After(b.RaisedDate.Time) {
+			return -1
+		}
+		if a.RaisedDate.Time.Before(b.RaisedDate.Time) {
+			return 1
+		}
+		return 0
+	})
+
 	var out Invoices
 	caser := cases.Title(language.English)
+
 	for _, invoice := range in {
 		out = append(out, Invoice{
 			Id:                 invoice.Id,
