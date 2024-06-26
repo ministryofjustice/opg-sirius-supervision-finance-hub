@@ -58,6 +58,11 @@ type mockApiClient struct {
 	AccountInformation shared.AccountInformation
 	invoiceAdjustments shared.InvoiceAdjustments
 	BillingHistory     []shared.BillingHistory
+	User               shared.Assignee
+}
+
+func (m mockApiClient) GetUser(context api.Context, i int) (shared.Assignee, error) {
+	return m.User, m.error
 }
 
 func (m mockApiClient) GetBillingHistory(context api.Context, i int) ([]shared.BillingHistory, error) {
