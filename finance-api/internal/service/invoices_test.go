@@ -59,6 +59,7 @@ func (suite *IntegrationSuite) TestService_GetInvoices() {
 							To:     shared.NewDate("31/03/2023"),
 						},
 					},
+					CreatedBy: 99,
 				},
 			},
 		},

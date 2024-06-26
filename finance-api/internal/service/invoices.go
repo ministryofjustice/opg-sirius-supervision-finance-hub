@@ -37,6 +37,7 @@ func (s *Service) GetInvoices(clientID int) (*shared.Invoices, error) {
 			OutstandingBalance: int(inv.Amount - inv.Received),
 			Ledgers:            ledgerAllocations,
 			SupervisionLevels:  supervisionLevels,
+			CreatedBy:          int(inv.CreatedbyID.Int32),
 		}
 
 		invoices = append(invoices, invoice)
