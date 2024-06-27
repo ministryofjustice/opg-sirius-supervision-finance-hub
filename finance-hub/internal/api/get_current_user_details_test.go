@@ -45,8 +45,10 @@ func TestGetCurrentUserDetails(t *testing.T) {
 	}
 
 	expectedResponse := shared.Assignee{
-		Id:    65,
-		Roles: []string{"Case Manager"},
+		Id:      65,
+		Name:    "case",
+		Surname: "manager",
+		Roles:   []string{"Case Manager"},
 	}
 
 	teams, err := client.GetCurrentUserDetails(getContext(nil))
@@ -115,8 +117,10 @@ func TestMyDetailsReturns200(t *testing.T) {
 	}
 
 	expectedResponse := shared.Assignee{
-		Id:    55,
-		Roles: []string{"OPG User", "Case Manager"},
+		Id:      55,
+		Name:    "case",
+		Surname: "manager",
+		Roles:   []string{"OPG User", "Case Manager"},
 	}
 
 	user, err := client.GetCurrentUserDetails(getContext(nil))
