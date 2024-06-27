@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
+	"strconv"
 )
 
 type AdjustInvoiceVars struct {
@@ -17,8 +18,15 @@ type AdjustInvoiceFormHandler struct {
 }
 
 func (h *AdjustInvoiceFormHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
+	ctx := getContext(r)
 
-	data := AdjustInvoiceVars{&shared.AdjustmentTypes, r.PathValue("clientId"), r.PathValue("invoiceId"), v}
+	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
+	invoiceId, _ := strconv.Atoi(r.PathValue("invoiceId"))
+	allowedAdjustments, err := h.Client().GetPermittedAdjustments(ctx, clientId, invoiceId)
+	if err != nil {
+		return err
+	}
+	data := AdjustInvoiceVars{&allowedAdjustments, r.PathValue("clientId"), r.PathValue("invoiceId"), v}
 
 	return h.execute(w, r, data)
 }

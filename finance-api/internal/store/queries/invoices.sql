@@ -26,8 +26,12 @@ ORDER BY todate DESC;
 
 -- name: GetInvoiceBalance :one
 SELECT i.amount initial, i.amount - COALESCE(SUM(la.amount), 0) outstanding, i.feetype
+-- name: GetInvoiceBalanceDetails :one
+SELECT i.amount initial, i.amount - COALESCE(SUM(la.amount), 0) outstanding, i.feetype,
+       COALESCE(bool_or(l.type = 'CREDIT WRITE OFF'), false)::bool written_off
 FROM invoice i
          LEFT JOIN ledger_allocation la on i.id = la.invoice_id
+         LEFT JOIN ledger l ON l.id = la.ledger_id
     AND la.status IN ('ALLOCATED', 'APPROVED')
 WHERE i.id = $1
 group by i.amount, i.feetype;
