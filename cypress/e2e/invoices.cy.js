@@ -2,7 +2,7 @@ describe("Invoice Tab", () => {
         it("table with correct headers and content", () => {
             cy.visit("/clients/1/invoices");
 
-            cy.get("table#invoices > thead > tr")
+          cy.get("table#invoices > thead > tr")
                 .children()
                 .first().contains("Invoice")
                 .next().contains("Status")
