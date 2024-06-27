@@ -113,21 +113,24 @@ func (q *Queries) GetInvoiceBalance(ctx context.Context, id int32) (GetInvoiceBa
 }
 
 const getInvoices = `-- name: GetInvoices :many
-SELECT i.id, i.reference, i.amount, i.raiseddate, COALESCE(SUM(la.amount), 0)::int received
+SELECT i.id, i.reference, i.amount, i.raiseddate, COALESCE(SUM(la.amount), 0)::int received, fr.type fee_reduction_type
 FROM invoice i
          JOIN finance_client fc ON fc.id = i.finance_client_id
          LEFT JOIN ledger_allocation la ON i.id = la.invoice_id AND la.status IN ('ALLOCATED', 'APPROVED')
+         LEFT JOIN ledger l ON la.ledger_id = l.id
+         LEFT JOIN fee_reduction fr ON l.fee_reduction_id = fr.id
 WHERE fc.client_id = $1
-GROUP BY i.id, i.raiseddate
+GROUP BY i.id, i.raiseddate, fr.type
 ORDER BY i.raiseddate DESC
 `
 
 type GetInvoicesRow struct {
-	ID         int32
-	Reference  string
-	Amount     int32
-	Raiseddate pgtype.Date
-	Received   int32
+	ID               int32
+	Reference        string
+	Amount           int32
+	Raiseddate       pgtype.Date
+	Received         int32
+	FeeReductionType pgtype.Text
 }
 
 func (q *Queries) GetInvoices(ctx context.Context, clientID int32) ([]GetInvoicesRow, error) {
@@ -145,6 +148,7 @@ func (q *Queries) GetInvoices(ctx context.Context, clientID int32) ([]GetInvoice
 			&i.Amount,
 			&i.Raiseddate,
 			&i.Received,
+			&i.FeeReductionType,
 		); err != nil {
 			return nil, err
 		}
@@ -205,24 +209,25 @@ func (q *Queries) GetInvoicesValidForFeeReduction(ctx context.Context, id int32)
 }
 
 const getLedgerAllocations = `-- name: GetLedgerAllocations :many
-select la.id, la.amount, la.datetime, l.bankdate, l.type, la.status
-from ledger_allocation la
-         inner join ledger l on la.ledger_id = l.id
-where la.invoice_id = $1
-order by la.id desc
+SELECT la.invoice_id, la.id, la.amount, la.datetime, l.bankdate, l.type, la.status
+FROM ledger_allocation la
+         INNER JOIN ledger l ON la.ledger_id = l.id
+WHERE la.invoice_id = ANY($1::int[])
+ORDER BY la.id DESC
 `
 
 type GetLedgerAllocationsRow struct {
-	ID       int32
-	Amount   int32
-	Datetime pgtype.Timestamp
-	Bankdate pgtype.Date
-	Type     string
-	Status   string
+	InvoiceID pgtype.Int4
+	ID        int32
+	Amount    int32
+	Datetime  pgtype.Timestamp
+	Bankdate  pgtype.Date
+	Type      string
+	Status    string
 }
 
-func (q *Queries) GetLedgerAllocations(ctx context.Context, invoiceID pgtype.Int4) ([]GetLedgerAllocationsRow, error) {
-	rows, err := q.db.Query(ctx, getLedgerAllocations, invoiceID)
+func (q *Queries) GetLedgerAllocations(ctx context.Context, dollar_1 []int32) ([]GetLedgerAllocationsRow, error) {
+	rows, err := q.db.Query(ctx, getLedgerAllocations, dollar_1)
 	if err != nil {
 		return nil, err
 	}
@@ -231,6 +236,7 @@ func (q *Queries) GetLedgerAllocations(ctx context.Context, invoiceID pgtype.Int
 	for rows.Next() {
 		var i GetLedgerAllocationsRow
 		if err := rows.Scan(
+			&i.InvoiceID,
 			&i.ID,
 			&i.Amount,
 			&i.Datetime,
@@ -249,21 +255,22 @@ func (q *Queries) GetLedgerAllocations(ctx context.Context, invoiceID pgtype.Int
 }
 
 const getSupervisionLevels = `-- name: GetSupervisionLevels :many
-select supervisionlevel, fromdate, todate, amount
-from invoice_fee_range
-where invoice_id = $1
-order by todate desc
+SELECT invoice_id, supervisionlevel, fromdate, todate, amount
+FROM invoice_fee_range
+WHERE invoice_id = ANY($1::int[])
+ORDER BY todate DESC
 `
 
 type GetSupervisionLevelsRow struct {
+	InvoiceID        pgtype.Int4
 	Supervisionlevel string
 	Fromdate         pgtype.Date
 	Todate           pgtype.Date
 	Amount           int32
 }
 
-func (q *Queries) GetSupervisionLevels(ctx context.Context, invoiceID pgtype.Int4) ([]GetSupervisionLevelsRow, error) {
-	rows, err := q.db.Query(ctx, getSupervisionLevels, invoiceID)
+func (q *Queries) GetSupervisionLevels(ctx context.Context, dollar_1 []int32) ([]GetSupervisionLevelsRow, error) {
+	rows, err := q.db.Query(ctx, getSupervisionLevels, dollar_1)
 	if err != nil {
 		return nil, err
 	}
@@ -272,6 +279,7 @@ func (q *Queries) GetSupervisionLevels(ctx context.Context, invoiceID pgtype.Int
 	for rows.Next() {
 		var i GetSupervisionLevelsRow
 		if err := rows.Scan(
+			&i.InvoiceID,
 			&i.Supervisionlevel,
 			&i.Fromdate,
 			&i.Todate,

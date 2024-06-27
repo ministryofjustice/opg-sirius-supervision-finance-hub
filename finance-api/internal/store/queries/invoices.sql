@@ -1,13 +1,28 @@
 SET SEARCH_PATH TO supervision_finance;
 
 -- name: GetInvoices :many
-SELECT i.id, i.reference, i.amount, i.raiseddate, COALESCE(SUM(la.amount), 0)::int received
+SELECT i.id, i.reference, i.amount, i.raiseddate, COALESCE(SUM(la.amount), 0)::int received, fr.type fee_reduction_type
 FROM invoice i
          JOIN finance_client fc ON fc.id = i.finance_client_id
          LEFT JOIN ledger_allocation la ON i.id = la.invoice_id AND la.status IN ('ALLOCATED', 'APPROVED')
+         LEFT JOIN ledger l ON la.ledger_id = l.id
+         LEFT JOIN fee_reduction fr ON l.fee_reduction_id = fr.id
 WHERE fc.client_id = $1
-GROUP BY i.id, i.raiseddate
+GROUP BY i.id, i.raiseddate, fr.type
 ORDER BY i.raiseddate DESC;
+
+-- name: GetLedgerAllocations :many
+SELECT la.invoice_id, la.id, la.amount, la.datetime, l.bankdate, l.type, la.status
+FROM ledger_allocation la
+         INNER JOIN ledger l ON la.ledger_id = l.id
+WHERE la.invoice_id = ANY($1::int[])
+ORDER BY la.id DESC;
+
+-- name: GetSupervisionLevels :many
+SELECT invoice_id, supervisionlevel, fromdate, todate, amount
+FROM invoice_fee_range
+WHERE invoice_id = ANY($1::int[])
+ORDER BY todate DESC;
 
 -- name: GetInvoiceBalance :one
 SELECT i.amount initial, i.amount - COALESCE(SUM(la.amount), 0) outstanding, i.feetype
@@ -16,19 +31,6 @@ FROM invoice i
     AND la.status IN ('ALLOCATED', 'APPROVED')
 WHERE i.id = $1
 group by i.amount, i.feetype;
-
--- name: GetLedgerAllocations :many
-select la.id, la.amount, la.datetime, l.bankdate, l.type, la.status
-from ledger_allocation la
-         inner join ledger l on la.ledger_id = l.id
-where la.invoice_id = $1
-order by la.id desc;
-
--- name: GetSupervisionLevels :many
-select supervisionlevel, fromdate, todate, amount
-from invoice_fee_range
-where invoice_id = $1
-order by todate desc;
 
 -- name: GetInvoicesValidForFeeReduction :many
 SELECT i.*
