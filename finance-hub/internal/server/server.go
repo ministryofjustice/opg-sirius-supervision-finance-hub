@@ -26,6 +26,7 @@ type ApiClient interface {
 	CancelFeeReduction(api.Context, int, int, string) error
 	UpdatePendingInvoiceAdjustment(api.Context, int, int, string) error
 	GetBillingHistory(api.Context, int) ([]shared.BillingHistory, error)
+	GetUser(api.Context, int) (shared.Assignee, error)
 }
 
 type router interface {

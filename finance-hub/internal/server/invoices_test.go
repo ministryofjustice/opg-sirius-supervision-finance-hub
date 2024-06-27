@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -325,12 +326,12 @@ func TestInvoicesHandler_transform(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			h := &InvoicesHandler{
 				route{
-					client:  nil,
+					client:  mockApiClient{},
 					tmpl:    nil,
 					partial: "",
 				},
 			}
-			assert.Equalf(t, tt.want, h.transform(tt.args.in, tt.args.clientId), "transform(%v, %v)", tt.args.in, tt.args.clientId)
+			assert.Equalf(t, tt.want, h.transform(api.Context{}, tt.args.in, tt.args.clientId), "transform(%v, %v)", tt.args.in, tt.args.clientId)
 		})
 	}
 }

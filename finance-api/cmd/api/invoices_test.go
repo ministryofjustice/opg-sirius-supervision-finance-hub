@@ -47,7 +47,7 @@ func TestServer_getInvoices(t *testing.T) {
 	defer res.Body.Close()
 	data, _ := io.ReadAll(res.Body)
 
-	expected := `[{"id":1,"ref":"S203531/19","status":"","amount":12,"raisedDate":"16\/03\/2020","received":123,"outstandingBalance":0,"ledgers":[{"amount":123,"receivedDate":"11\/04\/2022","transactionType":"unknown","status":"Confirmed"}],"supervisionLevels":null}]`
+	expected := `[{"id":1,"ref":"S203531/19","status":"","amount":12,"raisedDate":"16\/03\/2020","received":123,"outstandingBalance":0,"ledgers":[{"amount":123,"receivedDate":"11\/04\/2022","transactionType":"unknown","status":"Confirmed"}],"supervisionLevels":null,"CreatedBy":0}]`
 
 	assert.Equal(t, expected, string(data))
 	assert.Equal(t, 1, mock.expectedIds[0])
