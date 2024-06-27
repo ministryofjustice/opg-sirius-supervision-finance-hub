@@ -58,6 +58,7 @@ type mockApiClient struct {
 	AccountInformation shared.AccountInformation
 	invoiceAdjustments shared.InvoiceAdjustments
 	BillingHistory     []shared.BillingHistory
+	adjustmentTypes    []shared.AdjustmentType
 }
 
 func (m mockApiClient) GetBillingHistory(context api.Context, i int) ([]shared.BillingHistory, error) {
@@ -66,6 +67,10 @@ func (m mockApiClient) GetBillingHistory(context api.Context, i int) ([]shared.B
 
 func (m mockApiClient) AddManualInvoice(context api.Context, i int, s string, s2 string, s3 string, s4 string, s5 string, s6 string) error {
 	return m.error
+}
+
+func (m mockApiClient) GetPermittedAdjustments(api.Context, int, int) ([]shared.AdjustmentType, error) {
+	return m.adjustmentTypes, nil
 }
 
 func (m mockApiClient) UpdatePendingInvoiceAdjustment(context api.Context, i int, i2 int, i3 string) error {

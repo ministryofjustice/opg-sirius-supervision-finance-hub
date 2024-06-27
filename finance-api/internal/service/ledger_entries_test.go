@@ -118,7 +118,7 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 	testCases := []struct {
 		name       string
 		adjustment *shared.CreateLedgerEntryRequest
-		balance    store.GetInvoiceBalanceRow
+		balance    store.GetInvoiceBalanceDetailsRow
 		err        error
 	}{
 		{
@@ -127,7 +127,7 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 				AdjustmentType: shared.AdjustmentTypeUnknown,
 				Amount:         52000,
 			},
-			balance: store.GetInvoiceBalanceRow{
+			balance: store.GetInvoiceBalanceDetailsRow{
 				Initial:     32000,
 				Outstanding: 10000,
 			},
@@ -139,7 +139,7 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 				AdjustmentType: shared.AdjustmentTypeAddCredit,
 				Amount:         52000,
 			},
-			balance: store.GetInvoiceBalanceRow{
+			balance: store.GetInvoiceBalanceDetailsRow{
 				Initial:     32000,
 				Outstanding: 10001,
 			},
@@ -151,7 +151,7 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 				AdjustmentType: shared.AdjustmentTypeAddCredit,
 				Amount:         42000,
 			},
-			balance: store.GetInvoiceBalanceRow{
+			balance: store.GetInvoiceBalanceDetailsRow{
 				Initial:     32000,
 				Outstanding: 10000,
 			},
@@ -163,7 +163,7 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 				AdjustmentType: shared.AdjustmentTypeAddDebit,
 				Amount:         52000,
 			},
-			balance: store.GetInvoiceBalanceRow{
+			balance: store.GetInvoiceBalanceDetailsRow{
 				Initial:     32000,
 				Outstanding: 10000,
 				Feetype:     "S2",
@@ -176,7 +176,7 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 				AdjustmentType: shared.AdjustmentTypeAddDebit,
 				Amount:         10001,
 			},
-			balance: store.GetInvoiceBalanceRow{
+			balance: store.GetInvoiceBalanceDetailsRow{
 				Initial:     10000,
 				Outstanding: 0,
 				Feetype:     "AD",
@@ -189,7 +189,7 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 				AdjustmentType: shared.AdjustmentTypeAddDebit,
 				Amount:         22000,
 			},
-			balance: store.GetInvoiceBalanceRow{
+			balance: store.GetInvoiceBalanceDetailsRow{
 				Initial:     16000,
 				Outstanding: 10000,
 				Feetype:     "S2",
@@ -202,7 +202,7 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 				AdjustmentType: shared.AdjustmentTypeAddDebit,
 				Amount:         5000,
 			},
-			balance: store.GetInvoiceBalanceRow{
+			balance: store.GetInvoiceBalanceDetailsRow{
 				Initial:     10000,
 				Outstanding: 5000,
 				Feetype:     "AD",
@@ -214,7 +214,7 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 			adjustment: &shared.CreateLedgerEntryRequest{
 				AdjustmentType: shared.AdjustmentTypeWriteOff,
 			},
-			balance: store.GetInvoiceBalanceRow{
+			balance: store.GetInvoiceBalanceDetailsRow{
 				Initial:     32000,
 				Outstanding: 0,
 			},
@@ -225,7 +225,7 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 			adjustment: &shared.CreateLedgerEntryRequest{
 				AdjustmentType: shared.AdjustmentTypeWriteOff,
 			},
-			balance: store.GetInvoiceBalanceRow{
+			balance: store.GetInvoiceBalanceDetailsRow{
 				Initial:     32000,
 				Outstanding: 10000,
 			},
@@ -247,7 +247,7 @@ func TestService_CalculateAdjustmentAmount(t *testing.T) {
 	testCases := []struct {
 		name       string
 		adjustment *shared.CreateLedgerEntryRequest
-		balance    store.GetInvoiceBalanceRow
+		balance    store.GetInvoiceBalanceDetailsRow
 		expected   int32
 	}{
 		{
@@ -256,7 +256,7 @@ func TestService_CalculateAdjustmentAmount(t *testing.T) {
 				AdjustmentType: shared.AdjustmentTypeWriteOff,
 				Amount:         52000,
 			},
-			balance: store.GetInvoiceBalanceRow{
+			balance: store.GetInvoiceBalanceDetailsRow{
 				Initial:     32000,
 				Outstanding: 10000,
 			},
@@ -268,7 +268,7 @@ func TestService_CalculateAdjustmentAmount(t *testing.T) {
 				AdjustmentType: shared.AdjustmentTypeAddDebit,
 				Amount:         22000,
 			},
-			balance: store.GetInvoiceBalanceRow{
+			balance: store.GetInvoiceBalanceDetailsRow{
 				Initial:     32000,
 				Outstanding: 10000,
 			},
@@ -280,7 +280,7 @@ func TestService_CalculateAdjustmentAmount(t *testing.T) {
 				AdjustmentType: shared.AdjustmentTypeAddCredit,
 				Amount:         52000,
 			},
-			balance: store.GetInvoiceBalanceRow{
+			balance: store.GetInvoiceBalanceDetailsRow{
 				Initial:     32000,
 				Outstanding: 10000,
 			},

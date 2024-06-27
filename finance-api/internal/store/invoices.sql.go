@@ -90,25 +90,33 @@ func (q *Queries) AddManualInvoice(ctx context.Context, arg AddManualInvoicePara
 	return i, err
 }
 
-const getInvoiceBalance = `-- name: GetInvoiceBalance :one
-SELECT i.amount initial, i.amount - COALESCE(SUM(la.amount), 0) outstanding, i.feetype
+const getInvoiceBalanceDetails = `-- name: GetInvoiceBalanceDetails :one
+SELECT i.amount initial, i.amount - COALESCE(SUM(la.amount), 0) outstanding, i.feetype,
+       COALESCE(bool_or(l.type = 'CREDIT WRITE OFF'), false)::bool written_off
 FROM invoice i
          LEFT JOIN ledger_allocation la on i.id = la.invoice_id
+         LEFT JOIN ledger l ON l.id = la.ledger_id
     AND la.status IN ('ALLOCATED', 'APPROVED')
 WHERE i.id = $1
 group by i.amount, i.feetype
 `
 
-type GetInvoiceBalanceRow struct {
+type GetInvoiceBalanceDetailsRow struct {
 	Initial     int32
 	Outstanding int32
 	Feetype     string
+	WrittenOff  bool
 }
 
-func (q *Queries) GetInvoiceBalance(ctx context.Context, id int32) (GetInvoiceBalanceRow, error) {
-	row := q.db.QueryRow(ctx, getInvoiceBalance, id)
-	var i GetInvoiceBalanceRow
-	err := row.Scan(&i.Initial, &i.Outstanding, &i.Feetype)
+func (q *Queries) GetInvoiceBalanceDetails(ctx context.Context, id int32) (GetInvoiceBalanceDetailsRow, error) {
+	row := q.db.QueryRow(ctx, getInvoiceBalanceDetails, id)
+	var i GetInvoiceBalanceDetailsRow
+	err := row.Scan(
+		&i.Initial,
+		&i.Outstanding,
+		&i.Feetype,
+		&i.WrittenOff,
+	)
 	return i, err
 }
 
