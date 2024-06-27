@@ -10,6 +10,7 @@ import (
 type Service interface {
 	GetAccountInformation(id int) (*shared.AccountInformation, error)
 	GetInvoices(id int) (*shared.Invoices, error)
+	GetPermittedAdjustments(invoiceId int) ([]shared.AdjustmentType, error)
 	GetFeeReductions(id int) (*shared.FeeReductions, error)
 	CreateLedgerEntry(clientId int, invoiceId int, ledgerEntry *shared.CreateLedgerEntryRequest) (*shared.InvoiceReference, error)
 	GetInvoiceAdjustments(id int) (*shared.InvoiceAdjustments, error)
@@ -27,6 +28,7 @@ type Server struct {
 func (s *Server) SetupRoutes() {
 	http.HandleFunc("GET /clients/{clientId}", s.getAccountInformation)
 	http.HandleFunc("GET /clients/{clientId}/invoices", s.getInvoices)
+	http.HandleFunc("GET /clients/{clientId}/invoices/{invoiceId}/permitted-adjustments", s.getPermittedAdjustments)
 	http.HandleFunc("GET /clients/{clientId}/fee-reductions", s.getFeeReductions)
 	http.HandleFunc("GET /clients/{clientId}/invoice-adjustments", s.getInvoiceAdjustments)
 
