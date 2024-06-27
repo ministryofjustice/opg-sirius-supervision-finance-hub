@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
 	"github.com/opg-sirius-finance-hub/shared"
 	"golang.org/x/exp/slices"
 	"golang.org/x/text/cases"
@@ -40,6 +41,7 @@ type Invoice struct {
 	Ledgers            LedgerAllocations
 	SupervisionLevels  SupervisionLevels
 	ClientId           int
+	CreatedBy          shared.Assignee
 }
 
 type InvoicesVars struct {
@@ -59,12 +61,12 @@ func (h *InvoicesHandler) render(v AppVars, w http.ResponseWriter, r *http.Reque
 		return err
 	}
 
-	data := &InvoicesVars{h.transform(invoices, ctx.ClientId), v}
+	data := &InvoicesVars{h.transform(ctx, invoices, ctx.ClientId), v}
 	data.selectTab("invoices")
 	return h.execute(w, r, data)
 }
 
-func (h *InvoicesHandler) transform(in shared.Invoices, clientId int) Invoices {
+func (h *InvoicesHandler) transform(ctx api.Context, in shared.Invoices, clientId int) Invoices {
 	slices.SortFunc(in, func(a, b shared.Invoice) int {
 		if a.RaisedDate.Time.After(b.RaisedDate.Time) {
 			return -1
@@ -79,7 +81,7 @@ func (h *InvoicesHandler) transform(in shared.Invoices, clientId int) Invoices {
 	caser := cases.Title(language.English)
 
 	for _, invoice := range in {
-		out = append(out, Invoice{
+		inv := Invoice{
 			Id:                 invoice.Id,
 			Ref:                invoice.Ref,
 			Status:             caser.String(invoice.Status),
@@ -90,7 +92,10 @@ func (h *InvoicesHandler) transform(in shared.Invoices, clientId int) Invoices {
 			Ledgers:            h.transformLedgers(invoice.Ledgers, caser),
 			SupervisionLevels:  h.transformSupervisionLevels(invoice.SupervisionLevels, caser),
 			ClientId:           clientId,
-		})
+		}
+		user, _ := h.Client().GetUser(ctx, invoice.CreatedBy)
+		inv.CreatedBy = user
+		out = append(out, inv)
 	}
 	return out
 }
