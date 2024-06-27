@@ -26,8 +26,7 @@ func TestGetCurrentUserDetails(t *testing.T) {
 			   "displayName":"case manager",
 			   "deleted":false,
 			   "email":"case.manager@opgtest.com",
-			   "firstname":"case",
-			   "surname":"manager",
+			   "displayName":"case manager",
 			   "roles":[
 				  "Case Manager"
 			   ],
@@ -45,10 +44,9 @@ func TestGetCurrentUserDetails(t *testing.T) {
 	}
 
 	expectedResponse := shared.Assignee{
-		Id:      65,
-		Name:    "case",
-		Surname: "manager",
-		Roles:   []string{"Case Manager"},
+		Id:          65,
+		DisplayName: "case manager",
+		Roles:       []string{"Case Manager"},
 	}
 
 	teams, err := client.GetCurrentUserDetails(getContext(nil))
@@ -83,47 +81,4 @@ func TestMyDetailsReturns500Error(t *testing.T) {
 		URL:    svr.URL + "/api/v1/users/current",
 		Method: http.MethodGet,
 	}, err)
-}
-
-func TestMyDetailsReturns200(t *testing.T) {
-	logger, mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "http://localhost:8181", logger)
-
-	json := `{
-		"id": 55,
-		"name": "case",
-		"phoneNumber": "12345678",
-		"teams": [],
-		"displayName": "case manager",
-		"deleted": false,
-		"email": "case.manager@opgtest.com",
-		"firstname": "case",
-		"surname": "manager",
-		"roles": [
-			"OPG User",
-			"Case Manager"
-		],
-		"locked": false,
-		"suspended": false
-    }`
-
-	r := io.NopCloser(bytes.NewReader([]byte(json)))
-
-	GetDoFunc = func(*http.Request) (*http.Response, error) {
-		return &http.Response{
-			StatusCode: 200,
-			Body:       r,
-		}, nil
-	}
-
-	expectedResponse := shared.Assignee{
-		Id:      55,
-		Name:    "case",
-		Surname: "manager",
-		Roles:   []string{"OPG User", "Case Manager"},
-	}
-
-	user, err := client.GetCurrentUserDetails(getContext(nil))
-	assert.Equal(t, err, nil)
-	assert.Equal(t, user, expectedResponse)
 }
