@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/opg-sirius-finance-hub/shared"
+	"log"
 	"net/http"
 )
 
@@ -11,9 +12,11 @@ func (c *ApiClient) GetUser(ctx Context, userId int) (shared.Assignee, error) {
 	user, ok := c.caches.getUser(userId)
 
 	if ok {
+		log.Printf("cache hit for user %d", userId)
 		return *user, nil
 	}
 
+	log.Printf("no cache for user %d, fetching", userId)
 	req, err := c.newSiriusRequest(ctx, http.MethodGet, "/api/v1/users", nil)
 	if err != nil {
 		c.logErrorRequest(req, err)
@@ -46,6 +49,7 @@ func (c *ApiClient) GetUser(ctx Context, userId int) (shared.Assignee, error) {
 	}
 
 	c.caches.updateUsers(users)
+	log.Println("cache updated")
 	user, ok = c.caches.getUser(userId)
 	if !ok {
 		return shared.Assignee{}, errors.New("user not found")
