@@ -2,8 +2,7 @@
   "users": [
     {
       "id": 1,
-      "name": "Super",
-      "surname": "User",
+      "displayName": "Super User",
       "roles": [
         "Case Manager",
         "Manager",
@@ -12,8 +11,7 @@
     },
     {
       "id": 65,
-      "name": "Ian",
-      "surname": "Admin",
+      "displayName": "Ian Admin",
       "roles": [
         "Case Manager",
         "Manager",
@@ -22,8 +20,7 @@
     },
     {
       "id": 99,
-      "name": "Tina",
-      "surname": "Test",
+      "displayName": "Tina Test",
       "roles": [
         "Cache Tester"
       ]
