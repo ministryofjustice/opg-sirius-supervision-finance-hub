@@ -93,8 +93,10 @@ func (h *InvoicesHandler) transform(ctx api.Context, in shared.Invoices, clientI
 			SupervisionLevels:  h.transformSupervisionLevels(invoice.SupervisionLevels, caser),
 			ClientId:           clientId,
 		}
-		user, _ := h.Client().GetUser(ctx, invoice.CreatedBy)
-		inv.CreatedBy = user
+		if invoice.CreatedBy != 0 {
+			user, _ := h.Client().GetUser(ctx, invoice.CreatedBy)
+			inv.CreatedBy = user
+		}
 		out = append(out, inv)
 	}
 	return out
