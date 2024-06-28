@@ -27,6 +27,7 @@
             <th scope="col" data-cy="raised" class="govuk-table__header">Raised</th>
             <th scope="col" data-cy="received" class="govuk-table__header">Received</th>
             <th scope="col" data-cy="outstanding-balance" class="govuk-table__header">Outstanding Balance</th>
+            <th scope="col" data-cy="user" class="govuk-table__header">Created by</th>
           </tr>
           </thead>
           <tbody class="govuk-table__body">
@@ -46,6 +47,7 @@
               <td class="govuk-table__cell" data-cy="invoice-raised-date">{{ .RaisedDate }}</td>
               <td class="govuk-table__cell" data-cy="invoice-received">£{{ .Received }}</td>
               <td class="govuk-table__cell" data-cy="invoice-outstanding-balance">£{{ .OutstandingBalance }}</td>
+              <td class="govuk-table__cell" data-cy="invoice-created-by">{{ .CreatedBy.DisplayName }}</td>
               <td class="govuk-table__cell">
                 <div class="moj-button-menu">
                   <div class="moj-button-menu__wrapper">
