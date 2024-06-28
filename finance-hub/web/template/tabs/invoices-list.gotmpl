@@ -33,7 +33,8 @@
           {{  range .Invoices }}
             <tr class="govuk-table__row">
               <td class="govuk-table__cell" >
-                <details class="govuk-details summary" id="invoice-{{.Id}}">
+                <details class="govuk-details summary" id="invoice-{{.Id}}"
+                  _="on click toggle .hide on next .summary-details">
                   <summary class="govuk-details__summary">
                     <span class="govuk-details__summary-text" data-cy="ref">
                       {{- .Ref -}}
@@ -64,7 +65,7 @@
               </td>
             </tr>
 
-            <tr class="hide" id="invoice-{{.Id}}-reveal">
+            <tr class="hide summary-details">
               <td class="govuk-table__cell" colspan="4">
                 {{ template "invoice-ledger-allocations" .Ledgers }}
                 {{ template "supervision-levels" .SupervisionLevels }}
