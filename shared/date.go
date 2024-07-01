@@ -33,6 +33,20 @@ func (d Date) String() string {
 	return d.Time.Format("02/01/2006")
 }
 
+func (d Date) IsSameFinancialYear(d1 *Date) bool {
+	financialYearOneStartYear := d.Time.Year()
+	if d.Time.Month() < time.April {
+		financialYearOneStartYear = d.Time.Year() - 1
+	}
+
+	financialYearTwoStartYear := d1.Time.Year()
+	if d1.Time.Month() < time.April {
+		financialYearTwoStartYear = d1.Time.Year() - 1
+	}
+
+	return financialYearOneStartYear == financialYearTwoStartYear
+}
+
 func (d Date) IsNull() bool {
 	nullDate := NewDate("01/01/0001")
 	return d.Time.Equal(nullDate.Time)
@@ -49,7 +63,7 @@ func (d *Date) UnmarshalJSON(b []byte) error {
 }
 
 func stringToTime(s string) (time.Time, error) {
-	value := strings.Trim(string(s), `"`)
+	value := strings.Trim(s, `"`)
 	if value == "" || value == "null" {
 		return time.Time{}, nil
 	}
@@ -58,6 +72,7 @@ func stringToTime(s string) (time.Time, error) {
 	supportedFormats := []string{
 		"02/01/2006",
 		"2006-01-02T15:04:05+00:00",
+		"2006-01-02",
 	}
 
 	var t time.Time

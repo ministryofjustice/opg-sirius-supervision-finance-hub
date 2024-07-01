@@ -119,6 +119,22 @@ func (r route) getSuccess(req *http.Request) string {
 		return "You have rejected the write off"
 	case "reject-invoice-adjustment[DEBIT]":
 		return "You have rejected the debit"
+	case "invoice-type[AD]":
+		return "The AD invoice has been successfully created"
+	case "invoice-type[S2]":
+		return "The S2 invoice has been successfully created"
+	case "invoice-type[S3]":
+		return "The S3 invoice has been successfully created"
+	case "invoice-type[B2]":
+		return "The B2 invoice has been successfully created"
+	case "invoice-type[B3]":
+		return "The B3 invoice has been successfully created"
+	case "invoice-type[SF]":
+		return "The SF invoice has been successfully created"
+	case "invoice-type[SE]":
+		return "The SE invoice has been successfully created"
+	case "invoice-type[SO]":
+		return "The SO invoice has been successfully created"
 	}
 	return ""
 }
