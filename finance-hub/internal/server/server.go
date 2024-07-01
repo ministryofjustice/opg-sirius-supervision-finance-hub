@@ -25,6 +25,7 @@ type ApiClient interface {
 	AddFeeReduction(api.Context, int, string, string, string, string, string) error
 	CancelFeeReduction(api.Context, int, int, string) error
 	UpdatePendingInvoiceAdjustment(api.Context, int, int, string) error
+	AddManualInvoice(api.Context, int, string, string, string, string, string, string) error
 	GetBillingHistory(api.Context, int) ([]shared.BillingHistory, error)
 }
 
@@ -48,11 +49,13 @@ func New(logger *zap.SugaredLogger, client ApiClient, templates map[string]*temp
 	mux.Handle("GET /clients/{clientId}/pending-invoice-adjustments", wrap(&PendingInvoiceAdjustmentsHandler{&route{client: client, tmpl: templates["pending-invoice-adjustments.gotmpl"], partial: "pending-invoice-adjustments"}}))
 	mux.Handle("GET /clients/{clientId}/invoices/{invoiceId}/adjustments", wrap(&AdjustInvoiceFormHandler{&route{client: client, tmpl: templates["adjust-invoice.gotmpl"], partial: "adjust-invoice"}}))
 	mux.Handle("GET /clients/{clientId}/fee-reductions/add", wrap(&UpdateFeeReductionHandler{&route{client: client, tmpl: templates["add-fee-reduction.gotmpl"], partial: "add-fee-reduction"}}))
+	mux.Handle("GET /clients/{clientId}/invoices/add", wrap(&UpdateManualInvoiceHandler{&route{client: client, tmpl: templates["add-manual-invoice.gotmpl"], partial: "add-manual-invoice"}}))
 	mux.Handle("GET /clients/{clientId}/billing-history", wrap(&BillingHistoryHandler{&route{client: client, tmpl: templates["billing-history.gotmpl"], partial: "billing-history"}}))
-
+	mux.Handle("GET /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", wrap(&CancelFeeReductionHandler{&route{client: client, tmpl: templates["cancel-fee-reduction.gotmpl"], partial: "cancel-fee-reduction"}}))
+  
+	mux.Handle("POST /clients/{clientId}/invoices", wrap(&SubmitManualInvoiceHandler{&route{client: client, tmpl: templates["add-manual-invoice.gotmpl"], partial: "error-summary"}}))
 	mux.Handle("POST /clients/{clientId}/invoices/{invoiceId}/adjustments", wrap(&SubmitInvoiceAdjustmentHandler{&route{client: client, tmpl: templates["adjust-invoice.gotmpl"], partial: "error-summary"}}))
 	mux.Handle("POST /clients/{clientId}/fee-reductions/add", wrap(&SubmitFeeReductionsHandler{&route{client: client, tmpl: templates["add-fee-reduction.gotmpl"], partial: "error-summary"}}))
-	mux.Handle("GET /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", wrap(&CancelFeeReductionHandler{&route{client: client, tmpl: templates["cancel-fee-reduction.gotmpl"], partial: "cancel-fee-reduction"}}))
 	mux.Handle("POST /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", wrap(&SubmitCancelFeeReductionsHandler{&route{client: client, tmpl: templates["cancel-fee-reduction.gotmpl"], partial: "error-summary"}}))
 	mux.Handle("POST /clients/{clientId}/pending-invoice-adjustments/{ledgerId}/{adjustmentType}/{status}", wrap(&SubmitUpdatePendingInvoiceAdjustmentHandler{&route{client: client, tmpl: templates["pending-invoice-adjustments.gotmpl"], partial: "pending-invoice-adjustments"}}))
 

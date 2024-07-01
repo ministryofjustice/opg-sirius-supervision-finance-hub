@@ -31,3 +31,17 @@ where fc.client_id = $1 and fr.deleted = false
 
 -- name: CancelFeeReduction :one
 update fee_reduction set deleted = true where id = $1 returning *;
+
+-- name: GetFeeReductionByInvoiceId :one
+SELECT fr.id AS fee_reduction_id, fr.type, fr.finance_client_id
+FROM invoice i
+         JOIN fee_reduction fr
+              ON i.finance_client_id = fr.finance_client_id
+WHERE i.raiseddate >= (fr.datereceived - interval '6 months')
+  AND i.raiseddate BETWEEN fr.startdate AND fr.enddate
+  AND fr.id in (SELECT fere.id
+                FROM fee_reduction fere
+                         JOIN finance_client fc on fere.finance_client_id = fc.client_id
+                WHERE fc.client_id = $1)
+  AND fr.deleted = false
+  AND i.id = $2;
