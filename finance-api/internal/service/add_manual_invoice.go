@@ -124,12 +124,15 @@ func (s *Service) AddLedgerAndAllocations(feeReductionFeeType string, feeReducti
 			Supervisionlevel: "GENERAL",
 		}
 		amount, _ = transaction.GetInvoiceFeeRangeAmount(ctx, invoiceFeeRangeParams)
+		if invoice.Feetype == "AD" {
+			amount = invoice.Amount / 2
+		}
 	}
 	if amount != 0 {
 		ledgerQueryArgs := store.CreateLedgerForFeeReductionParams{
 			Method:          feeReductionFeeType + " credit for invoice " + invoice.Reference,
 			Amount:          amount,
-			Notes:           pgtype.Text{String: "Credit due to manual invoice " + feeReductionFeeType},
+			Notes:           pgtype.Text{String: "Credit due to manual invoice " + feeReductionFeeType, Valid: true},
 			Type:            "CREDIT " + feeReductionFeeType,
 			FinanceClientID: pgtype.Int4{Int32: feeReductionFinanceClientID, Valid: true},
 			FeeReductionID:  pgtype.Int4{Int32: feeReductionId, Valid: true},

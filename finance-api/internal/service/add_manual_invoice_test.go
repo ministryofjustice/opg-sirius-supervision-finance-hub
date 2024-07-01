@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/testhelpers"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
@@ -117,7 +119,6 @@ func (suite *IntegrationSuite) TestService_AddManualInvoiceRaisedDateForAnInvoic
 	if err != nil {
 		assert.Equalf(suite.T(), "bad requests: RaisedDateForAnInvoice, StartDate, EndDate", err.Error(), "Raised date %s is not in the past", params.RaisedDate)
 		return
-
 	}
 }
 
@@ -228,5 +229,76 @@ func Test_validateStartDate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equalf(t, tt.want, validateStartDate(tt.args.startDate, tt.args.endDate), "validateStartDate(%v, %v)", tt.args.startDate, tt.args.endDate)
 		})
+	}
+}
+
+func (suite *IntegrationSuite) TestService_AddLedgerAndAllocationsForAnADInvoice() {
+	conn := suite.testDB.GetConn()
+
+	conn.SeedData(
+		"INSERT INTO finance_client VALUES (25, 25, '1234', 'DEMANDED', null);",
+		"INSERT INTO fee_reduction VALUES (25, 25, 'REMISSION', null, '2023-04-01', '2024-03-31', 'Remission to see the notes', false, '2023-05-01');",
+	)
+
+	ctx := context.Background()
+	s, params := addManualInvoiceSetup(conn)
+
+	params.InvoiceType = shared.InvoiceTypeAD
+	dateString := "2023-05-01"
+	date, _ := time.Parse("2006-01-02", dateString)
+	dateReceivedTransformed := &shared.Date{Time: date}
+
+	params.StartDate = dateReceivedTransformed
+	params.EndDate = dateReceivedTransformed
+	params.RaisedDate = dateReceivedTransformed
+
+	err := s.AddManualInvoice(25, params)
+	var ledger store.Ledger
+	q := conn.QueryRow(ctx, "SELECT id, amount, notes, type, status, finance_client_id FROM ledger WHERE id = 1")
+	err = q.Scan(&ledger.ID, &ledger.Amount, &ledger.Notes, &ledger.Type, &ledger.Status, &ledger.FinanceClientID)
+	if err != nil {
+		suite.T().Error("Add manual invoice ledger failed")
+	} else {
+		expected := store.Ledger{
+			ID:              1,
+			Amount:          int32(params.Amount / 2),
+			Notes:           pgtype.Text{String: "Credit due to manual invoice REMISSION", Valid: true},
+			Type:            "CREDIT REMISSION",
+			Status:          "APPROVED",
+			FinanceClientID: pgtype.Int4{Int32: int32(25), Valid: true},
+		}
+
+		assert.EqualValues(suite.T(), expected, ledger)
+	}
+}
+
+func (suite *IntegrationSuite) TestService_AddLedgerAndAllocationsForAnExemption() {
+	conn := suite.testDB.GetConn()
+
+	conn.SeedData(
+		"INSERT INTO finance_client VALUES (25, 25, '1234', 'DEMANDED', null);",
+		"INSERT INTO fee_reduction VALUES (25, 25, 'EXEMPTION', null, '2022-04-01', '2025-03-31', 'Exemption to see the notes', false, '2023-05-01');",
+	)
+
+	ctx := context.Background()
+	s, params := addManualInvoiceSetup(conn)
+
+	err := s.AddManualInvoice(25, params)
+	var ledger store.Ledger
+	q := conn.QueryRow(ctx, "SELECT id, amount, notes, type, status, finance_client_id FROM ledger WHERE id = 1")
+	err = q.Scan(&ledger.ID, &ledger.Amount, &ledger.Notes, &ledger.Type, &ledger.Status, &ledger.FinanceClientID)
+	if err != nil {
+		suite.T().Error("Add manual invoice ledger with an exemption failed")
+	} else {
+		expected := store.Ledger{
+			ID:              1,
+			Amount:          int32(params.Amount),
+			Notes:           pgtype.Text{String: "Credit due to manual invoice EXEMPTION", Valid: true},
+			Type:            "CREDIT EXEMPTION",
+			Status:          "APPROVED",
+			FinanceClientID: pgtype.Int4{Int32: int32(25), Valid: true},
+		}
+
+		assert.EqualValues(suite.T(), expected, ledger)
 	}
 }
