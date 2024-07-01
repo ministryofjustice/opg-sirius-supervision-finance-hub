@@ -12,6 +12,7 @@ import (
 
 type MockClient struct {
 	DoFunc func(req *http.Request) (*http.Response, error)
+	cache  *Caches
 }
 
 var (
@@ -51,6 +52,6 @@ func TestStatusError(t *testing.T) {
 
 func SetUpTest() (*logging.Logger, *MockClient) {
 	logger := logging.New(os.Stdout, "opg-sirius-finance-hub")
-	mockClient := &MockClient{}
+	mockClient := &MockClient{cache: newCaches()}
 	return logger, mockClient
 }

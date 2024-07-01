@@ -26,7 +26,6 @@ func TestGetCurrentUserDetails(t *testing.T) {
 			   "displayName":"case manager",
 			   "deleted":false,
 			   "email":"case.manager@opgtest.com",
-			   "displayName":"case manager",
 			   "roles":[
 				  "Case Manager"
 			   ],
