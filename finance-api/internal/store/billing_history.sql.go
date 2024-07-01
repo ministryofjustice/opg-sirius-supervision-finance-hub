@@ -12,7 +12,7 @@ import (
 )
 
 const getPendingLedgerAllocations = `-- name: GetPendingLedgerAllocations :many
-SELECT i.id invoice_id, l.id ledger_id, i.reference, l.type, la.amount, l.notes, l.confirmeddate, l.createdby_id, l.status
+SELECT i.id invoice_id, l.id ledger_id, i.reference, l.type, la.amount, l.notes, l.confirmeddate, l.createdby_id, l.status, l.createddate
 FROM ledger_allocation la
          JOIN ledger l ON l.id = la.ledger_id
          JOIN invoice i ON i.id = la.invoice_id
@@ -32,6 +32,7 @@ type GetPendingLedgerAllocationsRow struct {
 	Confirmeddate pgtype.Date
 	CreatedbyID   pgtype.Int4
 	Status        string
+	Createddate   pgtype.Date
 }
 
 func (q *Queries) GetPendingLedgerAllocations(ctx context.Context, clientID int32) ([]GetPendingLedgerAllocationsRow, error) {
@@ -53,6 +54,7 @@ func (q *Queries) GetPendingLedgerAllocations(ctx context.Context, clientID int3
 			&i.Confirmeddate,
 			&i.CreatedbyID,
 			&i.Status,
+			&i.Createddate,
 		); err != nil {
 			return nil, err
 		}
