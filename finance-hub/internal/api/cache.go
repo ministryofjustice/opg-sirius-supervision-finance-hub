@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	defaultExpiration = 24 * time.Hour
+	defaultExpiration = 12 * time.Hour
 )
 
 type Caches struct {
