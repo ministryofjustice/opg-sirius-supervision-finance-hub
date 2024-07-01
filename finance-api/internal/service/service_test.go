@@ -1,10 +1,8 @@
 package service
 
 import (
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/testhelpers"
 	"github.com/stretchr/testify/suite"
-	"log"
 	"testing"
 )
 
@@ -27,13 +25,4 @@ func (suite *IntegrationSuite) TearDownSuite() {
 
 func (suite *IntegrationSuite) AfterTest(suiteName, testName string) {
 	suite.testDB.Restore()
-}
-
-func TestName(t *testing.T) {
-	i := pgtype.Int4{
-		Int32: 0,
-		Valid: false,
-	}
-	a := int(i.Int32)
-	log.Print(a)
 }

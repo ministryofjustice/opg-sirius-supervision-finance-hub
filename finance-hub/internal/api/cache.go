@@ -3,14 +3,12 @@ package api
 import (
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/patrickmn/go-cache"
-	"log"
 	"strconv"
 	"time"
 )
 
 const (
-	defaultExpiration = 5 * time.Minute
-	purgeTime         = 10 * time.Minute
+	defaultExpiration = 24 * time.Hour
 )
 
 type Caches struct {
@@ -18,7 +16,7 @@ type Caches struct {
 }
 
 func newCaches() *Caches {
-	Cache := cache.New(defaultExpiration, purgeTime)
+	Cache := cache.New(defaultExpiration, defaultExpiration)
 	return &Caches{
 		users: Cache,
 	}
@@ -35,9 +33,6 @@ func (c Caches) getUser(id int) (*shared.Assignee, bool) {
 
 func (c Caches) updateUsers(users []shared.Assignee) {
 	for _, user := range users {
-		err := c.users.Add(strconv.Itoa(user.Id), &user, defaultExpiration)
-		if err != nil {
-			log.Println(err)
-		}
+		_ = c.users.Add(strconv.Itoa(user.Id), &user, defaultExpiration)
 	}
 }
