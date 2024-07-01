@@ -111,7 +111,7 @@ func (i *InvoiceType) UnmarshalJSON(data []byte) (err error) {
 	return nil
 }
 
-func (i InvoiceType) IsRaisedDateValid() bool {
+func (i InvoiceType) RequiresDateValidation() bool {
 	switch i {
 	case InvoiceTypeAD, InvoiceTypeSF, InvoiceTypeSE, InvoiceTypeSO:
 		return true
