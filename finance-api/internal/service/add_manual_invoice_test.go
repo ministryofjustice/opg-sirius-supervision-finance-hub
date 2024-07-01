@@ -253,6 +253,9 @@ func (suite *IntegrationSuite) TestService_AddLedgerAndAllocationsForAnADInvoice
 	params.RaisedDate = dateReceivedTransformed
 
 	err := s.AddManualInvoice(25, params)
+	if err != nil {
+		suite.T().Error("Add manual invoice ledger failed")
+	}
 	var ledger store.Ledger
 	q := conn.QueryRow(ctx, "SELECT id, amount, notes, type, status, finance_client_id FROM ledger WHERE id = 1")
 	err = q.Scan(&ledger.ID, &ledger.Amount, &ledger.Notes, &ledger.Type, &ledger.Status, &ledger.FinanceClientID)
@@ -284,6 +287,9 @@ func (suite *IntegrationSuite) TestService_AddLedgerAndAllocationsForAnExemption
 	s, params := addManualInvoiceSetup(conn)
 
 	err := s.AddManualInvoice(25, params)
+	if err != nil {
+		suite.T().Error("Add manual invoice ledger with an exemption failed")
+	}
 	var ledger store.Ledger
 	q := conn.QueryRow(ctx, "SELECT id, amount, notes, type, status, finance_client_id FROM ledger WHERE id = 1")
 	err = q.Scan(&ledger.ID, &ledger.Amount, &ledger.Notes, &ledger.Type, &ledger.Status, &ledger.FinanceClientID)

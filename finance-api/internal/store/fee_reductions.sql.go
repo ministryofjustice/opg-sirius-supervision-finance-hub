@@ -108,7 +108,7 @@ WHERE i.raiseddate >= (fr.datereceived - interval '6 months')
   AND i.raiseddate BETWEEN fr.startdate AND fr.enddate
   AND fr.id in (SELECT fere.id
                 FROM fee_reduction fere
-                         JOIN finance_client fc on fere.finance_client_id = fc.client_id
+                         JOIN finance_client fc on fere.finance_client_id = fc.id
                 WHERE fc.client_id = $1)
   AND fr.deleted = false
   AND i.id = $2
