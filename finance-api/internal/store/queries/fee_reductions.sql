@@ -43,4 +43,5 @@ WHERE i.raiseddate >= (fr.datereceived - interval '6 months')
                 FROM fee_reduction fere
                          JOIN finance_client fc on fere.finance_client_id = fc.client_id
                 WHERE fc.client_id = $1)
+  AND fr.deleted = false
   AND i.id = $2;
