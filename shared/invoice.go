@@ -12,6 +12,7 @@ type Invoice struct {
 	OutstandingBalance int                `json:"outstandingBalance"`
 	Ledgers            []Ledger           `json:"ledgers"`
 	SupervisionLevels  []SupervisionLevel `json:"supervisionLevels"`
+	CreatedBy          int
 }
 
 type Ledger struct {

@@ -40,6 +40,7 @@ func newInvoiceBuilder(invoices []store.GetInvoicesRow) *invoiceBuilder {
 				Status:             "Unpaid",
 				Received:           int(inv.Received),
 				OutstandingBalance: int(inv.Amount) - int(inv.Received),
+				CreatedBy:          int(inv.CreatedbyID.Int32),
 			},
 			feeReductionType: inv.FeeReductionType.String,
 		}
