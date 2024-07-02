@@ -8,3 +8,10 @@ sql:
         package: "store"
         sql_package: "pgx/v5"
         out: "."
+    rules:
+      - check-num-of-params
+rules:
+  - name: check-num-of-params
+    message: "do you need all the parameters"
+    rule: |
+      query.params.size() > 7

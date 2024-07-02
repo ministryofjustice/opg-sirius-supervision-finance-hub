@@ -115,6 +115,14 @@ services:
       - ./migrations:/schema
     command: diff
 
+  sqlc-vet:
+    image: kjconroy/sqlc
+    working_dir: /src
+    volumes:
+      - ./finance-api/internal/store:/src
+      - ./migrations:/schema
+    command: vet
+
   finance-migration:
     image: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-migration:latest
     build:
