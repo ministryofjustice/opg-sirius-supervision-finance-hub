@@ -11,6 +11,9 @@
     {{ if eq .Event.Type.String "INVOICE_ADJUSTMENT_APPLIED" }}
         {{ template "adjustment-applied-event" . }}
     {{ end }}
+    {{ if eq .Event.Type.String "INVOICE_ADJUSTMENT_PENDING" }}
+        {{ template "pending-adjustment-event" . }}
+    {{ end }}
     {{ if eq .Event.Type.String "PAYMENT_PROCESSED" }}
         {{ template "payment-processed-event" . }}
     {{ end }}
