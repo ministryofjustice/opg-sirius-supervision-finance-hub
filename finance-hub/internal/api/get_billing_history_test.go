@@ -90,7 +90,7 @@ func TestGetBillingHistoryCanThrow500Error(t *testing.T) {
 
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
-		URL:    svr.URL + "/api/v1/clients/1/billing-history",
+		URL:    svr.URL + "/clients/1/billing-history",
 		Method: http.MethodGet,
 	}, err)
 }
