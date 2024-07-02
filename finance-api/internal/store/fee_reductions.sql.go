@@ -99,33 +99,30 @@ func (q *Queries) CountOverlappingFeeReduction(ctx context.Context, arg CountOve
 	return count, err
 }
 
-const getFeeReductionByClientIdAndInvoiceId = `-- name: GetFeeReductionByClientIdAndInvoiceId :one
+const getFeeReductionForDate = `-- name: GetFeeReductionForDate :one
 SELECT fr.id AS fee_reduction_id, fr.type, fr.finance_client_id
-FROM invoice i
-         JOIN fee_reduction fr
-              ON i.finance_client_id = fr.finance_client_id
+FROM fee_reduction fr
          JOIN finance_client fc on fr.finance_client_id = fc.id
-WHERE i.raiseddate >= (fr.datereceived - interval '6 months')
-  AND i.raiseddate BETWEEN fr.startdate AND fr.enddate
+WHERE $2 >= (fr.datereceived - interval '6 months')
+  AND $2 BETWEEN fr.startdate AND fr.enddate
   AND fr.deleted = false
   AND fc.client_id = $1
-  AND i.id = $2
 `
 
-type GetFeeReductionByClientIdAndInvoiceIdParams struct {
-	ClientID int32
-	ID       int32
+type GetFeeReductionForDateParams struct {
+	ClientID     int32
+	Datereceived pgtype.Date
 }
 
-type GetFeeReductionByClientIdAndInvoiceIdRow struct {
+type GetFeeReductionForDateRow struct {
 	FeeReductionID  int32
 	Type            string
 	FinanceClientID pgtype.Int4
 }
 
-func (q *Queries) GetFeeReductionByClientIdAndInvoiceId(ctx context.Context, arg GetFeeReductionByClientIdAndInvoiceIdParams) (GetFeeReductionByClientIdAndInvoiceIdRow, error) {
-	row := q.db.QueryRow(ctx, getFeeReductionByClientIdAndInvoiceId, arg.ClientID, arg.ID)
-	var i GetFeeReductionByClientIdAndInvoiceIdRow
+func (q *Queries) GetFeeReductionForDate(ctx context.Context, arg GetFeeReductionForDateParams) (GetFeeReductionForDateRow, error) {
+	row := q.db.QueryRow(ctx, getFeeReductionForDate, arg.ClientID, arg.Datereceived)
+	var i GetFeeReductionForDateRow
 	err := row.Scan(&i.FeeReductionID, &i.Type, &i.FinanceClientID)
 	return i, err
 }
