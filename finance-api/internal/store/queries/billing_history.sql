@@ -8,4 +8,4 @@ FROM ledger_allocation la
          JOIN finance_client fc ON fc.id = i.finance_client_id
 WHERE fc.client_id = $1
   AND l.status = 'PENDING'
-ORDER BY l.confirmeddate DESC;
+ORDER BY l.datetime DESC;

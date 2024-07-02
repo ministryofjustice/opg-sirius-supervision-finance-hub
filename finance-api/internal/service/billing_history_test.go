@@ -113,7 +113,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 						},
 						BaseBillingEvent: shared.BaseBillingEvent{Type: 6},
 					},
-					OutstandingBalance: 0,
+					OutstandingBalance: 320,
 				},
 				{
 					User: "65",
@@ -131,7 +131,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 						},
 						BaseBillingEvent: shared.BaseBillingEvent{Type: 6},
 					},
-					OutstandingBalance: 0,
+					OutstandingBalance: 320,
 				},
 			},
 		},

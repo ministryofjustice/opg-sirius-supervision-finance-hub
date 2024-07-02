@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
+	"math"
 	"sort"
 	"strconv"
 	"strings"
@@ -33,7 +34,12 @@ func (s *Service) GetBillingHistory(clientID int) ([]shared.BillingHistory, erro
 	}
 
 	allocationsByLedger := aggregateAllocations(pendingAllocations, strconv.Itoa(clientID))
-	history := processAllocations(allocationsByLedger)
+
+	startingBalance, err := s.store.GetAccountInformation(ctx, int32(clientID))
+	if err != nil {
+		return nil, err
+	}
+	history := processAllocations(allocationsByLedger, int(startingBalance.Outstanding))
 	sortHistoryByDate(history)
 
 	return computeBillingHistory(history), nil
@@ -59,17 +65,18 @@ func aggregateAllocations(pendingAllocations []store.GetPendingLedgerAllocations
 				ID:        int(allo.InvoiceID),
 				Reference: allo.Reference,
 			},
-			Amount: int(allo.Amount / 100),
+			Amount: int(math.Abs(float64(allo.Amount / 100))),
 		})
 		allocationsByLedger[allo.LedgerID] = a
 	}
 	return allocationsByLedger
 }
 
-func processAllocations(allocationsByLedger map[int32]allocationHolder) []historyHolder {
+func processAllocations(allocationsByLedger map[int32]allocationHolder, startingBalance int) []historyHolder {
 	var history []historyHolder
-	for _, allo := range allocationsByLedger {
+	amount := startingBalance / 100
 
+	for _, allo := range allocationsByLedger {
 		bh := shared.BillingHistory{
 			User: allo.user,
 			Date: allo.createdDate,
@@ -89,8 +96,10 @@ func processAllocations(allocationsByLedger map[int32]allocationHolder) []histor
 				}
 			}
 		}
+
 		history = append(history, historyHolder{
-			billingHistory: bh,
+			billingHistory:    bh,
+			balanceAdjustment: amount,
 		})
 	}
 	return history
@@ -106,9 +115,15 @@ func computeBillingHistory(history []historyHolder) []shared.BillingHistory {
 	var outstanding int
 	var billingHistory []shared.BillingHistory
 	for _, bh := range history {
-		outstanding += bh.balanceAdjustment
-		bh.billingHistory.OutstandingBalance = outstanding
-		billingHistory = append(billingHistory, bh.billingHistory)
+		if bh.billingHistory.Event.GetType() == shared.EventTypeInvoiceAdjustmentPending {
+			outstanding = bh.balanceAdjustment
+			bh.billingHistory.OutstandingBalance = outstanding
+			billingHistory = append(billingHistory, bh.billingHistory)
+		} else {
+			outstanding += bh.balanceAdjustment
+			bh.billingHistory.OutstandingBalance = outstanding
+			billingHistory = append(billingHistory, bh.billingHistory)
+		}
 	}
 	sort.Slice(billingHistory, func(i, j int) bool {
 		return billingHistory[i].Date.Time.After(billingHistory[j].Date.Time)
