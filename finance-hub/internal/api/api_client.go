@@ -37,6 +37,7 @@ func NewApiClient(httpClient HTTPClient, siriusUrl string, backendUrl string, lo
 		siriusUrl:  siriusUrl,
 		backendUrl: backendUrl,
 		logger:     logger,
+		caches:     newCaches(),
 	}, nil
 }
 
@@ -49,6 +50,7 @@ type ApiClient struct {
 	siriusUrl  string
 	logger     *logging.Logger
 	backendUrl string
+	caches     *Caches
 }
 
 func (c *ApiClient) newSiriusRequest(ctx Context, method, path string, body io.Reader) (*http.Request, error) {
