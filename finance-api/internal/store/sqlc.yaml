@@ -9,24 +9,9 @@ sql:
         sql_package: "pgx/v5"
         out: "."
     rules:
-      - no-pg
-      - no-delete
-      - only-one-param
-      - no-exec
+      - check-num-of-params
 rules:
-  - name: no-pg
-    message: "invalid engine: postgresql"
+  - name: check-num-of-params
+    message: "do you need all the parameters"
     rule: |
-      config.engine == "postgresql"
-  - name: no-delete
-    message: "don't use delete statements"
-    rule: |
-      query.sql.contains("DELETE")
-  - name: only-one-param
-    message: "too many parameters"
-    rule: |
-      query.params.size() > 1
-  - name: no-exec
-    message: "don't use exec"
-    rule: |
-      query.cmd == "exec"
+      query.params.size() > 7
