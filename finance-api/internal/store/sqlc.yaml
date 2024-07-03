@@ -9,9 +9,9 @@ sql:
         sql_package: "pgx/v5"
         out: "."
     rules:
-      - check-num-of-params
+      - no-more-then-seven-params
 rules:
-  - name: check-num-of-params
-    message: "do you need all the parameters"
+  - name: no-more-then-seven-params
+    message: "too many parameters"
     rule: |
       query.params.size() > 7
