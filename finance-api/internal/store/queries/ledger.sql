@@ -14,7 +14,7 @@ WHERE l.id = $2;
 -- name: CreateLedger :one
 WITH fc AS (SELECT id FROM finance_client WHERE client_id = $1),
      ledger AS (
-         INSERT INTO ledger (id, datetime, amount, notes, type, finance_client_id, reference, method, status, createddate)
+         INSERT INTO ledger (id, datetime, amount, notes, type, finance_client_id, reference, method, status)
              SELECT nextval('ledger_id_seq'),
                     now(),
                     $3,
@@ -23,8 +23,7 @@ WITH fc AS (SELECT id FROM finance_client WHERE client_id = $1),
                     fc.id,
                     gen_random_uuid(),
                     '',
-                    'PENDING',
-                    now()
+                    'PENDING'
              FROM fc
              RETURNING id, datetime)
 INSERT
