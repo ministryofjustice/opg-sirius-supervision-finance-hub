@@ -5,8 +5,9 @@ import (
 )
 
 type Assignee struct {
-	Id    int      `json:"id"`
-	Roles []string `json:"roles"`
+	Id          int      `json:"id"`
+	DisplayName string   `json:"displayName"`
+	Roles       []string `json:"roles"`
 }
 
 func (m Assignee) GetRoles() string {
