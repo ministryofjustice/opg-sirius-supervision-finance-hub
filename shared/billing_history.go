@@ -31,6 +31,8 @@ func (b *BillingHistory) UnmarshalJSON(data []byte) (err error) {
 		b.Event = new(FeeReductionApplied)
 	case EventTypeInvoiceAdjustmentApproved:
 		b.Event = new(InvoiceAdjustmentApproved)
+	case EventTypeInvoiceAdjustmentPending:
+		b.Event = new(InvoiceAdjustmentPending)
 	case EventTypePaymentProcessed:
 		b.Event = new(PaymentProcessed)
 	default:
@@ -82,6 +84,15 @@ type FeeReductionApplied struct {
 type InvoiceAdjustmentApproved struct {
 	AdjustmentType   string `json:"adjustment_type"`
 	ClientId         string `json:"client_id"`
+	Notes            string `json:"notes"`
+	PaymentBreakdown `json:"payment_breakdown"`
+	BaseBillingEvent
+}
+
+type InvoiceAdjustmentPending struct {
+	AdjustmentType   string `json:"adjustment_type"`
+	ClientId         string `json:"client_id"`
+	Notes            string `json:"notes"`
 	PaymentBreakdown `json:"payment_breakdown"`
 	BaseBillingEvent
 }
@@ -107,6 +118,7 @@ const (
 	EventTypeFeeReductionApplied
 	EventTypeInvoiceAdjustmentApproved
 	EventTypePaymentProcessed
+	EventTypeInvoiceAdjustmentPending
 )
 
 var eventTypeMap = map[string]BillingEventType{
@@ -115,6 +127,7 @@ var eventTypeMap = map[string]BillingEventType{
 	"FEE_REDUCTION_AWARDED":      EventTypeFeeReductionAwarded,
 	"FEE_REDUCTION_APPLIED":      EventTypeFeeReductionApplied,
 	"INVOICE_ADJUSTMENT_APPLIED": EventTypeInvoiceAdjustmentApproved,
+	"INVOICE_ADJUSTMENT_PENDING": EventTypeInvoiceAdjustmentPending,
 	"PAYMENT_PROCESSED":          EventTypePaymentProcessed,
 }
 
@@ -128,6 +141,8 @@ func (b BillingEventType) String() string {
 		return "FEE_REDUCTION_APPLIED"
 	case EventTypeInvoiceAdjustmentApproved:
 		return "INVOICE_ADJUSTMENT_APPLIED"
+	case EventTypeInvoiceAdjustmentPending:
+		return "INVOICE_ADJUSTMENT_PENDING"
 	case EventTypePaymentProcessed:
 		return "PAYMENT_PROCESSED"
 	default:
