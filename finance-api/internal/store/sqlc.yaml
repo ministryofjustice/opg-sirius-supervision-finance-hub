@@ -8,3 +8,14 @@ sql:
         package: "store"
         sql_package: "pgx/v5"
         out: "."
+    rules:
+      - no-more-then-seven-params
+      - postgresql-query-too-costly
+      - sqlc/db-prepare
+rules:
+  - name: no-more-then-seven-params
+    message: "too many parameters"
+    rule: query.params.size() > 7
+  - name: postgresql-query-too-costly
+    message: "Too costly"
+    rule: postgresql.explain.plan.total_cost > 300.0
