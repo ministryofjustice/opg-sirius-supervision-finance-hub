@@ -27,6 +27,7 @@ type ApiClient interface {
 	UpdatePendingInvoiceAdjustment(api.Context, int, int, string) error
 	AddManualInvoice(api.Context, int, string, string, string, string, string, string) error
 	GetBillingHistory(api.Context, int) ([]shared.BillingHistory, error)
+	GetUser(api.Context, int) (shared.Assignee, error)
 }
 
 type router interface {
