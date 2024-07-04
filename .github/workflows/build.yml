@@ -62,7 +62,7 @@ jobs:
         id: postgres
       - run: make sqlc-vet
         env:
-          POSTGRESQL_SERVER_URI: ${{ steps.postgres.outputs.connection-uri }}?sslmode=disable
+          POSTGRESQL_SERVER_URI: postgres://user:password@sirius-db:5432/finance?search_path=supervision_finance&sslmode=disable
 
   lint:
     name: Go Lint
