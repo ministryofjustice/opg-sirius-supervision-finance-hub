@@ -49,7 +49,7 @@ func (c *ApiClient) CreatePendingInvoiceAdjustmentTask(ctx Context, clientId int
 		return err
 	}
 
-	req, err := c.newSiriusRequest(ctx, http.MethodPost, "/api/v1/tasks", &body)
+	req, err := c.newSiriusRequest(ctx, http.MethodPost, "/supervision-api/v1/tasks", &body)
 
 	if err != nil {
 		return err
