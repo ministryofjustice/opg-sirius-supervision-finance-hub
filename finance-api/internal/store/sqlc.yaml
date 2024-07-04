@@ -11,11 +11,11 @@ sql:
         sql_package: "pgx/v5"
         out: "."
     rules:
-      - no-more-than-seven-params
+      - no-more-than-fourteen-params
       - postgresql-query-too-costly
       - sqlc/db-prepare
 rules:
-  - name: no-more-than-seven-params
+  - name: no-more-than-fourteen-params
     message: "too many parameters"
     rule: query.params.size() > 14
   - name: postgresql-query-too-costly
