@@ -3,7 +3,7 @@ describe("Billing History Tab", () => {
         cy.visit("/clients/1/invoices");
         cy.contains('a', 'Billing History').click();
         cy.get('.moj-timeline').first().contains("Pending credit memo");
-        cy.get('.moj-timeline__date').contains("Outstanding balance: £332 Credit balance: £0");
+        cy.get('.moj-timeline__date').contains("Outstanding balance: £320 Credit balance: £0");
         cy.get('.govuk-link').first().click();
         cy.url().should('include', "clients/1/invoices");
     });
