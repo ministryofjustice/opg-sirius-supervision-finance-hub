@@ -4,7 +4,7 @@ sql:
     queries: "queries"
     schema: "../schema"
     database:
-      uri: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_CONN}/${POSTGRES_DB}?search_path=${POSTGRES_SEARCH_PATH}&sslmode=disable
+      managed: true
     gen:
       go:
         package: "store"
