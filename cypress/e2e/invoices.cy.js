@@ -1,3 +1,5 @@
+import "cypress-axe";
+
 describe("Invoice Tab", () => {
         it("table with correct headers and content", () => {
             cy.visit("/clients/1/invoices");
@@ -57,5 +59,14 @@ describe("Supervision level breakdown", () => {
         cy.contains('[data-cy="supervision-amount-data"]', "320");
         cy.contains('[data-cy="supervision-from-data"]', "01/04/2022");
         cy.contains('[data-cy="supervision-to-data"]', "31/03/2023");
+    });
+});
+
+describe("Accessibility - Invoices", { tags: "@axe" }, () => {
+    it("Should have no accessibility violations",() => {
+        cy.visit('/clients/1/invoices');
+        cy.injectAxe();
+        cy.contains("S206666/18").click();
+        cy.checkA11y();
     });
 });
