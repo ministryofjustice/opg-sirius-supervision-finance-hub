@@ -129,8 +129,7 @@ services:
       - ./migrations:/schema
     command: vet
     depends_on:
-      sirius-db:
-        condition: service_healthy
+      - finance-migration
 
   finance-migration:
     image: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-migration:latest
