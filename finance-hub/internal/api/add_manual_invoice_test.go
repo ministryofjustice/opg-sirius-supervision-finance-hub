@@ -12,18 +12,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAddManualInvoice(t *testing.T) {
+func TestAddFeeReduction(t *testing.T) {
 	logger, mockClient := SetUpTest()
 	client, _ := NewApiClient(mockClient, "http://localhost:3000", "", logger)
 
 	json := `{
 			"id":                "1",
-			"invoiceTpe":        "SO",
-			"amount":         	 2025,
-			"raisedDate":    	 "05/05/2024",
-			"startDate":         "01/04/2024",
-			"endDate":           "31/03/2025",
-			"supervisionLevel":  "GENERAL",
+			"feeType":           "remission",
+			"startYear":         "2025",
+			"lengthOfAward":     3,
+			"dateReceived":      "15/02/2024",
+			"notes": "Fee remission note for one award",
         }`
 
 	r := io.NopCloser(bytes.NewReader([]byte(json)))
@@ -35,11 +34,11 @@ func TestAddManualInvoice(t *testing.T) {
 		}, nil
 	}
 
-	err := client.AddManualInvoice(getContext(nil), 1, "SO", "2025", "05/05/2024", "04/04/2024", "31/03/2025", "GENERAL")
+	err := client.AddFeeReduction(getContext(nil), 1, "remission", "2025", "3", "15/02/2024", "Fee remission note for one award")
 	assert.Equal(t, nil, err)
 }
 
-func TestAddManualInvoiceUnauthorised(t *testing.T) {
+func TestAddFeeReductionUnauthorised(t *testing.T) {
 	logger, _ := SetUpTest()
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -48,12 +47,12 @@ func TestAddManualInvoiceUnauthorised(t *testing.T) {
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
 
-	err := client.AddManualInvoice(getContext(nil), 1, "SO", "2025", "05/05/2024", "04/04/2024", "31/03/2025", "GENERAL")
+	err := client.AddFeeReduction(getContext(nil), 1, "remission", "2025", "3", "15/02/2024", "Fee remission note for one award")
 
 	assert.Equal(t, ErrUnauthorized.Error(), err.Error())
 }
 
-func TestAddManualInvoiceReturns500Error(t *testing.T) {
+func TestFeeReductionReturns500Error(t *testing.T) {
 	logger, _ := SetUpTest()
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -62,39 +61,29 @@ func TestAddManualInvoiceReturns500Error(t *testing.T) {
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
 
-	err := client.AddManualInvoice(getContext(nil), 1, "SO", "2025", "05/05/2024", "04/04/2024", "31/03/2025", "GENERAL")
-
+	err := client.AddFeeReduction(getContext(nil), 1, "remission", "2025", "3", "15/02/2024", "Fee remission note for one award")
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
-		URL:    svr.URL + "/clients/1/invoices",
+		URL:    svr.URL + "/clients/1/fee-reductions",
 		Method: http.MethodPost,
 	}, err)
 }
 
-func TestAddManualInvoiceReturnsBadRequestError(t *testing.T) {
-	logger, mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "", logger)
+func TestFeeReductionReturnsBadRequestError(t *testing.T) {
+	logger, _ := SetUpTest()
+	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusBadRequest)
+	}))
+	defer svr.Close()
 
-	json := `
-		{"reasons":["StartDate","EndDate"]}
-	`
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
 
-	r := io.NopCloser(bytes.NewReader([]byte(json)))
-
-	GetDoFunc = func(*http.Request) (*http.Response, error) {
-		return &http.Response{
-			StatusCode: 400,
-			Body:       r,
-		}, nil
-	}
-
-	err := client.AddManualInvoice(getContext(nil), 1, "SO", "2025", "05/05/2024", "04/04/2024", "31/03/2025", "GENERAL")
-
-	expectedError := shared.ValidationError{Message: "", Errors: shared.ValidationErrors{"EndDate": map[string]string{"EndDate": "EndDate"}, "StartDate": map[string]string{"StartDate": "StartDate"}}}
+	err := client.AddFeeReduction(getContext(nil), 1, "remission", "2025", "3", "15/02/2024", "Fee remission note for one award")
+	expectedError := shared.ValidationError{Message: "", Errors: shared.ValidationErrors{"Overlap": map[string]string{"start-or-end-date": ""}}}
 	assert.Equal(t, expectedError, err)
 }
 
-func TestAddManualInvoiceReturnsValidationError(t *testing.T) {
+func TestFeeReductionReturnsValidationError(t *testing.T) {
 	logger, _ := SetUpTest()
 	validationErrors := shared.ValidationError{
 		Message: "Validation failed",
@@ -113,7 +102,7 @@ func TestAddManualInvoiceReturnsValidationError(t *testing.T) {
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
 
-	err := client.AddManualInvoice(getContext(nil), 1, "SO", "2025", "05/05/9999", "04/04/2024", "31/03/2025", "GENERAL")
+	err := client.AddFeeReduction(getContext(nil), 0, "", "", "", "", "")
 	expectedError := shared.ValidationError{Message: "", Errors: shared.ValidationErrors{"DateReceived": map[string]string{"date-in-the-past": "This field DateReceived needs to be looked at date-in-the-past"}}}
 	assert.Equal(t, expectedError, err.(shared.ValidationError))
 }

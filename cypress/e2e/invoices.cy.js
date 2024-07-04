@@ -2,7 +2,7 @@ describe("Invoice Tab", () => {
         it("table with correct headers and content", () => {
             cy.visit("/clients/1/invoices");
 
-            cy.get("table#invoices > thead > tr")
+          cy.get("table#invoices > thead > tr")
                 .children()
                 .first().contains("Invoice")
                 .next().contains("Status")
@@ -14,12 +14,12 @@ describe("Invoice Tab", () => {
             cy.get("table#invoices > tbody > tr")
                 .first()
                 .children()
-                .first().should("contain", "AD03531/19")
-                .next().should("contain", "Unpaid - Remission")
-                .next().should("contain", "£100")
-                .next().should("contain", "16/03/2020")
-                .next().should("contain", "£88")
-                .next().should("contain", "£12");
+                .first().should("contain", "S206666/18")
+                .next().should("contain", "Unpaid")
+                .next().should("contain", "£320")
+                .next().should("contain", "16/03/2018")
+                .next().should("contain", "£0")
+                .next().should("contain", "£320");
         });
 
         it("does not show table for no invoices", () => {
@@ -31,23 +31,23 @@ describe("Invoice Tab", () => {
 describe("Invoices ledger allocations", () => {
     it("table with correct headers and content", () => {
         cy.visit("/clients/1/invoices");
-        cy.contains("AD03531/19").click();
+        cy.contains("S206666/18").click();
         cy.contains('[data-cy="ledger-title"]', "Invoice ledger allocations");
         cy.contains('[data-cy="ledger-amount"]', "Amount");
         cy.contains('[data-cy="ledger-received-date"]', "Received date");
         cy.contains('[data-cy="ledger-transaction-type"]', "Transaction type");
         cy.contains('[data-cy="ledger-status"]', "Status");
-        cy.get('[data-cy="ledger-amount-data"]').first().contains("£88")
+        cy.get('[data-cy="ledger-amount-data"]').first().contains("12")
         cy.get('[data-cy="ledger-received-date-data"]').first().contains("04/12/2022")
-        cy.get('[data-cy="ledger-transaction-type-data"]').first().contains("Remission");
-        cy.get('[data-cy="ledger-status-data"]').first().contains("Approved");
+        cy.get('[data-cy="ledger-transaction-type-data"]').first().contains("Manual Credit");
+        cy.get('[data-cy="ledger-status-data"]').first().contains("Pending");
     });
 });
 
 describe("Supervision level breakdown", () => {
     it("shows all the correct headers", () => {
         cy.visit("/clients/1/invoices");
-        cy.contains("AD03531/19").click();
+        cy.contains("S206666/18").click();
         cy.contains('[data-cy="supervision-title"]', "Supervision level breakdown");
         cy.contains('[data-cy="supervision-level"]', "Supervision level");
         cy.contains('[data-cy="supervision-amount"]', "Amount");
