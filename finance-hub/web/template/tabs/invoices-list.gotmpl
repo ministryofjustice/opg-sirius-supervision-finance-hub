@@ -5,8 +5,15 @@
     <div style="float: right;">
       <div class="moj-button-menu">
         <div class="moj-button-menu__wrapper">
-          <a href="./add-manual-invoice" role="button" draggable="false" class="govuk-button moj-button-menu__item govuk-button--secondary " data-module="govuk-button">
-            Add manual invoice (not in use)
+          <a
+            class="govuk-button moj-button-menu__item govuk-button--secondary"
+            role="button"
+            draggable="false"
+            data-module="govuk-button"
+            hx-get="{{ prefix (printf "/clients/%s/invoices/add" .ClientId) }}"
+            hx-target="#main-content"
+            hx-push-url="{{ prefix  (printf "/clients/%s/invoices/add" .ClientId) }}">
+            Add manual invoice
           </a>
         </div>
       </div>
