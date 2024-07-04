@@ -70,6 +70,10 @@ func (m mockApiClient) GetBillingHistory(context api.Context, i int) ([]shared.B
 	return m.BillingHistory, m.error
 }
 
+func (m mockApiClient) AddManualInvoice(context api.Context, i int, s string, s2 string, s3 string, s4 string, s5 string, s6 string) error {
+	return m.error
+}
+
 func (m mockApiClient) GetPermittedAdjustments(api.Context, int, int) ([]shared.AdjustmentType, error) {
 	return m.adjustmentTypes, nil
 }
