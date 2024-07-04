@@ -1,12 +1,31 @@
 {
-  "users": {
-    "id": 65,
-    "roles": [
-      "Case Manager",
-      "Manager",
-      "Finance Reporting"
-    ]
-  },
+  "users": [
+    {
+      "id": 1,
+      "displayName": "Super User",
+      "roles": [
+        "Case Manager",
+        "Manager",
+        "Finance Reporting"
+      ]
+    },
+    {
+      "id": 65,
+      "displayName": "Ian Admin",
+      "roles": [
+        "Case Manager",
+        "Manager",
+        "Finance Reporting"
+      ]
+    },
+    {
+      "id": 99,
+      "displayName": "Tina Test",
+      "roles": [
+        "Cache Tester"
+      ]
+    }
+  ],
   "clients": [
     {
       "id": 1,
