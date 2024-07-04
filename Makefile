@@ -49,6 +49,9 @@ sqlc-gen:
 sqlc-diff:
 	docker compose run --rm sqlc-diff
 
+sqlc-vet:
+	docker compose run --rm sqlc-vet
+
 start-and-seed:
 	docker compose up -d --wait sirius-db
 	docker compose run --rm --build finance-migration
