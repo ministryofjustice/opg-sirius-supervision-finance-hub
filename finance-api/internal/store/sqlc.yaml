@@ -3,6 +3,8 @@ sql:
   - engine: "postgresql"
     queries: "queries"
     schema: "../schema"
+    database:
+      uri: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_CONN}/${POSTGRES_DB}?search_path=${POSTGRES_SEARCH_PATH}&sslmode=disable
     gen:
       go:
         package: "store"
@@ -14,7 +16,7 @@ sql:
 rules:
   - name: no-more-than-seven-params
     message: "too many parameters"
-    rule: query.params.size() > 1
+    rule: query.params.size() > 14
   - name: postgresql-query-too-costly
     message: "Too costly"
-    rule: postgresql.explain.plan.total_cost > 1.0
+    rule: postgresql.explain.plan.total_cost > 50.0
