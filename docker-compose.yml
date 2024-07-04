@@ -118,7 +118,7 @@ services:
   sqlc-vet:
     image: kjconroy/sqlc
     environment:
-      - POSTGRES_CONN=sirius-db:5432
+      - POSTGRES_CONN=localhost:5432
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=finance

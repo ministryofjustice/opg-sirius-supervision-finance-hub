@@ -13,6 +13,7 @@ sql:
     rules:
       - no-more-than-seven-params
       - postgresql-query-too-costly
+      - sqlc/db-prepare
 rules:
   - name: no-more-than-seven-params
     message: "too many parameters"
