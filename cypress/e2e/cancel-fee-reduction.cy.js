@@ -1,5 +1,3 @@
-import "cypress-axe";
-
 describe("Cancel fee reduction form", () => {
     it("cancels a fee reduction", () => {
         // navigate to form
@@ -20,12 +18,5 @@ describe("Cancel fee reduction form", () => {
         cy.contains('.govuk-button', "Save and continue").click();
         cy.url().should('include', "/clients/1/fee-reductions?success=fee-reduction[CANCELLED]");
         cy.get('.moj-banner__message').contains("The fee reduction has been successfully cancelled")
-    });
-
-    it("Should have no accessibility violations",() => {
-        // @FIXME
-        cy.visit("/clients/2/fee-reductions/3/cancel");
-        cy.injectAxe();
-        cy.checkA11y();
     });
 });

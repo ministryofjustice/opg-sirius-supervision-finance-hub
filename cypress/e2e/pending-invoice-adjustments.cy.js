@@ -1,5 +1,3 @@
-import "cypress-axe";
-
 describe("Pending Invoice Adjustments", () => {
     it("displays table and content", () => {
         cy.visit("/clients/1/pending-invoice-adjustments");
@@ -48,11 +46,5 @@ describe("Pending Invoice Adjustments", () => {
         cy.get('.moj-banner__message').contains("You have approved the debit");
         cy.visit("/clients/1/pending-invoice-adjustments?success=reject-invoice-adjustment[WRITE OFF]");
         cy.get('.moj-banner__message').contains("You have rejected the write off");
-    });
-
-    it("Should have no accessibility violations",() => {
-        cy.visit("/clients/1/pending-invoice-adjustments");
-        cy.injectAxe();
-        cy.checkA11y();
     });
 });

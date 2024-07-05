@@ -1,5 +1,3 @@
-import "cypress-axe";
-
 describe("Finance Hub", () => {
     beforeEach(() => {
         cy.visit("/clients/1/invoices");

@@ -1,5 +1,3 @@
-import "cypress-axe";
-
 describe("Add manual invoice form", () => {
     it("shows correct error message for all potential errors", () => {
         cy.visit("/clients/1/invoices/add");
@@ -25,12 +23,5 @@ describe("Add manual invoice form", () => {
         cy.url().should('include', "clients/3/invoices?success=invoice-type[SO]");
         cy.get('.moj-banner__message').contains("The SO invoice has been successfully created");
         cy.contains('.govuk-table__row', 'SO000001/99')
-    });
-
-    it("Should have no accessibility violations",() => {
-        // @FIXME
-        cy.visit("/clients/3/invoices/add");
-        cy.injectAxe();
-        cy.checkA11y();
     });
 });

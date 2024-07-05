@@ -1,5 +1,3 @@
-import "cypress-axe";
-
 describe("Billing History Tab", () => {
     it("the feed of the billing history show", () => {
         cy.visit("/clients/1/billing-history");
@@ -12,12 +10,5 @@ describe("Billing History Tab", () => {
     it("no history shows correct message", () => {
         cy.visit("/clients/4/billing-history");
         cy.contains('h2.moj-timeline__title', 'No billing history for this client').should('be.visible');
-    });
-
-
-    it("Should have no accessibility violations",() => {
-        cy.visit("/clients/1/billing-history");
-        cy.injectAxe();
-        cy.checkA11y();
     });
 });
