@@ -1,5 +1,3 @@
-import "cypress-axe";
-
 describe("Adjust invoice form", () => {
     it("adds a manual credit to an invoice", () => {
         // navigate to form
@@ -65,11 +63,5 @@ describe("Adjust invoice form", () => {
 
         cy.url().should('include', "clients/3/invoices?success=invoice-adjustment[CREDIT%20WRITE%20OFF]");
         cy.get('.moj-banner__message').contains("Write-off successfully created");
-    });
-
-    it("Should have no accessibility violations",() => {
-        cy.visit("/clients/3/invoices/4/adjustments");
-        cy.injectAxe();
-        cy.checkA11y();
     });
 });

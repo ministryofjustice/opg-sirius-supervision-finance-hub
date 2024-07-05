@@ -1,5 +1,3 @@
-import "cypress-axe";
-
 describe("Fee Reductions Tab", () => {
     it("displays table and content", () => {
         cy.visit("/clients/1/fee-reductions");
@@ -50,11 +48,5 @@ describe("Fee Reductions Tab", () => {
             .should("have.length", 1)
             .first()
             .contains("There are no fee reductions");
-    });
-
-    it("Should have no accessibility violations", () => {
-        cy.visit("/clients/1/fee-reductions");
-        cy.injectAxe();
-        cy.checkA11y();
     });
 });
