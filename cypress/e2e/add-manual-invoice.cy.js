@@ -26,7 +26,6 @@ describe("Add manual invoice form", () => {
     });
 
     it("should have no accessibility violations",() => {
-        // @FIXME
         cy.visit("/clients/3/invoices/add");
         cy.checkAccessibility();
     });

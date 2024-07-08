@@ -15,11 +15,10 @@ describe("Add fee reduction form", () => {
         cy.get('#f-LengthOfAward').contains(".govuk-radios__item", "One year").click();
         cy.get('#f-DateReceived').find('input').type("2024-01-01");
         cy.get('#f-Notes').type("Needs reduction");
-        cy.get("#fee-reduction-notes-info + .govuk-character-count__status").should(
-            "contain",
-            "You have 985 characters remaining"
-        );
+        cy.contains(".govuk-character-count__status", "You have 985 characters remaining");
+
         cy.contains('.govuk-button', "Save and continue").click();
+
         cy.url().should('include', "/clients/2/fee-reductions?success=fee-reduction[HARDSHIP]");
         cy.get('.moj-banner__message').contains("The hardship has been successfully added");
     });
