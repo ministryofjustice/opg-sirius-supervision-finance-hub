@@ -23,4 +23,9 @@ describe("Add fee reduction form", () => {
         cy.url().should('include', "/clients/2/fee-reductions?success=fee-reduction[HARDSHIP]");
         cy.get('.moj-banner__message').contains("The hardship has been successfully added");
     });
+
+    it("should have no accessibility violations",() => {
+        cy.visit("/clients/1/fee-reductions/add");
+        cy.checkAccessibility();
+    });
 });

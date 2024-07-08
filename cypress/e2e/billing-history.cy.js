@@ -11,4 +11,10 @@ describe("Billing History Tab", () => {
         cy.visit("/clients/4/billing-history");
         cy.contains('h2.moj-timeline__title', 'No billing history for this client').should('be.visible');
     });
+
+
+    it("should have no accessibility violations",() => {
+        cy.visit("/clients/1/billing-history");
+        cy.checkAccessibility();
+    });
 });

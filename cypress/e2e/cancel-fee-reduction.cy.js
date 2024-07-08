@@ -19,4 +19,9 @@ describe("Cancel fee reduction form", () => {
         cy.url().should('include', "/clients/1/fee-reductions?success=fee-reduction[CANCELLED]");
         cy.get('.moj-banner__message').contains("The fee reduction has been successfully cancelled")
     });
+
+    it("should have no accessibility violations",() => {
+        cy.visit("/clients/2/fee-reductions/3/cancel");
+        cy.checkAccessibility();
+    });
 });

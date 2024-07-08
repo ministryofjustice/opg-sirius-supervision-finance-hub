@@ -15,7 +15,7 @@ module.exports = defineConfig({
 
                     return null
                 },
-                failed: require("cypres-failed-log/src/failed")()
+                failed: require("cypress-failed-log/src/failed")()
             });
         },
         baseUrl: "http://localhost:8888/finance",

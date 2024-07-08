@@ -49,4 +49,9 @@ describe("Fee Reductions Tab", () => {
             .first()
             .contains("There are no fee reductions");
     });
+
+    it("should have no accessibility violations", () => {
+        cy.visit("/clients/1/fee-reductions");
+        cy.checkAccessibility();
+    });
 });

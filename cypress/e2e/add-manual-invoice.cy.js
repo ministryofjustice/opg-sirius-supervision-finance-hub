@@ -24,4 +24,10 @@ describe("Add manual invoice form", () => {
         cy.get('.moj-banner__message').contains("The SO invoice has been successfully created");
         cy.contains('.govuk-table__row', 'SO000001/99')
     });
+
+    it("should have no accessibility violations",() => {
+        // @FIXME
+        cy.visit("/clients/3/invoices/add");
+        cy.checkAccessibility();
+    });
 });
