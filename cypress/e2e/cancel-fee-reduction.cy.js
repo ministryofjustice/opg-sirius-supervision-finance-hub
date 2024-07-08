@@ -1,7 +1,7 @@
 describe("Cancel fee reduction form", () => {
     it("cancels a fee reduction", () => {
         // navigate to form
-        cy.visit("/clients/1/fee-reductions");
+        cy.visit("/clients/2/fee-reductions");
         cy.contains('a', "Cancel").click();
 
         // ensure validation is configured correctly
@@ -16,12 +16,12 @@ describe("Cancel fee reduction form", () => {
 
         // navigation and success message
         cy.contains('.govuk-button', "Save and continue").click();
-        cy.url().should('include', "/clients/1/fee-reductions?success=fee-reduction[CANCELLED]");
+        cy.url().should('include', "/clients/2/fee-reductions?success=fee-reduction[CANCELLED]");
         cy.get('.moj-banner__message').contains("The fee reduction has been successfully cancelled")
     });
 
     it("should have no accessibility violations",() => {
-        cy.visit("/clients/2/fee-reductions/3/cancel");
+        cy.visit("/clients/1/fee-reductions/1/cancel");
         cy.checkAccessibility();
     });
 });

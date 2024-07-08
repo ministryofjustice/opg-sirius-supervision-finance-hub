@@ -18,7 +18,7 @@ func (h *SubmitFeeReductionsHandler) render(v AppVars, w http.ResponseWriter, r 
 
 	var (
 		feeType       = r.PostFormValue("feeType")
-		startYear     = r.PostFormValue("startDateYear")
+		startYear     = r.PostFormValue("startYear")
 		lengthOfAward = r.PostFormValue("lengthOfAward")
 		dateReceived  = r.PostFormValue("dateReceived")
 		notes         = r.PostFormValue("notes")
