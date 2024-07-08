@@ -5,7 +5,7 @@ describe("Adjust invoice form", () => {
         cy.contains('.govuk-table__row', 'S203532/24').contains("Adjust invoice").click();
 
         // ensure validation is configured correctly
-        cy.get('.govuk-button').click();
+        cy.contains('.govuk-button', "Save and continue").click();
         cy.get('.govuk-error-summary').contains("Select the adjustment type");
         cy.get('.govuk-error-summary').contains("Enter a reason for adjustment");
 
@@ -17,7 +17,7 @@ describe("Adjust invoice form", () => {
         cy.get('#f-AdjustmentType').contains(".govuk-radios__item", "Add credit").click();
         cy.get('#f-AdjustmentNotes').type("manual credit for £100");
         cy.get('#f-Amount').type("10000");
-        cy.get('.govuk-button').click();
+        cy.contains('.govuk-button', "Save and continue").click();
 
         // validation for amount
         cy.get('.govuk-error-summary').contains("Amount entered must be equal to or less than £");
@@ -25,7 +25,7 @@ describe("Adjust invoice form", () => {
 
         cy.get('#f-Amount').find('input').clear();
         cy.get('#f-Amount').type("100");
-        cy.get('.govuk-button').click();
+        cy.contains('.govuk-button', "Save and continue").click();
 
         // navigation and success message
         cy.url().should('include', "clients/3/invoices?success=invoice-adjustment[CREDIT%20MEMO]");
@@ -38,7 +38,7 @@ describe("Adjust invoice form", () => {
         cy.get('#f-AdjustmentType').contains(".govuk-radios__item", "Add debit").click();
         cy.get('#f-AdjustmentNotes').type("manual debit for £100");
         cy.get('#f-Amount').type("10000");
-        cy.get('.govuk-button').click();
+        cy.contains('.govuk-button', "Save and continue").click();
 
         // validation for amount
         cy.get('.govuk-error-summary').contains("Amount entered must be equal to or less than £");
@@ -46,7 +46,7 @@ describe("Adjust invoice form", () => {
 
         cy.get('#f-Amount').find('input').clear();
         cy.get('#f-Amount').type("100");
-        cy.get('.govuk-button').click();
+        cy.contains('.govuk-button', "Save and continue").click();
 
         // navigation and success message
         cy.url().should('include', "clients/3/invoices?success=invoice-adjustment[DEBIT%20MEMO]");
@@ -59,9 +59,14 @@ describe("Adjust invoice form", () => {
         cy.get('#f-AdjustmentType').contains(".govuk-radios__item", "Write off").click();
         cy.get('#f-AdjustmentNotes').type("Writing off");
         cy.get('#f-Amount').should("be.hidden");
-        cy.get('.govuk-button').click();
+        cy.contains('.govuk-button', "Save and continue").click();
 
         cy.url().should('include', "clients/3/invoices?success=invoice-adjustment[CREDIT%20WRITE%20OFF]");
         cy.get('.moj-banner__message').contains("Write-off successfully created");
+    });
+
+    it("should have no accessibility violations",() => {
+        cy.visit("/clients/3/invoices/4/adjustments");
+        cy.checkAccessibility();
     });
 });

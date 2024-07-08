@@ -47,4 +47,9 @@ describe("Pending Invoice Adjustments", () => {
         cy.visit("/clients/1/pending-invoice-adjustments?success=reject-invoice-adjustment[WRITE OFF]");
         cy.get('.moj-banner__message').contains("You have rejected the write off");
     });
+
+    it("should have no accessibility violations",() => {
+        cy.visit("/clients/1/pending-invoice-adjustments");
+        cy.checkAccessibility();
+    });
 });
