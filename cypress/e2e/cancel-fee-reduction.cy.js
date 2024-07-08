@@ -1,22 +1,27 @@
 describe("Cancel fee reduction form", () => {
-    it("shows correct error message for all potential errors", () => {
-        cy.visit("/clients/1/fee-reductions/1/cancel");
-        cy.get('.govuk-button').click()
-        cy.get('.govuk-error-summary').contains("Enter a reason for cancelling fee reduction")
-        cy.get(".govuk-form-group--error").should('have.length', 1)
-    });
+    it("cancels a fee reduction", () => {
+        // navigate to form
+        cy.visit("/clients/2/fee-reductions");
+        cy.contains('a', "Cancel").click();
 
-    it("shows correct success message", () => {
-        cy.visit("/clients/1/fee-reductions?success=fee-reduction[CANCELLED]");
+        // ensure validation is configured correctly
+        cy.contains('.govuk-button', "Save and continue").click();
+        cy.get('.govuk-error-summary').contains("Enter a reason for cancelling fee reduction");
+        cy.get(".govuk-form-group--error").should('have.length', 1);
+
+        // enter data
+        cy.get('#f-Notes').type("Cancelling for reasons");
+        cy.get("#cancel-fee-reduction-notes-info + .govuk-character-count__status")
+            .contains("You have 978 characters remaining");
+
+        // navigation and success message
+        cy.contains('.govuk-button', "Save and continue").click();
+        cy.url().should('include', "/clients/2/fee-reductions?success=fee-reduction[CANCELLED]");
         cy.get('.moj-banner__message').contains("The fee reduction has been successfully cancelled")
     });
 
-    it("allows me to enter note information which amends character count", () => {
+    it("should have no accessibility violations",() => {
         cy.visit("/clients/1/fee-reductions/1/cancel");
-        cy.get("#cancel-fee-reduction-notes").type("example note text");
-        cy.get("#cancel-fee-reduction-notes-info + .govuk-character-count__status").should(
-            "contain",
-            "You have 983 characters remaining"
-        );
+        cy.checkAccessibility();
     });
 });

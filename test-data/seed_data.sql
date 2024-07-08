@@ -3,10 +3,13 @@ SET SEARCH_PATH TO supervision_finance;
 INSERT INTO finance_client VALUES (1, 1, '1234', 'DEMANDED', null);
 INSERT INTO finance_client VALUES (2, 2, '1234', 'DEMANDED', null);
 INSERT INTO finance_client VALUES (3, 3, '1234', 'DEMANDED', null); -- adjust-invoice.cy.js
-ALTER SEQUENCE finance_client_id_seq RESTART WITH 4;
+INSERT INTO finance_client VALUES (4, 4, '1234', 'DEMANDED', null);
+ALTER SEQUENCE finance_client_id_seq RESTART WITH 5;
 
 INSERT INTO fee_reduction VALUES (1, 1, 'REMISSION', null, '2019-04-01', '2020-03-31', 'notes', false, '2019-05-01');
-ALTER SEQUENCE fee_reduction_id_seq RESTART WITH 2;
+INSERT INTO fee_reduction VALUES (2, 1, 'HARDSHIP', null, '2020-04-01', '2120-03-31', 'current reduction', false, '2020-05-01');
+INSERT INTO fee_reduction VALUES (3, 2, 'REMISSION', null, '2020-04-01', '2120-03-31', 'notes', false, '2019-05-01');
+ALTER SEQUENCE fee_reduction_id_seq RESTART WITH 4;
 
 INSERT INTO invoice VALUES (1, 1, 1, 'S2', 'S206666/18', '2019-04-01', '2018-03-31', 32000, null, '2023-03-20', 10, '2018-03-16', null, null, null, '2018-06-06', 99);
 INSERT INTO invoice VALUES (2, 1, 1, 'S2', 'AD03531/19', '2019-04-01', '2020-03-31', 10000, null, '2020-03-20', 10, '2020-03-16', null, null, null, '2019-06-06', 99, 1);

@@ -1,7 +1,7 @@
 describe("Add manual invoice form", () => {
     it("shows correct error message for all potential errors", () => {
         cy.visit("/clients/1/invoices/add");
-        cy.get('.govuk-button').click()
+        cy.contains('.govuk-button', "Save and continue").click()
         cy.get('.govuk-error-summary').contains("Enter an amount")
         cy.get(".govuk-form-group--error").should('have.length', 6)
     });
@@ -18,10 +18,16 @@ describe("Add manual invoice form", () => {
         cy.get('[data-cy="endDate"]').type("9999-01-01");
         cy.contains('label', 'General').click();
 
-        cy.get('.govuk-button').click();
+        cy.contains('.govuk-button', "Save and continue").click();
 
         cy.url().should('include', "clients/3/invoices?success=invoice-type[SO]");
         cy.get('.moj-banner__message').contains("The SO invoice has been successfully created");
         cy.contains('.govuk-table__row', 'SO000001/99')
+    });
+
+    it("should have no accessibility violations",() => {
+        // @FIXME
+        cy.visit("/clients/3/invoices/add");
+        cy.checkAccessibility();
     });
 });
