@@ -30,9 +30,9 @@ describe("Pending Invoice Adjustments", () => {
             .next().contains("Reject")
             .click()
 
-        cy.url().should('include', '/pending-invoice-adjustments?success=reject-invoice-adjustment[CREDIT]')
+        cy.url().should("include", "/pending-invoice-adjustments?success=reject-invoice-adjustment[CREDIT]")
 
-        cy.get('.moj-banner__message').contains("You have rejected the credit")
+        cy.get(".moj-banner__message").contains("You have rejected the credit")
 
         cy.get("table#pending-invoice-adjustments > tbody > tr")
             .first()
@@ -43,9 +43,9 @@ describe("Pending Invoice Adjustments", () => {
 
     it("shows correct success message", () => {
         cy.visit("/clients/1/pending-invoice-adjustments?success=approve-invoice-adjustment[DEBIT]");
-        cy.get('.moj-banner__message').contains("You have approved the debit");
+        cy.get(".moj-banner__message").contains("You have approved the debit");
         cy.visit("/clients/1/pending-invoice-adjustments?success=reject-invoice-adjustment[WRITE OFF]");
-        cy.get('.moj-banner__message').contains("You have rejected the write off");
+        cy.get(".moj-banner__message").contains("You have rejected the write off");
     });
 
     it("should have no accessibility violations",() => {

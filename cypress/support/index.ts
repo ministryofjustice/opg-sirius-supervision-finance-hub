@@ -1,12 +1,21 @@
 import "cypress-axe";
-import 'cypress-failed-log';
+import "cypress-failed-log";
+import * as axe from "axe-core";
 
-Cypress.Commands.add('checkAccessibility', () => {
-    const terminalLog = (violations) => {
+declare global {
+    namespace Cypress {
+        interface Chainable {
+            checkAccessibility(): Chainable<JQuery<HTMLElement>>
+        }
+    }
+}
+
+Cypress.Commands.add("checkAccessibility", () => {
+    const terminalLog = (violations: axe.Result[]) => {
         cy.task(
-            'log',
-            `${violations.length} accessibility violation${violations.length === 1 ? '' : 's'
-            } ${violations.length === 1 ? 'was' : 'were'} detected`,
+            "log",
+            `${violations.length} accessibility violation${violations.length === 1 ? "" : "s"
+            } ${violations.length === 1 ? "was" : "were"} detected`,
         );
         const violationData = violations.map(
             ({
@@ -18,7 +27,7 @@ Cypress.Commands.add('checkAccessibility', () => {
                 nodes: nodes.length,
             }),
         );
-        cy.task('table', violationData);
+        cy.task("table", violationData);
     };
     cy.injectAxe();
     cy.configureAxe({

@@ -56,7 +56,7 @@ describe("Invoice Tab", () => {
     });
 
     it("should have no accessibility violations", () => {
-        cy.visit('/clients/1/invoices');
+        cy.visit("/clients/1/invoices");
         cy.contains("S206666/18").click();
         cy.checkAccessibility();
     });
