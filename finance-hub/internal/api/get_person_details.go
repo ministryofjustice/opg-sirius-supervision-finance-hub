@@ -11,7 +11,7 @@ import (
 func (c *ApiClient) GetPersonDetails(ctx Context, ClientId int) (shared.Person, error) {
 	var v shared.Person
 
-	requestURL := fmt.Sprintf("/supervision-api/v1/clients/%d", ClientId)
+	requestURL := fmt.Sprintf("/clients/%d", ClientId)
 	req, err := c.newSiriusRequest(ctx, http.MethodGet, requestURL, nil)
 	if err != nil {
 		c.logErrorRequest(req, err)
