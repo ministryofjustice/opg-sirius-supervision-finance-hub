@@ -14,7 +14,7 @@ func (c *ApiClient) GetUser(ctx Context, userId int) (shared.Assignee, error) {
 		return *user, nil
 	}
 
-	req, err := c.newSiriusRequest(ctx, http.MethodGet, "/api/v1/users", nil)
+	req, err := c.newSiriusRequest(ctx, http.MethodGet, "/users", nil)
 	if err != nil {
 		c.logErrorRequest(req, err)
 		return shared.Assignee{}, err

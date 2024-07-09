@@ -115,7 +115,7 @@ func TestCreatePendingInvoiceAdjustmentTaskReturns500Error(t *testing.T) {
 	err := client.CreatePendingInvoiceAdjustmentTask(getContext(nil), 2, 41, "4", "CREDIT_MEMO")
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
-		URL:    svr.URL + "/api/v1/tasks",
+		URL:    svr.URL + "/supervision-api/v1/tasks",
 		Method: http.MethodPost,
 	}, err)
 }
