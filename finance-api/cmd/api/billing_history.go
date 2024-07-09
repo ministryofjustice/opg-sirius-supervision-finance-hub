@@ -7,8 +7,10 @@ import (
 )
 
 func (s *Server) getBillingHistory(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
-	billingHistory, err := s.Service.GetBillingHistory(clientId)
+	billingHistory, err := s.Service.GetBillingHistory(ctx, clientId)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

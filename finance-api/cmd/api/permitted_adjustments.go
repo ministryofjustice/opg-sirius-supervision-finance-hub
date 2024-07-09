@@ -9,8 +9,10 @@ import (
 )
 
 func (s *Server) getPermittedAdjustments(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	invoiceId, _ := strconv.Atoi(r.PathValue("invoiceId"))
-	types, err := s.Service.GetPermittedAdjustments(invoiceId)
+	types, err := s.Service.GetPermittedAdjustments(ctx, invoiceId)
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		http.Error(w, err.Error(), http.StatusNotFound)

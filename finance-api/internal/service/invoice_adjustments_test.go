@@ -78,7 +78,7 @@ func (suite *IntegrationSuite) TestService_GetInvoiceAdjustments() {
 	}
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
-			got, err := s.GetInvoiceAdjustments(tt.id)
+			got, err := s.GetInvoiceAdjustments(suite.ctx, tt.id)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetInvoiceAdjustments() error = %v, wantErr %v", err, tt.wantErr)

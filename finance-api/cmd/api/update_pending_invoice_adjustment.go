@@ -8,6 +8,8 @@ import (
 )
 
 func (s *Server) updatePendingInvoiceAdjustment(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	var body shared.UpdateInvoiceAdjustment
 
 	ledgerId, _ := strconv.Atoi(r.PathValue("ledgerId"))
@@ -27,7 +29,7 @@ func (s *Server) updatePendingInvoiceAdjustment(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	err := s.Service.UpdatePendingInvoiceAdjustment(ledgerId, body.Status)
+	err := s.Service.UpdatePendingInvoiceAdjustment(ctx, ledgerId, body.Status)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

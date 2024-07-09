@@ -12,8 +12,8 @@ import (
 )
 
 func TestGetPermittedAdjustments(t *testing.T) {
-	logger, mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "http://localhost:8181", logger)
+	mockClient := SetUpTest()
+	client, _ := NewApiClient(mockClient, "http://localhost:3000", "http://localhost:8181")
 
 	json := `["CREDIT MEMO","DEBIT MEMO"]`
 
@@ -34,25 +34,23 @@ func TestGetPermittedAdjustments(t *testing.T) {
 }
 
 func TestGetPermittedAdjustmentsReturnsUnauthorisedClientError(t *testing.T) {
-	logger, _ := SetUpTest()
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 	_, err := client.GetPermittedAdjustments(getContext(nil), 1, 2)
 	assert.Equal(t, ErrUnauthorized, err)
 }
 
 func TestGetPermittedAdjustmentsReturns500Error(t *testing.T) {
-	logger, _ := SetUpTest()
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
 	_, err := client.GetPermittedAdjustments(getContext(nil), 1, 2)
 	assert.Equal(t, StatusError{

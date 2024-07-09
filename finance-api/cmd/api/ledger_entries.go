@@ -9,6 +9,8 @@ import (
 )
 
 func (s *Server) PostLedgerEntry(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
 	invoiceId, _ := strconv.Atoi(r.PathValue("invoiceId"))
 
@@ -30,7 +32,7 @@ func (s *Server) PostLedgerEntry(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	invoiceReference, err := s.Service.CreateLedgerEntry(clientId, invoiceId, &ledgerEntry)
+	invoiceReference, err := s.Service.CreateLedgerEntry(ctx, clientId, invoiceId, &ledgerEntry)
 
 	if err != nil {
 		var e shared.BadRequest

@@ -10,6 +10,8 @@ import (
 )
 
 func (s *Server) addFeeReduction(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	var addFeeReduction shared.AddFeeReduction
 	defer r.Body.Close()
 
@@ -29,7 +31,7 @@ func (s *Server) addFeeReduction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
-	err := s.Service.AddFeeReduction(clientId, addFeeReduction)
+	err := s.Service.AddFeeReduction(ctx, clientId, addFeeReduction)
 
 	if err != nil {
 		var e service.BadRequest

@@ -57,7 +57,7 @@ func (suite *IntegrationSuite) TestService_GetAccountInformation() {
 			s := &Service{
 				store: Store,
 			}
-			got, err := s.GetAccountInformation(tt.id)
+			got, err := s.GetAccountInformation(suite.ctx, tt.id)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetAccountInformation() error = %v, wantErr %v", err, tt.wantErr)
 				return

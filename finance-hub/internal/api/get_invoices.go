@@ -21,24 +21,20 @@ func (c *ApiClient) GetInvoices(ctx Context, clientId int) (shared.Invoices, err
 	resp, err := c.http.Do(req)
 
 	if err != nil {
-		c.logger.Request(req, err)
 		return invoices, err
 	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusUnauthorized {
-		c.logger.Request(req, err)
 		return invoices, ErrUnauthorized
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		c.logger.Request(req, err)
 		return invoices, newStatusError(resp)
 	}
 
 	if err = json.NewDecoder(resp.Body).Decode(&invoices); err != nil {
-		c.logger.Request(req, err)
 		return invoices, err
 	}
 

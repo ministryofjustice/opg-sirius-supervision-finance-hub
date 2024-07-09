@@ -5,16 +5,16 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
-	"log"
 	"strconv"
 	"strings"
 	"time"
 )
 
-func (s *Service) AddFeeReduction(id int, data shared.AddFeeReduction) error {
-	ctx := context.Background()
+func (s *Service) AddFeeReduction(ctx context.Context, id int, data shared.AddFeeReduction) error {
+	logger := telemetry.LoggerFromContext(ctx)
 
 	countOverlappingFeeReductionParams := store.CountOverlappingFeeReductionParams{
 		ClientID:   int32(id),
@@ -44,7 +44,7 @@ func (s *Service) AddFeeReduction(id int, data shared.AddFeeReduction) error {
 
 	defer func() {
 		if err := tx.Rollback(ctx); !errors.Is(err, sql.ErrTxDone) {
-			log.Println("Error rolling back add fee reduction transaction:", err)
+			logger.Error("Error rolling back add fee reduction transaction:", err)
 		}
 	}()
 
