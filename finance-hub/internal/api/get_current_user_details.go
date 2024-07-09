@@ -9,7 +9,7 @@ import (
 func (c *ApiClient) GetCurrentUserDetails(ctx Context) (shared.Assignee, error) {
 	var v shared.Assignee
 
-	req, err := c.newSiriusRequest(ctx, http.MethodGet, "/api/v1/users/current", nil)
+	req, err := c.newSiriusRequest(ctx, http.MethodGet, "/users/current", nil)
 	if err != nil {
 		c.logErrorRequest(req, err)
 		return v, err

@@ -16,6 +16,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"net/http"
+	"net/url"
 	"os"
 
 	_ "github.com/lib/pq"
@@ -76,7 +77,7 @@ func main() {
 	// Open a connection to the PostgreSQL database
 	ctx := context.Background()
 
-	conn, err := pgx.Connect(ctx, fmt.Sprintf("postgresql://%s:%s@%s/%s?search_path=supervision_finance", dbUser, dbPassword, dbConn, pgDb))
+	conn, err := pgx.Connect(ctx, fmt.Sprintf("postgresql://%s:%s@%s/%s?search_path=supervision_finance", dbUser, url.QueryEscape(dbPassword), dbConn, pgDb))
 	if err != nil {
 		logger.Fatal(err)
 	}
