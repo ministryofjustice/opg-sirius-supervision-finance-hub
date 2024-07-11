@@ -3,6 +3,7 @@ package server
 import (
 	"errors"
 	"fmt"
+	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/util"
 	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
@@ -44,10 +45,28 @@ func (h *SubmitInvoiceAdjustmentHandler) render(v AppVars, w http.ResponseWriter
 		return h.execute(w, r, data)
 	}
 
-	if err != nil {
-		return err
+	if err == nil {
+		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices?success=invoice-adjustment[%s]", v.EnvironmentVars.Prefix, ctx.ClientId, adjustmentType))
+	} else {
+		var (
+			valErr shared.ValidationError
+			badErr shared.BadRequest
+			stErr  api.StatusError
+		)
+		if errors.As(err, &valErr) {
+			data := AppVars{Errors: util.RenameErrors(valErr.Errors)}
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			err = h.execute(w, r, data)
+		} else if errors.As(err, &badErr) {
+			data := AppVars{Errors: shared.ValidationErrors{be.Field: map[string]string{"tooHigh": be.Reason}}}
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			err = h.execute(w, r, data)
+		} else if errors.As(err, &stErr) {
+			data := AppVars{Error: stErr.Error()}
+			w.WriteHeader(stErr.Code)
+			err = h.execute(w, r, data)
+		}
 	}
 
-	w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices?success=invoice-adjustment[%s]", v.EnvironmentVars.Prefix, ctx.ClientId, adjustmentType))
-	return nil
+	return err
 }

@@ -42,7 +42,7 @@ func (r route) Client() ApiClient {
 // a block, in response to a header added by HTMX. If the header is not present, the function will also fetch all
 // additional data needed by the page for a full page load.
 func (r route) execute(w http.ResponseWriter, req *http.Request, data any) error {
-	if r.isHxRequest(req) {
+	if IsHxRequest(req) {
 		return r.tmpl.ExecuteTemplate(w, r.partial, data)
 	} else {
 		ctx := getContext(req)
@@ -107,17 +107,17 @@ func (r route) getSuccess(req *http.Request) string {
 		return "The hardship has been successfully added"
 	case "fee-reduction[CANCELLED]":
 		return "The fee reduction has been successfully cancelled"
-	case "approve-invoice-adjustment[CREDIT]":
+	case "approved-invoice-adjustment[CREDIT]":
 		return "You have approved the credit"
-	case "approve-invoice-adjustment[WRITE OFF]":
+	case "approved-invoice-adjustment[WRITE OFF]":
 		return "You have approved the write off"
-	case "approve-invoice-adjustment[DEBIT]":
+	case "approved-invoice-adjustment[DEBIT]":
 		return "You have approved the debit"
-	case "reject-invoice-adjustment[CREDIT]":
+	case "rejected-invoice-adjustment[CREDIT]":
 		return "You have rejected the credit"
-	case "reject-invoice-adjustment[WRITE OFF]":
+	case "rejected-invoice-adjustment[WRITE OFF]":
 		return "You have rejected the write off"
-	case "reject-invoice-adjustment[DEBIT]":
+	case "rejected-invoice-adjustment[DEBIT]":
 		return "You have rejected the debit"
 	case "invoice-type[AD]":
 		return "The AD invoice has been successfully created"
@@ -139,7 +139,7 @@ func (r route) getSuccess(req *http.Request) string {
 	return ""
 }
 
-func (r route) isHxRequest(req *http.Request) bool {
+func IsHxRequest(req *http.Request) bool {
 	return req.Header.Get("HX-Request") == "true"
 }
 
