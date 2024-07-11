@@ -20,11 +20,7 @@ func Test_computeBillingHistory(t *testing.T) {
 		want []shared.BillingHistory
 	}{
 		{
-<<<<<<< HEAD
-			name: "Returns same outstanding balance for a pending event",
-=======
-			name: "returns correct amount per billing history",
->>>>>>> 48e8343 (pfs-78 invoice gen and tests)
+			name: "Returns correct amount per billing history",
 			args: args{history: []historyHolder{{
 				billingHistory: shared.BillingHistory{
 					User: "65",
@@ -246,7 +242,7 @@ func Test_invoiceEvents(t *testing.T) {
 						Reference:   "AD123455/01",
 						Feetype:     "AD",
 						Amount:      100000,
-						CreatedbyID: pgtype.Int4{3, true},
+						CreatedbyID: pgtype.Int4{Int32: 3, Valid: true},
 						InvoiceDate: pgtype.Date{Time: time.Date(2027, time.March, 31, 0, 0, 0, 0, time.UTC), Valid: true},
 					},
 				},
