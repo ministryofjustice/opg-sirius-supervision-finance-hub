@@ -6,6 +6,7 @@ import (
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"reflect"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -54,7 +55,7 @@ func Test_computeBillingHistory(t *testing.T) {
 							},
 							InvoiceType:      "AD",
 							InvoiceName:      "",
-							Amount:           1000,
+							Amount:           strconv.Itoa(1000),
 							BaseBillingEvent: shared.BaseBillingEvent{Type: 1},
 						},
 						OutstandingBalance: 0,
@@ -74,7 +75,7 @@ func Test_computeBillingHistory(t *testing.T) {
 						},
 						InvoiceType:      "AD",
 						InvoiceName:      "",
-						Amount:           1000,
+						Amount:           strconv.Itoa(1000),
 						BaseBillingEvent: shared.BaseBillingEvent{Type: 1},
 					},
 					OutstandingBalance: 1000,
@@ -187,7 +188,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 						},
 						InvoiceType:      "S2",
 						InvoiceName:      "",
-						Amount:           32000,
+						Amount:           strconv.Itoa(320),
 						BaseBillingEvent: shared.BaseBillingEvent{Type: 1},
 					},
 					OutstandingBalance: 32000,
@@ -259,7 +260,7 @@ func Test_invoiceEvents(t *testing.T) {
 						},
 						InvoiceType:      "AD",
 						InvoiceName:      "",
-						Amount:           100000,
+						Amount:           strconv.Itoa(1000),
 						BaseBillingEvent: shared.BaseBillingEvent{Type: 1},
 					},
 					OutstandingBalance: 0,
