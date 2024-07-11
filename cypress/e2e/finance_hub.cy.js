@@ -26,6 +26,10 @@ describe("Finance Hub", () => {
             cy.get('[data-cy="invoices"]').click();
             cy.url().should("contain", "invoices");
             cy.contains(".govuk-heading-l", "Invoices");
+
+            cy.get('[data-cy="billing-history"]').click();
+            cy.url().should("contain", "billing-history");
+            cy.contains(".govuk-heading-l", "Billing History");
         })
     })
 });
