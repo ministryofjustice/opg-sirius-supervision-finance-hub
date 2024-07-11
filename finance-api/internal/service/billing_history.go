@@ -12,7 +12,7 @@ import (
 
 type historyHolder struct {
 	billingHistory    shared.BillingHistory
-	balanceAdjustment int
+	balanceAdjustment float64
 }
 
 type allocationHolder struct {
@@ -63,13 +63,13 @@ func invoiceEvents(invoices []store.GetGeneratedInvoicesRow, history []historyHo
 					Reference: inv.Reference,
 				},
 				InvoiceType: inv.Feetype,
-				Amount:      int(inv.Amount / 100),
+				Amount:      shared.IntToDecimalString(int(inv.Amount)),
 			},
 		}
 
 		history = append(history, historyHolder{
 			billingHistory:    bh,
-			balanceAdjustment: int(inv.Amount / 100),
+			balanceAdjustment: float64(inv.Amount) / 100,
 		})
 	}
 	return history
@@ -139,7 +139,7 @@ func sortHistoryByDate(history []historyHolder) {
 }
 
 func computeBillingHistory(history []historyHolder) []shared.BillingHistory {
-	var outstanding int
+	var outstanding float64
 	var billingHistory []shared.BillingHistory
 	for _, bh := range history {
 		outstanding += bh.balanceAdjustment
@@ -147,7 +147,11 @@ func computeBillingHistory(history []historyHolder) []shared.BillingHistory {
 		billingHistory = append(billingHistory, bh.billingHistory)
 	}
 	sort.Slice(billingHistory, func(i, j int) bool {
+		if billingHistory[i].Date.Time.Equal(billingHistory[j].Date.Time) {
+			return billingHistory[i].OutstandingBalance > billingHistory[j].OutstandingBalance
+		}
 		return billingHistory[i].Date.Time.After(billingHistory[j].Date.Time)
 	})
+
 	return billingHistory
 }
