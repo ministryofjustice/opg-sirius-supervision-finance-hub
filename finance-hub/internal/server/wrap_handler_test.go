@@ -12,16 +12,6 @@ import (
 	"testing"
 )
 
-func TestRedirectError_Error(t *testing.T) {
-	assert.Equal(t, "redirect to ", RedirectError("").Error())
-	assert.Equal(t, "redirect to test-url", RedirectError("test-url").Error())
-}
-
-func TestRedirectError_To(t *testing.T) {
-	assert.Equal(t, "", RedirectError("").To())
-	assert.Equal(t, "test-url", RedirectError("test-url").To())
-}
-
 func TestStatusError_Code(t *testing.T) {
 	assert.Equal(t, 0, StatusError(0).Code())
 	assert.Equal(t, 200, StatusError(200).Code())
@@ -53,14 +43,12 @@ func Test_wrapHandler_successful_request(t *testing.T) {
 	w := httptest.NewRecorder()
 	r, _ := http.NewRequest(http.MethodGet, "test-url/1", nil)
 
-	mockClient := mockApiClient{}
-
 	observedZapCore, observedLogs := observer.New(zap.InfoLevel)
 	logger := zap.New(observedZapCore).Sugar()
 
 	errorTemplate := &mockTemplate{}
 	envVars := EnvironmentVars{}
-	nextHandlerFunc := wrapHandler(mockClient, logger, errorTemplate, envVars)
+	nextHandlerFunc := wrapHandler(logger, errorTemplate, "", envVars)
 	next := &mockHandler{}
 	httpHandler := nextHandlerFunc(next)
 	httpHandler.ServeHTTP(w, r)
@@ -102,14 +90,12 @@ func Test_wrapHandler_status_error_handling(t *testing.T) {
 			w := httptest.NewRecorder()
 			r, _ := http.NewRequest(http.MethodGet, "test-url/1", nil)
 
-			mockClient := mockApiClient{}
-
 			observedZapCore, observedLogs := observer.New(zap.InfoLevel)
 			logger := zap.New(observedZapCore).Sugar()
 
 			errorTemplate := &mockTemplate{error: errors.New("some template error")}
 			envVars := EnvironmentVars{}
-			nextHandlerFunc := wrapHandler(mockClient, logger, errorTemplate, envVars)
+			nextHandlerFunc := wrapHandler(logger, errorTemplate, "", envVars)
 			next := &mockHandler{Err: test.error}
 			httpHandler := nextHandlerFunc(next)
 			httpHandler.ServeHTTP(w, r)
