@@ -11,9 +11,8 @@ func TestNewAppVars(t *testing.T) {
 	r.SetPathValue("clientId", "1")
 
 	envVars := EnvironmentVars{}
-	vars, err := NewAppVars(r, envVars)
+	vars := NewAppVars(r, envVars)
 
-	assert.Nil(t, err)
 	assert.Equal(t, AppVars{
 		Path:            "/path",
 		XSRFToken:       "",
