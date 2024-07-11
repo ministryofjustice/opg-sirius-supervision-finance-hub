@@ -28,23 +28,23 @@ describe("Pending Invoice Adjustments", () => {
             .last().get(".moj-button-menu")
             .first().contains("Approve")
             .next().contains("Reject")
-            .click()
+            .click();
 
-        cy.url().should("include", "/pending-invoice-adjustments?success=reject-invoice-adjustment[CREDIT]")
+        cy.url().should("include", "/pending-invoice-adjustments?success=rejected-invoice-adjustment[CREDIT]");
 
-        cy.get(".moj-banner__message").contains("You have rejected the credit")
+        cy.get(".moj-banner__message").contains("You have rejected the credit");
 
         cy.get("table#pending-invoice-adjustments > tbody > tr")
             .first()
             .children()
             .last()
-            .should("not.contain", ".moj-button-menu")
+            .should("not.contain", ".moj-button-menu");
     });
 
     it("shows correct success message", () => {
-        cy.visit("/clients/1/pending-invoice-adjustments?success=approve-invoice-adjustment[DEBIT]");
+        cy.visit("/clients/1/pending-invoice-adjustments?success=approved-invoice-adjustment[DEBIT]");
         cy.get(".moj-banner__message").contains("You have approved the debit");
-        cy.visit("/clients/1/pending-invoice-adjustments?success=reject-invoice-adjustment[WRITE OFF]");
+        cy.visit("/clients/1/pending-invoice-adjustments?success=rejected-invoice-adjustment[WRITE OFF]");
         cy.get(".moj-banner__message").contains("You have rejected the write off");
     });
 
