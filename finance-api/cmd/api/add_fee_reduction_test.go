@@ -108,7 +108,6 @@ func TestServer_addFeeReductionsValidationErrorsForThousandCharacters(t *testing
 	}
 	_ = json.NewEncoder(&b).Encode(feeReductionInfo)
 	req := httptest.NewRequest(http.MethodPost, "/clients/1/fee-reductions", &b)
-	//req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.SetPathValue("clientId", "1")
 	w := httptest.NewRecorder()
 

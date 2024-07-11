@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/testhelpers"
@@ -39,14 +38,14 @@ func (suite *IntegrationSuite) TestService_AddManualInvoice() {
 	conn := suite.testDB.GetConn()
 
 	conn.SeedData(
-		"INSERT INTO finance_client VALUES (24, 24, '1234', 'DEMANDED', null);",
-		"INSERT INTO fee_reduction VALUES (24, 24, 'REMISSION', null, '2023-04-01', '2024-03-31', 'Remission to see the notes', false, '2023-05-01');",
+		"INSERT INTO finance_client VALUES (24, 24, '1234', 'DEMANDED', NULL);",
+		"INSERT INTO fee_reduction VALUES (24, 24, 'REMISSION', NULL, '2023-04-01', '2024-03-31', 'Remission to see the notes', FALSE, '2023-05-01');",
 	)
-	ctx := context.Background()
+	ctx := suite.ctx
 	s, params := addManualInvoiceSetup(conn)
 
-	err := s.AddManualInvoice(24, params)
-	rows, _ := conn.Query(ctx, "SELECT * FROM supervision_finance.invoice where id = 1")
+	err := s.AddManualInvoice(ctx, 24, params)
+	rows, _ := conn.Query(ctx, "SELECT * FROM supervision_finance.invoice WHERE id = 1")
 	defer rows.Close()
 
 	for rows.Next() {
@@ -105,8 +104,8 @@ func (suite *IntegrationSuite) TestService_AddManualInvoiceRaisedDateForAnInvoic
 	conn := suite.testDB.GetConn()
 
 	conn.SeedData(
-		"INSERT INTO finance_client VALUES (24, 24, '1234', 'DEMANDED', null);",
-		"INSERT INTO fee_reduction VALUES (24, 24, 'REMISSION', null, '2023-04-01', '2024-03-31', 'Remission to see the notes', false, '2023-05-01');",
+		"INSERT INTO finance_client VALUES (24, 24, '1234', 'DEMANDED', NULL);",
+		"INSERT INTO fee_reduction VALUES (24, 24, 'REMISSION', NULL, '2023-04-01', '2024-03-31', 'Remission to see the notes', FALSE, '2023-05-01');",
 	)
 	s, params := addManualInvoiceSetup(conn)
 
@@ -115,7 +114,7 @@ func (suite *IntegrationSuite) TestService_AddManualInvoiceRaisedDateForAnInvoic
 	params.EndDate = &shared.Date{Time: time.Now().AddDate(0, 0, -1)}
 	params.InvoiceType = shared.InvoiceTypeSO
 
-	err := s.AddManualInvoice(24, params)
+	err := s.AddManualInvoice(suite.ctx, 24, params)
 	if err != nil {
 		assert.Equalf(suite.T(), "bad requests: RaisedDateForAnInvoice, StartDate, EndDate", err.Error(), "Raised date %s is not in the past", params.RaisedDate)
 		return
@@ -126,14 +125,14 @@ func (suite *IntegrationSuite) TestService_AddManualInvoiceRaisedDateForAnInvoic
 	conn := suite.testDB.GetConn()
 
 	conn.SeedData(
-		"INSERT INTO finance_client VALUES (24, 24, '1234', 'DEMANDED', null);",
-		"INSERT INTO fee_reduction VALUES (24, 24, 'REMISSION', null, '2023-04-01', '2024-03-31', 'Remission to see the notes', false, '2023-05-01');",
+		"INSERT INTO finance_client VALUES (24, 24, '1234', 'DEMANDED', NULL);",
+		"INSERT INTO fee_reduction VALUES (24, 24, 'REMISSION', NULL, '2023-04-01', '2024-03-31', 'Remission to see the notes', FALSE, '2023-05-01');",
 	)
 	s, params := addManualInvoiceSetup(conn)
 	params.RaisedDate = &shared.Date{Time: time.Now().AddDate(0, 0, -1)}
 	params.InvoiceType = shared.InvoiceTypeSO
 
-	err := s.AddManualInvoice(24, params)
+	err := s.AddManualInvoice(suite.ctx, 24, params)
 	if err == nil {
 		return
 	}
@@ -236,11 +235,11 @@ func (suite *IntegrationSuite) TestService_AddLedgerAndAllocationsForAnADInvoice
 	conn := suite.testDB.GetConn()
 
 	conn.SeedData(
-		"INSERT INTO finance_client VALUES (25, 25, '1234', 'DEMANDED', null);",
-		"INSERT INTO fee_reduction VALUES (25, 25, 'REMISSION', null, '2023-04-01', '2024-03-31', 'Remission to see the notes', false, '2023-05-01');",
+		"INSERT INTO finance_client VALUES (25, 25, '1234', 'DEMANDED', NULL);",
+		"INSERT INTO fee_reduction VALUES (25, 25, 'REMISSION', NULL, '2023-04-01', '2024-03-31', 'Remission to see the notes', FALSE, '2023-05-01');",
 	)
 
-	ctx := context.Background()
+	ctx := suite.ctx
 	s, params := addManualInvoiceSetup(conn)
 
 	params.InvoiceType = shared.InvoiceTypeAD
@@ -252,7 +251,7 @@ func (suite *IntegrationSuite) TestService_AddLedgerAndAllocationsForAnADInvoice
 	params.EndDate = dateReceivedTransformed
 	params.RaisedDate = dateReceivedTransformed
 
-	err := s.AddManualInvoice(25, params)
+	err := s.AddManualInvoice(ctx, 25, params)
 	if err != nil {
 		suite.T().Error("Add manual invoice ledger failed")
 	}
@@ -279,14 +278,14 @@ func (suite *IntegrationSuite) TestService_AddLedgerAndAllocationsForAnExemption
 	conn := suite.testDB.GetConn()
 
 	conn.SeedData(
-		"INSERT INTO finance_client VALUES (25, 25, '1234', 'DEMANDED', null);",
-		"INSERT INTO fee_reduction VALUES (25, 25, 'EXEMPTION', null, '2022-04-01', '2025-03-31', 'Exemption to see the notes', false, '2023-05-01');",
+		"INSERT INTO finance_client VALUES (25, 25, '1234', 'DEMANDED', NULL);",
+		"INSERT INTO fee_reduction VALUES (25, 25, 'EXEMPTION', NULL, '2022-04-01', '2025-03-31', 'Exemption to see the notes', FALSE, '2023-05-01');",
 	)
 
-	ctx := context.Background()
+	ctx := suite.ctx
 	s, params := addManualInvoiceSetup(conn)
 
-	err := s.AddManualInvoice(25, params)
+	err := s.AddManualInvoice(ctx, 25, params)
 	if err != nil {
 		suite.T().Error("Add manual invoice ledger with an exemption failed")
 	}
