@@ -27,11 +27,14 @@ type allocationHolder struct {
 
 func (s *Service) GetBillingHistory(clientID int) ([]shared.BillingHistory, error) {
 	ctx := context.Background()
+	var history []historyHolder
 
-	err, history, histories, err2 := invoiceHistory(clientID, s, ctx)
-	if err2 != nil {
-		return histories, err2
+	invoices, err := s.store.GetGeneratedInvoices(ctx, int32(clientID))
+	if err != nil {
+		return nil, err
 	}
+
+	history = invoiceEvents(invoices, history, strconv.Itoa(clientID))
 
 	pendingAllocations, err := s.store.GetPendingLedgerAllocations(ctx, int32(clientID))
 	if err != nil {
@@ -45,19 +48,13 @@ func (s *Service) GetBillingHistory(clientID int) ([]shared.BillingHistory, erro
 	return computeBillingHistory(history), nil
 }
 
-func invoiceHistory(clientID int, s *Service, ctx context.Context) (error, []historyHolder, []shared.BillingHistory, error) {
-	invoices, err := s.store.GetGeneratedInvoices(ctx, int32(clientID))
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	var history []historyHolder
-
+func invoiceEvents(invoices []store.GetGeneratedInvoicesRow, history []historyHolder, clientId string) []historyHolder {
 	for _, inv := range invoices {
 		bh := shared.BillingHistory{
 			User: strconv.Itoa(int(inv.CreatedbyID.Int32)),
 			Date: shared.Date{Time: inv.InvoiceDate.Time},
 			Event: shared.InvoiceGenerated{
+				ClientId: clientId,
 				BaseBillingEvent: shared.BaseBillingEvent{
 					Type: shared.EventTypeInvoiceGenerated,
 				},
@@ -75,7 +72,7 @@ func invoiceHistory(clientID int, s *Service, ctx context.Context) (error, []his
 			balanceAdjustment: int(inv.Amount / 100),
 		})
 	}
-	return err, history, nil, nil
+	return history
 }
 
 func aggregateAllocations(pendingAllocations []store.GetPendingLedgerAllocationsRow, clientID string) map[int32]allocationHolder {
