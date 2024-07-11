@@ -54,7 +54,7 @@ type ApiClient struct {
 }
 
 func (c *ApiClient) newSiriusRequest(ctx Context, method, path string, body io.Reader) (*http.Request, error) {
-	req, err := http.NewRequestWithContext(ctx.Context, method, c.siriusUrl+path, body)
+	req, err := http.NewRequestWithContext(ctx.Context, method, c.siriusUrl+"/supervision-api/v1"+path, body)
 	if err != nil {
 		return nil, err
 	}
