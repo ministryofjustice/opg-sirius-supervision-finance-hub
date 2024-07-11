@@ -1,7 +1,9 @@
 package server
 
 import (
+	"errors"
 	"fmt"
+	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
 	"net/http"
 	"strconv"
 	"strings"
@@ -19,17 +21,19 @@ func (h *SubmitUpdatePendingInvoiceAdjustmentHandler) render(v AppVars, w http.R
 	)
 
 	err := h.Client().UpdatePendingInvoiceAdjustment(ctx, ctx.ClientId, ledgerId, status)
-	if err != nil {
-		return err
+
+	if err == nil {
+		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/pending-invoice-adjustments?success=%s-invoice-adjustment[%s]", v.EnvironmentVars.Prefix, ctx.ClientId, strings.ToLower(status), strings.ToUpper(r.PathValue("adjustmentType"))))
+	} else {
+		var (
+			stErr api.StatusError
+		)
+		if errors.As(err, &stErr) {
+			data := AppVars{Error: stErr.Error()}
+			w.WriteHeader(stErr.Code)
+			err = h.execute(w, r, data)
+		}
 	}
 
-	var successAction string
-	if status == "APPROVED" {
-		successAction = "approve"
-	} else if status == "REJECTED" {
-		successAction = "reject"
-	}
-
-	w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/pending-invoice-adjustments?success=%s-invoice-adjustment[%s]", v.EnvironmentVars.Prefix, ctx.ClientId, successAction, strings.ToUpper(r.PathValue("adjustmentType"))))
-	return nil
+	return err
 }
