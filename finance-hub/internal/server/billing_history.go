@@ -26,3 +26,7 @@ func (h *BillingHistoryHandler) render(v AppVars, w http.ResponseWriter, r *http
 	data.selectTab("billing_history")
 	return h.execute(w, r, data)
 }
+
+func (h *BillingHistoryHandler) DivideByHundred(value int) float64 {
+	return float64(value) / 100.0
+}

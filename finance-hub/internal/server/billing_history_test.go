@@ -6,7 +6,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
 	"testing"
 )
 
@@ -23,7 +22,7 @@ func TestBillingHistory(t *testing.T) {
 				},
 				InvoiceType:      "AD",
 				InvoiceName:      "The name of the invoice",
-				Amount:           strconv.Itoa(65498),
+				Amount:           65498,
 				BaseBillingEvent: shared.BaseBillingEvent{Type: 1},
 			},
 			OutstandingBalance: 25124,

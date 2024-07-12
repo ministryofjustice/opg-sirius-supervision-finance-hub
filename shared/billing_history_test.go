@@ -3,7 +3,6 @@ package shared
 import (
 	"encoding/json"
 	"github.com/stretchr/testify/assert"
-	"strconv"
 	"testing"
 )
 
@@ -26,7 +25,7 @@ func TestBillingHistory_UnmarshalJSON(t *testing.T) {
 						Reference: "123abc",
 					},
 					InvoiceType: "SE",
-					Amount:      strconv.Itoa(1001),
+					Amount:      1001,
 				},
 			},
 		},

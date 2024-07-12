@@ -6,7 +6,6 @@ import (
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"reflect"
-	"strconv"
 	"testing"
 	"time"
 )
@@ -55,7 +54,7 @@ func Test_computeBillingHistory(t *testing.T) {
 							},
 							InvoiceType:      "AD",
 							InvoiceName:      "",
-							Amount:           strconv.Itoa(1000),
+							Amount:           1000,
 							BaseBillingEvent: shared.BaseBillingEvent{Type: 1},
 						},
 						OutstandingBalance: 0,
@@ -75,7 +74,7 @@ func Test_computeBillingHistory(t *testing.T) {
 						},
 						InvoiceType:      "AD",
 						InvoiceName:      "",
-						Amount:           strconv.Itoa(1000),
+						Amount:           1000,
 						BaseBillingEvent: shared.BaseBillingEvent{Type: 1},
 					},
 					OutstandingBalance: 1000,
@@ -188,7 +187,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 						},
 						InvoiceType:      "S2",
 						InvoiceName:      "",
-						Amount:           strconv.Itoa(320),
+						Amount:           32000,
 						BaseBillingEvent: shared.BaseBillingEvent{Type: 1},
 					},
 					OutstandingBalance: 32000,
@@ -206,7 +205,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 			s := &Service{
 				store: Store,
 			}
-			got, err := s.GetBillingHistory(tt.id)
+			got, err := s.GetBillingHistory(suite.ctx, tt.id)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetBillingHistory() error = %v, wantErr %v", err, tt.wantErr)
@@ -260,7 +259,7 @@ func Test_invoiceEvents(t *testing.T) {
 						},
 						InvoiceType:      "AD",
 						InvoiceName:      "",
-						Amount:           strconv.Itoa(1000),
+						Amount:           100000,
 						BaseBillingEvent: shared.BaseBillingEvent{Type: 1},
 					},
 					OutstandingBalance: 0,

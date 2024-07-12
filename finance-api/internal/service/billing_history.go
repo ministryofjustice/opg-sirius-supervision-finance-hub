@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
-	"math"
 	"sort"
 	"strconv"
 	"strings"
@@ -12,7 +11,7 @@ import (
 
 type historyHolder struct {
 	billingHistory    shared.BillingHistory
-	balanceAdjustment float64
+	balanceAdjustment int
 }
 
 type allocationHolder struct {
@@ -25,13 +24,15 @@ type allocationHolder struct {
 	clientId    string
 }
 
-func (s *Service) GetBillingHistory(clientID int) ([]shared.BillingHistory, error) {
-	ctx := context.Background()
+func (s *Service) GetBillingHistory(ctx context.Context, clientID int) ([]shared.BillingHistory, error) {
+	var history []historyHolder
 
-	err, history, histories, err2 := invoiceHistory(clientID, s, ctx)
-	if err2 != nil {
-		return histories, err2
+	invoices, err := s.store.GetGeneratedInvoices(ctx, int32(clientID))
+	if err != nil {
+		return nil, err
 	}
+
+	history = invoiceEvents(invoices, history, strconv.Itoa(clientID))
 
 	pendingAllocations, err := s.store.GetPendingLedgerAllocations(ctx, int32(clientID))
 	if err != nil {
@@ -45,19 +46,13 @@ func (s *Service) GetBillingHistory(clientID int) ([]shared.BillingHistory, erro
 	return computeBillingHistory(history), nil
 }
 
-func invoiceHistory(clientID int, s *Service, ctx context.Context) (error, []historyHolder, []shared.BillingHistory, error) {
-	invoices, err := s.store.GetGeneratedInvoices(ctx, int32(clientID))
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	var history []historyHolder
-
+func invoiceEvents(invoices []store.GetGeneratedInvoicesRow, history []historyHolder, clientId string) []historyHolder {
 	for _, inv := range invoices {
 		bh := shared.BillingHistory{
 			User: strconv.Itoa(int(inv.CreatedbyID.Int32)),
 			Date: shared.Date{Time: inv.InvoiceDate.Time},
 			Event: shared.InvoiceGenerated{
+				ClientId: clientId,
 				BaseBillingEvent: shared.BaseBillingEvent{
 					Type: shared.EventTypeInvoiceGenerated,
 				},
@@ -66,16 +61,16 @@ func invoiceHistory(clientID int, s *Service, ctx context.Context) (error, []his
 					Reference: inv.Reference,
 				},
 				InvoiceType: inv.Feetype,
-				Amount:      shared.IntToDecimalString(int(inv.Amount)),
+				Amount:      int(inv.Amount),
 			},
 		}
 
 		history = append(history, historyHolder{
 			billingHistory:    bh,
-			balanceAdjustment: float64(inv.Amount) / 100,
+			balanceAdjustment: int(inv.Amount),
 		})
 	}
-	return err, history, nil, nil
+	return history
 }
 
 func aggregateAllocations(pendingAllocations []store.GetPendingLedgerAllocationsRow, clientID string) map[int32]allocationHolder {
@@ -98,7 +93,7 @@ func aggregateAllocations(pendingAllocations []store.GetPendingLedgerAllocations
 				ID:        int(allo.InvoiceID),
 				Reference: allo.Reference,
 			},
-			Amount: int(math.Abs(float64(allo.Amount / 100))),
+			Amount: int(allo.Amount),
 		})
 		allocationsByLedger[allo.LedgerID] = a
 	}
@@ -143,7 +138,7 @@ func sortHistoryByDate(history []historyHolder) {
 }
 
 func computeBillingHistory(history []historyHolder) []shared.BillingHistory {
-	var outstanding float64
+	var outstanding int
 	var billingHistory []shared.BillingHistory
 	for _, bh := range history {
 		outstanding += bh.balanceAdjustment
