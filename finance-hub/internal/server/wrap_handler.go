@@ -15,16 +15,6 @@ type ErrorVars struct {
 	EnvironmentVars
 }
 
-type RedirectError string
-
-func (e RedirectError) Error() string {
-	return "redirect to " + string(e)
-}
-
-func (e RedirectError) To() string {
-	return string(e)
-}
-
 type StatusError int
 
 func (e StatusError) Error() string {
@@ -41,16 +31,13 @@ type Handler interface {
 	render(app AppVars, w http.ResponseWriter, r *http.Request) error
 }
 
-func wrapHandler(tmplError Template, envVars EnvironmentVars) func(next Handler) http.Handler {
+func wrapHandler(errTmpl Template, errPartial string, envVars EnvironmentVars) func(next Handler) http.Handler {
 	return func(next Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
 
-			var err error
-			vars, err := NewAppVars(r, envVars)
-			if err == nil {
-				err = next.render(vars, w, r)
-			}
+			vars := NewAppVars(r, envVars)
+			err := next.render(vars, w, r)
 
 			logger := telemetry.LoggerFromContext(r.Context())
 
@@ -66,12 +53,6 @@ func wrapHandler(tmplError Template, envVars EnvironmentVars) func(next Handler)
 					return
 				}
 
-				var redirect RedirectError
-				if errors.As(err, &redirect) {
-					http.Redirect(w, r, envVars.Prefix+redirect.To(), http.StatusFound)
-					return
-				}
-
 				logger.Error("Page Error", err)
 
 				code := http.StatusInternalServerError
@@ -84,13 +65,18 @@ func wrapHandler(tmplError Template, envVars EnvironmentVars) func(next Handler)
 					code = siriusStatusError.Code
 				}
 
+				w.Header().Add("HX-Retarget", "#main-container")
 				w.WriteHeader(code)
 				errVars := ErrorVars{
 					Code:            code,
 					Error:           err.Error(),
 					EnvironmentVars: envVars,
 				}
-				err = tmplError.Execute(w, errVars)
+				if IsHxRequest(r) {
+					err = errTmpl.ExecuteTemplate(w, errPartial, errVars)
+				} else {
+					err = errTmpl.Execute(w, errVars)
+				}
 
 				if err != nil {
 					logger.Error("failed to render error template", err)

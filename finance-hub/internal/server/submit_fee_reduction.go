@@ -3,6 +3,7 @@ package server
 import (
 	"errors"
 	"fmt"
+	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/util"
 	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
@@ -25,18 +26,24 @@ func (h *SubmitFeeReductionsHandler) render(v AppVars, w http.ResponseWriter, r 
 	)
 
 	err := h.Client().AddFeeReduction(ctx, ctx.ClientId, feeType, startYear, lengthOfAward, dateReceived, notes)
-	var verr shared.ValidationError
-	if errors.As(err, &verr) {
-		data := AppVars{Errors: util.RenameErrors(verr.Errors)}
-		data.Errors = util.RenameErrors(verr.Errors)
-		w.WriteHeader(http.StatusUnprocessableEntity)
-		return h.execute(w, r, data)
+
+	if err == nil {
+		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/fee-reductions?success=fee-reduction[%s]", v.EnvironmentVars.Prefix, ctx.ClientId, strings.ToUpper(feeType)))
+	} else {
+		var (
+			valErr shared.ValidationError
+			stErr  api.StatusError
+		)
+		if errors.As(err, &valErr) {
+			data := AppVars{Errors: util.RenameErrors(valErr.Errors)}
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			err = h.execute(w, r, data)
+		} else if errors.As(err, &stErr) {
+			data := AppVars{Error: stErr.Error()}
+			w.WriteHeader(stErr.Code)
+			err = h.execute(w, r, data)
+		}
 	}
 
-	if err != nil {
-		return err
-	}
-
-	w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/fee-reductions?success=fee-reduction[%s]", v.EnvironmentVars.Prefix, ctx.ClientId, strings.ToUpper(feeType)))
-	return nil
+	return err
 }
