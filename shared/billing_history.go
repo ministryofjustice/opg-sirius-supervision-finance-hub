@@ -1,6 +1,9 @@
 package shared
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type BillingHistory struct {
 	User               string       `json:"user"`
@@ -11,6 +14,14 @@ type BillingHistory struct {
 
 type BillingEvent interface {
 	GetType() BillingEventType
+}
+
+func (b *BillingHistory) IntToDecimal(amount int) string {
+	decimalAmount := float64(amount) / 100.0
+	if decimalAmount == float64(int(decimalAmount)) {
+		return fmt.Sprintf("%.0f", decimalAmount)
+	}
+	return fmt.Sprintf("%.2f", decimalAmount)
 }
 
 func (b *BillingHistory) UnmarshalJSON(data []byte) (err error) {
