@@ -75,8 +75,8 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 		"INSERT INTO finance_client VALUES (7, 1, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO finance_client VALUES (3, 2, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO invoice VALUES (1, 1, 7, 'S2', 'S203531/19', '2019-04-01', '2020-03-31', 32000, NULL, '2020-03-20',1, '2020-03-16', 10, NULL, NULL, '2019-06-06', 99);",
-		"INSERT INTO ledger VALUES (1, 'random1223', '2022-04-11T08:36:40+00:00', '', 12300, '', 'CREDIT MEMO', 'PENDING', 7, 1,null, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 65);",
-		"INSERT INTO ledger VALUES (2, 'different', '2025-04-11T08:36:40+00:00', '', 55555, '', 'DEBIT MEMO', 'PENDING', 7, 2, null, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2025', 65);",
+		"INSERT INTO ledger VALUES (1, 'random1223', '2022-04-11T08:36:40+00:00', '', 12300, '', 'CREDIT MEMO', 'PENDING', 7, 1,NULL, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 65);",
+		"INSERT INTO ledger VALUES (2, 'different', '2025-04-11T08:36:40+00:00', '', 55555, '', 'DEBIT MEMO', 'PENDING', 7, 2, NULL, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2025', 65);",
 		"INSERT INTO ledger_allocation VALUES (1, 1, 1, '2022-04-11T08:36:40+00:00', 12300, 'PENDING', NULL, 'Notes here', '2022-04-11', NULL);",
 		"INSERT INTO ledger_allocation VALUES (2, 2, 1, '2022-04-11T08:36:40+00:00', 55555, 'PENDING', NULL, 'Notes here', '2022-04-11', NULL);",
 	)
@@ -146,7 +146,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 			s := &Service{
 				store: Store,
 			}
-			got, err := s.GetBillingHistory(tt.id)
+			got, err := s.GetBillingHistory(suite.ctx, tt.id)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetBillingHistory() error = %v, wantErr %v", err, tt.wantErr)

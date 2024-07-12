@@ -12,8 +12,8 @@ import (
 )
 
 func TestGetFeeReductions(t *testing.T) {
-	logger, mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "", logger)
+	mockClient := SetUpTest()
+	client, _ := NewApiClient(mockClient, "http://localhost:3000", "")
 
 	json := `[
         {
@@ -72,25 +72,23 @@ func TestGetFeeReductions(t *testing.T) {
 }
 
 func TestGetFeeReductionsReturnsUnauthorisedClientError(t *testing.T) {
-	logger, _ := SetUpTest()
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 	_, err := client.GetFeeReductions(getContext(nil), 1)
 	assert.Equal(t, ErrUnauthorized, err)
 }
 
 func TestFeeReductionsReturns500Error(t *testing.T) {
-	logger, _ := SetUpTest()
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
 	_, err := client.GetFeeReductions(getContext(nil), 1)
 	assert.Equal(t, StatusError{

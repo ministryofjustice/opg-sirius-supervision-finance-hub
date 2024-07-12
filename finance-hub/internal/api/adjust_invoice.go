@@ -38,7 +38,6 @@ func (c *ApiClient) AdjustInvoice(ctx Context, clientId int, supervisionBillingT
 	if resp.StatusCode == http.StatusCreated {
 		var response shared.InvoiceReference
 		if err = json.NewDecoder(resp.Body).Decode(&response); err != nil {
-			c.logger.Request(req, err)
 			return err
 		}
 

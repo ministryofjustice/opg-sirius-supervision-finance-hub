@@ -3,8 +3,8 @@ package server
 import (
 	"errors"
 	"fmt"
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
-	"go.uber.org/zap"
 	"net/http"
 	"time"
 )
@@ -41,7 +41,7 @@ type Handler interface {
 	render(app AppVars, w http.ResponseWriter, r *http.Request) error
 }
 
-func wrapHandler(client ApiClient, logger *zap.SugaredLogger, tmplError Template, envVars EnvironmentVars) func(next Handler) http.Handler {
+func wrapHandler(tmplError Template, envVars EnvironmentVars) func(next Handler) http.Handler {
 	return func(next Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
@@ -52,11 +52,12 @@ func wrapHandler(client ApiClient, logger *zap.SugaredLogger, tmplError Template
 				err = next.render(vars, w, r)
 			}
 
-			logger.Infow(
-				"Application Request",
-				"method", r.Method,
-				"uri", r.URL.RequestURI(),
+			logger := telemetry.LoggerFromContext(r.Context())
+
+			logger.Info(
+				"Page Request",
 				"duration", time.Since(start),
+				"hx-request", r.Header.Get("HX-Request") == "true",
 			)
 
 			if err != nil {
@@ -71,7 +72,7 @@ func wrapHandler(client ApiClient, logger *zap.SugaredLogger, tmplError Template
 					return
 				}
 
-				logger.Errorw("Error handler", err)
+				logger.Error("Page Error", err)
 
 				code := http.StatusInternalServerError
 				var serverStatusError StatusError
@@ -92,7 +93,7 @@ func wrapHandler(client ApiClient, logger *zap.SugaredLogger, tmplError Template
 				err = tmplError.Execute(w, errVars)
 
 				if err != nil {
-					logger.Errorw("Failed to render error template", err)
+					logger.Error("failed to render error template", err)
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 				}
 			}

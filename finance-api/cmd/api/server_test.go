@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"github.com/opg-sirius-finance-hub/shared"
 )
 
@@ -20,58 +21,58 @@ type mockService struct {
 	billingHistory     []shared.BillingHistory
 }
 
-func (s *mockService) GetBillingHistory(id int) ([]shared.BillingHistory, error) {
+func (s *mockService) GetBillingHistory(ctx context.Context, id int) ([]shared.BillingHistory, error) {
 	s.expectedIds = []int{id}
 	return s.billingHistory, s.err
 }
 
-func (s *mockService) AddManualInvoice(id int, invoice shared.AddManualInvoice) error {
+func (s *mockService) AddManualInvoice(ctx context.Context, id int, invoice shared.AddManualInvoice) error {
 	s.expectedIds = []int{id}
 	return s.err
 }
 
-func (s *mockService) GetPermittedAdjustments(id int) ([]shared.AdjustmentType, error) {
-	s.expectedIds = []int{id}
+func (s *mockService) GetPermittedAdjustments(ctx context.Context, invoiceId int) ([]shared.AdjustmentType, error) {
+	s.expectedIds = []int{invoiceId}
 	return s.adjustmentTypes, s.err
 }
 
-func (s *mockService) UpdatePendingInvoiceAdjustment(id int, status string) error {
+func (s *mockService) UpdatePendingInvoiceAdjustment(ctx context.Context, id int, status string) error {
 	s.expectedIds = []int{id}
 	return s.err
 }
 
-func (s *mockService) AddFeeReduction(id int, feeReduction shared.AddFeeReduction) error {
+func (s *mockService) AddFeeReduction(ctx context.Context, id int, data shared.AddFeeReduction) error {
 	s.expectedIds = []int{id}
 	return s.err
 }
 
-func (s *mockService) CancelFeeReduction(id int) error {
+func (s *mockService) CancelFeeReduction(ctx context.Context, id int) error {
 	s.expectedIds = []int{id}
 	return s.err
 }
 
-func (s *mockService) GetAccountInformation(id int) (*shared.AccountInformation, error) {
+func (s *mockService) GetAccountInformation(ctx context.Context, id int) (*shared.AccountInformation, error) {
 	s.expectedIds = []int{id}
 	return s.accountInfo, s.err
 }
 
-func (s *mockService) GetInvoices(id int) (*shared.Invoices, error) {
+func (s *mockService) GetInvoices(ctx context.Context, id int) (*shared.Invoices, error) {
 	s.expectedIds = []int{id}
 	return s.invoices, s.err
 }
 
-func (s *mockService) GetFeeReductions(id int) (*shared.FeeReductions, error) {
+func (s *mockService) GetFeeReductions(ctx context.Context, id int) (*shared.FeeReductions, error) {
 	s.expectedIds = []int{id}
 	return s.feeReductions, s.err
 }
 
-func (s *mockService) GetInvoiceAdjustments(id int) (*shared.InvoiceAdjustments, error) {
+func (s *mockService) GetInvoiceAdjustments(ctx context.Context, id int) (*shared.InvoiceAdjustments, error) {
 	s.expectedIds = []int{id}
 	return s.invoiceAdjustments, s.err
 }
 
-func (s *mockService) CreateLedgerEntry(clientId int, invoiceId int, ledger *shared.CreateLedgerEntryRequest) (*shared.InvoiceReference, error) {
-	s.ledger = ledger
+func (s *mockService) CreateLedgerEntry(ctx context.Context, clientId int, invoiceId int, ledgerEntry *shared.CreateLedgerEntryRequest) (*shared.InvoiceReference, error) {
+	s.ledger = ledgerEntry
 	s.expectedIds = []int{clientId, invoiceId}
 	return s.invoiceReference, s.err
 }

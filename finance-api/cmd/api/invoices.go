@@ -7,8 +7,10 @@ import (
 )
 
 func (s *Server) getInvoices(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
-	invoices, err := s.Service.GetInvoices(clientId)
+	invoices, err := s.Service.GetInvoices(ctx, clientId)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

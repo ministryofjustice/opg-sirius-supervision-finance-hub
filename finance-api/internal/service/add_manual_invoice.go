@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func (s *Service) AddManualInvoice(clientId int, data shared.AddManualInvoice) error {
+func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data shared.AddManualInvoice) error {
 	var validationsErrors []string
 
 	if data.InvoiceType.RequiresDateValidation() {
@@ -35,8 +35,6 @@ func (s *Service) AddManualInvoice(clientId int, data shared.AddManualInvoice) e
 	if len(validationsErrors) != 0 {
 		return shared.BadRequests{Reasons: validationsErrors}
 	}
-
-	ctx := context.Background()
 
 	tx, err := s.tx.Begin(ctx)
 	if err != nil {

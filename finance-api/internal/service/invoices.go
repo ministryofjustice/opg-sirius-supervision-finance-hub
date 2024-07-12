@@ -121,10 +121,8 @@ func (ib *invoiceBuilder) addSupervisionLevels(supervisionLevels []store.GetSupe
 	}
 }
 
-func (s *Service) GetInvoices(clientID int) (*shared.Invoices, error) {
-	ctx := context.Background()
-
-	invoices, err := s.store.GetInvoices(ctx, int32(clientID))
+func (s *Service) GetInvoices(ctx context.Context, clientId int) (*shared.Invoices, error) {
+	invoices, err := s.store.GetInvoices(ctx, int32(clientId))
 	if err != nil {
 		return nil, err
 	}

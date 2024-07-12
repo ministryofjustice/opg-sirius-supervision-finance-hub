@@ -5,8 +5,8 @@ import (
 	"github.com/opg-sirius-finance-hub/shared"
 )
 
-func (s *Service) GetPermittedAdjustments(invoiceId int) ([]shared.AdjustmentType, error) {
-	balance, err := s.store.GetInvoiceBalanceDetails(context.Background(), int32(invoiceId))
+func (s *Service) GetPermittedAdjustments(ctx context.Context, invoiceId int) ([]shared.AdjustmentType, error) {
+	balance, err := s.store.GetInvoiceBalanceDetails(ctx, int32(invoiceId))
 	if err != nil {
 		return nil, err
 	}

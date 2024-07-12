@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
@@ -67,14 +66,15 @@ func (suite *IntegrationSuite) TestService_CreateLedgerEntry() {
 
 	for _, tt := range testCases {
 		suite.T().Run(tt.name, func(t *testing.T) {
-			_, err := s.CreateLedgerEntry(tt.clientId, tt.invoiceId, tt.data)
+			ctx := suite.ctx
+			_, err := s.CreateLedgerEntry(ctx, tt.clientId, tt.invoiceId, tt.data)
 			if err != nil {
 				assert.ErrorIs(t, err, tt.err)
 				return
 			}
 
 			var ledger store.Ledger
-			q := conn.QueryRow(context.Background(), "SELECT id, amount, notes, type, status, finance_client_id FROM ledger WHERE id = 2")
+			q := conn.QueryRow(ctx, "SELECT id, amount, notes, type, status, finance_client_id FROM ledger WHERE id = 2")
 			err = q.Scan(&ledger.ID, &ledger.Amount, &ledger.Notes, &ledger.Type, &ledger.Status, &ledger.FinanceClientID)
 			if err != nil {
 				assert.ErrorIs(t, err, tt.err)
@@ -92,7 +92,7 @@ func (suite *IntegrationSuite) TestService_CreateLedgerEntry() {
 			}
 
 			var la store.LedgerAllocation
-			q = conn.QueryRow(context.Background(), "SELECT id, ledger_id, invoice_id, amount, status, notes FROM ledger_allocation WHERE id = 2")
+			q = conn.QueryRow(ctx, "SELECT id, ledger_id, invoice_id, amount, status, notes FROM ledger_allocation WHERE id = 2")
 			err = q.Scan(&la.ID, &la.LedgerID, &la.InvoiceID, &la.Amount, &la.Status, &la.Notes)
 			if err != nil {
 				assert.ErrorIs(t, err, tt.err)

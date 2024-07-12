@@ -9,6 +9,8 @@ import (
 )
 
 func (s *Server) addManualInvoice(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	var addManualInvoice shared.AddManualInvoice
 	defer r.Body.Close()
 
@@ -28,7 +30,7 @@ func (s *Server) addManualInvoice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
-	err := s.Service.AddManualInvoice(clientId, addManualInvoice)
+	err := s.Service.AddManualInvoice(ctx, clientId, addManualInvoice)
 
 	if err != nil {
 		var e shared.BadRequests
