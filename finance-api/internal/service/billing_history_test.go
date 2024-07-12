@@ -6,7 +6,6 @@ import (
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"reflect"
-	"strconv"
 	"testing"
 	"time"
 )
@@ -55,7 +54,7 @@ func Test_computeBillingHistory(t *testing.T) {
 							},
 							InvoiceType:      "AD",
 							InvoiceName:      "",
-							Amount:           strconv.Itoa(1000),
+							Amount:           1000,
 							BaseBillingEvent: shared.BaseBillingEvent{Type: 1},
 						},
 						OutstandingBalance: 0,
@@ -75,7 +74,7 @@ func Test_computeBillingHistory(t *testing.T) {
 						},
 						InvoiceType:      "AD",
 						InvoiceName:      "",
-						Amount:           strconv.Itoa(1000),
+						Amount:           1000,
 						BaseBillingEvent: shared.BaseBillingEvent{Type: 1},
 					},
 					OutstandingBalance: 1000,
@@ -153,11 +152,11 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 								ID:        1,
 								Reference: "S203531/19",
 							},
-							Amount: 555,
+							Amount: 55555,
 						},
 						BaseBillingEvent: shared.BaseBillingEvent{Type: 6},
 					},
-					OutstandingBalance: 320,
+					OutstandingBalance: 32000,
 				},
 				{
 					User: "65",
@@ -171,11 +170,11 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 								ID:        1,
 								Reference: "S203531/19",
 							},
-							Amount: 123,
+							Amount: 12300,
 						},
 						BaseBillingEvent: shared.BaseBillingEvent{Type: 6},
 					},
-					OutstandingBalance: 320,
+					OutstandingBalance: 32000,
 				},
 				{
 					User: "99",
@@ -188,10 +187,10 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 						},
 						InvoiceType:      "S2",
 						InvoiceName:      "",
-						Amount:           strconv.Itoa(320),
+						Amount:           32000,
 						BaseBillingEvent: shared.BaseBillingEvent{Type: 1},
 					},
-					OutstandingBalance: 320,
+					OutstandingBalance: 32000,
 				},
 			},
 		},
@@ -260,12 +259,12 @@ func Test_invoiceEvents(t *testing.T) {
 						},
 						InvoiceType:      "AD",
 						InvoiceName:      "",
-						Amount:           strconv.Itoa(1000),
+						Amount:           100000,
 						BaseBillingEvent: shared.BaseBillingEvent{Type: 1},
 					},
 					OutstandingBalance: 0,
 				},
-				balanceAdjustment: 1000,
+				balanceAdjustment: 100000,
 			}},
 		},
 		{

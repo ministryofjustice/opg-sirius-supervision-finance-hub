@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
-	"math"
 	"sort"
 	"strconv"
 	"strings"
@@ -12,7 +11,7 @@ import (
 
 type historyHolder struct {
 	billingHistory    shared.BillingHistory
-	balanceAdjustment float64
+	balanceAdjustment int
 }
 
 type allocationHolder struct {
@@ -63,13 +62,13 @@ func invoiceEvents(invoices []store.GetGeneratedInvoicesRow, history []historyHo
 					Reference: inv.Reference,
 				},
 				InvoiceType: inv.Feetype,
-				Amount:      shared.IntToDecimalString(int(inv.Amount)),
+				Amount:      int(inv.Amount),
 			},
 		}
 
 		history = append(history, historyHolder{
 			billingHistory:    bh,
-			balanceAdjustment: float64(inv.Amount) / 100,
+			balanceAdjustment: int(inv.Amount),
 		})
 	}
 	return history
@@ -95,7 +94,7 @@ func aggregateAllocations(pendingAllocations []store.GetPendingLedgerAllocations
 				ID:        int(allo.InvoiceID),
 				Reference: allo.Reference,
 			},
-			Amount: int(math.Abs(float64(allo.Amount / 100))),
+			Amount: int(allo.Amount),
 		})
 		allocationsByLedger[allo.LedgerID] = a
 	}
@@ -140,7 +139,7 @@ func sortHistoryByDate(history []historyHolder) {
 }
 
 func computeBillingHistory(history []historyHolder) []shared.BillingHistory {
-	var outstanding float64
+	var outstanding int
 	var billingHistory []shared.BillingHistory
 	for _, bh := range history {
 		outstanding += bh.balanceAdjustment

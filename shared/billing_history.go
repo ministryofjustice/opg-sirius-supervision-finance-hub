@@ -1,16 +1,27 @@
 package shared
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type BillingHistory struct {
 	User               string       `json:"user"`
 	Date               Date         `json:"date"`
 	Event              BillingEvent `json:"event"`
-	OutstandingBalance float64      `json:"outstanding_balance"`
+	OutstandingBalance int          `json:"outstanding_balance"`
 }
 
 type BillingEvent interface {
 	GetType() BillingEventType
+}
+
+func (b *BillingHistory) IntToDecimal(amount int) string {
+	decimalAmount := float64(amount) / 100.0
+	if decimalAmount == float64(int(decimalAmount)) {
+		return fmt.Sprintf("%.0f", decimalAmount)
+	}
+	return fmt.Sprintf("%.2f", decimalAmount)
 }
 
 func (b *BillingHistory) UnmarshalJSON(data []byte) (err error) {
@@ -61,7 +72,7 @@ type InvoiceGenerated struct {
 	InvoiceReference InvoiceEvent `json:"invoice_reference"`
 	InvoiceType      string       `json:"invoice_type"`
 	InvoiceName      string       `json:"invoice_name"`
-	Amount           string       `json:"amount"`
+	Amount           int          `json:"amount"`
 	BaseBillingEvent
 }
 
