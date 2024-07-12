@@ -216,7 +216,6 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 				assert.Empty(t, got)
 				return
 			}
-			//assert.Equal(t, tt.want, got)
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetBillingHistory() got = %v, want %v", got, tt.want)
 			}
