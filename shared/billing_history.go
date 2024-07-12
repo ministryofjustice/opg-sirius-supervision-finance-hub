@@ -6,7 +6,7 @@ type BillingHistory struct {
 	User               string       `json:"user"`
 	Date               Date         `json:"date"`
 	Event              BillingEvent `json:"event"`
-	OutstandingBalance int          `json:"outstanding_balance"`
+	OutstandingBalance float64      `json:"outstanding_balance"`
 }
 
 type BillingEvent interface {
@@ -61,7 +61,7 @@ type InvoiceGenerated struct {
 	InvoiceReference InvoiceEvent `json:"invoice_reference"`
 	InvoiceType      string       `json:"invoice_type"`
 	InvoiceName      string       `json:"invoice_name"`
-	Amount           int          `json:"amount"`
+	Amount           string       `json:"amount"`
 	BaseBillingEvent
 }
 
