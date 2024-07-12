@@ -39,7 +39,7 @@ func (s *Service) GetBillingHistory(clientID int) ([]shared.BillingHistory, erro
 	}
 
 	allocationsByLedger := aggregateAllocations(pendingAllocations, strconv.Itoa(clientID))
-	history = processAllocations(allocationsByLedger, history)
+	history = append(history, processAllocations(allocationsByLedger)...)
 	sortHistoryByDate(history)
 
 	return computeBillingHistory(history), nil
@@ -105,7 +105,8 @@ func aggregateAllocations(pendingAllocations []store.GetPendingLedgerAllocations
 	return allocationsByLedger
 }
 
-func processAllocations(allocationsByLedger map[int32]allocationHolder, holder []historyHolder) []historyHolder {
+func processAllocations(allocationsByLedger map[int32]allocationHolder) []historyHolder {
+	var history []historyHolder
 	for _, allo := range allocationsByLedger {
 		bh := shared.BillingHistory{
 			User: allo.user,
@@ -127,12 +128,12 @@ func processAllocations(allocationsByLedger map[int32]allocationHolder, holder [
 			}
 		}
 
-		holder = append(holder, historyHolder{
+		history = append(history, historyHolder{
 			billingHistory:    bh,
 			balanceAdjustment: 0,
 		})
 	}
-	return holder
+	return history
 }
 
 func sortHistoryByDate(history []historyHolder) {
