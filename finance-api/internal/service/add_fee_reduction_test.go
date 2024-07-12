@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"database/sql"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/testhelpers"
@@ -39,10 +38,10 @@ func (suite *IntegrationSuite) TestService_AddFeeReduction() {
 		"INSERT INTO finance_client VALUES (22, 22, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO fee_reduction VALUES (22, 22, 'REMISSION', NULL, '2019-04-01', '2021-03-31', 'Remission to see the notes', FALSE, '2019-05-01');",
 	)
-	ctx := context.Background()
+	ctx := suite.ctx
 	s, params := addFeeReductionSetup(conn)
 
-	err := s.AddFeeReduction(22, params)
+	err := s.AddFeeReduction(ctx, 22, params)
 	rows, _ := conn.Query(ctx, "SELECT * FROM supervision_finance.fee_reduction WHERE id = 1")
 	defer rows.Close()
 
@@ -114,7 +113,7 @@ func (suite *IntegrationSuite) TestService_AddFeeReductionOverlap() {
 			params.StartYear = tc.startYear
 			params.LengthOfAward = tc.lengthOfAward
 
-			err := s.AddFeeReduction(23, params)
+			err := s.AddFeeReduction(suite.ctx, 23, params)
 			if err != nil {
 				assert.Equalf(t, "overlap", err.Error(), "StartYear %s has an overlap", tc.startYear)
 				return

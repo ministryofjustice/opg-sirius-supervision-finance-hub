@@ -6,9 +6,7 @@ import (
 	"time"
 )
 
-func (s *Service) GetFeeReductions(id int) (*shared.FeeReductions, error) {
-	ctx := context.Background()
-
+func (s *Service) GetFeeReductions(ctx context.Context, id int) (*shared.FeeReductions, error) {
 	feeReductionsRawData, err := s.store.GetFeeReductions(ctx, int32(id))
 	if err != nil {
 		return nil, err

@@ -25,17 +25,15 @@ type allocationHolder struct {
 	clientId    string
 }
 
-func (s *Service) GetBillingHistory(clientID int) ([]shared.BillingHistory, error) {
-	ctx := context.Background()
-
-	pendingAllocations, err := s.store.GetPendingLedgerAllocations(ctx, int32(clientID))
+func (s *Service) GetBillingHistory(ctx context.Context, clientId int) ([]shared.BillingHistory, error) {
+	pendingAllocations, err := s.store.GetPendingLedgerAllocations(ctx, int32(clientId))
 	if err != nil {
 		return nil, err
 	}
 
-	allocationsByLedger := aggregateAllocations(pendingAllocations, strconv.Itoa(clientID))
+	allocationsByLedger := aggregateAllocations(pendingAllocations, strconv.Itoa(clientId))
 
-	startingBalance, err := s.store.GetAccountInformation(ctx, int32(clientID))
+	startingBalance, err := s.store.GetAccountInformation(ctx, int32(clientId))
 	if err != nil {
 		return nil, err
 	}

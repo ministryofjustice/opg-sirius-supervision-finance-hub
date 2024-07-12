@@ -20,24 +20,20 @@ func (c *ApiClient) GetBillingHistory(ctx Context, clientId int) ([]shared.Billi
 	resp, err := c.http.Do(req)
 
 	if err != nil {
-		c.logger.Request(req, err)
 		return billingHistory, err
 	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusUnauthorized {
-		c.logger.Request(req, err)
 		return billingHistory, ErrUnauthorized
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		c.logger.Request(req, err)
 		return billingHistory, newStatusError(resp)
 	}
 
 	if err = json.NewDecoder(resp.Body).Decode(&billingHistory); err != nil {
-		c.logger.Request(req, err)
 		return billingHistory, err
 	}
 

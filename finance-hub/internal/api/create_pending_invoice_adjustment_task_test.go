@@ -62,8 +62,8 @@ func TestAddWorkingDays(t *testing.T) {
 }
 
 func TestCreatePendingInvoiceAdjustmentTask(t *testing.T) {
-	logger, mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "", logger)
+	mockClient := SetUpTest()
+	client, _ := NewApiClient(mockClient, "http://localhost:3000", "")
 
 	dueDate := addWorkingDays(time.Now(), 20).Format("02/01/2006")
 
@@ -90,13 +90,12 @@ func TestCreatePendingInvoiceAdjustmentTask(t *testing.T) {
 }
 
 func TestCreatePendingInvoiceAdjustmentTaskUnauthorised(t *testing.T) {
-	logger, _ := SetUpTest()
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
 	err := client.CreatePendingInvoiceAdjustmentTask(getContext(nil), 2, 41, "4", "CREDIT_MEMO")
 
@@ -104,13 +103,12 @@ func TestCreatePendingInvoiceAdjustmentTaskUnauthorised(t *testing.T) {
 }
 
 func TestCreatePendingInvoiceAdjustmentTaskReturns500Error(t *testing.T) {
-	logger, _ := SetUpTest()
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
 	err := client.CreatePendingInvoiceAdjustmentTask(getContext(nil), 2, 41, "4", "CREDIT_MEMO")
 	assert.Equal(t, StatusError{
@@ -121,7 +119,6 @@ func TestCreatePendingInvoiceAdjustmentTaskReturns500Error(t *testing.T) {
 }
 
 func TestCreatePendingInvoiceAdjustmentTaskReturnsValidationError(t *testing.T) {
-	logger, _ := SetUpTest()
 	validationErrors := shared.ValidationError{
 		Message: "Validation failed",
 		Errors: map[string]map[string]string{
@@ -137,7 +134,7 @@ func TestCreatePendingInvoiceAdjustmentTaskReturnsValidationError(t *testing.T) 
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
 	err := client.CreatePendingInvoiceAdjustmentTask(getContext(nil), 2, 41, "4", "CREDIT_MEMO")
 	expectedError := shared.ValidationError{Message: "", Errors: shared.ValidationErrors{"Field": map[string]string{"Tag": "Message"}}}

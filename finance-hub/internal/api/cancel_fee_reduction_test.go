@@ -13,8 +13,8 @@ import (
 )
 
 func TestCancelFeeReduction(t *testing.T) {
-	logger, mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "", logger)
+	mockClient := SetUpTest()
+	client, _ := NewApiClient(mockClient, "http://localhost:3000", "")
 
 	json := `{
 			"notes": "Fee remission note for cancelling",
@@ -34,13 +34,12 @@ func TestCancelFeeReduction(t *testing.T) {
 }
 
 func TestCancelFeeReductionUnauthorised(t *testing.T) {
-	logger, _ := SetUpTest()
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
 	err := client.CancelFeeReduction(getContext(nil), 1, 1, "Fee remission note for one award")
 
@@ -48,13 +47,12 @@ func TestCancelFeeReductionUnauthorised(t *testing.T) {
 }
 
 func TestCancelFeeReductionReturns500Error(t *testing.T) {
-	logger, _ := SetUpTest()
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
 	err := client.CancelFeeReduction(getContext(nil), 1, 1, "Fee remission note for one award")
 	assert.Equal(t, StatusError{
@@ -65,7 +63,6 @@ func TestCancelFeeReductionReturns500Error(t *testing.T) {
 }
 
 func TestCancelFeeReductionReturnsValidationError(t *testing.T) {
-	logger, _ := SetUpTest()
 	validationErrors := shared.ValidationError{
 		Message: "Validation failed",
 		Errors: map[string]map[string]string{
@@ -81,7 +78,7 @@ func TestCancelFeeReductionReturnsValidationError(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
 	err := client.CancelFeeReduction(getContext(nil), 0, 0, "")
 	expectedError := shared.ValidationError{Message: "", Errors: shared.ValidationErrors{"CancelFeeReductionNotes": map[string]string{"required": "This field CancelFeeReductionNotes needs to be looked at required"}}}

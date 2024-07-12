@@ -12,8 +12,8 @@ import (
 )
 
 func TestAdjustInvoice(t *testing.T) {
-	logger, mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "", logger)
+	mockClient := SetUpTest()
+	client, _ := NewApiClient(mockClient, "http://localhost:3000", "")
 
 	json := `{
 	       "reference": "01234"
@@ -33,13 +33,12 @@ func TestAdjustInvoice(t *testing.T) {
 }
 
 func TestAdjustInvoiceUnauthorised(t *testing.T) {
-	logger, _ := SetUpTest()
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
 	err := client.AdjustInvoice(getContext(nil), 2, 41, 4, "CREDIT_MEMO", "notes here", "100")
 
@@ -47,13 +46,12 @@ func TestAdjustInvoiceUnauthorised(t *testing.T) {
 }
 
 func TestAdjustInvoiceReturns500Error(t *testing.T) {
-	logger, _ := SetUpTest()
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
 	err := client.AdjustInvoice(getContext(nil), 2, 41, 4, "CREDIT_MEMO", "notes here", "100")
 	assert.Equal(t, StatusError{
@@ -64,7 +62,6 @@ func TestAdjustInvoiceReturns500Error(t *testing.T) {
 }
 
 func TestAdjustInvoiceReturnsValidationError(t *testing.T) {
-	logger, _ := SetUpTest()
 	validationErrors := shared.ValidationError{
 		Message: "Validation failed",
 		Errors: map[string]map[string]string{
@@ -80,7 +77,7 @@ func TestAdjustInvoiceReturnsValidationError(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL, logger)
+	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
 	err := client.AdjustInvoice(getContext(nil), 2, 41, 4, "CREDIT_MEMO", "notes here", "100")
 	expectedError := shared.ValidationError{Message: "", Errors: shared.ValidationErrors{"Field": map[string]string{"Tag": "Message"}}}

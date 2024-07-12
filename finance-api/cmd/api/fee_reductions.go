@@ -7,8 +7,10 @@ import (
 )
 
 func (s *Server) getFeeReductions(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
-	accountInfo, err := s.Service.GetFeeReductions(clientId)
+	accountInfo, err := s.Service.GetFeeReductions(ctx, clientId)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
