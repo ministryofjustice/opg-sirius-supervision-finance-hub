@@ -1,6 +1,8 @@
 package shared
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 type BillingHistory struct {
 	User               string       `json:"user"`
