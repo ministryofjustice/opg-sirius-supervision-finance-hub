@@ -2,7 +2,7 @@
     <div class="moj-timeline__item">
         <div class="moj-timeline__header">
             <h2 class="moj-timeline__title">
-                {{ printf "Pending %v of £%v added to %v"  .Event.AdjustmentType (.IntToDecimal .Event.Amount) .Event.InvoiceReference.Reference }}
+                Pending {{.Event.AdjustmentType}} of £{{ transformToTwoDecimals .Event.Amount }} added to {{.Event.InvoiceReference.Reference }}
             </h2>
             <p class="moj-timeline__byline">
                 {{ printf "by %v, %v" .User .Date }}
