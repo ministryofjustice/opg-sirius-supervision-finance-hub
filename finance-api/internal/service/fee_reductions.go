@@ -19,7 +19,7 @@ func (s *Service) GetFeeReductions(ctx context.Context, id int) (*shared.FeeRedu
 		endDate := shared.Date{Time: fee.Enddate.Time}
 		var feeReduction = shared.FeeReduction{
 			Id:           int(fee.ID),
-			Type:         fee.Type,
+			Type:         shared.ParseFeeReductionType(fee.Type),
 			StartDate:    startDate,
 			EndDate:      endDate,
 			DateReceived: shared.Date{Time: fee.Datereceived.Time},

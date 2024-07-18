@@ -1,0 +1,22 @@
+{{ define "fee-reduction-cancelled-event" }}
+    <div class="moj-timeline__item">
+        <div class="moj-timeline__header">
+            <h2 class="moj-timeline__title">
+                {{ printf "%v cancelled" .Event.ReductionType }}
+            </h2>
+            <p class="moj-timeline__byline">
+                {{ printf "by %v, %v" .User .Date }}
+            </p>
+        </div>
+        <p class="moj-timeline__date">
+            {{ printf "Outstanding balance: £%v Credit balance: £0" .OutstandingBalance }}
+        </p>
+        <div class="moj-timeline__description">
+            <ul class="govuk-list govuk-list--bullet">
+                <li>
+                    {{ printf "Cancellation reasons: %v" .Event.CancellationReason}}
+                </li>
+            </ul>
+        </div>
+    </div>
+{{ end }}

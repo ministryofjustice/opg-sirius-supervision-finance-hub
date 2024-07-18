@@ -13,7 +13,7 @@ func addFeeReductionSetup(conn testhelpers.TestConn) (Service, shared.AddFeeRedu
 	receivedDate := shared.NewDate("2024-01-01")
 
 	params := shared.AddFeeReduction{
-		FeeType:       "remission",
+		FeeType:       shared.FeeReductionTypeRemission,
 		StartYear:     "2021",
 		LengthOfAward: 3,
 		DateReceived:  &receivedDate,

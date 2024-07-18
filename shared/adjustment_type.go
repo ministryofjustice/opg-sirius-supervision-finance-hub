@@ -13,15 +13,15 @@ type AdjustmentType int
 const (
 	AdjustmentTypeUnknown AdjustmentType = iota
 	AdjustmentTypeWriteOff
-	AdjustmentTypeAddCredit
-	AdjustmentTypeAddDebit
+	AdjustmentTypeCreditMemo
+	AdjustmentTypeDebitMemo
 	AdjustmentTypeWriteOffReversal
 )
 
 var adjustmentTypeMap = map[string]AdjustmentType{
 	"CREDIT WRITE OFF":   AdjustmentTypeWriteOff,
-	"CREDIT MEMO":        AdjustmentTypeAddCredit,
-	"DEBIT MEMO":         AdjustmentTypeAddDebit,
+	"CREDIT MEMO":        AdjustmentTypeCreditMemo,
+	"DEBIT MEMO":         AdjustmentTypeDebitMemo,
 	"WRITE OFF REVERSAL": AdjustmentTypeWriteOffReversal,
 }
 
@@ -29,9 +29,9 @@ func (i AdjustmentType) Translation() string {
 	switch i {
 	case AdjustmentTypeWriteOff:
 		return "Write off"
-	case AdjustmentTypeAddCredit:
+	case AdjustmentTypeCreditMemo:
 		return "Add credit"
-	case AdjustmentTypeAddDebit:
+	case AdjustmentTypeDebitMemo:
 		return "Add debit"
 	case AdjustmentTypeWriteOffReversal:
 		return "Write off reversal (Not yet implemented)"
@@ -44,9 +44,9 @@ func (i AdjustmentType) Key() string {
 	switch i {
 	case AdjustmentTypeWriteOff:
 		return "CREDIT WRITE OFF"
-	case AdjustmentTypeAddCredit:
+	case AdjustmentTypeCreditMemo:
 		return "CREDIT MEMO"
-	case AdjustmentTypeAddDebit:
+	case AdjustmentTypeDebitMemo:
 		return "DEBIT MEMO"
 	case AdjustmentTypeWriteOffReversal:
 		return "WRITE OFF REVERSAL"
@@ -57,7 +57,7 @@ func (i AdjustmentType) Key() string {
 
 func (i AdjustmentType) AmountRequired() bool {
 	switch i {
-	case AdjustmentTypeAddCredit, AdjustmentTypeAddDebit:
+	case AdjustmentTypeCreditMemo, AdjustmentTypeDebitMemo:
 		return true
 	default:
 		return false

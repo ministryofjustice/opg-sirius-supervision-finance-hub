@@ -23,11 +23,11 @@ func Test_computeBillingHistory(t *testing.T) {
 			name: "Returns correct amount per billing history",
 			args: args{history: []historyHolder{{
 				billingHistory: shared.BillingHistory{
-					User: "65",
+					User: 65,
 					Date: shared.Date{Time: time.Date(2022, time.November, 4, 15, 4, 5, 0, time.UTC)},
 					Event: shared.InvoiceAdjustmentPending{
-						AdjustmentType: "credit memo",
-						ClientId:       "1",
+						AdjustmentType: shared.AdjustmentTypeCreditMemo,
+						ClientId:       1,
 						Notes:          "credit adjustment for 12.00",
 						PaymentBreakdown: shared.PaymentBreakdown{
 							InvoiceReference: shared.InvoiceEvent{
@@ -36,11 +36,30 @@ func Test_computeBillingHistory(t *testing.T) {
 							},
 							Amount: 12,
 						},
-						BaseBillingEvent: shared.BaseBillingEvent{Type: 6},
+						BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeInvoiceAdjustmentPending},
 					},
 					OutstandingBalance: 0,
 				},
 				balanceAdjustment: 0,
+			}}},
+			want: []shared.BillingHistory{{
+				User: 65,
+				Date: shared.Date{Time: time.Date(2022, time.November, 4, 15, 4, 5, 0, time.UTC)},
+				Event: shared.InvoiceAdjustmentPending{
+					AdjustmentType: shared.AdjustmentTypeCreditMemo,
+					ClientId:       1,
+					Notes:          "credit adjustment for 12.00",
+					PaymentBreakdown: shared.PaymentBreakdown{
+						InvoiceReference: shared.InvoiceEvent{
+							ID:        1,
+							Reference: "S206666/18",
+						},
+						Amount: 12,
+					},
+					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeInvoiceAdjustmentPending},
+				},
+				OutstandingBalance: 0,
+			}},
 			},
 				{
 					billingHistory: shared.BillingHistory{
@@ -141,11 +160,11 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 			id:   1,
 			want: []shared.BillingHistory{
 				{
-					User: "65",
+					User: 65,
 					Date: shared.Date{Time: debtMemoDate},
 					Event: shared.InvoiceAdjustmentPending{
-						AdjustmentType: "debit memo",
-						ClientId:       "1",
+						AdjustmentType: shared.AdjustmentTypeDebitMemo,
+						ClientId:       1,
 						Notes:          "",
 						PaymentBreakdown: shared.PaymentBreakdown{
 							InvoiceReference: shared.InvoiceEvent{
@@ -154,16 +173,16 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 							},
 							Amount: 55555,
 						},
-						BaseBillingEvent: shared.BaseBillingEvent{Type: 6},
+						BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeInvoiceAdjustmentPending},
 					},
 					OutstandingBalance: 32000,
 				},
 				{
-					User: "65",
+					User: 65,
 					Date: shared.Date{Time: creditMemoDate},
 					Event: shared.InvoiceAdjustmentPending{
-						AdjustmentType: "credit memo",
-						ClientId:       "1",
+						AdjustmentType: shared.AdjustmentTypeCreditMemo,
+						ClientId:       1,
 						Notes:          "",
 						PaymentBreakdown: shared.PaymentBreakdown{
 							InvoiceReference: shared.InvoiceEvent{
@@ -172,7 +191,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 							},
 							Amount: 12300,
 						},
-						BaseBillingEvent: shared.BaseBillingEvent{Type: 6},
+						BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeInvoiceAdjustmentPending},
 					},
 					OutstandingBalance: 32000,
 				},

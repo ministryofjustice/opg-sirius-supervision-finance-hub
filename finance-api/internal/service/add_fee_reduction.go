@@ -6,7 +6,6 @@ import (
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -24,7 +23,7 @@ func (s *Service) AddFeeReduction(ctx context.Context, id int, data shared.AddFe
 
 	addFeeReductionQueryArgs := store.AddFeeReductionParams{
 		ClientID:     int32(id),
-		Type:         strings.ToUpper(data.FeeType),
+		Type:         data.FeeType.Key(),
 		Startdate:    calculateFeeReductionStartDate(data.StartYear),
 		Enddate:      calculateFeeReductionEndDate(data.StartYear, data.LengthOfAward),
 		Notes:        data.Notes,

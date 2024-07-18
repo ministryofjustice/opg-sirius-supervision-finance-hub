@@ -5,8 +5,6 @@ import (
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
 	"sort"
-	"strconv"
-	"strings"
 )
 
 type historyHolder struct {
@@ -19,9 +17,9 @@ type allocationHolder struct {
 	ledgerType  string
 	notes       string
 	createdDate shared.Date
-	user        string
+	user        int
 	breakdown   []shared.PaymentBreakdown
-	clientId    string
+	clientId    int
 }
 
 func (s *Service) GetBillingHistory(ctx context.Context, clientID int) ([]shared.BillingHistory, error) {
@@ -32,16 +30,22 @@ func (s *Service) GetBillingHistory(ctx context.Context, clientID int) ([]shared
 		return nil, err
 	}
 
-	history = invoiceEvents(invoices, history, strconv.Itoa(clientID))
+	history = invoiceEvents(invoices, history, int32(clientID))
 
 	pendingAllocations, err := s.store.GetPendingLedgerAllocations(ctx, int32(clientID))
 	if err != nil {
 		return nil, err
 	}
 
-	allocationsByLedger := aggregateAllocations(pendingAllocations, strconv.Itoa(clientID))
+	allocationsByLedger := aggregateAllocations(pendingAllocations, int32(clientID))
 	history = append(history, processAllocations(allocationsByLedger)...)
-	sortHistoryByDate(history)
+
+	feEvents, err := s.store.GetFeeReductionEvents(ctx, int32(clientID))
+	if err != nil {
+		return nil, err
+	}
+
+	history = append(history, processFeeReductionEvents(feEvents)...)
 
 	return computeBillingHistory(history), nil
 }
@@ -73,7 +77,7 @@ func invoiceEvents(invoices []store.GetGeneratedInvoicesRow, history []historyHo
 	return history
 }
 
-func aggregateAllocations(pendingAllocations []store.GetPendingLedgerAllocationsRow, clientID string) map[int32]allocationHolder {
+func aggregateAllocations(pendingAllocations []store.GetPendingLedgerAllocationsRow, clientID int) map[int32]allocationHolder {
 	allocationsByLedger := make(map[int32]allocationHolder)
 	for _, allo := range pendingAllocations {
 		a, ok := allocationsByLedger[allo.LedgerID]
@@ -83,8 +87,8 @@ func aggregateAllocations(pendingAllocations []store.GetPendingLedgerAllocations
 				ledgerType:  allo.Type,
 				notes:       allo.Notes.String,
 				clientId:    clientID,
-				createdDate: shared.Date{Time: allo.Datetime.Time},
-				user:        strconv.Itoa(int(allo.CreatedbyID.Int32)),
+				createdDate: shared.Date{Time: allo.Createddate.Time},
+				user:        int(allo.CreatedbyID.Int32),
 				breakdown:   []shared.PaymentBreakdown{},
 			}
 		}
@@ -115,7 +119,7 @@ func processAllocations(allocationsByLedger map[int32]allocationHolder) []histor
 					BaseBillingEvent: shared.BaseBillingEvent{
 						Type: shared.EventTypeInvoiceAdjustmentPending,
 					},
-					AdjustmentType:   strings.ToLower(allo.ledgerType),
+					AdjustmentType:   shared.ParseAdjustmentType(allo.ledgerType),
 					Notes:            allo.notes,
 					PaymentBreakdown: allo.breakdown[0],
 					ClientId:         allo.clientId,
@@ -131,13 +135,52 @@ func processAllocations(allocationsByLedger map[int32]allocationHolder) []histor
 	return history
 }
 
-func sortHistoryByDate(history []historyHolder) {
-	sort.Slice(history, func(i, j int) bool {
-		return history[i].billingHistory.Date.Time.Before(history[j].billingHistory.Date.Time)
-	})
+func processFeeReductionEvents(feEvents []store.GetFeeReductionEventsRow) []historyHolder {
+	var history []historyHolder
+	for _, fe := range feEvents {
+		var bh shared.BillingHistory
+		if fe.CancelledBy.Valid {
+			bh = shared.BillingHistory{
+				User: int(fe.CancelledBy.Int32),
+				Date: shared.Date{Time: fe.CancelledAt.Time},
+				Event: shared.FeeReductionCancelled{
+					ReductionType:      shared.ParseFeeReductionType(fe.Type),
+					CancellationReason: fe.CancellationReason.String,
+					BaseBillingEvent: shared.BaseBillingEvent{
+						Type: shared.EventTypeFeeReductionCancelled,
+					},
+				},
+			}
+		} else {
+			bh = shared.BillingHistory{
+				User: int(fe.CreatedBy.Int32),
+				Date: shared.Date{Time: fe.CreatedAt.Time},
+				Event: shared.FeeReductionAwarded{
+					ReductionType: shared.ParseFeeReductionType(fe.Type),
+					StartDate:     shared.Date{Time: fe.Startdate.Time},
+					EndDate:       shared.Date{Time: fe.Enddate.Time},
+					DateReceived:  shared.Date{Time: fe.Datereceived.Time},
+					Notes:         fe.Notes,
+					BaseBillingEvent: shared.BaseBillingEvent{
+						Type: shared.EventTypeFeeReductionAwarded,
+					},
+				},
+			}
+		}
+		history = append(history, historyHolder{
+			billingHistory:    bh,
+			balanceAdjustment: 0,
+		})
+	}
+	return history
 }
 
 func computeBillingHistory(history []historyHolder) []shared.BillingHistory {
+	// reverse order to allow for balance to be calculated
+	sort.Slice(history, func(i, j int) bool {
+		return history[i].billingHistory.Date.Time.Before(history[j].billingHistory.Date.Time)
+	})
+
 	var outstanding int
 	var billingHistory []shared.BillingHistory
 	for _, bh := range history {
@@ -145,6 +188,8 @@ func computeBillingHistory(history []historyHolder) []shared.BillingHistory {
 		bh.billingHistory.OutstandingBalance = outstanding
 		billingHistory = append(billingHistory, bh.billingHistory)
 	}
+
+	// flip it back
 	sort.Slice(billingHistory, func(i, j int) bool {
 		if billingHistory[i].Date.Time.Equal(billingHistory[j].Date.Time) {
 			return billingHistory[i].OutstandingBalance > billingHistory[j].OutstandingBalance

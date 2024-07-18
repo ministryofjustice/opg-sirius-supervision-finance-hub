@@ -91,7 +91,7 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 	feeReduction, _ := transaction.GetFeeReductionForDate(ctx, AddFeeReductionToInvoiceParams)
 
 	if feeReduction.FeeReductionID != 0 {
-		err = s.AddLedgerAndAllocations(feeReduction.Type, feeReduction.FeeReductionID, feeReduction.FinanceClientID.Int32, invoice, transaction, ctx)
+		err = s.AddLedgerAndAllocations(shared.ParseFeeReductionType(feeReduction.Type), feeReduction.FeeReductionID, feeReduction.FinanceClientID.Int32, invoice, transaction, ctx)
 		if err != nil {
 			return err
 		}
@@ -105,12 +105,12 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 	return nil
 }
 
-func (s *Service) AddLedgerAndAllocations(feeReductionFeeType string, feeReductionId int32, feeReductionFinanceClientID int32, invoice store.Invoice, transaction *store.Queries, ctx context.Context) error {
+func (s *Service) AddLedgerAndAllocations(feeReductionFeeType shared.FeeReductionType, feeReductionId int32, feeReductionFinanceClientID int32, invoice store.Invoice, transaction *store.Queries, ctx context.Context) error {
 	var amount int32 = 0
-	switch strings.ToLower(feeReductionFeeType) {
-	case "exemption", "hardship":
+	switch feeReductionFeeType {
+	case shared.FeeReductionTypeExemption, shared.FeeReductionTypeHardship:
 		amount = invoice.Amount
-	case "remission":
+	case shared.FeeReductionTypeRemission:
 		invoiceFeeRangeParams := store.GetInvoiceFeeRangeAmountParams{
 			InvoiceID:        pgtype.Int4{Int32: invoice.ID, Valid: true},
 			Supervisionlevel: "GENERAL",
@@ -122,10 +122,10 @@ func (s *Service) AddLedgerAndAllocations(feeReductionFeeType string, feeReducti
 	}
 	if amount != 0 {
 		ledgerQueryArgs := store.CreateLedgerForFeeReductionParams{
-			Method:          feeReductionFeeType + " credit for invoice " + invoice.Reference,
+			Method:          feeReductionFeeType.Translation() + " credit for invoice " + invoice.Reference,
 			Amount:          amount,
-			Notes:           pgtype.Text{String: "Credit due to manual invoice " + feeReductionFeeType, Valid: true},
-			Type:            "CREDIT " + feeReductionFeeType,
+			Notes:           pgtype.Text{String: "Credit due to manual invoice " + strings.ToLower(feeReductionFeeType.Key()), Valid: true},
+			Type:            "CREDIT " + feeReductionFeeType.Key(),
 			FinanceClientID: pgtype.Int4{Int32: feeReductionFinanceClientID, Valid: true},
 			FeeReductionID:  pgtype.Int4{Int32: feeReductionId, Valid: true},
 			//TODO make sure we have correct createdby ID in ticket PFS-88

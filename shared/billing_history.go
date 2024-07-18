@@ -5,7 +5,7 @@ import (
 )
 
 type BillingHistory struct {
-	User               string       `json:"user"`
+	User               int          `json:"user"`
 	Date               Date         `json:"date"`
 	Event              BillingEvent `json:"event"`
 	OutstandingBalance int          `json:"outstanding_balance"`
@@ -29,9 +29,11 @@ func (b *BillingHistory) UnmarshalJSON(data []byte) (err error) {
 		b.Event = new(InvoiceGenerated)
 	case EventTypeFeeReductionAwarded:
 		b.Event = new(FeeReductionAwarded)
+	case EventTypeFeeReductionCancelled:
+		b.Event = new(FeeReductionCancelled)
 	case EventTypeFeeReductionApplied:
 		b.Event = new(FeeReductionApplied)
-	case EventTypeInvoiceAdjustmentApproved:
+	case EventTypeInvoiceAdjustmentApplied:
 		b.Event = new(InvoiceAdjustmentApproved)
 	case EventTypeInvoiceAdjustmentPending:
 		b.Event = new(InvoiceAdjustmentPending)
@@ -59,7 +61,7 @@ func (d BaseBillingEvent) GetType() BillingEventType {
 }
 
 type InvoiceGenerated struct {
-	ClientId         string       `json:"client_id"`
+	ClientId         int          `json:"client_id"`
 	InvoiceReference InvoiceEvent `json:"invoice_reference"`
 	InvoiceType      string       `json:"invoice_type"`
 	InvoiceName      string       `json:"invoice_name"`
@@ -68,33 +70,39 @@ type InvoiceGenerated struct {
 }
 
 type FeeReductionAwarded struct {
-	ReductionType string `json:"reduction_type"`
-	StartDate     Date   `json:"start_date"`
-	EndDate       Date   `json:"end_date"`
-	DateReceived  Date   `json:"date_received"`
-	Notes         string `json:"notes"`
+	ReductionType FeeReductionType `json:"reduction_type"`
+	StartDate     Date             `json:"start_date"`
+	EndDate       Date             `json:"end_date"`
+	DateReceived  Date             `json:"date_received"`
+	Notes         string           `json:"notes"`
+	BaseBillingEvent
+}
+
+type FeeReductionCancelled struct {
+	ReductionType      FeeReductionType `json:"reduction_type"`
+	CancellationReason string           `json:"cancellation_reason"`
 	BaseBillingEvent
 }
 
 type FeeReductionApplied struct {
-	ClientId         string `json:"client_id"`
-	ReductionType    string `json:"reduction_type"`
+	ClientId         int              `json:"client_id"`
+	ReductionType    FeeReductionType `json:"reduction_type"`
 	PaymentBreakdown `json:"payment_breakdown"`
 	BaseBillingEvent
 }
 
 type InvoiceAdjustmentApproved struct {
-	AdjustmentType   string `json:"adjustment_type"`
-	ClientId         string `json:"client_id"`
-	Notes            string `json:"notes"`
+	AdjustmentType   AdjustmentType `json:"adjustment_type"`
+	ClientId         int            `json:"client_id"`
+	Notes            string         `json:"notes"`
 	PaymentBreakdown `json:"payment_breakdown"`
 	BaseBillingEvent
 }
 
 type InvoiceAdjustmentPending struct {
-	AdjustmentType   string `json:"adjustment_type"`
-	ClientId         string `json:"client_id"`
-	Notes            string `json:"notes"`
+	AdjustmentType   AdjustmentType `json:"adjustment_type"`
+	ClientId         int            `json:"client_id"`
+	Notes            string         `json:"notes"`
 	PaymentBreakdown `json:"payment_breakdown"`
 	BaseBillingEvent
 }
@@ -117,8 +125,9 @@ const (
 	EventTypeUnknown BillingEventType = iota
 	EventTypeInvoiceGenerated
 	EventTypeFeeReductionAwarded
+	EventTypeFeeReductionCancelled
 	EventTypeFeeReductionApplied
-	EventTypeInvoiceAdjustmentApproved
+	EventTypeInvoiceAdjustmentApplied
 	EventTypePaymentProcessed
 	EventTypeInvoiceAdjustmentPending
 )
@@ -127,8 +136,9 @@ var eventTypeMap = map[string]BillingEventType{
 	"UNKNOWN":                    EventTypeUnknown,
 	"INVOICE_GENERATED":          EventTypeInvoiceGenerated,
 	"FEE_REDUCTION_AWARDED":      EventTypeFeeReductionAwarded,
+	"FEE_REDUCTION_CANCELLED":    EventTypeFeeReductionCancelled,
 	"FEE_REDUCTION_APPLIED":      EventTypeFeeReductionApplied,
-	"INVOICE_ADJUSTMENT_APPLIED": EventTypeInvoiceAdjustmentApproved,
+	"INVOICE_ADJUSTMENT_APPLIED": EventTypeInvoiceAdjustmentApplied,
 	"INVOICE_ADJUSTMENT_PENDING": EventTypeInvoiceAdjustmentPending,
 	"PAYMENT_PROCESSED":          EventTypePaymentProcessed,
 }
@@ -141,7 +151,9 @@ func (b BillingEventType) String() string {
 		return "FEE_REDUCTION_AWARDED"
 	case EventTypeFeeReductionApplied:
 		return "FEE_REDUCTION_APPLIED"
-	case EventTypeInvoiceAdjustmentApproved:
+	case EventTypeFeeReductionCancelled:
+		return "FEE_REDUCTION_CANCELLED"
+	case EventTypeInvoiceAdjustmentApplied:
 		return "INVOICE_ADJUSTMENT_APPLIED"
 	case EventTypeInvoiceAdjustmentPending:
 		return "INVOICE_ADJUSTMENT_PENDING"
