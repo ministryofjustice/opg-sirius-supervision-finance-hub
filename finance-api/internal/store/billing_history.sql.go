@@ -11,39 +11,47 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const getGeneratedInvoices = `-- name: GetGeneratedInvoices :many
-SELECT i.id invoice_id, reference, feetype, amount, createdby_id, coalesce(confirmeddate, createddate) invoice_date
-FROM invoice i
-         JOIN finance_client fc ON fc.id = i.finance_client_id
+const getFeeReductionEvents = `-- name: GetFeeReductionEvents :many
+SELECT fr.type, fr.startdate, fr.enddate, fr.datereceived, fr.notes, fr.created_at, fr.created_by, fr.cancelled_at, fr.cancelled_by, fr.cancellation_reason
+FROM fee_reduction fr
+JOIN finance_client fc ON fc.id = fr.finance_client_id
 WHERE fc.client_id = $1
-ORDER BY COALESCE(confirmeddate, createddate) DESC
+AND fr.created_at IS NOT NULL OR fr.cancelled_at IS NOT NULL
 `
 
-type GetGeneratedInvoicesRow struct {
-	InvoiceID   int32
-	Reference   string
-	Feetype     string
-	Amount      int32
-	CreatedbyID pgtype.Int4
-	InvoiceDate pgtype.Date
+type GetFeeReductionEventsRow struct {
+	Type               string
+	Startdate          pgtype.Date
+	Enddate            pgtype.Date
+	Datereceived       pgtype.Date
+	Notes              string
+	CreatedAt          pgtype.Date
+	CreatedBy          pgtype.Int4
+	CancelledAt        pgtype.Date
+	CancelledBy        pgtype.Int4
+	CancellationReason pgtype.Text
 }
 
-func (q *Queries) GetGeneratedInvoices(ctx context.Context, clientID int32) ([]GetGeneratedInvoicesRow, error) {
-	rows, err := q.db.Query(ctx, getGeneratedInvoices, clientID)
+func (q *Queries) GetFeeReductionEvents(ctx context.Context, clientID int32) ([]GetFeeReductionEventsRow, error) {
+	rows, err := q.db.Query(ctx, getFeeReductionEvents, clientID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetGeneratedInvoicesRow
+	var items []GetFeeReductionEventsRow
 	for rows.Next() {
-		var i GetGeneratedInvoicesRow
+		var i GetFeeReductionEventsRow
 		if err := rows.Scan(
-			&i.InvoiceID,
-			&i.Reference,
-			&i.Feetype,
-			&i.Amount,
-			&i.CreatedbyID,
-			&i.InvoiceDate,
+			&i.Type,
+			&i.Startdate,
+			&i.Enddate,
+			&i.Datereceived,
+			&i.Notes,
+			&i.CreatedAt,
+			&i.CreatedBy,
+			&i.CancelledAt,
+			&i.CancelledBy,
+			&i.CancellationReason,
 		); err != nil {
 			return nil, err
 		}
@@ -56,7 +64,7 @@ func (q *Queries) GetGeneratedInvoices(ctx context.Context, clientID int32) ([]G
 }
 
 const getPendingLedgerAllocations = `-- name: GetPendingLedgerAllocations :many
-SELECT i.id invoice_id, l.id ledger_id, i.reference, l.type, la.amount, l.notes, l.confirmeddate, l.createdby_id, l.status, l.datetime
+SELECT i.id invoice_id, l.id ledger_id, i.reference, l.type, la.amount, l.notes, l.confirmeddate, l.createdby_id, l.status, l.createddate
 FROM ledger_allocation la
          JOIN ledger l ON l.id = la.ledger_id
          JOIN invoice i ON i.id = la.invoice_id
@@ -76,7 +84,7 @@ type GetPendingLedgerAllocationsRow struct {
 	Confirmeddate pgtype.Date
 	CreatedbyID   pgtype.Int4
 	Status        string
-	Datetime      pgtype.Timestamp
+	Createddate   pgtype.Date
 }
 
 func (q *Queries) GetPendingLedgerAllocations(ctx context.Context, clientID int32) ([]GetPendingLedgerAllocationsRow, error) {
@@ -98,7 +106,7 @@ func (q *Queries) GetPendingLedgerAllocations(ctx context.Context, clientID int3
 			&i.Confirmeddate,
 			&i.CreatedbyID,
 			&i.Status,
-			&i.Datetime,
+			&i.Createddate,
 		); err != nil {
 			return nil, err
 		}

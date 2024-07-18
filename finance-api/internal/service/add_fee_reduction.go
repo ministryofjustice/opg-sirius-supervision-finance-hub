@@ -2,10 +2,7 @@ package service
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
 	"strconv"
@@ -13,9 +10,7 @@ import (
 	"time"
 )
 
-func (s *Service) AddFeeReduction(ctx context.Context, id int, data shared.AddFeeReduction) error {
-	logger := telemetry.LoggerFromContext(ctx)
-
+func (s *Service) AddFeeReduction(ctx context.Context, id int, data shared.AddFeeReduction) (txErr error) {
 	countOverlappingFeeReductionParams := store.CountOverlappingFeeReductionParams{
 		ClientID:   int32(id),
 		Overlaps:   calculateFeeReductionStartDate(data.StartYear),
@@ -33,20 +28,18 @@ func (s *Service) AddFeeReduction(ctx context.Context, id int, data shared.AddFe
 		Startdate:    calculateFeeReductionStartDate(data.StartYear),
 		Enddate:      calculateFeeReductionEndDate(data.StartYear, data.LengthOfAward),
 		Notes:        data.Notes,
-		Deleted:      false,
 		Datereceived: pgtype.Date{Time: data.DateReceived.Time, Valid: true},
+		//TODO make sure we have correct createdby ID in ticket PFS-88
+		CreatedBy: pgtype.Int4{Int32: 1, Valid: true},
 	}
+
+	ctx, cancelTx := context.WithCancel(ctx)
+	defer cancelTx()
 
 	tx, err := s.tx.Begin(ctx)
 	if err != nil {
 		return err
 	}
-
-	defer func() {
-		if err := tx.Rollback(ctx); !errors.Is(err, sql.ErrTxDone) {
-			logger.Error("Error rolling back add fee reduction transaction:", err)
-		}
-	}()
 
 	transaction := s.store.WithTx(tx)
 
