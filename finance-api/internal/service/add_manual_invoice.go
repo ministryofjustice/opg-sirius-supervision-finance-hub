@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data shared.AddManualInvoice) error {
+func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data shared.AddManualInvoice) (txErr error) {
 	var validationsErrors []string
 
 	if data.InvoiceType.RequiresDateValidation() {
