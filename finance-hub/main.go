@@ -7,6 +7,7 @@ import (
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/server"
+	"github.com/opg-sirius-finance-hub/shared"
 	"html/template"
 	"log/slog"
 	"net/http"
@@ -99,6 +100,9 @@ func createTemplates(envVars server.EnvironmentVars) map[string]*template.Templa
 		},
 		"sirius": func(s string) string {
 			return envVars.SiriusPublicURL + s
+		},
+		"transformToTwoDecimals": func(amount int) string {
+			return shared.IntToDecimalString(amount)
 		},
 	}
 
