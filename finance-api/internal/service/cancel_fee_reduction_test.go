@@ -1,8 +1,8 @@
 package service
 
 import (
-	"database/sql"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
+	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"time"
 )
@@ -23,28 +23,22 @@ func (suite *IntegrationSuite) TestService_CancelFeeReduction() {
 		tx:    conn,
 	}
 
-	err := s.CancelFeeReduction(ctx, 33)
-	rows, _ := conn.Query(ctx, "SELECT * FROM supervision_finance.fee_reduction WHERE id = 33")
-	defer rows.Close()
+	err := s.CancelFeeReduction(ctx, 33, shared.CancelFeeReduction{CancellationReason: "Reason for cancellation"})
+	rows := conn.QueryRow(ctx, "SELECT deleted, cancelled_at, cancelled_by, cancellation_reason FROM supervision_finance.fee_reduction WHERE id = 33")
 
-	for rows.Next() {
-		var (
-			id            int
-			financeClient int
-			feeType       string
-			evidenceType  sql.NullString
-			startDate     time.Time
-			endDate       time.Time
-			notes         string
-			deleted       bool
-			dateReceived  time.Time
-		)
+	var (
+		deleted            bool
+		cancelledAt        time.Time
+		cancelledBy        int
+		cancellationReason string
+	)
 
-		_ = rows.Scan(&id, &financeClient, &feeType, &evidenceType, &startDate, &endDate, &notes, &deleted, &dateReceived)
+	_ = rows.Scan(&deleted, &cancelledAt, &cancelledBy, &cancellationReason)
 
-		assert.Equal(suite.T(), true, deleted)
-		assert.Equal(suite.T(), "Remission to see the notes", notes)
-	}
+	assert.Equal(suite.T(), true, deleted)
+	assert.Equal(suite.T(), 1, cancelledBy)
+	assert.NotNil(suite.T(), cancelledAt)
+	assert.Equal(suite.T(), "Reason for cancellation", cancellationReason)
 
 	if err == nil {
 		return

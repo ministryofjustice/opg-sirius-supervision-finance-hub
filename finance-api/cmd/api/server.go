@@ -19,7 +19,7 @@ type Service interface {
 	CreateLedgerEntry(ctx context.Context, clientId int, invoiceId int, ledgerEntry *shared.CreateLedgerEntryRequest) (*shared.InvoiceReference, error)
 	GetInvoiceAdjustments(ctx context.Context, clientId int) (*shared.InvoiceAdjustments, error)
 	AddFeeReduction(ctx context.Context, clientId int, data shared.AddFeeReduction) error
-	CancelFeeReduction(ctx context.Context, id int) error
+	CancelFeeReduction(ctx context.Context, id int, cancelledFeeReduction shared.CancelFeeReduction) error
 	UpdatePendingInvoiceAdjustment(ctx context.Context, ledgerId int, status string) error
 	AddManualInvoice(ctx context.Context, id int, invoice shared.AddManualInvoice) error
 	GetBillingHistory(ctx context.Context, id int) ([]shared.BillingHistory, error)
@@ -54,7 +54,7 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 	handleFunc("PUT /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", s.cancelFeeReduction)
 
 	handleFunc("/health-check", func(w http.ResponseWriter, r *http.Request) {})
-	
+
 	return otelhttp.NewHandler(telemetry.Middleware(logger)(securityheaders.Use(s.RequestLogger(mux))), "supervision-finance-api")
 }
 
