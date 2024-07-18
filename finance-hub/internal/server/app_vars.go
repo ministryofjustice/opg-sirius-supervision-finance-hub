@@ -11,6 +11,7 @@ type AppVars struct {
 	Tabs            []Tab
 	EnvironmentVars EnvironmentVars
 	Errors          shared.ValidationErrors
+	Error           string
 }
 
 type Tab struct {
@@ -20,7 +21,7 @@ type Tab struct {
 	Selected bool
 }
 
-func NewAppVars(r *http.Request, envVars EnvironmentVars) (AppVars, error) {
+func NewAppVars(r *http.Request, envVars EnvironmentVars) AppVars {
 	ctx := getContext(r)
 
 	clientId := r.PathValue("clientId")
@@ -54,7 +55,7 @@ func NewAppVars(r *http.Request, envVars EnvironmentVars) (AppVars, error) {
 		Tabs:            tabs,
 	}
 
-	return vars, nil
+	return vars
 }
 
 func (a *AppVars) selectTab(s string) {
