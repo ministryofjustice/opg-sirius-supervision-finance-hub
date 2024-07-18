@@ -2,14 +2,14 @@
     <div class="moj-timeline__item">
         <div class="moj-timeline__header">
             <h2 class="moj-timeline__title">
-                {{ printf "%v applied to %v for %v" .Event.ReductionType .Event.InvoiceReference.Reference .Event.Amount }}
+                {{ printf "%v credit of £%v applied to %v" .Event.ReductionType .Event.Amount .Event.InvoiceReference.Reference }}
             </h2>
             <p class="moj-timeline__byline">
                 {{ printf "by %v, %v" .User .Date }}
             </p>
         </div>
         <p class="moj-timeline__date">
-            {{ printf "Outstanding balance: £%v Credit balance: £0" .OutstandingBalance }}
+            {{ printf "Outstanding balance: £%v On account balance: £0" .OutstandingBalance }}
         </p>
         <div class="moj-timeline__description">
             <ul class="govuk-list govuk-list--bullet">

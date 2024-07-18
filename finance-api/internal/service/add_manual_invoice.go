@@ -131,7 +131,7 @@ func (s *Service) AddLedgerAndAllocations(feeReductionFeeType string, feeReducti
 			Method:          feeReductionFeeType + " credit for invoice " + invoice.Reference,
 			Amount:          amount,
 			Notes:           pgtype.Text{String: "Credit due to manual invoice " + feeReductionFeeType, Valid: true},
-			Type:            "CREDIT " + feeReductionFeeType,
+			Type:            "CREDIT " + strings.ToUpper(feeReductionFeeType),
 			FinanceClientID: pgtype.Int4{Int32: feeReductionFinanceClientID, Valid: true},
 			FeeReductionID:  pgtype.Int4{Int32: feeReductionId, Valid: true},
 			//TODO make sure we have correct createdby ID in ticket PFS-88
