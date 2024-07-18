@@ -4,6 +4,8 @@ import (
 	"context"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"sort"
 	"strconv"
 	"strings"
@@ -15,13 +17,14 @@ type historyHolder struct {
 }
 
 type allocationHolder struct {
-	status      string
-	ledgerType  string
-	notes       string
-	createdDate shared.Date
-	user        string
-	breakdown   []shared.PaymentBreakdown
-	clientId    string
+	status           string
+	ledgerType       string
+	feeReductionType string
+	notes            string
+	createdDate      shared.Date
+	user             string
+	breakdown        []shared.PaymentBreakdown
+	clientId         string
 }
 
 func (s *Service) GetBillingHistory(ctx context.Context, clientID int) ([]shared.BillingHistory, error) {
@@ -34,16 +37,64 @@ func (s *Service) GetBillingHistory(ctx context.Context, clientID int) ([]shared
 
 	history = invoiceEvents(invoices, history, strconv.Itoa(clientID))
 
-	pendingAllocations, err := s.store.GetPendingLedgerAllocations(ctx, int32(clientID))
+	allocations, err := s.store.GetClientLedgerAllocations(ctx, int32(clientID))
 	if err != nil {
 		return nil, err
 	}
 
-	allocationsByLedger := aggregateAllocations(pendingAllocations, strconv.Itoa(clientID))
-	history = append(history, processAllocations(allocationsByLedger)...)
-	sortHistoryByDate(history)
+	history = allocationEvents(allocations, history, strconv.Itoa(clientID))
 
+	sortHistoryByDate(history)
 	return computeBillingHistory(history), nil
+}
+
+func allocationEvents(allocations []store.GetClientLedgerAllocationsRow, history []historyHolder, clientId string) []historyHolder {
+	allocationsByLedger := aggregateAllocations(allocations, clientId)
+
+	var balanceAdjustment int
+	for _, allo := range allocationsByLedger {
+		bh := shared.BillingHistory{
+			User: allo.user,
+			Date: allo.createdDate,
+		}
+
+		if allo.status == "PENDING" {
+			switch allo.ledgerType {
+			case "CREDIT MEMO", "DEBIT MEMO", "CREDIT WRITE OFF":
+				bh.Event = shared.InvoiceAdjustmentPending{
+					BaseBillingEvent: shared.BaseBillingEvent{
+						Type: shared.EventTypeInvoiceAdjustmentPending,
+					},
+					AdjustmentType:   strings.ToLower(allo.ledgerType),
+					Notes:            allo.notes,
+					PaymentBreakdown: allo.breakdown[0],
+					ClientId:         allo.clientId,
+				}
+				balanceAdjustment = 0
+			}
+		}
+
+		if allo.status == "APPROVED" {
+			switch allo.feeReductionType {
+			case "HARDSHIP", "REMISSION", "EXEMPTION":
+				bh.Event = shared.FeeReductionApplied{
+					BaseBillingEvent: shared.BaseBillingEvent{
+						Type: shared.EventTypeFeeReductionApplied,
+					},
+					ReductionType:    cases.Title(language.English).String(allo.feeReductionType),
+					PaymentBreakdown: allo.breakdown[0],
+					ClientId:         allo.clientId,
+				}
+				balanceAdjustment = -(allo.breakdown[0].Amount)
+			}
+		}
+
+		history = append(history, historyHolder{
+			billingHistory:    bh,
+			balanceAdjustment: balanceAdjustment,
+		})
+	}
+	return history
 }
 
 func invoiceEvents(invoices []store.GetGeneratedInvoicesRow, history []historyHolder, clientId string) []historyHolder {
@@ -73,19 +124,20 @@ func invoiceEvents(invoices []store.GetGeneratedInvoicesRow, history []historyHo
 	return history
 }
 
-func aggregateAllocations(pendingAllocations []store.GetPendingLedgerAllocationsRow, clientID string) map[int32]allocationHolder {
+func aggregateAllocations(allocations []store.GetClientLedgerAllocationsRow, clientID string) map[int32]allocationHolder {
 	allocationsByLedger := make(map[int32]allocationHolder)
-	for _, allo := range pendingAllocations {
+	for _, allo := range allocations {
 		a, ok := allocationsByLedger[allo.LedgerID]
 		if !ok {
 			a = allocationHolder{
-				status:      allo.Status,
-				ledgerType:  allo.Type,
-				notes:       allo.Notes.String,
-				clientId:    clientID,
-				createdDate: shared.Date{Time: allo.Datetime.Time},
-				user:        strconv.Itoa(int(allo.CreatedbyID.Int32)),
-				breakdown:   []shared.PaymentBreakdown{},
+				status:           allo.Status,
+				ledgerType:       allo.LedgerType,
+				feeReductionType: (allo.FeeReductionType).(string),
+				notes:            allo.Notes.String,
+				clientId:         clientID,
+				createdDate:      shared.Date{Time: allo.Datetime.Time},
+				user:             strconv.Itoa(int(allo.CreatedbyID.Int32)),
+				breakdown:        []shared.PaymentBreakdown{},
 			}
 		}
 		a.breakdown = append(a.breakdown, shared.PaymentBreakdown{
@@ -98,37 +150,6 @@ func aggregateAllocations(pendingAllocations []store.GetPendingLedgerAllocations
 		allocationsByLedger[allo.LedgerID] = a
 	}
 	return allocationsByLedger
-}
-
-func processAllocations(allocationsByLedger map[int32]allocationHolder) []historyHolder {
-	var history []historyHolder
-	for _, allo := range allocationsByLedger {
-		bh := shared.BillingHistory{
-			User: allo.user,
-			Date: allo.createdDate,
-		}
-
-		if allo.status == "PENDING" {
-			switch allo.ledgerType {
-			case "CREDIT MEMO", "DEBIT MEMO", "CREDIT WRITE OFF":
-				bh.Event = shared.InvoiceAdjustmentPending{
-					BaseBillingEvent: shared.BaseBillingEvent{
-						Type: shared.EventTypeInvoiceAdjustmentPending,
-					},
-					AdjustmentType:   strings.ToLower(allo.ledgerType),
-					Notes:            allo.notes,
-					PaymentBreakdown: allo.breakdown[0],
-					ClientId:         allo.clientId,
-				}
-			}
-		}
-
-		history = append(history, historyHolder{
-			billingHistory:    bh,
-			balanceAdjustment: 0,
-		})
-	}
-	return history
 }
 
 func sortHistoryByDate(history []historyHolder) {
