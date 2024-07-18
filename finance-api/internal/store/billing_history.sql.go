@@ -11,45 +11,56 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const getApprovedLedgerAllocations = `-- name: GetApprovedLedgerAllocations :many
-SELECT i.id invoice_id, l.id ledger_id, i.reference, fr.type, la.amount, l.notes, l.confirmeddate, l.createdby_id, l.status, l.datetime
+const getClientLedgerAllocations = `-- name: GetClientLedgerAllocations :many
+SELECT i.id invoice_id,
+       l.id ledger_id,
+       i.reference,
+       l.type ledger_type,
+       COALESCE((SELECT type FROM fee_reduction WHERE id = l.fee_reduction_id), '') fee_reduction_type,
+       la.amount,
+       l.notes,
+       l.confirmeddate,
+       l.createdby_id,
+       l.status,
+       l.datetime
 FROM ledger_allocation la
          JOIN ledger l ON l.id = la.ledger_id
-         JOIN fee_reduction fr on l.fee_reduction_id = fr.id
          JOIN invoice i ON i.id = la.invoice_id
          JOIN finance_client fc ON fc.id = i.finance_client_id
 WHERE fc.client_id = $1
-  AND l.status = 'APPROVED'
+  AND l.status IN ('PENDING', 'APPROVED')
 ORDER BY l.datetime DESC
 `
 
-type GetApprovedLedgerAllocationsRow struct {
-	InvoiceID     int32
-	LedgerID      int32
-	Reference     string
-	Type          string
-	Amount        int32
-	Notes         pgtype.Text
-	Confirmeddate pgtype.Date
-	CreatedbyID   pgtype.Int4
-	Status        string
-	Datetime      pgtype.Timestamp
+type GetClientLedgerAllocationsRow struct {
+	InvoiceID        int32
+	LedgerID         int32
+	Reference        string
+	LedgerType       string
+	FeeReductionType interface{}
+	Amount           int32
+	Notes            pgtype.Text
+	Confirmeddate    pgtype.Date
+	CreatedbyID      pgtype.Int4
+	Status           string
+	Datetime         pgtype.Timestamp
 }
 
-func (q *Queries) GetApprovedLedgerAllocations(ctx context.Context, clientID int32) ([]GetApprovedLedgerAllocationsRow, error) {
-	rows, err := q.db.Query(ctx, getApprovedLedgerAllocations, clientID)
+func (q *Queries) GetClientLedgerAllocations(ctx context.Context, clientID int32) ([]GetClientLedgerAllocationsRow, error) {
+	rows, err := q.db.Query(ctx, getClientLedgerAllocations, clientID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetApprovedLedgerAllocationsRow
+	var items []GetClientLedgerAllocationsRow
 	for rows.Next() {
-		var i GetApprovedLedgerAllocationsRow
+		var i GetClientLedgerAllocationsRow
 		if err := rows.Scan(
 			&i.InvoiceID,
 			&i.LedgerID,
 			&i.Reference,
-			&i.Type,
+			&i.LedgerType,
+			&i.FeeReductionType,
 			&i.Amount,
 			&i.Notes,
 			&i.Confirmeddate,
@@ -100,61 +111,6 @@ func (q *Queries) GetGeneratedInvoices(ctx context.Context, clientID int32) ([]G
 			&i.Amount,
 			&i.CreatedbyID,
 			&i.InvoiceDate,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getPendingLedgerAllocations = `-- name: GetPendingLedgerAllocations :many
-SELECT i.id invoice_id, l.id ledger_id, i.reference, l.type, la.amount, l.notes, l.confirmeddate, l.createdby_id, l.status, l.datetime
-FROM ledger_allocation la
-         JOIN ledger l ON l.id = la.ledger_id
-         JOIN invoice i ON i.id = la.invoice_id
-         JOIN finance_client fc ON fc.id = i.finance_client_id
-WHERE fc.client_id = $1
-  AND l.status = 'PENDING'
-ORDER BY l.datetime DESC
-`
-
-type GetPendingLedgerAllocationsRow struct {
-	InvoiceID     int32
-	LedgerID      int32
-	Reference     string
-	Type          string
-	Amount        int32
-	Notes         pgtype.Text
-	Confirmeddate pgtype.Date
-	CreatedbyID   pgtype.Int4
-	Status        string
-	Datetime      pgtype.Timestamp
-}
-
-func (q *Queries) GetPendingLedgerAllocations(ctx context.Context, clientID int32) ([]GetPendingLedgerAllocationsRow, error) {
-	rows, err := q.db.Query(ctx, getPendingLedgerAllocations, clientID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetPendingLedgerAllocationsRow
-	for rows.Next() {
-		var i GetPendingLedgerAllocationsRow
-		if err := rows.Scan(
-			&i.InvoiceID,
-			&i.LedgerID,
-			&i.Reference,
-			&i.Type,
-			&i.Amount,
-			&i.Notes,
-			&i.Confirmeddate,
-			&i.CreatedbyID,
-			&i.Status,
-			&i.Datetime,
 		); err != nil {
 			return nil, err
 		}
