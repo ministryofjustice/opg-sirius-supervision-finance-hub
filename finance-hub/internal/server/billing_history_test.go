@@ -12,18 +12,17 @@ import (
 func TestBillingHistory(t *testing.T) {
 	data := []shared.BillingHistory{
 		{
-			User: "Someone here",
+			User: 1,
 			Date: shared.NewDate("01/04/2222"),
 			Event: shared.InvoiceGenerated{
-				ClientId: "456",
+				ClientId: 456,
 				InvoiceReference: shared.InvoiceEvent{
 					ID:        1,
 					Reference: "A12345678/02",
 				},
-				InvoiceType:      "AD",
-				InvoiceName:      "The name of the invoice",
+				InvoiceType:      shared.InvoiceTypeAD,
 				Amount:           65498,
-				BaseBillingEvent: shared.BaseBillingEvent{Type: 1},
+				BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeInvoiceGenerated},
 			},
 			OutstandingBalance: 25124,
 		},
