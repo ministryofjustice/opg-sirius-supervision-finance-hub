@@ -17,7 +17,7 @@ func (s *Server) cancelFeeReduction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	validationError := s.Validator.ValidateStruct(cancelFeeReduction, "CancelFeeReductionNotes")
+	validationError := s.Validator.ValidateStruct(cancelFeeReduction)
 
 	if len(validationError.Errors) != 0 {
 		errorData, _ := json.Marshal(validationError)
@@ -29,7 +29,7 @@ func (s *Server) cancelFeeReduction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	feeReductionId, _ := strconv.Atoi(r.PathValue("feeReductionId"))
-	err := s.Service.CancelFeeReduction(ctx, feeReductionId)
+	err := s.Service.CancelFeeReduction(ctx, feeReductionId, cancelFeeReduction)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

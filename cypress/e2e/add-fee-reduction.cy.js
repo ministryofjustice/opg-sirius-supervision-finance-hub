@@ -11,8 +11,8 @@ describe("Add fee reduction form", () => {
 
         // successfully submit
         cy.get("#f-FeeType").contains(".govuk-radios__item", "Hardship").click();
-        cy.get("#f-StartYear").find("input").type("2000");
-        cy.get("#f-LengthOfAward").contains(".govuk-radios__item", "One year").click();
+        cy.get("#f-StartYear").find("input").type(new Date().getFullYear().toString());
+        cy.get("#f-LengthOfAward").contains(".govuk-radios__item", "Three years").click();
         cy.get("#f-DateReceived").find("input").type("2024-01-01");
         cy.get("#f-Notes").type("Needs reduction");
         cy.contains(".govuk-character-count__status", "You have 985 characters remaining");

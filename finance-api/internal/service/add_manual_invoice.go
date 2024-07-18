@@ -2,12 +2,9 @@ package service
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
-	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -36,16 +33,13 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 		return shared.BadRequests{Reasons: validationsErrors}
 	}
 
+	ctx, cancelTx := context.WithCancel(ctx)
+	defer cancelTx()
+
 	tx, err := s.tx.Begin(ctx)
 	if err != nil {
 		return err
 	}
-
-	defer func() {
-		if err := tx.Rollback(ctx); !errors.Is(err, sql.ErrTxDone) {
-			log.Println("Error rolling back add fee reduction transaction:", err)
-		}
-	}()
 
 	transaction := s.store.WithTx(tx)
 	getInvoiceCounterForYear, err := transaction.UpsertCounterForInvoiceRefYear(ctx, strconv.Itoa(data.StartDate.Time.Year())+"InvoiceNumber")
