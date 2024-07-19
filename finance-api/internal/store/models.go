@@ -28,12 +28,17 @@ type FeeReduction struct {
 	// (DC2Type:refdata)
 	Type string
 	// (DC2Type:refdata)
-	Evidencetype pgtype.Text
-	Startdate    pgtype.Date
-	Enddate      pgtype.Date
-	Notes        string
-	Deleted      bool
-	Datereceived pgtype.Date
+	Evidencetype       pgtype.Text
+	Startdate          pgtype.Date
+	Enddate            pgtype.Date
+	Notes              string
+	Deleted            bool
+	Datereceived       pgtype.Date
+	CreatedAt          pgtype.Date
+	CreatedBy          pgtype.Int4
+	CancelledAt        pgtype.Date
+	CancelledBy        pgtype.Int4
+	CancellationReason pgtype.Text
 }
 
 type FinanceClient struct {

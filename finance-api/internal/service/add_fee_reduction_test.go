@@ -1,7 +1,6 @@
 package service
 
 import (
-	"database/sql"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/testhelpers"
 	"github.com/opg-sirius-finance-hub/shared"
@@ -11,18 +10,13 @@ import (
 )
 
 func addFeeReductionSetup(conn testhelpers.TestConn) (Service, shared.AddFeeReduction) {
-	var dateReceivedTransformed *shared.Date
-
-	today := time.Now()
-	dateInRangeOfSixMonths := today.AddDate(0, -5, -29).Format("2006-01-02")
-	dateInRangeOfSixMonthsToTime, _ := time.Parse("2006-01-02", dateInRangeOfSixMonths)
-	dateReceivedTransformed = &shared.Date{Time: dateInRangeOfSixMonthsToTime}
+	receivedDate := shared.NewDate("2024-01-01")
 
 	params := shared.AddFeeReduction{
-		FeeType:       "remission",
+		FeeType:       shared.FeeReductionTypeRemission,
 		StartYear:     "2021",
 		LengthOfAward: 3,
-		DateReceived:  dateReceivedTransformed,
+		DateReceived:  &receivedDate,
 		Notes:         "Testing",
 	}
 
@@ -39,32 +33,35 @@ func (suite *IntegrationSuite) TestService_AddFeeReduction() {
 		"INSERT INTO fee_reduction VALUES (22, 22, 'REMISSION', NULL, '2019-04-01', '2021-03-31', 'Remission to see the notes', FALSE, '2019-05-01');",
 	)
 	ctx := suite.ctx
+
 	s, params := addFeeReductionSetup(conn)
-
 	err := s.AddFeeReduction(ctx, 22, params)
-	rows, _ := conn.Query(ctx, "SELECT * FROM supervision_finance.fee_reduction WHERE id = 1")
-	defer rows.Close()
 
-	for rows.Next() {
-		var (
-			id            int
-			financeClient int
-			feeType       string
-			evidenceType  sql.NullString
-			startDate     time.Time
-			endDate       time.Time
-			notes         string
-			deleted       bool
-			dateReceived  time.Time
-		)
+	row := conn.QueryRow(ctx, "SELECT id, finance_client_id, type, startdate, enddate, notes, datereceived, created_by, created_at FROM supervision_finance.fee_reduction WHERE id = 1")
 
-		_ = rows.Scan(&id, &financeClient, &feeType, &evidenceType, &startDate, &endDate, &notes, &deleted, &dateReceived)
+	var (
+		id            int
+		financeClient int
+		feeType       string
+		startDate     time.Time
+		endDate       time.Time
+		notes         string
+		dateReceived  time.Time
+		createdBy     int
+		createdDate   time.Time
+	)
 
-		assert.Equal(suite.T(), "REMISSION", feeType)
-		assert.Equal(suite.T(), "2021-04-01", startDate.Format("2006-01-02"))
-		assert.Equal(suite.T(), "2024-03-31", endDate.Format("2006-01-02"))
-		assert.Equal(suite.T(), params.Notes, notes)
-	}
+	_ = row.Scan(&id, &financeClient, &feeType, &startDate, &endDate, &notes, &dateReceived, &createdBy, &createdDate)
+
+	assert.Equal(suite.T(), 1, id)
+	assert.Equal(suite.T(), 22, financeClient)
+	assert.Equal(suite.T(), "REMISSION", feeType)
+	assert.Equal(suite.T(), "2021-04-01", startDate.Format("2006-01-02"))
+	assert.Equal(suite.T(), "2024-03-31", endDate.Format("2006-01-02"))
+	assert.Equal(suite.T(), params.Notes, notes)
+	assert.Equal(suite.T(), "2024-01-01", dateReceived.Format("2006-01-02"))
+	assert.Equal(suite.T(), 1, createdBy)
+	assert.NotEqual(suite.T(), createdDate, "0001-01-01")
 
 	if err == nil {
 		return

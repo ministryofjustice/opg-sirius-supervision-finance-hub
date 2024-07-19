@@ -132,12 +132,12 @@ func Test_translate(t *testing.T) {
 		},
 		{
 			name:       "returns a correct value for CREDIT MEMO",
-			ledgerType: shared.AdjustmentTypeAddCredit.Key(),
+			ledgerType: shared.AdjustmentTypeCreditMemo.Key(),
 			want:       "Manual Credit",
 		},
 		{
 			name:       "returns a correct value for DEBIT MEMO",
-			ledgerType: shared.AdjustmentTypeAddDebit.Key(),
+			ledgerType: shared.AdjustmentTypeDebitMemo.Key(),
 			want:       "Manual Debit",
 		},
 	}

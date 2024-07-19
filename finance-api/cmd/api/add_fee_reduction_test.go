@@ -24,7 +24,7 @@ func TestServer_addFeeReductions(t *testing.T) {
 	dateReceivedTransformed = &shared.Date{Time: date}
 
 	feeReductionInfo := &shared.AddFeeReduction{
-		FeeType:       "remission",
+		FeeType:       shared.FeeReductionTypeRemission,
 		StartYear:     "2022",
 		LengthOfAward: 1,
 		DateReceived:  dateReceivedTransformed,
@@ -54,7 +54,7 @@ func TestServer_addFeeReductions(t *testing.T) {
 func TestServer_addFeeReductionsValidationErrors(t *testing.T) {
 	var b bytes.Buffer
 	feeReductionInfo := &shared.AddFeeReduction{
-		FeeType:       "",
+		FeeType:       shared.FeeReductionTypeUnknown,
 		StartYear:     "",
 		LengthOfAward: 0,
 		DateReceived:  nil,
@@ -90,7 +90,7 @@ func TestServer_addFeeReductionsValidationErrorsForThousandCharacters(t *testing
 	date, _ := time.Parse("2006-01-02", dateString)
 	dateReceivedTransformed = &shared.Date{Time: date}
 	feeReductionInfo := &shared.AddFeeReduction{
-		FeeType:       "remission",
+		FeeType:       shared.FeeReductionTypeRemission,
 		StartYear:     "2024",
 		LengthOfAward: 1,
 		DateReceived:  dateReceivedTransformed,
@@ -136,7 +136,7 @@ func TestServer_addFeeReductionsOverlapError(t *testing.T) {
 	date, _ := time.Parse("2006-01-02", dateString)
 	dateReceivedTransformed = &shared.Date{Time: date}
 	feeReductionInfo := &shared.AddFeeReduction{
-		FeeType:       "remission",
+		FeeType:       shared.FeeReductionTypeRemission,
 		StartYear:     "2022",
 		LengthOfAward: 1,
 		DateReceived:  dateReceivedTransformed,
@@ -167,7 +167,7 @@ func TestServer_addFeeReductions500Error(t *testing.T) {
 	date, _ := time.Parse("2006-01-02", dateString)
 	dateReceivedTransformed = &shared.Date{Time: date}
 	feeReductionInfo := &shared.AddFeeReduction{
-		FeeType:       "remission",
+		FeeType:       shared.FeeReductionTypeRemission,
 		StartYear:     "2022",
 		LengthOfAward: 1,
 		DateReceived:  dateReceivedTransformed,

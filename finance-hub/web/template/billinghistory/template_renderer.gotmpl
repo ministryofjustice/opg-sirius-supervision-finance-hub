@@ -8,6 +8,9 @@
     {{ if eq .Event.Type.String "FEE_REDUCTION_AWARDED" }}
         {{ template "fee-reduction-awarded-event" . }}
     {{ end }}
+    {{ if eq .Event.Type.String "FEE_REDUCTION_CANCELLED" }}
+        {{ template "fee-reduction-cancelled-event" . }}
+    {{ end }}
     {{ if eq .Event.Type.String "INVOICE_ADJUSTMENT_APPLIED" }}
         {{ template "adjustment-applied-event" . }}
     {{ end }}

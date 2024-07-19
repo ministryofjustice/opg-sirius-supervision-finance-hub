@@ -21,7 +21,7 @@ func (s *Server) PostLedgerEntry(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	validationError := s.Validator.ValidateStruct(ledgerEntry, "")
+	validationError := s.Validator.ValidateStruct(ledgerEntry)
 
 	if len(validationError.Errors) != 0 {
 		errorData, _ := json.Marshal(validationError)
