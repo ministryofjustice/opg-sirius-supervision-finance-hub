@@ -63,7 +63,7 @@ func invoiceEvents(invoices []store.GetGeneratedInvoicesRow, clientID int) []his
 					ID:        int(inv.InvoiceID),
 					Reference: inv.Reference,
 				},
-				InvoiceType: inv.Feetype,
+				InvoiceType: shared.ParseInvoiceType(inv.Feetype),
 				Amount:      int(inv.Amount),
 			},
 		}

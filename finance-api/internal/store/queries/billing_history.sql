@@ -22,4 +22,4 @@ SELECT fr.type, fr.startdate, fr.enddate, fr.datereceived, fr.notes, fr.created_
 FROM fee_reduction fr
 JOIN finance_client fc ON fc.id = fr.finance_client_id
 WHERE fc.client_id = $1
-AND fr.created_at IS NOT NULL OR fr.cancelled_at IS NOT NULL;
+AND (fr.created_at IS NOT NULL OR fr.cancelled_at IS NOT NULL);

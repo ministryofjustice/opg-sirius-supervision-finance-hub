@@ -63,8 +63,7 @@ func (d BaseBillingEvent) GetType() BillingEventType {
 type InvoiceGenerated struct {
 	ClientId         int          `json:"client_id"`
 	InvoiceReference InvoiceEvent `json:"invoice_reference"`
-	InvoiceType      string       `json:"invoice_type"`
-	InvoiceName      string       `json:"invoice_name"`
+	InvoiceType      InvoiceType  `json:"invoice_type"`
 	Amount           int          `json:"amount"`
 	BaseBillingEvent
 }
