@@ -122,7 +122,7 @@ func (s *Service) AddLedgerAndAllocations(feeReductionFeeType shared.FeeReductio
 	}
 	if amount != 0 {
 		ledgerQueryArgs := store.CreateLedgerForFeeReductionParams{
-			Method:          feeReductionFeeType.Translation() + " credit for invoice " + invoice.Reference,
+			Method:          feeReductionFeeType.String() + " credit for invoice " + invoice.Reference,
 			Amount:          amount,
 			Notes:           pgtype.Text{String: "Credit due to manual invoice " + strings.ToLower(feeReductionFeeType.Key()), Valid: true},
 			Type:            "CREDIT " + feeReductionFeeType.Key(),

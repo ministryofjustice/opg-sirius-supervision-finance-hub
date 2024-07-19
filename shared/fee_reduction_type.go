@@ -17,7 +17,7 @@ var feeReductionTypeMap = map[string]FeeReductionType{
 	"REMISSION": FeeReductionTypeRemission,
 }
 
-func (f FeeReductionType) Translation() string {
+func (f FeeReductionType) String() string {
 	switch f {
 	case FeeReductionTypeExemption:
 		return "Exemption"

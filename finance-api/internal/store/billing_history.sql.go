@@ -63,8 +63,52 @@ func (q *Queries) GetFeeReductionEvents(ctx context.Context, clientID int32) ([]
 	return items, nil
 }
 
+const getGeneratedInvoices = `-- name: GetGeneratedInvoices :many
+SELECT i.id invoice_id, reference, feetype, amount, createdby_id, coalesce(confirmeddate, createddate) invoice_date
+FROM invoice i
+         JOIN finance_client fc ON fc.id = i.finance_client_id
+WHERE fc.client_id = $1
+ORDER BY COALESCE(confirmeddate, createddate) DESC
+`
+
+type GetGeneratedInvoicesRow struct {
+	InvoiceID   int32
+	Reference   string
+	Feetype     string
+	Amount      int32
+	CreatedbyID pgtype.Int4
+	InvoiceDate pgtype.Date
+}
+
+func (q *Queries) GetGeneratedInvoices(ctx context.Context, clientID int32) ([]GetGeneratedInvoicesRow, error) {
+	rows, err := q.db.Query(ctx, getGeneratedInvoices, clientID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetGeneratedInvoicesRow
+	for rows.Next() {
+		var i GetGeneratedInvoicesRow
+		if err := rows.Scan(
+			&i.InvoiceID,
+			&i.Reference,
+			&i.Feetype,
+			&i.Amount,
+			&i.CreatedbyID,
+			&i.InvoiceDate,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPendingLedgerAllocations = `-- name: GetPendingLedgerAllocations :many
-SELECT i.id invoice_id, l.id ledger_id, i.reference, l.type, la.amount, l.notes, l.confirmeddate, l.createdby_id, l.status, l.createddate
+SELECT i.id invoice_id, l.id ledger_id, i.reference, l.type, la.amount, l.notes, l.confirmeddate, l.createdby_id, l.status, l.datetime
 FROM ledger_allocation la
          JOIN ledger l ON l.id = la.ledger_id
          JOIN invoice i ON i.id = la.invoice_id
@@ -84,7 +128,7 @@ type GetPendingLedgerAllocationsRow struct {
 	Confirmeddate pgtype.Date
 	CreatedbyID   pgtype.Int4
 	Status        string
-	Createddate   pgtype.Date
+	Datetime      pgtype.Timestamp
 }
 
 func (q *Queries) GetPendingLedgerAllocations(ctx context.Context, clientID int32) ([]GetPendingLedgerAllocationsRow, error) {
@@ -106,7 +150,7 @@ func (q *Queries) GetPendingLedgerAllocations(ctx context.Context, clientID int3
 			&i.Confirmeddate,
 			&i.CreatedbyID,
 			&i.Status,
-			&i.Createddate,
+			&i.Datetime,
 		); err != nil {
 			return nil, err
 		}

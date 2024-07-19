@@ -23,21 +23,19 @@ type allocationHolder struct {
 }
 
 func (s *Service) GetBillingHistory(ctx context.Context, clientID int) ([]shared.BillingHistory, error) {
-	var history []historyHolder
-
 	invoices, err := s.store.GetGeneratedInvoices(ctx, int32(clientID))
 	if err != nil {
 		return nil, err
 	}
 
-	history = invoiceEvents(invoices, history, int32(clientID))
+	history := invoiceEvents(invoices, clientID)
 
 	pendingAllocations, err := s.store.GetPendingLedgerAllocations(ctx, int32(clientID))
 	if err != nil {
 		return nil, err
 	}
 
-	allocationsByLedger := aggregateAllocations(pendingAllocations, int32(clientID))
+	allocationsByLedger := aggregateAllocations(pendingAllocations, clientID)
 	history = append(history, processAllocations(allocationsByLedger)...)
 
 	feEvents, err := s.store.GetFeeReductionEvents(ctx, int32(clientID))
@@ -50,13 +48,14 @@ func (s *Service) GetBillingHistory(ctx context.Context, clientID int) ([]shared
 	return computeBillingHistory(history), nil
 }
 
-func invoiceEvents(invoices []store.GetGeneratedInvoicesRow, history []historyHolder, clientId string) []historyHolder {
+func invoiceEvents(invoices []store.GetGeneratedInvoicesRow, clientID int) []historyHolder {
+	var history []historyHolder
 	for _, inv := range invoices {
 		bh := shared.BillingHistory{
-			User: strconv.Itoa(int(inv.CreatedbyID.Int32)),
+			User: int(inv.CreatedbyID.Int32),
 			Date: shared.Date{Time: inv.InvoiceDate.Time},
 			Event: shared.InvoiceGenerated{
-				ClientId: clientId,
+				ClientId: clientID,
 				BaseBillingEvent: shared.BaseBillingEvent{
 					Type: shared.EventTypeInvoiceGenerated,
 				},
@@ -87,7 +86,7 @@ func aggregateAllocations(pendingAllocations []store.GetPendingLedgerAllocations
 				ledgerType:  allo.Type,
 				notes:       allo.Notes.String,
 				clientId:    clientID,
-				createdDate: shared.Date{Time: allo.Createddate.Time},
+				createdDate: shared.Date{Time: allo.Datetime.Time},
 				user:        int(allo.CreatedbyID.Int32),
 				breakdown:   []shared.PaymentBreakdown{},
 			}

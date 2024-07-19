@@ -49,7 +49,7 @@ func (h *FeeReductionsHandler) transform(in shared.FeeReductions) FeeReductions 
 	caser := cases.Title(language.English)
 	for _, f := range in {
 		out = append(out, FeeReduction{
-			Type:                     f.Type.Translation(),
+			Type:                     f.Type.String(),
 			StartDate:                f.StartDate.String(),
 			EndDate:                  f.EndDate.String(),
 			DateReceived:             f.DateReceived.String(),

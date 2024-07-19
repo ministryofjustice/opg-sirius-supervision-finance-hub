@@ -25,6 +25,21 @@ var adjustmentTypeMap = map[string]AdjustmentType{
 	"WRITE OFF REVERSAL": AdjustmentTypeWriteOffReversal,
 }
 
+func (i AdjustmentType) String() string {
+	switch i {
+	case AdjustmentTypeWriteOff:
+		return "Write off"
+	case AdjustmentTypeCreditMemo:
+		return "Credit memo"
+	case AdjustmentTypeDebitMemo:
+		return "Debit memo"
+	case AdjustmentTypeWriteOffReversal:
+		return "Write off reversal"
+	default:
+		return ""
+	}
+}
+
 func (i AdjustmentType) Translation() string {
 	switch i {
 	case AdjustmentTypeWriteOff:
