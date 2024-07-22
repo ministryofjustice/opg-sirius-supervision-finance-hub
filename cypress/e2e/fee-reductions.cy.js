@@ -20,8 +20,8 @@ describe("Fee Reductions Tab", () => {
             .first().within(() => {
             cy.get("td")
                 .first().contains("Hardship")
-                .next().contains("01/04/2020")
-                .next().contains("31/03/2120")
+                .next().contains("01/04/2024")
+                .next().contains("31/03/2025")
                 .next().contains("01/05/2020")
                 .next().contains("Active")
                 .next().contains("current reduction")
