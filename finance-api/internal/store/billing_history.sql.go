@@ -11,6 +11,74 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const getClientLedgerAllocations = `-- name: GetClientLedgerAllocations :many
+SELECT i.id invoice_id,
+       l.id ledger_id,
+       i.reference,
+       l.type ledger_type,
+       fr.type fee_reduction_type,
+       la.amount,
+       l.notes,
+       l.confirmeddate,
+       l.createdby_id,
+       l.status,
+       l.datetime
+FROM ledger_allocation la
+         JOIN ledger l ON l.id = la.ledger_id
+         JOIN invoice i ON i.id = la.invoice_id
+         JOIN finance_client fc ON fc.id = i.finance_client_id
+         LEFT JOIN fee_reduction fr ON l.fee_reduction_id = fr.id
+WHERE fc.client_id = $1
+  AND l.status IN ('PENDING', 'APPROVED')
+ORDER BY l.datetime DESC
+`
+
+type GetClientLedgerAllocationsRow struct {
+	InvoiceID        int32
+	LedgerID         int32
+	Reference        string
+	LedgerType       string
+	FeeReductionType pgtype.Text
+	Amount           int32
+	Notes            pgtype.Text
+	Confirmeddate    pgtype.Date
+	CreatedbyID      pgtype.Int4
+	Status           string
+	Datetime         pgtype.Timestamp
+}
+
+func (q *Queries) GetClientLedgerAllocations(ctx context.Context, clientID int32) ([]GetClientLedgerAllocationsRow, error) {
+	rows, err := q.db.Query(ctx, getClientLedgerAllocations, clientID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetClientLedgerAllocationsRow
+	for rows.Next() {
+		var i GetClientLedgerAllocationsRow
+		if err := rows.Scan(
+			&i.InvoiceID,
+			&i.LedgerID,
+			&i.Reference,
+			&i.LedgerType,
+			&i.FeeReductionType,
+			&i.Amount,
+			&i.Notes,
+			&i.Confirmeddate,
+			&i.CreatedbyID,
+			&i.Status,
+			&i.Datetime,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getGeneratedInvoices = `-- name: GetGeneratedInvoices :many
 SELECT i.id invoice_id, reference, feetype, amount, createdby_id, coalesce(confirmeddate, createddate) invoice_date
 FROM invoice i
@@ -44,61 +112,6 @@ func (q *Queries) GetGeneratedInvoices(ctx context.Context, clientID int32) ([]G
 			&i.Amount,
 			&i.CreatedbyID,
 			&i.InvoiceDate,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getPendingLedgerAllocations = `-- name: GetPendingLedgerAllocations :many
-SELECT i.id invoice_id, l.id ledger_id, i.reference, l.type, la.amount, l.notes, l.confirmeddate, l.createdby_id, l.status, l.datetime
-FROM ledger_allocation la
-         JOIN ledger l ON l.id = la.ledger_id
-         JOIN invoice i ON i.id = la.invoice_id
-         JOIN finance_client fc ON fc.id = i.finance_client_id
-WHERE fc.client_id = $1
-  AND l.status = 'PENDING'
-ORDER BY l.datetime DESC
-`
-
-type GetPendingLedgerAllocationsRow struct {
-	InvoiceID     int32
-	LedgerID      int32
-	Reference     string
-	Type          string
-	Amount        int32
-	Notes         pgtype.Text
-	Confirmeddate pgtype.Date
-	CreatedbyID   pgtype.Int4
-	Status        string
-	Datetime      pgtype.Timestamp
-}
-
-func (q *Queries) GetPendingLedgerAllocations(ctx context.Context, clientID int32) ([]GetPendingLedgerAllocationsRow, error) {
-	rows, err := q.db.Query(ctx, getPendingLedgerAllocations, clientID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetPendingLedgerAllocationsRow
-	for rows.Next() {
-		var i GetPendingLedgerAllocationsRow
-		if err := rows.Scan(
-			&i.InvoiceID,
-			&i.LedgerID,
-			&i.Reference,
-			&i.Type,
-			&i.Amount,
-			&i.Notes,
-			&i.Confirmeddate,
-			&i.CreatedbyID,
-			&i.Status,
-			&i.Datetime,
 		); err != nil {
 			return nil, err
 		}

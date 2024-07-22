@@ -21,27 +21,28 @@ func Test_computeBillingHistory(t *testing.T) {
 	}{
 		{
 			name: "Returns correct amount per billing history",
-			args: args{history: []historyHolder{{
-				billingHistory: shared.BillingHistory{
-					User: "65",
-					Date: shared.Date{Time: time.Date(2022, time.November, 4, 15, 4, 5, 0, time.UTC)},
-					Event: shared.InvoiceAdjustmentPending{
-						AdjustmentType: "credit memo",
-						ClientId:       "1",
-						Notes:          "credit adjustment for 12.00",
-						PaymentBreakdown: shared.PaymentBreakdown{
-							InvoiceReference: shared.InvoiceEvent{
-								ID:        1,
-								Reference: "S206666/18",
+			args: args{history: []historyHolder{
+				{
+					billingHistory: shared.BillingHistory{
+						User: "65",
+						Date: shared.Date{Time: time.Date(2022, time.November, 4, 15, 4, 5, 0, time.UTC)},
+						Event: shared.InvoiceAdjustmentPending{
+							AdjustmentType: "credit memo",
+							ClientId:       "1",
+							Notes:          "credit adjustment for 12.00",
+							PaymentBreakdown: shared.PaymentBreakdown{
+								InvoiceReference: shared.InvoiceEvent{
+									ID:        1,
+									Reference: "S206666/18",
+								},
+								Amount: 12,
 							},
-							Amount: 12,
+							BaseBillingEvent: shared.BaseBillingEvent{Type: 6},
 						},
-						BaseBillingEvent: shared.BaseBillingEvent{Type: 6},
+						OutstandingBalance: 0,
 					},
-					OutstandingBalance: 0,
+					balanceAdjustment: 0,
 				},
-				balanceAdjustment: 0,
-			},
 				{
 					billingHistory: shared.BillingHistory{
 						User: "3",
@@ -61,8 +62,45 @@ func Test_computeBillingHistory(t *testing.T) {
 					},
 					balanceAdjustment: 1000,
 				},
+				{
+					billingHistory: shared.BillingHistory{
+						User: "0",
+						Date: shared.Date{Time: time.Date(2027, time.November, 30, 0, 0, 0, 0, time.UTC)},
+						Event: shared.FeeReductionApplied{
+							ReductionType: "EXEMPTION",
+							ClientId:      "1",
+							PaymentBreakdown: shared.PaymentBreakdown{
+								InvoiceReference: shared.InvoiceEvent{
+									ID:        1,
+									Reference: "S206667/18",
+								},
+								Amount: 23,
+							},
+							BaseBillingEvent: shared.BaseBillingEvent{Type: 6},
+						},
+						OutstandingBalance: 0,
+					},
+					balanceAdjustment: 23,
+				},
 			}},
 			want: []shared.BillingHistory{
+				{
+					User: "0",
+					Date: shared.Date{Time: time.Date(2027, time.November, 30, 0, 0, 0, 0, time.UTC)},
+					Event: shared.FeeReductionApplied{
+						ClientId:      "1",
+						ReductionType: "EXEMPTION",
+						PaymentBreakdown: shared.PaymentBreakdown{
+							InvoiceReference: shared.InvoiceEvent{
+								ID:        1,
+								Reference: "S206667/18",
+							},
+							Amount: 23,
+						},
+						BaseBillingEvent: shared.BaseBillingEvent{Type: 6},
+					},
+					OutstandingBalance: 1023,
+				},
 				{
 					User: "3",
 					Date: shared.Date{Time: time.Date(2027, time.March, 31, 0, 0, 0, 0, time.UTC)},
