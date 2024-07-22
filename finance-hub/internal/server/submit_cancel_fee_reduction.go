@@ -18,7 +18,7 @@ func (h *SubmitCancelFeeReductionsHandler) render(v AppVars, w http.ResponseWrit
 	ctx := getContext(r)
 
 	var (
-		notes             = r.PostFormValue("cancellationReason")
+		notes             = r.PostFormValue("cancellation-reason")
 		feeReductionId, _ = strconv.Atoi(r.PathValue("feeReductionId"))
 	)
 	err := h.Client().CancelFeeReduction(ctx, ctx.ClientId, feeReductionId, notes)
