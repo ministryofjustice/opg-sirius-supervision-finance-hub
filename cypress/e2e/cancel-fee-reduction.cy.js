@@ -10,7 +10,7 @@ describe("Cancel fee reduction form", () => {
         cy.get(".govuk-form-group--error").should("have.length", 1);
 
         // enter data
-        cy.get("#f-Notes").type("Cancelling for reasons");
+        cy.get("#f-CancellationReason").type("Cancelling for reasons");
         cy.contains(".govuk-character-count__status", "You have 978 characters remaining");
 
         // navigation and success message

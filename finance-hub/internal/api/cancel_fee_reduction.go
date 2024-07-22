@@ -8,11 +8,11 @@ import (
 	"net/http"
 )
 
-func (c *ApiClient) CancelFeeReduction(ctx Context, clientId int, feeReductionId int, notes string) error {
+func (c *ApiClient) CancelFeeReduction(ctx Context, clientId int, feeReductionId int, cancellationReason string) error {
 	var body bytes.Buffer
 
 	err := json.NewEncoder(&body).Encode(shared.CancelFeeReduction{
-		Notes: notes,
+		CancellationReason: cancellationReason,
 	})
 	if err != nil {
 		return err

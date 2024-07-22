@@ -17,8 +17,8 @@ func (suite *IntegrationSuite) TestService_GetAccountInformation() {
 		"INSERT INTO invoice VALUES (2, 1, 1, 'S2', 'S203532/20', '2020-04-01', '2021-03-31', 32000, NULL, '2020-03-20',1, '2020-03-16', 10, NULL, 0, '2019-06-06', 99);",
 		"INSERT INTO ledger VALUES (1, 'random123', '2022-04-11T08:36:40+00:00', '', 12000, '', 'CARD PAYMENT', 'APPROVED', 1, NULL, NULL, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 65);",
 		"INSERT INTO ledger VALUES (2, 'random456', '2022-04-11T08:36:40+00:00', '', 12000, '', 'CARD PAYMENT', 'APPROVED', 1, NULL, NULL, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 65);",
-		"INSERT INTO ledger_allocation VALUES (1, 1, 1, '2022-04-11T08:36:40+00:00', 12000, 'ALLOCATED', NULL, 'Notes here', '2022-04-11', NULL);",
-		"INSERT INTO ledger_allocation VALUES (2, 2, 2, '2022-04-11T08:36:40+00:00', 12000, 'ALLOCATED', NULL, 'Notes here', '2022-04-11', NULL);",
+		"INSERT INTO ledger_allocation VALUES (1, 1, 1, '2022-04-11T08:36:40+00:00', 12000, 'ALLOCATED', NULL, 'CancellationReason here', '2022-04-11', NULL);",
+		"INSERT INTO ledger_allocation VALUES (2, 2, 2, '2022-04-11T08:36:40+00:00', 12000, 'ALLOCATED', NULL, 'CancellationReason here', '2022-04-11', NULL);",
 	)
 
 	Store := store.New(conn)

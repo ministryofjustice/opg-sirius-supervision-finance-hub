@@ -18,7 +18,7 @@ func (s *Server) updatePendingInvoiceAdjustment(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	validationError := s.Validator.ValidateStruct(body, "")
+	validationError := s.Validator.ValidateStruct(body)
 
 	if len(validationError.Errors) != 0 {
 		errorData, _ := json.Marshal(validationError)
