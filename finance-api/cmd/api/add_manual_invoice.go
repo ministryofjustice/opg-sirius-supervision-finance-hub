@@ -18,7 +18,7 @@ func (s *Server) addManualInvoice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	validationError := s.Validator.ValidateStruct(addManualInvoice, "")
+	validationError := s.Validator.ValidateStruct(addManualInvoice)
 
 	if len(validationError.Errors) != 0 {
 		errorData, _ := json.Marshal(validationError)

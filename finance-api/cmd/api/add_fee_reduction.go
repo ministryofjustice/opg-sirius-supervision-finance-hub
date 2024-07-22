@@ -19,7 +19,7 @@ func (s *Server) addFeeReduction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	validationError := s.Validator.ValidateStruct(addFeeReduction, "")
+	validationError := s.Validator.ValidateStruct(addFeeReduction)
 
 	if len(validationError.Errors) != 0 {
 		errorData, _ := json.Marshal(validationError)

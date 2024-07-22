@@ -10,10 +10,6 @@ import (
 	"strconv"
 )
 
-type CancelFeeReductionFormValues struct {
-	Notes string
-}
-
 type SubmitCancelFeeReductionsHandler struct {
 	router
 }
@@ -22,7 +18,7 @@ func (h *SubmitCancelFeeReductionsHandler) render(v AppVars, w http.ResponseWrit
 	ctx := getContext(r)
 
 	var (
-		notes             = r.PostFormValue("notes")
+		notes             = r.PostFormValue("cancellation-reason")
 		feeReductionId, _ = strconv.Atoi(r.PathValue("feeReductionId"))
 	)
 	err := h.Client().CancelFeeReduction(ctx, ctx.ClientId, feeReductionId, notes)

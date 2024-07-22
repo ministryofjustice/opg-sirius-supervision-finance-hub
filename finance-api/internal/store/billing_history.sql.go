@@ -11,6 +11,58 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const getFeeReductionEvents = `-- name: GetFeeReductionEvents :many
+SELECT fr.type, fr.startdate, fr.enddate, fr.datereceived, fr.notes, fr.created_at, fr.created_by, fr.cancelled_at, fr.cancelled_by, fr.cancellation_reason
+FROM fee_reduction fr
+JOIN finance_client fc ON fc.id = fr.finance_client_id
+WHERE fc.client_id = $1
+AND fr.created_at IS NOT NULL OR fr.cancelled_at IS NOT NULL
+`
+
+type GetFeeReductionEventsRow struct {
+	Type               string
+	Startdate          pgtype.Date
+	Enddate            pgtype.Date
+	Datereceived       pgtype.Date
+	Notes              string
+	CreatedAt          pgtype.Date
+	CreatedBy          pgtype.Int4
+	CancelledAt        pgtype.Date
+	CancelledBy        pgtype.Int4
+	CancellationReason pgtype.Text
+}
+
+func (q *Queries) GetFeeReductionEvents(ctx context.Context, clientID int32) ([]GetFeeReductionEventsRow, error) {
+	rows, err := q.db.Query(ctx, getFeeReductionEvents, clientID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetFeeReductionEventsRow
+	for rows.Next() {
+		var i GetFeeReductionEventsRow
+		if err := rows.Scan(
+			&i.Type,
+			&i.Startdate,
+			&i.Enddate,
+			&i.Datereceived,
+			&i.Notes,
+			&i.CreatedAt,
+			&i.CreatedBy,
+			&i.CancelledAt,
+			&i.CancelledBy,
+			&i.CancellationReason,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getGeneratedInvoices = `-- name: GetGeneratedInvoices :many
 SELECT i.id invoice_id, reference, feetype, amount, createdby_id, coalesce(confirmeddate, createddate) invoice_date
 FROM invoice i
