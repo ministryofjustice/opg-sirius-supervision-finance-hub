@@ -46,7 +46,7 @@ func (s *mockService) AddFeeReduction(ctx context.Context, id int, data shared.A
 	return s.err
 }
 
-func (s *mockService) CancelFeeReduction(ctx context.Context, id int) error {
+func (s *mockService) CancelFeeReduction(ctx context.Context, id int, cancelledFeeReduction shared.CancelFeeReduction) error {
 	s.expectedIds = []int{id}
 	return s.err
 }

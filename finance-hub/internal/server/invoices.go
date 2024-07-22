@@ -127,9 +127,9 @@ func translate(transactionType string) string {
 	switch transactionType {
 	case shared.AdjustmentTypeWriteOff.Key():
 		return "Write Off"
-	case shared.AdjustmentTypeAddCredit.Key():
+	case shared.AdjustmentTypeCreditMemo.Key():
 		return "Manual Credit"
-	case shared.AdjustmentTypeAddDebit.Key():
+	case shared.AdjustmentTypeDebitMemo.Key():
 		return "Manual Debit"
 	}
 

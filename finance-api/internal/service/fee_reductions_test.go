@@ -31,7 +31,7 @@ func (suite *IntegrationSuite) TestService_GetFeeReductions() {
 			want: &shared.FeeReductions{
 				shared.FeeReduction{
 					Id:           5,
-					Type:         "REMISSION",
+					Type:         shared.FeeReductionTypeRemission,
 					StartDate:    shared.NewDate("01/04/2019"),
 					EndDate:      shared.NewDate("31/03/2020"),
 					DateReceived: shared.NewDate("01/05/2019"),

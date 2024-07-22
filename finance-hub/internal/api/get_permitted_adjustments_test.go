@@ -26,7 +26,7 @@ func TestGetPermittedAdjustments(t *testing.T) {
 		}, nil
 	}
 
-	expectedResponse := []shared.AdjustmentType{shared.AdjustmentTypeAddCredit, shared.AdjustmentTypeAddDebit}
+	expectedResponse := []shared.AdjustmentType{shared.AdjustmentTypeCreditMemo, shared.AdjustmentTypeDebitMemo}
 
 	types, err := client.GetPermittedAdjustments(getContext(nil), 1, 2)
 	assert.Equal(t, expectedResponse, types)
