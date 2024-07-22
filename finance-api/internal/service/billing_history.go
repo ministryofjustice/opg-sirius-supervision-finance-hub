@@ -48,6 +48,33 @@ func (s *Service) GetBillingHistory(ctx context.Context, clientID int) ([]shared
 	return computeBillingHistory(history), nil
 }
 
+func invoiceEvents(invoices []store.GetGeneratedInvoicesRow, history []historyHolder, clientId string) []historyHolder {
+	for _, inv := range invoices {
+		bh := shared.BillingHistory{
+			User: strconv.Itoa(int(inv.CreatedbyID.Int32)),
+			Date: shared.Date{Time: inv.InvoiceDate.Time},
+			Event: shared.InvoiceGenerated{
+				ClientId: clientId,
+				BaseBillingEvent: shared.BaseBillingEvent{
+					Type: shared.EventTypeInvoiceGenerated,
+				},
+				InvoiceReference: shared.InvoiceEvent{
+					ID:        int(inv.InvoiceID),
+					Reference: inv.Reference,
+				},
+				InvoiceType: inv.Feetype,
+				Amount:      int(inv.Amount),
+			},
+		}
+
+		history = append(history, historyHolder{
+			billingHistory:    bh,
+			balanceAdjustment: int(inv.Amount),
+		})
+	}
+	return history
+}
+
 func allocationEvents(allocations []store.GetClientLedgerAllocationsRow, history []historyHolder, clientId string) []historyHolder {
 	allocationsByLedger := aggregateAllocations(allocations, clientId)
 
@@ -97,33 +124,6 @@ func allocationEvents(allocations []store.GetClientLedgerAllocationsRow, history
 	return history
 }
 
-func invoiceEvents(invoices []store.GetGeneratedInvoicesRow, history []historyHolder, clientId string) []historyHolder {
-	for _, inv := range invoices {
-		bh := shared.BillingHistory{
-			User: strconv.Itoa(int(inv.CreatedbyID.Int32)),
-			Date: shared.Date{Time: inv.InvoiceDate.Time},
-			Event: shared.InvoiceGenerated{
-				ClientId: clientId,
-				BaseBillingEvent: shared.BaseBillingEvent{
-					Type: shared.EventTypeInvoiceGenerated,
-				},
-				InvoiceReference: shared.InvoiceEvent{
-					ID:        int(inv.InvoiceID),
-					Reference: inv.Reference,
-				},
-				InvoiceType: inv.Feetype,
-				Amount:      int(inv.Amount),
-			},
-		}
-
-		history = append(history, historyHolder{
-			billingHistory:    bh,
-			balanceAdjustment: int(inv.Amount),
-		})
-	}
-	return history
-}
-
 func aggregateAllocations(allocations []store.GetClientLedgerAllocationsRow, clientID string) map[int32]allocationHolder {
 	allocationsByLedger := make(map[int32]allocationHolder)
 	for _, allo := range allocations {
@@ -132,7 +132,7 @@ func aggregateAllocations(allocations []store.GetClientLedgerAllocationsRow, cli
 			a = allocationHolder{
 				status:           allo.Status,
 				ledgerType:       allo.LedgerType,
-				feeReductionType: (allo.FeeReductionType).(string),
+				feeReductionType: allo.FeeReductionType.String,
 				notes:            allo.Notes.String,
 				clientId:         clientID,
 				createdDate:      shared.Date{Time: allo.Datetime.Time},

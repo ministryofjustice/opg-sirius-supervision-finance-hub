@@ -16,7 +16,7 @@ SELECT i.id invoice_id,
        l.id ledger_id,
        i.reference,
        l.type ledger_type,
-       COALESCE((SELECT type FROM fee_reduction WHERE id = l.fee_reduction_id), '') fee_reduction_type,
+       fr.type fee_reduction_type,
        la.amount,
        l.notes,
        l.confirmeddate,
@@ -27,6 +27,7 @@ FROM ledger_allocation la
          JOIN ledger l ON l.id = la.ledger_id
          JOIN invoice i ON i.id = la.invoice_id
          JOIN finance_client fc ON fc.id = i.finance_client_id
+         LEFT JOIN fee_reduction fr ON l.fee_reduction_id = fr.id
 WHERE fc.client_id = $1
   AND l.status IN ('PENDING', 'APPROVED')
 ORDER BY l.datetime DESC
@@ -37,7 +38,7 @@ type GetClientLedgerAllocationsRow struct {
 	LedgerID         int32
 	Reference        string
 	LedgerType       string
-	FeeReductionType interface{}
+	FeeReductionType pgtype.Text
 	Amount           int32
 	Notes            pgtype.Text
 	Confirmeddate    pgtype.Date
