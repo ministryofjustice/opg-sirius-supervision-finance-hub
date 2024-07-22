@@ -15,7 +15,7 @@ func TestServer_getPermittedAdjustments(t *testing.T) {
 	req.SetPathValue("invoiceId", "1")
 	w := httptest.NewRecorder()
 
-	types := []shared.AdjustmentType{shared.AdjustmentTypeAddCredit, shared.AdjustmentTypeAddDebit}
+	types := []shared.AdjustmentType{shared.AdjustmentTypeCreditMemo, shared.AdjustmentTypeDebitMemo}
 
 	mock := &mockService{adjustmentTypes: types}
 	server := Server{Service: mock}

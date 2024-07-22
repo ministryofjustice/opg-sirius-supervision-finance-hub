@@ -108,7 +108,7 @@ func TestCreateLedgerEntryRequest_validation(t *testing.T) {
 		{
 			name: "amount when required",
 			arg: shared.CreateLedgerEntryRequest{
-				AdjustmentType:  shared.AdjustmentTypeAddCredit,
+				AdjustmentType:  shared.AdjustmentTypeCreditMemo,
 				AdjustmentNotes: "abc",
 			},
 			expected: map[string]string{
