@@ -1,7 +1,7 @@
 describe("Add fee reduction form", () => {
     it("adds a fee reduction", () => {
         // navigate to form
-        cy.visit("/clients/2/fee-reductions");
+        cy.visit("/clients/4/fee-reductions");
         cy.contains("a", "Award a fee reduction").click();
 
         // ensure validation is configured correctly
@@ -19,7 +19,7 @@ describe("Add fee reduction form", () => {
 
         cy.contains(".govuk-button", "Save and continue").click();
 
-        cy.url().should("include", "/clients/2/fee-reductions?success=fee-reduction[HARDSHIP]");
+        cy.url().should("include", "/clients/4/fee-reductions?success=fee-reduction[HARDSHIP]");
         cy.get(".moj-banner__message").contains("The hardship has been successfully added");
     });
 
