@@ -61,9 +61,9 @@ func (h *PendingInvoiceAdjustmentsHandler) transform(in shared.InvoiceAdjustment
 
 func (h *PendingInvoiceAdjustmentsHandler) transformType(in shared.AdjustmentType) string {
 	switch in {
-	case shared.AdjustmentTypeAddCredit:
+	case shared.AdjustmentTypeCreditMemo:
 		return "Credit"
-	case shared.AdjustmentTypeAddDebit:
+	case shared.AdjustmentTypeDebitMemo:
 		return "Debit"
 	case shared.AdjustmentTypeWriteOff:
 		return "Write off"

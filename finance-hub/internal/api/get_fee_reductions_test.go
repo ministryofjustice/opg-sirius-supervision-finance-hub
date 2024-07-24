@@ -48,7 +48,7 @@ func TestGetFeeReductions(t *testing.T) {
 	expectedResponse := shared.FeeReductions{
 		{
 			Id:           1,
-			Type:         "EXEMPTION",
+			Type:         shared.FeeReductionTypeExemption,
 			StartDate:    shared.NewDate("2019-04-01T00:00:00+00:00"),
 			EndDate:      shared.NewDate("2021-03-31T00:00:00+00:00"),
 			DateReceived: shared.NewDate("2021-02-02T00:00:00+00:00"),
@@ -57,7 +57,7 @@ func TestGetFeeReductions(t *testing.T) {
 		},
 		{
 			Id:           2,
-			Type:         "REMISSION",
+			Type:         shared.FeeReductionTypeRemission,
 			StartDate:    shared.NewDate("2019-04-01T00:00:00+00:00"),
 			EndDate:      shared.NewDate("2021-03-31T00:00:00+00:00"),
 			DateReceived: shared.NewDate("2021-06-02T00:00:00+00:00"),

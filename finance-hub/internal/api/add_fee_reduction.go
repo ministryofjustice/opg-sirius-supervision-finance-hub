@@ -21,7 +21,7 @@ func (c *ApiClient) AddFeeReduction(ctx Context, clientId int, feeType string, s
 
 	lengthOfAwardTransformed, _ := strconv.Atoi(lengthOfAward)
 	err := json.NewEncoder(&body).Encode(shared.AddFeeReduction{
-		FeeType:       feeType,
+		FeeType:       shared.ParseFeeReductionType(feeType),
 		StartYear:     startYear,
 		LengthOfAward: lengthOfAwardTransformed,
 		DateReceived:  dateReceivedTransformed,

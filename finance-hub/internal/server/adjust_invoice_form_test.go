@@ -9,7 +9,7 @@ import (
 )
 
 func TestAdjustInvoiceForm(t *testing.T) {
-	permittedAdjustments := []shared.AdjustmentType{shared.AdjustmentTypeAddDebit, shared.AdjustmentTypeAddCredit}
+	permittedAdjustments := []shared.AdjustmentType{shared.AdjustmentTypeDebitMemo, shared.AdjustmentTypeCreditMemo}
 	client := mockApiClient{adjustmentTypes: permittedAdjustments}
 	ro := &mockRoute{client: client}
 

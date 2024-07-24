@@ -261,7 +261,7 @@ func (suite *IntegrationSuite) TestService_AddLedgerAndAllocationsForAnADInvoice
 		expected := store.Ledger{
 			ID:              1,
 			Amount:          int32(params.Amount / 2),
-			Notes:           pgtype.Text{String: "Credit due to manual invoice REMISSION", Valid: true},
+			Notes:           pgtype.Text{String: "Credit due to manual invoice remission", Valid: true},
 			Type:            "CREDIT REMISSION",
 			Status:          "APPROVED",
 			FinanceClientID: pgtype.Int4{Int32: int32(25), Valid: true},
@@ -295,7 +295,7 @@ func (suite *IntegrationSuite) TestService_AddLedgerAndAllocationsForAnExemption
 		expected := store.Ledger{
 			ID:              1,
 			Amount:          int32(params.Amount),
-			Notes:           pgtype.Text{String: "Credit due to manual invoice EXEMPTION", Valid: true},
+			Notes:           pgtype.Text{String: "Credit due to manual invoice exemption", Valid: true},
 			Type:            "CREDIT EXEMPTION",
 			Status:          "APPROVED",
 			FinanceClientID: pgtype.Int4{Int32: int32(25), Valid: true},
