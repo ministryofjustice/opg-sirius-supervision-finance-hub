@@ -19,12 +19,12 @@ func TestGetBillingHistoryCanReturn200(t *testing.T) {
 	[
 	   {
 		  "clientId": 456,
-		  "user": "65",
+		  "user": 65,
 		  "date": "2099-11-04T15:04:05+00:00",
 		  "event": {
-			"client_id": "1",
-			"type": "INVOICE_ADJUSTMENT_APPLIED",
-			"adjustment_type": "Write off",
+			"client_id": 1,
+			"type": "INVOICE_ADJUSTMENT_PENDING",
+			"adjustment_type": "CREDIT WRITE OFF",
 			"total": 12300,
 			"payment_breakdown": {
 			  "invoice_reference": {
@@ -34,7 +34,7 @@ func TestGetBillingHistoryCanReturn200(t *testing.T) {
 			  "amount": 12300
 			},
 			"baseBillingEvent": {
-			  "type": 4
+			  "type": "INVOICE_ADJUSTMENT_PENDING"
 			}
 		  },
 		  "outstanding_balance": 0
@@ -53,11 +53,11 @@ func TestGetBillingHistoryCanReturn200(t *testing.T) {
 
 	expectedResponse := []shared.BillingHistory{
 		{
-			User: "65",
+			User: 65,
 			Date: shared.Date{Time: time.Date(2099, time.November, 4, 15, 4, 5, 0, time.UTC)},
-			Event: &shared.InvoiceAdjustmentApproved{
-				AdjustmentType: "Write off",
-				ClientId:       "1",
+			Event: &shared.InvoiceAdjustmentPending{
+				AdjustmentType: shared.AdjustmentTypeWriteOff,
+				ClientId:       1,
 				PaymentBreakdown: shared.PaymentBreakdown{
 					InvoiceReference: shared.InvoiceEvent{
 						ID:        1,
@@ -65,7 +65,7 @@ func TestGetBillingHistoryCanReturn200(t *testing.T) {
 					},
 					Amount: 12300,
 				},
-				BaseBillingEvent: shared.BaseBillingEvent{Type: 4},
+				BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeInvoiceAdjustmentPending},
 			},
 			OutstandingBalance: 0,
 		},
