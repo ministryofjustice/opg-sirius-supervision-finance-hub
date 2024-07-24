@@ -70,6 +70,8 @@ func invoiceData(invoiceType string, amount string, startDate string, raisedDate
 		}
 		endDate = raisedDate
 		supervisionLevel = "MINIMAL"
+	case "":
+		amount = "1"
 	}
 	return amount, startDate, raisedDate, endDate, supervisionLevel
 }
