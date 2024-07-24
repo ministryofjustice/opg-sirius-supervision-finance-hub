@@ -25,7 +25,7 @@ describe("Pending Invoice Adjustments", () => {
             .next().contains("Pending");
 
         cy.get("@row")
-            .get(".moj-button-menu")
+            .find(".moj-button-menu")
             .first().contains("Approve")
             .next().contains("Reject")
             .click();
