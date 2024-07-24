@@ -12,8 +12,10 @@ describe("Pending Invoice Adjustments", () => {
             .next().contains("Status")
             .next().contains("Actions");
 
-        cy.get("table#pending-invoice-adjustments > tbody > tr")
-            .first()
+        cy.get("table#pending-invoice-adjustments > tbody")
+            .contains("S206666/18").parent("tr").as("row");
+
+        cy.get("@row")
             .children()
             .first().contains("S206666/18")
             .next().contains("11/04/2022")
@@ -22,10 +24,8 @@ describe("Pending Invoice Adjustments", () => {
             .next().contains("credit adjustment for 12.00")
             .next().contains("Pending");
 
-        cy.get("table#pending-invoice-adjustments > tbody > tr")
-            .first()
-            .children()
-            .last().get(".moj-button-menu")
+        cy.get("@row")
+            .get(".moj-button-menu")
             .first().contains("Approve")
             .next().contains("Reject")
             .click();
