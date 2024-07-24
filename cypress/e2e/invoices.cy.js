@@ -22,7 +22,7 @@ describe("Invoice Tab", () => {
     });
 
     it("does not show table for no invoices", () => {
-        cy.visit("/clients/2/invoices");
+        cy.visit("/clients/4/invoices");
         cy.contains('[data-cy="no-invoices"]', "There are no invoices");
     });
 
