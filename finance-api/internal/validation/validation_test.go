@@ -61,7 +61,7 @@ func TestValidate_ValidateStruct(t *testing.T) {
 		},
 		{
 			name:     "Enum type is valid",
-			args:     isValidEnumTest{Enum: shared.AdjustmentTypeAddCredit},
+			args:     isValidEnumTest{Enum: shared.AdjustmentTypeCreditMemo},
 			expected: 0,
 		},
 	}

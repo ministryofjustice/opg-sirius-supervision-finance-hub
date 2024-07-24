@@ -21,7 +21,7 @@ func TestServer_getFeeReductions(t *testing.T) {
 	feeReductionInfo := &shared.FeeReductions{
 		shared.FeeReduction{
 			Id:           1,
-			Type:         "REMISSION",
+			Type:         shared.FeeReductionTypeRemission,
 			StartDate:    shared.Date{Time: date},
 			EndDate:      shared.Date{Time: date},
 			DateReceived: shared.Date{Time: date},
