@@ -41,11 +41,11 @@ func (s *Service) CreateLedgerEntry(ctx context.Context, clientId int, invoiceId
 
 func (s *Service) validateAdjustmentAmount(adjustment *shared.CreateLedgerEntryRequest, balance store.GetInvoiceBalanceDetailsRow) error {
 	switch adjustment.AdjustmentType {
-	case shared.AdjustmentTypeAddCredit:
+	case shared.AdjustmentTypeCreditMemo:
 		if int32(adjustment.Amount)-balance.Outstanding > balance.Initial {
 			return shared.BadRequest{Field: "Amount", Reason: fmt.Sprintf("Amount entered must be equal to or less than £%s", shared.IntToDecimalString(int(balance.Initial+balance.Outstanding)))}
 		}
-	case shared.AdjustmentTypeAddDebit:
+	case shared.AdjustmentTypeDebitMemo:
 		var maxBalance int32
 		if balance.Feetype == "AD" {
 			maxBalance = 10000
@@ -69,7 +69,7 @@ func (s *Service) calculateAdjustmentAmount(adjustment *shared.CreateLedgerEntry
 	switch adjustment.AdjustmentType {
 	case shared.AdjustmentTypeWriteOff:
 		return balance.Outstanding
-	case shared.AdjustmentTypeAddDebit:
+	case shared.AdjustmentTypeDebitMemo:
 		return -int32(adjustment.Amount)
 	default:
 		return int32(adjustment.Amount)

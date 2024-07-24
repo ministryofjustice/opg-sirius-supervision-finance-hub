@@ -24,7 +24,7 @@ func TestBillingHistory_UnmarshalJSON(t *testing.T) {
 						ID:        123,
 						Reference: "123abc",
 					},
-					InvoiceType: "SE",
+					InvoiceType: InvoiceTypeSE,
 					Amount:      1001,
 				},
 			},
