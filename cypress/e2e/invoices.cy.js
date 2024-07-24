@@ -11,15 +11,17 @@ describe("Invoice Tab", () => {
             .next().contains("Received")
             .next().contains("Outstanding Balance");
 
-        cy.get("table#invoices > tbody > tr")
-            .first()
+        cy.get("table#pending-invoice-adjustments > tbody")
+            .contains("AD03531/19").parent("tr").as("row");
+
+        cy.get("@row")
             .children()
-            .first().should("contain", "S206666/18")
-            .next().should("contain", "Unpaid")
-            .next().should("contain", "£320")
-            .next().should("contain", "16/03/2018")
-            .next().should("contain", "£0")
-            .next().should("contain", "£320");
+            .first().should("contain", "AD03531/19")
+            .next().should("contain", "Unpaid - Write-Off Pending")
+            .next().should("contain", "£100")
+            .next().should("contain", "16/03/2020")
+            .next().should("contain", "£88")
+            .next().should("contain", "12");
     });
 
     it("does not show table for no invoices", () => {
@@ -29,21 +31,21 @@ describe("Invoice Tab", () => {
 
     it("displays the ledger allocations for the invoice", () => {
         cy.visit("/clients/1/invoices");
-        cy.contains("S206666/18").click();
+        cy.contains("AD03531/19").click();
         cy.contains('[data-cy="ledger-title"]', "Invoice ledger allocations");
         cy.contains('[data-cy="ledger-amount"]', "Amount");
         cy.contains('[data-cy="ledger-received-date"]', "Received date");
         cy.contains('[data-cy="ledger-transaction-type"]', "Transaction type");
         cy.contains('[data-cy="ledger-status"]', "Status");
-        cy.get('[data-cy="ledger-amount-data"]').first().contains("12")
-        cy.get('[data-cy="ledger-received-date-data"]').first().contains("04/12/2022")
-        cy.get('[data-cy="ledger-transaction-type-data"]').first().contains("Manual Credit");
+        cy.get('[data-cy="ledger-amount-data"]').first().contains("12");
+        cy.get('[data-cy="ledger-received-date-data"]').first().contains("24/07/2024");
+        cy.get('[data-cy="ledger-transaction-type-data"]').first().contains("Write Off");
         cy.get('[data-cy="ledger-status-data"]').first().contains("Pending");
     });
 
     it("displays the supervision levels for the invoice", () => {
         cy.visit("/clients/1/invoices");
-        cy.contains("S206666/18").click();
+        cy.contains("AD03531/19").click();
         cy.contains('[data-cy="supervision-title"]', "Supervision level breakdown");
         cy.contains('[data-cy="supervision-level"]', "Supervision level");
         cy.contains('[data-cy="supervision-amount"]', "Amount");
@@ -57,7 +59,7 @@ describe("Invoice Tab", () => {
 
     it("should have no accessibility violations", () => {
         cy.visit("/clients/1/invoices");
-        cy.contains("S206666/18").click();
+        cy.contains("AD03531/19").click();
         cy.checkAccessibility();
     });
 });
