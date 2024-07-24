@@ -14,7 +14,7 @@
                 <div class="govuk-grid-row">
                     <form
                         id="add-fee-reduction-form"
-                        class="add-note govuk-grid-column-one-third"
+                        class="govuk-grid-column-one-third"
                         method="post"
                         hx-post="{{ prefix (printf "/clients/%s/fee-reductions/add" .ClientId) }}"
                         hx-target="#error-summary">
