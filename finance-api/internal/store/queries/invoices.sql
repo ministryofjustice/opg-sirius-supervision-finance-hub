@@ -4,7 +4,7 @@ SET SEARCH_PATH TO supervision_finance;
 SELECT i.id, i.reference, i.amount, i.raiseddate, COALESCE(SUM(la.amount), 0)::int received, fr.type fee_reduction_type
 FROM invoice i
          JOIN finance_client fc ON fc.id = i.finance_client_id
-         LEFT JOIN ledger_allocation la ON i.id = la.invoice_id AND la.status IN ('ALLOCATED', 'APPROVED')
+         LEFT JOIN ledger_allocation la ON i.id = la.invoice_id AND la.status NOT IN ('PENDING', 'UNALLOCATED')
          LEFT JOIN ledger l ON la.ledger_id = l.id
          LEFT JOIN fee_reduction fr ON l.fee_reduction_id = fr.id
 WHERE fc.client_id = $1
@@ -30,7 +30,7 @@ SELECT i.amount initial, i.amount - COALESCE(SUM(la.amount), 0) outstanding, i.f
 FROM invoice i
          LEFT JOIN ledger_allocation la on i.id = la.invoice_id
          LEFT JOIN ledger l ON l.id = la.ledger_id
-    AND la.status IN ('ALLOCATED', 'APPROVED')
+    AND la.status NOT IN ('PENDING', 'UNALLOCATED')
 WHERE i.id = $1
 group by i.amount, i.feetype;
 
