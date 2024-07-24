@@ -4,9 +4,13 @@ describe("Billing History Tab", () => {
         cy.contains("a", "Billing History").click();
         cy.url().should("include", "clients/1/billing-history");
 
-        cy.get(".moj-timeline__title").first().contains("Pending credit write off of £12 added to AD03531/19");
-        cy.get(".moj-timeline__date").first().contains("Outstanding balance: £520 Credit balance: £0");
-        cy.contains(".govuk-link", "AD03531/19").click();
+        cy.get(".moj-timeline__item").last().within((el) => {
+            cy.get(".moj-timeline__title").contains("AD invoice created for £100");
+            cy.get(".moj-timeline__byline").contains("by 99, 20/03/2020");
+            cy.get(".moj-timeline__date").contains("Outstanding balance: £100 Credit balance: £0");
+            cy.contains(".govuk-link", "AD04642/17").click();
+        });
+
         cy.url().should("include", "clients/1/invoices");
     });
 
