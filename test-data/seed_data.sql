@@ -6,8 +6,8 @@ INSERT INTO finance_client VALUES (nextval('finance_client_id_seq'), 3, '1234', 
 INSERT INTO finance_client VALUES (nextval('finance_client_id_seq'), 4, '1234', 'DEMANDED', null);
 
 INSERT INTO fee_reduction VALUES (nextval('fee_reduction_id_seq'), 1, 'REMISSION', null, '2019-04-01', '2020-03-31', 'notes', false, '2019-05-01');
-INSERT INTO fee_reduction VALUES (nextval('fee_reduction_id_seq'), 1, 'HARDSHIP', null, CONCAT(date_part('year', now()), '-04-01')::DATE, CONCAT(date_part('year', now()), '-03-31')::DATE + INTERVAL '1 year', 'current reduction', false, '2020-05-01', 1);
-INSERT INTO fee_reduction VALUES (nextval('fee_reduction_id_seq'), 2, 'REMISSION', null, '2020-04-01', '2120-03-31', 'notes', false, '2019-05-01', 1, '2019-05-01', 1, 'cancelled as duplicate');
+INSERT INTO fee_reduction VALUES (nextval('fee_reduction_id_seq'), 1, 'HARDSHIP', null, CONCAT(date_part('year', now()), '-04-01')::DATE, CONCAT(date_part('year', now()), '-03-31')::DATE + INTERVAL '1 year', 'current reduction', false, '2020-05-01', '2020-05-01', 1);
+INSERT INTO fee_reduction VALUES (nextval('fee_reduction_id_seq'), 2, 'REMISSION', null, '2020-04-01', '2021-03-31', 'notes', true, '2019-05-01', '2019-05-01', 1, '2019-05-01', 1, 'cancelled as duplicate');
 
 INSERT INTO invoice VALUES (nextval('invoice_id_seq'), 1, 1, 'AD', 'AD04642/17', '2017-04-01', '2018-03-31', 10000, null, '2020-03-20', 10, '2018-03-16', null, null, null, '2017-06-06', 99);
 INSERT INTO invoice VALUES (nextval('invoice_id_seq'), 1, 1, 'S2', 'S206666/18', '2018-04-01', '2019-03-31', 32000, null, '2023-03-20', 10, '2019-03-16', null, null, null, '2018-06-06', 99);
