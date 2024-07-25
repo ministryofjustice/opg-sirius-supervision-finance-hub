@@ -1,13 +1,17 @@
 describe("Billing History Tab", () => {
     it("displays the billing history", () => {
         cy.visit("/clients/1/invoices");
-        cy.contains('a', 'Billing History').click();
-        cy.url().should('include', "clients/1/billing-history");
+        cy.contains("a", "Billing History").click();
+        cy.url().should("include", "clients/1/billing-history");
 
-        cy.get('.moj-timeline__title').first().contains("S2 invoice created for £320");
-        cy.get('.moj-timeline__date').first().contains("Outstanding balance: £420 Credit balance: £0");
-        cy.get('.govuk-link').first().click();
-        cy.url().should('include', "clients/1/invoices");
+        cy.get(".moj-timeline__item").last().within((el) => {
+            cy.get(".moj-timeline__title").contains("AD invoice created for £100");
+            cy.get(".moj-timeline__byline").contains("by 99, 20/03/2020");
+            cy.get(".moj-timeline__date").contains("Outstanding balance: £100 Credit balance: £0");
+            cy.contains(".govuk-link", "AD04642/17").click();
+        });
+
+        cy.url().should("include", "clients/1/invoices");
     });
 
     it("no history shows correct message", () => {
