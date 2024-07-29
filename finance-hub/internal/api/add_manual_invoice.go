@@ -8,35 +8,51 @@ import (
 	"net/http"
 )
 
-func (c *ApiClient) AddManualInvoice(ctx Context, clientId int, invoiceType string, amount string, raisedDate string, startDate string, endDate string, supervisionLevel string) error {
+func (c *ApiClient) AddManualInvoice(ctx Context, clientId int, invoiceType string, amount *string, raisedDate *string, startDate *string, endDate *string, supervisionLevel string) error {
 	var body bytes.Buffer
-	var raisedDateTransformed *shared.Date
-	var startDateTransformed *shared.Date
-	var endDateTransformed *shared.Date
+	var raisedDateTransformed shared.NillableDate
+	var startDateTransformed shared.NillableDate
+	var endDateTransformed shared.NillableDate
 
-	if raisedDate != "" {
-		raisedDateFormatted := shared.NewDate(raisedDate)
-		raisedDateTransformed = &raisedDateFormatted
+	if startDate != nil {
+		fmt.Println("Request start date not null")
+		startDateTransformed = shared.NillableDate{
+			shared.NewDate(*startDate),
+			true,
+		}
 	}
 
-	if startDate != "" {
-		startDateFormatted := shared.NewDate(startDate)
-		startDateTransformed = &startDateFormatted
+	if raisedDate != nil {
+		raisedDateTransformed = shared.NillableDate{
+			shared.NewDate(*raisedDate),
+			true,
+		}
 	}
 
-	if endDate != "" {
-		endDateFormatted := shared.NewDate(endDate)
-		endDateTransformed = &endDateFormatted
+	if endDate != nil {
+		endDateTransformed = shared.NillableDate{
+			shared.NewDate(*endDate),
+			true,
+		}
 	}
 
-	err := json.NewEncoder(&body).Encode(shared.AddManualInvoice{
+	addManualInvoiceForm := shared.AddManualInvoice{
 		InvoiceType:      shared.ParseInvoiceType(invoiceType),
-		Amount:           shared.DecimalStringToInt(amount),
 		RaisedDate:       raisedDateTransformed,
 		StartDate:        startDateTransformed,
 		EndDate:          endDateTransformed,
 		SupervisionLevel: supervisionLevel,
-	})
+	}
+
+	if amount != nil {
+		addManualInvoiceForm.Amount = shared.NillableInt{
+			Value: shared.DecimalStringToInt(*amount),
+			Valid: true,
+		}
+	}
+
+	err := json.NewEncoder(&body).Encode(addManualInvoiceForm)
+
 	if err != nil {
 		return err
 	}

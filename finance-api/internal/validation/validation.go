@@ -2,10 +2,9 @@ package validation
 
 import (
 	"fmt"
-	"time"
-
 	"github.com/go-playground/validator/v10"
 	"github.com/opg-sirius-finance-hub/shared"
+	"time"
 )
 
 type Validate struct {
@@ -23,6 +22,14 @@ func New() (*Validate, error) {
 		return nil, err
 	}
 	err = v.RegisterValidation("valid-enum", validateEnum)
+	if err != nil {
+		return nil, err
+	}
+	err = v.RegisterValidation("int-required-if-not-nil", validateIntRequiredIfNotNil)
+	if err != nil {
+		return nil, err
+	}
+	err = v.RegisterValidation("date-required-if-not-nil", validateDateRequiredIfNotNil)
 	if err != nil {
 		return nil, err
 	}
@@ -84,6 +91,24 @@ func validateDateInThePast(fl validator.FieldLevel) bool {
 func validateEnum(fl validator.FieldLevel) bool {
 	if v, ok := fl.Field().Interface().(shared.Valid); ok {
 		if v.Valid() {
+			return true
+		}
+	}
+	return false
+}
+
+func validateIntRequiredIfNotNil(fl validator.FieldLevel) bool {
+	if v, ok := fl.Field().Interface().(shared.NillableInt); ok {
+		if !v.Valid || v.Value != 0 {
+			return true
+		}
+	}
+	return false
+}
+
+func validateDateRequiredIfNotNil(fl validator.FieldLevel) bool {
+	if v, ok := fl.Field().Interface().(shared.NillableDate); ok {
+		if !v.Valid || !v.Value.IsNull() {
 			return true
 		}
 	}
