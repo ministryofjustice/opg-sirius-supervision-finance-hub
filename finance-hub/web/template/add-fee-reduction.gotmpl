@@ -14,7 +14,7 @@
                 <div class="govuk-grid-row">
                     <form
                         id="add-fee-reduction-form"
-                        class="add-note govuk-grid-column-one-third"
+                        class="govuk-grid-column-one-third"
                         method="post"
                         hx-post="{{ prefix (printf "/clients/%s/fee-reductions/add" .ClientId) }}"
                         hx-target="#error-summary">
@@ -26,19 +26,19 @@
                                 <span id="error-message__FeeType"></span>
                                 <div class="govuk-radios" data-module="govuk-radios">
                                     <div class="govuk-radios__item">
-                                        <input class="govuk-radios__input" id="remissionType" name="feeType" type="radio" value="remission">
+                                        <input class="govuk-radios__input" id="remissionType" name="feeType" type="radio" value="REMISSION">
                                         <label class="govuk-label govuk-radios__label" for="remissionType">
                                             Remission
                                         </label>
                                     </div>
                                     <div class="govuk-radios__item">
-                                        <input class="govuk-radios__input" id="exemptionType" name="feeType" type="radio" value="exemption">
+                                        <input class="govuk-radios__input" id="exemptionType" name="feeType" type="radio" value="EXEMPTION">
                                         <label class="govuk-label govuk-radios__label" for="exemptionType">
                                             Exemption
                                         </label>
                                     </div>
                                     <div class="govuk-radios__item">
-                                        <input class="govuk-radios__input" id="hardshipType" name="feeType" type="radio" value="hardship">
+                                        <input class="govuk-radios__input" id="hardshipType" name="feeType" type="radio" value="HARDSHIP">
                                         <label class="govuk-label govuk-radios__label" for="hardshipType">
                                             Hardship
                                         </label>

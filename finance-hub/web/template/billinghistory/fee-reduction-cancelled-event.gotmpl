@@ -1,8 +1,8 @@
-{{ define "pending-adjustment-event" }}
+{{ define "fee-reduction-cancelled-event" }}
     <div class="moj-timeline__item">
         <div class="moj-timeline__header">
             <h2 class="moj-timeline__title">
-                Pending {{.Event.AdjustmentType}} of £{{ transformToTwoDecimals  .Event.Amount }} added to {{.Event.InvoiceReference.Reference}}
+                {{ printf "%v cancelled" .Event.ReductionType }}
             </h2>
             <p class="moj-timeline__byline">
                 {{ printf "by %v, %v" .User .Date }}
@@ -14,9 +14,8 @@
         <div class="moj-timeline__description">
             <ul class="govuk-list govuk-list--bullet">
                 <li>
-                    <a class="govuk-link"  href="{{prefix (printf "/clients/%s/invoices" .Event.ClientId) }}">{{ .Event.InvoiceReference.Reference }}</a>
+                    {{ printf "Reason: %v" .Event.CancellationReason}}
                 </li>
-                <li>{{ .Event.Notes }}</li>
             </ul>
         </div>
     </div>

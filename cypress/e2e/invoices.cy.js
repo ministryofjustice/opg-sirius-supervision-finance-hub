@@ -11,19 +11,18 @@ describe("Invoice Tab", () => {
             .next().contains("Received")
             .next().contains("Outstanding Balance");
 
-        cy.get("table#invoices > tbody > tr")
-            .first()
-            .children()
-            .first().should("contain", "S206666/18")
-            .next().should("contain", "Unpaid")
-            .next().should("contain", "£320")
-            .next().should("contain", "16/03/2018")
-            .next().should("contain", "£0")
-            .next().should("contain", "£320");
+
+        cy.get("table#invoices > tbody").contains("S206666/18")
+            .parentsUntil("tr").siblings()
+            .first().contains("Unpaid")
+            .next().contains("£320")
+            .next().contains("16/03/2019")
+            .next().contains("0")
+            .next().contains("320");
     });
 
     it("does not show table for no invoices", () => {
-        cy.visit("/clients/2/invoices");
+        cy.visit("/clients/4/invoices");
         cy.contains('[data-cy="no-invoices"]', "There are no invoices");
     });
 
@@ -35,10 +34,10 @@ describe("Invoice Tab", () => {
         cy.contains('[data-cy="ledger-received-date"]', "Received date");
         cy.contains('[data-cy="ledger-transaction-type"]', "Transaction type");
         cy.contains('[data-cy="ledger-status"]', "Status");
-        cy.get('[data-cy="ledger-amount-data"]').first().contains("12")
-        cy.get('[data-cy="ledger-received-date-data"]').first().contains("04/12/2022")
-        cy.get('[data-cy="ledger-transaction-type-data"]').first().contains("Manual Credit");
-        cy.get('[data-cy="ledger-status-data"]').first().contains("Pending");
+        cy.get('[data-cy="ledger-amount-data"]').contains("12")
+        cy.get('[data-cy="ledger-received-date-data"]').contains("04/12/2022")
+        cy.get('[data-cy="ledger-transaction-type-data"]').contains("Manual Credit");
+        cy.get('[data-cy="ledger-status-data"]').contains("Pending");
     });
 
     it("displays the supervision levels for the invoice", () => {

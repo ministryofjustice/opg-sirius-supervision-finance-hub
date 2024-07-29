@@ -18,11 +18,11 @@ func TestServer_getBillingHistory(t *testing.T) {
 
 	billingHistoryInfo := []shared.BillingHistory{
 		{
-			User: "65",
+			User: 65,
 			Date: shared.Date{Time: time.Date(2099, time.November, 4, 15, 4, 5, 0, time.UTC)},
-			Event: &shared.InvoiceAdjustmentApproved{
-				AdjustmentType: "Write off",
-				ClientId:       "1",
+			Event: &shared.InvoiceAdjustmentPending{
+				AdjustmentType: shared.AdjustmentTypeWriteOff,
+				ClientId:       1,
 				PaymentBreakdown: shared.PaymentBreakdown{
 					InvoiceReference: shared.InvoiceEvent{
 						ID:        1,
@@ -30,7 +30,7 @@ func TestServer_getBillingHistory(t *testing.T) {
 					},
 					Amount: 12300,
 				},
-				BaseBillingEvent: shared.BaseBillingEvent{Type: 4},
+				BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeInvoiceAdjustmentPending},
 			},
 			OutstandingBalance: 0,
 		},
@@ -44,7 +44,7 @@ func TestServer_getBillingHistory(t *testing.T) {
 	defer res.Body.Close()
 	data, _ := io.ReadAll(res.Body)
 
-	expected := `[{"user":"65","date":"04\/11\/2099","event":{"adjustment_type":"Write off","client_id":"1","notes":"","payment_breakdown":{"invoice_reference":{"id":1,"reference":"S203531/19"},"amount":12300},"type":"INVOICE_ADJUSTMENT_APPLIED"},"outstanding_balance":0}]`
+	expected := `[{"user":65,"date":"04\/11\/2099","event":{"adjustment_type":"CREDIT WRITE OFF","client_id":1,"notes":"","payment_breakdown":{"invoice_reference":{"id":1,"reference":"S203531/19"},"amount":12300},"type":"INVOICE_ADJUSTMENT_PENDING"},"outstanding_balance":0}]`
 
 	assert.Equal(t, expected, string(data))
 	assert.Equal(t, 1, mock.expectedIds[0])
@@ -56,9 +56,7 @@ func TestServer_getBillingHistory_returns_an_empty_array(t *testing.T) {
 	req.SetPathValue("clientId", "2")
 	w := httptest.NewRecorder()
 
-	billingHistoryInfo := []shared.BillingHistory{}
-
-	mock := &mockService{billingHistory: billingHistoryInfo}
+	mock := &mockService{billingHistory: []shared.BillingHistory{}}
 	server := Server{Service: mock}
 	server.getBillingHistory(w, req)
 

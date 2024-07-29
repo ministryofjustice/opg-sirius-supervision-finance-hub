@@ -42,7 +42,7 @@ func TestGetInvoiceAdjustmentsCanReturn200(t *testing.T) {
 			Id:             3,
 			InvoiceRef:     "N2000001/20",
 			RaisedDate:     shared.NewDate("01/04/2222"),
-			AdjustmentType: shared.AdjustmentTypeAddCredit,
+			AdjustmentType: shared.AdjustmentTypeCreditMemo,
 			Amount:         232,
 			Status:         "PENDING",
 			Notes:          "Some notes here",
