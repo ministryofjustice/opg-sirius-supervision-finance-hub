@@ -34,6 +34,9 @@ var validationMappings = map[string]map[string]pair{
 		"date-required-if-not-nil": pair{"RaisedDate", "Enter a raised date"},
 		"date-in-the-past":         pair{"RaisedDate", "Enter a raised date in the past"},
 	},
+	"RaisedDateYear": {
+		"int-required-if-not-nil": pair{"RaisedDateYear", "Enter a raised date"},
+	},
 	"LengthOfAward": {
 		"required": pair{"LengthOfAward", "Confirm if an extended award is being given"},
 		"lte":      pair{"LengthOfAward", "Award length is over 3 years"},

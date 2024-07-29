@@ -29,7 +29,7 @@ func (h *SubmitManualInvoiceHandler) render(v AppVars, w http.ResponseWriter, r 
 
 	var (
 		invoiceType      = r.PostFormValue("invoiceType")
-		raisedDateYear   = r.PostFormValue("raisedDateYear")
+		raisedYear       = getFieldPointer(r.PostForm, "raisedYear")
 		supervisionLevel = r.PostFormValue("supervisionLevel")
 		amount           = getFieldPointer(r.PostForm, "amount")
 		startDate        = getFieldPointer(r.PostForm, "startDate")
@@ -37,9 +37,7 @@ func (h *SubmitManualInvoiceHandler) render(v AppVars, w http.ResponseWriter, r 
 		endDate          = getFieldPointer(r.PostForm, "endDate")
 	)
 
-	amount, startDate, raisedDate, endDate, supervisionLevel = invoiceData(invoiceType, amount, startDate, raisedDate, endDate, raisedDateYear, supervisionLevel)
-
-	err := h.Client().AddManualInvoice(ctx, ctx.ClientId, invoiceType, amount, raisedDate, startDate, endDate, supervisionLevel)
+	err := h.Client().AddManualInvoice(ctx, ctx.ClientId, invoiceType, amount, raisedDate, raisedYear, startDate, endDate, supervisionLevel)
 
 	if err == nil {
 		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices?success=invoice-type[%s]", v.EnvironmentVars.Prefix, ctx.ClientId, strings.ToUpper(invoiceType)))
@@ -60,29 +58,4 @@ func (h *SubmitManualInvoiceHandler) render(v AppVars, w http.ResponseWriter, r 
 	}
 
 	return err
-}
-
-func invoiceData(invoiceType string, amount *string, startDate *string, raisedDate *string, endDate *string, raisedDateYear string, supervisionLevel string) (*string, *string, *string, *string, string) {
-	switch invoiceType {
-	case shared.InvoiceTypeAD.Key():
-		amountString := "100"
-		amount = &amountString
-		startDate = raisedDate
-		endDate = raisedDate
-	case shared.InvoiceTypeS2.Key(), shared.InvoiceTypeB2.Key():
-		if raisedDateYear != "" {
-			raisedDateString := raisedDateYear + "-03" + "-31"
-			raisedDate = &raisedDateString
-		}
-		endDate = raisedDate
-		supervisionLevel = "GENERAL"
-	case shared.InvoiceTypeS3.Key(), shared.InvoiceTypeB3.Key():
-		if raisedDateYear != "" {
-			raisedDateString := raisedDateYear + "-03" + "-31"
-			raisedDate = &raisedDateString
-		}
-		endDate = raisedDate
-		supervisionLevel = "MINIMAL"
-	}
-	return amount, startDate, raisedDate, endDate, supervisionLevel
 }

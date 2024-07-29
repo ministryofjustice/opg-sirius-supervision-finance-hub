@@ -13,8 +13,41 @@ import (
 	"time"
 )
 
+func processInvoiceData(data shared.AddManualInvoice) shared.AddManualInvoice {
+	switch data.InvoiceType {
+	case shared.InvoiceTypeAD:
+		data.Amount = shared.NillableInt{100, true}
+		data.StartDate = data.RaisedDate
+		data.EndDate = data.RaisedDate
+	case shared.InvoiceTypeS2, shared.InvoiceTypeB2:
+		if data.RaisedYear.Value != 0 {
+			data.RaisedDate = shared.NillableDate{
+				Value: shared.NewDate(strconv.Itoa(data.RaisedYear.Value) + "-03" + "-31"),
+				Valid: true,
+			}
+		}
+		data.EndDate = data.RaisedDate
+		data.SupervisionLevel = "GENERAL"
+	case shared.InvoiceTypeS3, shared.InvoiceTypeB3:
+		if data.RaisedYear.Value != 0 {
+			data.RaisedDate = shared.NillableDate{
+				Value: shared.NewDate(strconv.Itoa(data.RaisedYear.Value) + "-03" + "-31"),
+				Valid: true,
+			}
+		}
+		data.EndDate = data.RaisedDate
+		data.SupervisionLevel = "MINIMAL"
+	}
+
+	return data
+}
+
 func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data shared.AddManualInvoice) error {
 	var validationsErrors []string
+
+	//invoiceData
+
+	data = processInvoiceData(data)
 
 	if data.InvoiceType.RequiresDateValidation() {
 		if !data.RaisedDate.Value.Time.Before(time.Now()) {

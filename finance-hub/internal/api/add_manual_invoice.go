@@ -8,47 +8,39 @@ import (
 	"net/http"
 )
 
-func (c *ApiClient) AddManualInvoice(ctx Context, clientId int, invoiceType string, amount *string, raisedDate *string, startDate *string, endDate *string, supervisionLevel string) error {
+func transformNillableDate(stringPointer *string) shared.NillableDate {
+	var transformedNillableDate shared.NillableDate
+	if stringPointer != nil {
+		transformedNillableDate = shared.NillableDate{
+			shared.NewDate(*stringPointer),
+			true,
+		}
+	}
+	return transformedNillableDate
+}
+
+func transformNillableInt(stringPointer *string) shared.NillableInt {
+	var transformedNillableInt shared.NillableInt
+	if stringPointer != nil {
+		transformedNillableInt = shared.NillableInt{
+			Value: shared.DecimalStringToInt(*stringPointer),
+			Valid: true,
+		}
+	}
+	return transformedNillableInt
+}
+
+func (c *ApiClient) AddManualInvoice(ctx Context, clientId int, invoiceType string, amount *string, raisedDate *string, raisedYear *string, startDate *string, endDate *string, supervisionLevel string) error {
 	var body bytes.Buffer
-	var raisedDateTransformed shared.NillableDate
-	var startDateTransformed shared.NillableDate
-	var endDateTransformed shared.NillableDate
-
-	if startDate != nil {
-		fmt.Println("Request start date not null")
-		startDateTransformed = shared.NillableDate{
-			shared.NewDate(*startDate),
-			true,
-		}
-	}
-
-	if raisedDate != nil {
-		raisedDateTransformed = shared.NillableDate{
-			shared.NewDate(*raisedDate),
-			true,
-		}
-	}
-
-	if endDate != nil {
-		endDateTransformed = shared.NillableDate{
-			shared.NewDate(*endDate),
-			true,
-		}
-	}
 
 	addManualInvoiceForm := shared.AddManualInvoice{
 		InvoiceType:      shared.ParseInvoiceType(invoiceType),
-		RaisedDate:       raisedDateTransformed,
-		StartDate:        startDateTransformed,
-		EndDate:          endDateTransformed,
+		Amount:           transformNillableInt(amount),
+		RaisedDate:       transformNillableDate(raisedDate),
+		RaisedYear:       transformNillableInt(raisedYear),
+		StartDate:        transformNillableDate(startDate),
+		EndDate:          transformNillableDate(endDate),
 		SupervisionLevel: supervisionLevel,
-	}
-
-	if amount != nil {
-		addManualInvoiceForm.Amount = shared.NillableInt{
-			Value: shared.DecimalStringToInt(*amount),
-			Valid: true,
-		}
 	}
 
 	err := json.NewEncoder(&body).Encode(addManualInvoiceForm)
