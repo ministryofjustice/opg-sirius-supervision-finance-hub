@@ -151,7 +151,7 @@ func processFeeReductionEvents(feEvents []store.GetFeeReductionEventsRow) []hist
 					},
 				},
 			}
-		} else if fe.Status == "APPROVED" {
+		} else if fe.Status.String == "APPROVED" {
 			bh = shared.BillingHistory{
 				User: int(fe.CreatedBy.Int32),
 				Date: shared.Date{Time: fe.CreatedAt.Time},
@@ -162,15 +162,15 @@ func processFeeReductionEvents(feEvents []store.GetFeeReductionEventsRow) []hist
 					ReductionType: shared.ParseFeeReductionType(fe.Type),
 					PaymentBreakdown: shared.PaymentBreakdown{
 						InvoiceReference: shared.InvoiceEvent{
-							ID:        int(fe.InvoiceID),
-							Reference: fe.Reference,
+							ID:        int(fe.InvoiceID.Int32),
+							Reference: fe.Reference.String,
 						},
-						Amount: int(fe.Amount),
+						Amount: int(fe.Amount.Int32),
 					},
 					ClientId: int(fe.ClientID),
 				},
 			}
-			balanceAdjustment = -(int(fe.Amount))
+			balanceAdjustment = -(int(fe.Amount.Int32))
 		} else {
 			bh = shared.BillingHistory{
 				User: int(fe.CreatedBy.Int32),

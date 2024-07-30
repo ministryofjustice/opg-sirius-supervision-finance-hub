@@ -35,8 +35,8 @@ SELECT fr.type,
        i.reference reference
 FROM fee_reduction fr
 JOIN finance_client fc ON fc.id = fr.finance_client_id
-JOIN ledger l ON l.fee_reduction_id = fr.id
-JOIN ledger_allocation la ON l.id = la.ledger_id
-JOIN invoice i ON i.id = la.invoice_id
+LEFT JOIN ledger l ON l.fee_reduction_id = fr.id
+LEFT JOIN ledger_allocation la ON l.id = la.ledger_id
+LEFT JOIN invoice i ON i.id = la.invoice_id
 WHERE fc.client_id = $1
 AND (fr.created_at IS NOT NULL OR fr.cancelled_at IS NOT NULL);
