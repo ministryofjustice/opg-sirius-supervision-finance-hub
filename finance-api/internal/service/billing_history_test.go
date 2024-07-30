@@ -24,6 +24,9 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 		"INSERT INTO fee_reduction VALUES (1, 7, 'REMISSION', NULL, '2020-03-31', '2023-03-31', 'Remission awarded', FALSE, '2020-03-03', '2020-04-01', 1);",
 		"INSERT INTO fee_reduction VALUES (2, 7, 'HARDSHIP', NULL, '2019-04-01', '2020-03-31', 'Legacy (no created date) - do not display', FALSE, '2019-05-01');",
 		"INSERT INTO fee_reduction VALUES (3, 7, 'REMISSION', NULL, '2020-03-31', '2023-03-31', 'Remission to see the notes', FALSE, '2020-03-03', '2020-04-01', 1, '2021-04-01', 2, 'Cancelled text here');",
+		"INSERT INTO fee_reduction VALUES (4, 7, 'REMISSION', NULL, '2020-03-31', '2023-03-31', 'Remission approved', FALSE, '2020-03-03', '2020-04-01', 1);",
+		"INSERT INTO ledger VALUES (3, 'different2', '2025-04-11T00:00:00+00:00', '', 12300, '', 'DEBIT MEMO', 'APPROVED', 7, 3, 4, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2025', 65);",
+		"INSERT INTO ledger_allocation VALUES (3, 3, 1, '2022-04-11T00:00:00+00:00', 12300, 'PENDING', NULL, 'Notes here', '2022-04-11', NULL);",
 	)
 
 	Store := store.New(conn)
@@ -63,7 +66,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 						},
 						BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeInvoiceAdjustmentPending},
 					},
-					OutstandingBalance: 32000,
+					OutstandingBalance: 19700,
 				},
 				{
 					User: 65,
@@ -81,7 +84,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 						},
 						BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeInvoiceAdjustmentPending},
 					},
-					OutstandingBalance: 32000,
+					OutstandingBalance: 19700,
 				},
 				{
 					User: 2,
@@ -91,7 +94,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 						CancellationReason: "Cancelled text here",
 						BaseBillingEvent:   shared.BaseBillingEvent{Type: shared.EventTypeFeeReductionCancelled},
 					},
-					OutstandingBalance: 32000,
+					OutstandingBalance: 19700,
 				},
 				{
 					User: 1,
@@ -105,6 +108,36 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 						BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeFeeReductionAwarded},
 					},
 					OutstandingBalance: 32000,
+				},
+				{
+					User: 1,
+					Date: shared.Date{Time: awardedReductionDate},
+					Event: shared.FeeReductionApplied{
+						ClientId:      1,
+						ReductionType: shared.FeeReductionTypeRemission,
+						PaymentBreakdown: shared.PaymentBreakdown{
+							InvoiceReference: shared.InvoiceEvent{
+								ID:        1,
+								Reference: "S203531/19",
+							},
+							Amount: 12300,
+						},
+						BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeFeeReductionApplied},
+					},
+					OutstandingBalance: 19700,
+				},
+				{
+					User: 1,
+					Date: shared.Date{Time: awardedReductionDate},
+					Event: shared.FeeReductionAwarded{
+						ReductionType:    shared.FeeReductionTypeRemission,
+						StartDate:        shared.Date{Time: reductionStartDate},
+						EndDate:          shared.Date{Time: reductionEndDate},
+						DateReceived:     shared.Date{Time: reductionReceivedDate},
+						Notes:            "Remission approved",
+						BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeFeeReductionAwarded},
+					},
+					OutstandingBalance: 19700,
 				},
 				{
 					User: 99,

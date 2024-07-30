@@ -138,6 +138,30 @@ func processFeeReductionEvents(feEvents []store.GetFeeReductionEventsRow) []hist
 	var history []historyHolder
 	for _, fe := range feEvents {
 		var bh shared.BillingHistory
+		if fe.Status.String == "APPROVED" {
+			bh = shared.BillingHistory{
+				User: int(fe.CreatedBy.Int32),
+				Date: shared.Date{Time: fe.CreatedAt.Time},
+				Event: shared.FeeReductionApplied{
+					BaseBillingEvent: shared.BaseBillingEvent{
+						Type: shared.EventTypeFeeReductionApplied,
+					},
+					ReductionType: shared.ParseFeeReductionType(fe.Type),
+					PaymentBreakdown: shared.PaymentBreakdown{
+						InvoiceReference: shared.InvoiceEvent{
+							ID:        int(fe.InvoiceID.Int32),
+							Reference: fe.Reference.String,
+						},
+						Amount: int(fe.Amount.Int32),
+					},
+					ClientId: int(fe.ClientID),
+				},
+			}
+			history = append(history, historyHolder{
+				billingHistory:    bh,
+				balanceAdjustment: -(int(fe.Amount.Int32)),
+			})
+		}
 		if fe.CancelledBy.Valid {
 			bh = shared.BillingHistory{
 				User: int(fe.CancelledBy.Int32),
@@ -150,7 +174,12 @@ func processFeeReductionEvents(feEvents []store.GetFeeReductionEventsRow) []hist
 					},
 				},
 			}
-		} else {
+			history = append(history, historyHolder{
+				billingHistory:    bh,
+				balanceAdjustment: 0,
+			})
+		}
+		if !fe.CancelledBy.Valid {
 			bh = shared.BillingHistory{
 				User: int(fe.CreatedBy.Int32),
 				Date: shared.Date{Time: fe.CreatedAt.Time},
@@ -165,11 +194,11 @@ func processFeeReductionEvents(feEvents []store.GetFeeReductionEventsRow) []hist
 					},
 				},
 			}
+			history = append(history, historyHolder{
+				billingHistory:    bh,
+				balanceAdjustment: 0,
+			})
 		}
-		history = append(history, historyHolder{
-			billingHistory:    bh,
-			balanceAdjustment: 0,
-		})
 	}
 	return history
 }

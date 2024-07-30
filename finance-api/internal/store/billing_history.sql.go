@@ -12,9 +12,26 @@ import (
 )
 
 const getFeeReductionEvents = `-- name: GetFeeReductionEvents :many
-SELECT fr.type, fr.startdate, fr.enddate, fr.datereceived, fr.notes, fr.created_at, fr.created_by, fr.cancelled_at, fr.cancelled_by, fr.cancellation_reason
+SELECT fr.type,
+       fr.startdate,
+       fr.enddate,
+       fr.datereceived,
+       fr.notes,
+       fr.created_at,
+       fr.created_by,
+       fr.cancelled_at,
+       fr.cancelled_by,
+       fr.cancellation_reason,
+       l.status,
+       l.amount,
+       fc.client_id,
+       i.id invoice_id,
+       i.reference reference
 FROM fee_reduction fr
 JOIN finance_client fc ON fc.id = fr.finance_client_id
+LEFT JOIN ledger l ON l.fee_reduction_id = fr.id
+LEFT JOIN ledger_allocation la ON l.id = la.ledger_id
+LEFT JOIN invoice i ON i.id = la.invoice_id
 WHERE fc.client_id = $1
 AND (fr.created_at IS NOT NULL OR fr.cancelled_at IS NOT NULL)
 `
@@ -30,6 +47,11 @@ type GetFeeReductionEventsRow struct {
 	CancelledAt        pgtype.Date
 	CancelledBy        pgtype.Int4
 	CancellationReason pgtype.Text
+	Status             pgtype.Text
+	Amount             pgtype.Int4
+	ClientID           int32
+	InvoiceID          pgtype.Int4
+	Reference          pgtype.Text
 }
 
 func (q *Queries) GetFeeReductionEvents(ctx context.Context, clientID int32) ([]GetFeeReductionEventsRow, error) {
@@ -52,6 +74,11 @@ func (q *Queries) GetFeeReductionEvents(ctx context.Context, clientID int32) ([]
 			&i.CancelledAt,
 			&i.CancelledBy,
 			&i.CancellationReason,
+			&i.Status,
+			&i.Amount,
+			&i.ClientID,
+			&i.InvoiceID,
+			&i.Reference,
 		); err != nil {
 			return nil, err
 		}
