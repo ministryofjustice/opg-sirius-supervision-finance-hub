@@ -74,6 +74,9 @@ var validationMappings = map[string]map[string]pair{
 	"InvoiceType": {
 		"required": pair{"InvoiceType", "Please select an invoice type"},
 	},
+	"SupervisionLevel": {
+		"oneof": pair{"SupervisionLevel", "Please select a valid supervision level"},
+	},
 }
 
 func RenameErrors(siriusError shared.ValidationErrors) shared.ValidationErrors {

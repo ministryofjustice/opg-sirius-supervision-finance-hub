@@ -27,17 +27,19 @@ func getFieldPointer(postForm url.Values, key string) *string {
 func (h *SubmitManualInvoiceHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
 	ctx := getContext(r)
 
-	var (
-		invoiceType      = r.PostFormValue("invoiceType")
-		raisedYear       = getFieldPointer(r.PostForm, "raisedYear")
-		supervisionLevel = r.PostFormValue("supervisionLevel")
-		amount           = getFieldPointer(r.PostForm, "amount")
-		startDate        = getFieldPointer(r.PostForm, "startDate")
-		raisedDate       = getFieldPointer(r.PostForm, "raisedDate")
-		endDate          = getFieldPointer(r.PostForm, "endDate")
-	)
+	invoiceType := r.PostFormValue("invoiceType")
 
-	err := h.Client().AddManualInvoice(ctx, ctx.ClientId, invoiceType, amount, raisedDate, raisedYear, startDate, endDate, supervisionLevel)
+	err := h.Client().AddManualInvoice(
+		ctx,
+		ctx.ClientId,
+		invoiceType,
+		getFieldPointer(r.PostForm, "amount"),
+		getFieldPointer(r.PostForm, "raisedDate"),
+		getFieldPointer(r.PostForm, "raisedYear"),
+		getFieldPointer(r.PostForm, "startDate"),
+		getFieldPointer(r.PostForm, "endDate"),
+		r.PostFormValue("supervisionLevel"),
+	)
 
 	if err == nil {
 		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices?success=invoice-type[%s]", v.EnvironmentVars.Prefix, ctx.ClientId, strings.ToUpper(invoiceType)))

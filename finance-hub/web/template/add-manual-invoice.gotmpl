@@ -114,28 +114,31 @@
                             </div>
                         </div>
 
-                        <div class="hide govuk-form-group" id="supervision-level-field-input">
-                            <fieldset class="govuk-fieldset" aria-describedby="changedName-hint">
-                                <legend class="govuk-fieldset__legend">
-                                    <h1 class="govuk-fieldset__heading">
-                                        Supervision level
-                                    </h1>
-                                </legend>
-                                <div class="govuk-radios govuk-radios--inline" data-module="govuk-radios">
-                                    <div class="govuk-radios__item">
-                                        <input class="govuk-radios__input" id="generalSupervisionLevel" name="supervisionLevel" type="radio" value="GENERAL">
-                                        <label class="govuk-label govuk-radios__label" for="generalSupervisionLevel">
-                                            General
-                                        </label>
+                        <div class="hide" id="supervision-level-field-input">
+                            <div class="govuk-form-group" id="f-SupervisionLevel">
+                                <fieldset class="govuk-fieldset" aria-describedby="changedName-hint">
+                                    <legend class="govuk-fieldset__legend">
+                                        <h1 class="govuk-fieldset__heading">
+                                            Supervision level
+                                            <span id="error-message__SupervisionLevel"></span>
+                                        </h1>
+                                    </legend>
+                                    <div class="govuk-radios govuk-radios--inline" data-module="govuk-radios">
+                                        <div class="govuk-radios__item">
+                                            <input class="govuk-radios__input" id="generalSupervisionLevel" name="supervisionLevel" type="radio" value="GENERAL">
+                                            <label class="govuk-label govuk-radios__label" for="generalSupervisionLevel">
+                                                General
+                                            </label>
+                                        </div>
+                                        <div class="govuk-radios__item">
+                                            <input class="govuk-radios__input" id="minimalSupervisionLevel" name="supervisionlevel" type="radio" value="MINIMAL">
+                                            <label class="govuk-label govuk-radios__label" for="minimalSupervisionLevel">
+                                                Minimal
+                                            </label>
+                                        </div>
                                     </div>
-                                    <div class="govuk-radios__item">
-                                        <input class="govuk-radios__input" id="minimalSupervisionLevel" name="supervisionlevel" type="radio" value="MINIMAL">
-                                        <label class="govuk-label govuk-radios__label" for="minimalSupervisionLevel">
-                                            Minimal
-                                        </label>
-                                    </div>
-                                </div>
-                            </fieldset>
+                                </fieldset>
+                            </div>
                         </div>
 
                         <div class="govuk-button-group govuk-!-margin-top-7">
