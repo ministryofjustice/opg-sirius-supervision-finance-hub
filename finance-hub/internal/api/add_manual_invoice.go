@@ -8,38 +8,16 @@ import (
 	"net/http"
 )
 
-func transformNillableDate(stringPointer *string) shared.NillableDate {
-	var transformedNillableDate shared.NillableDate
-	if stringPointer != nil {
-		transformedNillableDate = shared.NillableDate{
-			shared.NewDate(*stringPointer),
-			true,
-		}
-	}
-	return transformedNillableDate
-}
-
-func transformNillableInt(stringPointer *string) shared.NillableInt {
-	var transformedNillableInt shared.NillableInt
-	if stringPointer != nil {
-		transformedNillableInt = shared.NillableInt{
-			Value: shared.DecimalStringToInt(*stringPointer),
-			Valid: true,
-		}
-	}
-	return transformedNillableInt
-}
-
 func (c *ApiClient) AddManualInvoice(ctx Context, clientId int, invoiceType string, amount *string, raisedDate *string, raisedYear *string, startDate *string, endDate *string, supervisionLevel string) error {
 	var body bytes.Buffer
 
 	addManualInvoiceForm := shared.AddManualInvoice{
 		InvoiceType:      shared.ParseInvoiceType(invoiceType),
-		Amount:           transformNillableInt(amount),
-		RaisedDate:       transformNillableDate(raisedDate),
-		RaisedYear:       transformNillableInt(raisedYear),
-		StartDate:        transformNillableDate(startDate),
-		EndDate:          transformNillableDate(endDate),
+		Amount:           shared.TransformNillableInt(amount),
+		RaisedDate:       shared.TransformNillableDate(raisedDate),
+		RaisedYear:       shared.TransformNillableInt(raisedYear),
+		StartDate:        shared.TransformNillableDate(startDate),
+		EndDate:          shared.TransformNillableDate(endDate),
 		SupervisionLevel: supervisionLevel,
 	}
 

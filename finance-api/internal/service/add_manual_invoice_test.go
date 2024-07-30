@@ -10,22 +10,17 @@ import (
 	"time"
 )
 
+func pointer(val string) *string {
+	return &val
+}
+
 func addManualInvoiceSetup(conn testhelpers.TestConn) (Service, shared.AddManualInvoice) {
-	var startDateTransformed *shared.Date
-	var endDateTransformed *shared.Date
-
-	startDateToTime, _ := time.Parse("2006-01-02", "2024-04-12")
-	startDateTransformed = &shared.Date{Time: startDateToTime}
-
-	endDateToTime, _ := time.Parse("2006-01-02", "2025-03-31")
-	endDateTransformed = &shared.Date{Time: endDateToTime}
-
 	params := shared.AddManualInvoice{
 		InvoiceType:      shared.InvoiceTypeS2,
-		Amount:           50000,
-		RaisedDate:       endDateTransformed,
-		StartDate:        startDateTransformed,
-		EndDate:          endDateTransformed,
+		Amount:           shared.TransformNillableInt(pointer("500")),
+		RaisedDate:       shared.TransformNillableDate(pointer("2025-03-31")),
+		StartDate:        shared.TransformNillableDate(pointer("2024-04-12")),
+		EndDate:          shared.TransformNillableDate(pointer("2025-03-31")),
 		SupervisionLevel: "GENERAL",
 	}
 
@@ -109,9 +104,21 @@ func (suite *IntegrationSuite) TestService_AddManualInvoiceRaisedDateForAnInvoic
 	)
 	s, params := addManualInvoiceSetup(conn)
 
-	params.RaisedDate = &shared.Date{Time: time.Now().AddDate(0, 0, 1)}
-	params.StartDate = &shared.Date{Time: time.Now().AddDate(0, 0, 1)}
-	params.EndDate = &shared.Date{Time: time.Now().AddDate(0, 0, -1)}
+	params.RaisedDate = shared.NillableDate{
+		Value: shared.Date{Time: time.Now().AddDate(0, 0, 1)},
+		Valid: true,
+	}
+
+	params.StartDate = shared.NillableDate{
+		Value: shared.Date{Time: time.Now().AddDate(0, 0, 1)},
+		Valid: true,
+	}
+
+	params.EndDate = shared.NillableDate{
+		Value: shared.Date{Time: time.Now().AddDate(0, 0, -1)},
+		Valid: true,
+	}
+
 	params.InvoiceType = shared.InvoiceTypeSO
 
 	err := s.AddManualInvoice(suite.ctx, 24, params)
@@ -129,7 +136,11 @@ func (suite *IntegrationSuite) TestService_AddManualInvoiceRaisedDateForAnInvoic
 		"INSERT INTO fee_reduction VALUES (24, 24, 'REMISSION', NULL, '2023-04-01', '2024-03-31', 'Remission to see the notes', FALSE, '2023-05-01');",
 	)
 	s, params := addManualInvoiceSetup(conn)
-	params.RaisedDate = &shared.Date{Time: time.Now().AddDate(0, 0, -1)}
+
+	params.RaisedDate = shared.NillableDate{
+		Value: shared.Date{Time: time.Now().AddDate(0, 0, -1)},
+		Valid: true,
+	}
 	params.InvoiceType = shared.InvoiceTypeSO
 
 	err := s.AddManualInvoice(suite.ctx, 24, params)
@@ -245,11 +256,14 @@ func (suite *IntegrationSuite) TestService_AddLedgerAndAllocationsForAnADInvoice
 	params.InvoiceType = shared.InvoiceTypeAD
 	dateString := "2023-05-01"
 	date, _ := time.Parse("2006-01-02", dateString)
-	dateReceivedTransformed := &shared.Date{Time: date}
 
-	params.StartDate = dateReceivedTransformed
-	params.EndDate = dateReceivedTransformed
-	params.RaisedDate = dateReceivedTransformed
+	params.RaisedDate = shared.NillableDate{
+		Value: shared.Date{Time: date},
+		Valid: true,
+	}
+
+	params.StartDate = params.RaisedDate
+	params.EndDate = params.RaisedDate
 
 	err := s.AddManualInvoice(ctx, 25, params)
 	if err != nil {
@@ -263,7 +277,7 @@ func (suite *IntegrationSuite) TestService_AddLedgerAndAllocationsForAnADInvoice
 	} else {
 		expected := store.Ledger{
 			ID:              1,
-			Amount:          int32(params.Amount / 2),
+			Amount:          int32(50),
 			Notes:           pgtype.Text{String: "Credit due to manual invoice REMISSION", Valid: true},
 			Type:            "CREDIT REMISSION",
 			Status:          "APPROVED",
@@ -297,7 +311,7 @@ func (suite *IntegrationSuite) TestService_AddLedgerAndAllocationsForAnExemption
 	} else {
 		expected := store.Ledger{
 			ID:              1,
-			Amount:          int32(params.Amount),
+			Amount:          int32(params.Amount.Value),
 			Notes:           pgtype.Text{String: "Credit due to manual invoice EXEMPTION", Valid: true},
 			Type:            "CREDIT EXEMPTION",
 			Status:          "APPROVED",

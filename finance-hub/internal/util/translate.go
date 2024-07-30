@@ -22,7 +22,7 @@ var validationMappings = map[string]map[string]pair{
 		"required":                pair{"Amount", "Enter an amount"},
 		"int-required-if-not-nil": pair{"Amount", "Enter an amount"},
 		"required_if":             pair{"Amount", "Enter an amount"},
-		"lte":                     pair{"Amount", "Amount cant be above £320"},
+		"nillable-int-lte":        pair{"Amount", "Amount can't be above £320"},
 	},
 	"FeeType": {
 		"required": pair{"FeeType", "A fee reduction type must be selected"},
@@ -34,8 +34,8 @@ var validationMappings = map[string]map[string]pair{
 		"date-required-if-not-nil": pair{"RaisedDate", "Enter a raised date"},
 		"date-in-the-past":         pair{"RaisedDate", "Enter a raised date in the past"},
 	},
-	"RaisedDateYear": {
-		"int-required-if-not-nil": pair{"RaisedDateYear", "Enter a raised date"},
+	"RaisedYear": {
+		"int-required-if-not-nil": pair{"RaisedYear", "Enter a raised date"},
 	},
 	"LengthOfAward": {
 		"required": pair{"LengthOfAward", "Confirm if an extended award is being given"},

@@ -17,22 +17,60 @@ import (
 
 func TestServer_addManualInvoice(t *testing.T) {
 	var b bytes.Buffer
-	var startDateTransformed *shared.Date
-	var endDateTransformed *shared.Date
 
 	startDateToTime, _ := time.Parse("2006-01-02", "2024-04-12")
-	startDateTransformed = &shared.Date{Time: startDateToTime}
-
 	endDateToTime, _ := time.Parse("2006-01-02", "2025-03-31")
-	endDateTransformed = &shared.Date{Time: endDateToTime}
 
 	manualInvoiceInfo := &shared.AddManualInvoice{
-		InvoiceType:      shared.InvoiceTypeS2,
-		Amount:           32000,
-		RaisedDate:       endDateTransformed,
-		StartDate:        startDateTransformed,
-		EndDate:          endDateTransformed,
+		InvoiceType: shared.InvoiceTypeS2,
+		Amount: shared.NillableInt{
+			Value: 32000,
+			Valid: true,
+		},
+		RaisedDate: shared.NillableDate{
+			Value: shared.Date{Time: endDateToTime},
+			Valid: true,
+		},
+		StartDate: shared.NillableDate{
+			Value: shared.Date{Time: startDateToTime},
+			Valid: true,
+		},
+		EndDate: shared.NillableDate{
+			Value: shared.Date{Time: endDateToTime},
+			Valid: true,
+		},
 		SupervisionLevel: "GENERAL",
+	}
+	_ = json.NewEncoder(&b).Encode(manualInvoiceInfo)
+	req := httptest.NewRequest(http.MethodPost, "/clients/1/invoices", &b)
+	req.SetPathValue("clientId", "1")
+	w := httptest.NewRecorder()
+
+	validator, _ := validation.New()
+
+	mock := &mockService{manualInvoice: manualInvoiceInfo}
+	server := Server{Service: mock, Validator: validator}
+	server.addManualInvoice(w, req)
+
+	res := w.Result()
+	defer res.Body.Close()
+	data, _ := io.ReadAll(res.Body)
+
+	expected := ""
+
+	assert.Equal(t, expected, string(data))
+	assert.Equal(t, http.StatusCreated, w.Code)
+}
+
+func TestServer_addManualInvoiceNoValidationErrorsForNilFields(t *testing.T) {
+	var b bytes.Buffer
+	manualInvoiceInfo := &shared.AddManualInvoice{
+		InvoiceType:      shared.InvoiceTypeAD,
+		Amount:           shared.NillableInt{},
+		RaisedDate:       shared.NillableDate{},
+		StartDate:        shared.NillableDate{},
+		EndDate:          shared.NillableDate{},
+		SupervisionLevel: "",
 	}
 	_ = json.NewEncoder(&b).Encode(manualInvoiceInfo)
 	req := httptest.NewRequest(http.MethodPost, "/clients/1/invoices", &b)
@@ -59,11 +97,12 @@ func TestServer_addManualInvoiceValidationErrors(t *testing.T) {
 	var b bytes.Buffer
 	manualInvoiceInfo := &shared.AddManualInvoice{
 		InvoiceType:      shared.InvoiceTypeUnknown,
-		Amount:           0,
-		RaisedDate:       nil,
-		StartDate:        nil,
-		EndDate:          nil,
-		SupervisionLevel: "",
+		Amount:           shared.NillableInt{Valid: true},
+		RaisedDate:       shared.NillableDate{Valid: true},
+		RaisedYear:       shared.NillableInt{Valid: true},
+		StartDate:        shared.NillableDate{Valid: true},
+		EndDate:          shared.NillableDate{Valid: true},
+		SupervisionLevel: "BLARG",
 	}
 	_ = json.NewEncoder(&b).Encode(manualInvoiceInfo)
 	req := httptest.NewRequest(http.MethodPost, "/clients/1/invoices", &b)
@@ -81,7 +120,7 @@ func TestServer_addManualInvoiceValidationErrors(t *testing.T) {
 	data, _ := io.ReadAll(res.Body)
 
 	expected := `
-{"Message":"","validation_errors":{"Amount":{"required":"This field Amount needs to be looked at required"},"EndDate":{"required":"This field EndDate needs to be looked at required"},"InvoiceType":{"required":"This field InvoiceType needs to be looked at required"},"RaisedDate":{"required":"This field RaisedDate needs to be looked at required"},"StartDate":{"required":"This field StartDate needs to be looked at required"}}}`
+{"Message":"","validation_errors":{"Amount":{"int-required-if-not-nil":"This field Amount needs to be looked at int-required-if-not-nil"},"EndDate":{"date-required-if-not-nil":"This field EndDate needs to be looked at date-required-if-not-nil"},"InvoiceType":{"required":"This field InvoiceType needs to be looked at required"},"RaisedDate":{"date-required-if-not-nil":"This field RaisedDate needs to be looked at date-required-if-not-nil"},"RaisedYear":{"int-required-if-not-nil":"This field RaisedYear needs to be looked at int-required-if-not-nil"},"StartDate":{"date-required-if-not-nil":"This field StartDate needs to be looked at date-required-if-not-nil"},"SupervisionLevel":{"oneof":"This field SupervisionLevel needs to be looked at oneof"}}}`
 
 	assert.Equal(t, expected, string(data))
 	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
@@ -89,20 +128,28 @@ func TestServer_addManualInvoiceValidationErrors(t *testing.T) {
 
 func TestServer_addManualInvoiceValidationErrorsForAmountTooHigh(t *testing.T) {
 	var b bytes.Buffer
-	var startDateTransformed *shared.Date
-	var endDateTransformed *shared.Date
 
 	startDateToTime, _ := time.Parse("2006-01-02", "2024-04-12")
-	startDateTransformed = &shared.Date{Time: startDateToTime}
-
 	endDateToTime, _ := time.Parse("2006-01-02", "2025-03-31")
-	endDateTransformed = &shared.Date{Time: endDateToTime}
+
 	manualInvoiceInfo := &shared.AddManualInvoice{
-		InvoiceType:      shared.InvoiceTypeS2,
-		Amount:           320000,
-		RaisedDate:       endDateTransformed,
-		StartDate:        startDateTransformed,
-		EndDate:          endDateTransformed,
+		InvoiceType: shared.InvoiceTypeS2,
+		Amount: shared.NillableInt{
+			Value: 320000,
+			Valid: true,
+		},
+		RaisedDate: shared.NillableDate{
+			Value: shared.Date{Time: endDateToTime},
+			Valid: true,
+		},
+		StartDate: shared.NillableDate{
+			Value: shared.Date{Time: startDateToTime},
+			Valid: true,
+		},
+		EndDate: shared.NillableDate{
+			Value: shared.Date{Time: endDateToTime},
+			Valid: true,
+		},
 		SupervisionLevel: "GENERAL",
 	}
 	_ = json.NewEncoder(&b).Encode(manualInvoiceInfo)
@@ -121,7 +168,7 @@ func TestServer_addManualInvoiceValidationErrorsForAmountTooHigh(t *testing.T) {
 	data, _ := io.ReadAll(res.Body)
 
 	expected := `
-{"Message":"","validation_errors":{"Amount":{"lte":"This field Amount needs to be looked at lte"}}}`
+{"Message":"","validation_errors":{"Amount":{"nillable-int-lte":"This field Amount needs to be looked at nillable-int-lte"}}}`
 
 	assert.Equal(t, expected, string(data))
 	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
@@ -129,20 +176,28 @@ func TestServer_addManualInvoiceValidationErrorsForAmountTooHigh(t *testing.T) {
 
 func TestServer_addManualInvoiceDateErrors(t *testing.T) {
 	var b bytes.Buffer
-	var startDateTransformed *shared.Date
-	var endDateTransformed *shared.Date
 
 	startDateToTime, _ := time.Parse("2006-01-02", "2024-04-12")
-	startDateTransformed = &shared.Date{Time: startDateToTime}
 
 	endDateToTime, _ := time.Parse("2006-01-02", "2025-03-31")
-	endDateTransformed = &shared.Date{Time: endDateToTime}
 	manualInvoiceInfo := &shared.AddManualInvoice{
-		InvoiceType:      shared.InvoiceTypeS2,
-		Amount:           320000,
-		RaisedDate:       endDateTransformed,
-		StartDate:        startDateTransformed,
-		EndDate:          endDateTransformed,
+		InvoiceType: shared.InvoiceTypeS2,
+		Amount: shared.NillableInt{
+			Value: 320000,
+			Valid: true,
+		},
+		RaisedDate: shared.NillableDate{
+			Value: shared.Date{Time: endDateToTime},
+			Valid: true,
+		},
+		StartDate: shared.NillableDate{
+			Value: shared.Date{Time: startDateToTime},
+			Valid: true,
+		},
+		EndDate: shared.NillableDate{
+			Value: shared.Date{Time: endDateToTime},
+			Valid: true,
+		},
 		SupervisionLevel: "GENERAL",
 	}
 	_ = json.NewEncoder(&b).Encode(manualInvoiceInfo)
@@ -164,21 +219,28 @@ func TestServer_addManualInvoiceDateErrors(t *testing.T) {
 
 func TestServer_addManualInvoice422Error(t *testing.T) {
 	var b bytes.Buffer
-	var startDateTransformed *shared.Date
-	var endDateTransformed *shared.Date
 
 	startDateToTime, _ := time.Parse("2006-01-02", "2024-04-12")
-	startDateTransformed = &shared.Date{Time: startDateToTime}
-
 	endDateToTime, _ := time.Parse("2006-01-02", "2025-03-31")
-	endDateTransformed = &shared.Date{Time: endDateToTime}
 
 	manualInvoiceInfo := &shared.AddManualInvoice{
-		InvoiceType:      shared.InvoiceTypeS2,
-		Amount:           32000,
-		RaisedDate:       endDateTransformed,
-		StartDate:        startDateTransformed,
-		EndDate:          endDateTransformed,
+		InvoiceType: shared.InvoiceTypeS2,
+		Amount: shared.NillableInt{
+			Value: 32000,
+			Valid: true,
+		},
+		RaisedDate: shared.NillableDate{
+			Value: shared.Date{Time: endDateToTime},
+			Valid: true,
+		},
+		StartDate: shared.NillableDate{
+			Value: shared.Date{Time: startDateToTime},
+			Valid: true,
+		},
+		EndDate: shared.NillableDate{
+			Value: shared.Date{Time: endDateToTime},
+			Valid: true,
+		},
 		SupervisionLevel: "GENERAL",
 	}
 	_ = json.NewEncoder(&b).Encode(manualInvoiceInfo)

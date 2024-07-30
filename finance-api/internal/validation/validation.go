@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/opg-sirius-finance-hub/shared"
+	"strconv"
 	"time"
 )
 
@@ -26,6 +27,14 @@ func New() (*Validate, error) {
 		return nil, err
 	}
 	err = v.RegisterValidation("int-required-if-not-nil", validateIntRequiredIfNotNil)
+	if err != nil {
+		return nil, err
+	}
+	err = v.RegisterValidation("nillable-int-gt", validateIntGreaterThan)
+	if err != nil {
+		return nil, err
+	}
+	err = v.RegisterValidation("nillable-int-lte", validateIntLessThanOrEqualTo)
 	if err != nil {
 		return nil, err
 	}
@@ -102,6 +111,28 @@ func validateIntRequiredIfNotNil(fl validator.FieldLevel) bool {
 		if !v.Valid || v.Value != 0 {
 			return true
 		}
+	}
+	return false
+}
+
+func validateIntGreaterThan(fl validator.FieldLevel) bool {
+	if v, ok := fl.Field().Interface().(shared.NillableInt); ok {
+		intParam, err := strconv.Atoi(fl.Param())
+		if err != nil {
+			panic(err)
+		}
+		return !v.Valid || v.Value > intParam
+	}
+	return false
+}
+
+func validateIntLessThanOrEqualTo(fl validator.FieldLevel) bool {
+	if v, ok := fl.Field().Interface().(shared.NillableInt); ok {
+		intParam, err := strconv.Atoi(fl.Param())
+		if err != nil {
+			panic(err)
+		}
+		return !v.Valid || v.Value <= intParam
 	}
 	return false
 }
