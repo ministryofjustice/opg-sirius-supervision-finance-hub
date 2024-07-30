@@ -138,20 +138,7 @@ func processFeeReductionEvents(feEvents []store.GetFeeReductionEventsRow) []hist
 	var history []historyHolder
 	for _, fe := range feEvents {
 		var bh shared.BillingHistory
-		var balanceAdjustment int
-		if fe.CancelledBy.Valid {
-			bh = shared.BillingHistory{
-				User: int(fe.CancelledBy.Int32),
-				Date: shared.Date{Time: fe.CancelledAt.Time},
-				Event: shared.FeeReductionCancelled{
-					ReductionType:      shared.ParseFeeReductionType(fe.Type),
-					CancellationReason: fe.CancellationReason.String,
-					BaseBillingEvent: shared.BaseBillingEvent{
-						Type: shared.EventTypeFeeReductionCancelled,
-					},
-				},
-			}
-		} else if fe.Status.String == "APPROVED" {
+		if fe.Status.String == "APPROVED" {
 			bh = shared.BillingHistory{
 				User: int(fe.CreatedBy.Int32),
 				Date: shared.Date{Time: fe.CreatedAt.Time},
@@ -170,8 +157,29 @@ func processFeeReductionEvents(feEvents []store.GetFeeReductionEventsRow) []hist
 					ClientId: int(fe.ClientID),
 				},
 			}
-			balanceAdjustment = -(int(fe.Amount.Int32))
-		} else {
+			history = append(history, historyHolder{
+				billingHistory:    bh,
+				balanceAdjustment: -(int(fe.Amount.Int32)),
+			})
+		}
+		if fe.CancelledBy.Valid {
+			bh = shared.BillingHistory{
+				User: int(fe.CancelledBy.Int32),
+				Date: shared.Date{Time: fe.CancelledAt.Time},
+				Event: shared.FeeReductionCancelled{
+					ReductionType:      shared.ParseFeeReductionType(fe.Type),
+					CancellationReason: fe.CancellationReason.String,
+					BaseBillingEvent: shared.BaseBillingEvent{
+						Type: shared.EventTypeFeeReductionCancelled,
+					},
+				},
+			}
+			history = append(history, historyHolder{
+				billingHistory:    bh,
+				balanceAdjustment: 0,
+			})
+		}
+		if !fe.CancelledBy.Valid {
 			bh = shared.BillingHistory{
 				User: int(fe.CreatedBy.Int32),
 				Date: shared.Date{Time: fe.CreatedAt.Time},
@@ -186,11 +194,11 @@ func processFeeReductionEvents(feEvents []store.GetFeeReductionEventsRow) []hist
 					},
 				},
 			}
+			history = append(history, historyHolder{
+				billingHistory:    bh,
+				balanceAdjustment: 0,
+			})
 		}
-		history = append(history, historyHolder{
-			billingHistory:    bh,
-			balanceAdjustment: balanceAdjustment,
-		})
 	}
 	return history
 }

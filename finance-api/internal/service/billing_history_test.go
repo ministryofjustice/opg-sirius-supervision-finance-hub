@@ -127,6 +127,19 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 					OutstandingBalance: 19700,
 				},
 				{
+					User: 1,
+					Date: shared.Date{Time: awardedReductionDate},
+					Event: shared.FeeReductionAwarded{
+						ReductionType:    shared.FeeReductionTypeRemission,
+						StartDate:        shared.Date{Time: reductionStartDate},
+						EndDate:          shared.Date{Time: reductionEndDate},
+						DateReceived:     shared.Date{Time: reductionReceivedDate},
+						Notes:            "Remission approved",
+						BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeFeeReductionAwarded},
+					},
+					OutstandingBalance: 19700,
+				},
+				{
 					User: 99,
 					Date: shared.Date{Time: invoiceDate},
 					Event: shared.InvoiceGenerated{
