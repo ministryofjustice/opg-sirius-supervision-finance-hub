@@ -50,8 +50,8 @@ func (suite *IntegrationSuite) TestService_GetPermittedAdjustments() {
 			name: "zero balance",
 			id:   2,
 			want: []shared.AdjustmentType{
-				shared.AdjustmentTypeAddCredit,
-				shared.AdjustmentTypeAddDebit,
+				shared.AdjustmentTypeCreditMemo,
+				shared.AdjustmentTypeDebitMemo,
 			},
 		},
 		{
@@ -59,7 +59,7 @@ func (suite *IntegrationSuite) TestService_GetPermittedAdjustments() {
 			id:   3,
 			want: []shared.AdjustmentType{
 				shared.AdjustmentTypeWriteOff,
-				shared.AdjustmentTypeAddCredit,
+				shared.AdjustmentTypeCreditMemo,
 			},
 		},
 		{
@@ -67,7 +67,7 @@ func (suite *IntegrationSuite) TestService_GetPermittedAdjustments() {
 			id:   4,
 			want: []shared.AdjustmentType{
 				shared.AdjustmentTypeWriteOff,
-				shared.AdjustmentTypeAddCredit,
+				shared.AdjustmentTypeCreditMemo,
 			},
 		},
 		{
@@ -75,8 +75,8 @@ func (suite *IntegrationSuite) TestService_GetPermittedAdjustments() {
 			id:   5,
 			want: []shared.AdjustmentType{
 				shared.AdjustmentTypeWriteOff,
-				shared.AdjustmentTypeAddCredit,
-				shared.AdjustmentTypeAddDebit,
+				shared.AdjustmentTypeCreditMemo,
+				shared.AdjustmentTypeDebitMemo,
 			},
 		},
 		{
@@ -84,8 +84,8 @@ func (suite *IntegrationSuite) TestService_GetPermittedAdjustments() {
 			id:   6,
 			want: []shared.AdjustmentType{
 				shared.AdjustmentTypeWriteOff,
-				shared.AdjustmentTypeAddCredit,
-				shared.AdjustmentTypeAddDebit,
+				shared.AdjustmentTypeCreditMemo,
+				shared.AdjustmentTypeDebitMemo,
 			},
 		},
 		{

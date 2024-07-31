@@ -9,6 +9,7 @@ cypress/logs
 cypress/screenshots
 cypress/videos
 cypress/downloads
+/cypress/cypress/
 
 # binaries
 /main

@@ -17,7 +17,7 @@ func TestServer_cancelFeeReduction(t *testing.T) {
 	var b bytes.Buffer
 
 	cancelFeeReductionInfo := &shared.CancelFeeReduction{
-		Notes: "Cancelling a remission reduction",
+		CancellationReason: "Cancelling a remission reduction",
 	}
 	_ = json.NewEncoder(&b).Encode(cancelFeeReductionInfo)
 	req := httptest.NewRequest(http.MethodPost, "/clients/1/fee-reductions/1/cancel", &b)
@@ -44,7 +44,7 @@ func TestServer_cancelFeeReduction(t *testing.T) {
 func TestServer_cancelFeeReductionsValidationErrors(t *testing.T) {
 	var b bytes.Buffer
 	cancelFeeReductionInfo := &shared.CancelFeeReduction{
-		Notes: "",
+		CancellationReason: "",
 	}
 	_ = json.NewEncoder(&b).Encode(cancelFeeReductionInfo)
 	req := httptest.NewRequest(http.MethodPost, "/clients/1/fee-reductions/1/cancel", &b)
@@ -63,7 +63,7 @@ func TestServer_cancelFeeReductionsValidationErrors(t *testing.T) {
 	data, _ := io.ReadAll(res.Body)
 
 	expected := `
-{"Message":"","validation_errors":{"CancelFeeReductionNotes":{"required":"This field CancelFeeReductionNotes needs to be looked at required"}}}`
+{"Message":"","validation_errors":{"CancellationReason":{"required":"This field CancellationReason needs to be looked at required"}}}`
 
 	assert.Equal(t, expected, string(data))
 	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
@@ -73,7 +73,7 @@ func TestServer_cancelFeeReductionsValidationErrorsForThousandCharacters(t *test
 	var b bytes.Buffer
 
 	cancelFeeReductionInfo := &shared.CancelFeeReduction{
-		Notes: "wC6fABXtm7LvSQ8oa3HUKsdtZldvEuvRwfyEKkAp8RsCxHWQjT8sWfj6cS1NzKVpG8AfAQ507IQ6zfKol" +
+		CancellationReason: "wC6fABXtm7LvSQ8oa3HUKsdtZldvEuvRwfyEKkAp8RsCxHWQjT8sWfj6cS1NzKVpG8AfAQ507IQ6zfKol" +
 			"asWQ84zz6MzTLVbkXCbKWqx9jIsJn3klFGq4Q32O62FpiIsMUuJoGV1BsWFT9d9prh0sDIpyXTPdgXwCTL4iIAdydqpGlmHt" +
 			"5dhyD4ZFYZICH2VFEWnTSrCGbBWPfbHArXxqZRCADf5ut3htEncnu0KSfSJhU2lSbT8erAueypq5u0Aot6fR0LKvtGuuK1VH" +
 			"iEOaEayIcOZaZLxi9xRcXryW8weyIcw4FEWlBvxsN3ZtA1J94LQM4U41NdsZ18bzZrkQW3MFL8JOzgESIsjoxwqSDeTVuYgT" +
@@ -102,7 +102,7 @@ func TestServer_cancelFeeReductionsValidationErrorsForThousandCharacters(t *test
 	data, _ := io.ReadAll(res.Body)
 
 	expected := `
-{"Message":"","validation_errors":{"CancelFeeReductionNotes":{"thousand-character-limit":"This field CancelFeeReductionNotes needs to be looked at thousand-character-limit"}}}`
+{"Message":"","validation_errors":{"CancellationReason":{"thousand-character-limit":"This field CancellationReason needs to be looked at thousand-character-limit"}}}`
 
 	assert.Equal(t, expected, string(data))
 	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
@@ -111,7 +111,7 @@ func TestServer_cancelFeeReductionsValidationErrorsForThousandCharacters(t *test
 func TestServer_cancelFeeReductions500Error(t *testing.T) {
 	var b bytes.Buffer
 	cancelFeeReductionInfo := &shared.CancelFeeReduction{
-		Notes: "Adding a remission reduction",
+		CancellationReason: "Adding a remission reduction",
 	}
 	_ = json.NewEncoder(&b).Encode(cancelFeeReductionInfo)
 	req := httptest.NewRequest(http.MethodPost, "/clients/1/fee-reductions/1/cancel", &b)

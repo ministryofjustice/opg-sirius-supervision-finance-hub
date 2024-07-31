@@ -116,20 +116,27 @@ func (h *InvoicesHandler) transformLedgers(ledgers []shared.Ledger, caser cases.
 		out = append(out, LedgerAllocation{
 			Amount:          shared.IntToDecimalString(ledger.Amount),
 			ReceivedDate:    ledger.ReceivedDate,
-			TransactionType: translate(ledger.TransactionType),
+			TransactionType: translate(ledger.TransactionType, ledger.Status),
 			Status:          caser.String(ledger.Status),
 		})
 	}
 	return out
 }
 
-func translate(transactionType string) string {
+func translate(transactionType string, status string) string {
+	switch status {
+	case "UNAPPLIED":
+		return "Unapplied Payment"
+	case "REAPPLIED":
+		return "Reapplied Payment"
+	}
+
 	switch transactionType {
 	case shared.AdjustmentTypeWriteOff.Key():
 		return "Write Off"
-	case shared.AdjustmentTypeAddCredit.Key():
+	case shared.AdjustmentTypeCreditMemo.Key():
 		return "Manual Credit"
-	case shared.AdjustmentTypeAddDebit.Key():
+	case shared.AdjustmentTypeDebitMemo.Key():
 		return "Manual Debit"
 	}
 
