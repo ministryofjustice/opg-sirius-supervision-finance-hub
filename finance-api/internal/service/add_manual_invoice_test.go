@@ -13,10 +13,10 @@ import (
 func addManualInvoiceSetup(conn testhelpers.TestConn) (Service, shared.AddManualInvoice) {
 	params := shared.AddManualInvoice{
 		InvoiceType:      shared.InvoiceTypeS2,
-		Amount:           shared.NillableInt{500, true},
-		RaisedDate:       shared.NillableDate{shared.NewDate("2025-03-31"), true},
-		StartDate:        shared.NillableDate{shared.NewDate("2024-04-12"), true},
-		EndDate:          shared.NillableDate{shared.NewDate("2025-03-31"), true},
+		Amount:           shared.NillableInt{Value: 500, Valid: true},
+		RaisedDate:       shared.NillableDate{Value: shared.NewDate("2025-03-31"), Valid: true},
+		StartDate:        shared.NillableDate{Value: shared.NewDate("2024-04-12"), Valid: true},
+		EndDate:          shared.NillableDate{Value: shared.NewDate("2025-03-31"), Valid: true},
 		SupervisionLevel: "GENERAL",
 	}
 
@@ -78,7 +78,7 @@ func (suite *IntegrationSuite) TestService_AddManualInvoice() {
 		&createdById)
 
 	assert.Equal(suite.T(), shared.InvoiceTypeS2.Key(), feeType)
-	assert.Equal(suite.T(), 50000, amount)
+	assert.Equal(suite.T(), 500, amount)
 	assert.Equal(suite.T(), "2024-04-12", startDate.Format("2006-01-02"))
 	assert.Equal(suite.T(), "2025-03-31", endDate.Format("2006-01-02"))
 
@@ -97,9 +97,9 @@ func (suite *IntegrationSuite) TestService_AddManualInvoiceRaisedDateForAnInvoic
 	)
 	s, params := addManualInvoiceSetup(conn)
 
-	params.RaisedDate = shared.NillableDate{shared.Date{Time: time.Now().AddDate(0, 0, 1)}, true}
-	params.StartDate = shared.NillableDate{shared.Date{Time: time.Now().AddDate(0, 0, 1)}, true}
-	params.EndDate = shared.NillableDate{shared.Date{Time: time.Now().AddDate(0, 0, -1)}, true}
+	params.RaisedDate = shared.NillableDate{Value: shared.Date{Time: time.Now().AddDate(0, 0, 1)}, Valid: true}
+	params.StartDate = shared.NillableDate{Value: shared.Date{Time: time.Now().AddDate(0, 0, 1)}, Valid: true}
+	params.EndDate = shared.NillableDate{Value: shared.Date{Time: time.Now().AddDate(0, 0, -1)}, Valid: true}
 	params.InvoiceType = shared.InvoiceTypeSO
 
 	err := s.AddManualInvoice(suite.ctx, 24, params)
@@ -118,7 +118,7 @@ func (suite *IntegrationSuite) TestService_AddManualInvoiceRaisedDateForAnInvoic
 	)
 	s, params := addManualInvoiceSetup(conn)
 
-	params.RaisedDate = shared.NillableDate{shared.Date{Time: time.Now().AddDate(0, 0, -1)}, true}
+	params.RaisedDate = shared.NillableDate{Value: shared.Date{Time: time.Now().AddDate(0, 0, -1)}, Valid: true}
 	params.InvoiceType = shared.InvoiceTypeSO
 
 	err := s.AddManualInvoice(suite.ctx, 24, params)
@@ -235,7 +235,7 @@ func (suite *IntegrationSuite) TestService_AddLedgerAndAllocationsForAnADInvoice
 	dateString := "2023-05-01"
 	date, _ := time.Parse("2006-01-02", dateString)
 
-	params.RaisedDate = shared.NillableDate{shared.Date{Time: date}, true}
+	params.RaisedDate = shared.NillableDate{Value: shared.Date{Time: date}, Valid: true}
 	params.StartDate = params.RaisedDate
 	params.EndDate = params.RaisedDate
 
@@ -312,98 +312,98 @@ func Test_invoiceData(t *testing.T) {
 				InvoiceType:      shared.InvoiceTypeAD,
 				Amount:           shared.NillableInt{},
 				StartDate:        shared.NillableDate{},
-				RaisedDate:       shared.NillableDate{shared.NewDate("2023-04-01"), true},
+				RaisedDate:       shared.NillableDate{Value: shared.NewDate("2023-04-01"), Valid: true},
 				EndDate:          shared.NillableDate{},
-				RaisedYear:       shared.NillableInt{2023, true},
+				RaisedYear:       shared.NillableInt{Value: 2023, Valid: true},
 				SupervisionLevel: "",
 			},
-			amount:           shared.NillableInt{100, true},
-			startDate:        shared.NillableDate{shared.NewDate("2023-04-01"), true},
-			raisedDate:       shared.NillableDate{shared.NewDate("2023-04-01"), true},
-			endDate:          shared.NillableDate{shared.NewDate("2023-04-01"), true},
+			amount:           shared.NillableInt{Value: 100, Valid: true},
+			startDate:        shared.NillableDate{Value: shared.NewDate("2023-04-01"), Valid: true},
+			raisedDate:       shared.NillableDate{Value: shared.NewDate("2023-04-01"), Valid: true},
+			endDate:          shared.NillableDate{Value: shared.NewDate("2023-04-01"), Valid: true},
 			supervisionLevel: "",
 		},
 		{
 			name: "B2 invoice returns correct values",
 			args: shared.AddManualInvoice{
 				InvoiceType:      shared.InvoiceTypeB2,
-				Amount:           shared.NillableInt{100, true},
-				StartDate:        shared.NillableDate{shared.NewDate("2033-04-01"), true},
+				Amount:           shared.NillableInt{Value: 100, Valid: true},
+				StartDate:        shared.NillableDate{Value: shared.NewDate("2033-04-01"), Valid: true},
 				RaisedDate:       shared.NillableDate{},
 				EndDate:          shared.NillableDate{},
-				RaisedYear:       shared.NillableInt{2025, true},
+				RaisedYear:       shared.NillableInt{Value: 2025, Valid: true},
 				SupervisionLevel: "",
 			},
-			amount:           shared.NillableInt{100, true},
-			startDate:        shared.NillableDate{shared.NewDate("2033-04-01"), true},
-			raisedDate:       shared.NillableDate{shared.NewDate("2025-03-31"), true},
-			endDate:          shared.NillableDate{shared.NewDate("2025-03-31"), true},
+			amount:           shared.NillableInt{Value: 100, Valid: true},
+			startDate:        shared.NillableDate{Value: shared.NewDate("2033-04-01"), Valid: true},
+			raisedDate:       shared.NillableDate{Value: shared.NewDate("2025-03-31"), Valid: true},
+			endDate:          shared.NillableDate{Value: shared.NewDate("2025-03-31"), Valid: true},
 			supervisionLevel: "GENERAL",
 		},
 		{
 			name: "B3 invoice returns correct values",
 			args: shared.AddManualInvoice{
 				InvoiceType:      shared.InvoiceTypeB3,
-				Amount:           shared.NillableInt{100, true},
-				StartDate:        shared.NillableDate{shared.NewDate("2033-04-01"), true},
+				Amount:           shared.NillableInt{Value: 100, Valid: true},
+				StartDate:        shared.NillableDate{Value: shared.NewDate("2033-04-01"), Valid: true},
 				RaisedDate:       shared.NillableDate{},
 				EndDate:          shared.NillableDate{},
-				RaisedYear:       shared.NillableInt{2025, true},
+				RaisedYear:       shared.NillableInt{Value: 2025, Valid: true},
 				SupervisionLevel: "MINIMAL",
 			},
-			amount:           shared.NillableInt{100, true},
-			startDate:        shared.NillableDate{shared.NewDate("2033-04-01"), true},
-			raisedDate:       shared.NillableDate{shared.NewDate("2025-03-31"), true},
-			endDate:          shared.NillableDate{shared.NewDate("2025-03-31"), true},
+			amount:           shared.NillableInt{Value: 100, Valid: true},
+			startDate:        shared.NillableDate{Value: shared.NewDate("2033-04-01"), Valid: true},
+			raisedDate:       shared.NillableDate{Value: shared.NewDate("2025-03-31"), Valid: true},
+			endDate:          shared.NillableDate{Value: shared.NewDate("2025-03-31"), Valid: true},
 			supervisionLevel: "MINIMAL",
 		},
 		{
 			name: "S2 invoice returns correct values",
 			args: shared.AddManualInvoice{
 				InvoiceType:      shared.InvoiceTypeS2,
-				Amount:           shared.NillableInt{100, true},
-				StartDate:        shared.NillableDate{shared.NewDate("2033-04-01"), true},
+				Amount:           shared.NillableInt{Value: 100, Valid: true},
+				StartDate:        shared.NillableDate{Value: shared.NewDate("2033-04-01"), Valid: true},
 				RaisedDate:       shared.NillableDate{},
 				EndDate:          shared.NillableDate{},
-				RaisedYear:       shared.NillableInt{2025, true},
+				RaisedYear:       shared.NillableInt{Value: 2025, Valid: true},
 				SupervisionLevel: "",
 			},
-			amount:           shared.NillableInt{100, true},
-			startDate:        shared.NillableDate{shared.NewDate("2033-04-01"), true},
-			raisedDate:       shared.NillableDate{shared.NewDate("2025-03-31"), true},
-			endDate:          shared.NillableDate{shared.NewDate("2025-03-31"), true},
+			amount:           shared.NillableInt{Value: 100, Valid: true},
+			startDate:        shared.NillableDate{Value: shared.NewDate("2033-04-01"), Valid: true},
+			raisedDate:       shared.NillableDate{Value: shared.NewDate("2025-03-31"), Valid: true},
+			endDate:          shared.NillableDate{Value: shared.NewDate("2025-03-31"), Valid: true},
 			supervisionLevel: "GENERAL",
 		},
 		{
 			name: "S3 invoice returns correct values",
 			args: shared.AddManualInvoice{
 				InvoiceType:      shared.InvoiceTypeS3,
-				Amount:           shared.NillableInt{100, true},
-				StartDate:        shared.NillableDate{shared.NewDate("2033-04-01"), true},
+				Amount:           shared.NillableInt{Value: 100, Valid: true},
+				StartDate:        shared.NillableDate{Value: shared.NewDate("2033-04-01"), Valid: true},
 				RaisedDate:       shared.NillableDate{},
 				EndDate:          shared.NillableDate{},
-				RaisedYear:       shared.NillableInt{2025, true},
+				RaisedYear:       shared.NillableInt{Value: 2025, Valid: true},
 				SupervisionLevel: "MINIMAL",
 			},
-			amount:           shared.NillableInt{100, true},
-			startDate:        shared.NillableDate{shared.NewDate("2033-04-01"), true},
-			raisedDate:       shared.NillableDate{shared.NewDate("2025-03-31"), true},
-			endDate:          shared.NillableDate{shared.NewDate("2025-03-31"), true},
+			amount:           shared.NillableInt{Value: 100, Valid: true},
+			startDate:        shared.NillableDate{Value: shared.NewDate("2033-04-01"), Valid: true},
+			raisedDate:       shared.NillableDate{Value: shared.NewDate("2025-03-31"), Valid: true},
+			endDate:          shared.NillableDate{Value: shared.NewDate("2025-03-31"), Valid: true},
 			supervisionLevel: "MINIMAL",
 		},
 		{
 			name: "No year will return correct values",
 			args: shared.AddManualInvoice{
 				InvoiceType:      shared.InvoiceTypeS3,
-				Amount:           shared.NillableInt{100, true},
-				StartDate:        shared.NillableDate{shared.NewDate("2033-04-01"), true},
+				Amount:           shared.NillableInt{Value: 100, Valid: true},
+				StartDate:        shared.NillableDate{Value: shared.NewDate("2033-04-01"), Valid: true},
 				RaisedDate:       shared.NillableDate{},
 				EndDate:          shared.NillableDate{},
 				RaisedYear:       shared.NillableInt{},
 				SupervisionLevel: "",
 			},
 			amount:           shared.NillableInt{Value: 100, Valid: true},
-			startDate:        shared.NillableDate{shared.NewDate("2033-04-01"), true},
+			startDate:        shared.NillableDate{Value: shared.NewDate("2033-04-01"), Valid: true},
 			raisedDate:       shared.NillableDate{},
 			endDate:          shared.NillableDate{},
 			supervisionLevel: "MINIMAL",
