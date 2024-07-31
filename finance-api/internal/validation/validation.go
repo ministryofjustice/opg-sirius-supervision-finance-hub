@@ -26,7 +26,7 @@ func New() (*Validate, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = v.RegisterValidation("int-required-if-not-nil", validateIntRequiredIfNotNil)
+	err = v.RegisterValidation("nillable-int-required", validateIntRequiredIfNotNil)
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +38,7 @@ func New() (*Validate, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = v.RegisterValidation("date-required-if-not-nil", validateDateRequiredIfNotNil)
+	err = v.RegisterValidation("nillable-date-required", validateDateRequiredIfNotNil)
 	if err != nil {
 		return nil, err
 	}

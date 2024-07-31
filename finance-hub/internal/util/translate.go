@@ -19,10 +19,10 @@ var validationMappings = map[string]map[string]pair{
 		"stringLengthTooLong": pair{"AdjustmentNotes", "Reason for manual credit must be 1000 characters or less"},
 	},
 	"Amount": {
-		"required":                pair{"Amount", "Enter an amount"},
-		"int-required-if-not-nil": pair{"Amount", "Enter an amount"},
-		"required_if":             pair{"Amount", "Enter an amount"},
-		"nillable-int-lte":        pair{"Amount", "Amount can't be above £320"},
+		"required":              pair{"Amount", "Enter an amount"},
+		"nillable-int-required": pair{"Amount", "Enter an amount"},
+		"required_if":           pair{"Amount", "Enter an amount"},
+		"nillable-int-lte":      pair{"Amount", "Amount can't be above £320"},
 	},
 	"FeeType": {
 		"required": pair{"FeeType", "A fee reduction type must be selected"},
@@ -31,11 +31,11 @@ var validationMappings = map[string]map[string]pair{
 		"required": pair{"StartYear", "Enter a start year"},
 	},
 	"RaisedDate": {
-		"date-required-if-not-nil": pair{"RaisedDate", "Enter a raised date"},
-		"date-in-the-past":         pair{"RaisedDate", "Enter a raised date in the past"},
+		"nillable-date-required": pair{"RaisedDate", "Enter a raised date"},
+		"date-in-the-past":       pair{"RaisedDate", "Enter a raised date in the past"},
 	},
 	"RaisedYear": {
-		"int-required-if-not-nil": pair{"RaisedYear", "Enter a raised date"},
+		"nillable-int-required": pair{"RaisedYear", "Enter a raised date"},
 	},
 	"LengthOfAward": {
 		"required": pair{"LengthOfAward", "Confirm if an extended award is being given"},
@@ -58,12 +58,12 @@ var validationMappings = map[string]map[string]pair{
 		"start-or-end-date": pair{"start-or-end-date", "A fee reduction already exists for the period specified"},
 	},
 	"StartDate": {
-		"StartDate":                pair{"StartDate", "Start date must be before end date and in same financial year"},
-		"date-required-if-not-nil": pair{"StartDate", "Enter a start date"},
+		"StartDate":              pair{"StartDate", "Start date must be before end date and in same financial year"},
+		"nillable-date-required": pair{"StartDate", "Enter a start date"},
 	},
 	"EndDate": {
-		"EndDate":                  pair{"EndDate", "End date must be after start date and in same financial year"},
-		"date-required-if-not-nil": pair{"EndDate", "Enter an end date"},
+		"EndDate":                pair{"EndDate", "End date must be after start date and in same financial year"},
+		"nillable-date-required": pair{"EndDate", "Enter an end date"},
 	},
 	"RaisedDateNotInPast": {
 		"RaisedDateNotInPast": pair{"RaisedDateNotInPast", "Raised date not in the past"},

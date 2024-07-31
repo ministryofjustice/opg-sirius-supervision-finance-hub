@@ -120,7 +120,7 @@ func TestServer_addManualInvoiceValidationErrors(t *testing.T) {
 	data, _ := io.ReadAll(res.Body)
 
 	expected := `
-{"Message":"","validation_errors":{"Amount":{"int-required-if-not-nil":"This field Amount needs to be looked at int-required-if-not-nil"},"EndDate":{"date-required-if-not-nil":"This field EndDate needs to be looked at date-required-if-not-nil"},"InvoiceType":{"required":"This field InvoiceType needs to be looked at required"},"RaisedDate":{"date-required-if-not-nil":"This field RaisedDate needs to be looked at date-required-if-not-nil"},"RaisedYear":{"int-required-if-not-nil":"This field RaisedYear needs to be looked at int-required-if-not-nil"},"StartDate":{"date-required-if-not-nil":"This field StartDate needs to be looked at date-required-if-not-nil"},"SupervisionLevel":{"oneof":"This field SupervisionLevel needs to be looked at oneof"}}}`
+{"Message":"","validation_errors":{"Amount":{"nillable-int-required":"This field Amount needs to be looked at nillable-int-required"},"EndDate":{"nillable-date-required":"This field EndDate needs to be looked at nillable-date-required"},"InvoiceType":{"required":"This field InvoiceType needs to be looked at required"},"RaisedDate":{"nillable-date-required":"This field RaisedDate needs to be looked at nillable-date-required"},"RaisedYear":{"nillable-int-required":"This field RaisedYear needs to be looked at nillable-int-required"},"StartDate":{"nillable-date-required":"This field StartDate needs to be looked at nillable-date-required"},"SupervisionLevel":{"oneof":"This field SupervisionLevel needs to be looked at oneof"}}}`
 
 	assert.Equal(t, expected, string(data))
 	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
