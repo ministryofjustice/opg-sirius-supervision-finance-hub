@@ -8,35 +8,21 @@ import (
 	"net/http"
 )
 
-func (c *ApiClient) AddManualInvoice(ctx Context, clientId int, invoiceType string, amount string, raisedDate string, startDate string, endDate string, supervisionLevel string) error {
+func (c *ApiClient) AddManualInvoice(ctx Context, clientId int, invoiceType string, amount *string, raisedDate *string, raisedYear *string, startDate *string, endDate *string, supervisionLevel string) error {
 	var body bytes.Buffer
-	var raisedDateTransformed *shared.Date
-	var startDateTransformed *shared.Date
-	var endDateTransformed *shared.Date
 
-	if raisedDate != "" {
-		raisedDateFormatted := shared.NewDate(raisedDate)
-		raisedDateTransformed = &raisedDateFormatted
-	}
-
-	if startDate != "" {
-		startDateFormatted := shared.NewDate(startDate)
-		startDateTransformed = &startDateFormatted
-	}
-
-	if endDate != "" {
-		endDateFormatted := shared.NewDate(endDate)
-		endDateTransformed = &endDateFormatted
-	}
-
-	err := json.NewEncoder(&body).Encode(shared.AddManualInvoice{
+	addManualInvoiceForm := shared.AddManualInvoice{
 		InvoiceType:      shared.ParseInvoiceType(invoiceType),
-		Amount:           shared.DecimalStringToInt(amount),
-		RaisedDate:       raisedDateTransformed,
-		StartDate:        startDateTransformed,
-		EndDate:          endDateTransformed,
+		Amount:           shared.TransformNillableInt(amount),
+		RaisedDate:       shared.TransformNillableDate(raisedDate),
+		RaisedYear:       shared.TransformNillableInt(raisedYear),
+		StartDate:        shared.TransformNillableDate(startDate),
+		EndDate:          shared.TransformNillableDate(endDate),
 		SupervisionLevel: supervisionLevel,
-	})
+	}
+
+	err := json.NewEncoder(&body).Encode(addManualInvoiceForm)
+
 	if err != nil {
 		return err
 	}

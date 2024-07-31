@@ -2,10 +2,10 @@ package validation
 
 import (
 	"fmt"
-	"time"
-
 	"github.com/go-playground/validator/v10"
 	"github.com/opg-sirius-finance-hub/shared"
+	"strconv"
+	"time"
 )
 
 type Validate struct {
@@ -23,6 +23,22 @@ func New() (*Validate, error) {
 		return nil, err
 	}
 	err = v.RegisterValidation("valid-enum", validateEnum)
+	if err != nil {
+		return nil, err
+	}
+	err = v.RegisterValidation("nillable-int-required", validateIntRequiredIfNotNil)
+	if err != nil {
+		return nil, err
+	}
+	err = v.RegisterValidation("nillable-int-gt", validateIntGreaterThan)
+	if err != nil {
+		return nil, err
+	}
+	err = v.RegisterValidation("nillable-int-lte", validateIntLessThanOrEqualTo)
+	if err != nil {
+		return nil, err
+	}
+	err = v.RegisterValidation("nillable-date-required", validateDateRequiredIfNotNil)
 	if err != nil {
 		return nil, err
 	}
@@ -77,6 +93,46 @@ func validateDateInThePast(fl validator.FieldLevel) bool {
 func validateEnum(fl validator.FieldLevel) bool {
 	if v, ok := fl.Field().Interface().(shared.Valid); ok {
 		if v.Valid() {
+			return true
+		}
+	}
+	return false
+}
+
+func validateIntRequiredIfNotNil(fl validator.FieldLevel) bool {
+	if v, ok := fl.Field().Interface().(shared.NillableInt); ok {
+		if !v.Valid || v.Value != 0 {
+			return true
+		}
+	}
+	return false
+}
+
+func validateIntGreaterThan(fl validator.FieldLevel) bool {
+	if v, ok := fl.Field().Interface().(shared.NillableInt); ok {
+		intParam, err := strconv.Atoi(fl.Param())
+		if err != nil {
+			panic(err)
+		}
+		return !v.Valid || v.Value > intParam
+	}
+	return false
+}
+
+func validateIntLessThanOrEqualTo(fl validator.FieldLevel) bool {
+	if v, ok := fl.Field().Interface().(shared.NillableInt); ok {
+		intParam, err := strconv.Atoi(fl.Param())
+		if err != nil {
+			panic(err)
+		}
+		return !v.Valid || v.Value <= intParam
+	}
+	return false
+}
+
+func validateDateRequiredIfNotNil(fl validator.FieldLevel) bool {
+	if v, ok := fl.Field().Interface().(shared.NillableDate); ok {
+		if !v.Valid || !v.Value.IsNull() {
 			return true
 		}
 	}
