@@ -40,6 +40,10 @@ var invoiceTypeMap = map[string]InvoiceType{
 	"SO": InvoiceTypeSO,
 }
 
+func (i InvoiceType) String() string {
+	return i.Key()
+}
+
 func (i InvoiceType) Translation() string {
 	switch i {
 	case InvoiceTypeAD:

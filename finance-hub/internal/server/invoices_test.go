@@ -113,6 +113,7 @@ func Test_translate(t *testing.T) {
 	tests := []struct {
 		name       string
 		ledgerType string
+		status     string
 		want       string
 	}{
 		{
@@ -132,18 +133,28 @@ func Test_translate(t *testing.T) {
 		},
 		{
 			name:       "returns a correct value for CREDIT MEMO",
-			ledgerType: shared.AdjustmentTypeAddCredit.Key(),
+			ledgerType: shared.AdjustmentTypeCreditMemo.Key(),
 			want:       "Manual Credit",
 		},
 		{
 			name:       "returns a correct value for DEBIT MEMO",
-			ledgerType: shared.AdjustmentTypeAddDebit.Key(),
+			ledgerType: shared.AdjustmentTypeDebitMemo.Key(),
 			want:       "Manual Debit",
+		},
+		{
+			name:   "returns a correct value for UNAPPLIED",
+			status: "UNAPPLIED",
+			want:   "Unapplied Payment",
+		},
+		{
+			name:   "returns a correct value for REAPPLIED",
+			status: "REAPPLIED",
+			want:   "Reapplied Payment",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, translate(tt.ledgerType), "translate(%v)", tt.ledgerType)
+			assert.Equalf(t, tt.want, translate(tt.ledgerType, tt.status), "translate(%v)", tt.ledgerType)
 		})
 	}
 }

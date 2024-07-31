@@ -108,7 +108,7 @@ func TestCreateLedgerEntryRequest_validation(t *testing.T) {
 		{
 			name: "amount when required",
 			arg: shared.CreateLedgerEntryRequest{
-				AdjustmentType:  shared.AdjustmentTypeAddCredit,
+				AdjustmentType:  shared.AdjustmentTypeCreditMemo,
 				AdjustmentNotes: "abc",
 			},
 			expected: map[string]string{
@@ -126,7 +126,7 @@ func TestCreateLedgerEntryRequest_validation(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			errs := validator.ValidateStruct(tt.arg, "").Errors
+			errs := validator.ValidateStruct(tt.arg).Errors
 			assert.Len(t, errs, len(tt.expected))
 			for key, val := range errs {
 				assert.NotEmpty(t, val[tt.expected[key]])

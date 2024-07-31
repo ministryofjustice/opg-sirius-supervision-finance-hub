@@ -2,12 +2,9 @@ package service
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
-	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -42,10 +39,8 @@ func processInvoiceData(data shared.AddManualInvoice) shared.AddManualInvoice {
 	return data
 }
 
-func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data shared.AddManualInvoice) error {
+func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data shared.AddManualInvoice) (txErr error) {
 	var validationsErrors []string
-
-	//invoiceData
 
 	data = processInvoiceData(data)
 
@@ -69,16 +64,13 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 		return shared.BadRequests{Reasons: validationsErrors}
 	}
 
+	ctx, cancelTx := context.WithCancel(ctx)
+	defer cancelTx()
+
 	tx, err := s.tx.Begin(ctx)
 	if err != nil {
 		return err
 	}
-
-	defer func() {
-		if err := tx.Rollback(ctx); !errors.Is(err, sql.ErrTxDone) {
-			log.Println("Error rolling back add fee reduction transaction:", err)
-		}
-	}()
 
 	transaction := s.store.WithTx(tx)
 	getInvoiceCounterForYear, err := transaction.UpsertCounterForInvoiceRefYear(ctx, strconv.Itoa(data.StartDate.Value.Time.Year())+"InvoiceNumber")
@@ -130,7 +122,7 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 	feeReduction, _ := transaction.GetFeeReductionForDate(ctx, AddFeeReductionToInvoiceParams)
 
 	if feeReduction.FeeReductionID != 0 {
-		err = s.AddLedgerAndAllocations(feeReduction.Type, feeReduction.FeeReductionID, feeReduction.FinanceClientID.Int32, invoice, transaction, ctx)
+		err = s.AddLedgerAndAllocations(shared.ParseFeeReductionType(feeReduction.Type), feeReduction.FeeReductionID, feeReduction.FinanceClientID.Int32, invoice, transaction, ctx)
 		if err != nil {
 			return err
 		}
@@ -144,12 +136,12 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 	return nil
 }
 
-func (s *Service) AddLedgerAndAllocations(feeReductionFeeType string, feeReductionId int32, feeReductionFinanceClientID int32, invoice store.Invoice, transaction *store.Queries, ctx context.Context) error {
+func (s *Service) AddLedgerAndAllocations(feeReductionFeeType shared.FeeReductionType, feeReductionId int32, feeReductionFinanceClientID int32, invoice store.Invoice, transaction *store.Queries, ctx context.Context) error {
 	var amount int32 = 0
-	switch strings.ToLower(feeReductionFeeType) {
-	case "exemption", "hardship":
+	switch feeReductionFeeType {
+	case shared.FeeReductionTypeExemption, shared.FeeReductionTypeHardship:
 		amount = invoice.Amount
-	case "remission":
+	case shared.FeeReductionTypeRemission:
 		invoiceFeeRangeParams := store.GetInvoiceFeeRangeAmountParams{
 			InvoiceID:        pgtype.Int4{Int32: invoice.ID, Valid: true},
 			Supervisionlevel: "GENERAL",
@@ -161,10 +153,10 @@ func (s *Service) AddLedgerAndAllocations(feeReductionFeeType string, feeReducti
 	}
 	if amount != 0 {
 		ledgerQueryArgs := store.CreateLedgerForFeeReductionParams{
-			Method:          feeReductionFeeType + " credit for invoice " + invoice.Reference,
+			Method:          feeReductionFeeType.String() + " credit for invoice " + invoice.Reference,
 			Amount:          amount,
-			Notes:           pgtype.Text{String: "Credit due to manual invoice " + feeReductionFeeType, Valid: true},
-			Type:            "CREDIT " + feeReductionFeeType,
+			Notes:           pgtype.Text{String: "Credit due to manual invoice " + strings.ToLower(feeReductionFeeType.Key()), Valid: true},
+			Type:            "CREDIT " + feeReductionFeeType.Key(),
 			FinanceClientID: pgtype.Int4{Int32: feeReductionFinanceClientID, Valid: true},
 			FeeReductionID:  pgtype.Int4{Int32: feeReductionId, Valid: true},
 			//TODO make sure we have correct createdby ID in ticket PFS-88

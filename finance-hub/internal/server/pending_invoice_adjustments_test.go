@@ -17,7 +17,7 @@ func TestPendingInvoiceAdjustments(t *testing.T) {
 			Status:         "PENDING",
 			Amount:         232,
 			RaisedDate:     shared.NewDate("01/04/2222"),
-			AdjustmentType: shared.AdjustmentTypeAddCredit,
+			AdjustmentType: shared.AdjustmentTypeCreditMemo,
 			Notes:          "Some notes",
 		},
 	}
@@ -86,12 +86,12 @@ func TestTransformType(t *testing.T) {
 	}{
 		{
 			"Credit",
-			shared.AdjustmentTypeAddCredit,
+			shared.AdjustmentTypeCreditMemo,
 			"Credit",
 		},
 		{
 			"Debit",
-			shared.AdjustmentTypeAddDebit,
+			shared.AdjustmentTypeDebitMemo,
 			"Debit",
 		},
 		{
