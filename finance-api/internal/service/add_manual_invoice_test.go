@@ -139,17 +139,17 @@ func (suite *IntegrationSuite) TestService_AddManualInvoiceRaisedDateForAnInvoic
 func TestService_AddManualInvoiceAddLeadingZeros(t *testing.T) {
 	tests := []struct {
 		name   string
-		number int
+		number string
 		want   string
 	}{
 		{
 			name:   "returns the correct padded number for one number passed in",
-			number: 1,
+			number: "1",
 			want:   "000001",
 		},
 		{
 			name:   "returns the correct padded number for six number passed in",
-			number: 123456,
+			number: "123456",
 			want:   "123456",
 		},
 	}

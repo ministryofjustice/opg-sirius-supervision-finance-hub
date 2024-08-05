@@ -11,7 +11,7 @@ import (
 func (c *ApiClient) AdjustInvoice(ctx Context, clientId int, supervisionBillingTeamId int, invoiceId int, adjustmentType string, notes string, amount string) error {
 	var body bytes.Buffer
 
-	adjustment := shared.CreateLedgerEntryRequest{
+	adjustment := shared.AddInvoiceAdjustmentRequest{
 		AdjustmentType:  shared.ParseAdjustmentType(adjustmentType),
 		AdjustmentNotes: notes,
 		Amount:          shared.DecimalStringToInt(amount),

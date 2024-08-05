@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func (suite *IntegrationSuite) TestService_CreateLedgerEntry() {
+func (suite *IntegrationSuite) TestService_AddInvoiceAdjustment() {
 	conn := suite.testDB.GetConn()
 
 	conn.SeedData(
@@ -26,14 +26,14 @@ func (suite *IntegrationSuite) TestService_CreateLedgerEntry() {
 		name      string
 		invoiceId int
 		clientId  int
-		data      *shared.CreateLedgerEntryRequest
+		data      *shared.AddInvoiceAdjustmentRequest
 		err       error
 	}{
 		{
 			name:      "Invalid adjustment amount",
 			invoiceId: 1,
 			clientId:  1,
-			data: &shared.CreateLedgerEntryRequest{
+			data: &shared.AddInvoiceAdjustmentRequest{
 				AdjustmentType:  shared.AdjustmentTypeCreditMemo,
 				AdjustmentNotes: "credit",
 				Amount:          52000,
@@ -44,7 +44,7 @@ func (suite *IntegrationSuite) TestService_CreateLedgerEntry() {
 			name:      "Invalid client id",
 			invoiceId: 1,
 			clientId:  99,
-			data: &shared.CreateLedgerEntryRequest{
+			data: &shared.AddInvoiceAdjustmentRequest{
 				AdjustmentType:  shared.AdjustmentTypeCreditMemo,
 				AdjustmentNotes: "credit",
 				Amount:          42000,
@@ -55,7 +55,7 @@ func (suite *IntegrationSuite) TestService_CreateLedgerEntry() {
 			name:      "Ledger entry created",
 			invoiceId: 1,
 			clientId:  1,
-			data: &shared.CreateLedgerEntryRequest{
+			data: &shared.AddInvoiceAdjustmentRequest{
 				AdjustmentType:  shared.AdjustmentTypeCreditMemo,
 				AdjustmentNotes: "credit",
 				Amount:          32000,
@@ -67,7 +67,7 @@ func (suite *IntegrationSuite) TestService_CreateLedgerEntry() {
 	for _, tt := range testCases {
 		suite.T().Run(tt.name, func(t *testing.T) {
 			ctx := suite.ctx
-			_, err := s.CreateLedgerEntry(ctx, tt.clientId, tt.invoiceId, tt.data)
+			_, err := s.AddInvoiceAdjustment(ctx, tt.clientId, tt.invoiceId, tt.data)
 			if err != nil {
 				assert.ErrorIs(t, err, tt.err)
 				return
@@ -117,13 +117,13 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 
 	testCases := []struct {
 		name       string
-		adjustment *shared.CreateLedgerEntryRequest
+		adjustment *shared.AddInvoiceAdjustmentRequest
 		balance    store.GetInvoiceBalanceDetailsRow
 		err        error
 	}{
 		{
 			name: "Unimplemented adjustment type",
-			adjustment: &shared.CreateLedgerEntryRequest{
+			adjustment: &shared.AddInvoiceAdjustmentRequest{
 				AdjustmentType: shared.AdjustmentTypeUnknown,
 				Amount:         52000,
 			},
@@ -135,7 +135,7 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 		},
 		{
 			name: "Add Credit - too high",
-			adjustment: &shared.CreateLedgerEntryRequest{
+			adjustment: &shared.AddInvoiceAdjustmentRequest{
 				AdjustmentType: shared.AdjustmentTypeCreditMemo,
 				Amount:         52000,
 			},
@@ -147,7 +147,7 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 		},
 		{
 			name: "Add Credit - valid",
-			adjustment: &shared.CreateLedgerEntryRequest{
+			adjustment: &shared.AddInvoiceAdjustmentRequest{
 				AdjustmentType: shared.AdjustmentTypeCreditMemo,
 				Amount:         42000,
 			},
@@ -159,7 +159,7 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 		},
 		{
 			name: "Add Debit - too high",
-			adjustment: &shared.CreateLedgerEntryRequest{
+			adjustment: &shared.AddInvoiceAdjustmentRequest{
 				AdjustmentType: shared.AdjustmentTypeDebitMemo,
 				Amount:         52000,
 			},
@@ -172,7 +172,7 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 		},
 		{
 			name: "Add Debit - too high (AD)",
-			adjustment: &shared.CreateLedgerEntryRequest{
+			adjustment: &shared.AddInvoiceAdjustmentRequest{
 				AdjustmentType: shared.AdjustmentTypeDebitMemo,
 				Amount:         10001,
 			},
@@ -185,7 +185,7 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 		},
 		{
 			name: "Add Debit - valid",
-			adjustment: &shared.CreateLedgerEntryRequest{
+			adjustment: &shared.AddInvoiceAdjustmentRequest{
 				AdjustmentType: shared.AdjustmentTypeDebitMemo,
 				Amount:         22000,
 			},
@@ -198,7 +198,7 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 		},
 		{
 			name: "Add Debit - valid (AD)",
-			adjustment: &shared.CreateLedgerEntryRequest{
+			adjustment: &shared.AddInvoiceAdjustmentRequest{
 				AdjustmentType: shared.AdjustmentTypeDebitMemo,
 				Amount:         5000,
 			},
@@ -211,7 +211,7 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 		},
 		{
 			name: "Write off - no outstanding balance",
-			adjustment: &shared.CreateLedgerEntryRequest{
+			adjustment: &shared.AddInvoiceAdjustmentRequest{
 				AdjustmentType: shared.AdjustmentTypeWriteOff,
 			},
 			balance: store.GetInvoiceBalanceDetailsRow{
@@ -222,7 +222,7 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 		},
 		{
 			name: "Write off - valid",
-			adjustment: &shared.CreateLedgerEntryRequest{
+			adjustment: &shared.AddInvoiceAdjustmentRequest{
 				AdjustmentType: shared.AdjustmentTypeWriteOff,
 			},
 			balance: store.GetInvoiceBalanceDetailsRow{
@@ -246,13 +246,13 @@ func TestService_CalculateAdjustmentAmount(t *testing.T) {
 
 	testCases := []struct {
 		name       string
-		adjustment *shared.CreateLedgerEntryRequest
+		adjustment *shared.AddInvoiceAdjustmentRequest
 		balance    store.GetInvoiceBalanceDetailsRow
 		expected   int32
 	}{
 		{
 			name: "Write off returns outstanding balance",
-			adjustment: &shared.CreateLedgerEntryRequest{
+			adjustment: &shared.AddInvoiceAdjustmentRequest{
 				AdjustmentType: shared.AdjustmentTypeWriteOff,
 				Amount:         52000,
 			},
@@ -264,7 +264,7 @@ func TestService_CalculateAdjustmentAmount(t *testing.T) {
 		},
 		{
 			name: "Add debit returns the amount as a negative",
-			adjustment: &shared.CreateLedgerEntryRequest{
+			adjustment: &shared.AddInvoiceAdjustmentRequest{
 				AdjustmentType: shared.AdjustmentTypeDebitMemo,
 				Amount:         22000,
 			},
@@ -276,7 +276,7 @@ func TestService_CalculateAdjustmentAmount(t *testing.T) {
 		},
 		{
 			name: "Add credit returns amount",
-			adjustment: &shared.CreateLedgerEntryRequest{
+			adjustment: &shared.AddInvoiceAdjustmentRequest{
 				AdjustmentType: shared.AdjustmentTypeCreditMemo,
 				Amount:         52000,
 			},
