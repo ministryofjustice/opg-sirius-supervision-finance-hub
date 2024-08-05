@@ -10,21 +10,52 @@ import (
 	"time"
 )
 
+func processInvoiceData(data shared.AddManualInvoice) shared.AddManualInvoice {
+	switch data.InvoiceType {
+	case shared.InvoiceTypeAD:
+		data.Amount = shared.NillableInt{Value: 100, Valid: true}
+		data.StartDate = data.RaisedDate
+		data.EndDate = data.RaisedDate
+	case shared.InvoiceTypeS2, shared.InvoiceTypeB2:
+		if data.RaisedYear.Value != 0 {
+			data.RaisedDate = shared.NillableDate{
+				Value: shared.NewDate(strconv.Itoa(data.RaisedYear.Value) + "-03" + "-31"),
+				Valid: true,
+			}
+		}
+		data.EndDate = data.RaisedDate
+		data.SupervisionLevel = shared.NillableString{Value: "GENERAL", Valid: true}
+	case shared.InvoiceTypeS3, shared.InvoiceTypeB3:
+		if data.RaisedYear.Value != 0 {
+			data.RaisedDate = shared.NillableDate{
+				Value: shared.NewDate(strconv.Itoa(data.RaisedYear.Value) + "-03" + "-31"),
+				Valid: true,
+			}
+		}
+		data.EndDate = data.RaisedDate
+		data.SupervisionLevel = shared.NillableString{Value: "MINIMAL", Valid: true}
+	}
+
+	return data
+}
+
 func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data shared.AddManualInvoice) (txErr error) {
 	var validationsErrors []string
 
+	data = processInvoiceData(data)
+
 	if data.InvoiceType.RequiresDateValidation() {
-		if !data.RaisedDate.Time.Before(time.Now()) {
+		if !data.RaisedDate.Value.Time.Before(time.Now()) {
 			validationsErrors = append(validationsErrors, "RaisedDateForAnInvoice")
 		}
 	}
 
-	isStartDateValid := validateStartDate(data.StartDate, data.EndDate)
+	isStartDateValid := validateStartDate(&data.StartDate.Value, &data.EndDate.Value)
 	if !isStartDateValid {
 		validationsErrors = append(validationsErrors, "StartDate")
 	}
 
-	isEndDateValid := validateEndDate(data.StartDate, data.EndDate)
+	isEndDateValid := validateEndDate(&data.StartDate.Value, &data.EndDate.Value)
 	if !isEndDateValid {
 		validationsErrors = append(validationsErrors, "EndDate")
 	}
@@ -42,7 +73,7 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 	}
 
 	transaction := s.store.WithTx(tx)
-	getInvoiceCounterForYear, err := transaction.UpsertCounterForInvoiceRefYear(ctx, strconv.Itoa(data.StartDate.Time.Year())+"InvoiceNumber")
+	getInvoiceCounterForYear, err := transaction.UpsertCounterForInvoiceRefYear(ctx, strconv.Itoa(data.StartDate.Value.Time.Year())+"InvoiceNumber")
 	if err != nil {
 		return err
 	}
@@ -52,12 +83,12 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 	addManualInvoiceQueryArgs := store.AddManualInvoiceParams{
 		PersonID:      pgtype.Int4{Int32: int32(clientId), Valid: true},
 		Feetype:       data.InvoiceType.Key(),
-		Reference:     data.InvoiceType.Key() + invoiceRef + "/" + strconv.Itoa(data.StartDate.Time.Year()%100),
-		Startdate:     pgtype.Date{Time: data.StartDate.Time, Valid: true},
-		Enddate:       pgtype.Date{Time: data.EndDate.Time, Valid: true},
-		Amount:        int32(data.Amount),
+		Reference:     data.InvoiceType.Key() + invoiceRef + "/" + strconv.Itoa(data.StartDate.Value.Time.Year()%100),
+		Startdate:     pgtype.Date{Time: data.StartDate.Value.Time, Valid: true},
+		Enddate:       pgtype.Date{Time: data.EndDate.Value.Time, Valid: true},
+		Amount:        int32(data.Amount.Value),
 		Confirmeddate: pgtype.Date{Time: time.Now(), Valid: true},
-		Raiseddate:    pgtype.Date{Time: data.RaisedDate.Time, Valid: true},
+		Raiseddate:    pgtype.Date{Time: data.RaisedDate.Value.Time, Valid: true},
 		Source:        pgtype.Text{String: "Created manually", Valid: true},
 		Createddate:   pgtype.Date{Time: time.Now(), Valid: true},
 	}
@@ -68,12 +99,12 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 		return err
 	}
 
-	if data.SupervisionLevel != "" {
+	if data.SupervisionLevel.Valid {
 		addInvoiceRangeQueryArgs := store.AddInvoiceRangeParams{
 			InvoiceID:        pgtype.Int4{Int32: invoice.ID, Valid: true},
-			Supervisionlevel: strings.ToUpper(data.SupervisionLevel),
-			Fromdate:         pgtype.Date{Time: data.StartDate.Time, Valid: true},
-			Todate:           pgtype.Date{Time: data.EndDate.Time, Valid: true},
+			Supervisionlevel: strings.ToUpper(data.SupervisionLevel.Value),
+			Fromdate:         pgtype.Date{Time: data.StartDate.Value.Time, Valid: true},
+			Todate:           pgtype.Date{Time: data.EndDate.Value.Time, Valid: true},
 			Amount:           invoice.Amount,
 		}
 

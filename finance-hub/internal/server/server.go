@@ -26,7 +26,7 @@ type ApiClient interface {
 	AddFeeReduction(api.Context, int, string, string, string, string, string) error
 	CancelFeeReduction(api.Context, int, int, string) error
 	UpdatePendingInvoiceAdjustment(api.Context, int, int, string) error
-	AddManualInvoice(api.Context, int, string, string, string, string, string, string) error
+	AddManualInvoice(api.Context, int, string, *string, *string, *string, *string, *string, *string) error
 	GetBillingHistory(api.Context, int) ([]shared.BillingHistory, error)
 	GetUser(api.Context, int) (shared.Assignee, error)
 }
