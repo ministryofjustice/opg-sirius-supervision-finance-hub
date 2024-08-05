@@ -19,10 +19,9 @@ var validationMappings = map[string]map[string]pair{
 		"stringLengthTooLong": pair{"AdjustmentNotes", "Reason for manual credit must be 1000 characters or less"},
 	},
 	"Amount": {
-		"required":              pair{"Amount", "Enter an amount"},
-		"nillable-int-required": pair{"Amount", "Enter an amount"},
-		"required_if":           pair{"Amount", "Enter an amount"},
-		"nillable-int-lte":      pair{"Amount", "Amount can't be above £320"},
+		"required":         pair{"Amount", "Enter an amount"},
+		"required_if":      pair{"Amount", "Enter an amount"},
+		"nillable-int-lte": pair{"Amount", "Amount can't be above £320"},
 	},
 	"FeeType": {
 		"required": pair{"FeeType", "A fee reduction type must be selected"},
@@ -33,9 +32,6 @@ var validationMappings = map[string]map[string]pair{
 	"RaisedDate": {
 		"nillable-date-required": pair{"RaisedDate", "Enter a raised date"},
 		"date-in-the-past":       pair{"RaisedDate", "Enter a raised date in the past"},
-	},
-	"RaisedYear": {
-		"nillable-int-required": pair{"RaisedYear", "Enter a raised date"},
 	},
 	"LengthOfAward": {
 		"required": pair{"LengthOfAward", "Confirm if an extended award is being given"},

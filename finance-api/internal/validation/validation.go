@@ -27,10 +27,6 @@ func New() (*Validate, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = v.RegisterValidation("nillable-int-required", validateIntRequiredIfNotNil)
-	if err != nil {
-		return nil, err
-	}
 	err = v.RegisterValidation("nillable-int-gt", validateIntGreaterThan)
 	if err != nil {
 		return nil, err
@@ -98,15 +94,6 @@ func validateDateInThePast(fl validator.FieldLevel) bool {
 func validateEnum(fl validator.FieldLevel) bool {
 	if v, ok := fl.Field().Interface().(shared.Valid); ok {
 		if v.Valid() {
-			return true
-		}
-	}
-	return false
-}
-
-func validateIntRequiredIfNotNil(fl validator.FieldLevel) bool {
-	if v, ok := fl.Field().Interface().(shared.Nillable[int]); ok {
-		if !v.Valid || v.Value != 0 {
 			return true
 		}
 	}

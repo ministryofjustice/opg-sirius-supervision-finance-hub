@@ -315,7 +315,6 @@ func Test_invoiceData(t *testing.T) {
 				StartDate:        shared.Nillable[shared.Date]{},
 				RaisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2023-04-01"), Valid: true},
 				EndDate:          shared.Nillable[shared.Date]{},
-				RaisedYear:       shared.Nillable[int]{Value: 2023, Valid: true},
 				SupervisionLevel: shared.Nillable[string]{},
 			},
 			amount:           shared.Nillable[int]{Value: 100, Valid: true},
@@ -330,9 +329,8 @@ func Test_invoiceData(t *testing.T) {
 				InvoiceType:      shared.InvoiceTypeB2,
 				Amount:           shared.Nillable[int]{Value: 100, Valid: true},
 				StartDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2033-04-01"), Valid: true},
-				RaisedDate:       shared.Nillable[shared.Date]{},
+				RaisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
 				EndDate:          shared.Nillable[shared.Date]{},
-				RaisedYear:       shared.Nillable[int]{Value: 2025, Valid: true},
 				SupervisionLevel: shared.Nillable[string]{},
 			},
 			amount:           shared.Nillable[int]{Value: 100, Valid: true},
@@ -347,9 +345,8 @@ func Test_invoiceData(t *testing.T) {
 				InvoiceType:      shared.InvoiceTypeB3,
 				Amount:           shared.Nillable[int]{Value: 100, Valid: true},
 				StartDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2033-04-01"), Valid: true},
-				RaisedDate:       shared.Nillable[shared.Date]{},
+				RaisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
 				EndDate:          shared.Nillable[shared.Date]{},
-				RaisedYear:       shared.Nillable[int]{Value: 2025, Valid: true},
 				SupervisionLevel: shared.Nillable[string]{Value: "MINIMAL", Valid: true},
 			},
 			amount:           shared.Nillable[int]{Value: 100, Valid: true},
@@ -364,9 +361,8 @@ func Test_invoiceData(t *testing.T) {
 				InvoiceType:      shared.InvoiceTypeS2,
 				Amount:           shared.Nillable[int]{Value: 100, Valid: true},
 				StartDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2033-04-01"), Valid: true},
-				RaisedDate:       shared.Nillable[shared.Date]{},
+				RaisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
 				EndDate:          shared.Nillable[shared.Date]{},
-				RaisedYear:       shared.Nillable[int]{Value: 2025, Valid: true},
 				SupervisionLevel: shared.Nillable[string]{},
 			},
 			amount:           shared.Nillable[int]{Value: 100, Valid: true},
@@ -381,9 +377,8 @@ func Test_invoiceData(t *testing.T) {
 				InvoiceType:      shared.InvoiceTypeS3,
 				Amount:           shared.Nillable[int]{Value: 100, Valid: true},
 				StartDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2033-04-01"), Valid: true},
-				RaisedDate:       shared.Nillable[shared.Date]{},
+				RaisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
 				EndDate:          shared.Nillable[shared.Date]{},
-				RaisedYear:       shared.Nillable[int]{Value: 2025, Valid: true},
 				SupervisionLevel: shared.Nillable[string]{Value: "MINIMAL", Valid: true},
 			},
 			amount:           shared.Nillable[int]{Value: 100, Valid: true},
@@ -400,7 +395,6 @@ func Test_invoiceData(t *testing.T) {
 				StartDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2033-04-01"), Valid: true},
 				RaisedDate:       shared.Nillable[shared.Date]{},
 				EndDate:          shared.Nillable[shared.Date]{},
-				RaisedYear:       shared.Nillable[int]{},
 				SupervisionLevel: shared.Nillable[string]{},
 			},
 			amount:           shared.Nillable[int]{Value: 100, Valid: true},
@@ -413,11 +407,11 @@ func Test_invoiceData(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := processInvoiceData(tt.args)
-			assert.Equalf(t, tt.amount, got.Amount, "processInvoiceData(%v, %v, %v, %v, %v, %v, %v)", tt.args.InvoiceType, tt.args.Amount, tt.args.StartDate, tt.args.RaisedDate, tt.args.EndDate, tt.args.RaisedYear, tt.args.SupervisionLevel)
-			assert.Equalf(t, tt.startDate, got.StartDate, "processInvoiceData(%v, %v, %v, %v, %v, %v, %v)", tt.args.InvoiceType, tt.args.Amount, tt.args.StartDate, tt.args.RaisedDate, tt.args.EndDate, tt.args.RaisedYear, tt.args.SupervisionLevel)
-			assert.Equalf(t, tt.raisedDate, got.RaisedDate, "processInvoiceData(%v, %v, %v, %v, %v, %v, %v)", tt.args.InvoiceType, tt.args.Amount, tt.args.StartDate, tt.args.RaisedDate, tt.args.EndDate, tt.args.RaisedYear, tt.args.SupervisionLevel)
-			assert.Equalf(t, tt.endDate, got.EndDate, "processInvoiceData(%v, %v, %v, %v, %v, %v, %v)", tt.args.InvoiceType, tt.args.Amount, tt.args.StartDate, tt.args.RaisedDate, tt.args.EndDate, tt.args.RaisedYear, tt.args.SupervisionLevel)
-			assert.Equalf(t, tt.supervisionLevel, got.SupervisionLevel, "processInvoiceData(%v, %v, %v, %v, %v, %v, %v)", tt.args.InvoiceType, tt.args.Amount, tt.args.StartDate, tt.args.RaisedDate, tt.args.EndDate, tt.args.RaisedYear, tt.args.SupervisionLevel)
+			assert.Equalf(t, tt.amount, got.Amount, "processInvoiceData(%v, %v, %v, %v, %v, %v)", tt.args.InvoiceType, tt.args.Amount, tt.args.StartDate, tt.args.RaisedDate, tt.args.EndDate, tt.args.SupervisionLevel)
+			assert.Equalf(t, tt.startDate, got.StartDate, "processInvoiceData(%v, %v, %v, %v, %v, %v)", tt.args.InvoiceType, tt.args.Amount, tt.args.StartDate, tt.args.RaisedDate, tt.args.EndDate, tt.args.SupervisionLevel)
+			assert.Equalf(t, tt.raisedDate, got.RaisedDate, "processInvoiceData(%v, %v, %v, %v, %v, %v)", tt.args.InvoiceType, tt.args.Amount, tt.args.StartDate, tt.args.RaisedDate, tt.args.EndDate, tt.args.SupervisionLevel)
+			assert.Equalf(t, tt.endDate, got.EndDate, "processInvoiceData(%v, %v, %v, %v, %v, %v)", tt.args.InvoiceType, tt.args.Amount, tt.args.StartDate, tt.args.RaisedDate, tt.args.EndDate, tt.args.SupervisionLevel)
+			assert.Equalf(t, tt.supervisionLevel, got.SupervisionLevel, "processInvoiceData(%v, %v, %v, %v, %v, %v)", tt.args.InvoiceType, tt.args.Amount, tt.args.StartDate, tt.args.RaisedDate, tt.args.EndDate, tt.args.SupervisionLevel)
 		})
 	}
 }

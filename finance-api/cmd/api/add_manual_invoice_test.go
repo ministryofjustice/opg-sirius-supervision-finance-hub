@@ -88,7 +88,6 @@ func TestServer_addManualInvoiceValidationErrors(t *testing.T) {
 		InvoiceType:      shared.InvoiceTypeUnknown,
 		Amount:           shared.Nillable[int]{Valid: true},
 		RaisedDate:       shared.Nillable[shared.Date]{Valid: true},
-		RaisedYear:       shared.Nillable[int]{Valid: true},
 		StartDate:        shared.Nillable[shared.Date]{Valid: true},
 		EndDate:          shared.Nillable[shared.Date]{Valid: true},
 		SupervisionLevel: shared.Nillable[string]{Valid: true},
@@ -109,7 +108,7 @@ func TestServer_addManualInvoiceValidationErrors(t *testing.T) {
 	data, _ := io.ReadAll(res.Body)
 
 	expected := `
-{"Message":"","validation_errors":{"Amount":{"nillable-int-required":"This field Amount needs to be looked at nillable-int-required"},"EndDate":{"nillable-date-required":"This field EndDate needs to be looked at nillable-date-required"},"InvoiceType":{"required":"This field InvoiceType needs to be looked at required"},"RaisedDate":{"nillable-date-required":"This field RaisedDate needs to be looked at nillable-date-required"},"RaisedYear":{"nillable-int-required":"This field RaisedYear needs to be looked at nillable-int-required"},"StartDate":{"nillable-date-required":"This field StartDate needs to be looked at nillable-date-required"},"SupervisionLevel":{"nillable-string-oneof":"This field SupervisionLevel needs to be looked at nillable-string-oneof"}}}`
+{"Message":"","validation_errors":{"Amount":{"nillable-int-gt":"This field Amount needs to be looked at nillable-int-gt"},"EndDate":{"nillable-date-required":"This field EndDate needs to be looked at nillable-date-required"},"InvoiceType":{"required":"This field InvoiceType needs to be looked at required"},"RaisedDate":{"nillable-date-required":"This field RaisedDate needs to be looked at nillable-date-required"},"StartDate":{"nillable-date-required":"This field StartDate needs to be looked at nillable-date-required"},"SupervisionLevel":{"nillable-string-oneof":"This field SupervisionLevel needs to be looked at nillable-string-oneof"}}}`
 
 	assert.Equal(t, expected, string(data))
 	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)

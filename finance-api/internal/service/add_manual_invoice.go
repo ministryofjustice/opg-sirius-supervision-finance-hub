@@ -17,21 +17,9 @@ func processInvoiceData(data shared.AddManualInvoice) shared.AddManualInvoice {
 		data.StartDate = data.RaisedDate
 		data.EndDate = data.RaisedDate
 	case shared.InvoiceTypeS2, shared.InvoiceTypeB2:
-		if data.RaisedYear.Value != 0 {
-			data.RaisedDate = shared.Nillable[shared.Date]{
-				Value: shared.NewDate(strconv.Itoa(data.RaisedYear.Value) + "-03" + "-31"),
-				Valid: true,
-			}
-		}
 		data.EndDate = data.RaisedDate
 		data.SupervisionLevel = shared.Nillable[string]{Value: "GENERAL", Valid: true}
 	case shared.InvoiceTypeS3, shared.InvoiceTypeB3:
-		if data.RaisedYear.Value != 0 {
-			data.RaisedDate = shared.Nillable[shared.Date]{
-				Value: shared.NewDate(strconv.Itoa(data.RaisedYear.Value) + "-03" + "-31"),
-				Valid: true,
-			}
-		}
 		data.EndDate = data.RaisedDate
 		data.SupervisionLevel = shared.Nillable[string]{Value: "MINIMAL", Valid: true}
 	}
@@ -51,12 +39,12 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 	}
 
 	isStartDateValid := validateStartDate(&data.StartDate.Value, &data.EndDate.Value)
-	if !isStartDateValid {
+	if data.StartDate.Valid && data.EndDate.Valid && !isStartDateValid {
 		validationsErrors = append(validationsErrors, "StartDate")
 	}
 
 	isEndDateValid := validateEndDate(&data.StartDate.Value, &data.EndDate.Value)
-	if !isEndDateValid {
+	if data.StartDate.Valid && data.EndDate.Valid && !isEndDateValid {
 		validationsErrors = append(validationsErrors, "EndDate")
 	}
 
