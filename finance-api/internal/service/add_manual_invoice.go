@@ -13,27 +13,27 @@ import (
 func processInvoiceData(data shared.AddManualInvoice) shared.AddManualInvoice {
 	switch data.InvoiceType {
 	case shared.InvoiceTypeAD:
-		data.Amount = shared.NillableInt{Value: 100, Valid: true}
+		data.Amount = shared.Nillable[int]{Value: 100, Valid: true}
 		data.StartDate = data.RaisedDate
 		data.EndDate = data.RaisedDate
 	case shared.InvoiceTypeS2, shared.InvoiceTypeB2:
 		if data.RaisedYear.Value != 0 {
-			data.RaisedDate = shared.NillableDate{
+			data.RaisedDate = shared.Nillable[shared.Date]{
 				Value: shared.NewDate(strconv.Itoa(data.RaisedYear.Value) + "-03" + "-31"),
 				Valid: true,
 			}
 		}
 		data.EndDate = data.RaisedDate
-		data.SupervisionLevel = shared.NillableString{Value: "GENERAL", Valid: true}
+		data.SupervisionLevel = shared.Nillable[string]{Value: "GENERAL", Valid: true}
 	case shared.InvoiceTypeS3, shared.InvoiceTypeB3:
 		if data.RaisedYear.Value != 0 {
-			data.RaisedDate = shared.NillableDate{
+			data.RaisedDate = shared.Nillable[shared.Date]{
 				Value: shared.NewDate(strconv.Itoa(data.RaisedYear.Value) + "-03" + "-31"),
 				Valid: true,
 			}
 		}
 		data.EndDate = data.RaisedDate
-		data.SupervisionLevel = shared.NillableString{Value: "MINIMAL", Valid: true}
+		data.SupervisionLevel = shared.Nillable[string]{Value: "MINIMAL", Valid: true}
 	}
 
 	return data

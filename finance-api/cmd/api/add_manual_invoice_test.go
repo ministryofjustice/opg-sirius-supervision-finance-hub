@@ -23,11 +23,11 @@ func TestServer_addManualInvoice(t *testing.T) {
 
 	manualInvoiceInfo := &shared.AddManualInvoice{
 		InvoiceType:      shared.InvoiceTypeS2,
-		Amount:           shared.NillableInt{Value: 32000, Valid: true},
-		RaisedDate:       shared.NillableDate{Value: shared.Date{Time: endDateToTime}, Valid: true},
-		StartDate:        shared.NillableDate{Value: shared.Date{Time: startDateToTime}, Valid: true},
-		EndDate:          shared.NillableDate{Value: shared.Date{Time: endDateToTime}, Valid: true},
-		SupervisionLevel: shared.NillableString{Value: "GENERAL", Valid: true},
+		Amount:           shared.Nillable[int]{Value: 32000, Valid: true},
+		RaisedDate:       shared.Nillable[shared.Date]{Value: shared.Date{Time: endDateToTime}, Valid: true},
+		StartDate:        shared.Nillable[shared.Date]{Value: shared.Date{Time: startDateToTime}, Valid: true},
+		EndDate:          shared.Nillable[shared.Date]{Value: shared.Date{Time: endDateToTime}, Valid: true},
+		SupervisionLevel: shared.Nillable[string]{Value: "GENERAL", Valid: true},
 	}
 	_ = json.NewEncoder(&b).Encode(manualInvoiceInfo)
 	req := httptest.NewRequest(http.MethodPost, "/clients/1/invoices", &b)
@@ -54,11 +54,11 @@ func TestServer_addManualInvoiceNoValidationErrorsForNilFields(t *testing.T) {
 	var b bytes.Buffer
 	manualInvoiceInfo := &shared.AddManualInvoice{
 		InvoiceType:      shared.InvoiceTypeAD,
-		Amount:           shared.NillableInt{},
-		RaisedDate:       shared.NillableDate{},
-		StartDate:        shared.NillableDate{},
-		EndDate:          shared.NillableDate{},
-		SupervisionLevel: shared.NillableString{},
+		Amount:           shared.Nillable[int]{},
+		RaisedDate:       shared.Nillable[shared.Date]{},
+		StartDate:        shared.Nillable[shared.Date]{},
+		EndDate:          shared.Nillable[shared.Date]{},
+		SupervisionLevel: shared.Nillable[string]{},
 	}
 	_ = json.NewEncoder(&b).Encode(manualInvoiceInfo)
 	req := httptest.NewRequest(http.MethodPost, "/clients/1/invoices", &b)
@@ -86,12 +86,12 @@ func TestServer_addManualInvoiceValidationErrors(t *testing.T) {
 
 	manualInvoiceInfo := &shared.AddManualInvoice{
 		InvoiceType:      shared.InvoiceTypeUnknown,
-		Amount:           shared.NillableInt{Valid: true},
-		RaisedDate:       shared.NillableDate{Valid: true},
-		RaisedYear:       shared.NillableInt{Valid: true},
-		StartDate:        shared.NillableDate{Valid: true},
-		EndDate:          shared.NillableDate{Valid: true},
-		SupervisionLevel: shared.NillableString{Valid: true},
+		Amount:           shared.Nillable[int]{Valid: true},
+		RaisedDate:       shared.Nillable[shared.Date]{Valid: true},
+		RaisedYear:       shared.Nillable[int]{Valid: true},
+		StartDate:        shared.Nillable[shared.Date]{Valid: true},
+		EndDate:          shared.Nillable[shared.Date]{Valid: true},
+		SupervisionLevel: shared.Nillable[string]{Valid: true},
 	}
 	_ = json.NewEncoder(&b).Encode(manualInvoiceInfo)
 	req := httptest.NewRequest(http.MethodPost, "/clients/1/invoices", &b)
@@ -123,11 +123,11 @@ func TestServer_addManualInvoiceValidationErrorsForAmountTooHigh(t *testing.T) {
 
 	manualInvoiceInfo := &shared.AddManualInvoice{
 		InvoiceType:      shared.InvoiceTypeS2,
-		Amount:           shared.NillableInt{Value: 320000, Valid: true},
-		RaisedDate:       shared.NillableDate{Value: shared.Date{Time: endDateToTime}, Valid: true},
-		StartDate:        shared.NillableDate{Value: shared.Date{Time: startDateToTime}, Valid: true},
-		EndDate:          shared.NillableDate{Value: shared.Date{Time: endDateToTime}, Valid: true},
-		SupervisionLevel: shared.NillableString{Value: "GENERAL", Valid: true},
+		Amount:           shared.Nillable[int]{Value: 320000, Valid: true},
+		RaisedDate:       shared.Nillable[shared.Date]{Value: shared.Date{Time: endDateToTime}, Valid: true},
+		StartDate:        shared.Nillable[shared.Date]{Value: shared.Date{Time: startDateToTime}, Valid: true},
+		EndDate:          shared.Nillable[shared.Date]{Value: shared.Date{Time: endDateToTime}, Valid: true},
+		SupervisionLevel: shared.Nillable[string]{Value: "GENERAL", Valid: true},
 	}
 	_ = json.NewEncoder(&b).Encode(manualInvoiceInfo)
 	req := httptest.NewRequest(http.MethodPost, "/clients/1/invoices", &b)
@@ -159,11 +159,11 @@ func TestServer_addManualInvoiceDateErrors(t *testing.T) {
 
 	manualInvoiceInfo := &shared.AddManualInvoice{
 		InvoiceType:      shared.InvoiceTypeS2,
-		Amount:           shared.NillableInt{Value: 320000, Valid: true},
-		RaisedDate:       shared.NillableDate{Value: shared.Date{Time: endDateToTime}, Valid: true},
-		StartDate:        shared.NillableDate{Value: shared.Date{Time: startDateToTime}, Valid: true},
-		EndDate:          shared.NillableDate{Value: shared.Date{Time: endDateToTime}, Valid: true},
-		SupervisionLevel: shared.NillableString{Value: "GENERAL", Valid: true},
+		Amount:           shared.Nillable[int]{Value: 320000, Valid: true},
+		RaisedDate:       shared.Nillable[shared.Date]{Value: shared.Date{Time: endDateToTime}, Valid: true},
+		StartDate:        shared.Nillable[shared.Date]{Value: shared.Date{Time: startDateToTime}, Valid: true},
+		EndDate:          shared.Nillable[shared.Date]{Value: shared.Date{Time: endDateToTime}, Valid: true},
+		SupervisionLevel: shared.Nillable[string]{Value: "GENERAL", Valid: true},
 	}
 	_ = json.NewEncoder(&b).Encode(manualInvoiceInfo)
 	req := httptest.NewRequest(http.MethodPost, "/clients/1/invoices", &b)
@@ -190,11 +190,11 @@ func TestServer_addManualInvoice422Error(t *testing.T) {
 
 	manualInvoiceInfo := &shared.AddManualInvoice{
 		InvoiceType:      shared.InvoiceTypeS2,
-		Amount:           shared.NillableInt{Value: 32000, Valid: true},
-		RaisedDate:       shared.NillableDate{Value: shared.Date{Time: endDateToTime}, Valid: true},
-		StartDate:        shared.NillableDate{Value: shared.Date{Time: startDateToTime}, Valid: true},
-		EndDate:          shared.NillableDate{Value: shared.Date{Time: endDateToTime}, Valid: true},
-		SupervisionLevel: shared.NillableString{Value: "GENERAL", Valid: true},
+		Amount:           shared.Nillable[int]{Value: 32000, Valid: true},
+		RaisedDate:       shared.Nillable[shared.Date]{Value: shared.Date{Time: endDateToTime}, Valid: true},
+		StartDate:        shared.Nillable[shared.Date]{Value: shared.Date{Time: startDateToTime}, Valid: true},
+		EndDate:          shared.Nillable[shared.Date]{Value: shared.Date{Time: endDateToTime}, Valid: true},
+		SupervisionLevel: shared.Nillable[string]{Value: "GENERAL", Valid: true},
 	}
 	_ = json.NewEncoder(&b).Encode(manualInvoiceInfo)
 	req := httptest.NewRequest(http.MethodPost, "/clients/1/invoices", &b)

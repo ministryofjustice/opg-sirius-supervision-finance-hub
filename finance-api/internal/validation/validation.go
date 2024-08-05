@@ -105,7 +105,7 @@ func validateEnum(fl validator.FieldLevel) bool {
 }
 
 func validateIntRequiredIfNotNil(fl validator.FieldLevel) bool {
-	if v, ok := fl.Field().Interface().(shared.NillableInt); ok {
+	if v, ok := fl.Field().Interface().(shared.Nillable[int]); ok {
 		if !v.Valid || v.Value != 0 {
 			return true
 		}
@@ -114,7 +114,7 @@ func validateIntRequiredIfNotNil(fl validator.FieldLevel) bool {
 }
 
 func validateIntGreaterThan(fl validator.FieldLevel) bool {
-	if v, ok := fl.Field().Interface().(shared.NillableInt); ok {
+	if v, ok := fl.Field().Interface().(shared.Nillable[int]); ok {
 		intParam, err := strconv.Atoi(fl.Param())
 		if err != nil {
 			panic(err)
@@ -124,8 +124,19 @@ func validateIntGreaterThan(fl validator.FieldLevel) bool {
 	return false
 }
 
+func validateIntLessThanOrEqualTo(fl validator.FieldLevel) bool {
+	if v, ok := fl.Field().Interface().(shared.Nillable[int]); ok {
+		intParam, err := strconv.Atoi(fl.Param())
+		if err != nil {
+			panic(err)
+		}
+		return !v.Valid || v.Value <= intParam
+	}
+	return false
+}
+
 func validateStringOneOf(fl validator.FieldLevel) bool {
-	if v, ok := fl.Field().Interface().(shared.NillableString); ok {
+	if v, ok := fl.Field().Interface().(shared.Nillable[string]); ok {
 		if !v.Valid {
 			return true
 		}
@@ -139,19 +150,8 @@ func validateStringOneOf(fl validator.FieldLevel) bool {
 	return false
 }
 
-func validateIntLessThanOrEqualTo(fl validator.FieldLevel) bool {
-	if v, ok := fl.Field().Interface().(shared.NillableInt); ok {
-		intParam, err := strconv.Atoi(fl.Param())
-		if err != nil {
-			panic(err)
-		}
-		return !v.Valid || v.Value <= intParam
-	}
-	return false
-}
-
 func validateDateRequiredIfNotNil(fl validator.FieldLevel) bool {
-	if v, ok := fl.Field().Interface().(shared.NillableDate); ok {
+	if v, ok := fl.Field().Interface().(shared.Nillable[shared.Date]); ok {
 		if !v.Valid || !v.Value.IsNull() {
 			return true
 		}
