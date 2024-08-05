@@ -9,10 +9,20 @@ import (
 	"github.com/opg-sirius-finance-hub/shared"
 )
 
-func (s *Service) CreateLedgerEntry(ctx context.Context, clientId int, invoiceId int, ledgerEntry *shared.CreateLedgerEntryRequest) (*shared.InvoiceReference, error) {
+func (s *Service) AddInvoiceAdjustment(ctx context.Context, clientId int, invoiceId int, ledgerEntry *shared.AddInvoiceAdjustmentRequest) (*shared.InvoiceReference, error) {
 	logger := telemetry.LoggerFromContext(ctx)
 
-	balance, err := s.store.GetInvoiceBalanceDetails(ctx, int32(invoiceId))
+	ctx, cancelTx := context.WithCancel(ctx)
+	defer cancelTx()
+
+	tx, err := s.tx.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	tStore := s.store.WithTx(tx)
+
+	balance, err := tStore.GetInvoiceBalanceDetails(ctx, int32(invoiceId))
 	if err != nil {
 		return nil, err
 	}
@@ -22,24 +32,42 @@ func (s *Service) CreateLedgerEntry(ctx context.Context, clientId int, invoiceId
 		return nil, err
 	}
 
-	params := store.CreateLedgerParams{
-		Amount:    s.calculateAdjustmentAmount(ledgerEntry, balance),
-		Notes:     pgtype.Text{String: ledgerEntry.AdjustmentNotes, Valid: true},
-		Type:      ledgerEntry.AdjustmentType.Key(),
-		InvoiceID: pgtype.Int4{Int32: int32(invoiceId), Valid: true},
-		ClientID:  int32(clientId),
+	ledgerParams := store.CreateLedgerParams{
+		ClientID:       int32(clientId),
+		Amount:         s.calculateAdjustmentAmount(ledgerEntry, balance),
+		Notes:          pgtype.Text{String: ledgerEntry.AdjustmentNotes, Valid: true},
+		Type:           ledgerEntry.AdjustmentType.Key(),
+		Status:         "PENDING",
+		Method:         "",
+		FeeReductionID: pgtype.Int4{},
+		//TODO make sure we have correct createdby ID in ticket PFS-136
+		CreatedbyID: pgtype.Int4{Int32: 1},
 	}
-	invoiceReference, err := s.store.CreateLedger(ctx, params)
 
+	ledgerId, err := tStore.CreateLedger(ctx, ledgerParams)
 	if err != nil {
-		logger.Error("Error creating ledger entry: ", err)
+		logger.Error("Error creating ledger: ", err)
+		return nil, err
+	}
+
+	allocationParams := store.CreateLedgerAllocationParams{
+		LedgerID:  pgtype.Int4{Int32: ledgerId, Valid: true},
+		InvoiceID: pgtype.Int4{Int32: int32(invoiceId), Valid: true},
+		Amount:    ledgerParams.Amount,
+		Status:    "PENDING",
+		Notes:     pgtype.Text{String: ledgerEntry.AdjustmentNotes, Valid: true},
+	}
+
+	invoiceReference, err := tStore.CreateLedgerAllocation(ctx, allocationParams)
+	if err != nil {
+		logger.Error("Error creating ledger allocation: ", err)
 		return nil, err
 	}
 
 	return &shared.InvoiceReference{InvoiceRef: invoiceReference}, nil
 }
 
-func (s *Service) validateAdjustmentAmount(adjustment *shared.CreateLedgerEntryRequest, balance store.GetInvoiceBalanceDetailsRow) error {
+func (s *Service) validateAdjustmentAmount(adjustment *shared.AddInvoiceAdjustmentRequest, balance store.GetInvoiceBalanceDetailsRow) error {
 	switch adjustment.AdjustmentType {
 	case shared.AdjustmentTypeCreditMemo:
 		if int32(adjustment.Amount)-balance.Outstanding > balance.Initial {
@@ -65,7 +93,7 @@ func (s *Service) validateAdjustmentAmount(adjustment *shared.CreateLedgerEntryR
 	return nil
 }
 
-func (s *Service) calculateAdjustmentAmount(adjustment *shared.CreateLedgerEntryRequest, balance store.GetInvoiceBalanceDetailsRow) int32 {
+func (s *Service) calculateAdjustmentAmount(adjustment *shared.AddInvoiceAdjustmentRequest, balance store.GetInvoiceBalanceDetailsRow) int32 {
 	switch adjustment.AdjustmentType {
 	case shared.AdjustmentTypeWriteOff:
 		return balance.Outstanding
