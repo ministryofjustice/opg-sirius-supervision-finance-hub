@@ -19,9 +19,9 @@ var validationMappings = map[string]map[string]pair{
 		"stringLengthTooLong": pair{"AdjustmentNotes", "Reason for manual credit must be 1000 characters or less"},
 	},
 	"Amount": {
-		"required":    pair{"Amount", "Enter an amount"},
-		"required_if": pair{"Amount", "Enter an amount"},
-		"lte":         pair{"Amount", "Amount cant be above £320"},
+		"required":         pair{"Amount", "Enter an amount"},
+		"required_if":      pair{"Amount", "Enter an amount"},
+		"nillable-int-lte": pair{"Amount", "Amount can't be above £320"},
 	},
 	"FeeType": {
 		"required": pair{"FeeType", "A fee reduction type must be selected"},
@@ -30,8 +30,8 @@ var validationMappings = map[string]map[string]pair{
 		"required": pair{"StartYear", "Enter a start year"},
 	},
 	"RaisedDate": {
-		"required":         pair{"RaisedDate", "Enter a raised date"},
-		"date-in-the-past": pair{"RaisedDate", "Enter a raised date in the past"},
+		"nillable-date-required": pair{"RaisedDate", "Enter a raised date"},
+		"date-in-the-past":       pair{"RaisedDate", "Enter a raised date in the past"},
 	},
 	"LengthOfAward": {
 		"required": pair{"LengthOfAward", "Confirm if an extended award is being given"},
@@ -54,16 +54,24 @@ var validationMappings = map[string]map[string]pair{
 		"start-or-end-date": pair{"start-or-end-date", "A fee reduction already exists for the period specified"},
 	},
 	"StartDate": {
-		"StartDate": pair{"StartDate", "Start date must be before end date and in same financial year"},
+		"StartDate":              pair{"StartDate", "Start date must be before end date and in same financial year"},
+		"nillable-date-required": pair{"StartDate", "Enter a start date"},
 	},
 	"EndDate": {
-		"EndDate": pair{"EndDate", "End date must be after start date and in same financial year"},
+		"EndDate":                pair{"EndDate", "End date must be after start date and in same financial year"},
+		"nillable-date-required": pair{"EndDate", "Enter an end date"},
 	},
 	"RaisedDateNotInPast": {
 		"RaisedDateNotInPast": pair{"RaisedDateNotInPast", "Raised date not in the past"},
 	},
 	"RaisedDateForAnInvoice": {
 		"RaisedDateForAnInvoice": pair{"RaisedDateForAnInvoice", "Raised date not in the past"},
+	},
+	"InvoiceType": {
+		"required": pair{"InvoiceType", "Please select an invoice type"},
+	},
+	"SupervisionLevel": {
+		"nillable-string-oneof": pair{"SupervisionLevel", "Please select a valid supervision level"},
 	},
 }
 
