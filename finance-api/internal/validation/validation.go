@@ -5,6 +5,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/opg-sirius-finance-hub/shared"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -39,6 +40,10 @@ func New() (*Validate, error) {
 		return nil, err
 	}
 	err = v.RegisterValidation("nillable-date-required", validateDateRequiredIfNotNil)
+	if err != nil {
+		return nil, err
+	}
+	err = v.RegisterValidation("nillable-string-oneof", validateStringOneOf)
 	if err != nil {
 		return nil, err
 	}
@@ -115,6 +120,21 @@ func validateIntGreaterThan(fl validator.FieldLevel) bool {
 			panic(err)
 		}
 		return !v.Valid || v.Value > intParam
+	}
+	return false
+}
+
+func validateStringOneOf(fl validator.FieldLevel) bool {
+	if v, ok := fl.Field().Interface().(shared.NillableString); ok {
+		if !v.Valid {
+			return true
+		}
+		params := strings.Fields(fl.Param())
+		for _, param := range params {
+			if param == v.Value {
+				return true
+			}
+		}
 	}
 	return false
 }

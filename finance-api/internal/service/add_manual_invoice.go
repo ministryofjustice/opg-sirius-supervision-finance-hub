@@ -24,7 +24,7 @@ func processInvoiceData(data shared.AddManualInvoice) shared.AddManualInvoice {
 			}
 		}
 		data.EndDate = data.RaisedDate
-		data.SupervisionLevel = "GENERAL"
+		data.SupervisionLevel = shared.NillableString{Value: "GENERAL", Valid: true}
 	case shared.InvoiceTypeS3, shared.InvoiceTypeB3:
 		if data.RaisedYear.Value != 0 {
 			data.RaisedDate = shared.NillableDate{
@@ -33,7 +33,7 @@ func processInvoiceData(data shared.AddManualInvoice) shared.AddManualInvoice {
 			}
 		}
 		data.EndDate = data.RaisedDate
-		data.SupervisionLevel = "MINIMAL"
+		data.SupervisionLevel = shared.NillableString{Value: "MINIMAL", Valid: true}
 	}
 
 	return data
@@ -99,10 +99,10 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 		return err
 	}
 
-	if data.SupervisionLevel != "" {
+	if data.SupervisionLevel.Valid {
 		addInvoiceRangeQueryArgs := store.AddInvoiceRangeParams{
 			InvoiceID:        pgtype.Int4{Int32: invoice.ID, Valid: true},
-			Supervisionlevel: strings.ToUpper(data.SupervisionLevel),
+			Supervisionlevel: strings.ToUpper(data.SupervisionLevel.Value),
 			Fromdate:         pgtype.Date{Time: data.StartDate.Value.Time, Valid: true},
 			Todate:           pgtype.Date{Time: data.EndDate.Value.Time, Valid: true},
 			Amount:           invoice.Amount,

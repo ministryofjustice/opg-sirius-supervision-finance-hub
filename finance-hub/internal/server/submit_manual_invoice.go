@@ -38,7 +38,7 @@ func (h *SubmitManualInvoiceHandler) render(v AppVars, w http.ResponseWriter, r 
 		getFieldPointer(r.PostForm, "raisedYear"),
 		getFieldPointer(r.PostForm, "startDate"),
 		getFieldPointer(r.PostForm, "endDate"),
-		r.PostFormValue("supervisionLevel"),
+		getFieldPointer(r.PostForm, "supervisionLevel"),
 	)
 
 	if err == nil {

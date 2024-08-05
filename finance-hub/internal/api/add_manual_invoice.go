@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-func (c *ApiClient) AddManualInvoice(ctx Context, clientId int, invoiceType string, amount *string, raisedDate *string, raisedYear *string, startDate *string, endDate *string, supervisionLevel string) error {
+func (c *ApiClient) AddManualInvoice(ctx Context, clientId int, invoiceType string, amount *string, raisedDate *string, raisedYear *string, startDate *string, endDate *string, supervisionLevel *string) error {
 	var body bytes.Buffer
 
 	addManualInvoiceForm := shared.AddManualInvoice{
@@ -18,7 +18,7 @@ func (c *ApiClient) AddManualInvoice(ctx Context, clientId int, invoiceType stri
 		RaisedYear:       shared.TransformNillableInt(raisedYear),
 		StartDate:        shared.TransformNillableDate(startDate),
 		EndDate:          shared.TransformNillableDate(endDate),
-		SupervisionLevel: supervisionLevel,
+		SupervisionLevel: shared.TransformNillableString(supervisionLevel),
 	}
 
 	err := json.NewEncoder(&body).Encode(addManualInvoiceForm)

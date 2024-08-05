@@ -11,13 +11,14 @@ import (
 )
 
 func addManualInvoiceSetup(conn testhelpers.TestConn) (Service, shared.AddManualInvoice) {
+	supervisionLevelString := "GENERAL"
 	params := shared.AddManualInvoice{
 		InvoiceType:      shared.InvoiceTypeS2,
 		Amount:           shared.NillableInt{Value: 500, Valid: true},
 		RaisedDate:       shared.NillableDate{Value: shared.NewDate("2025-03-31"), Valid: true},
 		StartDate:        shared.NillableDate{Value: shared.NewDate("2024-04-12"), Valid: true},
 		EndDate:          shared.NillableDate{Value: shared.NewDate("2025-03-31"), Valid: true},
-		SupervisionLevel: "GENERAL",
+		SupervisionLevel: shared.NillableString{Value: supervisionLevelString, Valid: true},
 	}
 
 	s := NewService(conn.Conn)
@@ -304,7 +305,7 @@ func Test_invoiceData(t *testing.T) {
 		startDate        shared.NillableDate
 		raisedDate       shared.NillableDate
 		endDate          shared.NillableDate
-		supervisionLevel string
+		supervisionLevel shared.NillableString
 	}{
 		{
 			name: "AD invoice returns correct values",
@@ -315,13 +316,13 @@ func Test_invoiceData(t *testing.T) {
 				RaisedDate:       shared.NillableDate{Value: shared.NewDate("2023-04-01"), Valid: true},
 				EndDate:          shared.NillableDate{},
 				RaisedYear:       shared.NillableInt{Value: 2023, Valid: true},
-				SupervisionLevel: "",
+				SupervisionLevel: shared.NillableString{},
 			},
 			amount:           shared.NillableInt{Value: 100, Valid: true},
 			startDate:        shared.NillableDate{Value: shared.NewDate("2023-04-01"), Valid: true},
 			raisedDate:       shared.NillableDate{Value: shared.NewDate("2023-04-01"), Valid: true},
 			endDate:          shared.NillableDate{Value: shared.NewDate("2023-04-01"), Valid: true},
-			supervisionLevel: "",
+			supervisionLevel: shared.NillableString{},
 		},
 		{
 			name: "B2 invoice returns correct values",
@@ -332,13 +333,13 @@ func Test_invoiceData(t *testing.T) {
 				RaisedDate:       shared.NillableDate{},
 				EndDate:          shared.NillableDate{},
 				RaisedYear:       shared.NillableInt{Value: 2025, Valid: true},
-				SupervisionLevel: "",
+				SupervisionLevel: shared.NillableString{},
 			},
 			amount:           shared.NillableInt{Value: 100, Valid: true},
 			startDate:        shared.NillableDate{Value: shared.NewDate("2033-04-01"), Valid: true},
 			raisedDate:       shared.NillableDate{Value: shared.NewDate("2025-03-31"), Valid: true},
 			endDate:          shared.NillableDate{Value: shared.NewDate("2025-03-31"), Valid: true},
-			supervisionLevel: "GENERAL",
+			supervisionLevel: shared.NillableString{Value: "GENERAL", Valid: true},
 		},
 		{
 			name: "B3 invoice returns correct values",
@@ -349,13 +350,13 @@ func Test_invoiceData(t *testing.T) {
 				RaisedDate:       shared.NillableDate{},
 				EndDate:          shared.NillableDate{},
 				RaisedYear:       shared.NillableInt{Value: 2025, Valid: true},
-				SupervisionLevel: "MINIMAL",
+				SupervisionLevel: shared.NillableString{Value: "MINIMAL", Valid: true},
 			},
 			amount:           shared.NillableInt{Value: 100, Valid: true},
 			startDate:        shared.NillableDate{Value: shared.NewDate("2033-04-01"), Valid: true},
 			raisedDate:       shared.NillableDate{Value: shared.NewDate("2025-03-31"), Valid: true},
 			endDate:          shared.NillableDate{Value: shared.NewDate("2025-03-31"), Valid: true},
-			supervisionLevel: "MINIMAL",
+			supervisionLevel: shared.NillableString{Value: "MINIMAL", Valid: true},
 		},
 		{
 			name: "S2 invoice returns correct values",
@@ -366,13 +367,13 @@ func Test_invoiceData(t *testing.T) {
 				RaisedDate:       shared.NillableDate{},
 				EndDate:          shared.NillableDate{},
 				RaisedYear:       shared.NillableInt{Value: 2025, Valid: true},
-				SupervisionLevel: "",
+				SupervisionLevel: shared.NillableString{},
 			},
 			amount:           shared.NillableInt{Value: 100, Valid: true},
 			startDate:        shared.NillableDate{Value: shared.NewDate("2033-04-01"), Valid: true},
 			raisedDate:       shared.NillableDate{Value: shared.NewDate("2025-03-31"), Valid: true},
 			endDate:          shared.NillableDate{Value: shared.NewDate("2025-03-31"), Valid: true},
-			supervisionLevel: "GENERAL",
+			supervisionLevel: shared.NillableString{Value: "GENERAL", Valid: true},
 		},
 		{
 			name: "S3 invoice returns correct values",
@@ -383,13 +384,13 @@ func Test_invoiceData(t *testing.T) {
 				RaisedDate:       shared.NillableDate{},
 				EndDate:          shared.NillableDate{},
 				RaisedYear:       shared.NillableInt{Value: 2025, Valid: true},
-				SupervisionLevel: "MINIMAL",
+				SupervisionLevel: shared.NillableString{Value: "MINIMAL", Valid: true},
 			},
 			amount:           shared.NillableInt{Value: 100, Valid: true},
 			startDate:        shared.NillableDate{Value: shared.NewDate("2033-04-01"), Valid: true},
 			raisedDate:       shared.NillableDate{Value: shared.NewDate("2025-03-31"), Valid: true},
 			endDate:          shared.NillableDate{Value: shared.NewDate("2025-03-31"), Valid: true},
-			supervisionLevel: "MINIMAL",
+			supervisionLevel: shared.NillableString{Value: "MINIMAL", Valid: true},
 		},
 		{
 			name: "No year will return correct values",
@@ -400,13 +401,13 @@ func Test_invoiceData(t *testing.T) {
 				RaisedDate:       shared.NillableDate{},
 				EndDate:          shared.NillableDate{},
 				RaisedYear:       shared.NillableInt{},
-				SupervisionLevel: "",
+				SupervisionLevel: shared.NillableString{},
 			},
 			amount:           shared.NillableInt{Value: 100, Valid: true},
 			startDate:        shared.NillableDate{Value: shared.NewDate("2033-04-01"), Valid: true},
 			raisedDate:       shared.NillableDate{},
 			endDate:          shared.NillableDate{},
-			supervisionLevel: "MINIMAL",
+			supervisionLevel: shared.NillableString{Value: "MINIMAL", Valid: true},
 		},
 	}
 	for _, tt := range tests {

@@ -75,7 +75,7 @@ var validationMappings = map[string]map[string]pair{
 		"required": pair{"InvoiceType", "Please select an invoice type"},
 	},
 	"SupervisionLevel": {
-		"oneof": pair{"SupervisionLevel", "Please select a valid supervision level"},
+		"nillable-string-oneof": pair{"SupervisionLevel", "Please select a valid supervision level"},
 	},
 }
 
