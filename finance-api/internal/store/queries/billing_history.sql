@@ -30,6 +30,7 @@ SELECT fr.type,
        fr.cancellation_reason,
        l.status,
        l.amount,
+       l.datetime ledger_date,
        fc.client_id,
        i.id invoice_id,
        i.reference reference

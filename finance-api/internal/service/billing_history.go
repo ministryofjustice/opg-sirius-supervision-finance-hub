@@ -178,7 +178,7 @@ func processFeeReductionEvents(feEvents []store.GetFeeReductionEventsRow) []hist
 		if fe.Status.String == "APPROVED" {
 			bh = shared.BillingHistory{
 				User: int(fe.CreatedBy.Int32),
-				Date: shared.Date{Time: fe.CreatedAt.Time},
+				Date: shared.Date{Time: fe.LedgerDate.Time},
 				Event: shared.FeeReductionApplied{
 					BaseBillingEvent: shared.BaseBillingEvent{
 						Type: shared.EventTypeFeeReductionApplied,

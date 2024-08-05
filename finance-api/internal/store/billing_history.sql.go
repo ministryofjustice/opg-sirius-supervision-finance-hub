@@ -24,6 +24,7 @@ SELECT fr.type,
        fr.cancellation_reason,
        l.status,
        l.amount,
+       l.datetime ledger_date,
        fc.client_id,
        i.id invoice_id,
        i.reference reference
@@ -49,6 +50,7 @@ type GetFeeReductionEventsRow struct {
 	CancellationReason pgtype.Text
 	Status             pgtype.Text
 	Amount             pgtype.Int4
+	LedgerDate         pgtype.Timestamp
 	ClientID           int32
 	InvoiceID          pgtype.Int4
 	Reference          pgtype.Text
@@ -76,6 +78,7 @@ func (q *Queries) GetFeeReductionEvents(ctx context.Context, clientID int32) ([]
 			&i.CancellationReason,
 			&i.Status,
 			&i.Amount,
+			&i.LedgerDate,
 			&i.ClientID,
 			&i.InvoiceID,
 			&i.Reference,
