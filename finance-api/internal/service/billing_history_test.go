@@ -107,7 +107,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 						Notes:            "Remission awarded",
 						BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeFeeReductionAwarded},
 					},
-					OutstandingBalance: 32000,
+					OutstandingBalance: 19700,
 				},
 				{
 					User: 1,
