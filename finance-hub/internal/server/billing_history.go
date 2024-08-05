@@ -23,6 +23,6 @@ func (h *BillingHistoryHandler) render(v AppVars, w http.ResponseWriter, r *http
 	}
 
 	data := &BillingHistoryVars{billingHistory, v}
-	data.selectTab("billing_history")
+	data.selectTab("billing-history")
 	return h.execute(w, r, data)
 }
