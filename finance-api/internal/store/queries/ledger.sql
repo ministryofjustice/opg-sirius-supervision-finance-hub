@@ -1,5 +1,5 @@
 -- name: CreateLedger :one
-INSERT INTO ledger (id, datetime, finance_client_id, amount, notes, type, status, method, fee_reduction_id, createdby_id, reference)
+INSERT INTO ledger (id, datetime, finance_client_id, amount, notes, type, status, fee_reduction_id, createdby_id, reference, method)
 SELECT nextval('ledger_id_seq'),
        now(),
        fc.id,
@@ -9,8 +9,8 @@ SELECT nextval('ledger_id_seq'),
        $5,
        $6,
        $7,
-       $8,
-       gen_random_uuid()
+       gen_random_uuid(),
+       ''
 FROM finance_client fc WHERE client_id = $1
 RETURNING id;
 

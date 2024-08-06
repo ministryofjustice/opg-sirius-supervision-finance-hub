@@ -64,6 +64,13 @@ To seed this data, add the inserts to `/test-data.sql`.
 
 `make cypress`
 
+Or to run interactively:
+
+```
+cd cypress
+npx cypress open baseUrl=http://localhost:8888/finance
+```
+
 ## Run Trivy scanning
 
 `make scan`

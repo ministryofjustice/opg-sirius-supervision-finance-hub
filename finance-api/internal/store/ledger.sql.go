@@ -12,7 +12,7 @@ import (
 )
 
 const createLedger = `-- name: CreateLedger :one
-INSERT INTO ledger (id, datetime, finance_client_id, amount, notes, type, status, method, fee_reduction_id, createdby_id, reference)
+INSERT INTO ledger (id, datetime, finance_client_id, amount, notes, type, status, fee_reduction_id, createdby_id, reference, method)
 SELECT nextval('ledger_id_seq'),
        now(),
        fc.id,
@@ -22,8 +22,8 @@ SELECT nextval('ledger_id_seq'),
        $5,
        $6,
        $7,
-       $8,
-       gen_random_uuid()
+       gen_random_uuid(),
+       ''
 FROM finance_client fc WHERE client_id = $1
 RETURNING id
 `
@@ -34,7 +34,6 @@ type CreateLedgerParams struct {
 	Notes          pgtype.Text
 	Type           string
 	Status         string
-	Method         string
 	FeeReductionID pgtype.Int4
 	CreatedbyID    pgtype.Int4
 }
@@ -46,7 +45,6 @@ func (q *Queries) CreateLedger(ctx context.Context, arg CreateLedgerParams) (int
 		arg.Notes,
 		arg.Type,
 		arg.Status,
-		arg.Method,
 		arg.FeeReductionID,
 		arg.CreatedbyID,
 	)
