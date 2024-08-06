@@ -11,14 +11,13 @@ import (
 )
 
 func addManualInvoiceSetup(conn testhelpers.TestConn) (Service, shared.AddManualInvoice) {
-	supervisionLevelString := "GENERAL"
 	params := shared.AddManualInvoice{
 		InvoiceType:      shared.InvoiceTypeS2,
-		Amount:           shared.Nillable[int]{Value: 500, Valid: true},
+		Amount:           shared.Nillable[int]{Value: 5000, Valid: true},
 		RaisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
 		StartDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2024-04-12"), Valid: true},
 		EndDate:          shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
-		SupervisionLevel: shared.Nillable[string]{Value: supervisionLevelString, Valid: true},
+		SupervisionLevel: shared.Nillable[string]{Value: "GENERAL", Valid: true},
 	}
 
 	s := NewService(conn.Conn)
@@ -79,7 +78,7 @@ func (suite *IntegrationSuite) TestService_AddManualInvoice() {
 		&createdById)
 
 	assert.Equal(suite.T(), shared.InvoiceTypeS2.Key(), feeType)
-	assert.Equal(suite.T(), 500, amount)
+	assert.Equal(suite.T(), 5000, amount)
 	assert.Equal(suite.T(), "2024-04-12", startDate.Format("2006-01-02"))
 	assert.Equal(suite.T(), "2025-03-31", endDate.Format("2006-01-02"))
 
@@ -252,7 +251,7 @@ func (suite *IntegrationSuite) TestService_AddLedgerAndAllocationsForAnADInvoice
 	} else {
 		expected := store.Ledger{
 			ID:              1,
-			Amount:          int32(50),
+			Amount:          int32(5000),
 			Notes:           pgtype.Text{String: "Credit due to manual invoice remission", Valid: true},
 			Type:            "CREDIT REMISSION",
 			Status:          "APPROVED",
@@ -287,7 +286,7 @@ func (suite *IntegrationSuite) TestService_AddLedgerAndAllocationsForAnExemption
 		expected := store.Ledger{
 			ID:              1,
 			Amount:          int32(params.Amount.Value),
-			Notes:           pgtype.Text{String: "Credit due to manual invoice exemption", Valid: true},
+			Notes:           pgtype.Text{String: "Credit due to exemption", Valid: true},
 			Type:            "CREDIT EXEMPTION",
 			Status:          "APPROVED",
 			FinanceClientID: pgtype.Int4{Int32: int32(25), Valid: true},
