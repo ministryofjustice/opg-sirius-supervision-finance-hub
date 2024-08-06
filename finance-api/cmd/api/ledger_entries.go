@@ -14,7 +14,7 @@ func (s *Server) PostLedgerEntry(w http.ResponseWriter, r *http.Request) {
 	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
 	invoiceId, _ := strconv.Atoi(r.PathValue("invoiceId"))
 
-	var ledgerEntry shared.CreateLedgerEntryRequest
+	var ledgerEntry shared.AddInvoiceAdjustmentRequest
 	err := json.NewDecoder(r.Body).Decode(&ledgerEntry)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -32,7 +32,7 @@ func (s *Server) PostLedgerEntry(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	invoiceReference, err := s.Service.CreateLedgerEntry(ctx, clientId, invoiceId, &ledgerEntry)
+	invoiceReference, err := s.Service.AddInvoiceAdjustment(ctx, clientId, invoiceId, &ledgerEntry)
 
 	if err != nil {
 		var e shared.BadRequest

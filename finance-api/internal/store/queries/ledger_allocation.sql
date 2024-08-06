@@ -1,8 +1,17 @@
--- name: CreateLedgerAllocationForFeeReduction :one
-INSERT INTO ledger_allocation (id, ledger_id, invoice_id, datetime, amount, status, reference,
-                               notes, allocateddate, batchnumber, source)
-VALUES (NEXTVAL('ledger_allocation_id_seq'::REGCLASS), $1, $2, NOW(), $3, 'ALLOCATED', NULL, NULL, NULL, NULL, NULL)
-RETURNING *;
+-- name: CreateLedgerAllocation :one
+WITH this_ledger as (
+    SELECT id, datetime FROM ledger WHERE id = $1
+)
+INSERT INTO ledger_allocation (id, datetime, ledger_id, invoice_id, amount, status, notes)
+SELECT nextval('ledger_allocation_id_seq'),
+       this_ledger.datetime,
+       $1,
+       $2,
+       $3,
+       $4,
+       $5
+FROM this_ledger WHERE this_ledger.id = $1
+returning (SELECT reference invoiceReference FROM invoice WHERE id = invoice_id);
 
 -- name: UpdateLedgerAllocationAdjustment :exec
 UPDATE ledger_allocation la

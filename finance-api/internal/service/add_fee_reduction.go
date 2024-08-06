@@ -9,9 +9,9 @@ import (
 	"time"
 )
 
-func (s *Service) AddFeeReduction(ctx context.Context, id int, data shared.AddFeeReduction) error {
+func (s *Service) AddFeeReduction(ctx context.Context, clientId int, data shared.AddFeeReduction) error {
 	countOverlappingFeeReductionParams := store.CountOverlappingFeeReductionParams{
-		ClientID:   int32(id),
+		ClientID:   int32(clientId),
 		Overlaps:   calculateFeeReductionStartDate(data.StartYear),
 		Overlaps_2: calculateFeeReductionEndDate(data.StartYear, data.LengthOfAward),
 	}
@@ -22,13 +22,13 @@ func (s *Service) AddFeeReduction(ctx context.Context, id int, data shared.AddFe
 	}
 
 	addFeeReductionQueryArgs := store.AddFeeReductionParams{
-		ClientID:     int32(id),
+		ClientID:     int32(clientId),
 		Type:         data.FeeType.Key(),
 		Startdate:    calculateFeeReductionStartDate(data.StartYear),
 		Enddate:      calculateFeeReductionEndDate(data.StartYear, data.LengthOfAward),
 		Notes:        data.Notes,
 		Datereceived: pgtype.Date{Time: data.DateReceived.Time, Valid: true},
-		//TODO make sure we have correct createdby ID in ticket PFS-88
+		//TODO make sure we have correct createdby ID in ticket PFS-136
 		CreatedBy: pgtype.Int4{Int32: 1, Valid: true},
 	}
 
@@ -55,7 +55,7 @@ func (s *Service) AddFeeReduction(ctx context.Context, id int, data shared.AddFe
 	}
 
 	for _, invoice := range invoices {
-		err = s.AddLedgerAndAllocations(data.FeeType, feeReduction.ID, feeReduction.FinanceClientID.Int32, invoice, transaction, ctx)
+		err = s.AddFeeReductionLedger(ctx, transaction, data.FeeType, feeReduction.ID, int32(clientId), invoice)
 		if err != nil {
 			return err
 		}

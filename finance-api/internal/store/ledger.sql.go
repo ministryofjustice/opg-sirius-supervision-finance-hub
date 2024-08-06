@@ -12,105 +12,47 @@ import (
 )
 
 const createLedger = `-- name: CreateLedger :one
-WITH fc AS (SELECT id FROM finance_client WHERE client_id = $1),
-     ledger AS (
-         INSERT INTO ledger (id, datetime, amount, notes, type, finance_client_id, reference, method, status)
-             SELECT nextval('ledger_id_seq'),
-                    now(),
-                    $3,
-                    $4,
-                    $5,
-                    fc.id,
-                    gen_random_uuid(),
-                    '',
-                    'PENDING'
-             FROM fc
-             RETURNING id, datetime)
-INSERT
-INTO ledger_allocation (id, ledger_id, invoice_id, datetime, amount, status, notes)
-SELECT nextval('ledger_allocation_id_seq'),
-       ledger.id,
+INSERT INTO ledger (id, datetime, finance_client_id, amount, notes, type, status, method, fee_reduction_id, createdby_id, reference)
+SELECT nextval('ledger_id_seq'),
+       now(),
+       fc.id,
        $2,
-       ledger.datetime,
        $3,
-       'PENDING',
-       $4
-FROM ledger
-returning (SELECT reference invoiceReference FROM invoice WHERE id = invoice_id)
+       $4,
+       $5,
+       $6,
+       $7,
+       $8,
+       gen_random_uuid()
+FROM finance_client fc WHERE client_id = $1
+RETURNING id
 `
 
 type CreateLedgerParams struct {
-	ClientID  int32
-	InvoiceID pgtype.Int4
-	Amount    int32
-	Notes     pgtype.Text
-	Type      string
+	ClientID       int32
+	Amount         int32
+	Notes          pgtype.Text
+	Type           string
+	Status         string
+	Method         string
+	FeeReductionID pgtype.Int4
+	CreatedbyID    pgtype.Int4
 }
 
-func (q *Queries) CreateLedger(ctx context.Context, arg CreateLedgerParams) (string, error) {
+func (q *Queries) CreateLedger(ctx context.Context, arg CreateLedgerParams) (int32, error) {
 	row := q.db.QueryRow(ctx, createLedger,
 		arg.ClientID,
-		arg.InvoiceID,
 		arg.Amount,
 		arg.Notes,
 		arg.Type,
-	)
-	var invoicereference string
-	err := row.Scan(&invoicereference)
-	return invoicereference, err
-}
-
-const createLedgerForFeeReduction = `-- name: CreateLedgerForFeeReduction :one
-insert into ledger (id, reference, datetime, method, amount, notes, type, status, finance_client_id,
-                    parent_id, fee_reduction_id, confirmeddate, bankdate, batchnumber, bankaccount,
-                    line, source, createddate, createdby_id)
-VALUES (nextval('ledger_id_seq'::regclass), gen_random_uuid(), now(), $1, $2, $3, $4, 'APPROVED', $5, null, $6, null,
-        null, null, null, null, null, now(), $7) returning id, reference, datetime, method, amount, notes, type, status, finance_client_id, parent_id, fee_reduction_id, confirmeddate, bankdate, batchnumber, bankaccount, source, line, createddate, createdby_id
-`
-
-type CreateLedgerForFeeReductionParams struct {
-	Method          string
-	Amount          int32
-	Notes           pgtype.Text
-	Type            string
-	FinanceClientID pgtype.Int4
-	FeeReductionID  pgtype.Int4
-	CreatedbyID     pgtype.Int4
-}
-
-func (q *Queries) CreateLedgerForFeeReduction(ctx context.Context, arg CreateLedgerForFeeReductionParams) (Ledger, error) {
-	row := q.db.QueryRow(ctx, createLedgerForFeeReduction,
+		arg.Status,
 		arg.Method,
-		arg.Amount,
-		arg.Notes,
-		arg.Type,
-		arg.FinanceClientID,
 		arg.FeeReductionID,
 		arg.CreatedbyID,
 	)
-	var i Ledger
-	err := row.Scan(
-		&i.ID,
-		&i.Reference,
-		&i.Datetime,
-		&i.Method,
-		&i.Amount,
-		&i.Notes,
-		&i.Type,
-		&i.Status,
-		&i.FinanceClientID,
-		&i.ParentID,
-		&i.FeeReductionID,
-		&i.Confirmeddate,
-		&i.Bankdate,
-		&i.Batchnumber,
-		&i.Bankaccount,
-		&i.Source,
-		&i.Line,
-		&i.Createddate,
-		&i.CreatedbyID,
-	)
-	return i, err
+	var id int32
+	err := row.Scan(&id)
+	return id, err
 }
 
 const updateLedgerAdjustment = `-- name: UpdateLedgerAdjustment :exec

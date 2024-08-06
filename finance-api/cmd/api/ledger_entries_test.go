@@ -91,12 +91,12 @@ func TestCreateLedgerEntryRequest_validation(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		arg      shared.CreateLedgerEntryRequest
+		arg      shared.AddInvoiceAdjustmentRequest
 		expected map[string]string
 	}{
 		{
 			name: "adjustment type and notes",
-			arg: shared.CreateLedgerEntryRequest{
+			arg: shared.AddInvoiceAdjustmentRequest{
 				AdjustmentType:  shared.AdjustmentTypeUnknown,
 				AdjustmentNotes: string(bytes.Repeat([]byte{byte('a')}, 1001)),
 			},
@@ -107,7 +107,7 @@ func TestCreateLedgerEntryRequest_validation(t *testing.T) {
 		},
 		{
 			name: "amount when required",
-			arg: shared.CreateLedgerEntryRequest{
+			arg: shared.AddInvoiceAdjustmentRequest{
 				AdjustmentType:  shared.AdjustmentTypeCreditMemo,
 				AdjustmentNotes: "abc",
 			},
@@ -117,7 +117,7 @@ func TestCreateLedgerEntryRequest_validation(t *testing.T) {
 		},
 		{
 			name: "missing amount valid when not required",
-			arg: shared.CreateLedgerEntryRequest{
+			arg: shared.AddInvoiceAdjustmentRequest{
 				AdjustmentType:  shared.AdjustmentTypeWriteOff,
 				AdjustmentNotes: "abc",
 			},
