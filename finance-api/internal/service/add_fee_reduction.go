@@ -48,16 +48,18 @@ func (s *Service) AddFeeReduction(ctx context.Context, clientId int, data shared
 		return err
 	}
 
-	var invoices []store.Invoice
-	invoices, err = transaction.GetInvoicesValidForFeeReduction(ctx, feeReduction.ID)
+	invoices, err := transaction.GetInvoiceBalancesForFeeReductionRange(ctx, feeReduction.ID)
 	if err != nil {
 		return err
 	}
 
 	for _, invoice := range invoices {
-		err = s.AddFeeReductionLedger(ctx, transaction, data.FeeType, feeReduction.ID, int32(clientId), invoice)
-		if err != nil {
-			return err
+		amount := calculateFeeReduction(ctx, transaction, shared.ParseFeeReductionType(feeReduction.Type), invoice.ID, invoice.Amount, invoice.Feetype)
+		if amount > 0 {
+			err = addLedger(ctx, transaction, amount, data.FeeType, feeReduction.ID, int32(clientId), invoice.ID, invoice.Outstanding)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -67,6 +69,27 @@ func (s *Service) AddFeeReduction(ctx context.Context, clientId int, data shared
 	}
 
 	return nil
+}
+
+func calculateFeeReduction(ctx context.Context, tStore *store.Queries, feeReductionType shared.FeeReductionType, invoiceId int32, invoiceTotal int32, invoiceFeeType string) int32 {
+	var amount int32
+	switch feeReductionType {
+	case shared.FeeReductionTypeExemption, shared.FeeReductionTypeHardship:
+		amount = invoiceTotal
+	case shared.FeeReductionTypeRemission:
+		if invoiceFeeType == "AD" {
+			amount = invoiceTotal / 2
+		} else {
+			invoiceFeeRangeParams := store.GetInvoiceFeeRangeAmountParams{
+				InvoiceID:        pgtype.Int4{Int32: invoiceId, Valid: true},
+				Supervisionlevel: "GENERAL",
+			}
+			amount, _ = tStore.GetInvoiceFeeRangeAmount(ctx, invoiceFeeRangeParams)
+		}
+	default:
+		amount = 0
+	}
+	return amount
 }
 
 func calculateFeeReductionEndDate(startYear string, lengthOfAward int) pgtype.Date {
