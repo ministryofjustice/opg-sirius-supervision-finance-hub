@@ -185,3 +185,63 @@ func Test_calculateStartDate(t *testing.T) {
 		})
 	}
 }
+
+func Test_calculateFeeReduction(t *testing.T) {
+	type args struct {
+		feeReductionType      shared.FeeReductionType
+		invoiceTotal          int32
+		invoiceFeeType        string
+		generalSupervisionFee int32
+	}
+	tests := []struct {
+		name string
+		args args
+		want int32
+	}{
+		{
+			name: "remission - AD",
+			args: args{
+				feeReductionType:      shared.FeeReductionTypeRemission,
+				invoiceTotal:          10000,
+				invoiceFeeType:        "AD",
+				generalSupervisionFee: 0,
+			},
+			want: 5000,
+		},
+		{
+			name: "remission - non-AD - general supervision fee",
+			args: args{
+				feeReductionType:      shared.FeeReductionTypeRemission,
+				invoiceTotal:          10000,
+				invoiceFeeType:        "S2",
+				generalSupervisionFee: 5000,
+			},
+			want: 2500,
+		},
+		{
+			name: "remission - non-AD - no general supervision fee",
+			args: args{
+				feeReductionType:      shared.FeeReductionTypeRemission,
+				invoiceTotal:          10000,
+				invoiceFeeType:        "S2",
+				generalSupervisionFee: 0,
+			},
+			want: 0,
+		},
+		{
+			name: "hardship",
+			args: args{
+				feeReductionType:      shared.FeeReductionTypeHardship,
+				invoiceTotal:          10000,
+				invoiceFeeType:        "AD",
+				generalSupervisionFee: 0,
+			},
+			want: 10000,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, calculateFeeReduction(tt.args.feeReductionType, tt.args.invoiceTotal, tt.args.invoiceFeeType, tt.args.generalSupervisionFee), "calculateFeeReduction(%v, %v, %v, %v)", tt.args.feeReductionType, tt.args.invoiceTotal, tt.args.invoiceFeeType, tt.args.generalSupervisionFee)
+		})
+	}
+}

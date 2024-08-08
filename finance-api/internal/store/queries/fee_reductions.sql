@@ -41,7 +41,7 @@ WHERE id = $1
 RETURNING *;
 
 -- name: GetFeeReductionForDate :one
-SELECT fr.id AS fee_reduction_id, fr.type, fr.finance_client_id
+SELECT fr.id, fr.type
 FROM fee_reduction fr
          JOIN finance_client fc ON fr.finance_client_id = fc.id
 WHERE $2 >= (fr.datereceived - INTERVAL '6 months')

@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 )
 
-type Valid interface {
+type Enum interface {
 	Valid() bool
+	Key() string
 }
 
 type AdjustmentType int
