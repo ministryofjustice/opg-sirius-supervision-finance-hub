@@ -92,7 +92,7 @@ func validateDateInThePast(fl validator.FieldLevel) bool {
 }
 
 func validateEnum(fl validator.FieldLevel) bool {
-	if v, ok := fl.Field().Interface().(shared.Valid); ok {
+	if v, ok := fl.Field().Interface().(shared.Enum); ok {
 		if v.Valid() {
 			return true
 		}
