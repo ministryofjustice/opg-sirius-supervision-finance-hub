@@ -97,9 +97,9 @@ func (suite *IntegrationSuite) TestService_AddManualInvoiceRaisedDateForAnInvoic
 	)
 	s, params := addManualInvoiceSetup(conn)
 
-	params.RaisedDate = &shared.Date{Time: time.Now().AddDate(0, 0, 1)}
-	params.StartDate = &shared.Date{Time: time.Now().AddDate(0, 0, 1)}
-	params.EndDate = &shared.Date{Time: time.Now().AddDate(0, 0, -1)}
+	params.RaisedDate = shared.Nillable[shared.Date]{Value: shared.Date{Time: time.Now().AddDate(0, 0, 1)}, Valid: true}
+	params.StartDate = shared.Nillable[shared.Date]{Value: shared.Date{Time: time.Now().AddDate(0, 0, 1)}, Valid: true}
+	params.EndDate = shared.Nillable[shared.Date]{Value: shared.Date{Time: time.Now().AddDate(0, 0, -1)}, Valid: true}
 	params.InvoiceType = shared.InvoiceTypeSO
 
 	err := s.AddManualInvoice(suite.ctx, 24, params)
@@ -117,7 +117,8 @@ func (suite *IntegrationSuite) TestService_AddManualInvoiceRaisedDateForAnInvoic
 		"INSERT INTO fee_reduction VALUES (24, 24, 'REMISSION', NULL, '2023-04-01', '2024-03-31', 'Remission to see the notes', FALSE, '2023-05-01');",
 	)
 	s, params := addManualInvoiceSetup(conn)
-	params.RaisedDate = &shared.Date{Time: time.Now().AddDate(0, 0, -1)}
+
+	params.RaisedDate = shared.Nillable[shared.Date]{Value: shared.Date{Time: time.Now().AddDate(0, 0, -1)}, Valid: true}
 	params.InvoiceType = shared.InvoiceTypeSO
 
 	err := s.AddManualInvoice(suite.ctx, 24, params)
@@ -250,7 +251,7 @@ func (suite *IntegrationSuite) TestService_AddLedgerAndAllocationsForAnADInvoice
 	} else {
 		expected := store.Ledger{
 			ID:              1,
-			Amount:          int32(params.Amount.Value / 2),
+			Amount:          int32(5000),
 			Notes:           pgtype.Text{String: "Credit due to approved remission", Valid: true},
 			Type:            "CREDIT REMISSION",
 			Status:          "APPROVED",

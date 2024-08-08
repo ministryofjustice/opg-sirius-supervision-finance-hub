@@ -9,9 +9,6 @@ import (
 )
 
 func Test_generateLedgerEntries(t *testing.T) {
-	type args struct {
-		vars addLedgerVars
-	}
 	tests := []struct {
 		name   string
 		args   addLedgerVars
