@@ -56,6 +56,12 @@
       "firstname": "Felicity",
       "surname": "Fat-Cat",
       "caseRecNumber": "12345678"
+    },
+    {
+      "id": 6,
+      "firstname": "Conrad",
+      "surname": "Credit",
+      "caseRecNumber": "12345678"
     }
   ],
   "tasks": {
