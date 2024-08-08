@@ -85,17 +85,35 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 		}
 	}
 
-	AddFeeReductionToInvoiceParams := store.GetFeeReductionForDateParams{
+	reductionForDateParams := store.GetFeeReductionForDateParams{
 		ClientID:     int32(clientId),
 		Datereceived: invoice.Raiseddate,
 	}
 
-	feeReduction, _ := transaction.GetFeeReductionForDate(ctx, AddFeeReductionToInvoiceParams)
+	feeReduction, _ := transaction.GetFeeReductionForDate(ctx, reductionForDateParams)
 
-	if feeReduction.FeeReductionID != 0 {
-		amount := calculateFeeReduction(ctx, transaction, shared.ParseFeeReductionType(feeReduction.Type), invoice.ID, invoice.Amount, invoice.Feetype)
-		if amount > 0 {
-			err = addLedger(ctx, transaction, amount, shared.ParseFeeReductionType(feeReduction.Type), feeReduction.FeeReductionID, int32(clientId), invoice.ID, invoice.Amount)
+	if feeReduction.ID != 0 {
+		var generalSupervisionFee int32
+		if data.SupervisionLevel == "GENERAL" {
+			generalSupervisionFee = invoice.Amount
+		}
+		reduction := calculateFeeReduction(shared.ParseFeeReductionType(feeReduction.Type), invoice.Amount, invoice.Feetype, generalSupervisionFee)
+		ledger, allocations := generateLedgerEntries(addLedgerVars{
+			amount:             reduction,
+			transactionType:    shared.ParseFeeReductionType(feeReduction.Type),
+			feeReductionId:     feeReduction.ID,
+			clientId:           int32(clientId),
+			invoiceId:          invoice.ID,
+			outstandingBalance: invoice.Amount,
+		})
+		ledgerId, err := transaction.CreateLedger(ctx, ledger)
+		if err != nil {
+			return err
+		}
+
+		for _, allocation := range allocations {
+			allocation.LedgerID = pgtype.Int4{Int32: ledgerId, Valid: true}
+			_, err = transaction.CreateLedgerAllocation(ctx, allocation)
 			if err != nil {
 				return err
 			}

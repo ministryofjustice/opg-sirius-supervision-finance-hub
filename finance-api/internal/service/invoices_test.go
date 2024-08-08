@@ -213,6 +213,35 @@ func Test_invoiceBuilder_statuses(t *testing.T) {
 			feeReduction: "REMISSION",
 		},
 		{
+			name: "Closed with unapplied credit",
+			ilas: []store.GetLedgerAllocationsRow{
+				{
+					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
+					ID:        2,
+					Amount:    10000,
+					Type:      "CREDIT MEMO",
+					Status:    "APPROVED",
+				},
+				{
+					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
+					ID:        3,
+					Amount:    32000,
+					Type:      "EXEMPTION",
+					Status:    "APPROVED",
+				},
+				{
+					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
+					ID:        4,
+					Amount:    10000,
+					Type:      "CREDIT MEMO",
+					Status:    "UNAPPLIED",
+				},
+			},
+			status:       "Closed - Exemption",
+			balance:      0,
+			feeReduction: "EXEMPTION",
+		},
+		{
 			name: "Paid - with credit applied",
 			ilas: []store.GetLedgerAllocationsRow{
 				{

@@ -11,7 +11,6 @@ import (
 )
 
 func addManualInvoiceSetup(conn testhelpers.TestConn) (Service, shared.AddManualInvoice) {
-	supervisionLevelString := "GENERAL"
 	params := shared.AddManualInvoice{
 		InvoiceType:      shared.InvoiceTypeS2,
 		Amount:           shared.Nillable[int]{Value: 50000, Valid: true},
@@ -252,7 +251,7 @@ func (suite *IntegrationSuite) TestService_AddLedgerAndAllocationsForAnADInvoice
 		expected := store.Ledger{
 			ID:              1,
 			Amount:          int32(params.Amount.Value / 2),
-			Notes:           pgtype.Text{String: "Credit due to remission", Valid: true},
+			Notes:           pgtype.Text{String: "Credit due to approved remission", Valid: true},
 			Type:            "CREDIT REMISSION",
 			Status:          "APPROVED",
 			FinanceClientID: pgtype.Int4{Int32: int32(25), Valid: true},
@@ -286,7 +285,7 @@ func (suite *IntegrationSuite) TestService_AddLedgerAndAllocationsForAnExemption
 		expected := store.Ledger{
 			ID:              1,
 			Amount:          int32(params.Amount.Value),
-			Notes:           pgtype.Text{String: "Credit due to exemption", Valid: true},
+			Notes:           pgtype.Text{String: "Credit due to approved exemption", Valid: true},
 			Type:            "CREDIT EXEMPTION",
 			Status:          "APPROVED",
 			FinanceClientID: pgtype.Int4{Int32: int32(25), Valid: true},

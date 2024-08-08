@@ -108,22 +108,29 @@ func (q *Queries) GetInvoiceBalanceDetails(ctx context.Context, id int32) (GetIn
 }
 
 const getInvoiceBalancesForFeeReductionRange = `-- name: GetInvoiceBalancesForFeeReductionRange :many
-SELECT i.id, i.amount, i.amount - COALESCE(SUM(la.amount), 0) outstanding, i.feetype
+SELECT
+    i.id,
+    i.amount,
+    ifr.amount AS general_supervision_fee,
+    i.amount - COALESCE(SUM(la.amount), 0) outstanding,
+    i.feetype
 FROM invoice i
         JOIN fee_reduction fr ON i.finance_client_id = fr.finance_client_id
         LEFT JOIN ledger_allocation la on i.id = la.invoice_id
         LEFT JOIN ledger l ON l.id = la.ledger_id
+        LEFT JOIN invoice_fee_range ifr ON i.id = ifr.invoice_id AND i.supervisionlevel = 'GENERAL'
 WHERE i.raiseddate >= (fr.datereceived - interval '6 months')
  AND i.raiseddate BETWEEN fr.startdate AND fr.enddate
  AND fr.id = $1
-GROUP BY i.id
+GROUP BY i.id, ifr.amount
 `
 
 type GetInvoiceBalancesForFeeReductionRangeRow struct {
-	ID          int32
-	Amount      int32
-	Outstanding int32
-	Feetype     string
+	ID                    int32
+	Amount                int32
+	GeneralSupervisionFee pgtype.Int4
+	Outstanding           int32
+	Feetype               string
 }
 
 func (q *Queries) GetInvoiceBalancesForFeeReductionRange(ctx context.Context, id int32) ([]GetInvoiceBalancesForFeeReductionRangeRow, error) {
@@ -138,6 +145,7 @@ func (q *Queries) GetInvoiceBalancesForFeeReductionRange(ctx context.Context, id
 		if err := rows.Scan(
 			&i.ID,
 			&i.Amount,
+			&i.GeneralSupervisionFee,
 			&i.Outstanding,
 			&i.Feetype,
 		); err != nil {
