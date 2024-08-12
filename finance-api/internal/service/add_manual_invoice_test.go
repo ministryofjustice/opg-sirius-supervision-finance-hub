@@ -155,8 +155,8 @@ func TestService_AddManualInvoiceAddLeadingZeros(t *testing.T) {
 
 func Test_validateEndDate(t *testing.T) {
 	type args struct {
-		startDate *shared.Date
-		endDate   *shared.Date
+		startDate shared.Date
+		endDate   shared.Date
 	}
 	tests := []struct {
 		name string
@@ -166,16 +166,16 @@ func Test_validateEndDate(t *testing.T) {
 		{
 			name: "returns true if the end date is in the future compared to start date",
 			args: args{
-				startDate: &shared.Date{Time: time.Date(2024, 5, 1, 0, 0, 0, 0, time.UTC)},
-				endDate:   &shared.Date{Time: time.Date(2024, 5, 2, 0, 0, 0, 0, time.UTC)},
+				startDate: shared.Date{Time: time.Date(2024, 5, 1, 0, 0, 0, 0, time.UTC)},
+				endDate:   shared.Date{Time: time.Date(2024, 5, 2, 0, 0, 0, 0, time.UTC)},
 			},
 			want: true,
 		},
 		{
 			name: "returns false if the end date before start date",
 			args: args{
-				startDate: &shared.Date{Time: time.Date(2024, 5, 2, 0, 0, 0, 0, time.UTC)},
-				endDate:   &shared.Date{Time: time.Date(2024, 5, 1, 0, 0, 0, 0, time.UTC)},
+				startDate: shared.Date{Time: time.Date(2024, 5, 2, 0, 0, 0, 0, time.UTC)},
+				endDate:   shared.Date{Time: time.Date(2024, 5, 1, 0, 0, 0, 0, time.UTC)},
 			},
 			want: false,
 		},
@@ -189,8 +189,8 @@ func Test_validateEndDate(t *testing.T) {
 
 func Test_validateStartDate(t *testing.T) {
 	type args struct {
-		startDate *shared.Date
-		endDate   *shared.Date
+		startDate shared.Date
+		endDate   shared.Date
 	}
 	tests := []struct {
 		name string
@@ -200,16 +200,16 @@ func Test_validateStartDate(t *testing.T) {
 		{
 			name: "returns true if the start date is in the past compared to end date",
 			args: args{
-				startDate: &shared.Date{Time: time.Date(2024, 5, 1, 0, 0, 0, 0, time.UTC)},
-				endDate:   &shared.Date{Time: time.Date(2024, 5, 2, 0, 0, 0, 0, time.UTC)},
+				startDate: shared.Date{Time: time.Date(2024, 5, 1, 0, 0, 0, 0, time.UTC)},
+				endDate:   shared.Date{Time: time.Date(2024, 5, 2, 0, 0, 0, 0, time.UTC)},
 			},
 			want: true,
 		},
 		{
 			name: "returns false if the start date before end date",
 			args: args{
-				startDate: &shared.Date{Time: time.Date(2024, 5, 2, 0, 0, 0, 0, time.UTC)},
-				endDate:   &shared.Date{Time: time.Date(2024, 5, 1, 0, 0, 0, 0, time.UTC)},
+				startDate: shared.Date{Time: time.Date(2024, 5, 2, 0, 0, 0, 0, time.UTC)},
+				endDate:   shared.Date{Time: time.Date(2024, 5, 1, 0, 0, 0, 0, time.UTC)},
 			},
 			want: false,
 		},

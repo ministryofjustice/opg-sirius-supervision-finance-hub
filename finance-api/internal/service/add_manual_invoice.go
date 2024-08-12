@@ -28,7 +28,7 @@ func processInvoiceData(data shared.AddManualInvoice) shared.AddManualInvoice {
 }
 
 func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data shared.AddManualInvoice) error {
-  data = processInvoiceData(data)
+	data = processInvoiceData(data)
 	validationsErrors := s.validateManualInvoice(data)
 
 	if len(validationsErrors) != 0 {
@@ -44,7 +44,7 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 	}
 
 	transaction := s.store.WithTx(tx)
-	counter, err := transaction.GetInvoiceCounter(ctx, strconv.Itoa(data.StartDate.Time.Year())+"InvoiceNumber")
+	counter, err := transaction.GetInvoiceCounter(ctx, strconv.Itoa(data.StartDate.Value.Time.Year())+"InvoiceNumber")
 	if err != nil {
 		return err
 	}
@@ -54,11 +54,11 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 	invoiceParams := store.AddInvoiceParams{
 		PersonID:   pgtype.Int4{Int32: int32(clientId), Valid: true},
 		Feetype:    data.InvoiceType.Key(),
-		Reference:  data.InvoiceType.Key() + invoiceRef + "/" + strconv.Itoa(data.StartDate.Time.Year()%100),
-		Startdate:  pgtype.Date{Time: data.StartDate.Time, Valid: true},
-		Enddate:    pgtype.Date{Time: data.EndDate.Time, Valid: true},
-		Amount:     int32(data.Amount),
-		Raiseddate: pgtype.Date{Time: data.RaisedDate.Time, Valid: true},
+		Reference:  data.InvoiceType.Key() + invoiceRef + "/" + strconv.Itoa(data.StartDate.Value.Time.Year()%100),
+		Startdate:  pgtype.Date{Time: data.StartDate.Value.Time, Valid: true},
+		Enddate:    pgtype.Date{Time: data.EndDate.Value.Time, Valid: true},
+		Amount:     int32(data.Amount.Value),
+		Raiseddate: pgtype.Date{Time: data.RaisedDate.Value.Time, Valid: true},
 		Source:     pgtype.Text{String: "Created manually", Valid: true},
 		//TODO make sure we have correct createdby ID in ticket PFS-136
 		CreatedbyID: pgtype.Int4{Int32: int32(1), Valid: true},
@@ -111,17 +111,17 @@ func (s *Service) validateManualInvoice(data shared.AddManualInvoice) []string {
 	var validationsErrors []string
 
 	if data.InvoiceType.RequiresDateValidation() {
-		if !data.RaisedDate.Time.Before(time.Now()) {
+		if !data.RaisedDate.Value.Time.Before(time.Now()) {
 			validationsErrors = append(validationsErrors, "RaisedDateForAnInvoice")
 		}
 	}
 
-	isStartDateValid := validateStartDate(data.StartDate, data.EndDate)
+	isStartDateValid := validateStartDate(data.StartDate.Value, data.EndDate.Value)
 	if !isStartDateValid {
 		validationsErrors = append(validationsErrors, "StartDate")
 	}
 
-	isEndDateValid := validateEndDate(data.StartDate, data.EndDate)
+	isEndDateValid := validateEndDate(data.StartDate.Value, data.EndDate.Value)
 	if !isEndDateValid {
 		validationsErrors = append(validationsErrors, "EndDate")
 	}
@@ -193,16 +193,16 @@ func addLeadingZeros(counter string) string {
 	return counter
 }
 
-func validateEndDate(startDate *shared.Date, endDate *shared.Date) bool {
+func validateEndDate(startDate shared.Date, endDate shared.Date) bool {
 	return !endDate.Time.Before(startDate.Time)
 }
 
-func validateStartDate(startDate *shared.Date, endDate *shared.Date) bool {
+func validateStartDate(startDate shared.Date, endDate shared.Date) bool {
 	if startDate.Time.After(endDate.Time) {
 		return false
 	}
 
-	if !startDate.IsSameFinancialYear(endDate) {
+	if !startDate.IsSameFinancialYear(&endDate) {
 		return false
 	}
 
