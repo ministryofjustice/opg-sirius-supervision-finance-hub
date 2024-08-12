@@ -33,7 +33,7 @@ func (d Date) String() string {
 	return d.Time.Format("02/01/2006")
 }
 
-func (d Date) IsSameFinancialYear(d1 *Date) bool {
+func (d Date) IsSameFinancialYear(d1 Date) bool {
 	financialYearOneStartYear := d.Time.Year()
 	if d.Time.Month() < time.April {
 		financialYearOneStartYear = d.Time.Year() - 1
