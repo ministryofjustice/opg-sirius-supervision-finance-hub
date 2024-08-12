@@ -32,7 +32,7 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 	}
 
 	invoiceRef := addLeadingZeros(counter)
-
+  
 	invoiceParams := store.AddInvoiceParams{
 		PersonID:   pgtype.Int4{Int32: int32(clientId), Valid: true},
 		Feetype:    data.InvoiceType.Key(),
