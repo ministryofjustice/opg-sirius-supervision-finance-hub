@@ -1,9 +1,19 @@
 describe("Add manual invoice form", () => {
-    it("shows correct error message for all potential errors", () => {
+    it("show correct error message for all present fields with errors", () => {
         cy.visit("/clients/1/invoices/add");
         cy.contains(".govuk-button", "Save and continue").click()
+        cy.get(".govuk-error-summary").contains("Please select an invoice type")
+        cy.get(".govuk-form-group--error").should("have.length", 1)
+
+        cy.get('[data-cy="invoice-type"]').select("SE");
+        cy.get('[data-cy="invoice-type"]').should("have.value", "SE");
+        cy.contains(".govuk-button", "Save and continue").click()
         cy.get(".govuk-error-summary").contains("Enter an amount")
-        cy.get(".govuk-form-group--error").should("have.length", 6)
+        cy.get(".govuk-error-summary").contains("Enter a raised date")
+        cy.get(".govuk-error-summary").contains("Enter a start date")
+        cy.get(".govuk-error-summary").contains("Enter an end date")
+        cy.get(".govuk-error-summary").contains("Please select a valid supervision level")
+        cy.get(".govuk-form-group--error").should("have.length", 5)
     });
 
     it("adds a manual invoice", () => {

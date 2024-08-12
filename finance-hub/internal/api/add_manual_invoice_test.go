@@ -12,14 +12,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func pointer(val string) *string {
+	return &val
+}
 func TestAddManualInvoice(t *testing.T) {
+	var nilString string
 	mockClient := SetUpTest()
 	client, _ := NewApiClient(mockClient, "http://localhost:3000", "")
 
 	json := `{
 			"id":                "1",
-			"invoiceTpe":        "SO",
-			"amount":         	 2025,
+			"invoiceType":       "SO",
+			"amount":         	 300,
 			"raisedDate":    	 "05/05/2024",
 			"startDate":         "01/04/2024",
 			"endDate":           "31/03/2025",
@@ -35,11 +39,12 @@ func TestAddManualInvoice(t *testing.T) {
 		}, nil
 	}
 
-	err := client.AddManualInvoice(getContext(nil), 1, "SO", "2025", "05/05/2024", "04/04/2024", "31/03/2025", "GENERAL")
+	err := client.AddManualInvoice(getContext(nil), 1, "SO", pointer("300"), pointer("05/05/2024"), &nilString, pointer("04/04/2024"), pointer("31/03/2025"), pointer("GENERAL"))
 	assert.Equal(t, nil, err)
 }
 
 func TestAddManualInvoiceUnauthorised(t *testing.T) {
+	var nilString string
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 	}))
@@ -47,12 +52,13 @@ func TestAddManualInvoiceUnauthorised(t *testing.T) {
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
-	err := client.AddManualInvoice(getContext(nil), 1, "SO", "2025", "05/05/2024", "04/04/2024", "31/03/2025", "GENERAL")
+	err := client.AddManualInvoice(getContext(nil), 1, "SO", pointer("2025"), pointer("05/05/2024"), &nilString, pointer("04/04/2024"), pointer("31/03/2025"), pointer("GENERAL"))
 
 	assert.Equal(t, ErrUnauthorized.Error(), err.Error())
 }
 
 func TestAddManualInvoiceReturns500Error(t *testing.T) {
+	var nilString string
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
@@ -60,7 +66,7 @@ func TestAddManualInvoiceReturns500Error(t *testing.T) {
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
-	err := client.AddManualInvoice(getContext(nil), 1, "SO", "2025", "05/05/2024", "04/04/2024", "31/03/2025", "GENERAL")
+	err := client.AddManualInvoice(getContext(nil), 1, "SO", pointer("2025"), pointer("05/05/2024"), &nilString, pointer("04/04/2024"), pointer("31/03/2025"), pointer("GENERAL"))
 
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
@@ -70,6 +76,7 @@ func TestAddManualInvoiceReturns500Error(t *testing.T) {
 }
 
 func TestAddManualInvoiceReturnsBadRequestError(t *testing.T) {
+	var nilString string
 	mockClient := SetUpTest()
 	client, _ := NewApiClient(mockClient, "http://localhost:3000", "")
 
@@ -86,13 +93,14 @@ func TestAddManualInvoiceReturnsBadRequestError(t *testing.T) {
 		}, nil
 	}
 
-	err := client.AddManualInvoice(getContext(nil), 1, "SO", "2025", "05/05/2024", "04/04/2024", "31/03/2025", "GENERAL")
+	err := client.AddManualInvoice(getContext(nil), 1, "SO", pointer("2025"), pointer("05/05/2024"), &nilString, pointer("04/04/2024"), pointer("31/03/2025"), pointer("GENERAL"))
 
 	expectedError := shared.ValidationError{Message: "", Errors: shared.ValidationErrors{"EndDate": map[string]string{"EndDate": "EndDate"}, "StartDate": map[string]string{"StartDate": "StartDate"}}}
 	assert.Equal(t, expectedError, err)
 }
 
 func TestAddManualInvoiceReturnsValidationError(t *testing.T) {
+	var nilString string
 	validationErrors := shared.ValidationError{
 		Message: "Validation failed",
 		Errors: map[string]map[string]string{
@@ -110,7 +118,7 @@ func TestAddManualInvoiceReturnsValidationError(t *testing.T) {
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
-	err := client.AddManualInvoice(getContext(nil), 1, "SO", "2025", "05/05/9999", "04/04/2024", "31/03/2025", "GENERAL")
+	err := client.AddManualInvoice(getContext(nil), 1, "SO", pointer("2025"), pointer("05/05/2024"), &nilString, pointer("04/04/2024"), pointer("31/03/2025"), pointer("GENERAL"))
 	expectedError := shared.ValidationError{Message: "", Errors: shared.ValidationErrors{"DateReceived": map[string]string{"date-in-the-past": "This field DateReceived needs to be looked at date-in-the-past"}}}
 	assert.Equal(t, expectedError, err.(shared.ValidationError))
 }

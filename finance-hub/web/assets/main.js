@@ -45,6 +45,12 @@ htmx.onLoad(content => {
             elements.forEach(element => {
                 htmx.addClass(element, 'hide');
             });
+            document.querySelector('#amount-field-input #amount').setAttribute("disabled", "true")
+            document.querySelector('#start-date-field-input #startDate').setAttribute("disabled", "true")
+            document.querySelector('#end-date-field-input #endDate').setAttribute("disabled", "true")
+            document.querySelector('#raised-date-field-input #raisedDate').setAttribute("disabled", "true")
+            document.querySelector('#raised-year-field-input #raisedYear').setAttribute("disabled", "true")
+            document.querySelector('#supervision-level-field-input #supervisionLevel').setAttribute("disabled", "true")
             const form = document.querySelector('form');
             const invoiceTypeSelect = document.getElementById('invoice-type');
             const invoiceTypeSelectValue = invoiceTypeSelect.value
@@ -53,25 +59,34 @@ htmx.onLoad(content => {
             switch (invoiceTypeSelect.value) {
                 case "AD":
                     htmx.removeClass(htmx.find("#raised-date-field-input"), "hide")
-                break;
+                    document.querySelector('#raised-date-field-input #raisedDate').removeAttribute("disabled")
+                    break;
                 case "S2":
                 case "S3":
                 case "B2":
                 case "B3":
                     htmx.removeClass(htmx.find("#amount-field-input"), "hide")
+                    document.querySelector('#amount-field-input #amount').removeAttribute("disabled")
                     htmx.removeClass(htmx.find("#raised-year-field-input"), "hide")
                     document.getElementById('raisedDateDay').defaultValue = 31
                     document.getElementById('raisedDateMonth').defaultValue = 3
+                    document.querySelector('#raised-year-field-input #raisedYear').removeAttribute("disabled")
                     htmx.removeClass(htmx.find("#start-date-field-input"), "hide")
+                    document.querySelector('#start-date-field-input #startDate').removeAttribute("disabled")
                     break;
                 case "SF":
                 case "SE":
                 case "SO":
                     htmx.removeClass(htmx.find("#amount-field-input"), "hide")
+                    document.querySelector('#amount-field-input #amount').removeAttribute("disabled")
                     htmx.removeClass(htmx.find("#raised-date-field-input"), "hide")
+                    document.querySelector('#raised-date-field-input #raisedDate').removeAttribute("disabled")
                     htmx.removeClass(htmx.find("#start-date-field-input"), "hide")
+                    document.querySelector('#start-date-field-input #startDate').removeAttribute("disabled")
                     htmx.removeClass(htmx.find("#end-date-field-input"), "hide")
+                    document.querySelector('#end-date-field-input #endDate').removeAttribute("disabled")
                     htmx.removeClass(htmx.find("#supervision-level-field-input"), "hide")
+                    document.querySelector('#supervision-level-field-input #supervisionLevel').removeAttribute("disabled")
                     break;
                 default:
                     break;
