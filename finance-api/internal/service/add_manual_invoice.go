@@ -202,7 +202,7 @@ func validateStartDate(startDate shared.Date, endDate shared.Date) bool {
 		return false
 	}
 
-	if !startDate.IsSameFinancialYear(&endDate) {
+	if !startDate.IsSameFinancialYear(endDate) {
 		return false
 	}
 
