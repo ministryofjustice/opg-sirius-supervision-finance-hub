@@ -40,13 +40,13 @@ type AddManualInvoiceParams struct {
 	Startdate         pgtype.Date
 	Enddate           pgtype.Date
 	Amount            int32
-	Confirmeddate     pgtype.Date
+	Confirmeddate     pgtype.Timestamp
 	Batchnumber       pgtype.Int4
 	Raiseddate        pgtype.Date
 	Source            pgtype.Text
 	Scheduledfn14date pgtype.Date
 	Cacheddebtamount  pgtype.Int4
-	Createddate       pgtype.Date
+	Createddate       pgtype.Timestamp
 	CreatedbyID       pgtype.Int4
 }
 

@@ -43,9 +43,9 @@ type GetFeeReductionEventsRow struct {
 	Enddate            pgtype.Date
 	Datereceived       pgtype.Date
 	Notes              string
-	CreatedAt          pgtype.Date
+	CreatedAt          pgtype.Timestamp
 	CreatedBy          pgtype.Int4
-	CancelledAt        pgtype.Date
+	CancelledAt        pgtype.Timestamp
 	CancelledBy        pgtype.Int4
 	CancellationReason pgtype.Text
 	Status             pgtype.Text
@@ -107,7 +107,7 @@ type GetGeneratedInvoicesRow struct {
 	Feetype     string
 	Amount      int32
 	CreatedbyID pgtype.Int4
-	InvoiceDate pgtype.Date
+	InvoiceDate pgtype.Timestamp
 }
 
 func (q *Queries) GetGeneratedInvoices(ctx context.Context, clientID int32) ([]GetGeneratedInvoicesRow, error) {

@@ -56,10 +56,10 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 		Startdate:     pgtype.Date{Time: data.StartDate.Time, Valid: true},
 		Enddate:       pgtype.Date{Time: data.EndDate.Time, Valid: true},
 		Amount:        int32(data.Amount),
-		Confirmeddate: pgtype.Date{Time: time.Now(), Valid: true},
+		Confirmeddate: pgtype.Timestamp{Time: time.Now(), Valid: true},
 		Raiseddate:    pgtype.Date{Time: data.RaisedDate.Time, Valid: true},
 		Source:        pgtype.Text{String: "Created manually", Valid: true},
-		Createddate:   pgtype.Date{Time: time.Now(), Valid: true},
+		Createddate:   pgtype.Timestamp{Time: time.Now(), Valid: true},
 	}
 
 	var invoice store.Invoice
