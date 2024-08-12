@@ -43,9 +43,9 @@ WHERE i.raiseddate >= (fr.datereceived - interval '6 months')
  AND i.raiseddate BETWEEN fr.startdate AND fr.enddate
  AND fr.id = $1;
 
--- name: AddManualInvoice :one
+-- name: AddInvoice :one
 INSERT INTO invoice (id, person_id, finance_client_id, feetype, reference, startdate, enddate, amount, confirmeddate,
-                     batchnumber, raiseddate, source, scheduledfn14date, cacheddebtamount, createddate, createdby_id)
+                     raiseddate, source, createddate, createdby_id)
 VALUES (nextval('invoice_id_seq'),
         $1,
         (select id from finance_client where client_id = $1),
@@ -54,19 +54,16 @@ VALUES (nextval('invoice_id_seq'),
         $4,
         $5,
         $6,
+        now(),
         $7,
         $8,
-        $9,
-        $10,
-        $11,
-        $12,
-        $13,
-        $14)
+        now(),
+        $9)
 returning *;
 
--- name: UpsertCounterForInvoiceRefYear :one
+-- name: GetInvoiceCounter :one
 INSERT INTO counter (id, key, counter)
 VALUES (nextval('counter_id_seq'), $1, 1)
 ON CONFLICT (key) DO UPDATE
     SET counter = counter.counter + 1
-RETURNING *;
+RETURNING counter::VARCHAR;

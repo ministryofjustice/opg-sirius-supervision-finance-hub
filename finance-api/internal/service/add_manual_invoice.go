@@ -27,26 +27,9 @@ func processInvoiceData(data shared.AddManualInvoice) shared.AddManualInvoice {
 	return data
 }
 
-func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data shared.AddManualInvoice) (txErr error) {
-	var validationsErrors []string
-
-	data = processInvoiceData(data)
-
-	if data.InvoiceType.RequiresDateValidation() {
-		if !data.RaisedDate.Value.Time.Before(time.Now()) {
-			validationsErrors = append(validationsErrors, "RaisedDateForAnInvoice")
-		}
-	}
-
-	isStartDateValid := validateStartDate(&data.StartDate.Value, &data.EndDate.Value)
-	if data.StartDate.Valid && data.EndDate.Valid && !isStartDateValid {
-		validationsErrors = append(validationsErrors, "StartDate")
-	}
-
-	isEndDateValid := validateEndDate(&data.StartDate.Value, &data.EndDate.Value)
-	if data.StartDate.Valid && data.EndDate.Valid && !isEndDateValid {
-		validationsErrors = append(validationsErrors, "EndDate")
-	}
+func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data shared.AddManualInvoice) error {
+  data = processInvoiceData(data)
+	validationsErrors := s.validateManualInvoice(data)
 
 	if len(validationsErrors) != 0 {
 		return shared.BadRequests{Reasons: validationsErrors}
@@ -61,28 +44,28 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 	}
 
 	transaction := s.store.WithTx(tx)
-	getInvoiceCounterForYear, err := transaction.UpsertCounterForInvoiceRefYear(ctx, strconv.Itoa(data.StartDate.Value.Time.Year())+"InvoiceNumber")
+	counter, err := transaction.GetInvoiceCounter(ctx, strconv.Itoa(data.StartDate.Time.Year())+"InvoiceNumber")
 	if err != nil {
 		return err
 	}
 
-	invoiceRef := addLeadingZeros(int(getInvoiceCounterForYear.Counter))
+	invoiceRef := addLeadingZeros(counter)
 
-	addManualInvoiceQueryArgs := store.AddManualInvoiceParams{
-		PersonID:      pgtype.Int4{Int32: int32(clientId), Valid: true},
-		Feetype:       data.InvoiceType.Key(),
-		Reference:     data.InvoiceType.Key() + invoiceRef + "/" + strconv.Itoa(data.StartDate.Value.Time.Year()%100),
-		Startdate:     pgtype.Date{Time: data.StartDate.Value.Time, Valid: true},
-		Enddate:       pgtype.Date{Time: data.EndDate.Value.Time, Valid: true},
-		Amount:        int32(data.Amount.Value),
-		Confirmeddate: pgtype.Date{Time: time.Now(), Valid: true},
-		Raiseddate:    pgtype.Date{Time: data.RaisedDate.Value.Time, Valid: true},
-		Source:        pgtype.Text{String: "Created manually", Valid: true},
-		Createddate:   pgtype.Date{Time: time.Now(), Valid: true},
+	invoiceParams := store.AddInvoiceParams{
+		PersonID:   pgtype.Int4{Int32: int32(clientId), Valid: true},
+		Feetype:    data.InvoiceType.Key(),
+		Reference:  data.InvoiceType.Key() + invoiceRef + "/" + strconv.Itoa(data.StartDate.Time.Year()%100),
+		Startdate:  pgtype.Date{Time: data.StartDate.Time, Valid: true},
+		Enddate:    pgtype.Date{Time: data.EndDate.Time, Valid: true},
+		Amount:     int32(data.Amount),
+		Raiseddate: pgtype.Date{Time: data.RaisedDate.Time, Valid: true},
+		Source:     pgtype.Text{String: "Created manually", Valid: true},
+		//TODO make sure we have correct createdby ID in ticket PFS-136
+		CreatedbyID: pgtype.Int4{Int32: int32(1), Valid: true},
 	}
 
 	var invoice store.Invoice
-	invoice, err = transaction.AddManualInvoice(ctx, addManualInvoiceQueryArgs)
+	invoice, err = transaction.AddInvoice(ctx, invoiceParams)
 	if err != nil {
 		return err
 	}
@@ -110,7 +93,7 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 	feeReduction, _ := transaction.GetFeeReductionForDate(ctx, AddFeeReductionToInvoiceParams)
 
 	if feeReduction.FeeReductionID != 0 {
-		err = s.AddLedgerAndAllocations(shared.ParseFeeReductionType(feeReduction.Type), feeReduction.FeeReductionID, feeReduction.FinanceClientID.Int32, invoice, transaction, ctx)
+		err = s.AddFeeReductionLedger(ctx, transaction, shared.ParseFeeReductionType(feeReduction.Type), feeReduction.FeeReductionID, int32(clientId), invoice)
 		if err != nil {
 			return err
 		}
@@ -124,8 +107,65 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 	return nil
 }
 
-func (s *Service) AddLedgerAndAllocations(feeReductionFeeType shared.FeeReductionType, feeReductionId int32, feeReductionFinanceClientID int32, invoice store.Invoice, transaction *store.Queries, ctx context.Context) error {
-	var amount int32 = 0
+func (s *Service) validateManualInvoice(data shared.AddManualInvoice) []string {
+	var validationsErrors []string
+
+	if data.InvoiceType.RequiresDateValidation() {
+		if !data.RaisedDate.Time.Before(time.Now()) {
+			validationsErrors = append(validationsErrors, "RaisedDateForAnInvoice")
+		}
+	}
+
+	isStartDateValid := validateStartDate(data.StartDate, data.EndDate)
+	if !isStartDateValid {
+		validationsErrors = append(validationsErrors, "StartDate")
+	}
+
+	isEndDateValid := validateEndDate(data.StartDate, data.EndDate)
+	if !isEndDateValid {
+		validationsErrors = append(validationsErrors, "EndDate")
+	}
+	return validationsErrors
+}
+
+func (s *Service) AddFeeReductionLedger(ctx context.Context, transaction *store.Queries, feeReductionFeeType shared.FeeReductionType, feeReductionId int32, clientId int32, invoice store.Invoice) error {
+	amount := s.calculateFeeReduction(ctx, transaction, feeReductionFeeType, invoice)
+	if amount != 0 {
+		ledgerParams := store.CreateLedgerParams{
+			ClientID:       clientId,
+			Amount:         amount,
+			Notes:          pgtype.Text{String: "Credit due to manual invoice " + strings.ToLower(feeReductionFeeType.Key()), Valid: true},
+			Type:           "CREDIT " + feeReductionFeeType.Key(),
+			Status:         "APPROVED",
+			Method:         feeReductionFeeType.String() + " credit for invoice " + invoice.Reference,
+			FeeReductionID: pgtype.Int4{Int32: feeReductionId, Valid: true},
+			//TODO make sure we have correct createdby ID in ticket PFS-136
+			CreatedbyID: pgtype.Int4{Int32: 1},
+		}
+
+		ledgerId, err := transaction.CreateLedger(ctx, ledgerParams)
+		if err != nil {
+			return err
+		}
+
+		allocationParams := store.CreateLedgerAllocationParams{
+			LedgerID:  pgtype.Int4{Int32: ledgerId, Valid: true},
+			InvoiceID: pgtype.Int4{Int32: invoice.ID, Valid: true},
+			Amount:    amount,
+			Status:    "ALLOCATED",
+			Notes:     pgtype.Text{},
+		}
+
+		_, err = transaction.CreateLedgerAllocation(ctx, allocationParams)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *Service) calculateFeeReduction(ctx context.Context, transaction *store.Queries, feeReductionFeeType shared.FeeReductionType, invoice store.Invoice) int32 {
+	var amount int32
 	switch feeReductionFeeType {
 	case shared.FeeReductionTypeExemption, shared.FeeReductionTypeHardship:
 		amount = invoice.Amount
@@ -138,46 +178,19 @@ func (s *Service) AddLedgerAndAllocations(feeReductionFeeType shared.FeeReductio
 		if invoice.Feetype == "AD" {
 			amount = invoice.Amount / 2
 		}
+	default:
+		amount = 0
 	}
-	if amount != 0 {
-		ledgerQueryArgs := store.CreateLedgerForFeeReductionParams{
-			Method:          feeReductionFeeType.String() + " credit for invoice " + invoice.Reference,
-			Amount:          amount,
-			Notes:           pgtype.Text{String: "Credit due to manual invoice " + strings.ToLower(feeReductionFeeType.Key()), Valid: true},
-			Type:            "CREDIT " + feeReductionFeeType.Key(),
-			FinanceClientID: pgtype.Int4{Int32: feeReductionFinanceClientID, Valid: true},
-			FeeReductionID:  pgtype.Int4{Int32: feeReductionId, Valid: true},
-			//TODO make sure we have correct createdby ID in ticket PFS-88
-			CreatedbyID: pgtype.Int4{Int32: 1},
-		}
-		var ledger store.Ledger
-		ledger, err := transaction.CreateLedgerForFeeReduction(ctx, ledgerQueryArgs)
-		if err != nil {
-			return err
-		}
-
-		queryArgs := store.CreateLedgerAllocationForFeeReductionParams{
-			LedgerID:  pgtype.Int4{Int32: ledger.ID, Valid: true},
-			InvoiceID: pgtype.Int4{Int32: invoice.ID, Valid: true},
-			Amount:    ledger.Amount,
-		}
-
-		_, err = transaction.CreateLedgerAllocationForFeeReduction(ctx, queryArgs)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return amount
 }
 
-func addLeadingZeros(number int) string {
-	strNumber := strconv.Itoa(number)
-	strNumberLength := len(strNumber)
+func addLeadingZeros(counter string) string {
+	strNumberLength := len(counter)
 	if strNumberLength != 6 {
 		numOfZeros := 6 - strNumberLength
-		return strings.Repeat("0", numOfZeros) + strNumber
+		return strings.Repeat("0", numOfZeros) + counter
 	}
-	return strNumber
+	return counter
 }
 
 func validateEndDate(startDate *shared.Date, endDate *shared.Date) bool {

@@ -11,36 +11,41 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const createLedgerAllocationForFeeReduction = `-- name: CreateLedgerAllocationForFeeReduction :one
-INSERT INTO ledger_allocation (id, ledger_id, invoice_id, datetime, amount, status, reference,
-                               notes, allocateddate, batchnumber, source)
-VALUES (NEXTVAL('ledger_allocation_id_seq'::REGCLASS), $1, $2, NOW(), $3, 'ALLOCATED', NULL, NULL, NULL, NULL, NULL)
-RETURNING id, ledger_id, invoice_id, datetime, amount, status, reference, notes, allocateddate, batchnumber, source
+const createLedgerAllocation = `-- name: CreateLedgerAllocation :one
+WITH this_ledger as (
+    SELECT id, datetime FROM ledger WHERE id = $1
+)
+INSERT INTO ledger_allocation (id, datetime, ledger_id, invoice_id, amount, status, notes)
+SELECT nextval('ledger_allocation_id_seq'),
+       this_ledger.datetime,
+       $1,
+       $2,
+       $3,
+       $4,
+       $5
+FROM this_ledger WHERE this_ledger.id = $1
+returning (SELECT reference invoiceReference FROM invoice WHERE id = invoice_id)
 `
 
-type CreateLedgerAllocationForFeeReductionParams struct {
+type CreateLedgerAllocationParams struct {
 	LedgerID  pgtype.Int4
 	InvoiceID pgtype.Int4
 	Amount    int32
+	Status    string
+	Notes     pgtype.Text
 }
 
-func (q *Queries) CreateLedgerAllocationForFeeReduction(ctx context.Context, arg CreateLedgerAllocationForFeeReductionParams) (LedgerAllocation, error) {
-	row := q.db.QueryRow(ctx, createLedgerAllocationForFeeReduction, arg.LedgerID, arg.InvoiceID, arg.Amount)
-	var i LedgerAllocation
-	err := row.Scan(
-		&i.ID,
-		&i.LedgerID,
-		&i.InvoiceID,
-		&i.Datetime,
-		&i.Amount,
-		&i.Status,
-		&i.Reference,
-		&i.Notes,
-		&i.Allocateddate,
-		&i.Batchnumber,
-		&i.Source,
+func (q *Queries) CreateLedgerAllocation(ctx context.Context, arg CreateLedgerAllocationParams) (string, error) {
+	row := q.db.QueryRow(ctx, createLedgerAllocation,
+		arg.LedgerID,
+		arg.InvoiceID,
+		arg.Amount,
+		arg.Status,
+		arg.Notes,
 	)
-	return i, err
+	var invoicereference string
+	err := row.Scan(&invoicereference)
+	return invoicereference, err
 }
 
 const updateLedgerAllocationAdjustment = `-- name: UpdateLedgerAllocationAdjustment :exec
