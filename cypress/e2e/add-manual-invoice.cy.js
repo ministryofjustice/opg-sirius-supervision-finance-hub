@@ -5,7 +5,6 @@ describe("Add manual invoice form", () => {
         cy.get(".govuk-error-summary").contains("Please select an invoice type")
         cy.get(".govuk-form-group--error").should("have.length", 1)
 
-
         cy.get('[data-cy="invoice-type"]').select("SE");
         cy.get('[data-cy="invoice-type"]').should("have.value", "SE");
         cy.contains(".govuk-button", "Save and continue").click()

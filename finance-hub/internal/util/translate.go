@@ -22,6 +22,7 @@ var validationMappings = map[string]map[string]pair{
 		"required":         pair{"Amount", "Enter an amount"},
 		"required_if":      pair{"Amount", "Enter an amount"},
 		"nillable-int-lte": pair{"Amount", "Amount can't be above £320"},
+		"nillable-int-gt":  pair{"Amount", "Enter an amount"},
 	},
 	"FeeType": {
 		"required": pair{"FeeType", "A fee reduction type must be selected"},
