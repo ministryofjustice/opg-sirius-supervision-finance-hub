@@ -20,8 +20,8 @@ func (c *ApiClient) AddManualInvoice(ctx Context, clientId int, invoiceType stri
 	}
 
 	if raisedYear != nil && *raisedYear != "" {
-		raisedDate := *raisedYear + "-03-31"
-		addManualInvoiceForm.RaisedDate = shared.TransformNillableDate(&raisedDate)
+		raisedYearDate := *raisedYear + "-03-31"
+		addManualInvoiceForm.RaisedDate = shared.TransformNillableDate(&raisedYearDate)
 	} else {
 		addManualInvoiceForm.RaisedDate = shared.TransformNillableDate(raisedDate)
 	}
