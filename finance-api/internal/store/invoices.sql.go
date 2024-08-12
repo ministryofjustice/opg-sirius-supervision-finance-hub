@@ -11,9 +11,9 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const addManualInvoice = `-- name: AddManualInvoice :one
+const addInvoice = `-- name: AddInvoice :one
 INSERT INTO invoice (id, person_id, finance_client_id, feetype, reference, startdate, enddate, amount, confirmeddate,
-                     batchnumber, raiseddate, source, scheduledfn14date, cacheddebtamount, createddate, createdby_id)
+                     raiseddate, source, createddate, createdby_id)
 VALUES (nextval('invoice_id_seq'),
         $1,
         (select id from finance_client where client_id = $1),
@@ -22,49 +22,36 @@ VALUES (nextval('invoice_id_seq'),
         $4,
         $5,
         $6,
+        now(),
         $7,
         $8,
-        $9,
-        $10,
-        $11,
-        $12,
-        $13,
-        $14)
+        now(),
+        $9)
 returning id, person_id, finance_client_id, feetype, reference, startdate, enddate, amount, supervisionlevel, confirmeddate, batchnumber, raiseddate, source, scheduledfn14date, cacheddebtamount, createddate, createdby_id
 `
 
-type AddManualInvoiceParams struct {
-	PersonID          pgtype.Int4
-	Feetype           string
-	Reference         string
-	Startdate         pgtype.Date
-	Enddate           pgtype.Date
-	Amount            int32
-	Confirmeddate     pgtype.Timestamp
-	Batchnumber       pgtype.Int4
-	Raiseddate        pgtype.Date
-	Source            pgtype.Text
-	Scheduledfn14date pgtype.Date
-	Cacheddebtamount  pgtype.Int4
-	Createddate       pgtype.Timestamp
-	CreatedbyID       pgtype.Int4
+type AddInvoiceParams struct {
+	PersonID    pgtype.Int4
+	Feetype     string
+	Reference   string
+	Startdate   pgtype.Date
+	Enddate     pgtype.Date
+	Amount      int32
+	Raiseddate  pgtype.Date
+	Source      pgtype.Text
+	CreatedbyID pgtype.Int4
 }
 
-func (q *Queries) AddManualInvoice(ctx context.Context, arg AddManualInvoiceParams) (Invoice, error) {
-	row := q.db.QueryRow(ctx, addManualInvoice,
+func (q *Queries) AddInvoice(ctx context.Context, arg AddInvoiceParams) (Invoice, error) {
+	row := q.db.QueryRow(ctx, addInvoice,
 		arg.PersonID,
 		arg.Feetype,
 		arg.Reference,
 		arg.Startdate,
 		arg.Enddate,
 		arg.Amount,
-		arg.Confirmeddate,
-		arg.Batchnumber,
 		arg.Raiseddate,
 		arg.Source,
-		arg.Scheduledfn14date,
-		arg.Cacheddebtamount,
-		arg.Createddate,
 		arg.CreatedbyID,
 	)
 	var i Invoice
@@ -118,6 +105,21 @@ func (q *Queries) GetInvoiceBalanceDetails(ctx context.Context, id int32) (GetIn
 		&i.WrittenOff,
 	)
 	return i, err
+}
+
+const getInvoiceCounter = `-- name: GetInvoiceCounter :one
+INSERT INTO counter (id, key, counter)
+VALUES (nextval('counter_id_seq'), $1, 1)
+ON CONFLICT (key) DO UPDATE
+    SET counter = counter.counter + 1
+RETURNING counter::VARCHAR
+`
+
+func (q *Queries) GetInvoiceCounter(ctx context.Context, key string) (string, error) {
+	row := q.db.QueryRow(ctx, getInvoiceCounter, key)
+	var counter string
+	err := row.Scan(&counter)
+	return counter, err
 }
 
 const getInvoices = `-- name: GetInvoices :many
@@ -301,19 +303,4 @@ func (q *Queries) GetSupervisionLevels(ctx context.Context, dollar_1 []int32) ([
 		return nil, err
 	}
 	return items, nil
-}
-
-const upsertCounterForInvoiceRefYear = `-- name: UpsertCounterForInvoiceRefYear :one
-INSERT INTO counter (id, key, counter)
-VALUES (nextval('counter_id_seq'), $1, 1)
-ON CONFLICT (key) DO UPDATE
-    SET counter = counter.counter + 1
-RETURNING id, key, counter
-`
-
-func (q *Queries) UpsertCounterForInvoiceRefYear(ctx context.Context, key string) (Counter, error) {
-	row := q.db.QueryRow(ctx, upsertCounterForInvoiceRefYear, key)
-	var i Counter
-	err := row.Scan(&i.ID, &i.Key, &i.Counter)
-	return i, err
 }

@@ -16,12 +16,12 @@ type Service interface {
 	GetInvoices(ctx context.Context, clientId int) (*shared.Invoices, error)
 	GetPermittedAdjustments(ctx context.Context, invoiceId int) ([]shared.AdjustmentType, error)
 	GetFeeReductions(ctx context.Context, invoiceId int) (*shared.FeeReductions, error)
-	CreateLedgerEntry(ctx context.Context, clientId int, invoiceId int, ledgerEntry *shared.CreateLedgerEntryRequest) (*shared.InvoiceReference, error)
+	AddInvoiceAdjustment(ctx context.Context, clientId int, invoiceId int, ledgerEntry *shared.AddInvoiceAdjustmentRequest) (*shared.InvoiceReference, error)
 	GetInvoiceAdjustments(ctx context.Context, clientId int) (*shared.InvoiceAdjustments, error)
 	AddFeeReduction(ctx context.Context, clientId int, data shared.AddFeeReduction) error
 	CancelFeeReduction(ctx context.Context, id int, cancelledFeeReduction shared.CancelFeeReduction) error
 	UpdatePendingInvoiceAdjustment(ctx context.Context, ledgerId int, status string) error
-	AddManualInvoice(ctx context.Context, id int, invoice shared.AddManualInvoice) error
+	AddManualInvoice(ctx context.Context, clientId int, invoice shared.AddManualInvoice) error
 	GetBillingHistory(ctx context.Context, id int) ([]shared.BillingHistory, error)
 }
 

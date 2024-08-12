@@ -13,7 +13,7 @@ type mockService struct {
 	invoiceAdjustments *shared.InvoiceAdjustments
 	feeReduction       *shared.AddFeeReduction
 	cancelFeeReduction *shared.CancelFeeReduction
-	ledger             *shared.CreateLedgerEntryRequest
+	ledger             *shared.AddInvoiceAdjustmentRequest
 	manualInvoice      *shared.AddManualInvoice
 	adjustmentTypes    []shared.AdjustmentType
 	expectedIds        []int
@@ -71,7 +71,7 @@ func (s *mockService) GetInvoiceAdjustments(ctx context.Context, id int) (*share
 	return s.invoiceAdjustments, s.err
 }
 
-func (s *mockService) CreateLedgerEntry(ctx context.Context, clientId int, invoiceId int, ledgerEntry *shared.CreateLedgerEntryRequest) (*shared.InvoiceReference, error) {
+func (s *mockService) AddInvoiceAdjustment(ctx context.Context, clientId int, invoiceId int, ledgerEntry *shared.AddInvoiceAdjustmentRequest) (*shared.InvoiceReference, error) {
 	s.ledger = ledgerEntry
 	s.expectedIds = []int{clientId, invoiceId}
 	return s.invoiceReference, s.err
