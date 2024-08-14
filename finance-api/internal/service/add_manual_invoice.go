@@ -13,7 +13,7 @@ import (
 func processInvoiceData(data shared.AddManualInvoice) shared.AddManualInvoice {
 	switch data.InvoiceType {
 	case shared.InvoiceTypeAD:
-		data.Amount = shared.Nillable[int]{Value: 100, Valid: true}
+		data.Amount = shared.Nillable[int]{Value: 10000, Valid: true}
 		data.StartDate = data.RaisedDate
 		data.EndDate = data.RaisedDate
 	case shared.InvoiceTypeS2, shared.InvoiceTypeB2:
@@ -94,7 +94,7 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 
 	if feeReduction.ID != 0 {
 		var generalSupervisionFee int32
-		if data.SupervisionLevel == "GENERAL" {
+		if data.SupervisionLevel.Value == "GENERAL" {
 			generalSupervisionFee = invoice.Amount
 		}
 		reduction := calculateFeeReduction(shared.ParseFeeReductionType(feeReduction.Type), invoice.Amount, invoice.Feetype, generalSupervisionFee)
@@ -125,7 +125,7 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 		return commitErr
 	}
 
-	return nil
+	return s.reapplyCredit(ctx, int32(clientId))
 }
 
 func (s *Service) validateManualInvoice(data shared.AddManualInvoice) []string {
