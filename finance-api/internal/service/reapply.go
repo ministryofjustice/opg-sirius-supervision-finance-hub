@@ -2,16 +2,22 @@ package service
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 )
 
 func (s *Service) reapplyCredit(ctx context.Context, clientID int32) error {
 	creditPosition, err := s.store.GetCreditBalanceAndOldestOpenInvoice(ctx, clientID)
-	if err != nil {
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil
+	} else if err != nil {
 		return err
-	}
-	if creditPosition.Credit < 0 {
+	} else if creditPosition.Credit < 1 {
 		return nil
 	}
 
@@ -36,6 +42,8 @@ func (s *Service) reapplyCredit(ctx context.Context, clientID int32) error {
 
 	ledgerId, err := s.store.CreateLedger(ctx, ledger)
 	if err != nil {
+		logger := telemetry.LoggerFromContext(ctx)
+		logger.Error(fmt.Sprintf("Error in reapply for client %d: %s", clientID, err.Error()))
 		return err
 	}
 
