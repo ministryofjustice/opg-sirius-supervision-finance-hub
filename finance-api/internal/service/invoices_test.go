@@ -314,7 +314,7 @@ func Test_invoiceBuilder_statuses(t *testing.T) {
 				{
 					ID:               1,
 					Amount:           int32(tt.balance),
-					FeeReductionType: pgtype.Text{String: tt.feeReduction},
+					FeeReductionType: tt.feeReduction,
 				},
 			})
 			ib.addLedgerAllocations(tt.ilas)
