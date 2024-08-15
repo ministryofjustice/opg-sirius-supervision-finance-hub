@@ -10,18 +10,18 @@ import (
 )
 
 func (s *Service) AddFeeReduction(ctx context.Context, clientId int, data shared.AddFeeReduction) error {
-	countOverlappingFeeReductionParams := store.CountOverlappingFeeReductionParams{
+	overlapParams := store.CountOverlappingFeeReductionParams{
 		ClientID:   int32(clientId),
 		Overlaps:   calculateFeeReductionStartDate(data.StartYear),
 		Overlaps_2: calculateFeeReductionEndDate(data.StartYear, data.LengthOfAward),
 	}
 
-	hasFeeReduction, _ := s.store.CountOverlappingFeeReduction(ctx, countOverlappingFeeReductionParams)
+	hasFeeReduction, _ := s.store.CountOverlappingFeeReduction(ctx, overlapParams)
 	if hasFeeReduction != 0 {
 		return BadRequest{Reason: "overlap"}
 	}
 
-	addFeeReductionQueryArgs := store.AddFeeReductionParams{
+	feeReductionParams := store.AddFeeReductionParams{
 		ClientID:     int32(clientId),
 		Type:         data.FeeType.Key(),
 		Startdate:    calculateFeeReductionStartDate(data.StartYear),
@@ -42,22 +42,37 @@ func (s *Service) AddFeeReduction(ctx context.Context, clientId int, data shared
 
 	transaction := s.store.WithTx(tx)
 
-	var feeReduction store.FeeReduction
-	feeReduction, err = transaction.AddFeeReduction(ctx, addFeeReductionQueryArgs)
+	feeReduction, err := transaction.AddFeeReduction(ctx, feeReductionParams)
 	if err != nil {
 		return err
 	}
 
-	var invoices []store.Invoice
-	invoices, err = transaction.GetInvoicesValidForFeeReduction(ctx, feeReduction.ID)
+	invoices, err := transaction.GetInvoiceBalancesForFeeReductionRange(ctx, feeReduction.ID)
 	if err != nil {
 		return err
 	}
 
 	for _, invoice := range invoices {
-		err = s.AddFeeReductionLedger(ctx, transaction, data.FeeType, feeReduction.ID, int32(clientId), invoice)
+		amount := calculateFeeReduction(shared.ParseFeeReductionType(feeReduction.Type), invoice.Amount, invoice.Feetype, invoice.GeneralSupervisionFee.Int32)
+		ledger, allocations := generateLedgerEntries(addLedgerVars{
+			amount:             amount,
+			transactionType:    data.FeeType,
+			feeReductionId:     feeReduction.ID,
+			clientId:           int32(clientId),
+			invoiceId:          invoice.ID,
+			outstandingBalance: invoice.Outstanding,
+		})
+		ledgerId, err := transaction.CreateLedger(ctx, ledger)
 		if err != nil {
 			return err
+		}
+
+		for _, allocation := range allocations {
+			allocation.LedgerID = pgtype.Int4{Int32: ledgerId, Valid: true}
+			_, err = transaction.CreateLedgerAllocation(ctx, allocation)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -67,6 +82,22 @@ func (s *Service) AddFeeReduction(ctx context.Context, clientId int, data shared
 	}
 
 	return nil
+}
+
+func calculateFeeReduction(feeReductionType shared.FeeReductionType, invoiceTotal int32, invoiceFeeType string, generalSupervisionFee int32) int32 {
+	var reduction int32
+	if feeReductionType == shared.FeeReductionTypeRemission {
+		if invoiceFeeType == "AD" {
+			reduction = invoiceTotal / 2
+		} else {
+			if generalSupervisionFee > 0 {
+				reduction = generalSupervisionFee / 2
+			}
+		}
+	} else {
+		reduction = invoiceTotal
+	}
+	return reduction
 }
 
 func calculateFeeReductionEndDate(startYear string, lengthOfAward int) pgtype.Date {
