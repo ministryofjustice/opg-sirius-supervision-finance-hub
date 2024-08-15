@@ -146,7 +146,7 @@ create table invoice
     enddate           date        not null,
     amount            integer     not null,
     supervisionlevel  varchar(255) default NULL::character varying,
-    confirmeddate     date,
+    confirmeddate     timestamp(0),
     batchnumber       integer,
     raiseddate        date,
     source            varchar(20)  default NULL::character varying,
