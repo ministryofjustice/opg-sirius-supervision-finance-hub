@@ -39,22 +39,3 @@ func (q *Queries) AddInvoiceRange(ctx context.Context, arg AddInvoiceRangeParams
 	)
 	return err
 }
-
-const getInvoiceFeeRangeAmount = `-- name: GetInvoiceFeeRangeAmount :one
-select sum(amount) / 2
-from invoice_fee_range
-where invoice_id = $1
-  and supervisionlevel = $2
-`
-
-type GetInvoiceFeeRangeAmountParams struct {
-	InvoiceID        pgtype.Int4
-	Supervisionlevel string
-}
-
-func (q *Queries) GetInvoiceFeeRangeAmount(ctx context.Context, arg GetInvoiceFeeRangeAmountParams) (int32, error) {
-	row := q.db.QueryRow(ctx, getInvoiceFeeRangeAmount, arg.InvoiceID, arg.Supervisionlevel)
-	var column_1 int32
-	err := row.Scan(&column_1)
-	return column_1, err
-}
