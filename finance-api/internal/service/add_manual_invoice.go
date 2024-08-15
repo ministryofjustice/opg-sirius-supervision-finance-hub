@@ -13,7 +13,7 @@ import (
 func processInvoiceData(data shared.AddManualInvoice) shared.AddManualInvoice {
 	switch data.InvoiceType {
 	case shared.InvoiceTypeAD:
-		data.Amount = shared.Nillable[int]{Value: 100, Valid: true}
+		data.Amount = shared.Nillable[int]{Value: 10000, Valid: true}
 		data.StartDate = data.RaisedDate
 		data.EndDate = data.RaisedDate
 	case shared.InvoiceTypeS2, shared.InvoiceTypeB2:
@@ -85,17 +85,38 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 		}
 	}
 
-	AddFeeReductionToInvoiceParams := store.GetFeeReductionForDateParams{
+	reductionForDateParams := store.GetFeeReductionForDateParams{
 		ClientID:     int32(clientId),
 		Datereceived: invoice.Raiseddate,
 	}
 
-	feeReduction, _ := transaction.GetFeeReductionForDate(ctx, AddFeeReductionToInvoiceParams)
+	feeReduction, _ := transaction.GetFeeReductionForDate(ctx, reductionForDateParams)
 
-	if feeReduction.FeeReductionID != 0 {
-		err = s.AddFeeReductionLedger(ctx, transaction, shared.ParseFeeReductionType(feeReduction.Type), feeReduction.FeeReductionID, int32(clientId), invoice)
+	if feeReduction.ID != 0 {
+		var generalSupervisionFee int32
+		if data.SupervisionLevel.Value == "GENERAL" {
+			generalSupervisionFee = invoice.Amount
+		}
+		reduction := calculateFeeReduction(shared.ParseFeeReductionType(feeReduction.Type), invoice.Amount, invoice.Feetype, generalSupervisionFee)
+		ledger, allocations := generateLedgerEntries(addLedgerVars{
+			amount:             reduction,
+			transactionType:    shared.ParseFeeReductionType(feeReduction.Type),
+			feeReductionId:     feeReduction.ID,
+			clientId:           int32(clientId),
+			invoiceId:          invoice.ID,
+			outstandingBalance: invoice.Amount,
+		})
+		ledgerId, err := transaction.CreateLedger(ctx, ledger)
 		if err != nil {
 			return err
+		}
+
+		for _, allocation := range allocations {
+			allocation.LedgerID = pgtype.Int4{Int32: ledgerId, Valid: true}
+			_, err = transaction.CreateLedgerAllocation(ctx, allocation)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -104,7 +125,7 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 		return commitErr
 	}
 
-	return nil
+	return s.reapplyCredit(ctx, int32(clientId))
 }
 
 func (s *Service) validateManualInvoice(data shared.AddManualInvoice) []string {
@@ -126,62 +147,6 @@ func (s *Service) validateManualInvoice(data shared.AddManualInvoice) []string {
 		validationsErrors = append(validationsErrors, "EndDate")
 	}
 	return validationsErrors
-}
-
-func (s *Service) AddFeeReductionLedger(ctx context.Context, transaction *store.Queries, feeReductionFeeType shared.FeeReductionType, feeReductionId int32, clientId int32, invoice store.Invoice) error {
-	amount := s.calculateFeeReduction(ctx, transaction, feeReductionFeeType, invoice)
-	if amount != 0 {
-		ledgerParams := store.CreateLedgerParams{
-			ClientID:       clientId,
-			Amount:         amount,
-			Notes:          pgtype.Text{String: "Credit due to manual invoice " + strings.ToLower(feeReductionFeeType.Key()), Valid: true},
-			Type:           "CREDIT " + feeReductionFeeType.Key(),
-			Status:         "APPROVED",
-			Method:         feeReductionFeeType.String() + " credit for invoice " + invoice.Reference,
-			FeeReductionID: pgtype.Int4{Int32: feeReductionId, Valid: true},
-			//TODO make sure we have correct createdby ID in ticket PFS-136
-			CreatedbyID: pgtype.Int4{Int32: 1},
-		}
-
-		ledgerId, err := transaction.CreateLedger(ctx, ledgerParams)
-		if err != nil {
-			return err
-		}
-
-		allocationParams := store.CreateLedgerAllocationParams{
-			LedgerID:  pgtype.Int4{Int32: ledgerId, Valid: true},
-			InvoiceID: pgtype.Int4{Int32: invoice.ID, Valid: true},
-			Amount:    amount,
-			Status:    "ALLOCATED",
-			Notes:     pgtype.Text{},
-		}
-
-		_, err = transaction.CreateLedgerAllocation(ctx, allocationParams)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (s *Service) calculateFeeReduction(ctx context.Context, transaction *store.Queries, feeReductionFeeType shared.FeeReductionType, invoice store.Invoice) int32 {
-	var amount int32
-	switch feeReductionFeeType {
-	case shared.FeeReductionTypeExemption, shared.FeeReductionTypeHardship:
-		amount = invoice.Amount
-	case shared.FeeReductionTypeRemission:
-		invoiceFeeRangeParams := store.GetInvoiceFeeRangeAmountParams{
-			InvoiceID:        pgtype.Int4{Int32: invoice.ID, Valid: true},
-			Supervisionlevel: "GENERAL",
-		}
-		amount, _ = transaction.GetInvoiceFeeRangeAmount(ctx, invoiceFeeRangeParams)
-		if invoice.Feetype == "AD" {
-			amount = invoice.Amount / 2
-		}
-	default:
-		amount = 0
-	}
-	return amount
 }
 
 func addLeadingZeros(counter string) string {
