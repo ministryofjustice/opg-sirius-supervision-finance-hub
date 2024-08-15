@@ -104,7 +104,7 @@ func TestDate_IsNull(t *testing.T) {
 func TestDate_isSameFinancialYear(t *testing.T) {
 	type args struct {
 		startDate Date
-		endDate   *Date
+		endDate   Date
 	}
 	tests := []struct {
 		name string
@@ -115,7 +115,7 @@ func TestDate_isSameFinancialYear(t *testing.T) {
 			name: "returns false if the start date and end date are not in the same financial year",
 			args: args{
 				startDate: NewDate("01/05/2024"),
-				endDate:   &Date{Time: time.Date(2025, 5, 02, 0, 0, 0, 0, time.UTC)},
+				endDate:   Date{Time: time.Date(2025, 5, 02, 0, 0, 0, 0, time.UTC)},
 			},
 			want: false,
 		},
@@ -123,7 +123,7 @@ func TestDate_isSameFinancialYear(t *testing.T) {
 			name: "returns true if the start date and end date are in the same financial year",
 			args: args{
 				startDate: NewDate("01/04/2024"),
-				endDate:   &Date{Time: time.Date(2025, 3, 31, 0, 0, 0, 0, time.UTC)},
+				endDate:   Date{Time: time.Date(2025, 3, 31, 0, 0, 0, 0, time.UTC)},
 			},
 			want: true,
 		},
