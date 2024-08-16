@@ -81,7 +81,7 @@ func (s *Service) AddFeeReduction(ctx context.Context, clientId int, data shared
 		return err
 	}
 
-	return nil
+	return s.reapplyCredit(ctx, int32(clientId))
 }
 
 func calculateFeeReduction(feeReductionType shared.FeeReductionType, invoiceTotal int32, invoiceFeeType string, generalSupervisionFee int32) int32 {

@@ -45,4 +45,26 @@ describe("Customer credit balance", () => {
             cy.contains("Total credit balance: £30");
         });
     });
+
+    it("reapplies excess credit", () => {
+        cy.visit("/clients/6/invoices");
+
+        // confirm balance
+        cy.get("#person-info").within(() => {
+            cy.contains("Total outstanding balance: £0");
+            cy.contains("Total credit balance: £30");
+        });
+
+        // add manual invoice
+        cy.contains(".govuk-button--secondary", "Add manual invoice").click();
+        cy.get('[data-cy="invoice-type"]').select("AD");
+        cy.get('[data-cy="raised-date-field-input"]').type("2022-01-01");
+        cy.contains(".govuk-button", "Save and continue").click();
+
+        // confirm new balance after credit has been reapplied to new invoice
+        cy.get("#person-info").within(() => {
+            cy.contains("Total outstanding balance: £70");
+            cy.contains("Total credit balance: £0");
+        });
+    });
 });

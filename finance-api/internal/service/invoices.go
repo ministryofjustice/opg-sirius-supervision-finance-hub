@@ -41,7 +41,7 @@ func newInvoiceBuilder(invoices []store.GetInvoicesRow) *invoiceBuilder {
 				Received:           int(inv.Received),
 				OutstandingBalance: int(inv.Amount) - int(inv.Received),
 			},
-			feeReductionType: inv.FeeReductionType.String,
+			feeReductionType: inv.FeeReductionType,
 		}
 	}
 	return &ib

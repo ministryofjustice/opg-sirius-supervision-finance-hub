@@ -1,14 +1,19 @@
 SET SEARCH_PATH TO supervision_finance;
 
 -- name: GetInvoices :many
-SELECT i.id, i.reference, i.amount, i.raiseddate, COALESCE(SUM(la.amount), 0)::int received, fr.type fee_reduction_type
+SELECT i.id,
+       i.raiseddate,
+       i.reference,
+       i.amount,
+       COALESCE(SUM(la.amount), 0)::int received,
+       COALESCE(MAX(fr.type), '')::VARCHAR fee_reduction_type
 FROM invoice i
          JOIN finance_client fc ON fc.id = i.finance_client_id
          LEFT JOIN ledger_allocation la ON i.id = la.invoice_id AND la.status NOT IN ('PENDING', 'UNALLOCATED')
          LEFT JOIN ledger l ON la.ledger_id = l.id
          LEFT JOIN fee_reduction fr ON l.fee_reduction_id = fr.id
 WHERE fc.client_id = $1
-GROUP BY i.id, i.raiseddate, fr.type
+GROUP BY i.id, i.raiseddate
 ORDER BY i.raiseddate DESC;
 
 -- name: GetLedgerAllocations :many
