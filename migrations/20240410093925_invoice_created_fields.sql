@@ -1,5 +1,5 @@
 -- +goose Up
-ALTER TABLE invoice ADD COLUMN createddate timestamp(0);
+ALTER TABLE invoice ADD COLUMN createddate date;
 ALTER TABLE invoice ADD COLUMN createdby_id integer;
 
 -- +goose Down
