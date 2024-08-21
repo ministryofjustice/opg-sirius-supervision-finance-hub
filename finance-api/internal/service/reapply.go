@@ -10,7 +10,7 @@ import (
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 )
 
-func (s *Service) reapplyCredit(ctx context.Context, clientID int32) error {
+func (s *Service) ReapplyCredit(ctx context.Context, clientID int32) error {
 	creditPosition, err := s.store.GetCreditBalanceAndOldestOpenInvoice(ctx, clientID)
 
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -54,7 +54,7 @@ func (s *Service) reapplyCredit(ctx context.Context, clientID int32) error {
 	}
 
 	// there may still be credit on account, so repeat to find the next applicable invoice
-	return s.reapplyCredit(ctx, clientID)
+	return s.ReapplyCredit(ctx, clientID)
 }
 
 func getReapplyAmount(credit int32, outstanding int32) int32 {

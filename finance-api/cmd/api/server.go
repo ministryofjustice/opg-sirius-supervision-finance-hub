@@ -23,6 +23,7 @@ type Service interface {
 	UpdatePendingInvoiceAdjustment(ctx context.Context, ledgerId int, status string) error
 	AddManualInvoice(ctx context.Context, clientId int, invoice shared.AddManualInvoice) error
 	GetBillingHistory(ctx context.Context, id int) ([]shared.BillingHistory, error)
+	ReapplyCredit(ctx context.Context, clientID int32) error
 }
 
 type Server struct {
@@ -52,6 +53,8 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 	handleFunc("PUT /clients/{clientId}/invoice-adjustments/{ledgerId}", s.updatePendingInvoiceAdjustment)
 	handleFunc("POST /clients/{clientId}/fee-reductions", s.addFeeReduction)
 	handleFunc("PUT /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", s.cancelFeeReduction)
+
+	handleFunc("POST /events", s.handleEvents)
 
 	handleFunc("/health-check", func(w http.ResponseWriter, r *http.Request) {})
 

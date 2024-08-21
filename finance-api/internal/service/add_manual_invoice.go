@@ -125,7 +125,7 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 		return commitErr
 	}
 
-	return s.reapplyCredit(ctx, int32(clientId))
+	return s.ReapplyCredit(ctx, int32(clientId))
 }
 
 func (s *Service) validateManualInvoice(data shared.AddManualInvoice) []string {
