@@ -138,6 +138,10 @@ func (c TestConn) QueryRow(ctx context.Context, s string, i ...interface{}) pgx.
 	return c.Conn.QueryRow(ctx, s, i...)
 }
 
+func (c TestConn) Prepare(ctx context.Context, name string, sql string) (sd *pgconn.StatementDescription, err error) {
+	return c.Conn.Prepare(ctx, name, sql)
+}
+
 func (c TestConn) Begin(ctx context.Context) (pgx.Tx, error) {
 	return c.Conn.BeginTx(ctx, pgx.TxOptions{})
 }

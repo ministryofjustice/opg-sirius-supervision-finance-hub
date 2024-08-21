@@ -124,7 +124,7 @@ func (q *Queries) CountOverlappingFeeReduction(ctx context.Context, arg CountOve
 }
 
 const getFeeReductionForDate = `-- name: GetFeeReductionForDate :one
-SELECT fr.id AS fee_reduction_id, fr.type, fr.finance_client_id
+SELECT fr.id, fr.type
 FROM fee_reduction fr
          JOIN finance_client fc ON fr.finance_client_id = fc.id
 WHERE $2 >= (fr.datereceived - INTERVAL '6 months')
@@ -139,15 +139,14 @@ type GetFeeReductionForDateParams struct {
 }
 
 type GetFeeReductionForDateRow struct {
-	FeeReductionID  int32
-	Type            string
-	FinanceClientID pgtype.Int4
+	ID   int32
+	Type string
 }
 
 func (q *Queries) GetFeeReductionForDate(ctx context.Context, arg GetFeeReductionForDateParams) (GetFeeReductionForDateRow, error) {
 	row := q.db.QueryRow(ctx, getFeeReductionForDate, arg.ClientID, arg.Datereceived)
 	var i GetFeeReductionForDateRow
-	err := row.Scan(&i.FeeReductionID, &i.Type, &i.FinanceClientID)
+	err := row.Scan(&i.ID, &i.Type)
 	return i, err
 }
 
