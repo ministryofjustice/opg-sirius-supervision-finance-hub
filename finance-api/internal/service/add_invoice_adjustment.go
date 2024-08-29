@@ -86,6 +86,10 @@ func (s *Service) validateAdjustmentAmount(adjustment *shared.AddInvoiceAdjustme
 		if balance.Outstanding < 1 {
 			return shared.BadRequest{Field: "Amount", Reason: "No outstanding balance to write off"}
 		}
+	case shared.AdjustmentTypeWriteOffReversal:
+		if balance.WrittenOff == false {
+			return shared.BadRequest{Field: "Amount", Reason: "No write off exists"}
+		}
 	default:
 		return shared.BadRequest{Field: "AdjustmentType", Reason: "Unimplemented adjustment type"}
 	}
@@ -98,6 +102,12 @@ func (s *Service) calculateAdjustmentAmount(adjustment *shared.AddInvoiceAdjustm
 		return balance.Outstanding
 	case shared.AdjustmentTypeDebitMemo:
 		return -int32(adjustment.Amount)
+	case shared.AdjustmentTypeWriteOffReversal:
+		if balance.WrittenOff {
+			// If CCB is bigger, return CCB
+			return balance.Initial
+		}
+		return 0
 	default:
 		return int32(adjustment.Amount)
 	}
