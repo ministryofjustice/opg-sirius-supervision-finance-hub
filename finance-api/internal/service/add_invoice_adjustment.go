@@ -27,6 +27,12 @@ func (s *Service) AddInvoiceAdjustment(ctx context.Context, clientId int, invoic
 		return nil, err
 	}
 
+	clientInfo, err := tStore.GetAccountInformation(ctx, int32(clientId))
+
+	if err != nil {
+		return nil, err
+	}
+
 	err = s.validateAdjustmentAmount(ledgerEntry, balance)
 	if err != nil {
 		return nil, err
@@ -34,7 +40,7 @@ func (s *Service) AddInvoiceAdjustment(ctx context.Context, clientId int, invoic
 
 	ledgerParams := store.CreateLedgerParams{
 		ClientID:       int32(clientId),
-		Amount:         s.calculateAdjustmentAmount(ledgerEntry, balance),
+		Amount:         s.calculateAdjustmentAmount(ledgerEntry, balance, clientInfo.Credit),
 		Notes:          pgtype.Text{String: ledgerEntry.AdjustmentNotes, Valid: true},
 		Type:           ledgerEntry.AdjustmentType.Key(),
 		Status:         "PENDING",
@@ -88,7 +94,7 @@ func (s *Service) validateAdjustmentAmount(adjustment *shared.AddInvoiceAdjustme
 		}
 	case shared.AdjustmentTypeWriteOffReversal:
 		if balance.WrittenOff == false {
-			return shared.BadRequest{Field: "Amount", Reason: "No write off exists"}
+			return shared.BadRequest{Field: "Amount", Reason: "A write off reversal cannot be added to an invoice without an associated write off"}
 		}
 	default:
 		return shared.BadRequest{Field: "AdjustmentType", Reason: "Unimplemented adjustment type"}
@@ -96,7 +102,7 @@ func (s *Service) validateAdjustmentAmount(adjustment *shared.AddInvoiceAdjustme
 	return nil
 }
 
-func (s *Service) calculateAdjustmentAmount(adjustment *shared.AddInvoiceAdjustmentRequest, balance store.GetInvoiceBalanceDetailsRow) int32 {
+func (s *Service) calculateAdjustmentAmount(adjustment *shared.AddInvoiceAdjustmentRequest, balance store.GetInvoiceBalanceDetailsRow, customerCreditBalance int32) int32 {
 	switch adjustment.AdjustmentType {
 	case shared.AdjustmentTypeWriteOff:
 		return balance.Outstanding
@@ -104,7 +110,9 @@ func (s *Service) calculateAdjustmentAmount(adjustment *shared.AddInvoiceAdjustm
 		return -int32(adjustment.Amount)
 	case shared.AdjustmentTypeWriteOffReversal:
 		if balance.WrittenOff {
-			// If CCB is bigger, return CCB
+			if balance.Initial > customerCreditBalance {
+				return customerCreditBalance
+			}
 			return balance.Initial
 		}
 		return 0
