@@ -93,7 +93,7 @@ func (s *Service) validateAdjustmentAmount(adjustment *shared.AddInvoiceAdjustme
 			return shared.BadRequest{Field: "Amount", Reason: "No outstanding balance to write off"}
 		}
 	case shared.AdjustmentTypeWriteOffReversal:
-		if balance.WrittenOff == false {
+		if !balance.WrittenOff {
 			return shared.BadRequest{Field: "Amount", Reason: "A write off reversal cannot be added to an invoice without an associated write off"}
 		}
 	default:
