@@ -13,7 +13,7 @@ import (
 
 const addInvoice = `-- name: AddInvoice :one
 INSERT INTO invoice (id, person_id, finance_client_id, feetype, reference, startdate, enddate, amount, confirmeddate,
-                     raiseddate, source, createddate, createdby_id)
+                     raiseddate, source, created_at, created_by)
 VALUES (nextval('invoice_id_seq'),
         $1,
         (select id from finance_client where client_id = $1),
@@ -27,19 +27,19 @@ VALUES (nextval('invoice_id_seq'),
         $8,
         now(),
         $9)
-returning id, person_id, finance_client_id, feetype, reference, startdate, enddate, amount, supervisionlevel, confirmeddate, batchnumber, raiseddate, source, scheduledfn14date, cacheddebtamount, createddate, createdby_id
+returning id, person_id, finance_client_id, feetype, reference, startdate, enddate, amount, supervisionlevel, confirmeddate, batchnumber, raiseddate, source, scheduledfn14date, cacheddebtamount, created_at, created_by
 `
 
 type AddInvoiceParams struct {
-	PersonID    pgtype.Int4
-	Feetype     string
-	Reference   string
-	Startdate   pgtype.Date
-	Enddate     pgtype.Date
-	Amount      int32
-	Raiseddate  pgtype.Date
-	Source      pgtype.Text
-	CreatedbyID pgtype.Int4
+	PersonID   pgtype.Int4
+	Feetype    string
+	Reference  string
+	Startdate  pgtype.Date
+	Enddate    pgtype.Date
+	Amount     int32
+	Raiseddate pgtype.Date
+	Source     pgtype.Text
+	CreatedBy  pgtype.Int4
 }
 
 func (q *Queries) AddInvoice(ctx context.Context, arg AddInvoiceParams) (Invoice, error) {
@@ -52,7 +52,7 @@ func (q *Queries) AddInvoice(ctx context.Context, arg AddInvoiceParams) (Invoice
 		arg.Amount,
 		arg.Raiseddate,
 		arg.Source,
-		arg.CreatedbyID,
+		arg.CreatedBy,
 	)
 	var i Invoice
 	err := row.Scan(
@@ -71,8 +71,8 @@ func (q *Queries) AddInvoice(ctx context.Context, arg AddInvoiceParams) (Invoice
 		&i.Source,
 		&i.Scheduledfn14date,
 		&i.Cacheddebtamount,
-		&i.Createddate,
-		&i.CreatedbyID,
+		&i.CreatedAt,
+		&i.CreatedBy,
 	)
 	return i, err
 }

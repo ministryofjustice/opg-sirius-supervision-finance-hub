@@ -52,8 +52,8 @@ func invoiceEvents(invoices []store.GetGeneratedInvoicesRow, clientID int) []his
 	var history []historyHolder
 	for _, inv := range invoices {
 		bh := shared.BillingHistory{
-			User: int(inv.CreatedbyID.Int32),
-			Date: shared.Date{Time: inv.InvoiceDate.Time},
+			User: int(inv.CreatedBy.Int32),
+			Date: shared.Date{Time: inv.CreatedAt.Time},
 			Event: shared.InvoiceGenerated{
 				ClientId: clientID,
 				BaseBillingEvent: shared.BaseBillingEvent{
@@ -87,7 +87,7 @@ func aggregateAllocations(pendingAllocations []store.GetPendingLedgerAllocations
 				notes:       allo.Notes.String,
 				clientId:    clientID,
 				createdDate: shared.Date{Time: allo.Datetime.Time},
-				user:        int(allo.CreatedbyID.Int32),
+				user:        int(allo.CreatedBy.Int32),
 				breakdown:   []shared.PaymentBreakdown{},
 			}
 		}

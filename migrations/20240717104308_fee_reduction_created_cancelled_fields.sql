@@ -1,7 +1,7 @@
 -- +goose Up
-ALTER TABLE fee_reduction ADD COLUMN created_at date;
+ALTER TABLE fee_reduction ADD COLUMN created_at timestamp(0);
 ALTER TABLE fee_reduction ADD COLUMN created_by int;
-ALTER TABLE fee_reduction ADD COLUMN cancelled_at date;
+ALTER TABLE fee_reduction ADD COLUMN cancelled_at timestamp(0);
 ALTER TABLE fee_reduction ADD COLUMN cancelled_by int;
 ALTER TABLE fee_reduction ADD COLUMN cancellation_reason TEXT;
 

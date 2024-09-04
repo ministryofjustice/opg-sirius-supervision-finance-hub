@@ -33,7 +33,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 
 	debtMemoDate, _ := time.Parse("2006-01-02", "2025-04-11")
 	creditMemoDate, _ := time.Parse("2006-01-02", "2022-04-11")
-	invoiceDate, _ := time.Parse("2006-01-02", "2020-03-20")
+	invoiceDate, _ := time.Parse("2006-01-02", "2019-06-06")
 	reductionStartDate, _ := time.Parse("2006-01-02", "2020-03-31")
 	reductionEndDate, _ := time.Parse("2006-01-02", "2023-03-31")
 	reductionReceivedDate, _ := time.Parse("2006-01-02", "2020-03-03")
@@ -283,12 +283,12 @@ func Test_computeBillingHistory(t *testing.T) {
 func Test_invoiceEvents(t *testing.T) {
 	invoices := []store.GetGeneratedInvoicesRow{
 		{
-			InvoiceID:   1,
-			Reference:   "AD123455/01",
-			Feetype:     "AD",
-			Amount:      100000,
-			CreatedbyID: pgtype.Int4{Int32: 3, Valid: true},
-			InvoiceDate: pgtype.Timestamp{Time: time.Date(2027, time.March, 31, 0, 0, 0, 0, time.UTC), Valid: true},
+			InvoiceID: 1,
+			Reference: "AD123455/01",
+			Feetype:   "AD",
+			Amount:    100000,
+			CreatedBy: pgtype.Int4{Int32: 3, Valid: true},
+			CreatedAt: pgtype.Timestamp{Time: time.Date(2027, time.March, 31, 0, 0, 0, 0, time.UTC), Valid: true},
 		},
 	}
 

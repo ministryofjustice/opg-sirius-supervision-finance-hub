@@ -62,15 +62,15 @@ type Invoice struct {
 	Amount int32
 	// (DC2Type:refdata)
 	Supervisionlevel  pgtype.Text
-	Confirmeddate     pgtype.Timestamp
+	Confirmeddate     pgtype.Date
 	Batchnumber       pgtype.Int4
 	Raiseddate        pgtype.Date
 	Source            pgtype.Text
 	Scheduledfn14date pgtype.Date
 	// (DC2Type:money)
 	Cacheddebtamount pgtype.Int4
-	Createddate      pgtype.Timestamp
-	CreatedbyID      pgtype.Int4
+	CreatedAt        pgtype.Timestamp
+	CreatedBy        pgtype.Int4
 }
 
 type InvoiceEmailStatus struct {
@@ -116,8 +116,8 @@ type Ledger struct {
 	Bankaccount pgtype.Text
 	Source      pgtype.Text
 	Line        pgtype.Int4
-	Createddate pgtype.Date
-	CreatedbyID pgtype.Int4
+	CreatedAt   pgtype.Date
+	CreatedBy   pgtype.Int4
 }
 
 type LedgerAllocation struct {
