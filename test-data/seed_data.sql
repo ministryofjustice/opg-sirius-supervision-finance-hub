@@ -26,7 +26,7 @@ INSERT INTO ledger VALUES (nextval('ledger_id_seq'), 'addcredit', '2022-04-11T08
 INSERT INTO ledger VALUES (nextval('ledger_id_seq'), 'paid', '2022-04-11T08:36:40+00:00', '', 10000, '', 'CARD PAYMENT', 'CONFIRMED', 1, null, null, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 65);
 INSERT INTO ledger VALUES (nextval('ledger_id_seq'), 'unapply', '2022-04-11T08:36:40+00:00', '', 10000, '', 'REMISSION', 'CONFIRMED', 1, null, null, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 65);
 INSERT INTO ledger VALUES (nextval('ledger_id_seq'), 'customer-credit-balance', '2024-04-11T08:36:40+00:00', '', 3000, '', 'CARD PAYMENT', 'CONFIRMED', 6, null, null, '11/04/2042', '12/04/2024', 1, '', '', 1, '05/05/2024', 65);
-INSERT INTO ledger VALUES (nextval('ledger_id_seq'), 'write-off', '2024-04-11T08:36:40+00:00', '', 3000, '', 'CREDIT WRITE OFF', 'CONFIRMED', 6, null, null, '11/04/2042', '12/04/2024', 1, '', '', 1, '05/05/2024', 65);
+INSERT INTO ledger VALUES (nextval('ledger_id_seq'), 'write-off', '2024-04-11T08:36:40+00:00', '', 3000, '', 'CREDIT WRITE OFF', 'CONFIRMED', 3, null, null, '11/04/2042', '12/04/2024', 1, '', '', 1, '05/05/2024', 65);
 
 INSERT INTO ledger_allocation VALUES (nextval('ledger_allocation_id_seq'), 1, 2, '2022-04-11T08:36:40+00:00', 1200, 'PENDING', null, 'Notes here', '2022-04-11', null);
 INSERT INTO ledger_allocation VALUES (nextval('ledger_allocation_id_seq'), 2, 3, '2022-04-11T08:36:40+00:00', 8800, 'ALLOCATED', null, 'Notes here', '2022-04-11', null);
@@ -35,7 +35,7 @@ INSERT INTO ledger_allocation VALUES (nextval('ledger_allocation_id_seq'), 4, 1,
 INSERT INTO ledger_allocation VALUES (nextval('ledger_allocation_id_seq'), 5, 1, '2022-04-11T08:36:40+00:00', 10000, 'ALLOCATED', null, 'Notes here', '2022-04-11', null);
 INSERT INTO ledger_allocation VALUES (nextval('ledger_allocation_id_seq'), 5, 1, '2022-04-11T08:36:40+00:00', -10000, 'UNAPPLIED', null, 'Notes here', '2022-04-11', null);
 INSERT INTO ledger_allocation VALUES (nextval('ledger_allocation_id_seq'), 6, 7, '2024-04-11T08:36:40+00:00', 3000, 'ALLOCATED', null, 'customer-credit-balance', '2024-04-11', null);
-INSERT INTO ledger_allocation VALUES (nextval('ledger_allocation_id_seq'), 7, 6, '2024-04-11T08:36:40+00:00', 3000, 'ALLOCATED', null, 'customer-credit-balance', '2024-04-11', null);
+INSERT INTO ledger_allocation VALUES (nextval('ledger_allocation_id_seq'), 7, 6, '2024-04-11T08:36:40+00:00', 3000, 'ALLOCATED', null, 'write-off', '2024-04-11', null);
 
 INSERT INTO invoice_fee_range VALUES (nextval('invoice_fee_range_id_seq'), 1, 'GENERAL', '2022-04-01', '2023-03-31', 32000);
 INSERT INTO invoice_fee_range VALUES (nextval('invoice_fee_range_id_seq'), 2, 'GENERAL', '2022-04-01', '2023-03-31', 10000);
