@@ -32,7 +32,7 @@ func Test_generateLedgerEntries(t *testing.T) {
 				Type:           "CREDIT HARDSHIP",
 				Status:         "APPROVED",
 				FeeReductionID: pgtype.Int4{Int32: 1, Valid: true},
-				CreatedbyID:    pgtype.Int4{Int32: 1},
+				CreatedBy:      pgtype.Int4{Int32: 1},
 			},
 			wantLA: []store.CreateLedgerAllocationParams{
 				{
@@ -53,12 +53,12 @@ func Test_generateLedgerEntries(t *testing.T) {
 				outstandingBalance: 3000,
 			},
 			wantL: store.CreateLedgerParams{
-				ClientID:    2,
-				Amount:      3000,
-				Notes:       pgtype.Text{String: "Credit due to approved credit memo", Valid: true},
-				Type:        "CREDIT MEMO",
-				Status:      "APPROVED",
-				CreatedbyID: pgtype.Int4{Int32: 1},
+				ClientID:  2,
+				Amount:    3000,
+				Notes:     pgtype.Text{String: "Credit due to approved credit memo", Valid: true},
+				Type:      "CREDIT MEMO",
+				Status:    "APPROVED",
+				CreatedBy: pgtype.Int4{Int32: 1},
 			},
 			wantLA: []store.CreateLedgerAllocationParams{
 				{

@@ -58,7 +58,7 @@ GROUP BY i.id, ifr.amount;
 
 -- name: AddInvoice :one
 INSERT INTO invoice (id, person_id, finance_client_id, feetype, reference, startdate, enddate, amount, confirmeddate,
-                     raiseddate, source, createddate, createdby_id)
+                     raiseddate, source, created_at, created_by)
 VALUES (nextval('invoice_id_seq'),
         $1,
         (select id from finance_client where client_id = $1),

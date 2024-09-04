@@ -37,7 +37,7 @@ func (s *Service) ReapplyCredit(ctx context.Context, clientID int32) error {
 		Type:     "CREDIT REAPPLY",
 		Status:   "CONFIRMED",
 		//TODO when adding this in PFS-136, the id with need to be a system user
-		CreatedbyID: pgtype.Int4{Int32: 1},
+		CreatedBy: pgtype.Int4{Int32: 1},
 	}
 
 	ledgerId, err := s.store.CreateLedger(ctx, ledger)
