@@ -1,5 +1,5 @@
 -- +goose Up
-ALTER TABLE ledger ADD COLUMN created_at date;
+ALTER TABLE ledger ADD COLUMN created_at timestamp(0);
 ALTER TABLE ledger ADD COLUMN created_by int;
 
 -- +goose Down
