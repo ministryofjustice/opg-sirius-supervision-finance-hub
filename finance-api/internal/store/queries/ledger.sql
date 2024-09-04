@@ -1,5 +1,5 @@
 -- name: CreateLedger :one
-INSERT INTO ledger (id, datetime, finance_client_id, amount, notes, type, status, fee_reduction_id, createdby_id, reference, method)
+INSERT INTO ledger (id, datetime, finance_client_id, amount, notes, type, status, fee_reduction_id, created_by, reference, method)
 SELECT nextval('ledger_id_seq'),
        now(),
        fc.id,
