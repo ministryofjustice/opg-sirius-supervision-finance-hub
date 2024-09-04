@@ -116,7 +116,7 @@ type Ledger struct {
 	Bankaccount pgtype.Text
 	Source      pgtype.Text
 	Line        pgtype.Int4
-	CreatedAt   pgtype.Date
+	CreatedAt   pgtype.Timestamp
 	CreatedBy   pgtype.Int4
 }
 
