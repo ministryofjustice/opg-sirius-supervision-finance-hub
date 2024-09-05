@@ -61,7 +61,7 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 		Raiseddate: pgtype.Date{Time: data.RaisedDate.Value.Time, Valid: true},
 		Source:     pgtype.Text{String: "Created manually", Valid: true},
 		//TODO make sure we have correct createdby ID in ticket PFS-136
-		CreatedbyID: pgtype.Int4{Int32: int32(1), Valid: true},
+		CreatedBy: pgtype.Int4{Int32: int32(1), Valid: true},
 	}
 
 	var invoice store.Invoice

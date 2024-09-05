@@ -46,7 +46,7 @@ func (s *Service) AddInvoiceAdjustment(ctx context.Context, clientId int, invoic
 		Status:         "PENDING",
 		FeeReductionID: pgtype.Int4{},
 		//TODO make sure we have correct createdby ID in ticket PFS-136
-		CreatedbyID: pgtype.Int4{Int32: 1, Valid: true},
+		CreatedBy: pgtype.Int4{Int32: 1, Valid: true},
 	}
 
 	ledgerId, err := tStore.CreateLedger(ctx, ledgerParams)
