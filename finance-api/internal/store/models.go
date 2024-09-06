@@ -34,9 +34,9 @@ type FeeReduction struct {
 	Notes              string
 	Deleted            bool
 	Datereceived       pgtype.Date
-	CreatedAt          pgtype.Date
+	CreatedAt          pgtype.Timestamp
 	CreatedBy          pgtype.Int4
-	CancelledAt        pgtype.Date
+	CancelledAt        pgtype.Timestamp
 	CancelledBy        pgtype.Int4
 	CancellationReason pgtype.Text
 }
@@ -69,8 +69,8 @@ type Invoice struct {
 	Scheduledfn14date pgtype.Date
 	// (DC2Type:money)
 	Cacheddebtamount pgtype.Int4
-	Createddate      pgtype.Date
-	CreatedbyID      pgtype.Int4
+	CreatedAt        pgtype.Timestamp
+	CreatedBy        pgtype.Int4
 }
 
 type InvoiceEmailStatus struct {
@@ -116,8 +116,8 @@ type Ledger struct {
 	Bankaccount pgtype.Text
 	Source      pgtype.Text
 	Line        pgtype.Int4
-	Createddate pgtype.Date
-	CreatedbyID pgtype.Int4
+	CreatedAt   pgtype.Timestamp
+	CreatedBy   pgtype.Int4
 }
 
 type LedgerAllocation struct {
