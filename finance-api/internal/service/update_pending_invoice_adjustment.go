@@ -36,6 +36,9 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, ledgerId i
 	}
 
 	ledger, err := transaction.GetLedger(ctx, int32(ledgerId))
+	if err != nil {
+		return err
+	}
 
 	if ledger.Type == "WRITE OFF REVERSAL" {
 		_, err = transaction.CreateLedgerAllocation(ctx, store.CreateLedgerAllocationParams{
