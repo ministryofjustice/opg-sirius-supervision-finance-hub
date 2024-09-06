@@ -18,3 +18,9 @@ RETURNING id;
 UPDATE ledger l
 SET status = $1
 WHERE l.id = $2;
+
+-- name: GetLedger :one
+SELECT l.amount, l.notes, l.type, la.invoice_id
+FROM ledger l
+LEFT JOIN ledger_allocation la ON l.id = la.ledger_id
+WHERE l.id = $1;

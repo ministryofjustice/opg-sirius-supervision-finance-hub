@@ -53,6 +53,32 @@ func (q *Queries) CreateLedger(ctx context.Context, arg CreateLedgerParams) (int
 	return id, err
 }
 
+const getLedger = `-- name: GetLedger :one
+SELECT l.amount, l.notes, l.type, la.invoice_id
+FROM ledger l
+LEFT JOIN ledger_allocation la ON l.id = la.ledger_id
+WHERE l.id = $1
+`
+
+type GetLedgerRow struct {
+	Amount    int32
+	Notes     pgtype.Text
+	Type      string
+	InvoiceID pgtype.Int4
+}
+
+func (q *Queries) GetLedger(ctx context.Context, id int32) (GetLedgerRow, error) {
+	row := q.db.QueryRow(ctx, getLedger, id)
+	var i GetLedgerRow
+	err := row.Scan(
+		&i.Amount,
+		&i.Notes,
+		&i.Type,
+		&i.InvoiceID,
+	)
+	return i, err
+}
+
 const updateLedgerAdjustment = `-- name: UpdateLedgerAdjustment :exec
 UPDATE ledger l
 SET status = $1

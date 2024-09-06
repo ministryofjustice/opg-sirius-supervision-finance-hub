@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"strings"
 )
@@ -32,6 +33,22 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, ledgerId i
 	err = transaction.UpdateLedgerAllocationAdjustment(ctx, ledgerAllocationAdjustmentParams)
 	if err != nil {
 		return err
+	}
+
+	ledger, err := transaction.GetLedger(ctx, int32(ledgerId))
+
+	if ledger.Type == "WRITE OFF REVERSAL" {
+		_, err = transaction.CreateLedgerAllocation(ctx, store.CreateLedgerAllocationParams{
+			LedgerID:  pgtype.Int4{int32(ledgerId), true},
+			InvoiceID: ledger.InvoiceID,
+			Amount:    ledger.Amount,
+			Status:    "REAPPLIED",
+			Notes:     ledger.Notes,
+		})
+
+		if err != nil {
+			return err
+		}
 	}
 
 	err = tx.Commit(ctx)
