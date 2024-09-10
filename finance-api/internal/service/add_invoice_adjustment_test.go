@@ -7,6 +7,7 @@ import (
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 )
 
 func (suite *IntegrationSuite) TestService_AddInvoiceAdjustment() {
@@ -73,40 +74,33 @@ func (suite *IntegrationSuite) TestService_AddInvoiceAdjustment() {
 				return
 			}
 
-			var ledger store.Ledger
-			q := conn.QueryRow(ctx, "SELECT id, amount, notes, type, status, finance_client_id FROM ledger WHERE id = 2")
-			err = q.Scan(&ledger.ID, &ledger.Amount, &ledger.Notes, &ledger.Type, &ledger.Status, &ledger.FinanceClientID)
+			var pendingAdjustment store.InvoiceAdjustment
+			q := conn.QueryRow(ctx, "SELECT id, client_id, invoice_id, raised_date, adjustment_type, amount, notes, status FROM invoice_adjustments LIMIT 1")
+			err = q.Scan(
+				&pendingAdjustment.ID,
+				&pendingAdjustment.ClientID,
+				&pendingAdjustment.InvoiceID,
+				&pendingAdjustment.RaisedDate,
+				&pendingAdjustment.AdjustmentType,
+				&pendingAdjustment.Amount,
+				&pendingAdjustment.Notes,
+				&pendingAdjustment.Status,
+			)
 			if err != nil {
 				assert.ErrorIs(t, err, tt.err)
 			} else {
-				expected := store.Ledger{
-					ID:              2,
-					Amount:          int32(tt.data.Amount),
-					Notes:           pgtype.Text{String: tt.data.AdjustmentNotes, Valid: true},
-					Type:            tt.data.AdjustmentType.Key(),
-					Status:          "PENDING",
-					FinanceClientID: pgtype.Int4{Int32: int32(1), Valid: true},
+				expected := store.InvoiceAdjustment{
+					ID:             1,
+					ClientID:       int32(tt.clientId),
+					InvoiceID:      int32(tt.invoiceId),
+					RaisedDate:     pgtype.Date{Time: time.Now().UTC().Truncate(24 * time.Hour), Valid: true},
+					AdjustmentType: tt.data.AdjustmentType.Key(),
+					Amount:         int32(tt.data.Amount),
+					Notes:          tt.data.AdjustmentNotes,
+					Status:         "PENDING",
 				}
 
-				assert.EqualValues(t, expected, ledger)
-			}
-
-			var la store.LedgerAllocation
-			q = conn.QueryRow(ctx, "SELECT id, ledger_id, invoice_id, amount, status, notes FROM ledger_allocation WHERE id = 2")
-			err = q.Scan(&la.ID, &la.LedgerID, &la.InvoiceID, &la.Amount, &la.Status, &la.Notes)
-			if err != nil {
-				assert.ErrorIs(t, err, tt.err)
-			} else {
-				expected := store.LedgerAllocation{
-					ID:        2,
-					LedgerID:  pgtype.Int4{Int32: int32(2), Valid: true},
-					InvoiceID: pgtype.Int4{Int32: int32(1), Valid: true},
-					Amount:    int32(tt.data.Amount),
-					Status:    "PENDING",
-					Notes:     pgtype.Text{String: tt.data.AdjustmentNotes, Valid: true},
-				}
-
-				assert.EqualValues(t, expected, la)
+				assert.EqualValues(t, expected, pendingAdjustment)
 			}
 		})
 	}

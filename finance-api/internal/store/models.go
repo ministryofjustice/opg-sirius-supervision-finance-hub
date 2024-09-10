@@ -73,6 +73,21 @@ type Invoice struct {
 	CreatedBy        pgtype.Int4
 }
 
+type InvoiceAdjustment struct {
+	ID             int32
+	ClientID       int32
+	InvoiceID      int32
+	RaisedDate     pgtype.Date
+	AdjustmentType string
+	Amount         int32
+	Notes          string
+	Status         string
+	CreatedAt      pgtype.Timestamp
+	CreatedBy      int32
+	UpdatedAt      pgtype.Timestamp
+	UpdatedBy      pgtype.Int4
+}
+
 type InvoiceEmailStatus struct {
 	ID        int32
 	InvoiceID pgtype.Int4
