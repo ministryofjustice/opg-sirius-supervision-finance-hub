@@ -12,8 +12,8 @@ const (
 
 type Event struct {
 	Source       string      `json:"source"`
-	EventBusName string      `json:"eventBusName"`
-	DetailType   string      `json:"detailType"`
+	EventBusName string      `json:"event-bus-name"`
+	DetailType   string      `json:"detail-type"`
 	Detail       interface{} `json:"detail"`
 }
 
