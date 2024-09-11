@@ -75,7 +75,7 @@ func (suite *IntegrationSuite) TestService_AddInvoiceAdjustment() {
 			}
 
 			var pendingAdjustment store.InvoiceAdjustment
-			q := conn.QueryRow(ctx, "SELECT id, client_id, invoice_id, raised_date, adjustment_type, amount, notes, status FROM invoice_adjustments LIMIT 1")
+			q := conn.QueryRow(ctx, "SELECT id, client_id, invoice_id, raised_date, adjustment_type, amount, notes, status FROM invoice_adjustment LIMIT 1")
 			err = q.Scan(
 				&pendingAdjustment.ID,
 				&pendingAdjustment.ClientID,

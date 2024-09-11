@@ -14,20 +14,20 @@ import (
 const addInvoice = `-- name: AddInvoice :one
 INSERT INTO invoice (id, person_id, finance_client_id, feetype, reference, startdate, enddate, amount, confirmeddate,
                      raiseddate, source, created_at, created_by)
-VALUES (nextval('invoice_id_seq'),
+VALUES (NEXTVAL('invoice_id_seq'),
         $1,
-        (select id from finance_client where client_id = $1),
+        (SELECT id FROM finance_client WHERE client_id = $1),
         $2,
         $3,
         $4,
         $5,
         $6,
-        now(),
+        NOW(),
         $7,
         $8,
-        now(),
+        NOW(),
         $9)
-returning id, person_id, finance_client_id, feetype, reference, startdate, enddate, amount, supervisionlevel, confirmeddate, batchnumber, raiseddate, source, scheduledfn14date, cacheddebtamount, created_at, created_by
+RETURNING id, person_id, finance_client_id, feetype, reference, startdate, enddate, amount, supervisionlevel, confirmeddate, batchnumber, raiseddate, source, scheduledfn14date, cacheddebtamount, created_at, created_by
 `
 
 type AddInvoiceParams struct {
@@ -78,14 +78,16 @@ func (q *Queries) AddInvoice(ctx context.Context, arg AddInvoiceParams) (Invoice
 }
 
 const getInvoiceBalanceDetails = `-- name: GetInvoiceBalanceDetails :one
-SELECT i.amount initial, i.amount - COALESCE(SUM(la.amount), 0) outstanding, i.feetype,
-       COALESCE(bool_or(l.type = 'CREDIT WRITE OFF'), false)::bool written_off
+SELECT i.amount                                                    initial,
+       i.amount - COALESCE(SUM(la.amount), 0)                      outstanding,
+       i.feetype,
+       COALESCE(BOOL_OR(l.type = 'CREDIT WRITE OFF'), FALSE)::BOOL written_off
 FROM invoice i
-         LEFT JOIN ledger_allocation la on i.id = la.invoice_id
+         LEFT JOIN ledger_allocation la ON i.id = la.invoice_id
          LEFT JOIN ledger l ON l.id = la.ledger_id
     AND la.status NOT IN ('PENDING', 'UNALLOCATED')
 WHERE i.id = $1
-group by i.amount, i.feetype
+GROUP BY i.amount, i.feetype
 `
 
 type GetInvoiceBalanceDetailsRow struct {
@@ -108,20 +110,19 @@ func (q *Queries) GetInvoiceBalanceDetails(ctx context.Context, id int32) (GetIn
 }
 
 const getInvoiceBalancesForFeeReductionRange = `-- name: GetInvoiceBalancesForFeeReductionRange :many
-SELECT
-    i.id,
-    i.amount,
-    ifr.amount AS general_supervision_fee,
-    i.amount - COALESCE(SUM(la.amount), 0) outstanding,
-    i.feetype
+SELECT i.id,
+       i.amount,
+       ifr.amount AS                          general_supervision_fee,
+       i.amount - COALESCE(SUM(la.amount), 0) outstanding,
+       i.feetype
 FROM invoice i
-        JOIN fee_reduction fr ON i.finance_client_id = fr.finance_client_id
-        LEFT JOIN ledger_allocation la on i.id = la.invoice_id
-        LEFT JOIN ledger l ON l.id = la.ledger_id
-        LEFT JOIN invoice_fee_range ifr ON i.id = ifr.invoice_id AND i.supervisionlevel = 'GENERAL'
-WHERE i.raiseddate >= (fr.datereceived - interval '6 months')
- AND i.raiseddate BETWEEN fr.startdate AND fr.enddate
- AND fr.id = $1
+         JOIN fee_reduction fr ON i.finance_client_id = fr.finance_client_id
+         LEFT JOIN ledger_allocation la ON i.id = la.invoice_id
+         LEFT JOIN ledger l ON l.id = la.ledger_id
+         LEFT JOIN invoice_fee_range ifr ON i.id = ifr.invoice_id AND i.supervisionlevel = 'GENERAL'
+WHERE i.raiseddate >= (fr.datereceived - INTERVAL '6 months')
+  AND i.raiseddate BETWEEN fr.startdate AND fr.enddate
+  AND fr.id = $1
 GROUP BY i.id, ifr.amount
 `
 
@@ -161,7 +162,7 @@ func (q *Queries) GetInvoiceBalancesForFeeReductionRange(ctx context.Context, id
 
 const getInvoiceCounter = `-- name: GetInvoiceCounter :one
 INSERT INTO counter (id, key, counter)
-VALUES (nextval('counter_id_seq'), $1, 1)
+VALUES (NEXTVAL('counter_id_seq'), $1, 1)
 ON CONFLICT (key) DO UPDATE
     SET counter = counter.counter + 1
 RETURNING counter::VARCHAR
@@ -179,7 +180,7 @@ SELECT i.id,
        i.raiseddate,
        i.reference,
        i.amount,
-       COALESCE(SUM(la.amount), 0)::int received,
+       COALESCE(SUM(la.amount), 0)::INT    received,
        COALESCE(MAX(fr.type), '')::VARCHAR fee_reduction_type
 FROM invoice i
          JOIN finance_client fc ON fc.id = i.finance_client_id
@@ -228,21 +229,30 @@ func (q *Queries) GetInvoices(ctx context.Context, clientID int32) ([]GetInvoice
 }
 
 const getLedgerAllocations = `-- name: GetLedgerAllocations :many
-SELECT la.invoice_id, la.id, la.amount, la.datetime, l.bankdate, l.type, la.status
-FROM ledger_allocation la
-         INNER JOIN ledger l ON la.ledger_id = l.id
-WHERE la.invoice_id = ANY($1::int[])
-ORDER BY la.id DESC
+WITH allocations AS (SELECT la.invoice_id,
+                            la.amount,
+                            COALESCE(l.bankdate, la.datetime) AS raised_date,
+                            l.type,
+                            la.status
+                     FROM ledger_allocation la
+                              JOIN ledger l ON la.ledger_id = l.id
+                     WHERE la.invoice_id = ANY ($1::INT[])
+                     UNION
+                     SELECT ia.invoice_id, ia.amount, ia.raised_date, ia.adjustment_type, ia.status
+                     FROM invoice_adjustment ia
+                     WHERE ia.status = 'PENDING'
+                       AND ia.invoice_id = ANY ($1::INT[]))
+SELECT invoice_id, amount, raised_date, type, status
+FROM allocations
+ORDER BY raised_date DESC
 `
 
 type GetLedgerAllocationsRow struct {
-	InvoiceID pgtype.Int4
-	ID        int32
-	Amount    int32
-	Datetime  pgtype.Timestamp
-	Bankdate  pgtype.Date
-	Type      string
-	Status    string
+	InvoiceID  pgtype.Int4
+	Amount     int32
+	RaisedDate pgtype.Date
+	Type       string
+	Status     string
 }
 
 func (q *Queries) GetLedgerAllocations(ctx context.Context, dollar_1 []int32) ([]GetLedgerAllocationsRow, error) {
@@ -256,10 +266,8 @@ func (q *Queries) GetLedgerAllocations(ctx context.Context, dollar_1 []int32) ([
 		var i GetLedgerAllocationsRow
 		if err := rows.Scan(
 			&i.InvoiceID,
-			&i.ID,
 			&i.Amount,
-			&i.Datetime,
-			&i.Bankdate,
+			&i.RaisedDate,
 			&i.Type,
 			&i.Status,
 		); err != nil {
@@ -276,7 +284,7 @@ func (q *Queries) GetLedgerAllocations(ctx context.Context, dollar_1 []int32) ([
 const getSupervisionLevels = `-- name: GetSupervisionLevels :many
 SELECT invoice_id, supervisionlevel, fromdate, todate, amount
 FROM invoice_fee_range
-WHERE invoice_id = ANY($1::int[])
+WHERE invoice_id = ANY ($1::INT[])
 ORDER BY todate DESC
 `
 

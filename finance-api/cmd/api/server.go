@@ -49,7 +49,7 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 	handleFunc("GET /clients/{clientId}/billing-history", s.getBillingHistory)
 
 	handleFunc("POST /clients/{clientId}/invoices", s.addManualInvoice)
-	handleFunc("POST /clients/{clientId}/invoices/{invoiceId}/ledger-entries", s.PostLedgerEntry)
+	handleFunc("POST /clients/{clientId}/invoices/{invoiceId}/invoice-adjustments", s.PostLedgerEntry)
 	handleFunc("PUT /clients/{clientId}/invoice-adjustments/{adjustmentId}", s.updatePendingInvoiceAdjustment)
 	handleFunc("POST /clients/{clientId}/fee-reductions", s.addFeeReduction)
 	handleFunc("PUT /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", s.cancelFeeReduction)

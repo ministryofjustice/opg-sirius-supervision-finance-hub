@@ -17,8 +17,8 @@ func (suite *IntegrationSuite) TestService_UpdatePendingInvoiceAdjustment() {
 		"INSERT INTO ledger VALUES (NEXTVAL('ledger_id_seq'), 'existing', '2022-04-11T00:00:00+00:00', '', 10300, '', 'CARD PAYMENT', 'CONFIRMED', 1, NULL, NULL, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 65);",
 		"INSERT INTO ledger_allocation VALUES (NEXTVAL('ledger_allocation_id_seq'), 1, 2, '2022-04-11T00:00:00+00:00', 10300, 'ALLOCATED', NULL, 'Notes here', '2022-04-11', NULL);",
 
-		"INSERT INTO invoice_adjustments VALUES (NEXTVAL('invoice_adjustments_id_seq'), 1, 1, '2024-01-01', 'CREDIT MEMO', '5000', 'reject me', 'PENDING', '2024-01-01', 1)",
-		"INSERT INTO invoice_adjustments VALUES (NEXTVAL('invoice_adjustments_id_seq'), 1, 1, '2024-01-01', 'CREDIT MEMO', '5000', 'approve me', 'PENDING', '2024-01-01', 1)",
+		"INSERT INTO invoice_adjustment VALUES (NEXTVAL('invoice_adjustment_id_seq'), 1, 1, '2024-01-01', 'CREDIT MEMO', '5000', 'reject me', 'PENDING', '2024-01-01', 1)",
+		"INSERT INTO invoice_adjustment VALUES (NEXTVAL('invoice_adjustment_id_seq'), 1, 1, '2024-01-01', 'CREDIT MEMO', '5000', 'approve me', 'PENDING', '2024-01-01', 1)",
 	)
 
 	s := NewService(conn.Conn)
@@ -72,7 +72,7 @@ func (suite *IntegrationSuite) TestService_UpdatePendingInvoiceAdjustment() {
 			var adjusted struct {
 				status string
 			}
-			q := conn.QueryRow(suite.ctx, "SELECT status FROM invoice_adjustments WHERE id = $1", tt.args.adjustmentId)
+			q := conn.QueryRow(suite.ctx, "SELECT status FROM invoice_adjustment WHERE id = $1", tt.args.adjustmentId)
 			_ = q.Scan(
 				&adjusted.status,
 			)

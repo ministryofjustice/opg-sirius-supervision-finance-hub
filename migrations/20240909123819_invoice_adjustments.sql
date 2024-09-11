@@ -1,7 +1,7 @@
 -- +goose Up
-CREATE TABLE invoice_adjustments (
+CREATE TABLE invoice_adjustment (
     id INTEGER NOT NULL PRIMARY KEY,
-    client_id INTEGER NOT NULL REFERENCES finance_client,
+    finance_client_id INTEGER NOT NULL REFERENCES finance_client,
     invoice_id INTEGER NOT NULL REFERENCES invoice,
     raised_date DATE NOT NULL,
     adjustment_type VARCHAR(255) NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE invoice_adjustments (
     updated_by INTEGER
 );
 
-create sequence invoice_adjustments_id_seq;
+create sequence invoice_adjustment_id_seq;
 
 -- +goose Down
-DROP TABLE invoice_adjustments;
+DROP TABLE invoice_adjustment;

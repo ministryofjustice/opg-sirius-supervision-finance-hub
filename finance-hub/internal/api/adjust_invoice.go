@@ -22,7 +22,7 @@ func (c *ApiClient) AdjustInvoice(ctx Context, clientId int, supervisionBillingT
 		return err
 	}
 
-	req, err := c.newBackendRequest(ctx, http.MethodPost, fmt.Sprintf("/clients/%d/invoices/%d/ledger-entries", clientId, invoiceId), &body)
+	req, err := c.newBackendRequest(ctx, http.MethodPost, fmt.Sprintf("/clients/%d/invoices/%d/invoice-adjustments", clientId, invoiceId), &body)
 
 	if err != nil {
 		return err

@@ -6,16 +6,16 @@ SELECT ia.id,
        ia.amount,
        ia.notes,
        ia.status
-FROM invoice_adjustments ia
+FROM invoice_adjustment ia
          JOIN invoice i ON i.id = ia.invoice_id
-         JOIN finance_client fc ON fc.id = ia.client_id
+         JOIN finance_client fc ON fc.id = ia.finance_client_id
 WHERE fc.client_id = $1
 ORDER BY ia.raised_date DESC, ia.created_at DESC;
 
 -- name: CreatePendingInvoiceAdjustment :one
-INSERT INTO invoice_adjustments (id, client_id, invoice_id, raised_date, adjustment_type, amount, notes, status,
+INSERT INTO invoice_adjustment (id, finance_client_id, invoice_id, raised_date, adjustment_type, amount, notes, status,
                                  created_at, created_by)
-SELECT NEXTVAL('invoice_adjustments_id_seq'),
+SELECT NEXTVAL('invoice_adjustment_id_seq'),
        fc.id,
        $2,
        NOW(),
@@ -32,22 +32,22 @@ RETURNING (SELECT reference invoicereference FROM invoice WHERE id = invoice_id)
 -- name: GetAdjustmentForDecision :one
 SELECT ia.amount,
        ia.adjustment_type,
-       ia.client_id,
+       ia.finance_client_id,
        ia.invoice_id,
        i.amount - COALESCE(SUM(la.amount), 0) outstanding
-FROM invoice_adjustments ia
+FROM invoice_adjustment ia
          JOIN invoice i ON ia.invoice_id = i.id
          LEFT JOIN ledger_allocation la ON i.id = la.invoice_id AND la.status NOT IN ('PENDING', 'UNALLOCATED')
 WHERE ia.id = $1
-GROUP BY ia.amount, ia.adjustment_type, ia.client_id, ia.invoice_id, i.amount;
+GROUP BY ia.amount, ia.adjustment_type, ia.finance_client_id, ia.invoice_id, i.amount;
 
 -- name: SetAdjustmentDecision :one
-UPDATE invoice_adjustments ia
+UPDATE invoice_adjustment ia
 SET status     = $2,
     updated_at = NOW(),
     updated_by = $3
 WHERE ia.id = $1
-RETURNING ia.amount, ia.adjustment_type, ia.client_id, ia.invoice_id,
+RETURNING ia.amount, ia.adjustment_type, ia.finance_client_id, ia.invoice_id,
     (SELECT i.amount - COALESCE(SUM(la.amount), 0) outstanding
      FROM invoice i
               LEFT JOIN ledger_allocation la

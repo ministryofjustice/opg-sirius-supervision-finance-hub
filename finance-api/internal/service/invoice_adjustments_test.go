@@ -18,9 +18,9 @@ func (suite *IntegrationSuite) TestService_GetInvoiceAdjustments() {
 		"INSERT INTO invoice VALUES (1, 1, 1, 'S2', 'S204642/19', '2022-04-02', '2022-04-02', 0, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2022-04-02', 1);",
 		"INSERT INTO invoice VALUES (2, 1, 1, 'S2', 'S205753/20', '2022-04-02', '2022-04-02', 0, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2022-04-02', 1);",
 
-		"INSERT INTO invoice_adjustments VALUES (2, 1, 1, '2022-04-02', 'CREDIT MEMO', 12300, 'first credit', 'REJECTED', '2022-04-02T00:00:00+00:00', 1)",
-		"INSERT INTO invoice_adjustments VALUES (3, 1, 1, '2022-04-03', 'CREDIT WRITE OFF', 23001, 'first write off', 'APPROVED', '2022-04-02T00:00:00+00:00', 1)",
-		"INSERT INTO invoice_adjustments VALUES (4, 1, 2, '2022-04-04', 'CREDIT MEMO', 30023, 'second credit', 'PENDING', '2022-04-02T00:00:00+00:00', 1)",
+		"INSERT INTO invoice_adjustment VALUES (2, 1, 1, '2022-04-02', 'CREDIT MEMO', 12300, 'first credit', 'REJECTED', '2022-04-02T00:00:00+00:00', 1)",
+		"INSERT INTO invoice_adjustment VALUES (3, 1, 1, '2022-04-03', 'CREDIT WRITE OFF', 23001, 'first write off', 'APPROVED', '2022-04-02T00:00:00+00:00', 1)",
+		"INSERT INTO invoice_adjustment VALUES (4, 1, 2, '2022-04-04', 'CREDIT MEMO', 30023, 'second credit', 'PENDING', '2022-04-02T00:00:00+00:00', 1)",
 	)
 
 	dateString := "2022-04-02"
