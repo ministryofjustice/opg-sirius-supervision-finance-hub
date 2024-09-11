@@ -12,28 +12,9 @@ import (
 )
 
 const getFeeReductionEvents = `-- name: GetFeeReductionEvents :many
-SELECT
-   fr.type,
-   fr.startdate,
-   fr.enddate,
-   fr.datereceived,
-   fr.notes,
-   fr.created_at,
-   fr.created_by,
-   fr.cancelled_at,
-   fr.cancelled_by,
-   fr.cancellation_reason,
-   l.status,
-   l.amount,
-   l.datetime ledger_date,
-   fc.client_id,
-   i.id invoice_id,
-   i.reference reference
+SELECT fr.type, fr.startdate, fr.enddate, fr.datereceived, fr.notes, fr.created_at, fr.created_by, fr.cancelled_at, fr.cancelled_by, fr.cancellation_reason
 FROM fee_reduction fr
 JOIN finance_client fc ON fc.id = fr.finance_client_id
-LEFT JOIN ledger l ON l.fee_reduction_id = fr.id
-LEFT JOIN (SELECT DISTINCT ON (ledger_id) id, ledger_id, invoice_id, datetime, amount, status, reference, notes, allocateddate, batchnumber, source FROM ledger_allocation) la ON l.id = la.ledger_id
-LEFT JOIN invoice i ON i.id = la.invoice_id
 WHERE fc.client_id = $1
 AND (fr.created_at IS NOT NULL OR fr.cancelled_at IS NOT NULL)
 `
@@ -44,17 +25,11 @@ type GetFeeReductionEventsRow struct {
 	Enddate            pgtype.Date
 	Datereceived       pgtype.Date
 	Notes              string
-	CreatedAt          pgtype.Timestamp
+	CreatedAt          pgtype.Date
 	CreatedBy          pgtype.Int4
-	CancelledAt        pgtype.Timestamp
+	CancelledAt        pgtype.Date
 	CancelledBy        pgtype.Int4
 	CancellationReason pgtype.Text
-	Status             pgtype.Text
-	Amount             pgtype.Int4
-	LedgerDate         pgtype.Timestamp
-	ClientID           int32
-	InvoiceID          pgtype.Int4
-	Reference          pgtype.Text
 }
 
 func (q *Queries) GetFeeReductionEvents(ctx context.Context, clientID int32) ([]GetFeeReductionEventsRow, error) {
@@ -77,12 +52,6 @@ func (q *Queries) GetFeeReductionEvents(ctx context.Context, clientID int32) ([]
 			&i.CancelledAt,
 			&i.CancelledBy,
 			&i.CancellationReason,
-			&i.Status,
-			&i.Amount,
-			&i.LedgerDate,
-			&i.ClientID,
-			&i.InvoiceID,
-			&i.Reference,
 		); err != nil {
 			return nil, err
 		}
@@ -95,20 +64,20 @@ func (q *Queries) GetFeeReductionEvents(ctx context.Context, clientID int32) ([]
 }
 
 const getGeneratedInvoices = `-- name: GetGeneratedInvoices :many
-SELECT i.id invoice_id, reference, feetype, amount, created_by, created_at
+SELECT i.id invoice_id, reference, feetype, amount, createdby_id, coalesce(confirmeddate, createddate) invoice_date
 FROM invoice i
          JOIN finance_client fc ON fc.id = i.finance_client_id
 WHERE fc.client_id = $1
-ORDER BY created_at DESC
+ORDER BY COALESCE(confirmeddate, createddate) DESC
 `
 
 type GetGeneratedInvoicesRow struct {
-	InvoiceID int32
-	Reference string
-	Feetype   string
-	Amount    int32
-	CreatedBy pgtype.Int4
-	CreatedAt pgtype.Timestamp
+	InvoiceID   int32
+	Reference   string
+	Feetype     string
+	Amount      int32
+	CreatedbyID pgtype.Int4
+	InvoiceDate pgtype.Date
 }
 
 func (q *Queries) GetGeneratedInvoices(ctx context.Context, clientID int32) ([]GetGeneratedInvoicesRow, error) {
@@ -125,8 +94,8 @@ func (q *Queries) GetGeneratedInvoices(ctx context.Context, clientID int32) ([]G
 			&i.Reference,
 			&i.Feetype,
 			&i.Amount,
-			&i.CreatedBy,
-			&i.CreatedAt,
+			&i.CreatedbyID,
+			&i.InvoiceDate,
 		); err != nil {
 			return nil, err
 		}
@@ -139,7 +108,7 @@ func (q *Queries) GetGeneratedInvoices(ctx context.Context, clientID int32) ([]G
 }
 
 const getPendingLedgerAllocations = `-- name: GetPendingLedgerAllocations :many
-SELECT i.id invoice_id, l.id ledger_id, i.reference, l.type, la.amount, l.notes, l.confirmeddate, l.created_by, l.status, l.datetime
+SELECT i.id invoice_id, l.id ledger_id, i.reference, l.type, la.amount, l.notes, l.confirmeddate, l.createdby_id, l.status, l.datetime
 FROM ledger_allocation la
          JOIN ledger l ON l.id = la.ledger_id
          JOIN invoice i ON i.id = la.invoice_id
@@ -157,7 +126,7 @@ type GetPendingLedgerAllocationsRow struct {
 	Amount        int32
 	Notes         pgtype.Text
 	Confirmeddate pgtype.Date
-	CreatedBy     pgtype.Int4
+	CreatedbyID   pgtype.Int4
 	Status        string
 	Datetime      pgtype.Timestamp
 }
@@ -179,7 +148,7 @@ func (q *Queries) GetPendingLedgerAllocations(ctx context.Context, clientID int3
 			&i.Amount,
 			&i.Notes,
 			&i.Confirmeddate,
-			&i.CreatedBy,
+			&i.CreatedbyID,
 			&i.Status,
 			&i.Datetime,
 		); err != nil {

@@ -12,7 +12,7 @@ import (
 )
 
 const createLedger = `-- name: CreateLedger :one
-INSERT INTO ledger (id, datetime, finance_client_id, amount, notes, type, status, fee_reduction_id, created_by, reference, method)
+INSERT INTO ledger (id, datetime, finance_client_id, amount, notes, type, status, fee_reduction_id, createdby_id, reference, method)
 SELECT nextval('ledger_id_seq'),
        now(),
        fc.id,
@@ -35,7 +35,7 @@ type CreateLedgerParams struct {
 	Type           string
 	Status         string
 	FeeReductionID pgtype.Int4
-	CreatedBy      pgtype.Int4
+	CreatedbyID    pgtype.Int4
 }
 
 func (q *Queries) CreateLedger(ctx context.Context, arg CreateLedgerParams) (int32, error) {
@@ -46,7 +46,7 @@ func (q *Queries) CreateLedger(ctx context.Context, arg CreateLedgerParams) (int
 		arg.Type,
 		arg.Status,
 		arg.FeeReductionID,
-		arg.CreatedBy,
+		arg.CreatedbyID,
 	)
 	var id int32
 	err := row.Scan(&id)

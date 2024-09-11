@@ -52,8 +52,8 @@ func invoiceEvents(invoices []store.GetGeneratedInvoicesRow, clientID int) []his
 	var history []historyHolder
 	for _, inv := range invoices {
 		bh := shared.BillingHistory{
-			User: int(inv.CreatedBy.Int32),
-			Date: shared.Date{Time: inv.CreatedAt.Time},
+			User: int(inv.CreatedbyID.Int32),
+			Date: shared.Date{Time: inv.InvoiceDate.Time},
 			Event: shared.InvoiceGenerated{
 				ClientId: clientID,
 				BaseBillingEvent: shared.BaseBillingEvent{
@@ -87,7 +87,7 @@ func aggregateAllocations(pendingAllocations []store.GetPendingLedgerAllocations
 				notes:       allo.Notes.String,
 				clientId:    clientID,
 				createdDate: shared.Date{Time: allo.Datetime.Time},
-				user:        int(allo.CreatedBy.Int32),
+				user:        int(allo.CreatedbyID.Int32),
 				breakdown:   []shared.PaymentBreakdown{},
 			}
 		}
@@ -150,12 +150,7 @@ func processFeeReductionEvents(feEvents []store.GetFeeReductionEventsRow) []hist
 					},
 				},
 			}
-			history = append(history, historyHolder{
-				billingHistory:    bh,
-				balanceAdjustment: 0,
-			})
-		}
-		if !fe.CancelledBy.Valid {
+		} else {
 			bh = shared.BillingHistory{
 				User: int(fe.CreatedBy.Int32),
 				Date: shared.Date{Time: fe.CreatedAt.Time},
@@ -170,35 +165,11 @@ func processFeeReductionEvents(feEvents []store.GetFeeReductionEventsRow) []hist
 					},
 				},
 			}
-			history = append(history, historyHolder{
-				billingHistory:    bh,
-				balanceAdjustment: 0,
-			})
 		}
-		if fe.Status.String == "APPROVED" {
-			bh = shared.BillingHistory{
-				User: int(fe.CreatedBy.Int32),
-				Date: shared.Date{Time: fe.LedgerDate.Time},
-				Event: shared.FeeReductionApplied{
-					BaseBillingEvent: shared.BaseBillingEvent{
-						Type: shared.EventTypeFeeReductionApplied,
-					},
-					ReductionType: shared.ParseFeeReductionType(fe.Type),
-					PaymentBreakdown: shared.PaymentBreakdown{
-						InvoiceReference: shared.InvoiceEvent{
-							ID:        int(fe.InvoiceID.Int32),
-							Reference: fe.Reference.String,
-						},
-						Amount: int(fe.Amount.Int32),
-					},
-					ClientId: int(fe.ClientID),
-				},
-			}
-			history = append(history, historyHolder{
-				billingHistory:    bh,
-				balanceAdjustment: -(int(fe.Amount.Int32)),
-			})
-		}
+		history = append(history, historyHolder{
+			billingHistory:    bh,
+			balanceAdjustment: 0,
+		})
 	}
 	return history
 }
@@ -206,12 +177,6 @@ func processFeeReductionEvents(feEvents []store.GetFeeReductionEventsRow) []hist
 func computeBillingHistory(history []historyHolder) []shared.BillingHistory {
 	// reverse order to allow for balance to be calculated
 	sort.Slice(history, func(i, j int) bool {
-		if history[i].billingHistory.Date.Time.Equal(history[j].billingHistory.Date.Time) {
-			if _, ok := history[i].billingHistory.Event.(shared.FeeReductionApplied); ok {
-				return history[i].billingHistory.OutstandingBalance < history[j].billingHistory.OutstandingBalance
-			}
-			return history[i].billingHistory.OutstandingBalance > history[j].billingHistory.OutstandingBalance
-		}
 		return history[i].billingHistory.Date.Time.Before(history[j].billingHistory.Date.Time)
 	})
 
@@ -226,9 +191,6 @@ func computeBillingHistory(history []historyHolder) []shared.BillingHistory {
 	// flip it back
 	sort.Slice(billingHistory, func(i, j int) bool {
 		if billingHistory[i].Date.Time.Equal(billingHistory[j].Date.Time) {
-			if _, ok := billingHistory[i].Event.(shared.FeeReductionApplied); ok {
-				return billingHistory[i].OutstandingBalance < billingHistory[j].OutstandingBalance
-			}
 			return billingHistory[i].OutstandingBalance > billingHistory[j].OutstandingBalance
 		}
 		return billingHistory[i].Date.Time.After(billingHistory[j].Date.Time)
