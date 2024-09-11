@@ -48,7 +48,7 @@ func generateLedgerEntries(vars addLedgerVars) (store.CreateLedgerParams, []stor
 		Status:         "APPROVED",
 		FeeReductionID: pgtype.Int4{Int32: vars.feeReductionId, Valid: vars.feeReductionId != 0},
 		//TODO make sure we have correct createdby ID in ticket PFS-136
-		CreatedBy: pgtype.Int4{Int32: 1},
+		CreatedbyID: pgtype.Int4{Int32: 1},
 	}
 
 	return ledger, allocations
