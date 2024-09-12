@@ -16,10 +16,10 @@ import (
 func TestServer_updatePendingInvoiceAdjustment(t *testing.T) {
 	var b bytes.Buffer
 
-	_ = json.NewEncoder(&b).Encode(shared.UpdateInvoiceAdjustment{Status: "APPROVED"})
-	req := httptest.NewRequest(http.MethodPut, "/clients/1/invoice-adjustments/1", &b)
-	req.SetPathValue("id", "1")
-	req.SetPathValue("ledgerId", "1")
+	_ = json.NewEncoder(&b).Encode(shared.UpdateInvoiceAdjustment{Status: shared.AdjustmentStatusApproved})
+	req := httptest.NewRequest(http.MethodPut, "/clients/1/invoice-adjustments/2", &b)
+	req.SetPathValue("clientId", "1")
+	req.SetPathValue("adjustmentId", "2")
 	w := httptest.NewRecorder()
 
 	validator, _ := validation.New()
@@ -41,10 +41,10 @@ func TestServer_updatePendingInvoiceAdjustment(t *testing.T) {
 func TestServer_updatePendingInvoiceAdjustment500Error(t *testing.T) {
 	var b bytes.Buffer
 
-	_ = json.NewEncoder(&b).Encode(shared.UpdateInvoiceAdjustment{Status: "APPROVED"})
-	req := httptest.NewRequest(http.MethodPut, "/clients/1/invoice-adjustments/1", &b)
-	req.SetPathValue("id", "1")
-	req.SetPathValue("ledgerId", "1")
+	_ = json.NewEncoder(&b).Encode(shared.UpdateInvoiceAdjustment{Status: shared.AdjustmentStatusApproved})
+	req := httptest.NewRequest(http.MethodPut, "/clients/1/invoice-adjustments/2", &b)
+	req.SetPathValue("clientId", "1")
+	req.SetPathValue("adjustmentId", "2")
 	w := httptest.NewRecorder()
 
 	validator, _ := validation.New()
@@ -62,10 +62,10 @@ func TestServer_updatePendingInvoiceAdjustment500Error(t *testing.T) {
 func TestServer_updatePendingInvoiceAdjustmentValidationError(t *testing.T) {
 	var b bytes.Buffer
 
-	_ = json.NewEncoder(&b).Encode(nil)
-	req := httptest.NewRequest(http.MethodPut, "/clients/1/invoice-adjustments/1", &b)
-	req.SetPathValue("id", "1")
-	req.SetPathValue("ledgerId", "1")
+	_ = json.NewEncoder(&b).Encode(shared.UpdateInvoiceAdjustment{Status: shared.AdjustmentStatusPending})
+	req := httptest.NewRequest(http.MethodPut, "/clients/1/invoice-adjustments/2", &b)
+	req.SetPathValue("clientId", "1")
+	req.SetPathValue("adjustmentId", "2")
 	w := httptest.NewRecorder()
 
 	validator, _ := validation.New()

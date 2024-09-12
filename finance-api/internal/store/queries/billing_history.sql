@@ -1,14 +1,13 @@
 SET SEARCH_PATH TO supervision_finance;
 
--- name: GetPendingLedgerAllocations :many
-SELECT i.id invoice_id, l.id ledger_id, i.reference, l.type, la.amount, l.notes, l.confirmeddate, l.created_by, l.status, l.datetime
-FROM ledger_allocation la
-         JOIN ledger l ON l.id = la.ledger_id
-         JOIN invoice i ON i.id = la.invoice_id
-         JOIN finance_client fc ON fc.id = i.finance_client_id
+-- name: GetPendingInvoiceAdjustments :many
+SELECT ia.invoice_id, i.reference, ia.adjustment_type, ia.amount, ia.notes, ia.created_at, ia.created_by
+FROM invoice_adjustment ia
+         JOIN invoice i ON i.id = ia.invoice_id
+         JOIN finance_client fc ON fc.id = ia.finance_client_id
 WHERE fc.client_id = $1
-  AND l.status = 'PENDING'
-ORDER BY l.datetime DESC;
+  AND ia.status = 'PENDING'
+ORDER BY ia.raised_date DESC;
 
 -- name: GetGeneratedInvoices :many
 SELECT i.id invoice_id, reference, feetype, amount, created_by, created_at

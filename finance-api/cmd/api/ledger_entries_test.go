@@ -64,7 +64,7 @@ func TestServer_PostLedgerEntry(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			req := httptest.NewRequest(http.MethodGet, "/clients/1/invoices/2/ledger-entries", strings.NewReader(tt.body))
+			req := httptest.NewRequest(http.MethodGet, "/clients/1/invoices/2/invoice-adjustments", strings.NewReader(tt.body))
 			req.SetPathValue("clientId", "1")
 			req.SetPathValue("invoiceId", "2")
 			w := httptest.NewRecorder()
