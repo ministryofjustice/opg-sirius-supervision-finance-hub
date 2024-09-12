@@ -76,7 +76,7 @@ services:
       - ./.trivyignore:/.trivyignore
 
   yarn:
-    image: node:20.2.0-alpine3.16
+    image: node:22-alpine3.19
     working_dir: /home/node/app
     entrypoint: yarn
     volumes:
