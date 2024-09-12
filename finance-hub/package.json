@@ -18,12 +18,12 @@
     "@cypress/grep": "^4.0.1",
     "@ministryofjustice/frontend": "^2.1.0",
     "govuk-frontend": "^5.0.0",
-    "opg-sirius-header": "ministryofjustice/opg-sirius-header#semver:v0.17.0",
+    "opg-sirius-header": "ministryofjustice/opg-sirius-header#semver:v0.24.0",
     "htmx.org": "^2.0.0",
     "htmx-ext-response-targets": "^2.0.0"
   },
   "devDependencies": {
-    "esbuild": "^0.19.0",
+    "esbuild": "^0.23.0",
     "eslint": "^8.56.0",
     "sass": "^1.70.0"
   },
