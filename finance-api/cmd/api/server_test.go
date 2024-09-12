@@ -46,8 +46,8 @@ func (s *mockService) GetPermittedAdjustments(ctx context.Context, invoiceId int
 	return s.adjustmentTypes, s.err
 }
 
-func (s *mockService) UpdatePendingInvoiceAdjustment(ctx context.Context, id int, status string) error {
-	s.expectedIds = []int{id}
+func (s *mockService) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId int, adjustmentId int, status shared.AdjustmentStatus) error {
+	s.expectedIds = []int{adjustmentId}
 	s.lastCalled = "UpdatePendingInvoiceAdjustment"
 	return s.err
 }

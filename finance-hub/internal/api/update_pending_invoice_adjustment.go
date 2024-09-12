@@ -12,7 +12,7 @@ func (c *ApiClient) UpdatePendingInvoiceAdjustment(ctx Context, clientId int, le
 	var body bytes.Buffer
 
 	err := json.NewEncoder(&body).Encode(shared.UpdateInvoiceAdjustment{
-		Status: status,
+		Status: shared.ParseAdjustmentStatus(status),
 	})
 
 	if err != nil {

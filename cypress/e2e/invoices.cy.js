@@ -1,6 +1,6 @@
 describe("Invoice Tab", () => {
     it("table with correct headers and content", () => {
-        cy.visit("/clients/1/invoices");
+        cy.visit("/clients/9/invoices");
 
         cy.get("table#invoices > thead > tr")
             .children()
@@ -12,23 +12,23 @@ describe("Invoice Tab", () => {
             .next().contains("Outstanding Balance");
 
 
-        cy.get("table#invoices > tbody").contains("S206666/18")
+        cy.get("table#invoices > tbody").contains("S299999/19")
             .parentsUntil("tr").siblings()
             .first().contains("Unpaid")
             .next().contains("£320")
             .next().contains("16/03/2019")
-            .next().contains("0")
-            .next().contains("320");
+            .next().contains("20")
+            .next().contains("300");
     });
 
     it("does not show table for no invoices", () => {
-        cy.visit("/clients/4/invoices");
+        cy.visit("/clients/99/invoices");
         cy.contains('[data-cy="no-invoices"]', "There are no invoices");
     });
 
     it("displays the ledger allocations for the invoice", () => {
-        cy.visit("/clients/1/invoices");
-        cy.contains("S206666/18").click();
+        cy.visit("/clients/9/invoices");
+        cy.contains("S299999/19").click();
         cy.contains('[data-cy="ledger-title"]', "Invoice ledger allocations");
         cy.contains('[data-cy="ledger-amount"]', "Amount");
         cy.contains('[data-cy="ledger-received-date"]', "Received date");
@@ -41,8 +41,8 @@ describe("Invoice Tab", () => {
     });
 
     it("displays the supervision levels for the invoice", () => {
-        cy.visit("/clients/1/invoices");
-        cy.contains("S206666/18").click();
+        cy.visit("/clients/9/invoices");
+        cy.contains("S299999/19").click();
         cy.contains('[data-cy="supervision-title"]', "Supervision level breakdown");
         cy.contains('[data-cy="supervision-level"]', "Supervision level");
         cy.contains('[data-cy="supervision-amount"]', "Amount");
@@ -55,8 +55,8 @@ describe("Invoice Tab", () => {
     });
 
     it("should have no accessibility violations", () => {
-        cy.visit("/clients/1/invoices");
-        cy.contains("S206666/18").click();
+        cy.visit("/clients/9/invoices");
+        cy.contains("S299999/19").click();
         cy.checkAccessibility();
     });
 });
