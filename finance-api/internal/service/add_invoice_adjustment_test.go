@@ -75,10 +75,10 @@ func (suite *IntegrationSuite) TestService_AddInvoiceAdjustment() {
 			}
 
 			var pendingAdjustment store.InvoiceAdjustment
-			q := conn.QueryRow(ctx, "SELECT id, client_id, invoice_id, raised_date, adjustment_type, amount, notes, status FROM invoice_adjustment LIMIT 1")
+			q := conn.QueryRow(ctx, "SELECT id, finance_client_id, invoice_id, raised_date, adjustment_type, amount, notes, status FROM invoice_adjustment LIMIT 1")
 			err = q.Scan(
 				&pendingAdjustment.ID,
-				&pendingAdjustment.ClientID,
+				&pendingAdjustment.FinanceClientID,
 				&pendingAdjustment.InvoiceID,
 				&pendingAdjustment.RaisedDate,
 				&pendingAdjustment.AdjustmentType,
@@ -90,14 +90,14 @@ func (suite *IntegrationSuite) TestService_AddInvoiceAdjustment() {
 				assert.ErrorIs(t, err, tt.err)
 			} else {
 				expected := store.InvoiceAdjustment{
-					ID:             1,
-					ClientID:       int32(tt.clientId),
-					InvoiceID:      int32(tt.invoiceId),
-					RaisedDate:     pgtype.Date{Time: time.Now().UTC().Truncate(24 * time.Hour), Valid: true},
-					AdjustmentType: tt.data.AdjustmentType.Key(),
-					Amount:         int32(tt.data.Amount),
-					Notes:          tt.data.AdjustmentNotes,
-					Status:         "PENDING",
+					ID:              1,
+					FinanceClientID: int32(tt.clientId),
+					InvoiceID:       int32(tt.invoiceId),
+					RaisedDate:      pgtype.Date{Time: time.Now().UTC().Truncate(24 * time.Hour), Valid: true},
+					AdjustmentType:  tt.data.AdjustmentType.Key(),
+					Amount:          int32(tt.data.Amount),
+					Notes:           tt.data.AdjustmentNotes,
+					Status:          "PENDING",
 				}
 
 				assert.EqualValues(t, expected, pendingAdjustment)

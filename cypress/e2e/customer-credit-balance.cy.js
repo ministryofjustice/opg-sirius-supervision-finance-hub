@@ -29,12 +29,12 @@ describe("Customer credit balance", () => {
         cy.contains("AD77777/24").click();
         cy.get("table#ledger-allocations > tbody > tr").should("have.length", 3);
 
-        const amounts = ["£-30", "£100", "£30"];
+        const amounts = ["£30", "£-30", "£100"];
         cy.get('[data-cy="ledger-amount-data"]').each(($el, index) => {
             cy.wrap($el).contains(amounts[index]);
         });
 
-        const statuses = ["Unapplied", "Allocated", "Allocated"];
+        const statuses = ["Allocated", "Unapplied", "Allocated"];
         cy.get('[data-cy="ledger-status-data"]').each(($el, index) => {
             cy.wrap($el).contains(statuses[index]);
         });
