@@ -56,5 +56,8 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId i
 		return err
 	}
 
+	if status == shared.AdjustmentStatusApproved {
+		return s.ReapplyCredit(ctx, int32(clientId))
+	}
 	return nil
 }
