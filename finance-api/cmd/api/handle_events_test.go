@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -12,10 +13,11 @@ import (
 )
 
 func TestServer_handleEvents(t *testing.T) {
+	var e apierror.BadRequest
 	tests := []struct {
 		name            string
 		event           shared.Event
-		expectedStatus  int
+		expectedErr     error
 		expectedHandler string
 	}{
 		{
@@ -25,7 +27,7 @@ func TestServer_handleEvents(t *testing.T) {
 				DetailType: "debt-position-changed",
 				Detail:     shared.DebtPositionChangedEvent{ClientID: 1},
 			},
-			expectedStatus:  http.StatusOK,
+			expectedErr:     nil,
 			expectedHandler: "ReapplyCredit",
 		},
 		{
@@ -34,7 +36,7 @@ func TestServer_handleEvents(t *testing.T) {
 				Source:     "opg.supervision.sirius",
 				DetailType: "test",
 			},
-			expectedStatus:  http.StatusUnprocessableEntity,
+			expectedErr:     e,
 			expectedHandler: "",
 		},
 	}
@@ -50,8 +52,10 @@ func TestServer_handleEvents(t *testing.T) {
 			r = r.WithContext(ctx)
 			w := httptest.NewRecorder()
 
-			server.handleEvents(w, r)
-			assert.Equal(t, test.expectedStatus, w.Result().StatusCode)
+			err := server.handleEvents(w, r)
+			if test.expectedErr != nil {
+				assert.ErrorAs(t, err, &test.expectedErr)
+			}
 			assert.Equal(t, test.expectedHandler, mock.lastCalled)
 		})
 	}

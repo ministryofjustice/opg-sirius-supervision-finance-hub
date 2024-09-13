@@ -71,7 +71,7 @@ func TestServer_PostLedgerEntry(t *testing.T) {
 
 			mock := &mockService{err: tt.err, expectedIds: []int{1, 2}}
 			server := Server{Service: mock, Validator: validator}
-			server.PostLedgerEntry(w, req)
+			_ = server.PostLedgerEntry(w, req)
 
 			res := w.Result()
 			defer res.Body.Close()

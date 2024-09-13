@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-func (s *Server) PostLedgerEntry(w http.ResponseWriter, r *http.Request) {
+func (s *Server) PostLedgerEntry(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 
 	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
@@ -17,46 +17,35 @@ func (s *Server) PostLedgerEntry(w http.ResponseWriter, r *http.Request) {
 	var ledgerEntry shared.AddInvoiceAdjustmentRequest
 	err := json.NewDecoder(r.Body).Decode(&ledgerEntry)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return err
 	}
 
 	validationError := s.Validator.ValidateStruct(ledgerEntry)
 
 	if len(validationError.Errors) != 0 {
-		errorData, _ := json.Marshal(validationError)
 		w.Header().Set("Content-Type", "application/json")
 		http.Error(w, "", http.StatusUnprocessableEntity)
-		_, _ = w.Write(errorData)
-
-		return
+		err := json.NewEncoder(w).Encode(validationError)
+		return err
 	}
 
 	invoiceReference, err := s.Service.AddInvoiceAdjustment(ctx, clientId, invoiceId, &ledgerEntry)
 
 	if err != nil {
-		var e shared.BadRequest
+		var e shared.BadRequests
 		ok := errors.As(err, &e)
 		if ok {
-			errorData, _ := json.Marshal(e)
 			w.Header().Set("Content-Type", "application/json")
-			http.Error(w, "", http.StatusBadRequest)
-			_, _ = w.Write(errorData)
-
-			return
+			w.WriteHeader(http.StatusBadRequest)
+			err = json.NewEncoder(w).Encode(e)
+			if err != nil {
+				return err
+			}
+			return err
 		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	jsonData, err := json.Marshal(invoiceReference)
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	_, _ = w.Write(jsonData)
+	err = json.NewEncoder(w).Encode(invoiceReference)
+	return err
 }
