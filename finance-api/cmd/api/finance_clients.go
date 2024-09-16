@@ -4,32 +4,24 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/jackc/pgx/v5"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"net/http"
 	"strconv"
 )
 
-func (s *Server) getAccountInformation(w http.ResponseWriter, r *http.Request) {
+func (s *Server) getAccountInformation(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 
 	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
 	accountInfo, err := s.Service.GetAccountInformation(ctx, clientId)
 
 	if errors.Is(err, pgx.ErrNoRows) {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		return apierror.NotFoundError(err)
 	} else if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	jsonData, err := json.Marshal(accountInfo)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return err
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write(jsonData)
-	if err != nil {
-		return
-	}
+	err = json.NewEncoder(w).Encode(accountInfo)
+	return err
 }

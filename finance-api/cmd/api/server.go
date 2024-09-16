@@ -36,9 +36,9 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 
 	// handleFunc is a replacement for mux.HandleFunc
 	// which enriches the handler's HTTP instrumentation with the pattern as the http.route.
-	handleFunc := func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request)) {
+	handleFunc := func(pattern string, h handlerFunc) {
 		// Configure the "http.route" for the HTTP instrumentation.
-		handler := otelhttp.WithRouteTag(pattern, http.HandlerFunc(handlerFunc))
+		handler := otelhttp.WithRouteTag(pattern, h)
 		mux.Handle(pattern, handler)
 	}
 	handleFunc("GET /clients/{clientId}", s.getAccountInformation)
@@ -49,14 +49,14 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 	handleFunc("GET /clients/{clientId}/billing-history", s.getBillingHistory)
 
 	handleFunc("POST /clients/{clientId}/invoices", s.addManualInvoice)
-	handleFunc("POST /clients/{clientId}/invoices/{invoiceId}/invoice-adjustments", s.PostLedgerEntry)
+	handleFunc("POST /clients/{clientId}/invoices/{invoiceId}/invoice-adjustments", s.AddInvoiceAdjustment)
 	handleFunc("PUT /clients/{clientId}/invoice-adjustments/{adjustmentId}", s.updatePendingInvoiceAdjustment)
 	handleFunc("POST /clients/{clientId}/fee-reductions", s.addFeeReduction)
 	handleFunc("PUT /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", s.cancelFeeReduction)
 
 	handleFunc("POST /events", s.handleEvents)
 
-	handleFunc("/health-check", func(w http.ResponseWriter, r *http.Request) {})
+	handleFunc("/health-check", func(w http.ResponseWriter, r *http.Request) error { return nil })
 
 	return otelhttp.NewHandler(telemetry.Middleware(logger)(securityheaders.Use(s.RequestLogger(mux))), "supervision-finance-api")
 }
