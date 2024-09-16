@@ -48,9 +48,9 @@ func InitDb() *TestDatabase {
 	testPath := filepath.Dir(b)
 	basePath = filepath.Join(testPath, "../../..")
 
-	container, err := postgres.RunContainer(
+	container, err := postgres.Run(
 		ctx,
-		testcontainers.WithImage("docker.io/postgres:13-alpine"),
+		"docker.io/postgres:13-alpine",
 		postgres.WithDatabase(dbname),
 		postgres.WithUsername(user),
 		postgres.WithPassword(password),
