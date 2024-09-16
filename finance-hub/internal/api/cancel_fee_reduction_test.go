@@ -3,7 +3,7 @@ package api
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/opg-sirius-finance-hub/shared"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -63,7 +63,7 @@ func TestCancelFeeReductionReturns500Error(t *testing.T) {
 }
 
 func TestCancelFeeReductionReturnsValidationError(t *testing.T) {
-	validationErrors := shared.ValidationError{
+	validationErrors := apierror.ValidationError{
 		Message: "Validation failed",
 		Errors: map[string]map[string]string{
 			"CancelFeeReductionNotes": {
@@ -81,6 +81,6 @@ func TestCancelFeeReductionReturnsValidationError(t *testing.T) {
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
 	err := client.CancelFeeReduction(getContext(nil), 0, 0, "")
-	expectedError := shared.ValidationError{Message: "", Errors: shared.ValidationErrors{"CancelFeeReductionNotes": map[string]string{"required": "This field CancelFeeReductionNotes needs to be looked at required"}}}
-	assert.Equal(t, expectedError, err.(shared.ValidationError))
+	expectedError := apierror.ValidationError{Message: "", Errors: apierror.ValidationErrors{"CancelFeeReductionNotes": map[string]string{"required": "This field CancelFeeReductionNotes needs to be looked at required"}}}
+	assert.Equal(t, expectedError, err.(apierror.ValidationError))
 }

@@ -13,7 +13,7 @@ import (
 	"testing"
 )
 
-func TestServer_PostLedgerEntry(t *testing.T) {
+func TestServer_AddInvoiceAdjustment(t *testing.T) {
 	validator, _ := validation.New()
 
 	tests := []struct {
@@ -49,7 +49,7 @@ func TestServer_PostLedgerEntry(t *testing.T) {
 				"notes":"Some notes here", 
 				"amount": 12345678
 			 }`,
-			err:    apierror.BadRequestError("Amount entered must be equal to or less than £420", "Amount", nil),
+			err:    apierror.BadRequestsError([]string{"Amount entered must be equal to or less than £420"}),
 			status: 400,
 		},
 		{
@@ -72,7 +72,7 @@ func TestServer_PostLedgerEntry(t *testing.T) {
 
 			mock := &mockService{err: tt.err, expectedIds: []int{1, 2}}
 			server := Server{Service: mock, Validator: validator}
-			err := server.PostLedgerEntry(w, req)
+			err := server.AddInvoiceAdjustment(w, req)
 
 			assert.Equal(t, 1, mock.expectedIds[0])
 			assert.Equal(t, 2, mock.expectedIds[1])
@@ -85,7 +85,7 @@ func TestServer_PostLedgerEntry(t *testing.T) {
 	}
 }
 
-func TestCreateLedgerEntryRequest_validation(t *testing.T) {
+func TestAddInvoiceAdjustmentRequest_validation(t *testing.T) {
 	validator, _ := validation.New()
 
 	tests := []struct {

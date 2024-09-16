@@ -53,3 +53,16 @@ func (n NotFound) Error() string {
 }
 
 func (n NotFound) HTTPStatus() int { return http.StatusNotFound }
+
+type ValidationErrors map[string]map[string]string
+
+type ValidationError struct {
+	Message string
+	Errors  ValidationErrors `json:"validation_errors"`
+}
+
+func (ve ValidationError) Error() string {
+	return ve.Message
+}
+
+func (ve ValidationError) HTTPStatus() int { return http.StatusUnprocessableEntity }

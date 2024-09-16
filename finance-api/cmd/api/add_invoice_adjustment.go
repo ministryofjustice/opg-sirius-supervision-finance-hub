@@ -9,7 +9,7 @@ import (
 	"strconv"
 )
 
-func (s *Server) PostLedgerEntry(w http.ResponseWriter, r *http.Request) error {
+func (s *Server) AddInvoiceAdjustment(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 
 	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
@@ -37,13 +37,12 @@ func (s *Server) PostLedgerEntry(w http.ResponseWriter, r *http.Request) error {
 		ok := errors.As(err, &e)
 		if ok {
 			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusBadRequest)
 			err = json.NewEncoder(w).Encode(e)
 			if err != nil {
 				return err
 			}
-			return err
 		}
+		return err
 	}
 
 	w.Header().Set("Content-Type", "application/json")
