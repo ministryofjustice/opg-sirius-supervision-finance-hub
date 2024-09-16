@@ -3,6 +3,7 @@ package validation
 import (
 	"fmt"
 	"github.com/go-playground/validator/v10"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"github.com/opg-sirius-finance-hub/shared"
 	"strconv"
 	"strings"
@@ -48,8 +49,8 @@ func New() (*Validate, error) {
 	}, nil
 }
 
-func (v *Validate) ValidateStruct(s interface{}) shared.ValidationError {
-	var validationErrors = make(shared.ValidationErrors)
+func (v *Validate) ValidateStruct(s interface{}) apierror.ValidationError {
+	var validationErrors = make(apierror.ValidationErrors)
 
 	err := v.validator.Struct(s)
 	if err != nil {
@@ -64,12 +65,12 @@ func (v *Validate) ValidateStruct(s interface{}) shared.ValidationError {
 			validationErrors[field][tag] = fmt.Sprintf("This field %s needs to be looked at %s", field, tag)
 		}
 
-		return shared.ValidationError{
+		return apierror.ValidationError{
 			Errors: validationErrors,
 		}
 	}
 
-	return shared.ValidationError{}
+	return apierror.ValidationError{}
 }
 
 func validateThousandCharacterCount(fl validator.FieldLevel) bool {

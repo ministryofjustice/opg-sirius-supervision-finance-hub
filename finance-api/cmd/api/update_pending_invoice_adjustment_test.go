@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/validation"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -26,15 +26,14 @@ func TestServer_updatePendingInvoiceAdjustment(t *testing.T) {
 
 	mock := &mockService{}
 	server := Server{Service: mock, Validator: validator}
-	server.updatePendingInvoiceAdjustment(w, req)
+	_ = server.updatePendingInvoiceAdjustment(w, req)
 
 	res := w.Result()
 	defer res.Body.Close()
-	data, _ := io.ReadAll(res.Body)
 
 	expected := ""
 
-	assert.Equal(t, expected, string(data))
+	assert.Equal(t, expected, w.Body.String())
 	assert.Equal(t, http.StatusNoContent, w.Code)
 }
 
@@ -51,12 +50,9 @@ func TestServer_updatePendingInvoiceAdjustment500Error(t *testing.T) {
 
 	mock := &mockService{err: errors.New("Something is wrong")}
 	server := Server{Service: mock, Validator: validator}
-	server.updatePendingInvoiceAdjustment(w, req)
+	err := server.updatePendingInvoiceAdjustment(w, req)
 
-	res := w.Result()
-	defer res.Body.Close()
-
-	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	assert.Error(t, err)
 }
 
 func TestServer_updatePendingInvoiceAdjustmentValidationError(t *testing.T) {
@@ -72,13 +68,13 @@ func TestServer_updatePendingInvoiceAdjustmentValidationError(t *testing.T) {
 
 	mock := &mockService{err: errors.New("Something is wrong")}
 	server := Server{Service: mock, Validator: validator}
-	server.updatePendingInvoiceAdjustment(w, req)
+	_ = server.updatePendingInvoiceAdjustment(w, req)
 
 	res := w.Result()
 	defer res.Body.Close()
 
-	expectedError := shared.BadRequest{Field: "Status", Reason: "This field Status needs to be looked at oneof"}
+	expectedError := apierror.BadRequestError("Status", "This field Status needs to be looked at oneof", nil)
 
-	assert.Equal(t, http.StatusBadRequest, w.Code)
+	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
 	assert.Contains(t, w.Body.String(), expectedError.Error())
 }
