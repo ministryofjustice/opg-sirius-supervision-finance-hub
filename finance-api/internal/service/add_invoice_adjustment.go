@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
 )
@@ -43,7 +44,7 @@ func (s *Service) validateAdjustmentAmount(adjustment *shared.AddInvoiceAdjustme
 	switch adjustment.AdjustmentType {
 	case shared.AdjustmentTypeCreditMemo:
 		if int32(adjustment.Amount)-balance.Outstanding > balance.Initial {
-			return shared.BadRequest{Field: "Amount", Reason: fmt.Sprintf("Amount entered must be equal to or less than £%s", shared.IntToDecimalString(int(balance.Initial+balance.Outstanding)))}
+			return apierror.BadRequestError("Amount", fmt.Sprintf("Amount entered must be equal to or less than £%s", shared.IntToDecimalString(int(balance.Initial+balance.Outstanding))), nil)
 		}
 	case shared.AdjustmentTypeDebitMemo:
 		var maxBalance int32
@@ -53,14 +54,14 @@ func (s *Service) validateAdjustmentAmount(adjustment *shared.AddInvoiceAdjustme
 			maxBalance = 32000
 		}
 		if int32(adjustment.Amount)+balance.Outstanding > maxBalance {
-			return shared.BadRequest{Field: "Amount", Reason: fmt.Sprintf("Amount entered must be equal to or less than £%s", shared.IntToDecimalString(int(maxBalance-balance.Outstanding)))}
+			return apierror.BadRequestError("Amount", fmt.Sprintf("Amount entered must be equal to or less than £%s", shared.IntToDecimalString(int(maxBalance-balance.Outstanding))), nil)
 		}
 	case shared.AdjustmentTypeWriteOff:
 		if balance.Outstanding < 1 {
-			return shared.BadRequest{Field: "Amount", Reason: "No outstanding balance to write off"}
+			return apierror.BadRequestError("Amount", "No outstanding balance to write off", nil)
 		}
 	default:
-		return shared.BadRequest{Field: "AdjustmentType", Reason: "Unimplemented adjustment type"}
+		return apierror.BadRequestError("AdjustmentType", "Unimplemented adjustment type", nil)
 	}
 	return nil
 }

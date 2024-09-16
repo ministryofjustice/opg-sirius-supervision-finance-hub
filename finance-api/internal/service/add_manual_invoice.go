@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
 	"strconv"
@@ -32,7 +33,7 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 	validationsErrors := s.validateManualInvoice(data)
 
 	if len(validationsErrors) != 0 {
-		return shared.BadRequests{Reasons: validationsErrors}
+		return apierror.BadRequestsError(validationsErrors)
 	}
 
 	ctx, cancelTx := context.WithCancel(ctx)

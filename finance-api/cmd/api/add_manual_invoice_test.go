@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/opg-sirius-finance-hub/finance-api/internal/service"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/validation"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 )
@@ -38,7 +39,7 @@ func TestServer_addManualInvoice(t *testing.T) {
 
 	mock := &mockService{manualInvoice: manualInvoiceInfo}
 	server := Server{Service: mock, Validator: validator}
-	server.addManualInvoice(w, req)
+	_ = server.addManualInvoice(w, req)
 
 	res := w.Result()
 	defer res.Body.Close()
@@ -69,15 +70,14 @@ func TestServer_addManualInvoiceNoValidationErrorsForNilFields(t *testing.T) {
 
 	mock := &mockService{manualInvoice: manualInvoiceInfo}
 	server := Server{Service: mock, Validator: validator}
-	server.addManualInvoice(w, req)
+	_ = server.addManualInvoice(w, req)
 
 	res := w.Result()
 	defer res.Body.Close()
-	data, _ := io.ReadAll(res.Body)
 
 	expected := ""
 
-	assert.Equal(t, expected, string(data))
+	assert.Equal(t, expected, w.Body.String())
 	assert.Equal(t, http.StatusCreated, w.Code)
 }
 
@@ -101,16 +101,15 @@ func TestServer_addManualInvoiceValidationErrors(t *testing.T) {
 
 	mock := &mockService{manualInvoice: manualInvoiceInfo}
 	server := Server{Service: mock, Validator: validator}
-	server.addManualInvoice(w, req)
+	_ = server.addManualInvoice(w, req)
 
 	res := w.Result()
 	defer res.Body.Close()
-	data, _ := io.ReadAll(res.Body)
 
-	expected := `
-{"Message":"","validation_errors":{"Amount":{"nillable-int-gt":"This field Amount needs to be looked at nillable-int-gt"},"EndDate":{"nillable-date-required":"This field EndDate needs to be looked at nillable-date-required"},"InvoiceType":{"required":"This field InvoiceType needs to be looked at required"},"RaisedDate":{"nillable-date-required":"This field RaisedDate needs to be looked at nillable-date-required"},"StartDate":{"nillable-date-required":"This field StartDate needs to be looked at nillable-date-required"},"SupervisionLevel":{"nillable-string-oneof":"This field SupervisionLevel needs to be looked at nillable-string-oneof"}}}`
+	expected :=
+		`{"Message":"","validation_errors":{"Amount":{"nillable-int-gt":"This field Amount needs to be looked at nillable-int-gt"},"EndDate":{"nillable-date-required":"This field EndDate needs to be looked at nillable-date-required"},"InvoiceType":{"required":"This field InvoiceType needs to be looked at required"},"RaisedDate":{"nillable-date-required":"This field RaisedDate needs to be looked at nillable-date-required"},"StartDate":{"nillable-date-required":"This field StartDate needs to be looked at nillable-date-required"},"SupervisionLevel":{"nillable-string-oneof":"This field SupervisionLevel needs to be looked at nillable-string-oneof"}}}`
 
-	assert.Equal(t, expected, string(data))
+	assert.Equal(t, strings.TrimSpace(expected), strings.TrimSpace(w.Body.String()))
 	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
 }
 
@@ -137,16 +136,15 @@ func TestServer_addManualInvoiceValidationErrorsForAmountTooHigh(t *testing.T) {
 
 	mock := &mockService{manualInvoice: manualInvoiceInfo}
 	server := Server{Service: mock, Validator: validator}
-	server.addManualInvoice(w, req)
+	_ = server.addManualInvoice(w, req)
 
 	res := w.Result()
 	defer res.Body.Close()
-	data, _ := io.ReadAll(res.Body)
 
-	expected := `
-{"Message":"","validation_errors":{"Amount":{"nillable-int-lte":"This field Amount needs to be looked at nillable-int-lte"}}}`
+	expected :=
+		`{"Message":"","validation_errors":{"Amount":{"nillable-int-lte":"This field Amount needs to be looked at nillable-int-lte"}}}`
 
-	assert.Equal(t, expected, string(data))
+	assert.Equal(t, strings.TrimSpace(expected), strings.TrimSpace(w.Body.String()))
 	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
 }
 
@@ -171,9 +169,9 @@ func TestServer_addManualInvoiceDateErrors(t *testing.T) {
 
 	validator, _ := validation.New()
 
-	mock := &mockService{manualInvoice: manualInvoiceInfo, err: service.BadRequest{Reason: " RaisedDateForAnInvoice, StartDate, EndDate"}}
+	mock := &mockService{manualInvoice: manualInvoiceInfo, err: apierror.BadRequestsError([]string{"RaisedDateForAnInvoice", "StartDate", "EndDate"})}
 	server := Server{Service: mock, Validator: validator}
-	server.addFeeReduction(w, req)
+	_ = server.addFeeReduction(w, req)
 
 	res := w.Result()
 	defer res.Body.Close()
@@ -202,9 +200,9 @@ func TestServer_addManualInvoice422Error(t *testing.T) {
 
 	validator, _ := validation.New()
 
-	mock := &mockService{manualInvoice: manualInvoiceInfo, err: errors.New("Something is wrong")}
+	mock := &mockService{manualInvoice: manualInvoiceInfo, err: errors.New("something is wrong")}
 	server := Server{Service: mock, Validator: validator}
-	server.addFeeReduction(w, req)
+	_ = server.addFeeReduction(w, req)
 
 	res := w.Result()
 	defer res.Body.Close()

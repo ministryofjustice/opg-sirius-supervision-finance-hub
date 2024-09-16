@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/opg-sirius-finance-hub/finance-api/internal/service"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/validation"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 )
@@ -39,15 +39,14 @@ func TestServer_addFeeReductions(t *testing.T) {
 
 	mock := &mockService{feeReduction: feeReductionInfo}
 	server := Server{Service: mock, Validator: validator}
-	server.addFeeReduction(w, req)
+	_ = server.addFeeReduction(w, req)
 
 	res := w.Result()
 	defer res.Body.Close()
-	data, _ := io.ReadAll(res.Body)
 
 	expected := ""
 
-	assert.Equal(t, expected, string(data))
+	assert.Equal(t, expected, w.Body.String())
 	assert.Equal(t, http.StatusCreated, w.Code)
 }
 
@@ -69,16 +68,15 @@ func TestServer_addFeeReductionsValidationErrors(t *testing.T) {
 
 	mock := &mockService{feeReduction: feeReductionInfo}
 	server := Server{Service: mock, Validator: validator}
-	server.addFeeReduction(w, req)
+	_ = server.addFeeReduction(w, req)
 
 	res := w.Result()
 	defer res.Body.Close()
-	data, _ := io.ReadAll(res.Body)
 
-	expected := `
-{"Message":"","validation_errors":{"DateReceived":{"required":"This field DateReceived needs to be looked at required"},"FeeType":{"required":"This field FeeType needs to be looked at required"},"LengthOfAward":{"required":"This field LengthOfAward needs to be looked at required"},"Notes":{"required":"This field Notes needs to be looked at required"},"StartYear":{"required":"This field StartYear needs to be looked at required"}}}`
+	expected :=
+		`{"Message":"","validation_errors":{"DateReceived":{"required":"This field DateReceived needs to be looked at required"},"FeeType":{"required":"This field FeeType needs to be looked at required"},"LengthOfAward":{"required":"This field LengthOfAward needs to be looked at required"},"Notes":{"required":"This field Notes needs to be looked at required"},"StartYear":{"required":"This field StartYear needs to be looked at required"}}}`
 
-	assert.Equal(t, expected, string(data))
+	assert.Equal(t, strings.TrimSpace(expected), strings.TrimSpace(w.Body.String()))
 	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
 }
 
@@ -115,16 +113,15 @@ func TestServer_addFeeReductionsValidationErrorsForThousandCharacters(t *testing
 
 	mock := &mockService{feeReduction: feeReductionInfo}
 	server := Server{Service: mock, Validator: validator}
-	server.addFeeReduction(w, req)
+	_ = server.addFeeReduction(w, req)
 
 	res := w.Result()
 	defer res.Body.Close()
-	data, _ := io.ReadAll(res.Body)
 
-	expected := `
-{"Message":"","validation_errors":{"Notes":{"thousand-character-limit":"This field Notes needs to be looked at thousand-character-limit"}}}`
+	expected :=
+		`{"Message":"","validation_errors":{"Notes":{"thousand-character-limit":"This field Notes needs to be looked at thousand-character-limit"}}}`
 
-	assert.Equal(t, expected, string(data))
+	assert.Equal(t, strings.TrimSpace(expected), strings.TrimSpace(w.Body.String()))
 	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
 }
 
@@ -149,14 +146,12 @@ func TestServer_addFeeReductionsOverlapError(t *testing.T) {
 
 	validator, _ := validation.New()
 
-	mock := &mockService{feeReduction: feeReductionInfo, err: service.BadRequest{Reason: "overlap"}}
+	mock := &mockService{feeReduction: feeReductionInfo, err: apierror.BadRequest{Reason: "overlap"}}
 	server := Server{Service: mock, Validator: validator}
-	server.addFeeReduction(w, req)
+	err := server.addFeeReduction(w, req)
 
-	res := w.Result()
-	defer res.Body.Close()
-
-	assert.Equal(t, http.StatusBadRequest, w.Code)
+	var e apierror.BadRequest
+	assert.ErrorAs(t, err, &e)
 }
 
 func TestServer_addFeeReductions500Error(t *testing.T) {
@@ -180,12 +175,8 @@ func TestServer_addFeeReductions500Error(t *testing.T) {
 
 	validator, _ := validation.New()
 
-	mock := &mockService{feeReduction: feeReductionInfo, err: errors.New("Something is wrong")}
+	mock := &mockService{feeReduction: feeReductionInfo, err: errors.New("something is wrong")}
 	server := Server{Service: mock, Validator: validator}
-	server.addFeeReduction(w, req)
-
-	res := w.Result()
-	defer res.Body.Close()
-
-	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	err := server.addFeeReduction(w, req)
+	assert.Error(t, err)
 }
