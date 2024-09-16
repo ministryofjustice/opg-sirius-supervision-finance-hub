@@ -17,10 +17,9 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 		"INSERT INTO finance_client VALUES (7, 1, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO finance_client VALUES (3, 2, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO invoice VALUES (1, 1, 7, 'S2', 'S203531/19', '2019-04-01', '2020-03-31', 32000, NULL, '2020-03-20',1, '2020-03-16', 10, NULL, NULL, '2019-06-06', 99);",
-		"INSERT INTO ledger VALUES (1, 'random1223', '2022-04-11T00:00:00+00:00', '', 12300, '', 'CREDIT MEMO', 'PENDING', 7, 1,NULL, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 65);",
-		"INSERT INTO ledger VALUES (2, 'different', '2025-04-11T00:00:00+00:00', '', 55555, '', 'DEBIT MEMO', 'PENDING', 7, 2, NULL, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2025', 65);",
-		"INSERT INTO ledger_allocation VALUES (1, 1, 1, '2022-04-11T00:00:00+00:00', 12300, 'PENDING', NULL, 'Notes here', '2022-04-11', NULL);",
-		"INSERT INTO ledger_allocation VALUES (2, 2, 1, '2022-04-11T00:00:00+00:00', 55555, 'PENDING', NULL, 'Notes here', '2022-04-11', NULL);",
+		"INSERT INTO invoice_adjustment VALUES (1, 7, 1, '2022-04-11', 'CREDIT MEMO', 12300, 'Credit notes here', 'PENDING', '2022-04-11T00:00:00+00:00', 65)",
+		"INSERT INTO invoice_adjustment VALUES (2, 7, 1, '2025-04-11', 'DEBIT MEMO', 55555, 'Debit notes here', 'PENDING', '2025-04-11T00:00:00+00:00', 65)",
+
 		"INSERT INTO fee_reduction VALUES (1, 7, 'REMISSION', NULL, '2020-03-31', '2023-03-31', 'Remission awarded', FALSE, '2020-03-03', '2020-04-01', 1);",
 		"INSERT INTO fee_reduction VALUES (2, 7, 'HARDSHIP', NULL, '2019-04-01', '2020-03-31', 'Legacy (no created date) - do not display', FALSE, '2019-05-01');",
 		"INSERT INTO fee_reduction VALUES (3, 7, 'REMISSION', NULL, '2020-03-31', '2023-03-31', 'Remission to see the notes', FALSE, '2020-03-03', '2020-04-01', 1, '2021-04-01', 2, 'Cancelled text here');",
@@ -74,7 +73,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 					Event: shared.InvoiceAdjustmentPending{
 						AdjustmentType: shared.AdjustmentTypeDebitMemo,
 						ClientId:       1,
-						Notes:          "",
+						Notes:          "Debit notes here",
 						PaymentBreakdown: shared.PaymentBreakdown{
 							InvoiceReference: shared.InvoiceEvent{
 								ID:        1,
@@ -92,7 +91,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 					Event: shared.InvoiceAdjustmentPending{
 						AdjustmentType: shared.AdjustmentTypeCreditMemo,
 						ClientId:       1,
-						Notes:          "",
+						Notes:          "Credit notes here",
 						PaymentBreakdown: shared.PaymentBreakdown{
 							InvoiceReference: shared.InvoiceEvent{
 								ID:        1,

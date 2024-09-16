@@ -56,7 +56,7 @@ func TestAdjustInvoiceReturns500Error(t *testing.T) {
 	err := client.AdjustInvoice(getContext(nil), 2, 41, 4, "CREDIT_MEMO", "notes here", "100")
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
-		URL:    svr.URL + "/clients/2/invoices/4/ledger-entries",
+		URL:    svr.URL + "/clients/2/invoices/4/invoice-adjustments",
 		Method: http.MethodPost,
 	}, err)
 }

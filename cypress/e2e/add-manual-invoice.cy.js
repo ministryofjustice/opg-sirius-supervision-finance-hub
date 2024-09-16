@@ -1,6 +1,6 @@
 describe("Add manual invoice form", () => {
     it("show correct error message for all present fields with errors", () => {
-        cy.visit("/clients/1/invoices/add");
+        cy.visit("/clients/3/invoices/add");
         cy.contains(".govuk-button", "Save and continue").click()
         cy.get(".govuk-error-summary").contains("Please select an invoice type")
         cy.get(".govuk-form-group--error").should("have.length", 1)
