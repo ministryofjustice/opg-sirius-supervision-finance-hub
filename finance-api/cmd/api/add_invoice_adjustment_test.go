@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"errors"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/validation"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
@@ -12,7 +13,7 @@ import (
 	"testing"
 )
 
-func TestServer_PostLedgerEntry(t *testing.T) {
+func TestServer_AddInvoiceAdjustment(t *testing.T) {
 	validator, _ := validation.New()
 
 	tests := []struct {
@@ -48,7 +49,7 @@ func TestServer_PostLedgerEntry(t *testing.T) {
 				"notes":"Some notes here", 
 				"amount": 12345678
 			 }`,
-			err:    shared.BadRequest{Field: "Amount", Reason: "Amount entered must be equal to or less than £420"},
+			err:    apierror.BadRequestsError([]string{"Amount entered must be equal to or less than £420"}),
 			status: 400,
 		},
 		{
@@ -71,22 +72,20 @@ func TestServer_PostLedgerEntry(t *testing.T) {
 
 			mock := &mockService{err: tt.err, expectedIds: []int{1, 2}}
 			server := Server{Service: mock, Validator: validator}
-			_ = server.PostLedgerEntry(w, req)
-
-			res := w.Result()
-			defer res.Body.Close()
+			err := server.AddInvoiceAdjustment(w, req)
 
 			assert.Equal(t, 1, mock.expectedIds[0])
 			assert.Equal(t, 2, mock.expectedIds[1])
-			assert.Equal(t, tt.status, w.Code)
 			if tt.err != nil {
-				assert.Contains(t, w.Body.String(), tt.err.Error())
+				assert.ErrorAs(t, err, &tt.err)
+			} else {
+				assert.NoError(t, err)
 			}
 		})
 	}
 }
 
-func TestCreateLedgerEntryRequest_validation(t *testing.T) {
+func TestAddInvoiceAdjustmentRequest_validation(t *testing.T) {
 	validator, _ := validation.New()
 
 	tests := []struct {

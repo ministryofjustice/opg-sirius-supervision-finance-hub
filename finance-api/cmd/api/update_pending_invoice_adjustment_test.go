@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/validation"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
@@ -72,7 +73,7 @@ func TestServer_updatePendingInvoiceAdjustmentValidationError(t *testing.T) {
 	res := w.Result()
 	defer res.Body.Close()
 
-	expectedError := shared.BadRequest{Field: "Status", Reason: "This field Status needs to be looked at oneof"}
+	expectedError := apierror.BadRequestError("Status", "This field Status needs to be looked at oneof", nil)
 
 	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
 	assert.Contains(t, w.Body.String(), expectedError.Error())

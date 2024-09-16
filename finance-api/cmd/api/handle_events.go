@@ -16,7 +16,7 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
 	defer r.Body.Close()
 
 	if err := json.NewDecoder(r.Body).Decode(&event); err != nil {
-		return apierror.BadRequestError(err, "unable to parse event")
+		return apierror.BadRequestError("event", "unable to parse event", err)
 	}
 
 	if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeDebtPositionChanged {
@@ -27,7 +27,7 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
 			}
 		}
 	} else {
-		return apierror.BadRequestError(errors.New("no match"), fmt.Sprintf("Could not match event: %s %s", event.Source, event.DetailType))
+		return apierror.BadRequestError("event", fmt.Sprintf("could not match event: %s %s", event.Source, event.DetailType), errors.New("no match"))
 
 	}
 

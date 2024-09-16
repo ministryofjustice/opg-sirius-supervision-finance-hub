@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/validation"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
@@ -168,7 +169,7 @@ func TestServer_addManualInvoiceDateErrors(t *testing.T) {
 
 	validator, _ := validation.New()
 
-	mock := &mockService{manualInvoice: manualInvoiceInfo, err: shared.BadRequest{Reason: " RaisedDateForAnInvoice, StartDate, EndDate"}}
+	mock := &mockService{manualInvoice: manualInvoiceInfo, err: apierror.BadRequestsError([]string{"RaisedDateForAnInvoice", "StartDate", "EndDate"})}
 	server := Server{Service: mock, Validator: validator}
 	_ = server.addFeeReduction(w, req)
 

@@ -41,8 +41,8 @@ func TestServer_getPermittedAdjustments_invoiceNotFound(t *testing.T) {
 	server := Server{Service: mock}
 	err := server.getPermittedAdjustments(w, req)
 
-	var e apierror.NotFound
-	assert.ErrorAs(t, err, &e)
+	expected := apierror.NotFoundError(pgx.ErrNoRows)
+	assert.ErrorAs(t, err, &expected)
 }
 
 func TestServer_getPermittedAdjustments_error(t *testing.T) {
