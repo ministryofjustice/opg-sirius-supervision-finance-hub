@@ -71,13 +71,13 @@ func (suite *IntegrationSuite) TestService_AddInvoiceAdjustment() {
 			ctx := suite.ctx
 			_, err := s.AddInvoiceAdjustment(ctx, tt.clientId, tt.invoiceId, tt.data)
 			if err != nil {
-				assert.ErrorAs(t, err, tt.err)
+				assert.ErrorAs(t, err, &tt.err)
 				return
 			}
 
 			var pendingAdjustment store.InvoiceAdjustment
 			q := conn.QueryRow(ctx, "SELECT id, finance_client_id, invoice_id, raised_date, adjustment_type, amount, notes, status FROM invoice_adjustment LIMIT 1")
-			err = q.Scan(
+			_ = q.Scan(
 				&pendingAdjustment.ID,
 				&pendingAdjustment.FinanceClientID,
 				&pendingAdjustment.InvoiceID,
@@ -87,22 +87,19 @@ func (suite *IntegrationSuite) TestService_AddInvoiceAdjustment() {
 				&pendingAdjustment.Notes,
 				&pendingAdjustment.Status,
 			)
-			if err != nil {
-				assert.ErrorAs(t, err, &tt.err)
-			} else {
-				expected := store.InvoiceAdjustment{
-					ID:              1,
-					FinanceClientID: int32(tt.clientId),
-					InvoiceID:       int32(tt.invoiceId),
-					RaisedDate:      pgtype.Date{Time: time.Now().UTC().Truncate(24 * time.Hour), Valid: true},
-					AdjustmentType:  tt.data.AdjustmentType.Key(),
-					Amount:          int32(tt.data.Amount),
-					Notes:           tt.data.AdjustmentNotes,
-					Status:          "PENDING",
-				}
 
-				assert.EqualValues(t, expected, pendingAdjustment)
+			expected := store.InvoiceAdjustment{
+				ID:              1,
+				FinanceClientID: int32(tt.clientId),
+				InvoiceID:       int32(tt.invoiceId),
+				RaisedDate:      pgtype.Date{Time: time.Now().UTC().Truncate(24 * time.Hour), Valid: true},
+				AdjustmentType:  tt.data.AdjustmentType.Key(),
+				Amount:          int32(tt.data.Amount),
+				Notes:           tt.data.AdjustmentNotes,
+				Status:          "PENDING",
 			}
+
+			assert.EqualValues(t, expected, pendingAdjustment)
 		})
 	}
 }

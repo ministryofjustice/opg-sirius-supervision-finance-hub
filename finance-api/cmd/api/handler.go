@@ -12,7 +12,7 @@ func (f handlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := f(w, r); err != nil {
 		ctx := r.Context()
 		logger := telemetry.LoggerFromContext(ctx)
-		logger.Error("something went wrong", err)
+		logger.Error("unexpected error occurred", "error", err)
 		if err != nil {
 			http.Error(w, err.Error(), HTTPStatus(err))
 		}

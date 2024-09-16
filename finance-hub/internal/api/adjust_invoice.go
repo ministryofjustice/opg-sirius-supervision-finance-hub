@@ -53,9 +53,9 @@ func (c *ApiClient) AdjustInvoice(ctx Context, clientId int, supervisionBillingT
 		return ErrUnauthorized
 	}
 	if resp.StatusCode == http.StatusUnprocessableEntity {
-		var v shared.ValidationError
+		var v apierror.ValidationError
 		if err = json.NewDecoder(resp.Body).Decode(&v); err == nil && len(v.Errors) > 0 {
-			return shared.ValidationError{Errors: v.Errors}
+			return apierror.ValidationError{Errors: v.Errors}
 		}
 	}
 	if resp.StatusCode == http.StatusBadRequest {

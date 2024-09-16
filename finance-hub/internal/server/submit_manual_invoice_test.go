@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/opg-sirius-finance-hub/shared"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -51,13 +51,13 @@ func TestSubmitManualInvoiceValidationErrors(t *testing.T) {
 	client := &mockApiClient{}
 	ro := &mockRoute{client: client}
 
-	validationErrors := shared.ValidationErrors{
+	validationErrors := apierror.ValidationErrors{
 		"RaisedDateForAnInvoice": {
 			"RaisedDateForAnInvoice": "Raised date not in the past",
 		},
 	}
 
-	client.error = shared.ValidationError{
+	client.error = apierror.ValidationError{
 		Errors: validationErrors,
 	}
 
