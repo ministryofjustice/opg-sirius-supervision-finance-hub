@@ -41,6 +41,20 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, ledgerId i
 	}
 
 	if ledger.Type == "WRITE OFF REVERSAL" {
+		// Reverse the write-off by adding the invoice amount back on
+		_, err = transaction.CreateLedgerAllocation(ctx, store.CreateLedgerAllocationParams{
+			LedgerID:  pgtype.Int4{int32(ledgerId), true},
+			InvoiceID: ledger.InvoiceID,
+			Amount:    -ledger.InvoiceAmount,
+			Status:    "APPROVED",
+			Notes:     ledger.Notes,
+		})
+
+		if err != nil {
+			return err
+		}
+
+		// Move the credit from the ccb to the invoice
 		_, err = transaction.CreateLedgerAllocation(ctx, store.CreateLedgerAllocationParams{
 			LedgerID:  pgtype.Int4{int32(ledgerId), true},
 			InvoiceID: ledger.InvoiceID,

@@ -20,7 +20,13 @@ SET status = $1
 WHERE l.id = $2;
 
 -- name: GetLedger :one
-SELECT l.amount, l.notes, l.type, la.invoice_id
+SELECT
+    l.amount,
+    l.notes,
+    l.type,
+    la.invoice_id,
+    COALESCE(i.amount, 0) invoice_amount
 FROM ledger l
 LEFT JOIN ledger_allocation la ON l.id = la.ledger_id
+LEFT JOIN invoice i ON la.invoice_id = i.id
 WHERE l.id = $1;

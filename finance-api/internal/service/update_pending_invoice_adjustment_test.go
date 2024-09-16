@@ -67,8 +67,8 @@ func (suite *IntegrationSuite) TestService_UpdatePendingInvoiceAdjustmentCreates
 
 	_ = row.Scan(&amount, &invoiceId, &status, &notes)
 
-	assert.Equal(suite.T(), 12300, amount)
+	assert.Equal(suite.T(), -12300, amount)
 	assert.Equal(suite.T(), 16, invoiceId)
-	assert.Equal(suite.T(), "REAPPLIED", status)
+	assert.Equal(suite.T(), "APPROVED", status)
 	assert.Equal(suite.T(), "Test note", notes)
 }
