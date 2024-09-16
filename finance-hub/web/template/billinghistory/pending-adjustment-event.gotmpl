@@ -14,7 +14,7 @@
         <div class="moj-timeline__description">
             <ul class="govuk-list govuk-list--bullet">
                 <li>
-                    <a class="govuk-link"  href="{{prefix (printf "/clients/%s/invoices" .Event.ClientId) }}">{{ .Event.InvoiceReference.Reference }}</a>
+                    <a class="govuk-link"  href="{{prefix (printf "/clients/%d/invoices" .Event.ClientId) }}">{{ .Event.InvoiceReference.Reference }}</a>
                 </li>
                 <li>{{ .Event.Notes }}</li>
             </ul>

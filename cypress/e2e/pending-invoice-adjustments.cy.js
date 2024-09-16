@@ -1,6 +1,6 @@
 describe("Pending Invoice Adjustments", () => {
     it("displays table and content", () => {
-        cy.visit("/clients/3/pending-invoice-adjustments");
+        cy.visit("/clients/10/pending-invoice-adjustments");
 
         cy.get("table#pending-invoice-adjustments > thead > tr")
             .children()
@@ -13,11 +13,11 @@ describe("Pending Invoice Adjustments", () => {
             .next().contains("Actions");
 
         cy.get("table#pending-invoice-adjustments > tbody")
-            .contains("AD03532/24").parent("tr").as("row");
+            .contains("AD10101/24").parent("tr").as("row");
 
         cy.get("@row")
             .children()
-            .first().contains("AD03532/24")
+            .first().contains("AD10101/24")
             .next().contains("11/04/2022")
             .next().contains("Credit")
             .next().contains("£100")
@@ -42,14 +42,14 @@ describe("Pending Invoice Adjustments", () => {
     });
 
     it("shows correct success message", () => {
-        cy.visit("/clients/3/pending-invoice-adjustments?success=approved-invoice-adjustment[DEBIT]");
+        cy.visit("/clients/10/pending-invoice-adjustments?success=approved-invoice-adjustment[DEBIT]");
         cy.get(".moj-banner__message").contains("You have approved the debit");
-        cy.visit("/clients/3/pending-invoice-adjustments?success=rejected-invoice-adjustment[WRITE OFF]");
+        cy.visit("/clients/10/pending-invoice-adjustments?success=rejected-invoice-adjustment[WRITE OFF]");
         cy.get(".moj-banner__message").contains("You have rejected the write off");
     });
 
     it("should have no accessibility violations",() => {
-        cy.visit("/clients/3/pending-invoice-adjustments");
+        cy.visit("/clients/10/pending-invoice-adjustments");
         cy.checkAccessibility();
     });
 });

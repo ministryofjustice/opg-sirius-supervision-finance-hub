@@ -138,50 +138,43 @@ func (q *Queries) GetGeneratedInvoices(ctx context.Context, clientID int32) ([]G
 	return items, nil
 }
 
-const getPendingLedgerAllocations = `-- name: GetPendingLedgerAllocations :many
-SELECT i.id invoice_id, l.id ledger_id, i.reference, l.type, la.amount, l.notes, l.confirmeddate, l.created_by, l.status, l.datetime
-FROM ledger_allocation la
-         JOIN ledger l ON l.id = la.ledger_id
-         JOIN invoice i ON i.id = la.invoice_id
-         JOIN finance_client fc ON fc.id = i.finance_client_id
+const getPendingInvoiceAdjustments = `-- name: GetPendingInvoiceAdjustments :many
+SELECT ia.invoice_id, i.reference, ia.adjustment_type, ia.amount, ia.notes, ia.created_at, ia.created_by
+FROM invoice_adjustment ia
+         JOIN invoice i ON i.id = ia.invoice_id
+         JOIN finance_client fc ON fc.id = ia.finance_client_id
 WHERE fc.client_id = $1
-  AND l.status = 'PENDING'
-ORDER BY l.datetime DESC
+  AND ia.status = 'PENDING'
+ORDER BY ia.raised_date DESC
 `
 
-type GetPendingLedgerAllocationsRow struct {
-	InvoiceID     int32
-	LedgerID      int32
-	Reference     string
-	Type          string
-	Amount        int32
-	Notes         pgtype.Text
-	Confirmeddate pgtype.Date
-	CreatedBy     pgtype.Int4
-	Status        string
-	Datetime      pgtype.Timestamp
+type GetPendingInvoiceAdjustmentsRow struct {
+	InvoiceID      int32
+	Reference      string
+	AdjustmentType string
+	Amount         int32
+	Notes          string
+	CreatedAt      pgtype.Timestamp
+	CreatedBy      int32
 }
 
-func (q *Queries) GetPendingLedgerAllocations(ctx context.Context, clientID int32) ([]GetPendingLedgerAllocationsRow, error) {
-	rows, err := q.db.Query(ctx, getPendingLedgerAllocations, clientID)
+func (q *Queries) GetPendingInvoiceAdjustments(ctx context.Context, clientID int32) ([]GetPendingInvoiceAdjustmentsRow, error) {
+	rows, err := q.db.Query(ctx, getPendingInvoiceAdjustments, clientID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetPendingLedgerAllocationsRow
+	var items []GetPendingInvoiceAdjustmentsRow
 	for rows.Next() {
-		var i GetPendingLedgerAllocationsRow
+		var i GetPendingInvoiceAdjustmentsRow
 		if err := rows.Scan(
 			&i.InvoiceID,
-			&i.LedgerID,
 			&i.Reference,
-			&i.Type,
+			&i.AdjustmentType,
 			&i.Amount,
 			&i.Notes,
-			&i.Confirmeddate,
+			&i.CreatedAt,
 			&i.CreatedBy,
-			&i.Status,
-			&i.Datetime,
 		); err != nil {
 			return nil, err
 		}

@@ -12,7 +12,8 @@ func (s *Server) updatePendingInvoiceAdjustment(w http.ResponseWriter, r *http.R
 
 	var body shared.UpdateInvoiceAdjustment
 
-	ledgerId, _ := strconv.Atoi(r.PathValue("ledgerId"))
+	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
+	adjustmentId, _ := strconv.Atoi(r.PathValue("adjustmentId"))
 
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		return
@@ -29,7 +30,7 @@ func (s *Server) updatePendingInvoiceAdjustment(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	err := s.Service.UpdatePendingInvoiceAdjustment(ctx, ledgerId, body.Status)
+	err := s.Service.UpdatePendingInvoiceAdjustment(ctx, clientId, adjustmentId, body.Status)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

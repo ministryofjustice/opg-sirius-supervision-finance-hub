@@ -1,14 +1,14 @@
 describe("Finance Hub", () => {
     beforeEach(() => {
-        cy.visit("/clients/1/invoices");
+        cy.visit("/clients/99/invoices");
     });
 
     describe("Finance Details Header", () => {
         it("shows the client details", () => {
-            cy.contains('[data-cy="person-name"]', "Finance Person");
+            cy.contains('[data-cy="person-name"]', "Nelly Nullman");
             cy.contains('[data-cy="court-ref"]', "12345678");
-            cy.contains('[data-cy="total-outstanding-balance"]', "£332");
-            cy.contains('[data-cy="total-credit-balance"]', "£100");
+            cy.contains('[data-cy="total-outstanding-balance"]', "£0");
+            cy.contains('[data-cy="total-credit-balance"]', "£0");
             cy.contains('[data-cy="payment-method"]', "Demanded");
         });
     });

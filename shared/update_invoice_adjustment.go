@@ -1,5 +1,5 @@
 package shared
 
 type UpdateInvoiceAdjustment struct {
-	Status string `json:"status" validate:"oneof=APPROVED REJECTED"`
+	Status AdjustmentStatus `json:"status" validate:"valid-enum,oneof=2 3"` // APPROVED, REJECTED
 }

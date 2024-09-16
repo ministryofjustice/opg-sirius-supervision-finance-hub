@@ -52,19 +52,3 @@ func (q *Queries) CreateLedger(ctx context.Context, arg CreateLedgerParams) (int
 	err := row.Scan(&id)
 	return id, err
 }
-
-const updateLedgerAdjustment = `-- name: UpdateLedgerAdjustment :exec
-UPDATE ledger l
-SET status = $1
-WHERE l.id = $2
-`
-
-type UpdateLedgerAdjustmentParams struct {
-	Status string
-	ID     int32
-}
-
-func (q *Queries) UpdateLedgerAdjustment(ctx context.Context, arg UpdateLedgerAdjustmentParams) error {
-	_, err := q.db.Exec(ctx, updateLedgerAdjustment, arg.Status, arg.ID)
-	return err
-}

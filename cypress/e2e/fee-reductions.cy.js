@@ -1,6 +1,6 @@
 describe("Fee Reductions Tab", () => {
     it("displays table and content", () => {
-        cy.visit("/clients/1/fee-reductions");
+        cy.visit("/clients/8/fee-reductions");
 
         cy.get("table#fee-reductions > thead > tr")
             .children()
@@ -42,7 +42,7 @@ describe("Fee Reductions Tab", () => {
     });
 
     it("displays message when there are no fee reductions", () => {
-        cy.visit("/clients/3/fee-reductions");
+        cy.visit("/clients/99/fee-reductions");
 
         cy.get("table#fee-reductions > tbody > tr")
             .should("have.length", 1)
@@ -51,7 +51,7 @@ describe("Fee Reductions Tab", () => {
     });
 
     it("should have no accessibility violations", () => {
-        cy.visit("/clients/1/fee-reductions");
+        cy.visit("/clients/8/fee-reductions");
         cy.checkAccessibility();
     });
 });
