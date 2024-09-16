@@ -56,9 +56,9 @@ func (c *ApiClient) AddManualInvoice(ctx Context, clientId int, invoiceType stri
 	}
 
 	if resp.StatusCode == http.StatusUnprocessableEntity {
-		var v shared.ValidationError
+		var v apierror.ValidationError
 		if err := json.NewDecoder(resp.Body).Decode(&v); err == nil && len(v.Errors) > 0 {
-			return shared.ValidationError{Errors: v.Errors}
+			return apierror.ValidationError{Errors: v.Errors}
 		}
 	}
 
@@ -68,14 +68,14 @@ func (c *ApiClient) AddManualInvoice(ctx Context, clientId int, invoiceType stri
 			return err
 		}
 
-		validationErrors := make(shared.ValidationErrors)
+		validationErrors := make(apierror.ValidationErrors)
 		for _, reason := range badRequests.Reasons {
 			innerMap := make(map[string]string)
 			innerMap[reason] = reason
 			validationErrors[reason] = innerMap
 		}
 
-		return shared.ValidationError{Errors: validationErrors}
+		return apierror.ValidationError{Errors: validationErrors}
 	}
 
 	return newStatusError(resp)
