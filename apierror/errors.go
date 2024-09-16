@@ -1,14 +1,19 @@
 package apierror
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+	"strings"
+)
 
 type BadRequest struct {
 	error
-	Reason string
+	Field  string `json:"field,omitempty"`
+	Reason string `json:"reason"`
 }
 
-func BadRequestError(error error, reason string) *BadRequest {
-	return &BadRequest{error: error, Reason: reason}
+func BadRequestError(field string, reason string, error error) *BadRequest {
+	return &BadRequest{error: error, Field: field, Reason: reason}
 }
 
 func (b BadRequest) Error() string {
@@ -16,6 +21,20 @@ func (b BadRequest) Error() string {
 }
 
 func (b BadRequest) HTTPStatus() int { return http.StatusBadRequest }
+
+type BadRequests struct {
+	Reasons []string `json:"reasons"`
+}
+
+func BadRequestsError(reasons []string) *BadRequests {
+	return &BadRequests{Reasons: reasons}
+}
+
+func (b BadRequests) Error() string {
+	return fmt.Sprintf("bad requests: %s", strings.Join(b.Reasons, ", "))
+}
+
+func (b BadRequests) HTTPStatus() int { return http.StatusBadRequest }
 
 type NotFound struct {
 	error

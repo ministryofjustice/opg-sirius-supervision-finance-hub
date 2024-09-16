@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
 )
@@ -62,7 +63,7 @@ func (c *ApiClient) AddManualInvoice(ctx Context, clientId int, invoiceType stri
 	}
 
 	if resp.StatusCode == http.StatusBadRequest {
-		var badRequests shared.BadRequests
+		var badRequests apierror.BadRequests
 		if err := json.NewDecoder(resp.Body).Decode(&badRequests); err != nil {
 			return err
 		}

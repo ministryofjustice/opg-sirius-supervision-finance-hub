@@ -45,8 +45,8 @@ func TestServer_getAccountInformation_clientNotFound(t *testing.T) {
 	server := Server{Service: mock}
 	err := server.getAccountInformation(w, req)
 
-	var e apierror.NotFound
-	assert.ErrorAs(t, err, &e)
+	expected := apierror.NotFoundError(pgx.ErrNoRows)
+	assert.ErrorAs(t, err, &expected)
 }
 
 func TestServer_getAccountInformation_error(t *testing.T) {

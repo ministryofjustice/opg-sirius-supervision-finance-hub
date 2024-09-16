@@ -3,6 +3,7 @@ package server
 import (
 	"errors"
 	"fmt"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/util"
 	"github.com/opg-sirius-finance-hub/shared"
@@ -38,7 +39,7 @@ func (h *SubmitInvoiceAdjustmentHandler) render(v AppVars, w http.ResponseWriter
 		return h.execute(w, r, data)
 	}
 
-	var be shared.BadRequest
+	var be apierror.BadRequest
 	if errors.As(err, &be) {
 		data := AppVars{Errors: shared.ValidationErrors{be.Field: map[string]string{"tooHigh": be.Reason}}}
 		w.WriteHeader(http.StatusUnprocessableEntity)
@@ -50,7 +51,7 @@ func (h *SubmitInvoiceAdjustmentHandler) render(v AppVars, w http.ResponseWriter
 	} else {
 		var (
 			valErr shared.ValidationError
-			badErr shared.BadRequest
+			badErr apierror.BadRequest
 			stErr  api.StatusError
 		)
 		if errors.As(err, &valErr) {

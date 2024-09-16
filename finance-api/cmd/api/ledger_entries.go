@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"errors"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
 	"strconv"
@@ -25,14 +26,14 @@ func (s *Server) PostLedgerEntry(w http.ResponseWriter, r *http.Request) error {
 	if len(validationError.Errors) != 0 {
 		w.Header().Set("Content-Type", "application/json")
 		http.Error(w, "", http.StatusUnprocessableEntity)
-		err := json.NewEncoder(w).Encode(validationError)
+		err = json.NewEncoder(w).Encode(validationError)
 		return err
 	}
 
 	invoiceReference, err := s.Service.AddInvoiceAdjustment(ctx, clientId, invoiceId, &ledgerEntry)
 
 	if err != nil {
-		var e shared.BadRequests
+		var e apierror.BadRequests
 		ok := errors.As(err, &e)
 		if ok {
 			w.Header().Set("Content-Type", "application/json")
@@ -46,6 +47,7 @@ func (s *Server) PostLedgerEntry(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
 	err = json.NewEncoder(w).Encode(invoiceReference)
 	return err
 }

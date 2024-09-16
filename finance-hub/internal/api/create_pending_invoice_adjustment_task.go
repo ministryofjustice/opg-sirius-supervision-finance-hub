@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
 	"strings"
@@ -75,7 +76,7 @@ func (c *ApiClient) CreatePendingInvoiceAdjustmentTask(ctx Context, clientId int
 		}
 	}
 	if resp.StatusCode == http.StatusBadRequest {
-		var be shared.BadRequest
+		var be apierror.BadRequest
 		if err = json.NewDecoder(resp.Body).Decode(&be); err == nil {
 			return be
 		}

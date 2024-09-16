@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/opg-sirius-finance-hub/apierror"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -104,10 +105,7 @@ func TestAddTaskBadRequest(t *testing.T) {
 	client := &mockApiClient{}
 	ro := &mockRoute{client: client}
 
-	client.error = shared.BadRequest{
-		Field:  "Amount",
-		Reason: "Too high",
-	}
+	client.error = apierror.BadRequestError("Amount", "Too high", nil)
 
 	w := httptest.NewRecorder()
 	r, _ := http.NewRequest(http.MethodPost, "/adjustments", nil)
