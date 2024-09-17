@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"github.com/opg-sirius-finance-hub/shared"
+	"math"
 )
 
 func (s *Service) GetInvoiceAdjustments(ctx context.Context, clientId int) (*shared.InvoiceAdjustments, error) {
@@ -18,7 +19,7 @@ func (s *Service) GetInvoiceAdjustments(ctx context.Context, clientId int) (*sha
 			Id:             int(ia.ID),
 			InvoiceRef:     ia.InvoiceRef,
 			RaisedDate:     shared.Date{Time: ia.RaisedDate.Time},
-			Amount:         int(ia.Amount),
+			Amount:         int(math.Abs(float64(ia.Amount))),
 			AdjustmentType: shared.ParseAdjustmentType(ia.AdjustmentType),
 			Notes:          ia.Notes,
 			Status:         ia.Status,

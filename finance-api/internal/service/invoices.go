@@ -8,6 +8,7 @@ import (
 	"golang.org/x/exp/maps"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
+	"math"
 	"slices"
 )
 
@@ -82,13 +83,14 @@ func (ib *invoiceBuilder) Build() *shared.Invoices {
 }
 
 func (ib *invoiceBuilder) addLedgerAllocations(ilas []store.GetLedgerAllocationsRow) {
+	writeOffReversed := false
 	for _, il := range ilas {
 		metadata := ib.invoices[il.InvoiceID.Int32]
 
 		metadata.invoice.Ledgers = append(
 			metadata.invoice.Ledgers,
 			shared.Ledger{
-				Amount:          int(il.Amount),
+				Amount:          int(math.Abs(float64(il.Amount))),
 				ReceivedDate:    shared.Date{Time: il.RaisedDate.Time},
 				TransactionType: il.Type,
 				Status:          il.Status,
@@ -97,12 +99,15 @@ func (ib *invoiceBuilder) addLedgerAllocations(ilas []store.GetLedgerAllocations
 		if slices.Contains(AllocatedStatuses, il.Status) {
 			if slices.Contains(PaymentTypes, il.Type) {
 				metadata.paymentReceived = true
-			} else if il.Type == "CREDIT WRITE OFF" {
+			} else if il.Type == "CREDIT WRITE OFF" && !writeOffReversed {
 				metadata.contextType = "Write-off"
 			}
 		}
-		if metadata.contextType == "" && il.Type == "CREDIT WRITE OFF" {
+		if metadata.contextType == "" && il.Type == "CREDIT WRITE OFF" && !writeOffReversed {
 			metadata.contextType = "Write-off pending"
+		}
+		if il.Type == "WRITE OFF REVERSAL" {
+			writeOffReversed = true
 		}
 	}
 }
