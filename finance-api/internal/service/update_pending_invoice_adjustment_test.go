@@ -30,6 +30,10 @@ func (suite *IntegrationSuite) TestService_UpdatePendingInvoiceAdjustment() {
 		"INSERT INTO ledger VALUES (NEXTVAL('ledger_id_seq'), 'fully-paid', '2022-04-11T00:00:00+00:00', '', 12300, '', 'CARD PAYMENT', 'CONFIRMED', 4, NULL, NULL, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 65);",
 		"INSERT INTO ledger_allocation VALUES (NEXTVAL('ledger_allocation_id_seq'), 2, 4, '2022-04-11T00:00:00+00:00', 12300, 'ALLOCATED', NULL, 'Notes here', '2022-04-11', NULL);",
 		"INSERT INTO invoice_adjustment VALUES (NEXTVAL('invoice_adjustment_id_seq'), 4, 4, '2024-01-01', 'CREDIT MEMO', '5000', 'approve me', 'PENDING', '2024-01-01', 1)",
+
+		"INSERT INTO finance_client VALUES (5, 5, '1234', 'DEMANDED', NULL);",
+		"INSERT INTO invoice VALUES (6, 5, 5, 'S2', 'reversal', '2019-04-01', '2020-03-31', 12300, NULL, '2020-03-20',1, '2020-03-16', 10, NULL, 12300, '2019-06-06', NULL);",
+		"INSERT INTO invoice_adjustment VALUES (NEXTVAL('invoice_adjustment_id_seq'), 5, 5, '2024-01-01', 'WRITE OFF REVERSAL', '5000', 'approve me', 'PENDING', '2024-01-01', 1)",
 	)
 
 	s := NewService(conn.Conn)
@@ -90,6 +94,17 @@ func (suite *IntegrationSuite) TestService_UpdatePendingInvoiceAdjustment() {
 				"REAPPLIED",
 			},
 		},
+		{
+			name: "Approved - Reapply",
+			args: args{
+				clientId:     5,
+				adjustmentId: 5,
+				status:       shared.AdjustmentStatusApproved,
+			},
+			expectedAllocationStatuses: []string{
+				"ALLOCATED",
+			},
+		},
 	}
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
@@ -122,3 +137,42 @@ func (suite *IntegrationSuite) TestService_UpdatePendingInvoiceAdjustment() {
 		})
 	}
 }
+
+//
+//func (suite *IntegrationSuite) TestService_UpdatePendingInvoiceAdjustmentCreatesReapplyOnWriteOffReversal() {
+//	conn := suite.testDB.GetConn()
+//
+//	conn.SeedData(
+//		"INSERT INTO finance_client VALUES (16, 16, '1234', 'DEMANDED', NULL);",
+//		"INSERT INTO invoice VALUES (16, 16, 16, 'S2', 'S203532/19', '2019-04-01', '2020-03-31', 12300, NULL, '2020-03-20',1, '2020-03-16', 10, NULL, 12300, '2019-06-06', NULL);",
+//		"INSERT INTO ledger VALUES (16, 'random1223', '2022-04-11T08:36:40+00:00', '', 12300, 'Test note', 'WRITE OFF REVERSAL', 'PENDING', 16, 16, NULL, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 65);",
+//		"INSERT INTO ledger_allocation VALUES (16, 16, 16, '2022-04-11T08:36:40+00:00', 12300, 'PENDING', NULL, 'Notes here', '2022-04-11', NULL);",
+//	)
+//
+//	ctx := suite.ctx
+//	Store := store.New(conn)
+//
+//	s := &Service{
+//		store: Store,
+//		tx:    conn,
+//	}
+//
+//	err := s.UpdatePendingInvoiceAdjustment(ctx, 16, "APPROVED")
+//	if err != nil {
+//		suite.T().Error("update pending invoice failed")
+//	}
+//
+//	row := conn.QueryRow(ctx, "SELECT amount, invoice_id, status, notes FROM supervision_finance.ledger_allocation WHERE ledger_id = 16 ORDER BY id ASC")
+//
+//	var amount int
+//	var invoiceId int
+//	var status string
+//	var notes string
+//
+//	_ = row.Scan(&amount, &invoiceId, &status, &notes)
+//
+//	assert.Equal(suite.T(), -12300, amount)
+//	assert.Equal(suite.T(), 16, invoiceId)
+//	assert.Equal(suite.T(), "APPROVED", status)
+//	assert.Equal(suite.T(), "Test note", notes)
+//}
