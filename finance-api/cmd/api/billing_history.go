@@ -6,26 +6,17 @@ import (
 	"strconv"
 )
 
-func (s *Server) getBillingHistory(w http.ResponseWriter, r *http.Request) {
+func (s *Server) getBillingHistory(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 
 	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
 	billingHistory, err := s.Service.GetBillingHistory(ctx, clientId)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	jsonData, err := json.Marshal(billingHistory)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return err
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write(jsonData)
-	if err != nil {
-		return
-	}
+	err = json.NewEncoder(w).Encode(billingHistory)
+	return err
 }

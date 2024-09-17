@@ -3,7 +3,7 @@ package api
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/opg-sirius-finance-hub/shared"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -76,12 +76,12 @@ func TestFeeReductionReturnsBadRequestError(t *testing.T) {
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
 	err := client.AddFeeReduction(getContext(nil), 1, "remission", "2025", "3", "15/02/2024", "Fee remission note for one award")
-	expectedError := shared.ValidationError{Message: "", Errors: shared.ValidationErrors{"Overlap": map[string]string{"start-or-end-date": ""}}}
+	expectedError := apierror.ValidationError{Message: "", Errors: apierror.ValidationErrors{"Overlap": map[string]string{"start-or-end-date": ""}}}
 	assert.Equal(t, expectedError, err)
 }
 
 func TestFeeReductionReturnsValidationError(t *testing.T) {
-	validationErrors := shared.ValidationError{
+	validationErrors := apierror.ValidationError{
 		Message: "Validation failed",
 		Errors: map[string]map[string]string{
 			"DateReceived": {
@@ -99,6 +99,6 @@ func TestFeeReductionReturnsValidationError(t *testing.T) {
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
 	err := client.AddFeeReduction(getContext(nil), 0, "", "", "", "", "")
-	expectedError := shared.ValidationError{Message: "", Errors: shared.ValidationErrors{"DateReceived": map[string]string{"date-in-the-past": "This field DateReceived needs to be looked at date-in-the-past"}}}
-	assert.Equal(t, expectedError, err.(shared.ValidationError))
+	expectedError := apierror.ValidationError{Message: "", Errors: apierror.ValidationErrors{"DateReceived": map[string]string{"date-in-the-past": "This field DateReceived needs to be looked at date-in-the-past"}}}
+	assert.Equal(t, expectedError, err.(apierror.ValidationError))
 }
