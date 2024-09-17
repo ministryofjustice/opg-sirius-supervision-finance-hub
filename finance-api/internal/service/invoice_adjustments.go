@@ -19,8 +19,8 @@ func (s *Service) GetInvoiceAdjustments(ctx context.Context, clientId int) (*sha
 			InvoiceRef:     ia.InvoiceRef,
 			RaisedDate:     shared.Date{Time: ia.RaisedDate.Time},
 			Amount:         int(ia.Amount),
-			AdjustmentType: shared.ParseAdjustmentType(ia.Type),
-			Notes:          ia.Notes.String,
+			AdjustmentType: shared.ParseAdjustmentType(ia.AdjustmentType),
+			Notes:          ia.Notes,
 			Status:         ia.Status,
 		}
 

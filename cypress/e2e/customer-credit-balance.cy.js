@@ -1,7 +1,7 @@
 describe("Customer credit balance", () => {
     it("unapplies excess credit", () => {
         // invoice is partially paid
-        cy.visit("/clients/6/invoices");
+        cy.visit("/clients/7/invoices");
 
         // initial balance
         cy.get("#person-info").within(() => {
@@ -10,7 +10,7 @@ describe("Customer credit balance", () => {
         });
 
         cy.get('[data-cy="ref"]').should("have.length", 1)
-            .contains("AD33333/24").click();
+            .contains("AD77777/24").click();
         cy.get("table#ledger-allocations > tbody > tr").should("have.length", 1)
             .contains('[data-cy="ledger-amount-data"]', "£30");
 
@@ -26,15 +26,15 @@ describe("Customer credit balance", () => {
 
         // check ledger entries for fee reduction and unapply
         cy.get('[data-cy="invoices"]').click();
-        cy.contains("AD33333/24").click();
+        cy.contains("AD77777/24").click();
         cy.get("table#ledger-allocations > tbody > tr").should("have.length", 3);
 
-        const amounts = ["£-30", "£100", "£30"];
+        const amounts = ["£30", "£-30", "£100"];
         cy.get('[data-cy="ledger-amount-data"]').each(($el, index) => {
             cy.wrap($el).contains(amounts[index]);
         });
 
-        const statuses = ["Unapplied", "Allocated", "Allocated"];
+        const statuses = ["Allocated", "Unapplied", "Allocated"];
         cy.get('[data-cy="ledger-status-data"]').each(($el, index) => {
             cy.wrap($el).contains(statuses[index]);
         });
@@ -47,7 +47,7 @@ describe("Customer credit balance", () => {
     });
 
     it("reapplies excess credit", () => {
-        cy.visit("/clients/6/invoices");
+        cy.visit("/clients/7/invoices");
 
         // confirm balance
         cy.get("#person-info").within(() => {

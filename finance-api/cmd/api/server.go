@@ -20,7 +20,7 @@ type Service interface {
 	GetInvoiceAdjustments(ctx context.Context, clientId int) (*shared.InvoiceAdjustments, error)
 	AddFeeReduction(ctx context.Context, clientId int, data shared.AddFeeReduction) error
 	CancelFeeReduction(ctx context.Context, id int, cancelledFeeReduction shared.CancelFeeReduction) error
-	UpdatePendingInvoiceAdjustment(ctx context.Context, ledgerId int, status string) error
+	UpdatePendingInvoiceAdjustment(ctx context.Context, clientId int, adjustmentId int, status shared.AdjustmentStatus) error
 	AddManualInvoice(ctx context.Context, clientId int, invoice shared.AddManualInvoice) error
 	GetBillingHistory(ctx context.Context, id int) ([]shared.BillingHistory, error)
 	ReapplyCredit(ctx context.Context, clientID int32) error
@@ -49,8 +49,8 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 	handleFunc("GET /clients/{clientId}/billing-history", s.getBillingHistory)
 
 	handleFunc("POST /clients/{clientId}/invoices", s.addManualInvoice)
-	handleFunc("POST /clients/{clientId}/invoices/{invoiceId}/ledger-entries", s.PostLedgerEntry)
-	handleFunc("PUT /clients/{clientId}/invoice-adjustments/{ledgerId}", s.updatePendingInvoiceAdjustment)
+	handleFunc("POST /clients/{clientId}/invoices/{invoiceId}/invoice-adjustments", s.PostLedgerEntry)
+	handleFunc("PUT /clients/{clientId}/invoice-adjustments/{adjustmentId}", s.updatePendingInvoiceAdjustment)
 	handleFunc("POST /clients/{clientId}/fee-reductions", s.addFeeReduction)
 	handleFunc("PUT /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", s.cancelFeeReduction)
 

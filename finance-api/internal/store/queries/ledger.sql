@@ -14,10 +14,6 @@ SELECT nextval('ledger_id_seq'),
 FROM finance_client fc WHERE client_id = $1
 RETURNING id;
 
--- name: UpdateLedgerAdjustment :exec
-UPDATE ledger l
-SET status = $1
-WHERE l.id = $2;
 
 -- name: GetLedger :one
 SELECT

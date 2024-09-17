@@ -117,7 +117,6 @@ func Test_invoiceBuilder_statuses(t *testing.T) {
 			ilas: []store.GetLedgerAllocationsRow{
 				{
 					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
-					ID:        2,
 					Amount:    22000,
 					Type:      "CARD PAYMENT",
 					Status:    "APPROVED",
@@ -131,14 +130,12 @@ func Test_invoiceBuilder_statuses(t *testing.T) {
 			ilas: []store.GetLedgerAllocationsRow{
 				{
 					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
-					ID:        2,
 					Amount:    22000,
 					Type:      "CARD PAYMENT",
 					Status:    "APPROVED",
 				},
 				{
 					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
-					ID:        3,
 					Amount:    10000,
 					Type:      "CARD PAYMENT",
 					Status:    "APPROVED",
@@ -152,14 +149,12 @@ func Test_invoiceBuilder_statuses(t *testing.T) {
 			ilas: []store.GetLedgerAllocationsRow{
 				{
 					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
-					ID:        2,
 					Amount:    22000,
 					Type:      "CARD PAYMENT",
 					Status:    "APPROVED",
 				},
 				{
 					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
-					ID:        3,
 					Amount:    20000,
 					Type:      "CARD PAYMENT",
 					Status:    "APPROVED",
@@ -173,14 +168,12 @@ func Test_invoiceBuilder_statuses(t *testing.T) {
 			ilas: []store.GetLedgerAllocationsRow{
 				{
 					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
-					ID:        2,
 					Amount:    22000,
 					Type:      "CREDIT WRITE OFF",
 					Status:    "PENDING", // ignored for balance but not for status
 				},
 				{
 					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
-					ID:        3,
 					Amount:    10000,
 					Type:      "REMISSION",
 					Status:    "APPROVED",
@@ -195,14 +188,12 @@ func Test_invoiceBuilder_statuses(t *testing.T) {
 			ilas: []store.GetLedgerAllocationsRow{
 				{
 					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
-					ID:        2,
 					Amount:    22000,
 					Type:      "CREDIT WRITE OFF",
 					Status:    "APPROVED",
 				},
 				{
 					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
-					ID:        3,
 					Amount:    10000,
 					Type:      "REMISSION",
 					Status:    "APPROVED",
@@ -217,21 +208,18 @@ func Test_invoiceBuilder_statuses(t *testing.T) {
 			ilas: []store.GetLedgerAllocationsRow{
 				{
 					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
-					ID:        2,
 					Amount:    10000,
 					Type:      "CREDIT MEMO",
 					Status:    "APPROVED",
 				},
 				{
 					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
-					ID:        3,
 					Amount:    32000,
 					Type:      "EXEMPTION",
 					Status:    "APPROVED",
 				},
 				{
 					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
-					ID:        4,
 					Amount:    10000,
 					Type:      "CREDIT MEMO",
 					Status:    "UNAPPLIED",
@@ -246,14 +234,12 @@ func Test_invoiceBuilder_statuses(t *testing.T) {
 			ilas: []store.GetLedgerAllocationsRow{
 				{
 					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
-					ID:        2,
 					Amount:    22000,
 					Type:      "CARD PAYMENT",
 					Status:    "APPROVED",
 				},
 				{
 					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
-					ID:        3,
 					Amount:    10000,
 					Type:      "CREDIT MEMO",
 					Status:    "APPROVED",
@@ -267,7 +253,6 @@ func Test_invoiceBuilder_statuses(t *testing.T) {
 			ilas: []store.GetLedgerAllocationsRow{
 				{
 					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
-					ID:        2,
 					Amount:    10000,
 					Type:      "REMISSION",
 					Status:    "APPROVED",
@@ -282,7 +267,6 @@ func Test_invoiceBuilder_statuses(t *testing.T) {
 			ilas: []store.GetLedgerAllocationsRow{
 				{
 					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
-					ID:        2,
 					Amount:    10000,
 					Type:      "HARDSHIP",
 					Status:    "APPROVED",
@@ -297,7 +281,6 @@ func Test_invoiceBuilder_statuses(t *testing.T) {
 			ilas: []store.GetLedgerAllocationsRow{
 				{
 					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
-					ID:        2,
 					Amount:    10000,
 					Type:      "EXEMPTION",
 					Status:    "APPROVED",

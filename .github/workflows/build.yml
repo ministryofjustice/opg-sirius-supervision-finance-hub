@@ -20,13 +20,13 @@ jobs:
 
     steps:
       - name: Set up Go 1.22
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@v5
         with:
           go-version: 1.22
         id: go
 
       - name: Check out code
-        uses: actions/checkout@v1
+        uses: actions/checkout@v4
 
       - name: Run tests
         run: make test
@@ -38,7 +38,7 @@ jobs:
         if: always()
 
       - name: Upload Code Coverage
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           files: test-results/test-coverage.txt
           fail_ci_if_error: false
@@ -48,12 +48,12 @@ jobs:
     name: sqlc validation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: diff
         run: make sqlc-diff
 
-      - uses: sqlc-dev/setup-sqlc@v3
+      - uses: sqlc-dev/setup-sqlc@v4
         with:
           sqlc-version: '1.26.0'
       - uses: sqlc-dev/action-setup-postgres@master
@@ -81,13 +81,13 @@ jobs:
       - name: Run cypress
         run: make cypress
       - name: Store screenshots
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: cypress-screenshots
           path: cypress/screenshots
       - name: Store logs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: cypress-logs
@@ -121,7 +121,7 @@ jobs:
         run: make scan
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'test-results/'
 
@@ -152,6 +152,9 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
         with:
           registries: 311462405659
+      
+      - name: Generate Single Timestamp
+        run: echo "TIMESTAMP=$(date +"%Y%m%d%H%M%S")" >> $GITHUB_ENV
 
       - name: Push Container
         run: |
@@ -160,8 +163,11 @@ jobs:
           docker tag 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-migration:latest 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-migration:${{ steps.bump_version.outputs.tag }}
           if [ $BRANCH_NAME == "main" ]; then
             docker tag 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-hub:latest 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-hub:main-${{ steps.bump_version.outputs.tag }}
+            docker tag 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-hub:latest 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-hub:main-${{ steps.bump_version.outputs.tag }}-$TIMESTAMP
             docker tag 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-api:latest 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-api:main-${{ steps.bump_version.outputs.tag }}
+            docker tag 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-api:latest 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-api:main-${{ steps.bump_version.outputs.tag }}-$TIMESTAMP
             docker tag 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-migration:latest 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-migration:main-${{ steps.bump_version.outputs.tag }}
+            docker tag 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-migration:latest 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-migration:main-${{ steps.bump_version.outputs.tag }}-$TIMESTAMP
             # We want all of the tags pushed
             docker push  --all-tags 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-hub
             docker push  --all-tags 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-api

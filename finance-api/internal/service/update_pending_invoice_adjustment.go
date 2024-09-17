@@ -4,10 +4,10 @@ import (
 	"context"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
-	"strings"
+	"github.com/opg-sirius-finance-hub/shared"
 )
 
-func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, ledgerId int, status string) error {
+func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId int, adjustmentId int, status shared.AdjustmentStatus) error {
 	ctx, cancelTx := context.WithCancel(ctx)
 	defer cancelTx()
 
@@ -18,53 +18,36 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, ledgerId i
 
 	transaction := s.store.WithTx(tx)
 
-	ledgerAdjustmentParams := store.UpdateLedgerAdjustmentParams{
-		Status: strings.ToUpper(status),
-		ID:     int32(ledgerId),
+	decisionParams := store.SetAdjustmentDecisionParams{
+		ID:        int32(adjustmentId),
+		Status:    status.Key(),
+		UpdatedBy: pgtype.Int4{Int32: int32(1), Valid: true},
 	}
 
-	err = transaction.UpdateLedgerAdjustment(ctx, ledgerAdjustmentParams)
+	adjustment, err := transaction.SetAdjustmentDecision(ctx, decisionParams)
 	if err != nil {
 		return err
 	}
 
-	ledgerAllocationAdjustmentParams := store.UpdateLedgerAllocationAdjustmentParams(ledgerAdjustmentParams)
-
-	err = transaction.UpdateLedgerAllocationAdjustment(ctx, ledgerAllocationAdjustmentParams)
-	if err != nil {
-		return err
-	}
-
-	ledger, err := transaction.GetLedger(ctx, int32(ledgerId))
-	if err != nil {
-		return err
-	}
-
-	if ledger.Type == "WRITE OFF REVERSAL" {
-		// Reverse the write-off by adding the invoice amount back on
-		_, err = transaction.CreateLedgerAllocation(ctx, store.CreateLedgerAllocationParams{
-			LedgerID:  pgtype.Int4{int32(ledgerId), true},
-			InvoiceID: ledger.InvoiceID,
-			Amount:    -ledger.InvoiceAmount,
-			Status:    "APPROVED",
-			Notes:     ledger.Notes,
+	if status == shared.AdjustmentStatusApproved {
+		ledger, allocations := generateLedgerEntries(addLedgerVars{
+			amount:             adjustment.Amount,
+			transactionType:    shared.ParseAdjustmentType(adjustment.AdjustmentType),
+			clientId:           int32(clientId),
+			invoiceId:          adjustment.InvoiceID,
+			outstandingBalance: adjustment.Outstanding,
 		})
-
+		ledgerId, err := transaction.CreateLedger(ctx, ledger)
 		if err != nil {
 			return err
 		}
 
-		// Move the credit from the ccb to the invoice
-		_, err = transaction.CreateLedgerAllocation(ctx, store.CreateLedgerAllocationParams{
-			LedgerID:  pgtype.Int4{int32(ledgerId), true},
-			InvoiceID: ledger.InvoiceID,
-			Amount:    ledger.Amount,
-			Status:    "REAPPLIED",
-			Notes:     ledger.Notes,
-		})
-
-		if err != nil {
-			return err
+		for _, allocation := range allocations {
+			allocation.LedgerID = pgtype.Int4{Int32: ledgerId, Valid: true}
+			_, err = transaction.CreateLedgerAllocation(ctx, allocation)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -73,5 +56,8 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, ledgerId i
 		return err
 	}
 
+	if status == shared.AdjustmentStatusApproved {
+		return s.ReapplyCredit(ctx, int32(clientId))
+	}
 	return nil
 }

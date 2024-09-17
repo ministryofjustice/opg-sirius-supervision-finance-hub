@@ -12,19 +12,15 @@ func (suite *IntegrationSuite) TestService_GetInvoiceAdjustments() {
 	conn := suite.testDB.GetConn()
 
 	conn.SeedData(
-		"INSERT INTO finance_client VALUES (6, 6, '1234', 'DEMANDED', NULL);",
-		"INSERT INTO ledger VALUES (2, 'abc1', '2022-04-02T00:00:00+00:00', '', 12300, 'first credit', 'CREDIT MEMO', 'REJECTED', 6, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '05/05/2022', 1);",
-		"INSERT INTO ledger VALUES (3, 'def2', '2022-04-03T00:00:00+00:00', '', 23001, 'first write off', 'CREDIT WRITE OFF', 'CONFIRMED', 6, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '05/05/2022', 1);",
-		"INSERT INTO ledger VALUES (4, 'ghi3', '2022-04-04T00:00:00+00:00', '', 30023, 'second credit', 'CREDIT MEMO', 'PENDING', 6, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '05/05/2022', 1);",
+		"INSERT INTO finance_client VALUES (1, 1, '1234', 'DEMANDED', NULL);",
 
 		// two invoices
-		"INSERT INTO invoice VALUES (2, 1, 6, 'S2', 'S204642/19', '2022-04-02', '2022-04-02', 0, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2022-04-02', 1);",
-		"INSERT INTO invoice VALUES (3, 1, 6, 'S2', 'S205753/20', '2022-04-02', '2022-04-02', 0, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2022-04-02', 1);",
+		"INSERT INTO invoice VALUES (1, 1, 1, 'S2', 'S204642/19', '2022-04-02', '2022-04-02', 0, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2022-04-02', 1);",
+		"INSERT INTO invoice VALUES (2, 1, 1, 'S2', 'S205753/20', '2022-04-02', '2022-04-02', 0, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2022-04-02', 1);",
 
-		// one for each ledger
-		"INSERT INTO ledger_allocation VALUES (2, 2, 2, '2022-04-02T00:00:00+00:00', 0, 'PENDING', NULL, '', '2022-04-02', NULL);",
-		"INSERT INTO ledger_allocation VALUES (3, 3, 2, '2022-04-02T00:00:00+00:00', 0, 'PENDING', NULL, '', '2022-04-02', NULL);",
-		"INSERT INTO ledger_allocation VALUES (4, 4, 3, '2022-04-02T00:00:00+00:00', 0, 'PENDING', NULL, '', '2022-04-02', NULL);",
+		"INSERT INTO invoice_adjustment VALUES (2, 1, 1, '2022-04-02', 'CREDIT MEMO', 12300, 'first credit', 'REJECTED', '2022-04-02T00:00:00+00:00', 1)",
+		"INSERT INTO invoice_adjustment VALUES (3, 1, 1, '2022-04-03', 'CREDIT WRITE OFF', 23001, 'first write off', 'APPROVED', '2022-04-02T00:00:00+00:00', 1)",
+		"INSERT INTO invoice_adjustment VALUES (4, 1, 2, '2022-04-04', 'CREDIT MEMO', 30023, 'second credit', 'PENDING', '2022-04-02T00:00:00+00:00', 1)",
 	)
 
 	dateString := "2022-04-02"
@@ -39,7 +35,7 @@ func (suite *IntegrationSuite) TestService_GetInvoiceAdjustments() {
 	}{
 		{
 			name: "returns invoice adjustments when clientId matches clientId in ledgers table",
-			id:   6,
+			id:   1,
 			want: &shared.InvoiceAdjustments{
 				shared.InvoiceAdjustment{
 					Id:             4,
@@ -56,7 +52,7 @@ func (suite *IntegrationSuite) TestService_GetInvoiceAdjustments() {
 					RaisedDate:     shared.Date{Time: date.AddDate(0, 0, 1)},
 					AdjustmentType: shared.AdjustmentTypeWriteOff,
 					Amount:         23001,
-					Status:         "CONFIRMED",
+					Status:         "APPROVED",
 					Notes:          "first write off",
 				},
 				shared.InvoiceAdjustment{

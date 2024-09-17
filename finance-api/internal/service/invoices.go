@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
 	"golang.org/x/exp/maps"
@@ -91,7 +90,7 @@ func (ib *invoiceBuilder) addLedgerAllocations(ilas []store.GetLedgerAllocations
 			metadata.invoice.Ledgers,
 			shared.Ledger{
 				Amount:          int(il.Amount),
-				ReceivedDate:    calculateReceivedDate(il.Bankdate, il.Datetime),
+				ReceivedDate:    shared.Date{Time: il.RaisedDate.Time},
 				TransactionType: il.Type,
 				Status:          il.Status,
 			})
@@ -148,12 +147,4 @@ func (s *Service) GetInvoices(ctx context.Context, clientId int) (*shared.Invoic
 	builder.addSupervisionLevels(supervisionLevels)
 
 	return builder.Build(), nil
-}
-
-func calculateReceivedDate(bankDate pgtype.Date, datetime pgtype.Timestamp) shared.Date {
-	if !bankDate.Time.IsZero() {
-		return shared.Date{Time: bankDate.Time}
-	}
-
-	return shared.Date{Time: datetime.Time}
 }
