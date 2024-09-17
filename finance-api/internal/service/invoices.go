@@ -8,6 +8,7 @@ import (
 	"golang.org/x/exp/maps"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
+	"math"
 	"slices"
 )
 
@@ -89,7 +90,7 @@ func (ib *invoiceBuilder) addLedgerAllocations(ilas []store.GetLedgerAllocations
 		metadata.invoice.Ledgers = append(
 			metadata.invoice.Ledgers,
 			shared.Ledger{
-				Amount:          int(il.Amount),
+				Amount:          int(math.Abs(float64(il.Amount))),
 				ReceivedDate:    shared.Date{Time: il.RaisedDate.Time},
 				TransactionType: il.Type,
 				Status:          il.Status,
