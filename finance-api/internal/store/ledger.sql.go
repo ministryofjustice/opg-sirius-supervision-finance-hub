@@ -52,37 +52,3 @@ func (q *Queries) CreateLedger(ctx context.Context, arg CreateLedgerParams) (int
 	err := row.Scan(&id)
 	return id, err
 }
-
-const getLedger = `-- name: GetLedger :one
-SELECT
-    l.amount,
-    l.notes,
-    l.type,
-    la.invoice_id,
-    COALESCE(i.amount, 0) invoice_amount
-FROM ledger l
-LEFT JOIN ledger_allocation la ON l.id = la.ledger_id
-LEFT JOIN invoice i ON la.invoice_id = i.id
-WHERE l.id = $1
-`
-
-type GetLedgerRow struct {
-	Amount        int32
-	Notes         pgtype.Text
-	Type          string
-	InvoiceID     pgtype.Int4
-	InvoiceAmount int32
-}
-
-func (q *Queries) GetLedger(ctx context.Context, id int32) (GetLedgerRow, error) {
-	row := q.db.QueryRow(ctx, getLedger, id)
-	var i GetLedgerRow
-	err := row.Scan(
-		&i.Amount,
-		&i.Notes,
-		&i.Type,
-		&i.InvoiceID,
-		&i.InvoiceAmount,
-	)
-	return i, err
-}
