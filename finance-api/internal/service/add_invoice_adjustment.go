@@ -7,6 +7,7 @@ import (
 	"github.com/opg-sirius-finance-hub/apierror"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
+	"log/slog"
 )
 
 func (s *Service) AddInvoiceAdjustment(ctx context.Context, clientId int, invoiceId int, ledgerEntry *shared.AddInvoiceAdjustmentRequest) (*shared.InvoiceReference, error) {
@@ -33,7 +34,7 @@ func (s *Service) AddInvoiceAdjustment(ctx context.Context, clientId int, invoic
 	}
 	invoiceReference, err := s.store.CreatePendingInvoiceAdjustment(ctx, params)
 	if err != nil {
-		logger.Error("Error creating pending invoice adjustment: ", err)
+		logger.Error("Error creating pending invoice adjustment", slog.String("err", err.Error()))
 		return nil, err
 	}
 

@@ -3,6 +3,7 @@ package api
 import (
 	"errors"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"log/slog"
 	"net/http"
 )
 
@@ -12,10 +13,8 @@ func (f handlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := f(w, r); err != nil {
 		ctx := r.Context()
 		logger := telemetry.LoggerFromContext(ctx)
-		logger.Error("unexpected error occurred", "error", err)
-		if err != nil {
-			http.Error(w, err.Error(), HTTPStatus(err))
-		}
+		logger.Error("an api error occurred", slog.String("err", err.Error()))
+		http.Error(w, err.Error(), HTTPStatus(err))
 	}
 }
 
