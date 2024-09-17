@@ -47,7 +47,7 @@ func (suite *IntegrationSuite) TestService_GetInvoices() {
 					OutstandingBalance: 22000,
 					Ledgers: []shared.Ledger{
 						{
-							Amount:          -2300,
+							Amount:          2300,
 							ReceivedDate:    shared.NewDate("04/12/2022"),
 							TransactionType: "CREDIT REMISSION",
 							Status:          "UNAPPLIED",
