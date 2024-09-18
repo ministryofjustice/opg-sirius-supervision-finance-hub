@@ -266,6 +266,7 @@ func TestService_CalculateAdjustmentAmount(t *testing.T) {
 		adjustment            *shared.AddInvoiceAdjustmentRequest
 		balance               store.GetInvoiceBalanceDetailsRow
 		customerCreditBalance int32
+		writeOffAmount        int32
 		expected              int32
 	}{
 		{
@@ -316,7 +317,7 @@ func TestService_CalculateAdjustmentAmount(t *testing.T) {
 			expected: 0,
 		},
 		{
-			name: "Write off reversal returns customer credit balance if less than amount",
+			name: "Write off reversal returns customer credit balance if less than write off amount",
 			adjustment: &shared.AddInvoiceAdjustmentRequest{
 				AdjustmentType: shared.AdjustmentTypeWriteOffReversal,
 			},
@@ -326,10 +327,11 @@ func TestService_CalculateAdjustmentAmount(t *testing.T) {
 				WrittenOff:  true,
 			},
 			customerCreditBalance: 500,
+			writeOffAmount:        1000,
 			expected:              -500,
 		},
 		{
-			name: "Write off reversal returns amount if less than customer credit balance",
+			name: "Write off reversal returns write off amount if less than customer credit balance",
 			adjustment: &shared.AddInvoiceAdjustmentRequest{
 				AdjustmentType: shared.AdjustmentTypeWriteOffReversal,
 			},
@@ -339,12 +341,13 @@ func TestService_CalculateAdjustmentAmount(t *testing.T) {
 				WrittenOff:  true,
 			},
 			customerCreditBalance: 1500,
-			expected:              -1000,
+			writeOffAmount:        800,
+			expected:              -800,
 		},
 	}
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.expected, s.calculateAdjustmentAmount(tt.adjustment, tt.balance, tt.customerCreditBalance))
+			assert.Equal(t, tt.expected, s.calculateAdjustmentAmount(tt.adjustment, tt.balance, tt.customerCreditBalance, tt.writeOffAmount))
 		})
 	}
 }

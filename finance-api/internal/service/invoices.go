@@ -8,7 +8,6 @@ import (
 	"golang.org/x/exp/maps"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
-	"math"
 	"slices"
 )
 
@@ -90,7 +89,7 @@ func (ib *invoiceBuilder) addLedgerAllocations(ilas []store.GetLedgerAllocations
 		metadata.invoice.Ledgers = append(
 			metadata.invoice.Ledgers,
 			shared.Ledger{
-				Amount:          int(math.Abs(float64(il.Amount))),
+				Amount:          int(il.Amount),
 				ReceivedDate:    shared.Date{Time: il.RaisedDate.Time},
 				TransactionType: il.Type,
 				Status:          il.Status,
@@ -103,11 +102,11 @@ func (ib *invoiceBuilder) addLedgerAllocations(ilas []store.GetLedgerAllocations
 				metadata.contextType = "Write-off"
 			}
 		}
-		if metadata.contextType == "" && il.Type == "CREDIT WRITE OFF" && !writeOffReversed {
-			metadata.contextType = "Write-off pending"
-		}
 		if il.Type == "WRITE OFF REVERSAL" {
 			writeOffReversed = true
+		}
+		if metadata.contextType == "" && il.Type == "CREDIT WRITE OFF" && !writeOffReversed {
+			metadata.contextType = "Write-off pending"
 		}
 	}
 }

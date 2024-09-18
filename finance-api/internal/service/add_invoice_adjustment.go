@@ -17,8 +17,13 @@ func (s *Service) AddInvoiceAdjustment(ctx context.Context, clientId int, invoic
 	}
 
 	clientInfo, err := s.store.GetAccountInformation(ctx, int32(clientId))
-
 	if err != nil {
+		return nil, err
+	}
+
+	writeOffAmount, err := s.store.GetMostRecentApprovedWriteOffAmount(ctx, int32(invoiceId))
+	if err != nil {
+		fmt.Println(err)
 		return nil, err
 	}
 
@@ -31,7 +36,7 @@ func (s *Service) AddInvoiceAdjustment(ctx context.Context, clientId int, invoic
 		ClientID:       int32(clientId),
 		InvoiceID:      int32(invoiceId),
 		AdjustmentType: ledgerEntry.AdjustmentType.Key(),
-		Amount:         s.calculateAdjustmentAmount(ledgerEntry, balance, clientInfo.Credit),
+		Amount:         s.calculateAdjustmentAmount(ledgerEntry, balance, clientInfo.Credit, writeOffAmount),
 		Notes:          ledgerEntry.AdjustmentNotes,
 		//TODO make sure we have correct createdby ID in ticket PFS-136
 		CreatedBy: int32(1),
@@ -75,7 +80,7 @@ func (s *Service) validateAdjustmentAmount(adjustment *shared.AddInvoiceAdjustme
 	return nil
 }
 
-func (s *Service) calculateAdjustmentAmount(adjustment *shared.AddInvoiceAdjustmentRequest, balance store.GetInvoiceBalanceDetailsRow, customerCreditBalance int32) int32 {
+func (s *Service) calculateAdjustmentAmount(adjustment *shared.AddInvoiceAdjustmentRequest, balance store.GetInvoiceBalanceDetailsRow, customerCreditBalance int32, writeOffAmount int32) int32 {
 	switch adjustment.AdjustmentType {
 	case shared.AdjustmentTypeWriteOff:
 		return balance.Outstanding
@@ -83,10 +88,10 @@ func (s *Service) calculateAdjustmentAmount(adjustment *shared.AddInvoiceAdjustm
 		return -int32(adjustment.Amount)
 	case shared.AdjustmentTypeWriteOffReversal:
 		if balance.WrittenOff {
-			if balance.Initial > customerCreditBalance {
+			if writeOffAmount > customerCreditBalance {
 				return -customerCreditBalance
 			}
-			return -balance.Initial
+			return -writeOffAmount
 		}
 		return 0
 	default:
