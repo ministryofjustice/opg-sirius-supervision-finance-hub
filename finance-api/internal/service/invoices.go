@@ -82,6 +82,7 @@ func (ib *invoiceBuilder) Build() *shared.Invoices {
 }
 
 func (ib *invoiceBuilder) addLedgerAllocations(ilas []store.GetLedgerAllocationsRow) {
+	writeOffReversed := false
 	for _, il := range ilas {
 		metadata := ib.invoices[il.InvoiceID.Int32]
 
@@ -97,11 +98,14 @@ func (ib *invoiceBuilder) addLedgerAllocations(ilas []store.GetLedgerAllocations
 		if slices.Contains(AllocatedStatuses, il.Status) {
 			if slices.Contains(PaymentTypes, il.Type) {
 				metadata.paymentReceived = true
-			} else if il.Type == "CREDIT WRITE OFF" {
+			} else if il.Type == "CREDIT WRITE OFF" && !writeOffReversed {
 				metadata.contextType = "Write-off"
 			}
 		}
-		if metadata.contextType == "" && il.Type == "CREDIT WRITE OFF" {
+		if il.Type == "WRITE OFF REVERSAL" {
+			writeOffReversed = true
+		}
+		if metadata.contextType == "" && il.Type == "CREDIT WRITE OFF" && !writeOffReversed {
 			metadata.contextType = "Write-off pending"
 		}
 	}
