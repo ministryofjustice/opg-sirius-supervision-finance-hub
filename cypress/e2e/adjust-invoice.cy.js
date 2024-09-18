@@ -44,6 +44,18 @@ describe("Adjust invoice form", () => {
         cy.get(".moj-banner__message").contains("Write-off successfully created");
     });
 
+    it("reverses a write off", () => {
+        cy.visit("/clients/4/invoices/4/adjustments");
+
+        cy.get("#f-AdjustmentType").contains(".govuk-radios__item", "Write off reversal").click();
+        cy.get("#f-AdjustmentNotes").type("Reversing write off");
+        cy.get("#f-Amount").should("be.hidden");
+        cy.contains(".govuk-button", "Save and continue").click();
+
+        cy.url().should("include", "clients/4/invoices?success=invoice-adjustment[WRITE%20OFF%20REVERSAL]");
+        cy.get(".moj-banner__message").contains("Write-off reversal successfully created");
+    });
+
     it("adds debit to an invoice", () => {
         cy.visit("/clients/4/invoices/3/adjustments");
 
