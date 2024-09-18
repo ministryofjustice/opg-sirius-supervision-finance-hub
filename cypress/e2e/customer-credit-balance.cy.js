@@ -29,7 +29,7 @@ describe("Customer credit balance", () => {
         cy.contains("AD77777/24").click();
         cy.get("table#ledger-allocations > tbody > tr").should("have.length", 3);
 
-        const amounts = ["£30", "£100", "£30"];
+        const amounts = ["£100", "£30", "£30"];
         cy.get('[data-cy="ledger-amount-data"]').each(($el, index) => {
             cy.wrap($el).contains(amounts[index]);
         });
