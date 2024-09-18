@@ -4,32 +4,23 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/jackc/pgx/v5"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"net/http"
 	"strconv"
 )
 
-func (s *Server) getPermittedAdjustments(w http.ResponseWriter, r *http.Request) {
+func (s *Server) getPermittedAdjustments(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 
 	invoiceId, _ := strconv.Atoi(r.PathValue("invoiceId"))
 	types, err := s.Service.GetPermittedAdjustments(ctx, invoiceId)
 
 	if errors.Is(err, pgx.ErrNoRows) {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		return apierror.NotFoundError(err)
 	} else if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	jsonData, err := json.Marshal(types)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return err
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write(jsonData)
-	if err != nil {
-		return
-	}
+	return json.NewEncoder(w).Encode(types)
 }

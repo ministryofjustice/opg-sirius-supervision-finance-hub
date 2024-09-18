@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"errors"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/validation"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
@@ -12,14 +13,13 @@ import (
 	"testing"
 )
 
-func TestServer_PostLedgerEntry(t *testing.T) {
+func TestServer_AddInvoiceAdjustment(t *testing.T) {
 	validator, _ := validation.New()
 
 	tests := []struct {
-		name   string
-		body   string
-		err    error
-		status int
+		name string
+		body string
+		err  error
 	}{
 		{
 			name: "success",
@@ -28,8 +28,7 @@ func TestServer_PostLedgerEntry(t *testing.T) {
 				"notes":"Some notes here", 
 				"amount": 12345
 			 }`,
-			err:    nil,
-			status: 201,
+			err: nil,
 		},
 		{
 			name: "internal server error",
@@ -38,8 +37,7 @@ func TestServer_PostLedgerEntry(t *testing.T) {
 				"notes":"Some notes here", 
 				"amount": 12345
 			 }`,
-			err:    errors.New("something is wrong"),
-			status: 500,
+			err: errors.New("something is wrong"),
 		},
 		{
 			name: "bad request",
@@ -48,8 +46,7 @@ func TestServer_PostLedgerEntry(t *testing.T) {
 				"notes":"Some notes here", 
 				"amount": 12345678
 			 }`,
-			err:    shared.BadRequest{Field: "Amount", Reason: "Amount entered must be equal to or less than £420"},
-			status: 400,
+			err: apierror.BadRequestsError([]string{"Amount entered must be equal to or less than £420"}),
 		},
 		{
 			name: "validation error",
@@ -58,8 +55,7 @@ func TestServer_PostLedgerEntry(t *testing.T) {
 				"notes":"` + string(bytes.Repeat([]byte{byte('a')}, 1001)) + `", 
 				"amount": -12345
 			 }`,
-			err:    nil,
-			status: 422,
+			err: apierror.ValidationError{},
 		},
 	}
 	for _, tt := range tests {
@@ -71,22 +67,20 @@ func TestServer_PostLedgerEntry(t *testing.T) {
 
 			mock := &mockService{err: tt.err, expectedIds: []int{1, 2}}
 			server := Server{Service: mock, Validator: validator}
-			server.PostLedgerEntry(w, req)
-
-			res := w.Result()
-			defer res.Body.Close()
+			err := server.AddInvoiceAdjustment(w, req)
 
 			assert.Equal(t, 1, mock.expectedIds[0])
 			assert.Equal(t, 2, mock.expectedIds[1])
-			assert.Equal(t, tt.status, w.Code)
 			if tt.err != nil {
-				assert.Contains(t, w.Body.String(), tt.err.Error())
+				assert.ErrorAs(t, err, &tt.err)
+			} else {
+				assert.NoError(t, err)
 			}
 		})
 	}
 }
 
-func TestCreateLedgerEntryRequest_validation(t *testing.T) {
+func TestAddInvoiceAdjustmentRequest_validation(t *testing.T) {
 	validator, _ := validation.New()
 
 	tests := []struct {

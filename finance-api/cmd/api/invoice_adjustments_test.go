@@ -4,9 +4,9 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 )
@@ -32,15 +32,14 @@ func TestServer_getInvoiceAdjustments(t *testing.T) {
 
 	mock := &mockService{invoiceAdjustments: ia}
 	server := Server{Service: mock}
-	server.getInvoiceAdjustments(w, req)
+	_ = server.getInvoiceAdjustments(w, req)
 
 	res := w.Result()
 	defer res.Body.Close()
-	data, _ := io.ReadAll(res.Body)
 
 	expected := `[{"id":1,"invoiceRef":"abc123/24","raisedDate":"16\/03\/2020","adjustmentType":"CREDIT MEMO","amount":123400,"status":"PENDING","notes":"Credit memo for invoice"}]`
 
-	assert.Equal(t, expected, string(data))
+	assert.Equal(t, strings.TrimSpace(expected), strings.TrimSpace(w.Body.String()))
 	assert.Equal(t, 1, mock.expectedIds[0])
 	assert.Equal(t, "application/json", res.Header.Get("Content-Type"))
 }
@@ -54,15 +53,14 @@ func TestServer_getInvoiceAdjustments_returns_an_empty_array(t *testing.T) {
 
 	mock := &mockService{invoiceAdjustments: ia}
 	server := Server{Service: mock}
-	server.getInvoiceAdjustments(w, req)
+	_ = server.getInvoiceAdjustments(w, req)
 
 	res := w.Result()
 	defer res.Body.Close()
-	data, _ := io.ReadAll(res.Body)
 
 	expected := `[]`
 
-	assert.Equal(t, expected, string(data))
+	assert.Equal(t, strings.TrimSpace(expected), strings.TrimSpace(w.Body.String()))
 	assert.Equal(t, 2, mock.expectedIds[0])
 	assert.Equal(t, "application/json", res.Header.Get("Content-Type"))
 }
@@ -74,9 +72,7 @@ func TestServer_getInvoiceAdjustments_error(t *testing.T) {
 
 	mock := &mockService{err: pgx.ErrTooManyRows}
 	server := Server{Service: mock}
-	server.getInvoiceAdjustments(w, req)
+	err := server.getInvoiceAdjustments(w, req)
 
-	res := w.Result()
-
-	assert.Equal(t, 500, res.StatusCode)
+	assert.Error(t, err)
 }

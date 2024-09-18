@@ -1,7 +1,7 @@
 package util
 
 import (
-	"github.com/opg-sirius-finance-hub/shared"
+	"github.com/opg-sirius-finance-hub/apierror"
 )
 
 type pair struct {
@@ -76,8 +76,8 @@ var validationMappings = map[string]map[string]pair{
 	},
 }
 
-func RenameErrors(siriusError shared.ValidationErrors) shared.ValidationErrors {
-	mappedErrors := shared.ValidationErrors{}
+func RenameErrors(siriusError apierror.ValidationErrors) apierror.ValidationErrors {
+	mappedErrors := apierror.ValidationErrors{}
 	for fieldName, value := range siriusError {
 		for errorType, errorMessage := range value {
 			err := make(map[string]string)
