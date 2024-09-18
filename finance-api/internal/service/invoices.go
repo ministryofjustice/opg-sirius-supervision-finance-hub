@@ -95,15 +95,15 @@ func (ib *invoiceBuilder) addLedgerAllocations(ilas []store.GetLedgerAllocations
 				Status:          il.Status,
 			})
 
+		if il.Type == "WRITE OFF REVERSAL" {
+			writeOffReversed = true
+		}
 		if slices.Contains(AllocatedStatuses, il.Status) {
 			if slices.Contains(PaymentTypes, il.Type) {
 				metadata.paymentReceived = true
 			} else if il.Type == "CREDIT WRITE OFF" && !writeOffReversed {
 				metadata.contextType = "Write-off"
 			}
-		}
-		if il.Type == "WRITE OFF REVERSAL" {
-			writeOffReversed = true
 		}
 		if metadata.contextType == "" && il.Type == "CREDIT WRITE OFF" && !writeOffReversed {
 			metadata.contextType = "Write-off pending"

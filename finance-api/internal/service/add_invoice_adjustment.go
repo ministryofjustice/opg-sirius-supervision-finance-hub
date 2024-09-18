@@ -23,7 +23,6 @@ func (s *Service) AddInvoiceAdjustment(ctx context.Context, clientId int, invoic
 
 	writeOffAmount, err := s.store.GetMostRecentApprovedWriteOffAmount(ctx, int32(invoiceId))
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 
