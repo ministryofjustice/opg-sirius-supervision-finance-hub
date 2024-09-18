@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
 	"strconv"
@@ -54,14 +55,14 @@ func (c *ApiClient) AddFeeReduction(ctx Context, clientId int, feeType string, s
 	}
 
 	if resp.StatusCode == http.StatusUnprocessableEntity {
-		var v shared.ValidationError
+		var v apierror.ValidationError
 		if err := json.NewDecoder(resp.Body).Decode(&v); err == nil && len(v.Errors) > 0 {
-			return shared.ValidationError{Errors: v.Errors}
+			return apierror.ValidationError{Errors: v.Errors}
 		}
 	}
 
 	if resp.StatusCode == http.StatusBadRequest {
-		return shared.ValidationError{Errors: shared.ValidationErrors{"Overlap": {"start-or-end-date": ""}}}
+		return apierror.ValidationError{Errors: apierror.ValidationErrors{"Overlap": {"start-or-end-date": ""}}}
 	}
 
 	return newStatusError(resp)

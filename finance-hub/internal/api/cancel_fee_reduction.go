@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
 )
@@ -41,9 +42,9 @@ func (c *ApiClient) CancelFeeReduction(ctx Context, clientId int, feeReductionId
 	}
 
 	if resp.StatusCode == http.StatusUnprocessableEntity {
-		var v shared.ValidationError
+		var v apierror.ValidationError
 		if err := json.NewDecoder(resp.Body).Decode(&v); err == nil && len(v.Errors) > 0 {
-			return shared.ValidationError{Errors: v.Errors}
+			return apierror.ValidationError{Errors: v.Errors}
 		}
 	}
 

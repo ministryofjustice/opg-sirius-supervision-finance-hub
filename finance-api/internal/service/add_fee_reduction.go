@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
 	"strconv"
@@ -18,7 +19,7 @@ func (s *Service) AddFeeReduction(ctx context.Context, clientId int, data shared
 
 	hasFeeReduction, _ := s.store.CountOverlappingFeeReduction(ctx, overlapParams)
 	if hasFeeReduction != 0 {
-		return BadRequest{Reason: "overlap"}
+		return apierror.BadRequest{Reason: "overlap"}
 	}
 
 	feeReductionParams := store.AddFeeReductionParams{

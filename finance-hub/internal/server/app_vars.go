@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/opg-sirius-finance-hub/shared"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"net/http"
 )
 
@@ -10,7 +10,7 @@ type AppVars struct {
 	XSRFToken       string
 	Tabs            []Tab
 	EnvironmentVars EnvironmentVars
-	Errors          shared.ValidationErrors
+	Errors          apierror.ValidationErrors
 	Error           string
 }
 

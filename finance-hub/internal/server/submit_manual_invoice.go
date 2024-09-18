@@ -3,9 +3,9 @@ package server
 import (
 	"errors"
 	"fmt"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/util"
-	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
 	"net/url"
 	"strings"
@@ -45,7 +45,7 @@ func (h *SubmitManualInvoiceHandler) render(v AppVars, w http.ResponseWriter, r 
 		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices?success=invoice-type[%s]", v.EnvironmentVars.Prefix, ctx.ClientId, strings.ToUpper(invoiceType)))
 	} else {
 		var (
-			valErr shared.ValidationError
+			valErr apierror.ValidationError
 			stErr  api.StatusError
 		)
 		if errors.As(err, &valErr) {

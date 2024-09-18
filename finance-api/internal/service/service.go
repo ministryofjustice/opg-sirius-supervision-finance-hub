@@ -7,14 +7,6 @@ import (
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 )
 
-type BadRequest struct {
-	Reason string
-}
-
-func (b BadRequest) Error() string {
-	return b.Reason
-}
-
 type TX interface {
 	Begin(ctx context.Context) (pgx.Tx, error)
 }

@@ -4,9 +4,9 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 )
@@ -41,15 +41,14 @@ func TestServer_getInvoices(t *testing.T) {
 
 	mock := &mockService{invoices: invoicesInfo}
 	server := Server{Service: mock}
-	server.getInvoices(w, req)
+	_ = server.getInvoices(w, req)
 
 	res := w.Result()
 	defer res.Body.Close()
-	data, _ := io.ReadAll(res.Body)
 
 	expected := `[{"id":1,"ref":"S203531/19","status":"","amount":12,"raisedDate":"16\/03\/2020","received":123,"outstandingBalance":0,"ledgers":[{"amount":123,"receivedDate":"11\/04\/2022","transactionType":"unknown","status":"Confirmed"}],"supervisionLevels":null}]`
 
-	assert.Equal(t, expected, string(data))
+	assert.Equal(t, strings.TrimSpace(expected), strings.TrimSpace(w.Body.String()))
 	assert.Equal(t, 1, mock.expectedIds[0])
 	assert.Equal(t, "application/json", res.Header.Get("Content-Type"))
 }
@@ -63,15 +62,14 @@ func TestServer_getInvoices_returns_an_empty_array(t *testing.T) {
 
 	mock := &mockService{invoices: invoicesInfo}
 	server := Server{Service: mock}
-	server.getInvoices(w, req)
+	_ = server.getInvoices(w, req)
 
 	res := w.Result()
 	defer res.Body.Close()
-	data, _ := io.ReadAll(res.Body)
 
 	expected := `[]`
 
-	assert.Equal(t, expected, string(data))
+	assert.Equal(t, strings.TrimSpace(expected), strings.TrimSpace(w.Body.String()))
 	assert.Equal(t, 2, mock.expectedIds[0])
 	assert.Equal(t, "application/json", res.Header.Get("Content-Type"))
 }
@@ -83,9 +81,7 @@ func TestServer_getInvoices_error(t *testing.T) {
 
 	mock := &mockService{err: pgx.ErrTooManyRows}
 	server := Server{Service: mock}
-	server.getInvoices(w, req)
+	err := server.getInvoices(w, req)
 
-	res := w.Result()
-
-	assert.Equal(t, 500, res.StatusCode)
+	assert.Error(t, err)
 }
