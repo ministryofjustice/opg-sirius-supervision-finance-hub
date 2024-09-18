@@ -54,6 +54,3 @@ RETURNING ia.amount, ia.adjustment_type, ia.finance_client_id, ia.invoice_id,
                         ON i.id = la.invoice_id AND la.status NOT IN ('PENDING', 'UNALLOCATED')
      WHERE i.id = ia.invoice_id
      GROUP BY i.amount);
-
--- name: GetMostRecentApprovedWriteOffAmount :one
-SELECT COALESCE((SELECT amount FROM invoice_adjustment WHERE invoice_id = $1 AND adjustment_type = 'CREDIT WRITE OFF' AND status = 'APPROVED' ORDER BY updated_at DESC LIMIT 1), 0)::int amount;

@@ -232,7 +232,7 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 				Initial:     32000,
 				Outstanding: 10000,
 			},
-			err: shared.BadRequest{Field: "Amount", Reason: "A write off reversal cannot be added to an invoice without an associated write off"},
+			err: apierror.BadRequest{Field: "Amount", Reason: "A write off reversal cannot be added to an invoice without an associated write off"},
 		},
 		{
 			name: "Write off reversal - valid",
@@ -240,9 +240,9 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 				AdjustmentType: shared.AdjustmentTypeWriteOffReversal,
 			},
 			balance: store.GetInvoiceBalanceDetailsRow{
-				Initial:     32000,
-				Outstanding: 10000,
-				WrittenOff:  true,
+				Initial:        32000,
+				Outstanding:    10000,
+				WriteOffAmount: 1000,
 			},
 			err: nil,
 		},
@@ -324,12 +324,11 @@ func TestService_CalculateAdjustmentAmount(t *testing.T) {
 				AdjustmentType: shared.AdjustmentTypeWriteOffReversal,
 			},
 			balance: store.GetInvoiceBalanceDetailsRow{
-				Initial:     32000,
-				Outstanding: 10000,
-				WrittenOff:  true,
+				Initial:        32000,
+				Outstanding:    10000,
+				WriteOffAmount: 1000,
 			},
 			customerCreditBalance: 500,
-			writeOffAmount:        1000,
 			expected:              -500,
 		},
 		{
@@ -338,18 +337,17 @@ func TestService_CalculateAdjustmentAmount(t *testing.T) {
 				AdjustmentType: shared.AdjustmentTypeWriteOffReversal,
 			},
 			balance: store.GetInvoiceBalanceDetailsRow{
-				Initial:     1000,
-				Outstanding: 10000,
-				WrittenOff:  true,
+				Initial:        1000,
+				Outstanding:    10000,
+				WriteOffAmount: 800,
 			},
 			customerCreditBalance: 1500,
-			writeOffAmount:        800,
 			expected:              -800,
 		},
 	}
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.expected, s.calculateAdjustmentAmount(tt.adjustment, tt.balance, tt.customerCreditBalance, tt.writeOffAmount))
+			assert.Equal(t, tt.expected, s.calculateAdjustmentAmount(tt.adjustment, tt.balance, tt.customerCreditBalance))
 		})
 	}
 }

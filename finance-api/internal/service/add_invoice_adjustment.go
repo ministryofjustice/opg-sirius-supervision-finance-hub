@@ -23,7 +23,6 @@ func (s *Service) AddInvoiceAdjustment(ctx context.Context, clientId int, invoic
 		return nil, err
 	}
 
-	writeOffAmount, err := s.store.GetMostRecentApprovedWriteOffAmount(ctx, int32(invoiceId))
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +36,7 @@ func (s *Service) AddInvoiceAdjustment(ctx context.Context, clientId int, invoic
 		ClientID:       int32(clientId),
 		InvoiceID:      int32(invoiceId),
 		AdjustmentType: ledgerEntry.AdjustmentType.Key(),
-		Amount:         s.calculateAdjustmentAmount(ledgerEntry, balance, clientInfo.Credit, writeOffAmount),
+		Amount:         s.calculateAdjustmentAmount(ledgerEntry, balance, clientInfo.Credit),
 		Notes:          ledgerEntry.AdjustmentNotes,
 		//TODO make sure we have correct createdby ID in ticket PFS-136
 		CreatedBy: int32(1),
@@ -72,8 +71,8 @@ func (s *Service) validateAdjustmentAmount(adjustment *shared.AddInvoiceAdjustme
 			return apierror.BadRequestError("Amount", "No outstanding balance to write off", nil)
 		}
 	case shared.AdjustmentTypeWriteOffReversal:
-		if !balance.WrittenOff {
-			return shared.BadRequest{Field: "Amount", Reason: "A write off reversal cannot be added to an invoice without an associated write off"}
+		if balance.WriteOffAmount == 0 {
+			return apierror.BadRequest{Field: "Amount", Reason: "A write off reversal cannot be added to an invoice without an associated write off"}
 		}
 	default:
 		return apierror.BadRequestError("AdjustmentType", "Unimplemented adjustment type", nil)
@@ -81,20 +80,17 @@ func (s *Service) validateAdjustmentAmount(adjustment *shared.AddInvoiceAdjustme
 	return nil
 }
 
-func (s *Service) calculateAdjustmentAmount(adjustment *shared.AddInvoiceAdjustmentRequest, balance store.GetInvoiceBalanceDetailsRow, customerCreditBalance int32, writeOffAmount int32) int32 {
+func (s *Service) calculateAdjustmentAmount(adjustment *shared.AddInvoiceAdjustmentRequest, balance store.GetInvoiceBalanceDetailsRow, customerCreditBalance int32) int32 {
 	switch adjustment.AdjustmentType {
 	case shared.AdjustmentTypeWriteOff:
 		return balance.Outstanding
 	case shared.AdjustmentTypeDebitMemo:
 		return -int32(adjustment.Amount)
 	case shared.AdjustmentTypeWriteOffReversal:
-		if balance.WrittenOff {
-			if writeOffAmount > customerCreditBalance {
-				return -customerCreditBalance
-			}
-			return -writeOffAmount
+		if balance.WriteOffAmount > customerCreditBalance {
+			return -customerCreditBalance
 		}
-		return 0
+		return -balance.WriteOffAmount
 	default:
 		return int32(adjustment.Amount)
 	}
