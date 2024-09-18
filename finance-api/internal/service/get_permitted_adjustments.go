@@ -12,7 +12,7 @@ func (s *Service) GetPermittedAdjustments(ctx context.Context, invoiceId int) ([
 	}
 
 	var permitted []shared.AdjustmentType
-	if !balance.WrittenOff {
+	if balance.WriteOffAmount == 0 {
 		permitted = append(permitted, shared.AdjustmentTypeCreditMemo)
 		if balance.Outstanding > 0 {
 			permitted = append(permitted, shared.AdjustmentTypeWriteOff)
@@ -21,7 +21,7 @@ func (s *Service) GetPermittedAdjustments(ctx context.Context, invoiceId int) ([
 			permitted = append(permitted, shared.AdjustmentTypeDebitMemo)
 		}
 	} else {
-		permitted = append(permitted, shared.AdjustmentTypeWriteOffReversal) // not yet implemented
+		permitted = append(permitted, shared.AdjustmentTypeWriteOffReversal)
 	}
 
 	return permitted, nil

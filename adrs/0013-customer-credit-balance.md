@@ -44,7 +44,7 @@ This can then be used in combination with the `invoice_id` column to categorise 
 * Refund  = `status = 'REAPPLIED' AND invoice_id IS NULL`
 
 It then makes it simple to calculate the CCB at any point in time, as you simply subtract the total ledger allocations with 
-a status of `REAPPLIED` from the total with a status of `UPAPPLIED`.
+a status of `REAPPLIED` from the total with a status of `UNAPPLIED`.
 
 ## Consequences
 
