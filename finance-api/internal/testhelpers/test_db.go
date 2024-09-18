@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
 	"github.com/testcontainers/testcontainers-go"
@@ -115,7 +116,7 @@ func (db *TestDatabase) TearDown() {
 }
 
 func (db *TestDatabase) GetConn() TestConn {
-	conn, err := pgx.Connect(context.Background(), db.Address)
+	conn, err := pgxpool.New(context.Background(), db.Address)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -123,7 +124,7 @@ func (db *TestDatabase) GetConn() TestConn {
 }
 
 type TestConn struct {
-	Conn *pgx.Conn
+	Conn *pgxpool.Pool
 }
 
 func (c TestConn) Exec(ctx context.Context, s string, i ...interface{}) (pgconn.CommandTag, error) {
@@ -136,10 +137,6 @@ func (c TestConn) Query(ctx context.Context, s string, i ...interface{}) (pgx.Ro
 
 func (c TestConn) QueryRow(ctx context.Context, s string, i ...interface{}) pgx.Row {
 	return c.Conn.QueryRow(ctx, s, i...)
-}
-
-func (c TestConn) Prepare(ctx context.Context, name string, sql string) (sd *pgconn.StatementDescription, err error) {
-	return c.Conn.Prepare(ctx, name, sql)
 }
 
 func (c TestConn) Begin(ctx context.Context) (pgx.Tx, error) {

@@ -14,7 +14,6 @@ const (
 								JOIN supervision_finance.ledger l ON fc.id = l.finance_client_id 
 								JOIN supervision_finance.ledger_allocation la ON l.id = la.ledger_id 
                       				WHERE la.status = 'REAPPLIED' AND fc.client_id = 1;`
-	invoiceBalanceForQuery = `SELECT SUM(la.amount) FROM supervision_finance.ledger_allocation la WHERE la.invoice_id = $1;`
 )
 
 func (suite *IntegrationSuite) TestService_reapplyCredit_noInvoices() {
@@ -77,14 +76,13 @@ func (suite *IntegrationSuite) TestService_reapplyCredit_oldestFirst() {
 	// two new reapply allocations
 	assert.Equal(suite.T(), 2, amount)
 
-	_, _ = conn.Prepare(ctx, "invoice_balance", invoiceBalanceForQuery)
-	row = conn.QueryRow(ctx, "invoice_balance", 1)
+	row = conn.QueryRow(ctx, "SELECT SUM(la.amount) FROM supervision_finance.ledger_allocation la WHERE la.invoice_id = 1;")
 	_ = row.Scan(&amount)
 
 	// pays off the oldest in full
 	assert.Equal(suite.T(), 10000, amount)
 
-	row = conn.QueryRow(ctx, "invoice_balance", 2)
+	row = conn.QueryRow(ctx, "SELECT SUM(la.amount) FROM supervision_finance.ledger_allocation la WHERE la.invoice_id = 2;")
 	_ = row.Scan(&amount)
 
 	// the remainder goes to the next oldest
