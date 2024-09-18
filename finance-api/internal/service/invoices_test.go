@@ -47,16 +47,16 @@ func (suite *IntegrationSuite) TestService_GetInvoices() {
 					OutstandingBalance: 22000,
 					Ledgers: []shared.Ledger{
 						{
-							Amount:          -2300,
-							ReceivedDate:    shared.NewDate("04/12/2022"),
-							TransactionType: "CREDIT REMISSION",
-							Status:          "UNAPPLIED",
-						},
-						{
 							Amount:          12300,
 							ReceivedDate:    shared.NewDate("04/12/2022"),
 							TransactionType: "CREDIT REMISSION",
 							Status:          "ALLOCATED",
+						},
+						{
+							Amount:          -2300,
+							ReceivedDate:    shared.NewDate("04/12/2022"),
+							TransactionType: "CREDIT REMISSION",
+							Status:          "UNAPPLIED",
 						},
 					},
 					SupervisionLevels: []shared.SupervisionLevel{
@@ -202,6 +202,25 @@ func Test_invoiceBuilder_statuses(t *testing.T) {
 			status:       "Closed - Write-off",
 			balance:      0,
 			feeReduction: "REMISSION",
+		},
+		{
+			name: "Write-off reversed",
+			ilas: []store.GetLedgerAllocationsRow{
+				{
+					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
+					Amount:    -22000,
+					Type:      "WRITE OFF REVERSAL",
+					Status:    "APPROVED",
+				},
+				{
+					InvoiceID: pgtype.Int4{Int32: 1, Valid: true},
+					Amount:    22000,
+					Type:      "CREDIT WRITE OFF",
+					Status:    "APPROVED",
+				},
+			},
+			status:  "Closed",
+			balance: 0,
 		},
 		{
 			name: "Closed with unapplied credit",

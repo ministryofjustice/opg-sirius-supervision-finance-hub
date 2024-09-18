@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/opg-sirius-finance-hub/shared"
+	"math"
 	"net/http"
 	"strconv"
 )
@@ -50,7 +51,7 @@ func (h *PendingInvoiceAdjustmentsHandler) transform(in shared.InvoiceAdjustment
 			Invoice:          adjustment.InvoiceRef,
 			DateRaised:       adjustment.RaisedDate,
 			AdjustmentType:   h.transformType(adjustment.AdjustmentType),
-			AdjustmentAmount: shared.IntToDecimalString(adjustment.Amount),
+			AdjustmentAmount: shared.IntToDecimalString(int(math.Abs(float64(adjustment.Amount)))),
 			Notes:            adjustment.Notes,
 			Status:           h.transformStatus(adjustment.Status),
 		})
@@ -67,6 +68,8 @@ func (h *PendingInvoiceAdjustmentsHandler) transformType(in shared.AdjustmentTyp
 		return "Debit"
 	case shared.AdjustmentTypeWriteOff:
 		return "Write off"
+	case shared.AdjustmentTypeWriteOffReversal:
+		return "Write off reversal"
 	default:
 		return ""
 	}
