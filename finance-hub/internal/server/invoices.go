@@ -5,6 +5,7 @@ import (
 	"golang.org/x/exp/slices"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -114,7 +115,7 @@ func (h *InvoicesHandler) transformLedgers(ledgers []shared.Ledger, caser cases.
 	var out LedgerAllocations
 	for _, ledger := range ledgers {
 		out = append(out, LedgerAllocation{
-			Amount:          shared.IntToDecimalString(ledger.Amount),
+			Amount:          shared.IntToDecimalString(int(math.Abs(float64(ledger.Amount)))),
 			ReceivedDate:    ledger.ReceivedDate,
 			TransactionType: translate(ledger.TransactionType, ledger.Status),
 			Status:          caser.String(ledger.Status),

@@ -13,4 +13,3 @@ SELECT nextval('ledger_id_seq'),
        ''
 FROM finance_client fc WHERE client_id = $1
 RETURNING id;
-

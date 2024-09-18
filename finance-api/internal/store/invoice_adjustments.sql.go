@@ -139,6 +139,17 @@ func (q *Queries) GetInvoiceAdjustments(ctx context.Context, clientID int32) ([]
 	return items, nil
 }
 
+const getMostRecentApprovedWriteOffAmount = `-- name: GetMostRecentApprovedWriteOffAmount :one
+SELECT COALESCE((SELECT amount FROM invoice_adjustment WHERE invoice_id = $1 AND adjustment_type = 'CREDIT WRITE OFF' AND status = 'APPROVED' ORDER BY updated_at DESC LIMIT 1), 0)::int amount
+`
+
+func (q *Queries) GetMostRecentApprovedWriteOffAmount(ctx context.Context, invoiceID int32) (int32, error) {
+	row := q.db.QueryRow(ctx, getMostRecentApprovedWriteOffAmount, invoiceID)
+	var amount int32
+	err := row.Scan(&amount)
+	return amount, err
+}
+
 const setAdjustmentDecision = `-- name: SetAdjustmentDecision :one
 UPDATE invoice_adjustment ia
 SET status     = $2,
