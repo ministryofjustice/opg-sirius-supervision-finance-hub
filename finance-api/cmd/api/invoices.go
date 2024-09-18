@@ -6,26 +6,16 @@ import (
 	"strconv"
 )
 
-func (s *Server) getInvoices(w http.ResponseWriter, r *http.Request) {
+func (s *Server) getInvoices(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 
 	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
 	invoices, err := s.Service.GetInvoices(ctx, clientId)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	jsonData, err := json.Marshal(invoices)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return err
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write(jsonData)
-	if err != nil {
-		return
-	}
+	return json.NewEncoder(w).Encode(invoices)
 }

@@ -7,35 +7,30 @@ import (
 	"strconv"
 )
 
-func (s *Server) cancelFeeReduction(w http.ResponseWriter, r *http.Request) {
+func (s *Server) cancelFeeReduction(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 
 	var cancelFeeReduction shared.CancelFeeReduction
 	defer r.Body.Close()
 
 	if err := json.NewDecoder(r.Body).Decode(&cancelFeeReduction); err != nil {
-		return
+		return err
 	}
 
 	validationError := s.Validator.ValidateStruct(cancelFeeReduction)
 
 	if len(validationError.Errors) != 0 {
-		errorData, _ := json.Marshal(validationError)
-		w.Header().Set("Content-Type", "application/json")
-		http.Error(w, "", http.StatusUnprocessableEntity)
-		_, _ = w.Write(errorData)
-
-		return
+		return validationError
 	}
 
 	feeReductionId, _ := strconv.Atoi(r.PathValue("feeReductionId"))
 	err := s.Service.CancelFeeReduction(ctx, feeReductionId, cancelFeeReduction)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return err
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
+	return nil
 }

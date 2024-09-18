@@ -3,7 +3,7 @@ package api
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/opg-sirius-finance-hub/shared"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
@@ -62,8 +62,7 @@ func TestAdjustInvoiceReturns500Error(t *testing.T) {
 }
 
 func TestAdjustInvoiceReturnsValidationError(t *testing.T) {
-	validationErrors := shared.ValidationError{
-		Message: "Validation failed",
+	validationErrors := apierror.ValidationError{
 		Errors: map[string]map[string]string{
 			"Field": {
 				"Tag": "Message",
@@ -80,6 +79,6 @@ func TestAdjustInvoiceReturnsValidationError(t *testing.T) {
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
 	err := client.AdjustInvoice(getContext(nil), 2, 41, 4, "CREDIT_MEMO", "notes here", "100")
-	expectedError := shared.ValidationError{Message: "", Errors: shared.ValidationErrors{"Field": map[string]string{"Tag": "Message"}}}
-	assert.Equal(t, expectedError, err.(shared.ValidationError))
+	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"Field": map[string]string{"Tag": "Message"}}}
+	assert.Equal(t, expectedError, err.(apierror.ValidationError))
 }
