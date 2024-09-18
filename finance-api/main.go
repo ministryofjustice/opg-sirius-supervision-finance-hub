@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/lib/pq"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/opg-sirius-finance-hub/finance-api/cmd/api"
@@ -43,13 +43,14 @@ func run(ctx context.Context, logger *slog.Logger) error {
 	dbPassword := getEnv("POSTGRES_PASSWORD", "")
 	pgDb := getEnv("POSTGRES_DB", "")
 
-	conn, err := pgx.Connect(ctx, fmt.Sprintf("postgresql://%s:%s@%s/%s?search_path=supervision_finance", dbUser, url.QueryEscape(dbPassword), dbConn, pgDb))
+	dbpool, err := pgxpool.New(ctx, fmt.Sprintf("postgresql://%s:%s@%s/%s?search_path=supervision_finance", dbUser, url.QueryEscape(dbPassword), dbConn, pgDb))
 	if err != nil {
-		return err
+		logger.Error("Unable to create connection pool", "error", err)
+		os.Exit(1)
 	}
-	defer conn.Close(ctx)
+	defer dbpool.Close()
 
-	Service := service.NewService(conn)
+	Service := service.NewService(dbpool)
 
 	validator, err := validation.New()
 	if err != nil {

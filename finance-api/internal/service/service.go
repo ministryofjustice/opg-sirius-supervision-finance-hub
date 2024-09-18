@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 )
 
@@ -15,7 +16,7 @@ type Service struct {
 	tx    TX
 }
 
-func NewService(conn *pgx.Conn) Service {
+func NewService(conn *pgxpool.Pool) Service {
 	return Service{
 		store: store.New(conn),
 		tx:    conn,
