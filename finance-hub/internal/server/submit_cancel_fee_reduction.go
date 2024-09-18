@@ -3,9 +3,9 @@ package server
 import (
 	"errors"
 	"fmt"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/util"
-	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
 	"strconv"
 )
@@ -27,7 +27,7 @@ func (h *SubmitCancelFeeReductionsHandler) render(v AppVars, w http.ResponseWrit
 		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/fee-reductions?success=fee-reduction[CANCELLED]", v.EnvironmentVars.Prefix, ctx.ClientId))
 	} else {
 		var (
-			valErr shared.ValidationError
+			valErr apierror.ValidationError
 			stErr  api.StatusError
 		)
 		if errors.As(err, &valErr) {

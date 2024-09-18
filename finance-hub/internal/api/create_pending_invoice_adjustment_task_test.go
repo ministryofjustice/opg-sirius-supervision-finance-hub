@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/opg-sirius-finance-hub/shared"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -119,8 +119,7 @@ func TestCreatePendingInvoiceAdjustmentTaskReturns500Error(t *testing.T) {
 }
 
 func TestCreatePendingInvoiceAdjustmentTaskReturnsValidationError(t *testing.T) {
-	validationErrors := shared.ValidationError{
-		Message: "Validation failed",
+	validationErrors := apierror.ValidationError{
 		Errors: map[string]map[string]string{
 			"Field": {
 				"Tag": "Message",
@@ -137,6 +136,6 @@ func TestCreatePendingInvoiceAdjustmentTaskReturnsValidationError(t *testing.T) 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
 	err := client.CreatePendingInvoiceAdjustmentTask(getContext(nil), 2, 41, "4", "CREDIT_MEMO")
-	expectedError := shared.ValidationError{Message: "", Errors: shared.ValidationErrors{"Field": map[string]string{"Tag": "Message"}}}
-	assert.Equal(t, expectedError, err.(shared.ValidationError))
+	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"Field": map[string]string{"Tag": "Message"}}}
+	assert.Equal(t, expectedError, err.(apierror.ValidationError))
 }
