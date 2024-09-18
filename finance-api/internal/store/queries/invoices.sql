@@ -21,18 +21,19 @@ WITH allocations AS (SELECT la.invoice_id,
                             la.amount,
                             COALESCE(l.bankdate, la.datetime) AS raised_date,
                             l.type,
-                            la.status
+                            la.status,
+                            la.datetime
                      FROM ledger_allocation la
                               JOIN ledger l ON la.ledger_id = l.id
                      WHERE la.invoice_id = ANY ($1::INT[])
                      UNION
-                     SELECT ia.invoice_id, ia.amount, ia.raised_date, ia.adjustment_type, ia.status
+                     SELECT ia.invoice_id, ia.amount, ia.raised_date, ia.adjustment_type, ia.status, ia.created_at
                      FROM invoice_adjustment ia
                      WHERE ia.status = 'PENDING'
                        AND ia.invoice_id = ANY ($1::INT[]))
 SELECT *
 FROM allocations
-ORDER BY raised_date DESC, amount;
+ORDER BY raised_date, datetime DESC;
 
 -- name: GetSupervisionLevels :many
 SELECT invoice_id, supervisionlevel, fromdate, todate, amount
