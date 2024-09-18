@@ -3,6 +3,7 @@ package service
 import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
@@ -39,7 +40,7 @@ func (suite *IntegrationSuite) TestService_AddInvoiceAdjustment() {
 				AdjustmentNotes: "credit",
 				Amount:          52000,
 			},
-			err: shared.BadRequest{Field: "Amount", Reason: "Amount entered must be equal to or less than £420"},
+			err: apierror.BadRequestError("Amount", "Amount entered must be equal to or less than £420", nil),
 		},
 		{
 			name:      "Invalid client id",
@@ -70,13 +71,13 @@ func (suite *IntegrationSuite) TestService_AddInvoiceAdjustment() {
 			ctx := suite.ctx
 			_, err := s.AddInvoiceAdjustment(ctx, tt.clientId, tt.invoiceId, tt.data)
 			if err != nil {
-				assert.ErrorIs(t, err, tt.err)
+				assert.ErrorAs(t, err, &tt.err)
 				return
 			}
 
 			var pendingAdjustment store.InvoiceAdjustment
 			q := conn.QueryRow(ctx, "SELECT id, finance_client_id, invoice_id, raised_date, adjustment_type, amount, notes, status FROM invoice_adjustment LIMIT 1")
-			err = q.Scan(
+			_ = q.Scan(
 				&pendingAdjustment.ID,
 				&pendingAdjustment.FinanceClientID,
 				&pendingAdjustment.InvoiceID,
@@ -86,22 +87,19 @@ func (suite *IntegrationSuite) TestService_AddInvoiceAdjustment() {
 				&pendingAdjustment.Notes,
 				&pendingAdjustment.Status,
 			)
-			if err != nil {
-				assert.ErrorIs(t, err, tt.err)
-			} else {
-				expected := store.InvoiceAdjustment{
-					ID:              1,
-					FinanceClientID: int32(tt.clientId),
-					InvoiceID:       int32(tt.invoiceId),
-					RaisedDate:      pgtype.Date{Time: time.Now().UTC().Truncate(24 * time.Hour), Valid: true},
-					AdjustmentType:  tt.data.AdjustmentType.Key(),
-					Amount:          int32(tt.data.Amount),
-					Notes:           tt.data.AdjustmentNotes,
-					Status:          "PENDING",
-				}
 
-				assert.EqualValues(t, expected, pendingAdjustment)
+			expected := store.InvoiceAdjustment{
+				ID:              1,
+				FinanceClientID: int32(tt.clientId),
+				InvoiceID:       int32(tt.invoiceId),
+				RaisedDate:      pgtype.Date{Time: time.Now().UTC().Truncate(24 * time.Hour), Valid: true},
+				AdjustmentType:  tt.data.AdjustmentType.Key(),
+				Amount:          int32(tt.data.Amount),
+				Notes:           tt.data.AdjustmentNotes,
+				Status:          "PENDING",
 			}
+
+			assert.EqualValues(t, expected, pendingAdjustment)
 		})
 	}
 }
@@ -125,7 +123,7 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 				Initial:     32000,
 				Outstanding: 10000,
 			},
-			err: shared.BadRequest{Field: "AdjustmentType", Reason: "Unimplemented adjustment type"},
+			err: apierror.BadRequestError("AdjustmentType", "Unimplemented adjustment type", nil),
 		},
 		{
 			name: "Add Credit - too high",
@@ -137,7 +135,7 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 				Initial:     32000,
 				Outstanding: 10001,
 			},
-			err: shared.BadRequest{Field: "Amount", Reason: "Amount entered must be equal to or less than £420.01"},
+			err: apierror.BadRequestError("Amount", "Amount entered must be equal to or less than £420.01", nil),
 		},
 		{
 			name: "Add Credit - valid",
@@ -162,7 +160,7 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 				Outstanding: 10000,
 				Feetype:     "S2",
 			},
-			err: shared.BadRequest{Field: "Amount", Reason: "Amount entered must be equal to or less than £220"},
+			err: apierror.BadRequestError("Amount", "Amount entered must be equal to or less than £220", nil),
 		},
 		{
 			name: "Add Debit - too high (AD)",
@@ -175,7 +173,7 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 				Outstanding: 0,
 				Feetype:     "AD",
 			},
-			err: shared.BadRequest{Field: "Amount", Reason: "Amount entered must be equal to or less than £100"},
+			err: apierror.BadRequestError("Amount", "Amount entered must be equal to or less than £100", nil),
 		},
 		{
 			name: "Add Debit - valid",
@@ -212,7 +210,7 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 				Initial:     32000,
 				Outstanding: 0,
 			},
-			err: shared.BadRequest{Field: "Amount", Reason: "No outstanding balance to write off"},
+			err: apierror.BadRequestError("Amount", "No outstanding balance to write off", nil),
 		},
 		{
 			name: "Write off - valid",
@@ -253,7 +251,11 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			err := s.validateAdjustmentAmount(tt.adjustment, tt.balance)
-			assert.ErrorIs(t, err, tt.err)
+			if tt.err != nil {
+				assert.ErrorAs(t, err, &tt.err)
+			} else {
+				assert.NoError(t, err)
+			}
 		})
 	}
 }

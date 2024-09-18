@@ -175,7 +175,32 @@ func TestInvoicesHandler_transform(t *testing.T) {
 				in: shared.Invoices{
 					shared.Invoice{
 						Id:                 3,
-						Ref:                "N2000001/20",
+						Ref:                "N2000001/33",
+						Status:             "Unpaid",
+						Amount:             232,
+						RaisedDate:         shared.NewDate("01/04/3333"),
+						Received:           22,
+						OutstandingBalance: 210,
+						Ledgers: []shared.Ledger{
+							{
+								Amount:          12300,
+								ReceivedDate:    shared.NewDate("01/05/2222"),
+								TransactionType: "Online card payment",
+								Status:          "APPLIED",
+							},
+						},
+						SupervisionLevels: []shared.SupervisionLevel{
+							{
+								Level:  "GENERAL",
+								Amount: 32000,
+								From:   shared.NewDate("01/04/2019"),
+								To:     shared.NewDate("31/03/2020"),
+							},
+						},
+					},
+					shared.Invoice{
+						Id:                 2,
+						Ref:                "N2000001/22",
 						Status:             "Unpaid",
 						Amount:             232,
 						RaisedDate:         shared.NewDate("01/04/2222"),
@@ -199,36 +224,11 @@ func TestInvoicesHandler_transform(t *testing.T) {
 						},
 					},
 					shared.Invoice{
-						Id:                 3,
-						Ref:                "N2000001/20",
+						Id:                 1,
+						Ref:                "N2000001/11",
 						Status:             "Unpaid",
 						Amount:             232,
 						RaisedDate:         shared.NewDate("01/04/1111"),
-						Received:           22,
-						OutstandingBalance: 210,
-						Ledgers: []shared.Ledger{
-							{
-								Amount:          12300,
-								ReceivedDate:    shared.NewDate("01/05/2222"),
-								TransactionType: "Online card payment",
-								Status:          "APPLIED",
-							},
-						},
-						SupervisionLevels: []shared.SupervisionLevel{
-							{
-								Level:  "GENERAL",
-								Amount: 32000,
-								From:   shared.NewDate("01/04/2019"),
-								To:     shared.NewDate("31/03/2020"),
-							},
-						},
-					},
-					shared.Invoice{
-						Id:                 3,
-						Ref:                "N2000001/20",
-						Status:             "Unpaid",
-						Amount:             232,
-						RaisedDate:         shared.NewDate("01/04/3333"),
 						Received:           22,
 						OutstandingBalance: 210,
 						Ledgers: []shared.Ledger{
@@ -254,7 +254,7 @@ func TestInvoicesHandler_transform(t *testing.T) {
 			want: Invoices{
 				{
 					Id:                 3,
-					Ref:                "N2000001/20",
+					Ref:                "N2000001/33",
 					Status:             "Unpaid",
 					Amount:             "2.32",
 					RaisedDate:         "01/04/3333",
@@ -279,8 +279,8 @@ func TestInvoicesHandler_transform(t *testing.T) {
 					ClientId: 1,
 				},
 				{
-					Id:                 3,
-					Ref:                "N2000001/20",
+					Id:                 2,
+					Ref:                "N2000001/22",
 					Status:             "Unpaid",
 					Amount:             "2.32",
 					RaisedDate:         "01/04/2222",
@@ -305,8 +305,8 @@ func TestInvoicesHandler_transform(t *testing.T) {
 					ClientId: 1,
 				},
 				{
-					Id:                 3,
-					Ref:                "N2000001/20",
+					Id:                 1,
+					Ref:                "N2000001/11",
 					Status:             "Unpaid",
 					Amount:             "2.32",
 					RaisedDate:         "01/04/1111",

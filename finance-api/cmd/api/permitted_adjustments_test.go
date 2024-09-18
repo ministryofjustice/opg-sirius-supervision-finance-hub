@@ -2,11 +2,12 @@ package api
 
 import (
 	"github.com/jackc/pgx/v5"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -19,15 +20,14 @@ func TestServer_getPermittedAdjustments(t *testing.T) {
 
 	mock := &mockService{adjustmentTypes: types}
 	server := Server{Service: mock}
-	server.getPermittedAdjustments(w, req)
+	_ = server.getPermittedAdjustments(w, req)
 
 	res := w.Result()
 	defer res.Body.Close()
-	data, _ := io.ReadAll(res.Body)
 
 	expected := `["CREDIT MEMO","DEBIT MEMO"]`
 
-	assert.Equal(t, expected, string(data))
+	assert.Equal(t, strings.TrimSpace(expected), strings.TrimSpace(w.Body.String()))
 	assert.Equal(t, 1, mock.expectedIds[0])
 	assert.Equal(t, "application/json", res.Header.Get("Content-Type"))
 }
@@ -39,11 +39,10 @@ func TestServer_getPermittedAdjustments_invoiceNotFound(t *testing.T) {
 
 	mock := &mockService{err: pgx.ErrNoRows}
 	server := Server{Service: mock}
-	server.getPermittedAdjustments(w, req)
+	err := server.getPermittedAdjustments(w, req)
 
-	res := w.Result()
-
-	assert.Equal(t, 404, res.StatusCode)
+	expected := apierror.NotFoundError(pgx.ErrNoRows)
+	assert.ErrorAs(t, err, &expected)
 }
 
 func TestServer_getPermittedAdjustments_error(t *testing.T) {
@@ -53,9 +52,7 @@ func TestServer_getPermittedAdjustments_error(t *testing.T) {
 
 	mock := &mockService{err: pgx.ErrTooManyRows}
 	server := Server{Service: mock}
-	server.getPermittedAdjustments(w, req)
+	err := server.getPermittedAdjustments(w, req)
 
-	res := w.Result()
-
-	assert.Equal(t, 500, res.StatusCode)
+	assert.Error(t, err)
 }

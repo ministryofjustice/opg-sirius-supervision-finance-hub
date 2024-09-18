@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/opg-sirius-finance-hub/shared"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -47,13 +47,13 @@ func TestAddFeeReductionValidationErrors(t *testing.T) {
 	client := &mockApiClient{}
 	ro := &mockRoute{client: client}
 
-	validationErrors := shared.ValidationErrors{
+	validationErrors := apierror.ValidationErrors{
 		"notes": {
 			"stringLengthTooLong": "Reason for manual credit must be 1000 characters or less",
 		},
 	}
 
-	client.error = shared.ValidationError{
+	client.error = apierror.ValidationError{
 		Errors: validationErrors,
 	}
 

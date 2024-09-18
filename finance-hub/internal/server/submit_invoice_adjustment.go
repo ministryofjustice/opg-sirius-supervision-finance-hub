@@ -3,7 +3,7 @@ package server
 import (
 	"errors"
 	"fmt"
-	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/util"
 	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
@@ -31,42 +31,31 @@ func (h *SubmitInvoiceAdjustmentHandler) render(v AppVars, w http.ResponseWriter
 
 	err := h.Client().AdjustInvoice(ctx, ctx.ClientId, v.EnvironmentVars.SupervisionBillingTeam, invoiceId, adjustmentType, notes, amount)
 
-	var verr shared.ValidationError
-	if errors.As(err, &verr) {
-		data := AppVars{Errors: util.RenameErrors(verr.Errors)}
-		w.WriteHeader(http.StatusUnprocessableEntity)
-		return h.execute(w, r, data)
-	}
-
-	var be shared.BadRequest
-	if errors.As(err, &be) {
-		data := AppVars{Errors: shared.ValidationErrors{be.Field: map[string]string{"tooHigh": be.Reason}}}
-		w.WriteHeader(http.StatusUnprocessableEntity)
-		return h.execute(w, r, data)
-	}
-
 	if err == nil {
 		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices?success=invoice-adjustment[%s]", v.EnvironmentVars.Prefix, ctx.ClientId, adjustmentType))
-	} else {
-		var (
-			valErr shared.ValidationError
-			badErr shared.BadRequest
-			stErr  api.StatusError
-		)
-		if errors.As(err, &valErr) {
-			data := AppVars{Errors: util.RenameErrors(valErr.Errors)}
-			w.WriteHeader(http.StatusUnprocessableEntity)
-			err = h.execute(w, r, data)
-		} else if errors.As(err, &badErr) {
-			data := AppVars{Errors: shared.ValidationErrors{be.Field: map[string]string{"tooHigh": be.Reason}}}
-			w.WriteHeader(http.StatusUnprocessableEntity)
-			err = h.execute(w, r, data)
-		} else if errors.As(err, &stErr) {
-			data := AppVars{Error: stErr.Error()}
-			w.WriteHeader(stErr.Code)
-			err = h.execute(w, r, data)
-		}
+		return nil
 	}
 
-	return err
+	var (
+		ve   apierror.ValidationError
+		br   apierror.BadRequest
+		data AppVars
+	)
+	switch {
+	case errors.As(err, &ve):
+		{
+			data = AppVars{Errors: util.RenameErrors(ve.Errors)}
+			w.WriteHeader(http.StatusUnprocessableEntity)
+		}
+	case errors.As(err, &br):
+		{
+			data = AppVars{Errors: apierror.ValidationErrors{br.Field: map[string]string{"tooHigh": br.Reason}}}
+			w.WriteHeader(http.StatusUnprocessableEntity)
+		}
+	default:
+		data = AppVars{Error: err.Error()}
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	return h.execute(w, r, data)
 }

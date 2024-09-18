@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
+	"log/slog"
 )
 
 func (s *Service) ReapplyCredit(ctx context.Context, clientID int32) error {
@@ -43,7 +44,7 @@ func (s *Service) ReapplyCredit(ctx context.Context, clientID int32) error {
 	ledgerId, err := s.store.CreateLedger(ctx, ledger)
 	if err != nil {
 		logger := telemetry.LoggerFromContext(ctx)
-		logger.Error(fmt.Sprintf("Error in reapply for client %d: %s", clientID, err.Error()))
+		logger.Error(fmt.Sprintf("Error in reapply for client %d", clientID), slog.String("err", err.Error()))
 		return err
 	}
 
