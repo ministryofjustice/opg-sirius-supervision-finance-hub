@@ -22,10 +22,7 @@ func (s *Server) updatePendingInvoiceAdjustment(w http.ResponseWriter, r *http.R
 	validationError := s.Validator.ValidateStruct(body)
 
 	if len(validationError.Errors) != 0 {
-		w.Header().Set("Content-Type", "application/json")
-		http.Error(w, "", http.StatusUnprocessableEntity)
-		err := json.NewEncoder(w).Encode(validationError)
-		return err
+		return validationError
 	}
 
 	err := s.Service.UpdatePendingInvoiceAdjustment(ctx, clientId, adjustmentId, body.Status)

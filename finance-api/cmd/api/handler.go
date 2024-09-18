@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"log/slog"
@@ -14,11 +15,11 @@ func (f handlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		logger := telemetry.LoggerFromContext(ctx)
 		logger.Error("an api error occurred", slog.String("err", err.Error()))
-		http.Error(w, err.Error(), HTTPStatus(err))
+		writeError(w, err)
 	}
 }
 
-func HTTPStatus(err error) int {
+func httpStatus(err error) int {
 	if err == nil {
 		return 0
 	}
@@ -30,4 +31,24 @@ func HTTPStatus(err error) int {
 		return statusErr.HTTPStatus()
 	}
 	return http.StatusInternalServerError
+}
+
+func writeError(w http.ResponseWriter, err error) {
+	if err == nil {
+		return
+	}
+	statusCode := httpStatus(err)
+
+	var withBodyErr interface {
+		error
+		HasData() bool
+	}
+	if errors.As(err, &withBodyErr) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.WriteHeader(statusCode)
+		_ = json.NewEncoder(w).Encode(err)
+	} else {
+		http.Error(w, err.Error(), httpStatus(err))
+	}
 }

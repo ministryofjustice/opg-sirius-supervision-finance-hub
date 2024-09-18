@@ -120,7 +120,6 @@ func TestCreatePendingInvoiceAdjustmentTaskReturns500Error(t *testing.T) {
 
 func TestCreatePendingInvoiceAdjustmentTaskReturnsValidationError(t *testing.T) {
 	validationErrors := apierror.ValidationError{
-		Message: "Validation failed",
 		Errors: map[string]map[string]string{
 			"Field": {
 				"Tag": "Message",
@@ -137,6 +136,6 @@ func TestCreatePendingInvoiceAdjustmentTaskReturnsValidationError(t *testing.T) 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
 	err := client.CreatePendingInvoiceAdjustmentTask(getContext(nil), 2, 41, "4", "CREDIT_MEMO")
-	expectedError := apierror.ValidationError{Message: "", Errors: apierror.ValidationErrors{"Field": map[string]string{"Tag": "Message"}}}
+	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"Field": map[string]string{"Tag": "Message"}}}
 	assert.Equal(t, expectedError, err.(apierror.ValidationError))
 }

@@ -63,7 +63,6 @@ func TestAdjustInvoiceReturns500Error(t *testing.T) {
 
 func TestAdjustInvoiceReturnsValidationError(t *testing.T) {
 	validationErrors := apierror.ValidationError{
-		Message: "Validation failed",
 		Errors: map[string]map[string]string{
 			"Field": {
 				"Tag": "Message",
@@ -80,6 +79,6 @@ func TestAdjustInvoiceReturnsValidationError(t *testing.T) {
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
 	err := client.AdjustInvoice(getContext(nil), 2, 41, 4, "CREDIT_MEMO", "notes here", "100")
-	expectedError := apierror.ValidationError{Message: "", Errors: apierror.ValidationErrors{"Field": map[string]string{"Tag": "Message"}}}
+	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"Field": map[string]string{"Tag": "Message"}}}
 	assert.Equal(t, expectedError, err.(apierror.ValidationError))
 }

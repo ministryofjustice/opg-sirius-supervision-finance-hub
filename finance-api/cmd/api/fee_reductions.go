@@ -16,6 +16,5 @@ func (s *Server) getFeeReductions(w http.ResponseWriter, r *http.Request) error 
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(accountInfo)
-	return err
+	return json.NewEncoder(w).Encode(accountInfo)
 }

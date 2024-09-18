@@ -22,6 +22,5 @@ func (s *Server) getPermittedAdjustments(w http.ResponseWriter, r *http.Request)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(types)
-	return err
+	return json.NewEncoder(w).Encode(types)
 }

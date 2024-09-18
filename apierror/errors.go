@@ -22,6 +22,10 @@ func (b BadRequest) Error() string {
 
 func (b BadRequest) HTTPStatus() int { return http.StatusBadRequest }
 
+func (b BadRequest) HasData() bool {
+	return true
+}
+
 type BadRequests struct {
 	Reasons []string `json:"reasons"`
 }
@@ -35,6 +39,10 @@ func (b BadRequests) Error() string {
 }
 
 func (b BadRequests) HTTPStatus() int { return http.StatusBadRequest }
+
+func (b BadRequests) HasData() bool {
+	return true
+}
 
 type NotFound struct {
 	error
@@ -57,12 +65,15 @@ func (n NotFound) HTTPStatus() int { return http.StatusNotFound }
 type ValidationErrors map[string]map[string]string
 
 type ValidationError struct {
-	Message string
-	Errors  ValidationErrors `json:"validation_errors"`
+	Errors ValidationErrors `json:"validation_errors"`
 }
 
 func (ve ValidationError) Error() string {
-	return ve.Message
+	return "validation failed"
 }
 
 func (ve ValidationError) HTTPStatus() int { return http.StatusUnprocessableEntity }
+
+func (ve ValidationError) HasData() bool {
+	return true
+}

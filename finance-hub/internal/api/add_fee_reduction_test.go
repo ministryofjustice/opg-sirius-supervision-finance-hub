@@ -76,13 +76,12 @@ func TestFeeReductionReturnsBadRequestError(t *testing.T) {
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
 	err := client.AddFeeReduction(getContext(nil), 1, "remission", "2025", "3", "15/02/2024", "Fee remission note for one award")
-	expectedError := apierror.ValidationError{Message: "", Errors: apierror.ValidationErrors{"Overlap": map[string]string{"start-or-end-date": ""}}}
+	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"Overlap": map[string]string{"start-or-end-date": ""}}}
 	assert.Equal(t, expectedError, err)
 }
 
 func TestFeeReductionReturnsValidationError(t *testing.T) {
 	validationErrors := apierror.ValidationError{
-		Message: "Validation failed",
 		Errors: map[string]map[string]string{
 			"DateReceived": {
 				"date-in-the-past": "This field DateReceived needs to be looked at date-in-the-past",
@@ -99,6 +98,6 @@ func TestFeeReductionReturnsValidationError(t *testing.T) {
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
 	err := client.AddFeeReduction(getContext(nil), 0, "", "", "", "", "")
-	expectedError := apierror.ValidationError{Message: "", Errors: apierror.ValidationErrors{"DateReceived": map[string]string{"date-in-the-past": "This field DateReceived needs to be looked at date-in-the-past"}}}
+	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"DateReceived": map[string]string{"date-in-the-past": "This field DateReceived needs to be looked at date-in-the-past"}}}
 	assert.Equal(t, expectedError, err.(apierror.ValidationError))
 }

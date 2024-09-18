@@ -20,10 +20,7 @@ func (s *Server) cancelFeeReduction(w http.ResponseWriter, r *http.Request) erro
 	validationError := s.Validator.ValidateStruct(cancelFeeReduction)
 
 	if len(validationError.Errors) != 0 {
-		w.Header().Set("Content-Type", "application/json")
-		http.Error(w, "", http.StatusUnprocessableEntity)
-		err := json.NewEncoder(w).Encode(validationError)
-		return err
+		return validationError
 	}
 
 	feeReductionId, _ := strconv.Atoi(r.PathValue("feeReductionId"))

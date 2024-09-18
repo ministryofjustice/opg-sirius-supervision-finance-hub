@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"github.com/opg-sirius-finance-hub/apierror"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/validation"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 )
 
@@ -55,16 +55,15 @@ func TestServer_cancelFeeReductionsValidationErrors(t *testing.T) {
 
 	mock := &mockService{cancelFeeReduction: cancelFeeReductionInfo}
 	server := Server{Service: mock, Validator: validator}
-	_ = server.cancelFeeReduction(w, req)
+	err := server.cancelFeeReduction(w, req)
 
-	res := w.Result()
-	defer res.Body.Close()
-
-	expected :=
-		`{"Message":"","validation_errors":{"CancellationReason":{"required":"This field CancellationReason needs to be looked at required"}}}`
-
-	assert.Equal(t, strings.TrimSpace(expected), strings.TrimSpace(w.Body.String()))
-	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+	expected := apierror.ValidationError{Errors: apierror.ValidationErrors{
+		"CancellationReason": {
+			"required": "This field CancellationReason needs to be looked at required",
+		},
+	},
+	}
+	assert.Equal(t, expected, err)
 }
 
 func TestServer_cancelFeeReductions500Error(t *testing.T) {

@@ -68,13 +68,12 @@ func TestServer_updatePendingInvoiceAdjustmentValidationError(t *testing.T) {
 
 	mock := &mockService{err: errors.New("Something is wrong")}
 	server := Server{Service: mock, Validator: validator}
-	_ = server.updatePendingInvoiceAdjustment(w, req)
+	err := server.updatePendingInvoiceAdjustment(w, req)
 
-	res := w.Result()
-	defer res.Body.Close()
-
-	expectedError := apierror.BadRequestError("Status", "This field Status needs to be looked at oneof", nil)
-
-	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
-	assert.Contains(t, w.Body.String(), expectedError.Error())
+	expected := apierror.ValidationError{Errors: apierror.ValidationErrors{
+		"Status": {
+			"oneof": "This field Status needs to be looked at oneof",
+		},
+	}}
+	assert.Equal(t, expected, err)
 }

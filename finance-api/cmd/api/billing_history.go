@@ -17,6 +17,5 @@ func (s *Server) getBillingHistory(w http.ResponseWriter, r *http.Request) error
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(billingHistory)
-	return err
+	return json.NewEncoder(w).Encode(billingHistory)
 }

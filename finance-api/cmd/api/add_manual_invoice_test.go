@@ -11,7 +11,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 	"time"
 )
@@ -101,16 +100,29 @@ func TestServer_addManualInvoiceValidationErrors(t *testing.T) {
 
 	mock := &mockService{manualInvoice: manualInvoiceInfo}
 	server := Server{Service: mock, Validator: validator}
-	_ = server.addManualInvoice(w, req)
+	err := server.addManualInvoice(w, req)
 
-	res := w.Result()
-	defer res.Body.Close()
-
-	expected :=
-		`{"Message":"","validation_errors":{"Amount":{"nillable-int-gt":"This field Amount needs to be looked at nillable-int-gt"},"EndDate":{"nillable-date-required":"This field EndDate needs to be looked at nillable-date-required"},"InvoiceType":{"required":"This field InvoiceType needs to be looked at required"},"RaisedDate":{"nillable-date-required":"This field RaisedDate needs to be looked at nillable-date-required"},"StartDate":{"nillable-date-required":"This field StartDate needs to be looked at nillable-date-required"},"SupervisionLevel":{"nillable-string-oneof":"This field SupervisionLevel needs to be looked at nillable-string-oneof"}}}`
-
-	assert.Equal(t, strings.TrimSpace(expected), strings.TrimSpace(w.Body.String()))
-	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+	expected := apierror.ValidationError{Errors: apierror.ValidationErrors{
+		"Amount": {
+			"nillable-int-gt": "This field Amount needs to be looked at nillable-int-gt",
+		},
+		"EndDate": {
+			"nillable-date-required": "This field EndDate needs to be looked at nillable-date-required",
+		},
+		"InvoiceType": {
+			"required": "This field InvoiceType needs to be looked at required",
+		},
+		"RaisedDate": {
+			"nillable-date-required": "This field RaisedDate needs to be looked at nillable-date-required",
+		},
+		"StartDate": {
+			"nillable-date-required": "This field StartDate needs to be looked at nillable-date-required",
+		},
+		"SupervisionLevel": {
+			"nillable-string-oneof": "This field SupervisionLevel needs to be looked at nillable-string-oneof",
+		},
+	}}
+	assert.Equal(t, expected, err)
 }
 
 func TestServer_addManualInvoiceValidationErrorsForAmountTooHigh(t *testing.T) {
@@ -136,16 +148,14 @@ func TestServer_addManualInvoiceValidationErrorsForAmountTooHigh(t *testing.T) {
 
 	mock := &mockService{manualInvoice: manualInvoiceInfo}
 	server := Server{Service: mock, Validator: validator}
-	_ = server.addManualInvoice(w, req)
+	err := server.addManualInvoice(w, req)
 
-	res := w.Result()
-	defer res.Body.Close()
-
-	expected :=
-		`{"Message":"","validation_errors":{"Amount":{"nillable-int-lte":"This field Amount needs to be looked at nillable-int-lte"}}}`
-
-	assert.Equal(t, strings.TrimSpace(expected), strings.TrimSpace(w.Body.String()))
-	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+	expected := apierror.ValidationError{Errors: apierror.ValidationErrors{
+		"Amount": {
+			"nillable-int-lte": "This field Amount needs to be looked at nillable-int-lte",
+		},
+	}}
+	assert.Equal(t, expected, err)
 }
 
 func TestServer_addManualInvoiceDateErrors(t *testing.T) {
@@ -171,12 +181,13 @@ func TestServer_addManualInvoiceDateErrors(t *testing.T) {
 
 	mock := &mockService{manualInvoice: manualInvoiceInfo, err: apierror.BadRequestsError([]string{"RaisedDateForAnInvoice", "StartDate", "EndDate"})}
 	server := Server{Service: mock, Validator: validator}
-	_ = server.addFeeReduction(w, req)
+	err := server.addFeeReduction(w, req)
 
 	res := w.Result()
 	defer res.Body.Close()
 
-	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+	var expErr apierror.ValidationError
+	assert.ErrorAs(t, err, &expErr)
 }
 
 func TestServer_addManualInvoice422Error(t *testing.T) {
@@ -202,10 +213,11 @@ func TestServer_addManualInvoice422Error(t *testing.T) {
 
 	mock := &mockService{manualInvoice: manualInvoiceInfo, err: errors.New("something is wrong")}
 	server := Server{Service: mock, Validator: validator}
-	_ = server.addFeeReduction(w, req)
+	err := server.addFeeReduction(w, req)
 
 	res := w.Result()
 	defer res.Body.Close()
 
-	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+	var expErr apierror.ValidationError
+	assert.ErrorAs(t, err, &expErr)
 }

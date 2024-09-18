@@ -64,7 +64,6 @@ func TestCancelFeeReductionReturns500Error(t *testing.T) {
 
 func TestCancelFeeReductionReturnsValidationError(t *testing.T) {
 	validationErrors := apierror.ValidationError{
-		Message: "Validation failed",
 		Errors: map[string]map[string]string{
 			"CancelFeeReductionNotes": {
 				"required": "This field CancelFeeReductionNotes needs to be looked at required",
@@ -81,6 +80,6 @@ func TestCancelFeeReductionReturnsValidationError(t *testing.T) {
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
 	err := client.CancelFeeReduction(getContext(nil), 0, 0, "")
-	expectedError := apierror.ValidationError{Message: "", Errors: apierror.ValidationErrors{"CancelFeeReductionNotes": map[string]string{"required": "This field CancelFeeReductionNotes needs to be looked at required"}}}
+	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"CancelFeeReductionNotes": map[string]string{"required": "This field CancelFeeReductionNotes needs to be looked at required"}}}
 	assert.Equal(t, expectedError, err.(apierror.ValidationError))
 }

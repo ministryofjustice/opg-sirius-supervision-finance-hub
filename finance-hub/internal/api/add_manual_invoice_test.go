@@ -95,14 +95,13 @@ func TestAddManualInvoiceReturnsBadRequestError(t *testing.T) {
 
 	err := client.AddManualInvoice(getContext(nil), 1, "SO", pointer("2025"), pointer("05/05/2024"), &nilString, pointer("04/04/2024"), pointer("31/03/2025"), pointer("GENERAL"))
 
-	expectedError := apierror.ValidationError{Message: "", Errors: apierror.ValidationErrors{"EndDate": map[string]string{"EndDate": "EndDate"}, "StartDate": map[string]string{"StartDate": "StartDate"}}}
+	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"EndDate": map[string]string{"EndDate": "EndDate"}, "StartDate": map[string]string{"StartDate": "StartDate"}}}
 	assert.Equal(t, expectedError, err)
 }
 
 func TestAddManualInvoiceReturnsValidationError(t *testing.T) {
 	var nilString string
 	validationErrors := apierror.ValidationError{
-		Message: "Validation failed",
 		Errors: map[string]map[string]string{
 			"DateReceived": {
 				"date-in-the-past": "This field DateReceived needs to be looked at date-in-the-past",
@@ -119,6 +118,6 @@ func TestAddManualInvoiceReturnsValidationError(t *testing.T) {
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
 	err := client.AddManualInvoice(getContext(nil), 1, "SO", pointer("2025"), pointer("05/05/2024"), &nilString, pointer("04/04/2024"), pointer("31/03/2025"), pointer("GENERAL"))
-	expectedError := apierror.ValidationError{Message: "", Errors: apierror.ValidationErrors{"DateReceived": map[string]string{"date-in-the-past": "This field DateReceived needs to be looked at date-in-the-past"}}}
+	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"DateReceived": map[string]string{"date-in-the-past": "This field DateReceived needs to be looked at date-in-the-past"}}}
 	assert.Equal(t, expectedError, err.(apierror.ValidationError))
 }

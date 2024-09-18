@@ -22,6 +22,5 @@ func (s *Server) getAccountInformation(w http.ResponseWriter, r *http.Request) e
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(accountInfo)
-	return err
+	return json.NewEncoder(w).Encode(accountInfo)
 }

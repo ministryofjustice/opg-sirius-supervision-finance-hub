@@ -17,10 +17,9 @@ func TestServer_AddInvoiceAdjustment(t *testing.T) {
 	validator, _ := validation.New()
 
 	tests := []struct {
-		name   string
-		body   string
-		err    error
-		status int
+		name string
+		body string
+		err  error
 	}{
 		{
 			name: "success",
@@ -29,8 +28,7 @@ func TestServer_AddInvoiceAdjustment(t *testing.T) {
 				"notes":"Some notes here", 
 				"amount": 12345
 			 }`,
-			err:    nil,
-			status: 201,
+			err: nil,
 		},
 		{
 			name: "internal server error",
@@ -39,8 +37,7 @@ func TestServer_AddInvoiceAdjustment(t *testing.T) {
 				"notes":"Some notes here", 
 				"amount": 12345
 			 }`,
-			err:    errors.New("something is wrong"),
-			status: 500,
+			err: errors.New("something is wrong"),
 		},
 		{
 			name: "bad request",
@@ -49,8 +46,7 @@ func TestServer_AddInvoiceAdjustment(t *testing.T) {
 				"notes":"Some notes here", 
 				"amount": 12345678
 			 }`,
-			err:    apierror.BadRequestsError([]string{"Amount entered must be equal to or less than £420"}),
-			status: 400,
+			err: apierror.BadRequestsError([]string{"Amount entered must be equal to or less than £420"}),
 		},
 		{
 			name: "validation error",
@@ -59,8 +55,7 @@ func TestServer_AddInvoiceAdjustment(t *testing.T) {
 				"notes":"` + string(bytes.Repeat([]byte{byte('a')}, 1001)) + `", 
 				"amount": -12345
 			 }`,
-			err:    nil,
-			status: 422,
+			err: apierror.ValidationError{},
 		},
 	}
 	for _, tt := range tests {

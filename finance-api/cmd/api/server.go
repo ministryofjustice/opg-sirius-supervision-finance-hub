@@ -63,11 +63,13 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 
 func (s *Server) RequestLogger(h http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		telemetry.LoggerFromContext(r.Context()).Info(
-			"API Request",
-			"method", r.Method,
-			"uri", r.URL.RequestURI(),
-		)
+		if r.URL.Path != "/health-check" {
+			telemetry.LoggerFromContext(r.Context()).Info(
+				"API Request",
+				"method", r.Method,
+				"uri", r.URL.RequestURI(),
+			)
+		}
 		h.ServeHTTP(w, r)
 	}
 }
