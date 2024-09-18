@@ -244,7 +244,7 @@ WITH allocations AS (SELECT la.invoice_id,
                        AND ia.invoice_id = ANY ($1::INT[]))
 SELECT invoice_id, amount, raised_date, type, status
 FROM allocations
-ORDER BY raised_date DESC
+ORDER BY raised_date DESC, amount
 `
 
 type GetLedgerAllocationsRow struct {
