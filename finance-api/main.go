@@ -3,10 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/lib/pq"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/opg-sirius-finance-hub/finance-api/cmd/api"
+	"github.com/opg-sirius-finance-hub/finance-api/internal/event"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/service"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/validation"
 	"log/slog"
@@ -16,6 +18,8 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/aws/aws-sdk-go-v2/config"
 )
 
 func main() {
@@ -30,27 +34,19 @@ func main() {
 }
 
 func run(ctx context.Context, logger *slog.Logger) error {
-	exportTraces := getEnv("TRACING_ENABLED", "0") == "1"
-
+	exportTraces := os.Getenv("TRACING_ENABLED") == "1"
 	shutdown, err := telemetry.StartTracerProvider(ctx, logger, exportTraces)
 	defer shutdown()
 	if err != nil {
 		return err
 	}
 
-	dbConn := getEnv("POSTGRES_CONN", "")
-	dbUser := getEnv("POSTGRES_USER", "")
-	dbPassword := getEnv("POSTGRES_PASSWORD", "")
-	pgDb := getEnv("POSTGRES_DB", "")
-
-	dbpool, err := pgxpool.New(ctx, fmt.Sprintf("postgresql://%s:%s@%s/%s?search_path=supervision_finance", dbUser, url.QueryEscape(dbPassword), dbConn, pgDb))
-	if err != nil {
-		logger.Error("Unable to create connection pool", "error", err)
-		os.Exit(1)
-	}
+	dbpool := setupDbPool(ctx, logger, err)
 	defer dbpool.Close()
 
-	Service := service.NewService(dbpool)
+	eventclient := setupEventClient(ctx, logger, err)
+
+	Service := service.NewService(dbpool, eventclient)
 
 	validator, err := validation.New()
 	if err != nil {
@@ -84,10 +80,31 @@ func run(ctx context.Context, logger *slog.Logger) error {
 	return s.Shutdown(tc)
 }
 
-func getEnv(key, def string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
+func setupDbPool(ctx context.Context, logger *slog.Logger, err error) *pgxpool.Pool {
+	dbConn := os.Getenv("POSTGRES_CONN")
+	dbUser := os.Getenv("POSTGRES_USER")
+	dbPassword := os.Getenv("POSTGRES_PASSWORD")
+	pgDb := os.Getenv("POSTGRES_DB")
+
+	dbpool, err := pgxpool.New(ctx, fmt.Sprintf("postgresql://%s:%s@%s/%s?search_path=supervision_finance", dbUser, url.QueryEscape(dbPassword), dbConn, pgDb))
+	if err != nil {
+		logger.Error("Unable to create connection pool", "error", err)
+		os.Exit(1)
+	}
+	return dbpool
+}
+
+func setupEventClient(ctx context.Context, logger *slog.Logger, err error) *event.Client {
+	cfg, err := config.LoadDefaultConfig(ctx)
+	if err != nil {
+		logger.Error("failed to load aws config", slog.Any("err", err))
 	}
 
-	return def
+	// set endpoint to "" outside dev to use default AWS resolver
+	if endpointURL := os.Getenv("AWS_BASE_URL"); endpointURL != "" {
+		cfg.BaseEndpoint = aws.String(endpointURL)
+	}
+
+	eventclient := event.NewClient(cfg, os.Getenv("EVENT_BUS_NAME"))
+	return eventclient
 }

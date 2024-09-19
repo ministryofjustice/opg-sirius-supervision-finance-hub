@@ -7,6 +7,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/opg-sirius-finance-hub/finance-api/internal/event"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"log/slog"
 )
@@ -14,21 +15,25 @@ import (
 func (s *Service) ReapplyCredit(ctx context.Context, clientID int32) error {
 	creditPosition, err := s.store.GetCreditBalanceAndOldestOpenInvoice(ctx, clientID)
 
-	if errors.Is(err, pgx.ErrNoRows) {
+	switch {
+	case errors.Is(err, pgx.ErrNoRows):
 		return nil
-	} else if err != nil {
+	case err != nil:
 		return err
-	} else if creditPosition.Credit < 1 {
+	case creditPosition.Credit < 1:
 		return nil
+	case !creditPosition.InvoiceID.Valid:
+		return s.dispatch.CreditOnAccount(ctx, event.CreditOnAccount{
+			ClientID:        int(clientID),
+			CreditRemaining: int(creditPosition.Credit),
+		})
 	}
 
 	reapplyAmount := getReapplyAmount(creditPosition.Credit, creditPosition.Outstanding)
 	allocation := store.CreateLedgerAllocationParams{
-
-		InvoiceID: pgtype.Int4{Int32: creditPosition.InvoiceID, Valid: true},
+		InvoiceID: creditPosition.InvoiceID,
 		Amount:    reapplyAmount,
 		Status:    "REAPPLIED",
-		Notes:     pgtype.Text{},
 	}
 
 	ledger := store.CreateLedgerParams{
