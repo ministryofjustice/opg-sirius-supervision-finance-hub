@@ -41,10 +41,10 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		return err
 	}
 
-	dbpool := setupDbPool(ctx, logger, err)
+	dbpool := setupDbPool(ctx, logger)
 	defer dbpool.Close()
 
-	eventclient := setupEventClient(ctx, logger, err)
+	eventclient := setupEventClient(ctx, logger)
 
 	Service := service.NewService(dbpool, eventclient)
 
@@ -80,7 +80,7 @@ func run(ctx context.Context, logger *slog.Logger) error {
 	return s.Shutdown(tc)
 }
 
-func setupDbPool(ctx context.Context, logger *slog.Logger, err error) *pgxpool.Pool {
+func setupDbPool(ctx context.Context, logger *slog.Logger) *pgxpool.Pool {
 	dbConn := os.Getenv("POSTGRES_CONN")
 	dbUser := os.Getenv("POSTGRES_USER")
 	dbPassword := os.Getenv("POSTGRES_PASSWORD")
@@ -94,7 +94,7 @@ func setupDbPool(ctx context.Context, logger *slog.Logger, err error) *pgxpool.P
 	return dbpool
 }
 
-func setupEventClient(ctx context.Context, logger *slog.Logger, err error) *event.Client {
+func setupEventClient(ctx context.Context, logger *slog.Logger) *event.Client {
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
 		logger.Error("failed to load aws config", slog.Any("err", err))
@@ -105,6 +105,5 @@ func setupEventClient(ctx context.Context, logger *slog.Logger, err error) *even
 		cfg.BaseEndpoint = aws.String(endpointURL)
 	}
 
-	eventclient := event.NewClient(cfg, os.Getenv("EVENT_BUS_NAME"))
-	return eventclient
+	return event.NewClient(cfg, os.Getenv("EVENT_BUS_NAME"))
 }

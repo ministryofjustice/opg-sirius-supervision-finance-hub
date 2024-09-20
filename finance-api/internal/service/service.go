@@ -12,16 +12,20 @@ type TX interface {
 	Begin(ctx context.Context) (pgx.Tx, error)
 }
 
+type Dispatch interface {
+	CreditOnAccount(ctx context.Context, event event.CreditOnAccount) error
+}
+
 type Service struct {
 	store    *store.Queries
-	dispatch *event.Client
+	dispatch Dispatch
 	tx       TX
 }
 
-func NewService(conn *pgxpool.Pool, eventClient *event.Client) Service {
+func NewService(conn *pgxpool.Pool, dispatch Dispatch) Service {
 	return Service{
 		store:    store.New(conn),
-		dispatch: eventClient,
+		dispatch: dispatch,
 		tx:       conn,
 	}
 }

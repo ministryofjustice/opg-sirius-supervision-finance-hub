@@ -36,7 +36,8 @@ func (suite *IntegrationSuite) TestService_UpdatePendingInvoiceAdjustment() {
 		"INSERT INTO invoice_adjustment VALUES (NEXTVAL('invoice_adjustment_id_seq'), 5, 5, '2024-01-01', 'WRITE OFF REVERSAL', '5000', 'approve me', 'PENDING', '2024-01-01', 1)",
 	)
 
-	s := NewService(conn.Conn)
+	dispatch := &mockDispatch{}
+	s := NewService(conn.Conn, dispatch)
 
 	type args struct {
 		clientId     int
