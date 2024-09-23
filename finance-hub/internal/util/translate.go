@@ -16,7 +16,6 @@ var validationMappings = map[string]map[string]pair{
 	},
 	"AdjustmentNotes": {
 		"required":                 pair{"AdjustmentNotes", "Enter a reason for adjustment"},
-		"stringLengthTooLong":      pair{"AdjustmentNotes", "Reason for manual credit must be 1000 characters or less"},
 		"thousand-character-limit": pair{"Notes", "Reason for adjustment must be 1000 characters or less"},
 	},
 	"Amount": {
