@@ -16,7 +16,7 @@ var validationMappings = map[string]map[string]pair{
 	},
 	"AdjustmentNotes": {
 		"required":                 pair{"AdjustmentNotes", "Enter a reason for adjustment"},
-		"thousand-character-limit": pair{"Notes", "Reason for adjustment must be 1000 characters or less"},
+		"thousand-character-limit": pair{"AdjustmentNotes", "Reason for adjustment must be 1000 characters or less"},
 	},
 	"Amount": {
 		"required":         pair{"Amount", "Enter an amount"},
