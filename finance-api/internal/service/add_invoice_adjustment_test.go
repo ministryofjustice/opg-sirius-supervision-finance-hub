@@ -223,6 +223,29 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 			},
 			err: nil,
 		},
+		{
+			name: "Write off reversal - not written off",
+			adjustment: &shared.AddInvoiceAdjustmentRequest{
+				AdjustmentType: shared.AdjustmentTypeWriteOffReversal,
+			},
+			balance: store.GetInvoiceBalanceDetailsRow{
+				Initial:     32000,
+				Outstanding: 10000,
+			},
+			err: apierror.BadRequest{Field: "Amount", Reason: "A write off reversal cannot be added to an invoice without an associated write off"},
+		},
+		{
+			name: "Write off reversal - valid",
+			adjustment: &shared.AddInvoiceAdjustmentRequest{
+				AdjustmentType: shared.AdjustmentTypeWriteOffReversal,
+			},
+			balance: store.GetInvoiceBalanceDetailsRow{
+				Initial:        32000,
+				Outstanding:    10000,
+				WriteOffAmount: 1000,
+			},
+			err: nil,
+		},
 	}
 
 	for _, tt := range testCases {
@@ -241,10 +264,12 @@ func TestService_CalculateAdjustmentAmount(t *testing.T) {
 	s := Service{}
 
 	testCases := []struct {
-		name       string
-		adjustment *shared.AddInvoiceAdjustmentRequest
-		balance    store.GetInvoiceBalanceDetailsRow
-		expected   int32
+		name                  string
+		adjustment            *shared.AddInvoiceAdjustmentRequest
+		balance               store.GetInvoiceBalanceDetailsRow
+		customerCreditBalance int32
+		writeOffAmount        int32
+		expected              int32
 	}{
 		{
 			name: "Write off returns outstanding balance",
@@ -282,10 +307,47 @@ func TestService_CalculateAdjustmentAmount(t *testing.T) {
 			},
 			expected: 52000,
 		},
+		{
+			name: "Write off reversal returns 0 if invoice not written off",
+			adjustment: &shared.AddInvoiceAdjustmentRequest{
+				AdjustmentType: shared.AdjustmentTypeWriteOffReversal,
+			},
+			balance: store.GetInvoiceBalanceDetailsRow{
+				Initial:     32000,
+				Outstanding: 10000,
+			},
+			expected: 0,
+		},
+		{
+			name: "Write off reversal returns customer credit balance if less than write off amount",
+			adjustment: &shared.AddInvoiceAdjustmentRequest{
+				AdjustmentType: shared.AdjustmentTypeWriteOffReversal,
+			},
+			balance: store.GetInvoiceBalanceDetailsRow{
+				Initial:        32000,
+				Outstanding:    10000,
+				WriteOffAmount: 1000,
+			},
+			customerCreditBalance: 500,
+			expected:              -500,
+		},
+		{
+			name: "Write off reversal returns write off amount if less than customer credit balance",
+			adjustment: &shared.AddInvoiceAdjustmentRequest{
+				AdjustmentType: shared.AdjustmentTypeWriteOffReversal,
+			},
+			balance: store.GetInvoiceBalanceDetailsRow{
+				Initial:        1000,
+				Outstanding:    10000,
+				WriteOffAmount: 800,
+			},
+			customerCreditBalance: 1500,
+			expected:              -800,
+		},
 	}
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.expected, s.calculateAdjustmentAmount(tt.adjustment, tt.balance))
+			assert.Equal(t, tt.expected, s.calculateAdjustmentAmount(tt.adjustment, tt.balance, tt.customerCreditBalance))
 		})
 	}
 }
