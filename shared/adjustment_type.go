@@ -50,7 +50,7 @@ func (i AdjustmentType) Translation() string {
 	case AdjustmentTypeDebitMemo:
 		return "Add debit"
 	case AdjustmentTypeWriteOffReversal:
-		return "Write off reversal (Not yet implemented)"
+		return "Write off reversal"
 	default:
 		return ""
 	}

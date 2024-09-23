@@ -45,13 +45,13 @@ ORDER BY todate DESC;
 SELECT i.amount                                                    initial,
        i.amount - COALESCE(SUM(la.amount), 0)                      outstanding,
        i.feetype,
-       COALESCE(BOOL_OR(l.type = 'CREDIT WRITE OFF'), FALSE)::BOOL written_off
+       COALESCE((SELECT SUM(ledger_allocation.amount) FROM ledger_allocation LEFT JOIN ledger ON ledger_allocation.ledger_id = ledger.id LEFT JOIN invoice ON ledger_allocation.invoice_id = invoice.id WHERE ledger.type = 'CREDIT WRITE OFF' AND invoice.id = i.id), 0)::INT write_off_amount
 FROM invoice i
          LEFT JOIN ledger_allocation la ON i.id = la.invoice_id
          LEFT JOIN ledger l ON l.id = la.ledger_id
     AND la.status NOT IN ('PENDING', 'UNALLOCATED')
 WHERE i.id = $1
-GROUP BY i.amount, i.feetype;
+GROUP BY i.amount, i.feetype, i.id;
 
 -- name: GetInvoiceBalancesForFeeReductionRange :many
 SELECT i.id,

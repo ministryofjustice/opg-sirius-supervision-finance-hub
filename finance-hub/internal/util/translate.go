@@ -15,8 +15,8 @@ var validationMappings = map[string]map[string]pair{
 		"valid-enum": pair{"AdjustmentType", "Select the adjustment type"},
 	},
 	"AdjustmentNotes": {
-		"required":            pair{"AdjustmentNotes", "Enter a reason for adjustment"},
-		"stringLengthTooLong": pair{"AdjustmentNotes", "Reason for manual credit must be 1000 characters or less"},
+		"required":                 pair{"AdjustmentNotes", "Enter a reason for adjustment"},
+		"thousand-character-limit": pair{"Notes", "Reason for adjustment must be 1000 characters or less"},
 	},
 	"Amount": {
 		"required":         pair{"Amount", "Enter an amount"},
