@@ -35,7 +35,7 @@ clean:
 	docker compose run --rm yarn
 
 up: clean build-dev start-and-seed sqlc-gen
-	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml up finance-hub json-server finance-api yarn
+	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml up finance-hub finance-api yarn
 
 down:
 	docker compose down
@@ -56,6 +56,7 @@ start-and-seed:
 	docker compose up -d --wait sirius-db
 	docker compose run --rm --build finance-migration
 	docker compose exec sirius-db psql -U user -d finance -a -f ./seed_data.sql
+	docker compose up -d localstack json-server
 
 cypress: setup-directories clean start-and-seed
 	docker compose run --build cypress
