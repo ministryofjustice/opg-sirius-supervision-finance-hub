@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/opg-sirius-finance-hub/finance-api/internal/event"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,6 +16,15 @@ const (
 								JOIN supervision_finance.ledger_allocation la ON l.id = la.ledger_id 
                       				WHERE la.status = 'REAPPLIED' AND fc.client_id = 1;`
 )
+
+type mockDispatch struct {
+	event any
+}
+
+func (m *mockDispatch) CreditOnAccount(ctx context.Context, event event.CreditOnAccount) error {
+	m.event = event
+	return nil
+}
 
 func (suite *IntegrationSuite) TestService_reapplyCredit_noInvoices() {
 	conn := suite.testDB.GetConn()
@@ -32,7 +42,8 @@ func (suite *IntegrationSuite) TestService_reapplyCredit_noInvoices() {
 		"ALTER SEQUENCE ledger_id_seq RESTART WITH 3;",
 		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 3;",
 	)
-	s := NewService(conn.Conn)
+	dispatch := &mockDispatch{}
+	s := NewService(conn.Conn, dispatch)
 	err := s.ReapplyCredit(ctx, 1)
 	assert.Nil(suite.T(), err)
 
@@ -41,6 +52,12 @@ func (suite *IntegrationSuite) TestService_reapplyCredit_noInvoices() {
 	_ = row.Scan(&credit)
 
 	assert.Equal(suite.T(), 10000, credit)
+
+	expected := event.CreditOnAccount{
+		ClientID:        1,
+		CreditRemaining: 10000,
+	}
+	assert.Equal(suite.T(), expected, dispatch.event)
 }
 
 func (suite *IntegrationSuite) TestService_reapplyCredit_oldestFirst() {
@@ -60,7 +77,8 @@ func (suite *IntegrationSuite) TestService_reapplyCredit_oldestFirst() {
 		"ALTER SEQUENCE ledger_id_seq RESTART WITH 3;",
 		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 3;",
 	)
-	s := NewService(conn.Conn)
+	dispatch := &mockDispatch{}
+	s := NewService(conn.Conn, dispatch)
 	err := s.ReapplyCredit(ctx, 1)
 	assert.Nil(suite.T(), err)
 
@@ -87,4 +105,6 @@ func (suite *IntegrationSuite) TestService_reapplyCredit_oldestFirst() {
 
 	// the remainder goes to the next oldest
 	assert.Equal(suite.T(), 3000, amount)
+
+	assert.Nil(suite.T(), dispatch.event)
 }
