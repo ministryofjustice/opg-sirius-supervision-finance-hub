@@ -7,7 +7,9 @@ import (
 
 const (
 	EventSourceSirius             = "opg.supervision.sirius"
+	EventSourceS3                 = "aws.s3"
 	DetailTypeDebtPositionChanged = "debt-position-changed"
+	DetailTypeAWSCloudtrailEvent  = "AWS API Call via CloudTrail"
 )
 
 type Event struct {
@@ -47,4 +49,13 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 
 type DebtPositionChangedEvent struct {
 	ClientID int `json:"clientId"`
+}
+
+type FinanceAdminUploadEvent struct {
+	RequestParameters RequestParameters `json:"requestParameters"`
+}
+
+type RequestParameters struct {
+	BucketName string `json:"bucketName"`
+	Key        string `json:"key"`
 }
