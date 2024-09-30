@@ -19,8 +19,6 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
 		return apierror.BadRequestError("event", "unable to parse event", err)
 	}
 
-	fmt.Println(event.Detail)
-
 	if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeDebtPositionChanged {
 		if detail, ok := event.Detail.(shared.DebtPositionChangedEvent); ok {
 			err := s.Service.ReapplyCredit(ctx, int32(detail.ClientID))
