@@ -24,6 +24,7 @@ type Service interface {
 	AddManualInvoice(ctx context.Context, clientId int, invoice shared.AddManualInvoice) error
 	GetBillingHistory(ctx context.Context, id int) ([]shared.BillingHistory, error)
 	ReapplyCredit(ctx context.Context, clientID int32) error
+	ProcessFinanceAdminUpload(ctx context.Context, bucketName string, key string) error
 }
 
 type Server struct {
