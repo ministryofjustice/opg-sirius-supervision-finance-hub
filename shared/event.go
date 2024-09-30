@@ -40,6 +40,12 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		e.Detail = detail
+	case DetailTypeAWSCloudtrailEvent:
+		var detail FinanceAdminUploadEvent
+		if err := json.Unmarshal(raw.Detail, &detail); err != nil {
+			return err
+		}
+		e.Detail = detail
 	default:
 		return fmt.Errorf("unknown detail type: %s", e.DetailType)
 	}

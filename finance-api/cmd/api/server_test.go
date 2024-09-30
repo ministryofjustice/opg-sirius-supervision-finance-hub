@@ -96,5 +96,6 @@ func (s *mockService) AddInvoiceAdjustment(ctx context.Context, clientId int, in
 }
 
 func (s *mockService) ProcessFinanceAdminUpload(ctx context.Context, bucketName string, key string) error {
+	s.lastCalled = "ProcessFinanceAdminUpload"
 	return s.err
 }

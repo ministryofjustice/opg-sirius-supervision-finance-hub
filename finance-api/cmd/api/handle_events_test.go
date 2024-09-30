@@ -31,6 +31,16 @@ func TestServer_handleEvents(t *testing.T) {
 			expectedHandler: "ReapplyCredit",
 		},
 		{
+			name: "upload event",
+			event: shared.Event{
+				Source:     "aws.s3",
+				DetailType: "AWS API Call via CloudTrail",
+				Detail:     shared.FinanceAdminUploadEvent{RequestParameters: shared.RequestParameters{BucketName: "bucket1", Key: "file.csv"}},
+			},
+			expectedErr:     nil,
+			expectedHandler: "ProcessFinanceAdminUpload",
+		},
+		{
 			name: "unknown event",
 			event: shared.Event{
 				Source:     "opg.supervision.sirius",
@@ -55,6 +65,8 @@ func TestServer_handleEvents(t *testing.T) {
 			err := server.handleEvents(w, r)
 			if test.expectedErr != nil {
 				assert.ErrorAs(t, err, &test.expectedErr)
+			} else {
+				assert.Nil(t, err)
 			}
 			assert.Equal(t, test.expectedHandler, mock.lastCalled)
 		})
