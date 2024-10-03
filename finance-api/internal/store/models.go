@@ -8,12 +8,23 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Account struct {
+	Code                   int64
+	AccountCodeDescription string
+	CostCentre             pgtype.Int4
+}
+
 type BillingPeriod struct {
 	ID              int32
 	FinanceClientID pgtype.Int4
 	OrderID         pgtype.Int4
 	StartDate       pgtype.Date
 	EndDate         pgtype.Date
+}
+
+type CostCentre struct {
+	Code                  int32
+	CostCentreDescription string
 }
 
 type Counter struct {
@@ -179,4 +190,12 @@ type Report struct {
 	Firstinvoicereference pgtype.Text
 	Lastinvoicereference  pgtype.Text
 	CreatedbyuserID       pgtype.Int4
+}
+
+type TransactionType struct {
+	ID               int32
+	FeeType          string
+	SupervisionLevel string
+	AccountCode      pgtype.Int8
+	Description      pgtype.Text
 }
