@@ -9,7 +9,7 @@
             </p>
         </div>
         <p class="moj-timeline__date">
-            {{ printf "Outstanding balance: £%v Credit balance: £0" (transformToTwoDecimals .OutstandingBalance) }}
+            {{ printf "Outstanding balance: £%v Credit balance: £%v" (transformToTwoDecimals .OutstandingBalance) (transformToTwoDecimals .CreditBalance) }}
         </p>
         <div class="moj-timeline__description">
             <ul class="govuk-list govuk-list--bullet">

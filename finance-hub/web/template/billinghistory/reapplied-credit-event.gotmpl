@@ -1,8 +1,8 @@
-{{ define "adjustment-applied-event" }}
+{{ define "reapplied-credit-event" }}
     <div class="moj-timeline__item">
         <div class="moj-timeline__header">
             <h2 class="moj-timeline__title">
-                {{ printf "%v applied to %v for £%v" .Event.TransactionType (index .Event.Breakdown 0).InvoiceReference.Reference (transformToTwoDecimals .Event.Amount) }}
+                {{ printf "£%v reapplied to %v" (transformToTwoDecimals .Event.Amount) (index .Event.Breakdown 0).InvoiceReference.Reference }}
             </h2>
             <p class="moj-timeline__byline">
                 {{ printf "by %v, %v" .User .Date }}
@@ -15,12 +15,7 @@
             <ul class="govuk-list govuk-list--bullet">
                 {{ range .Event.Breakdown }}
                     <li>
-                        {{ if eq .Status "ALLOCATED" }}
-                            {{ printf "£%v applied to %v" (transformToTwoDecimals .Amount) .InvoiceReference.Reference }}
-                        {{ end }}
-                        {{ if eq .Status "UNAPPLIED" }}
-                            {{ printf "£%v excess credit unapplied" (transformToTwoDecimals .Amount) }}
-                        {{ end }}
+                        {{ printf "%v reapplied to %v" .Amount .InvoiceReference.Reference }}
                     </li>
                 {{ end }}
             </ul>

@@ -10,6 +10,7 @@ import (
 type historyHolder struct {
 	billingHistory    shared.BillingHistory
 	balanceAdjustment int
+	creditAdjustment  int
 }
 
 func (s *Service) GetBillingHistory(ctx context.Context, clientID int) ([]shared.BillingHistory, error) {
@@ -33,6 +34,13 @@ func (s *Service) GetBillingHistory(ctx context.Context, clientID int) ([]shared
 	}
 
 	history = append(history, processFeeReductionEvents(feEvents)...)
+
+	allocations, err := s.store.GetLedgerAllocationsForClient(ctx, int32(clientID))
+	if err != nil {
+		return nil, err
+	}
+
+	history = append(history, processLedgerAllocations(allocations, clientID)...)
 
 	return computeBillingHistory(history), nil
 }
@@ -138,62 +146,121 @@ func processFeeReductionEvents(feEvents []store.GetFeeReductionEventsRow) []hist
 				balanceAdjustment: 0,
 			})
 		}
-		if fe.Status.String == "APPROVED" {
-			bh = shared.BillingHistory{
-				User: int(fe.CreatedBy.Int32),
-				Date: shared.Date{Time: fe.LedgerDate.Time},
-				Event: shared.FeeReductionApplied{
-					BaseBillingEvent: shared.BaseBillingEvent{
-						Type: shared.EventTypeFeeReductionApplied,
-					},
-					ReductionType: shared.ParseFeeReductionType(fe.Type),
-					PaymentBreakdown: shared.PaymentBreakdown{
+	}
+	return history
+}
+
+// processLedgerAllocations takes an array of allocations and groups them by ledger, which defines a single billing event.
+// A ledger is always for a single transaction type but may have multiple allocations associated with it.
+func processLedgerAllocations(allocations []store.GetLedgerAllocationsForClientRow, clientID int) []historyHolder {
+	historyByLedger := make(map[int32]*historyHolder)
+
+	for _, allocation := range allocations {
+		var (
+			lh *historyHolder
+			ok bool
+		)
+		if lh, ok = historyByLedger[allocation.LedgerID]; ok {
+			// there will only be one key transaction type per ledger, so add transaction to payment breakdown
+			event := lh.billingHistory.Event.(*shared.TransactionEvent)
+			event.Breakdown = append(event.Breakdown,
+				shared.PaymentBreakdown{InvoiceReference: shared.InvoiceEvent{
+					ID:        int(allocation.InvoiceID.Int32),
+					Reference: allocation.Reference.String,
+				},
+					Amount: int(allocation.AllocationAmount),
+					Status: allocation.Status,
+				},
+			)
+		} else {
+			event := shared.TransactionEvent{
+				ClientId: clientID,
+				Breakdown: []shared.PaymentBreakdown{
+					{
 						InvoiceReference: shared.InvoiceEvent{
-							ID:        int(fe.InvoiceID.Int32),
-							Reference: fe.Reference.String,
+							ID:        int(allocation.InvoiceID.Int32),
+							Reference: allocation.Reference.String,
 						},
-						Amount: int(fe.Amount.Int32),
+						Amount: int(allocation.AllocationAmount),
+						Status: allocation.Status,
 					},
-					ClientId: int(fe.ClientID),
 				},
 			}
-			history = append(history, historyHolder{
-				billingHistory:    bh,
-				balanceAdjustment: -(int(fe.Amount.Int32)),
-			})
+			switch {
+			case shared.ParseFeeReductionType(allocation.Type).Valid():
+				event.BaseBillingEvent = shared.BaseBillingEvent{
+					Type: shared.EventTypeFeeReductionApplied,
+				}
+				event.TransactionType = shared.ParseFeeReductionType(allocation.Type).String()
+			case shared.ParseAdjustmentType(allocation.Type).Valid():
+				event.BaseBillingEvent = shared.BaseBillingEvent{
+					Type: shared.EventTypeInvoiceAdjustmentApplied,
+				}
+				event.TransactionType = shared.ParseAdjustmentType(allocation.Type).String()
+			case allocation.Status == "REAPPLIED":
+				event.BaseBillingEvent = shared.BaseBillingEvent{
+					Type: shared.EventTypeReappliedCredit,
+				}
+			default:
+				// not all transaction types have been implemented
+				continue
+			}
+
+			// the allocated amounts should equal the total transaction for the event, excluding unapplies/reapplies
+			if allocation.Status == "ALLOCATED" {
+				event.Amount += int(allocation.AllocationAmount)
+			}
+
+			lh = &historyHolder{
+				billingHistory: shared.BillingHistory{
+					User:  int(allocation.CreatedBy.Int32),
+					Date:  shared.Date{Time: allocation.CreatedAt.Time},
+					Event: event,
+				},
+			}
+			historyByLedger[allocation.LedgerID] = lh
+		}
+
+		switch allocation.Status {
+		case "ALLOCATED":
+			lh.balanceAdjustment -= int(allocation.AllocationAmount)
+		case "UNAPPLIED":
+			lh.creditAdjustment -= int(allocation.AllocationAmount)
+			lh.balanceAdjustment += int(allocation.AllocationAmount)
+		case "REAPPLIED":
+			lh.creditAdjustment -= int(allocation.AllocationAmount)
 		}
 	}
+
+	var history []historyHolder
+	for _, lh := range historyByLedger {
+		history = append(history, *lh)
+	}
+
 	return history
 }
 
 func computeBillingHistory(history []historyHolder) []shared.BillingHistory {
 	// reverse order to allow for balance to be calculated
 	sort.Slice(history, func(i, j int) bool {
-		if history[i].billingHistory.Date.Time.Equal(history[j].billingHistory.Date.Time) {
-			if _, ok := history[i].billingHistory.Event.(shared.FeeReductionApplied); ok {
-				return history[i].billingHistory.OutstandingBalance < history[j].billingHistory.OutstandingBalance
-			}
-			return history[i].billingHistory.OutstandingBalance > history[j].billingHistory.OutstandingBalance
-		}
 		return history[i].billingHistory.Date.Time.Before(history[j].billingHistory.Date.Time)
 	})
 
-	var outstanding int
-	var billingHistory []shared.BillingHistory
+	var (
+		outstanding    int
+		credit         int
+		billingHistory []shared.BillingHistory
+	)
 	for _, bh := range history {
 		outstanding += bh.balanceAdjustment
+		credit += bh.creditAdjustment
 		bh.billingHistory.OutstandingBalance = outstanding
+		bh.billingHistory.CreditBalance = credit
 		billingHistory = append(billingHistory, bh.billingHistory)
 	}
 
 	// flip it back
 	sort.Slice(billingHistory, func(i, j int) bool {
-		if billingHistory[i].Date.Time.Equal(billingHistory[j].Date.Time) {
-			if _, ok := billingHistory[i].Event.(shared.FeeReductionApplied); ok {
-				return billingHistory[i].OutstandingBalance < billingHistory[j].OutstandingBalance
-			}
-			return billingHistory[i].OutstandingBalance > billingHistory[j].OutstandingBalance
-		}
 		return billingHistory[i].Date.Time.After(billingHistory[j].Date.Time)
 	})
 

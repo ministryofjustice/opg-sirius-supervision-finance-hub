@@ -20,4 +20,7 @@
     {{ if eq .Event.Type.String "PAYMENT_PROCESSED" }}
         {{ template "payment-processed-event" . }}
     {{ end }}
+    {{ if eq .Event.Type.String "REAPPLIED_CREDIT" }}
+        {{ template "reapplied-credit-event" . }}
+    {{ end }}
 {{ end }}

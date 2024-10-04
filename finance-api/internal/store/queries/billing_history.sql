@@ -17,27 +17,44 @@ WHERE fc.client_id = $1
 ORDER BY created_at DESC;
 
 -- name: GetFeeReductionEvents :many
-SELECT
-   fr.type,
-   fr.startdate,
-   fr.enddate,
-   fr.datereceived,
-   fr.notes,
-   fr.created_at,
-   fr.created_by,
-   fr.cancelled_at,
-   fr.cancelled_by,
-   fr.cancellation_reason,
-   l.status,
-   l.amount,
-   l.datetime ledger_date,
-   fc.client_id,
-   i.id invoice_id,
-   i.reference reference
+SELECT fr.type,
+       fr.startdate,
+       fr.enddate,
+       fr.datereceived,
+       fr.notes,
+       fr.created_at,
+       fr.created_by,
+       fr.cancelled_at,
+       fr.cancelled_by,
+       fr.cancellation_reason,
+       l.status,
+       l.amount,
+       l.datetime ledger_date,
+       fc.client_id,
+       i.id AS    invoice_id,
+       i.reference
 FROM fee_reduction fr
-JOIN finance_client fc ON fc.id = fr.finance_client_id
-LEFT JOIN ledger l ON l.fee_reduction_id = fr.id
-LEFT JOIN (SELECT DISTINCT ON (ledger_id) * FROM ledger_allocation) la ON l.id = la.ledger_id
-LEFT JOIN invoice i ON i.id = la.invoice_id
+         JOIN finance_client fc ON fc.id = fr.finance_client_id
+         LEFT JOIN ledger l ON l.fee_reduction_id = fr.id
+         LEFT JOIN (SELECT DISTINCT ON (ledger_id) * FROM ledger_allocation) la ON l.id = la.ledger_id
+         LEFT JOIN invoice i ON i.id = la.invoice_id
 WHERE fc.client_id = $1
-AND (fr.created_at IS NOT NULL OR fr.cancelled_at IS NOT NULL);
+  AND (fr.created_at IS NOT NULL OR fr.cancelled_at IS NOT NULL);
+
+-- name: GetLedgerAllocationsForClient :many
+SELECT l.id AS ledger_id,
+       la.invoice_id,
+       i.reference,
+       COALESCE(fr.type, l.type),
+       la.status,
+       l.amount  AS ledger_amount,
+       la.amount AS allocation_amount,
+       l.datetime AS created_at,
+       l.created_by
+FROM ledger_allocation la
+         JOIN ledger l ON l.id = la.ledger_id
+         JOIN finance_client fc ON fc.id = l.finance_client_id
+         LEFT JOIN invoice i ON la.invoice_id = i.id
+         LEFT JOIN fee_reduction fr ON l.fee_reduction_id = fr.id
+WHERE fc.client_id = $1
+  AND la.status NOT IN ('PENDING', 'UNALLOCATED');
