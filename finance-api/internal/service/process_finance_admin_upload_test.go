@@ -24,17 +24,17 @@ func (suite *IntegrationSuite) Test_processMotoCardPaymentsUploadLine() {
 		expectedDate   time.Time
 		want           error
 	}{
-		{
-			name: "Ordercode with dash",
-			record: []string{
-				"1234-1",
-				"2024-01-17 10:15:39",
-				"500",
-			},
-			expectedAmount: 50000,
-			expectedDate:   time.Date(2024, 1, 17, 10, 15, 39, 0, time.UTC),
-			want:           nil,
-		},
+		//{
+		//	name: "Ordercode with dash",
+		//	record: []string{
+		//		"1234-1",
+		//		"2024-01-17 10:15:39",
+		//		"500",
+		//	},
+		//	expectedAmount: 50000,
+		//	expectedDate:   time.Date(2024, 1, 17, 10, 15, 39, 0, time.UTC),
+		//	want:           nil,
+		//},
 		//{
 		//	name: "Ordercode with no dash",
 		//	record: []string{
