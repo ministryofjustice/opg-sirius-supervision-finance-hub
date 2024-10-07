@@ -97,7 +97,7 @@ func (s *Service) processMotoCardPaymentsUploadLine(record []string) error {
 	}
 
 	for _, invoice := range invoices {
-		if !(invoice.Amount == invoice.Received) {
+		if !(invoice.Amount == invoice.Received) && amount > 0 {
 			ledgerAmount := invoice.Amount - invoice.Received
 			if ledgerAmount > int32(amount) {
 				ledgerAmount = int32(amount)
@@ -137,8 +137,36 @@ func (s *Service) processMotoCardPaymentsUploadLine(record []string) error {
 		}
 	}
 
-	// These are payments - we need to basically apply these to the client's account.
-	// They should be allocated to the client's invoices, starting with the oldest's invoice (by raised date)
+	if amount > 0 {
+		ledger := store.CreateLedgerForCaseRecNumberParams{
+			Caserecnumber: pgtype.Text{String: courtReference, Valid: true},
+			Amount:        int32(amount),
+			Type:          "Online card payment",
+			Status:        "APPROVED",
+			CreatedBy:     pgtype.Int4{Int32: 1},
+			Datetime:      pgtype.Timestamp{Time: parsedDate, Valid: true},
+		}
+
+		ledgerId, err := s.store.CreateLedgerForCaseRecNumber(context.Background(), ledger)
+
+		if err != nil {
+			return err
+		}
+
+		allocation := []store.CreateLedgerAllocationParams{
+			{
+				Amount:   int32(amount),
+				Status:   "UNAPPLIED",
+				Notes:    pgtype.Text{},
+				LedgerID: pgtype.Int4{Int32: ledgerId, Valid: true},
+			},
+		}
+
+		_, err = s.store.CreateLedgerAllocation(context.Background(), allocation[0])
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
