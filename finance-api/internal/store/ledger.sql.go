@@ -52,3 +52,44 @@ func (q *Queries) CreateLedger(ctx context.Context, arg CreateLedgerParams) (int
 	err := row.Scan(&id)
 	return id, err
 }
+
+const createLedgerForCaseRecNumber = `-- name: CreateLedgerForCaseRecNumber :one
+INSERT INTO ledger (id, datetime, finance_client_id, amount, notes, type, status, created_by, reference, method)
+SELECT nextval('ledger_id_seq'),
+       $2,
+       fc.id,
+       $3,
+       $4,
+       $5,
+       $6,
+       $7,
+       gen_random_uuid(),
+       ''
+FROM finance_client fc WHERE caserecnumber = $1
+RETURNING id
+`
+
+type CreateLedgerForCaseRecNumberParams struct {
+	Caserecnumber pgtype.Text
+	Datetime      pgtype.Timestamp
+	Amount        int32
+	Notes         pgtype.Text
+	Type          string
+	Status        string
+	CreatedBy     pgtype.Int4
+}
+
+func (q *Queries) CreateLedgerForCaseRecNumber(ctx context.Context, arg CreateLedgerForCaseRecNumberParams) (int32, error) {
+	row := q.db.QueryRow(ctx, createLedgerForCaseRecNumber,
+		arg.Caserecnumber,
+		arg.Datetime,
+		arg.Amount,
+		arg.Notes,
+		arg.Type,
+		arg.Status,
+		arg.CreatedBy,
+	)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
+}
