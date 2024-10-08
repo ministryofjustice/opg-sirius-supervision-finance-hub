@@ -6,7 +6,6 @@ FROM invoice_adjustment ia
          JOIN invoice i ON i.id = ia.invoice_id
          JOIN finance_client fc ON fc.id = ia.finance_client_id
 WHERE fc.client_id = $1
-  AND ia.status = 'PENDING'
 ORDER BY ia.raised_date DESC;
 
 -- name: GetGeneratedInvoices :many
