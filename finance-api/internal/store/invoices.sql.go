@@ -228,6 +228,59 @@ func (q *Queries) GetInvoices(ctx context.Context, clientID int32) ([]GetInvoice
 	return items, nil
 }
 
+const getInvoicesForCaseRecNumber = `-- name: GetInvoicesForCaseRecNumber :many
+SELECT i.id,
+       i.raiseddate,
+       i.reference,
+       i.amount,
+       COALESCE(SUM(la.amount), 0)::INT    received,
+       COALESCE(MAX(fr.type), '')::VARCHAR fee_reduction_type
+FROM invoice i
+         JOIN finance_client fc ON fc.id = i.finance_client_id
+         LEFT JOIN ledger_allocation la ON i.id = la.invoice_id AND la.status NOT IN ('PENDING', 'UNALLOCATED')
+         LEFT JOIN ledger l ON la.ledger_id = l.id
+         LEFT JOIN fee_reduction fr ON l.fee_reduction_id = fr.id
+WHERE fc.caserecnumber = $1
+GROUP BY i.id, i.raiseddate
+ORDER BY i.raiseddate ASC
+`
+
+type GetInvoicesForCaseRecNumberRow struct {
+	ID               int32
+	Raiseddate       pgtype.Date
+	Reference        string
+	Amount           int32
+	Received         int32
+	FeeReductionType string
+}
+
+func (q *Queries) GetInvoicesForCaseRecNumber(ctx context.Context, caserecnumber pgtype.Text) ([]GetInvoicesForCaseRecNumberRow, error) {
+	rows, err := q.db.Query(ctx, getInvoicesForCaseRecNumber, caserecnumber)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetInvoicesForCaseRecNumberRow
+	for rows.Next() {
+		var i GetInvoicesForCaseRecNumberRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Raiseddate,
+			&i.Reference,
+			&i.Amount,
+			&i.Received,
+			&i.FeeReductionType,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getLedgerAllocations = `-- name: GetLedgerAllocations :many
 WITH allocations AS (SELECT la.invoice_id,
                             la.amount,
