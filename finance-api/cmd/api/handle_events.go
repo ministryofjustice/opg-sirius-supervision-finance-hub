@@ -16,7 +16,6 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
 	defer r.Body.Close()
 
 	if err := json.NewDecoder(r.Body).Decode(&event); err != nil {
-		fmt.Println(r.Body)
 		return apierror.BadRequestError("event", "unable to parse event", err)
 	}
 
