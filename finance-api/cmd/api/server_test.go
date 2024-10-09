@@ -99,3 +99,8 @@ func (s *mockService) ProcessFinanceAdminUpload(ctx context.Context, bucketName 
 	s.lastCalled = "ProcessFinanceAdminUpload"
 	return s.err
 }
+
+func (s *mockService) UpdateClient(ctx context.Context, clientId int, caseRecNumber string) error {
+	s.lastCalled = "UpdateClient"
+	return s.err
+}

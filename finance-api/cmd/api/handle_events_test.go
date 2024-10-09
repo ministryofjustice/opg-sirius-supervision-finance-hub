@@ -41,6 +41,16 @@ func TestServer_handleEvents(t *testing.T) {
 			expectedHandler: "ProcessFinanceAdminUpload",
 		},
 		{
+			name: "client created event",
+			event: shared.Event{
+				Source:     "opg.supervision.sirius",
+				DetailType: "client-created",
+				Detail:     shared.ClientCreatedEvent{ClientID: 1, CaseRecNumber: "12345678"},
+			},
+			expectedErr:     nil,
+			expectedHandler: "UpdateClient",
+		},
+		{
 			name: "unknown event",
 			event: shared.Event{
 				Source:     "opg.supervision.sirius",
