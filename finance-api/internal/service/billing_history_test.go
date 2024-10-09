@@ -48,7 +48,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 					Event: shared.FeeReductionApplied{
 						TransactionEvent: shared.TransactionEvent{
 							ClientId:        1,
-							TransactionType: "CREDIT REAPPLY",
+							TransactionType: shared.TransactionTypeReapply,
 							Amount:          5000,
 							Breakdown: []shared.PaymentBreakdown{
 								{
@@ -92,7 +92,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 					Event: shared.InvoiceAdjustmentApplied{
 						TransactionEvent: shared.TransactionEvent{
 							ClientId:        1,
-							TransactionType: "CREDIT MEMO",
+							TransactionType: shared.TransactionTypeCreditMemo,
 							Amount:          10000,
 							Breakdown: []shared.PaymentBreakdown{
 								{
@@ -160,7 +160,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 					Event: shared.FeeReductionApplied{
 						TransactionEvent: shared.TransactionEvent{
 							ClientId:        1,
-							TransactionType: "REMISSION",
+							TransactionType: shared.TransactionTypeRemission,
 							Amount:          5000,
 							Breakdown: []shared.PaymentBreakdown{
 								{
@@ -277,23 +277,31 @@ func Test_computeBillingHistory(t *testing.T) {
 	history := []historyHolder{
 		{
 			billingHistory: shared.BillingHistory{
+				Date: shared.NewDate("2020-01-01"),
+				Event: shared.TransactionEvent{
+					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeReappliedCredit},
+				},
+			},
+			balanceAdjustment: -500,
+			creditAdjustment:  -500,
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				Date: shared.NewDate("2020-01-01"),
+				Event: shared.TransactionEvent{
+					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeInvoiceAdjustmentApplied},
+				},
+			},
+			balanceAdjustment: 500,
+		},
+		{
+			billingHistory: shared.BillingHistory{
 				Date: shared.NewDate("2021-01-01"),
 				Event: shared.InvoiceGenerated{
 					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeInvoiceGenerated},
 				},
-				OutstandingBalance: 0,
 			},
-			balanceAdjustment: 3200,
-		},
-		{
-			billingHistory: shared.BillingHistory{
-				Date: shared.NewDate("2022-01-01"),
-				Event: shared.InvoiceAdjustmentPending{
-					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeInvoiceAdjustmentPending},
-				},
-				OutstandingBalance: 0,
-			},
-			balanceAdjustment: 0,
+			balanceAdjustment: 32000,
 		},
 		{
 			billingHistory: shared.BillingHistory{
@@ -301,9 +309,8 @@ func Test_computeBillingHistory(t *testing.T) {
 				Event: shared.InvoiceGenerated{
 					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeInvoiceGenerated},
 				},
-				OutstandingBalance: 0,
 			},
-			balanceAdjustment: 1000,
+			balanceAdjustment: 10000,
 		},
 		{
 			billingHistory: shared.BillingHistory{
@@ -311,7 +318,6 @@ func Test_computeBillingHistory(t *testing.T) {
 				Event: shared.FeeReductionCancelled{
 					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeFeeReductionCancelled},
 				},
-				OutstandingBalance: 0,
 			},
 			balanceAdjustment: 0,
 		},
@@ -321,7 +327,6 @@ func Test_computeBillingHistory(t *testing.T) {
 				Event: shared.FeeReductionAwarded{
 					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeFeeReductionAwarded},
 				},
-				OutstandingBalance: 0,
 			},
 			balanceAdjustment: 0,
 		},
@@ -333,39 +338,52 @@ func Test_computeBillingHistory(t *testing.T) {
 			Event: shared.InvoiceGenerated{
 				BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeInvoiceGenerated},
 			},
-			OutstandingBalance: 4200,
+			OutstandingBalance: 42000,
+			CreditBalance:      -500,
 		},
 		{
 			Date: shared.NewDate("2024-01-01"),
 			Event: shared.FeeReductionCancelled{
 				BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeFeeReductionCancelled},
 			},
-			OutstandingBalance: 3200,
+			OutstandingBalance: 32000,
+			CreditBalance:      -500,
 		},
 		{
 			Date: shared.NewDate("2023-01-01"),
 			Event: shared.FeeReductionAwarded{
 				BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeFeeReductionAwarded},
 			},
-			OutstandingBalance: 3200,
-		},
-		{
-			Date: shared.NewDate("2022-01-01"),
-			Event: shared.InvoiceAdjustmentPending{
-				BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeInvoiceAdjustmentPending},
-			},
-			OutstandingBalance: 3200,
+			OutstandingBalance: 32000,
+			CreditBalance:      -500,
 		},
 		{
 			Date: shared.NewDate("2021-01-01"),
 			Event: shared.InvoiceGenerated{
 				BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeInvoiceGenerated},
 			},
-			OutstandingBalance: 3200,
+			OutstandingBalance: 32000,
+			CreditBalance:      -500,
+		},
+		{
+			Date: shared.NewDate("2020-01-01"),
+			Event: shared.TransactionEvent{
+				BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeReappliedCredit},
+			},
+			OutstandingBalance: 0,
+			CreditBalance:      -500,
+		},
+		{
+			Date: shared.NewDate("2020-01-01"),
+			Event: shared.TransactionEvent{
+				BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeInvoiceAdjustmentApplied},
+			},
+			OutstandingBalance: 500,
 		},
 	}
 
-	assert.Equalf(t, expected, computeBillingHistory(history), "computeBillingHistory(%v)", history)
+	billingHistory := computeBillingHistory(history)
+	assert.Equalf(t, expected, billingHistory, "computeBillingHistory(%v)", history)
 }
 
 func Test_invoiceEvents(t *testing.T) {
@@ -410,7 +428,7 @@ func Test_processFeeReductionEvents(t *testing.T) {
 			Startdate:          pgtype.Date{Time: now, Valid: true},
 			Enddate:            pgtype.Date{Time: now.Add(24 * time.Hour), Valid: true},
 			Datereceived:       pgtype.Date{Time: now.Add(48 * time.Hour), Valid: true},
-			Notes:              "Awarded",
+			Notes:              "Awarded 1",
 			CreatedAt:          pgtype.Timestamp(pgtype.Date{Time: now.Add(72 * time.Hour), Valid: true}),
 			CreatedBy:          pgtype.Int4{Int32: 1, Valid: true},
 			CancelledAt:        pgtype.Timestamp{},
@@ -422,7 +440,7 @@ func Test_processFeeReductionEvents(t *testing.T) {
 			Startdate:          pgtype.Date{Time: now, Valid: true},
 			Enddate:            pgtype.Date{Time: now.Add(24 * time.Hour), Valid: true},
 			Datereceived:       pgtype.Date{Time: now.Add(48 * time.Hour), Valid: true},
-			Notes:              "Awarded",
+			Notes:              "Awarded 2",
 			CreatedAt:          pgtype.Timestamp{Time: now.Add(72 * time.Hour), Valid: true},
 			CreatedBy:          pgtype.Int4{Int32: 1, Valid: true},
 			CancelledAt:        pgtype.Timestamp{Time: now.Add(96 * time.Hour), Valid: true},
@@ -441,7 +459,7 @@ func Test_processFeeReductionEvents(t *testing.T) {
 					StartDate:        shared.Date{Time: now},
 					EndDate:          shared.Date{Time: now.Add(24 * time.Hour)},
 					DateReceived:     shared.Date{Time: now.Add(48 * time.Hour)},
-					Notes:            "Awarded",
+					Notes:            "Awarded 1",
 					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeFeeReductionAwarded},
 				},
 				OutstandingBalance: 0,
@@ -456,6 +474,22 @@ func Test_processFeeReductionEvents(t *testing.T) {
 					ReductionType:      shared.FeeReductionTypeRemission,
 					CancellationReason: "Cancelled for reasons",
 					BaseBillingEvent:   shared.BaseBillingEvent{Type: shared.EventTypeFeeReductionCancelled},
+				},
+				OutstandingBalance: 0,
+			},
+			balanceAdjustment: 0,
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				User: 1,
+				Date: shared.Date{Time: now.Add(72 * time.Hour)},
+				Event: shared.FeeReductionAwarded{
+					ReductionType:    shared.FeeReductionTypeRemission,
+					StartDate:        shared.Date{Time: now},
+					EndDate:          shared.Date{Time: now.Add(24 * time.Hour)},
+					DateReceived:     shared.Date{Time: now.Add(48 * time.Hour)},
+					Notes:            "Awarded 2",
+					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeFeeReductionAwarded},
 				},
 				OutstandingBalance: 0,
 			},
@@ -527,7 +561,7 @@ func Test_processLedgerAllocations(t *testing.T) {
 						Date: shared.Date{Time: now},
 						Event: shared.TransactionEvent{
 							ClientId:        99,
-							TransactionType: "CREDIT MEMO",
+							TransactionType: shared.TransactionTypeCreditMemo,
 							Amount:          10000,
 							Breakdown: []shared.PaymentBreakdown{
 								{
@@ -586,7 +620,7 @@ func Test_processLedgerAllocations(t *testing.T) {
 						Date: shared.Date{Time: now},
 						Event: shared.TransactionEvent{
 							ClientId:        99,
-							TransactionType: "CREDIT REAPPLY",
+							TransactionType: shared.TransactionTypeReapply,
 							Amount:          5000,
 							Breakdown: []shared.PaymentBreakdown{
 								{
