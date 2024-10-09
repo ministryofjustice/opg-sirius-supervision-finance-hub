@@ -14,6 +14,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 	"unicode"
@@ -89,11 +90,14 @@ func createTemplates(envVars server.EnvironmentVars) map[string]*template.Templa
 
 			return false
 		},
-		"title": func(s string) string {
+		"toTitle": func(s string) string {
 			r := []rune(s)
 			r[0] = unicode.ToUpper(r[0])
 
 			return string(r)
+		},
+		"toLower": func(s string) string {
+			return strings.ToLower(s)
 		},
 		"prefix": func(s string) string {
 			return envVars.Prefix + s
@@ -101,7 +105,7 @@ func createTemplates(envVars server.EnvironmentVars) map[string]*template.Templa
 		"sirius": func(s string) string {
 			return envVars.SiriusPublicURL + s
 		},
-		"transformToTwoDecimals": func(amount int) string {
+		"toCurrency": func(amount int) string {
 			return shared.IntToDecimalString(amount)
 		},
 	}

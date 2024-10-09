@@ -38,7 +38,7 @@ INSERT INTO fee_reduction VALUES (2, 6, 'REMISSION', null, '2020-04-01', '2021-0
 
 -- customer-credit-balance
 INSERT INTO finance_client VALUES (7, 7, 'customer-credit-balance', 'DEMANDED', null);
-INSERT INTO invoice VALUES (6, 7, 7, 'AD', 'AD77777/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2025-03-31', 99); -- customer-credit-balance
+INSERT INTO invoice VALUES (6, 7, 7, 'AD', 'AD77777/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-04-10T08:36:40+00:00', 99); -- customer-credit-balance
 INSERT INTO ledger VALUES (3, 'customer-credit-balance', '2024-04-11T08:36:40+00:00', '', 3000, '', 'CARD PAYMENT', 'CONFIRMED', 7, null, null, '11/04/2042', '12/04/2024', 1, '', '', 1, '05/05/2024', 65);
 INSERT INTO ledger_allocation VALUES (3, 3, 6, '2024-04-11T08:36:40+00:00', 3000, 'ALLOCATED', null, 'customer-credit-balance', '2024-04-11', null);
 

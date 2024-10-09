@@ -119,6 +119,7 @@ func (i InvoiceType) RequiresDateValidation() bool {
 	switch i {
 	case InvoiceTypeAD, InvoiceTypeSF, InvoiceTypeSE, InvoiceTypeSO:
 		return true
+	default:
+		return false
 	}
-	return false
 }
