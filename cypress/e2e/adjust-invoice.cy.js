@@ -30,6 +30,17 @@ describe("Adjust invoice form", () => {
         // navigation and success message
         cy.url().should("include", "clients/4/invoices?success=invoice-adjustment[CREDIT%20MEMO]");
         cy.get(".moj-banner__message").contains("Manual credit successfully created");
+
+        // billing history
+        cy.visit("/clients/4/billing-history");
+
+        const now = new Date().toLocaleDateString("en-UK");
+        cy.get(".moj-timeline__item").first().within((el) => {
+            cy.get(".moj-timeline__title").contains("Pending credit memo of £100 added to AD11111/19");
+            cy.get(".moj-timeline__byline").contains(`by 1, ${now}`);
+            cy.get(".moj-timeline__date").contains("Outstanding balance: £420 Credit balance: £0");
+            cy.contains(".govuk-link", "AD11111/19").click();
+        });
     });
 
     it("writes off an invoice", () => {

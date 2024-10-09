@@ -153,13 +153,15 @@ func processFeeReductionEvents(feEvents []store.GetFeeReductionEventsRow) []hist
 // processLedgerAllocations takes an array of allocations and groups them by ledger, which defines a single billing event.
 // A ledger is always for a single transaction type but may have multiple allocations associated with it.
 func processLedgerAllocations(allocations []store.GetLedgerAllocationsForClientRow, clientID int) []historyHolder {
-	historyByLedger := make(map[int32]historyHolder)
+	historyByLedger := make(map[int32]*historyHolder)
 
 	for _, allocation := range allocations {
 		var (
 			event shared.TransactionEvent
+			lh    *historyHolder
+			ok    bool
 		)
-		if lh, ok := historyByLedger[allocation.LedgerID]; ok {
+		if lh, ok = historyByLedger[allocation.LedgerID]; ok {
 			// there will only be one key transaction type per ledger, so add transaction to payment breakdown
 			event = lh.billingHistory.Event.(shared.TransactionEvent)
 			event.Breakdown = append(event.Breakdown,
@@ -171,10 +173,11 @@ func processLedgerAllocations(allocations []store.GetLedgerAllocationsForClientR
 					Status: allocation.Status,
 				},
 			)
+			lh.billingHistory.Event = event
 		} else {
 			event = shared.TransactionEvent{
 				ClientId:        clientID,
-				TransactionType: allocation.Type,
+				TransactionType: shared.ParseTransactionType(allocation.Type),
 				Breakdown: []shared.PaymentBreakdown{
 					{
 						InvoiceReference: shared.InvoiceEvent{
@@ -196,34 +199,35 @@ func processLedgerAllocations(allocations []store.GetLedgerAllocationsForClientR
 				event.BaseBillingEvent = shared.BaseBillingEvent{
 					Type: shared.EventTypeInvoiceAdjustmentApplied,
 				}
-			case event.TransactionType == "CREDIT REAPPLY":
+			case event.TransactionType == shared.TransactionTypeReapply:
 				event.BaseBillingEvent = shared.BaseBillingEvent{
 					Type: shared.EventTypeReappliedCredit,
 				}
 			default:
-				// not all transaction types have been implemented
-				continue
+				event.BaseBillingEvent = shared.BaseBillingEvent{
+					Type: shared.EventTypeUnknown,
+				}
 			}
 
 			// the allocated amounts should equal the total transaction for the event, excluding unapplies
 			if allocation.Status != "UNAPPLIED" {
 				event.Amount += int(allocation.AllocationAmount)
 			}
-		}
 
-		lh := historyHolder{
-			billingHistory: shared.BillingHistory{
-				User:  int(allocation.CreatedBy.Int32),
-				Date:  shared.Date{Time: allocation.CreatedAt.Time},
-				Event: event,
-			},
+			lh = &historyHolder{
+				billingHistory: shared.BillingHistory{
+					User:  int(allocation.CreatedBy.Int32),
+					Date:  shared.Date{Time: allocation.CreatedAt.Time},
+					Event: event,
+				},
+			}
 		}
 
 		switch allocation.Status {
 		case "ALLOCATED":
 			lh.balanceAdjustment -= int(allocation.AllocationAmount)
 		case "UNAPPLIED":
-			lh.balanceAdjustment += int(allocation.AllocationAmount)
+			lh.balanceAdjustment -= int(allocation.AllocationAmount)
 			lh.creditAdjustment -= int(allocation.AllocationAmount)
 		case "REAPPLIED":
 			lh.balanceAdjustment -= int(allocation.AllocationAmount)
@@ -235,7 +239,7 @@ func processLedgerAllocations(allocations []store.GetLedgerAllocationsForClientR
 
 	var history []historyHolder
 	for _, lh := range historyByLedger {
-		history = append(history, lh)
+		history = append(history, *lh)
 	}
 
 	return history
@@ -245,7 +249,11 @@ func computeBillingHistory(history []historyHolder) []shared.BillingHistory {
 	// reverse order to allow for balance to be calculated
 	sort.Slice(history, func(i, j int) bool {
 		if history[i].billingHistory.Date.Time.Equal(history[j].billingHistory.Date.Time) {
-			// reapplies should apply after the event that causes them
+			// reapplies should apply after if they are the result of a transaction event
+			if _, ok := history[i].billingHistory.Event.(shared.TransactionEvent); ok {
+				return history[j].billingHistory.Event.GetType() == shared.EventTypeReappliedCredit
+			}
+			// transaction events and reapplies should apply after the event that causes them
 			return history[i].billingHistory.Event.GetType() != shared.EventTypeReappliedCredit
 		}
 		return history[i].billingHistory.Date.Time.Before(history[j].billingHistory.Date.Time)
