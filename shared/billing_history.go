@@ -43,7 +43,7 @@ func (b *BillingHistory) UnmarshalJSON(data []byte) (err error) {
 	case EventTypeReappliedCredit:
 		b.Event = new(ReappliedCredit)
 	default:
-		// ignore
+		b.Event = new(UnknownEvent)
 	}
 	type tmp BillingHistory // avoids infinite recursion
 	err = json.Unmarshal(data, (*tmp)(b))
@@ -61,6 +61,10 @@ type BaseBillingEvent struct {
 
 func (d BaseBillingEvent) GetType() BillingEventType {
 	return d.Type
+}
+
+type UnknownEvent struct {
+	BaseBillingEvent
 }
 
 type InvoiceGenerated struct {
@@ -96,7 +100,7 @@ type InvoiceAdjustmentPending struct {
 
 type TransactionEvent struct {
 	ClientId        int                `json:"client_id"`
-	TransactionType string             `json:"transaction_type"`
+	TransactionType TransactionType    `json:"transaction_type"`
 	Amount          int                `json:"amount"` // the amount that triggered the transaction, excluding unapplies
 	Breakdown       []PaymentBreakdown `json:"breakdown"`
 	BaseBillingEvent
@@ -171,10 +175,6 @@ func (b BillingEventType) String() string {
 	default:
 		return "UNKNOWN"
 	}
-}
-
-func (b BillingEventType) Valid() bool {
-	return b != EventTypeUnknown
 }
 
 func (b BillingEventType) MarshalJSON() ([]byte, error) {

@@ -174,7 +174,7 @@ func processLedgerAllocations(allocations []store.GetLedgerAllocationsForClientR
 		} else {
 			event = shared.TransactionEvent{
 				ClientId:        clientID,
-				TransactionType: allocation.Type,
+				TransactionType: shared.ParseTransactionType(allocation.Type),
 				Breakdown: []shared.PaymentBreakdown{
 					{
 						InvoiceReference: shared.InvoiceEvent{
@@ -196,13 +196,14 @@ func processLedgerAllocations(allocations []store.GetLedgerAllocationsForClientR
 				event.BaseBillingEvent = shared.BaseBillingEvent{
 					Type: shared.EventTypeInvoiceAdjustmentApplied,
 				}
-			case event.TransactionType == "CREDIT REAPPLY":
+			case event.TransactionType == shared.TransactionTypeReapply:
 				event.BaseBillingEvent = shared.BaseBillingEvent{
 					Type: shared.EventTypeReappliedCredit,
 				}
 			default:
-				// not all transaction types have been implemented
-				continue
+				event.BaseBillingEvent = shared.BaseBillingEvent{
+					Type: shared.EventTypeUnknown,
+				}
 			}
 
 			// the allocated amounts should equal the total transaction for the event, excluding unapplies
@@ -245,7 +246,11 @@ func computeBillingHistory(history []historyHolder) []shared.BillingHistory {
 	// reverse order to allow for balance to be calculated
 	sort.Slice(history, func(i, j int) bool {
 		if history[i].billingHistory.Date.Time.Equal(history[j].billingHistory.Date.Time) {
-			// reapplies should apply after the event that causes them
+			// reapplies should apply after if they are the result of a transaction event
+			if _, ok := history[i].billingHistory.Event.(shared.TransactionEvent); ok {
+				return history[j].billingHistory.Event.GetType() == shared.EventTypeReappliedCredit
+			}
+			// transaction events and reapplies should apply after the event that causes them
 			return history[i].billingHistory.Event.GetType() != shared.EventTypeReappliedCredit
 		}
 		return history[i].billingHistory.Date.Time.Before(history[j].billingHistory.Date.Time)
