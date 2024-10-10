@@ -20,7 +20,7 @@ func (s *Service) SendEmailToNotify(ctx context.Context, emailAddress string, te
 		"iat": time.Now().Unix(),
 	})
 
-	key := os.Getenv("OPG_CORE_JWT_KEY")
+	key := []byte(os.Getenv("OPG_CORE_JWT_KEY"))
 
 	signedToken, err := t.SignedString(key)
 	if err != nil {
