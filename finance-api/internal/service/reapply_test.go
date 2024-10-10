@@ -43,7 +43,8 @@ func (suite *IntegrationSuite) TestService_reapplyCredit_noInvoices() {
 		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 3;",
 	)
 	dispatch := &mockDispatch{}
-	s := NewService(conn.Conn, dispatch)
+	client := SetUpTest()
+	s := NewService(client, conn.Conn, dispatch)
 	err := s.ReapplyCredit(ctx, 1)
 	assert.Nil(suite.T(), err)
 
@@ -78,7 +79,8 @@ func (suite *IntegrationSuite) TestService_reapplyCredit_oldestFirst() {
 		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 3;",
 	)
 	dispatch := &mockDispatch{}
-	s := NewService(conn.Conn, dispatch)
+	client := SetUpTest()
+	s := NewService(client, conn.Conn, dispatch)
 	err := s.ReapplyCredit(ctx, 1)
 	assert.Nil(suite.T(), err)
 
