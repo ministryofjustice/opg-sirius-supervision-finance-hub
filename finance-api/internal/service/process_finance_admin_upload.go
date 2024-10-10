@@ -8,7 +8,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/awsclient"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -20,8 +19,7 @@ func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, bucketName stri
 	output, err := client.GetObject(ctx, &s3.GetObjectInput{
 		Key:                  aws.String(key),
 		Bucket:               aws.String(bucketName),
-		SSECustomerAlgorithm: aws.String("aws:kms"),
-		SSECustomerKey:       aws.String(os.Getenv("S3_ENCRYPTION_KEY")),
+		SSECustomerAlgorithm: aws.String("AES256"),
 	})
 
 	if err != nil {
