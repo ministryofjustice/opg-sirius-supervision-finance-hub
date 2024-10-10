@@ -17,9 +17,8 @@ func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, bucketName stri
 	client, _ := awsclient.NewClient(ctx)
 
 	output, err := client.GetObject(ctx, &s3.GetObjectInput{
-		Key:                  aws.String(key),
-		Bucket:               aws.String(bucketName),
-		SSECustomerAlgorithm: aws.String("AES256"),
+		Key:    aws.String(key),
+		Bucket: aws.String(bucketName),
 	})
 
 	if err != nil {
