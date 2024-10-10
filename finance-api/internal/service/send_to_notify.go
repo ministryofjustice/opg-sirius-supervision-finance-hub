@@ -48,7 +48,7 @@ func (s *Service) SendEmailToNotify(ctx context.Context, emailAddress string, te
 		return err
 	}
 
-	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	r.Header.Add("Content-Type", "application/json")
 	r.Header.Add("Authorization", "Bearer "+signedToken)
 
 	resp, err := s.http.Do(r)
