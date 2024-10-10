@@ -12,30 +12,29 @@ import (
 )
 
 const getFeeReductionEvents = `-- name: GetFeeReductionEvents :many
-SELECT
-   fr.type,
-   fr.startdate,
-   fr.enddate,
-   fr.datereceived,
-   fr.notes,
-   fr.created_at,
-   fr.created_by,
-   fr.cancelled_at,
-   fr.cancelled_by,
-   fr.cancellation_reason,
-   l.status,
-   l.amount,
-   l.datetime ledger_date,
-   fc.client_id,
-   i.id invoice_id,
-   i.reference reference
+SELECT fr.type,
+       fr.startdate,
+       fr.enddate,
+       fr.datereceived,
+       fr.notes,
+       fr.created_at,
+       fr.created_by,
+       fr.cancelled_at,
+       fr.cancelled_by,
+       fr.cancellation_reason,
+       l.status,
+       l.amount,
+       l.datetime ledger_date,
+       fc.client_id,
+       i.id AS    invoice_id,
+       i.reference
 FROM fee_reduction fr
-JOIN finance_client fc ON fc.id = fr.finance_client_id
-LEFT JOIN ledger l ON l.fee_reduction_id = fr.id
-LEFT JOIN (SELECT DISTINCT ON (ledger_id) id, ledger_id, invoice_id, datetime, amount, status, reference, notes, allocateddate, batchnumber, source FROM ledger_allocation) la ON l.id = la.ledger_id
-LEFT JOIN invoice i ON i.id = la.invoice_id
+         JOIN finance_client fc ON fc.id = fr.finance_client_id
+         LEFT JOIN ledger l ON l.fee_reduction_id = fr.id
+         LEFT JOIN (SELECT DISTINCT ON (ledger_id) id, ledger_id, invoice_id, datetime, amount, status, reference, notes, allocateddate, batchnumber, source FROM ledger_allocation) la ON l.id = la.ledger_id
+         LEFT JOIN invoice i ON i.id = la.invoice_id
 WHERE fc.client_id = $1
-AND (fr.created_at IS NOT NULL OR fr.cancelled_at IS NOT NULL)
+  AND (fr.created_at IS NOT NULL OR fr.cancelled_at IS NOT NULL)
 `
 
 type GetFeeReductionEventsRow struct {
@@ -138,13 +137,73 @@ func (q *Queries) GetGeneratedInvoices(ctx context.Context, clientID int32) ([]G
 	return items, nil
 }
 
+const getLedgerAllocationsForClient = `-- name: GetLedgerAllocationsForClient :many
+SELECT l.id AS ledger_id,
+       la.invoice_id,
+       i.reference,
+       COALESCE(fr.type, l.type),
+       la.status,
+       l.amount  AS ledger_amount,
+       la.amount AS allocation_amount,
+       l.datetime AS created_at,
+       l.created_by
+FROM ledger_allocation la
+         JOIN ledger l ON l.id = la.ledger_id
+         JOIN finance_client fc ON fc.id = l.finance_client_id
+         LEFT JOIN invoice i ON la.invoice_id = i.id
+         LEFT JOIN fee_reduction fr ON l.fee_reduction_id = fr.id
+WHERE fc.client_id = $1
+  AND la.status NOT IN ('PENDING', 'UNALLOCATED')
+`
+
+type GetLedgerAllocationsForClientRow struct {
+	LedgerID         int32
+	InvoiceID        pgtype.Int4
+	Reference        pgtype.Text
+	Type             string
+	Status           string
+	LedgerAmount     int32
+	AllocationAmount int32
+	CreatedAt        pgtype.Timestamp
+	CreatedBy        pgtype.Int4
+}
+
+func (q *Queries) GetLedgerAllocationsForClient(ctx context.Context, clientID int32) ([]GetLedgerAllocationsForClientRow, error) {
+	rows, err := q.db.Query(ctx, getLedgerAllocationsForClient, clientID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetLedgerAllocationsForClientRow
+	for rows.Next() {
+		var i GetLedgerAllocationsForClientRow
+		if err := rows.Scan(
+			&i.LedgerID,
+			&i.InvoiceID,
+			&i.Reference,
+			&i.Type,
+			&i.Status,
+			&i.LedgerAmount,
+			&i.AllocationAmount,
+			&i.CreatedAt,
+			&i.CreatedBy,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPendingInvoiceAdjustments = `-- name: GetPendingInvoiceAdjustments :many
 SELECT ia.invoice_id, i.reference, ia.adjustment_type, ia.amount, ia.notes, ia.created_at, ia.created_by
 FROM invoice_adjustment ia
          JOIN invoice i ON i.id = ia.invoice_id
          JOIN finance_client fc ON fc.id = ia.finance_client_id
 WHERE fc.client_id = $1
-  AND ia.status = 'PENDING'
 ORDER BY ia.raised_date DESC
 `
 

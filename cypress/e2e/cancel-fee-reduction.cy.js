@@ -16,7 +16,19 @@ describe("Cancel fee reduction form", () => {
         // navigation and success message
         cy.contains(".govuk-button", "Save and continue").click();
         cy.url().should("include", "/clients/6/fee-reductions?success=fee-reduction[CANCELLED]");
-        cy.get(".moj-banner__message").contains("The fee reduction has been successfully cancelled")
+        cy.get(".moj-banner__message").contains("The fee reduction has been successfully cancelled");
+
+        // billing history
+        cy.visit("/clients/6/billing-history");
+
+        const now = new Date().toLocaleDateString("en-UK");
+        cy.get(".moj-timeline__item").first().within((el) => {
+            cy.get(".moj-timeline__title").contains("Hardship cancelled");
+            cy.get(".moj-timeline__byline").contains(`by 1, ${now}`);
+            cy.get(".moj-timeline__date").contains("Outstanding balance: £0 Credit balance: £0");
+            cy.get(".govuk-list > li")
+                .first().contains("Reason: Cancelling for reasons")
+        });
     });
 
     it("should have no accessibility violations",() => {

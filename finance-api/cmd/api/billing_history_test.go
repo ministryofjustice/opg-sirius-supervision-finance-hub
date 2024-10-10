@@ -29,6 +29,7 @@ func TestServer_getBillingHistory(t *testing.T) {
 						Reference: "S203531/19",
 					},
 					Amount: 12300,
+					Status: "",
 				},
 				BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeInvoiceAdjustmentPending},
 			},
@@ -43,7 +44,7 @@ func TestServer_getBillingHistory(t *testing.T) {
 	res := w.Result()
 	defer res.Body.Close()
 
-	expected := `[{"user":65,"date":"04\/11\/2099","event":{"adjustment_type":"CREDIT WRITE OFF","client_id":1,"notes":"","payment_breakdown":{"invoice_reference":{"id":1,"reference":"S203531/19"},"amount":12300},"type":"INVOICE_ADJUSTMENT_PENDING"},"outstanding_balance":0}]`
+	expected := `[{"user":65,"date":"04\/11\/2099","event":{"adjustment_type":"CREDIT WRITE OFF","client_id":1,"notes":"","payment_breakdown":{"invoice_reference":{"id":1,"reference":"S203531/19"},"amount":12300,"status":""},"type":"INVOICE_ADJUSTMENT_PENDING"},"outstanding_balance":0,"credit_balance":0}]`
 
 	assert.Equal(t, strings.TrimSpace(expected), strings.TrimSpace(w.Body.String()))
 	assert.Equal(t, 1, mock.expectedIds[0])
