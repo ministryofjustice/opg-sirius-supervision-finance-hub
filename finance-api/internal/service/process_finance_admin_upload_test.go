@@ -28,7 +28,8 @@ func (suite *IntegrationSuite) Test_processMotoCardPaymentsUploadLine() {
 	)
 
 	dispatch := &mockDispatch{}
-	s := NewService(conn.Conn, dispatch)
+	client := SetUpTest()
+	s := NewService(client, conn.Conn, dispatch)
 
 	tests := []struct {
 		name                      string

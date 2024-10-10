@@ -14,6 +14,8 @@ import (
 )
 
 func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, bucketName string, key string) error {
+	_ = s.SendEmailToNotify(ctx, "joseph.smith@digital.justice.gov.uk", "5038b3fa-9509-46a7-952b-8431e1faad16")
+
 	client, _ := awsclient.NewClient(ctx)
 
 	output, err := client.GetObject(ctx, &s3.GetObjectInput{

@@ -38,6 +38,8 @@ services:
       AWS_SECRET_ACCESS_KEY: localstack
       EVENT_BUS_NAME: local-main
       S3_ENCRYPTION_KEY: alias/aws/s3
+      OPG_NOTIFY_API_KEY: 8aaa7cd4-b7af-4f49-90be-88d4815ecb72
+      OPG_CORE_JWT_KEY: testkey
     healthcheck:
       test: wget -O /dev/null -S 'http://localhost:8080/health-check' 2>&1 | grep 'HTTP/1.1 200 OK' || exit 1
       interval: 15s
