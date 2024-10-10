@@ -42,7 +42,11 @@ func (s *Service) SendEmailToNotify(ctx context.Context, emailAddress string, te
 		return err
 	}
 
-	r, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/%s", notifyUrl, emailEndpoint), &body)
+	r, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/%s", notifyUrl, emailEndpoint), &body)
+
+	if err != nil {
+		return err
+	}
 
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	r.Header.Add("Authorization", "Bearer "+signedToken)
