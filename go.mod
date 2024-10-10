@@ -16,7 +16,7 @@ require (
 	github.com/testcontainers/testcontainers-go v0.33.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.33.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.55.0
-	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0
+	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c
 	golang.org/x/sync v0.8.0
 	golang.org/x/text v0.18.0
 )
