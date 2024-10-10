@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
-	"io"
 	"net/http"
 	"os"
 	"time"
@@ -54,7 +53,7 @@ func (s *Service) SendEmailToNotify(ctx context.Context, emailAddress string, te
 	}
 	defer resp.Body.Close()
 
-	_, _ = io.Copy(os.Stdout, resp.Body)
+	fmt.Println(resp.Body)
 
 	return nil
 }
