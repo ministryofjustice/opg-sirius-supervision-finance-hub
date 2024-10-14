@@ -23,10 +23,13 @@ func parseNotifyApiKey(notifyApiKey string) (string, string) {
 }
 
 func (s *Service) SendEmailToNotify(ctx context.Context, emailAddress string, templateId string) error {
-	notifyUrl := "https://api.notifications.service.gov.uk"
-	emailEndpoint := "v2/notifications/email"
+	//notifyUrl := "https://api.notifications.service.gov.uk"
+	//emailEndpoint := "v2/notifications/email"
 
 	iss, jwtKey := parseNotifyApiKey(os.Getenv("OPG_NOTIFY_API_KEY"))
+	fmt.Println(os.Getenv("OPG_NOTIFY_API_KEY"))
+	fmt.Println(iss)
+	fmt.Println(jwtKey)
 
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"iss": iss,
@@ -53,7 +56,8 @@ func (s *Service) SendEmailToNotify(ctx context.Context, emailAddress string, te
 		return err
 	}
 
-	r, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/%s", notifyUrl, emailEndpoint), &body)
+	//r, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/%s", notifyUrl, emailEndpoint), &body)
+	r, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://google.com", nil)
 
 	if err != nil {
 		return err
