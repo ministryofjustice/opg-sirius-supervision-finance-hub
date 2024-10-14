@@ -33,7 +33,7 @@ func (s *Service) SendEmailToNotify(ctx context.Context, emailAddress string, te
 		"iat": time.Now().Unix(),
 	})
 
-	signedToken, err := t.SignedString(jwtKey)
+	signedToken, err := t.SignedString([]byte(jwtKey))
 	if err != nil {
 		return err
 	}
