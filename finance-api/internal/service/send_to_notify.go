@@ -8,21 +8,32 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
+
+func parseNotifyApiKey(notifyApiKey string) (string, string) {
+	splitKey := strings.Split(notifyApiKey, "-")
+	if len(splitKey) != 11 {
+		return "", ""
+	}
+	iss := fmt.Sprintf("%s-%s-%s-%s-%s", splitKey[1], splitKey[2], splitKey[3], splitKey[4], splitKey[5])
+	jwtToken := fmt.Sprintf("%s-%s-%s-%s-%s", splitKey[6], splitKey[7], splitKey[8], splitKey[9], splitKey[10])
+	return iss, jwtToken
+}
 
 func (s *Service) SendEmailToNotify(ctx context.Context, emailAddress string, templateId string) error {
 	notifyUrl := "https://api.notifications.service.gov.uk"
 	emailEndpoint := "v2/notifications/email"
 
+	iss, jwtKey := parseNotifyApiKey(os.Getenv("OPG_NOTIFY_API_KEY"))
+
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"iss": os.Getenv("OPG_NOTIFY_API_KEY"),
+		"iss": iss,
 		"iat": time.Now().Unix(),
 	})
 
-	key := []byte(os.Getenv("OPG_CORE_JWT_KEY"))
-
-	signedToken, err := t.SignedString(key)
+	signedToken, err := t.SignedString(jwtKey)
 	if err != nil {
 		return err
 	}
@@ -49,7 +60,7 @@ func (s *Service) SendEmailToNotify(ctx context.Context, emailAddress string, te
 	}
 
 	r.Header.Add("Content-Type", "application/json")
-	r.Header.Add("Authorization", signedToken)
+	r.Header.Add("Authorization", "Bearer "+signedToken)
 
 	resp, err := s.http.Do(r)
 	if err != nil {
