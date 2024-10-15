@@ -31,6 +31,26 @@ func TestServer_handleEvents(t *testing.T) {
 			expectedHandler: "ReapplyCredit",
 		},
 		{
+			name: "upload event",
+			event: shared.Event{
+				Source:     "opg.supervision.finance-admin",
+				DetailType: "finance-admin-upload",
+				Detail:     shared.FinanceAdminUploadEvent{Filename: "file.csv", EmailAddress: "hello@test.com"},
+			},
+			expectedErr:     nil,
+			expectedHandler: "ProcessFinanceAdminUpload",
+		},
+		{
+			name: "client created event",
+			event: shared.Event{
+				Source:     "opg.supervision.sirius",
+				DetailType: "client-created",
+				Detail:     shared.ClientCreatedEvent{ClientID: 1, CaseRecNumber: "12345678"},
+			},
+			expectedErr:     nil,
+			expectedHandler: "UpdateClient",
+		},
+		{
 			name: "unknown event",
 			event: shared.Event{
 				Source:     "opg.supervision.sirius",
@@ -55,6 +75,8 @@ func TestServer_handleEvents(t *testing.T) {
 			err := server.handleEvents(w, r)
 			if test.expectedErr != nil {
 				assert.ErrorAs(t, err, &test.expectedErr)
+			} else {
+				assert.Nil(t, err)
 			}
 			assert.Equal(t, test.expectedHandler, mock.lastCalled)
 		})

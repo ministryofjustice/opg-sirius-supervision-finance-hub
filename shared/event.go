@@ -7,7 +7,12 @@ import (
 
 const (
 	EventSourceSirius             = "opg.supervision.sirius"
+	EventSourceFinanceAdmin       = "opg.supervision.finance-admin"
+	EventSourceS3                 = "aws.s3"
 	DetailTypeDebtPositionChanged = "debt-position-changed"
+	DetailTypeAWSCloudtrailEvent  = "AWS API Call via CloudTrail"
+	DetailTypeClientCreated       = "client-created"
+	DetailTypeFinanceAdminUpload  = "finance-admin-upload"
 )
 
 type Event struct {
@@ -38,6 +43,18 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		e.Detail = detail
+	case DetailTypeFinanceAdminUpload:
+		var detail FinanceAdminUploadEvent
+		if err := json.Unmarshal(raw.Detail, &detail); err != nil {
+			return err
+		}
+		e.Detail = detail
+	case DetailTypeClientCreated:
+		var detail ClientCreatedEvent
+		if err := json.Unmarshal(raw.Detail, &detail); err != nil {
+			return err
+		}
+		e.Detail = detail
 	default:
 		return fmt.Errorf("unknown detail type: %s", e.DetailType)
 	}
@@ -47,4 +64,14 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 
 type DebtPositionChangedEvent struct {
 	ClientID int `json:"clientId"`
+}
+
+type ClientCreatedEvent struct {
+	ClientID      int    `json:"clientId"`
+	CaseRecNumber string `json:"caseRecNumber"`
+}
+
+type FinanceAdminUploadEvent struct {
+	EmailAddress string `json:"emailAddress"`
+	Filename     string `json:"filename"`
 }

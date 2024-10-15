@@ -46,7 +46,7 @@ func run(ctx context.Context, logger *slog.Logger) error {
 
 	eventclient := setupEventClient(ctx, logger)
 
-	Service := service.NewService(dbpool, eventclient)
+	Service := service.NewService(http.DefaultClient, dbpool, eventclient)
 
 	validator, err := validation.New()
 	if err != nil {
