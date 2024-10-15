@@ -54,7 +54,7 @@ func (s *Service) ReapplyCredit(ctx context.Context, clientID int32) error {
 	}
 
 	allocation.LedgerID = pgtype.Int4{Int32: ledgerId, Valid: true}
-	_, err = s.store.CreateLedgerAllocation(ctx, allocation)
+	err = s.store.CreateLedgerAllocation(ctx, allocation)
 	if err != nil {
 		return err
 	}
