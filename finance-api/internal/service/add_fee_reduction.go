@@ -70,7 +70,7 @@ func (s *Service) AddFeeReduction(ctx context.Context, clientId int, data shared
 
 		for _, allocation := range allocations {
 			allocation.LedgerID = pgtype.Int4{Int32: ledgerId, Valid: true}
-			_, err = transaction.CreateLedgerAllocation(ctx, allocation)
+			err = transaction.CreateLedgerAllocation(ctx, allocation)
 			if err != nil {
 				return err
 			}
