@@ -26,6 +26,11 @@ func (m *mockDispatch) CreditOnAccount(ctx context.Context, event event.CreditOn
 	return nil
 }
 
+func (m *mockDispatch) FinanceAdminUploadFailed(ctx context.Context, event event.FinanceAdminUploadFailed) error {
+	m.event = event
+	return nil
+}
+
 func (suite *IntegrationSuite) TestService_reapplyCredit_noInvoices() {
 	conn := suite.testDB.GetConn()
 	ctx := context.Background()

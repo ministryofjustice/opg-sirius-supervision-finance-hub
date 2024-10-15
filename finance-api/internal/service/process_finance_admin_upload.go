@@ -7,23 +7,20 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/awsclient"
+	"github.com/opg-sirius-finance-hub/finance-api/internal/event"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
+	"os"
 	"strconv"
 	"strings"
 	"time"
 )
 
-func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, bucketName string, key string) error {
-	err := s.SendEmailToNotify(ctx, "joseph.smith@digital.justice.gov.uk", "942ae6a0-792d-45ae-b4f1-ce88fc22d5ce")
-	if err != nil {
-		return err
-	}
-
+func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, filename string, emailAddress string) error {
 	client, _ := awsclient.NewClient(ctx)
 
 	output, err := client.GetObject(ctx, &s3.GetObjectInput{
-		Key:    aws.String(key),
-		Bucket: aws.String(bucketName),
+		Key:    aws.String(filename),
+		Bucket: aws.String(os.Getenv("ASYNC_S3_BUCKET")),
 	})
 
 	if err != nil {
@@ -36,14 +33,25 @@ func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, bucketName stri
 		return err
 	}
 
+	var failedLines map[int]string
+
 	for index, record := range records {
 		if index != 0 {
-			err := s.processMotoCardPaymentsUploadLine(ctx, record)
+			err := s.processMotoCardPaymentsUploadLine(ctx, record, index, &failedLines)
 			if err != nil {
 				return err
 			}
 		}
 	}
+
+	if len(failedLines) > 0 {
+		failedEvent := event.FinanceAdminUploadFailed{EmailAddress: emailAddress, FailedLines: failedLines}
+		err := s.dispatch.FinanceAdminUploadFailed(ctx, failedEvent)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -60,11 +68,12 @@ func parseAmount(amount string) int {
 	return intAmount
 }
 
-func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record []string) error {
+func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record []string, index int, failedLines *map[int]string) error {
 	courtReference := strings.SplitN(record[0], "-", -1)[0]
 	amount := parseAmount(record[2])
 	parsedDate, err := time.Parse("2006-01-02 15:04:05", record[1])
 	if err != nil {
+		(*failedLines)[index] = "DATE_PARSE_ERROR"
 		return err
 	}
 
@@ -72,7 +81,6 @@ func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record 
 		return nil
 	}
 
-	// check if payment has already been made
 	ledgerId, _ := s.store.GetLedgerForPayment(ctx, store.GetLedgerForPaymentParams{
 		Caserecnumber: pgtype.Text{String: courtReference, Valid: true},
 		Amount:        int32(amount),
@@ -81,6 +89,7 @@ func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record 
 	})
 
 	if ledgerId != 0 {
+		(*failedLines)[index] = "DUPLICATE"
 		return nil
 	}
 
@@ -94,11 +103,13 @@ func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record 
 	})
 
 	if err != nil {
+		(*failedLines)[index] = "LEDGER_CREATE_ERROR"
 		return err
 	}
 
 	invoices, err := s.store.GetInvoicesForCaseRecNumber(ctx, pgtype.Text{String: courtReference, Valid: true})
 	if err != nil {
+		(*failedLines)[index] = "INVOICES_FETCH_ERROR"
 		return err
 	}
 
@@ -116,6 +127,7 @@ func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record 
 				LedgerID:  pgtype.Int4{Int32: ledgerId, Valid: true},
 			})
 			if err != nil {
+				(*failedLines)[index] = "ALLOCATION_CREATE_ERROR"
 				return err
 			}
 
@@ -131,6 +143,7 @@ func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record 
 		})
 
 		if err != nil {
+			(*failedLines)[index] = "ALLOCATION_CREATE_ERROR"
 			return err
 		}
 	}

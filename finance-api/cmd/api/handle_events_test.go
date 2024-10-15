@@ -33,9 +33,9 @@ func TestServer_handleEvents(t *testing.T) {
 		{
 			name: "upload event",
 			event: shared.Event{
-				Source:     "aws.s3",
-				DetailType: "AWS API Call via CloudTrail",
-				Detail:     shared.FinanceAdminUploadEvent{RequestParameters: shared.RequestParameters{BucketName: "bucket1", Key: "file.csv"}},
+				Source:     "opg.supervision.finance-admin",
+				DetailType: "finance-admin-upload",
+				Detail:     shared.FinanceAdminUploadEvent{Filename: "file.csv", EmailAddress: "hello@test.com"},
 			},
 			expectedErr:     nil,
 			expectedHandler: "ProcessFinanceAdminUpload",

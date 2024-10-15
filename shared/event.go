@@ -7,10 +7,12 @@ import (
 
 const (
 	EventSourceSirius             = "opg.supervision.sirius"
+	EventSourceFinanceAdmin       = "opg.supervision.finance-admin"
 	EventSourceS3                 = "aws.s3"
 	DetailTypeDebtPositionChanged = "debt-position-changed"
 	DetailTypeAWSCloudtrailEvent  = "AWS API Call via CloudTrail"
 	DetailTypeClientCreated       = "client-created"
+	DetailTypeFinanceAdminUpload  = "finance-admin-upload"
 )
 
 type Event struct {
@@ -41,7 +43,7 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		e.Detail = detail
-	case DetailTypeAWSCloudtrailEvent:
+	case DetailTypeFinanceAdminUpload:
 		var detail FinanceAdminUploadEvent
 		if err := json.Unmarshal(raw.Detail, &detail); err != nil {
 			return err
@@ -70,10 +72,6 @@ type ClientCreatedEvent struct {
 }
 
 type FinanceAdminUploadEvent struct {
-	RequestParameters RequestParameters `json:"requestParameters"`
-}
-
-type RequestParameters struct {
-	BucketName string `json:"bucketName"`
-	Key        string `json:"key"`
+	EmailAddress string `json:"emailAddress"`
+	Filename     string `json:"filename"`
 }

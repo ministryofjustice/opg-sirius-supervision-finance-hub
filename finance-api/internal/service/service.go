@@ -15,6 +15,7 @@ type TX interface {
 
 type Dispatch interface {
 	CreditOnAccount(ctx context.Context, event event.CreditOnAccount) error
+	FinanceAdminUploadFailed(ctx context.Context, event event.FinanceAdminUploadFailed) error
 }
 
 type Service struct {

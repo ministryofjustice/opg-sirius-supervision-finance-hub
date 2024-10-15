@@ -36,6 +36,7 @@ func (suite *IntegrationSuite) Test_processMotoCardPaymentsUploadLine() {
 		record                    []string
 		expectedClientId          int
 		expectedLedgerAllocations []createdLedgerAllocation
+		expectedFailedLines       map[int]string
 		want                      error
 	}{
 		{
@@ -57,7 +58,8 @@ func (suite *IntegrationSuite) Test_processMotoCardPaymentsUploadLine() {
 					1,
 				},
 			},
-			want: nil,
+			expectedFailedLines: nil,
+			want:                nil,
 		},
 		{
 			name: "Overpayment",
@@ -87,13 +89,16 @@ func (suite *IntegrationSuite) Test_processMotoCardPaymentsUploadLine() {
 					0,
 				},
 			},
-			want: nil,
+			expectedFailedLines: nil,
+			want:                nil,
 		},
 	}
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
-			err := s.processMotoCardPaymentsUploadLine(context.Background(), tt.record)
+			var failedLines map[int]string
+			err := s.processMotoCardPaymentsUploadLine(context.Background(), tt.record, 1, &failedLines)
 			assert.Equal(t, tt.want, err)
+			assert.Equal(t, tt.expectedFailedLines, failedLines)
 
 			var createdLedgerAllocations []createdLedgerAllocation
 
