@@ -63,7 +63,7 @@ func (s *Service) SendEmailToNotify(ctx context.Context, emailAddress string, te
 	}
 
 	r.Header.Add("Content-Type", "application/json")
-	r.Header.Add("Authorization", signedToken)
+	r.Header.Add("Authorization", "Bearer "+signedToken)
 
 	resp, err := s.http.Do(r)
 	if err != nil {
