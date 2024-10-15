@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -53,6 +54,8 @@ func (s *Service) SendEmailToNotify(ctx context.Context, emailAddress string, te
 		return err
 	}
 
+	fmt.Println(body)
+
 	r, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/%s", notifyUrl, emailEndpoint), &body)
 
 	if err != nil {
@@ -68,7 +71,12 @@ func (s *Service) SendEmailToNotify(ctx context.Context, emailAddress string, te
 	}
 	defer resp.Body.Close()
 
-	fmt.Println(resp.Body)
+	buf := new(strings.Builder)
+	_, _ = io.Copy(buf, resp.Body)
+	// check errors
+	fmt.Println(buf.String())
+
+	io.Copy(os.Stdout, resp.Body)
 
 	return nil
 }
