@@ -1,7 +1,9 @@
-{{ define "invoice-generated-event" }}
+{{ define "reapplied-credit-event" }}
     <div class="moj-timeline__item">
         <div class="moj-timeline__header">
-            <h2 class="moj-timeline__title">{{ .Event.InvoiceType }} invoice created for £{{ toCurrency .Event.Amount }}</h2>
+            <h2 class="moj-timeline__title">
+                {{ printf "£%v reapplied to %v" (toCurrency .Event.Amount) (index .Event.Breakdown 0).InvoiceReference.Reference }}
+            </h2>
             <p class="moj-timeline__byline">
                 {{ printf "by %v, %v" .User .Date }}
             </p>
@@ -11,9 +13,11 @@
         </p>
         <div class="moj-timeline__description">
             <ul class="govuk-list govuk-list--bullet">
-                <li>
-                    <a class="govuk-link"  href="{{prefix (printf "/clients/%d/invoices" .Event.ClientId) }}">{{ .Event.InvoiceReference.Reference }}</a>
-                </li>
+                {{ range .Event.Breakdown }}
+                    <li>
+                        {{ printf "£%v reapplied to %v" (toCurrency .Amount) .InvoiceReference.Reference }}
+                    </li>
+                {{ end }}
             </ul>
         </div>
     </div>
