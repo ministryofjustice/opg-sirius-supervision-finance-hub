@@ -76,7 +76,7 @@ func (s *Service) SendEmailToNotify(ctx context.Context, emailAddress string, te
 	// check errors
 	fmt.Println(buf.String())
 
-	io.Copy(os.Stdout, resp.Body)
+	_, _ = io.Copy(os.Stdout, resp.Body)
 
 	return nil
 }
