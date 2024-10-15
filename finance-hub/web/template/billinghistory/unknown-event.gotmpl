@@ -1,7 +1,9 @@
-{{ define "invoice-generated-event" }}
+{{ define "unknown-event" }}
     <div class="moj-timeline__item">
         <div class="moj-timeline__header">
-            <h2 class="moj-timeline__title">{{ .Event.InvoiceType }} invoice created for £{{ toCurrency .Event.Amount }}</h2>
+            <h2 class="moj-timeline__title">
+                Unknown billing event
+            </h2>
             <p class="moj-timeline__byline">
                 {{ printf "by %v, %v" .User .Date }}
             </p>
@@ -10,11 +12,6 @@
             {{ printf "Outstanding balance: £%v Credit balance: £%v" (toCurrency .OutstandingBalance) (toCurrency .CreditBalance) }}
         </p>
         <div class="moj-timeline__description">
-            <ul class="govuk-list govuk-list--bullet">
-                <li>
-                    <a class="govuk-link"  href="{{prefix (printf "/clients/%d/invoices" .Event.ClientId) }}">{{ .Event.InvoiceReference.Reference }}</a>
-                </li>
-            </ul>
         </div>
     </div>
 {{ end }}
