@@ -72,6 +72,7 @@ func stringToTime(s string) (time.Time, error) {
 	supportedFormats := []string{
 		"02/01/2006",
 		"2006-01-02T15:04:05+00:00",
+		"2006-01-02 15:04:05",
 		"2006-01-02",
 	}
 

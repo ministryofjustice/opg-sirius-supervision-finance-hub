@@ -9,6 +9,7 @@ type BillingHistory struct {
 	Date               Date         `json:"date"`
 	Event              BillingEvent `json:"event"`
 	OutstandingBalance int          `json:"outstanding_balance"`
+	CreditBalance      int          `json:"credit_balance"`
 }
 
 type BillingEvent interface {
@@ -34,13 +35,15 @@ func (b *BillingHistory) UnmarshalJSON(data []byte) (err error) {
 	case EventTypeFeeReductionApplied:
 		b.Event = new(FeeReductionApplied)
 	case EventTypeInvoiceAdjustmentApplied:
-		b.Event = new(InvoiceAdjustmentApproved)
+		b.Event = new(InvoiceAdjustmentApplied)
 	case EventTypeInvoiceAdjustmentPending:
 		b.Event = new(InvoiceAdjustmentPending)
 	case EventTypePaymentProcessed:
 		b.Event = new(PaymentProcessed)
+	case EventTypeReappliedCredit:
+		b.Event = new(ReappliedCredit)
 	default:
-		// ignore
+		b.Event = new(UnknownEvent)
 	}
 	type tmp BillingHistory // avoids infinite recursion
 	err = json.Unmarshal(data, (*tmp)(b))
@@ -58,6 +61,10 @@ type BaseBillingEvent struct {
 
 func (d BaseBillingEvent) GetType() BillingEventType {
 	return d.Type
+}
+
+type UnknownEvent struct {
+	BaseBillingEvent
 }
 
 type InvoiceGenerated struct {
@@ -83,21 +90,6 @@ type FeeReductionCancelled struct {
 	BaseBillingEvent
 }
 
-type FeeReductionApplied struct {
-	ClientId         int              `json:"client_id"`
-	ReductionType    FeeReductionType `json:"reduction_type"`
-	PaymentBreakdown `json:"payment_breakdown"`
-	BaseBillingEvent
-}
-
-type InvoiceAdjustmentApproved struct {
-	AdjustmentType   AdjustmentType `json:"adjustment_type"`
-	ClientId         int            `json:"client_id"`
-	Notes            string         `json:"notes"`
-	PaymentBreakdown `json:"payment_breakdown"`
-	BaseBillingEvent
-}
-
 type InvoiceAdjustmentPending struct {
 	AdjustmentType   AdjustmentType `json:"adjustment_type"`
 	ClientId         int            `json:"client_id"`
@@ -106,16 +98,34 @@ type InvoiceAdjustmentPending struct {
 	BaseBillingEvent
 }
 
-type PaymentProcessed struct {
-	PaymentType string             `json:"payment_type"`
-	Total       int                `json:"total"`
-	Breakdown   []PaymentBreakdown `json:"breakdown"`
+type TransactionEvent struct {
+	ClientId        int                `json:"client_id"`
+	TransactionType TransactionType    `json:"transaction_type"`
+	Amount          int                `json:"amount"` // the amount that triggered the transaction, excluding unapplies
+	Breakdown       []PaymentBreakdown `json:"breakdown"`
 	BaseBillingEvent
 }
 
 type PaymentBreakdown struct {
 	InvoiceReference InvoiceEvent `json:"invoice_reference"`
 	Amount           int          `json:"amount"`
+	Status           string       `json:"status"`
+}
+
+type InvoiceAdjustmentApplied struct {
+	TransactionEvent
+}
+
+type FeeReductionApplied struct {
+	TransactionEvent
+}
+
+type PaymentProcessed struct {
+	TransactionEvent
+}
+
+type ReappliedCredit struct {
+	TransactionEvent
 }
 
 type BillingEventType int
@@ -129,6 +139,7 @@ const (
 	EventTypeInvoiceAdjustmentApplied
 	EventTypePaymentProcessed
 	EventTypeInvoiceAdjustmentPending
+	EventTypeReappliedCredit
 )
 
 var eventTypeMap = map[string]BillingEventType{
@@ -140,6 +151,7 @@ var eventTypeMap = map[string]BillingEventType{
 	"INVOICE_ADJUSTMENT_APPLIED": EventTypeInvoiceAdjustmentApplied,
 	"INVOICE_ADJUSTMENT_PENDING": EventTypeInvoiceAdjustmentPending,
 	"PAYMENT_PROCESSED":          EventTypePaymentProcessed,
+	"REAPPLIED_CREDIT":           EventTypeReappliedCredit,
 }
 
 func (b BillingEventType) String() string {
@@ -158,6 +170,8 @@ func (b BillingEventType) String() string {
 		return "INVOICE_ADJUSTMENT_PENDING"
 	case EventTypePaymentProcessed:
 		return "PAYMENT_PROCESSED"
+	case EventTypeReappliedCredit:
+		return "REAPPLIED_CREDIT"
 	default:
 		return "UNKNOWN"
 	}
