@@ -104,13 +104,13 @@ func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record 
 
 	if err != nil {
 		(*failedLines)[index] = "LEDGER_CREATE_ERROR"
-		return err
+		return nil
 	}
 
 	invoices, err := s.store.GetInvoicesForCaseRecNumber(ctx, pgtype.Text{String: courtReference, Valid: true})
 	if err != nil {
 		(*failedLines)[index] = "INVOICES_FETCH_ERROR"
-		return err
+		return nil
 	}
 
 	for _, invoice := range invoices {
@@ -128,7 +128,7 @@ func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record 
 			})
 			if err != nil {
 				(*failedLines)[index] = "ALLOCATION_CREATE_ERROR"
-				return err
+				return nil
 			}
 
 			amount -= int(allocationAmount)
@@ -144,7 +144,7 @@ func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record 
 
 		if err != nil {
 			(*failedLines)[index] = "ALLOCATION_CREATE_ERROR"
-			return err
+			return nil
 		}
 	}
 
