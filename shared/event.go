@@ -7,10 +7,8 @@ import (
 
 const (
 	EventSourceSirius             = "opg.supervision.sirius"
-	EventSourceFinanceAdmin       = "opg.supervision.finance-admin"
-	EventSourceS3                 = "aws.s3"
+	EventSourceFinanceAdmin       = "opg.supervision.finance.admin"
 	DetailTypeDebtPositionChanged = "debt-position-changed"
-	DetailTypeAWSCloudtrailEvent  = "AWS API Call via CloudTrail"
 	DetailTypeClientCreated       = "client-created"
 	DetailTypeFinanceAdminUpload  = "finance-admin-upload"
 )

@@ -33,7 +33,7 @@ func TestServer_handleEvents(t *testing.T) {
 		{
 			name: "upload event",
 			event: shared.Event{
-				Source:     "opg.supervision.finance-admin",
+				Source:     "opg.supervision.finance.admin",
 				DetailType: "finance-admin-upload",
 				Detail:     shared.FinanceAdminUploadEvent{Filename: "file.csv", EmailAddress: "hello@test.com"},
 			},
