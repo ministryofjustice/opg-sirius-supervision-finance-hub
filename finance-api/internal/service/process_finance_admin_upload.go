@@ -33,7 +33,7 @@ func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, filename string
 		return err
 	}
 
-	var failedLines map[int]string
+	failedLines := make(map[int]string)
 
 	for index, record := range records {
 		if index != 0 {
