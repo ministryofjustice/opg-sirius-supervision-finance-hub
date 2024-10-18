@@ -74,7 +74,7 @@ func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record 
 	parsedDate, err := time.Parse("2006-01-02 15:04:05", record[1])
 	if err != nil {
 		(*failedLines)[index] = "DATE_PARSE_ERROR"
-		return err
+		return nil
 	}
 
 	if amount == 0 {
@@ -89,7 +89,7 @@ func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record 
 	})
 
 	if ledgerId != 0 {
-		(*failedLines)[index] = "DUPLICATE"
+		(*failedLines)[index] = "DUPLICATE_PAYMENT"
 		return nil
 	}
 
@@ -103,14 +103,13 @@ func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record 
 	})
 
 	if err != nil {
-		(*failedLines)[index] = "LEDGER_CREATE_ERROR"
+		(*failedLines)[index] = "CLIENT_NOT_FOUND"
 		return nil
 	}
 
 	invoices, err := s.store.GetInvoicesForCaseRecNumber(ctx, pgtype.Text{String: courtReference, Valid: true})
 	if err != nil {
-		(*failedLines)[index] = "INVOICES_FETCH_ERROR"
-		return nil
+		return err
 	}
 
 	for _, invoice := range invoices {
@@ -127,8 +126,7 @@ func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record 
 				LedgerID:  pgtype.Int4{Int32: ledgerId, Valid: true},
 			})
 			if err != nil {
-				(*failedLines)[index] = "ALLOCATION_CREATE_ERROR"
-				return nil
+				return err
 			}
 
 			amount -= int(allocationAmount)
@@ -143,8 +141,7 @@ func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record 
 		})
 
 		if err != nil {
-			(*failedLines)[index] = "ALLOCATION_CREATE_ERROR"
-			return nil
+			return err
 		}
 	}
 
