@@ -11,7 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const createLedgerAllocation = `-- name: CreateLedgerAllocation :one
+const createLedgerAllocation = `-- name: CreateLedgerAllocation :exec
 WITH this_ledger as (
     SELECT id, datetime FROM ledger WHERE id = $1
 )
@@ -24,7 +24,6 @@ SELECT nextval('ledger_allocation_id_seq'),
        $4,
        $5
 FROM this_ledger WHERE this_ledger.id = $1
-returning (SELECT reference invoiceReference FROM invoice WHERE id = invoice_id)
 `
 
 type CreateLedgerAllocationParams struct {
@@ -35,17 +34,15 @@ type CreateLedgerAllocationParams struct {
 	Notes     pgtype.Text
 }
 
-func (q *Queries) CreateLedgerAllocation(ctx context.Context, arg CreateLedgerAllocationParams) (string, error) {
-	row := q.db.QueryRow(ctx, createLedgerAllocation,
+func (q *Queries) CreateLedgerAllocation(ctx context.Context, arg CreateLedgerAllocationParams) error {
+	_, err := q.db.Exec(ctx, createLedgerAllocation,
 		arg.LedgerID,
 		arg.InvoiceID,
 		arg.Amount,
 		arg.Status,
 		arg.Notes,
 	)
-	var invoicereference string
-	err := row.Scan(&invoicereference)
-	return invoicereference, err
+	return err
 }
 
 const updateLedgerAllocationAdjustment = `-- name: UpdateLedgerAllocationAdjustment :exec
