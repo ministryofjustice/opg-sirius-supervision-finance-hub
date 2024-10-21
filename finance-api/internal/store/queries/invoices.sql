@@ -16,6 +16,19 @@ WHERE fc.client_id = $1
 GROUP BY i.id, i.raiseddate
 ORDER BY i.raiseddate DESC;
 
+-- name: GetInvoicesForCourtRef :many
+SELECT i.id,
+       (i.amount - COALESCE(SUM(la.amount), 0)::INT) outstanding
+FROM invoice i
+         JOIN finance_client fc ON fc.id = i.finance_client_id
+         LEFT JOIN ledger_allocation la ON i.id = la.invoice_id AND la.status NOT IN ('PENDING', 'UNALLOCATED')
+         LEFT JOIN ledger l ON la.ledger_id = l.id
+         LEFT JOIN fee_reduction fr ON l.fee_reduction_id = fr.id
+WHERE fc.court_ref = $1
+GROUP BY i.id, i.raiseddate
+HAVING (i.amount - COALESCE(SUM(la.amount), 0)::INT) > 0
+ORDER BY i.raiseddate ASC;
+
 -- name: GetLedgerAllocations :many
 WITH allocations AS (SELECT la.invoice_id,
                             la.amount,
