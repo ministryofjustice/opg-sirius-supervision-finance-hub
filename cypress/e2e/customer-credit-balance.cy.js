@@ -44,6 +44,19 @@ describe("Customer credit balance", () => {
             cy.contains("Total outstanding balance: £0");
             cy.contains("Total credit balance: £30");
         });
+
+        // check billing history
+        cy.visit("/clients/7/billing-history");
+
+        const now = new Date().toLocaleDateString("en-UK");
+        cy.get(".moj-timeline__item").first().within((el) => {
+            cy.get(".moj-timeline__title").contains("Hardship credit of £100 applied to AD77777/24");
+            cy.get(".moj-timeline__byline").contains(`by 0, ${now}`);
+            cy.get(".moj-timeline__date").contains("Outstanding balance: £0 Credit balance: £30");
+            cy.get(".govuk-list > li")
+                .first().contains("£100 applied to AD77777/24")
+                .next().contains("£30 excess credit unapplied");
+        });
     });
 
     it("reapplies excess credit", () => {
@@ -65,6 +78,18 @@ describe("Customer credit balance", () => {
         cy.get("#person-info").within(() => {
             cy.contains("Total outstanding balance: £70");
             cy.contains("Total credit balance: £0");
+        });
+
+        // check billing history
+        cy.visit("/clients/7/billing-history");
+
+        const now = new Date().toLocaleDateString("en-UK");
+        cy.get(".moj-timeline__item").first().within((el) => {
+            cy.get(".moj-timeline__title").contains("£30 reapplied to AD000001/22");
+            cy.get(".moj-timeline__byline").contains(`by 0, ${now}`);
+            cy.get(".moj-timeline__date").contains("Outstanding balance: £70 Credit balance: £0");
+            cy.get(".govuk-list > li")
+                .first().contains("£30 reapplied to AD000001/22");
         });
     });
 });

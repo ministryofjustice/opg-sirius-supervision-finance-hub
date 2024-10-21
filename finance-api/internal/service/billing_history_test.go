@@ -1,11 +1,11 @@
 package service
 
 import (
+	"encoding/json"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"reflect"
 	"testing"
 	"time"
 )
@@ -14,31 +14,23 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 	conn := suite.testDB.GetConn()
 
 	conn.SeedData(
-		"INSERT INTO finance_client VALUES (7, 1, '1234', 'DEMANDED', NULL);",
-		"INSERT INTO finance_client VALUES (3, 2, '1234', 'DEMANDED', NULL);",
-		"INSERT INTO invoice VALUES (1, 1, 7, 'S2', 'S203531/19', '2019-04-01', '2020-03-31', 32000, NULL, '2020-03-20',1, '2020-03-16', 10, NULL, NULL, '2019-06-06', 99);",
-		"INSERT INTO invoice_adjustment VALUES (1, 7, 1, '2022-04-11', 'CREDIT MEMO', 12300, 'Credit notes here', 'PENDING', '2022-04-11T00:00:00+00:00', 65)",
-		"INSERT INTO invoice_adjustment VALUES (2, 7, 1, '2025-04-11', 'DEBIT MEMO', 55555, 'Debit notes here', 'PENDING', '2025-04-11T00:00:00+00:00', 65)",
-
-		"INSERT INTO fee_reduction VALUES (1, 7, 'REMISSION', NULL, '2020-03-31', '2023-03-31', 'Remission awarded', FALSE, '2020-03-03', '2020-04-01', 1);",
-		"INSERT INTO fee_reduction VALUES (2, 7, 'HARDSHIP', NULL, '2019-04-01', '2020-03-31', 'Legacy (no created date) - do not display', FALSE, '2019-05-01');",
-		"INSERT INTO fee_reduction VALUES (3, 7, 'REMISSION', NULL, '2020-03-31', '2023-03-31', 'Remission to see the notes', FALSE, '2020-03-03', '2020-04-01', 1, '2021-04-01', 2, 'Cancelled text here');",
-		"INSERT INTO fee_reduction VALUES (4, 7, 'REMISSION', NULL, '2020-03-31', '2023-03-31', 'Remission approved', FALSE, '2020-03-03', '2020-04-01', 1);",
-		"INSERT INTO ledger VALUES (3, 'different2', '2025-04-12T00:00:00+00:00', '', 12300, '', 'DEBIT MEMO', 'APPROVED', 7, 3, 4, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2025', 65);",
-		"INSERT INTO ledger_allocation VALUES (3, 3, 1, '2022-04-11T00:00:00+00:00', 12300, 'PENDING', NULL, 'Notes here', '2022-04-11', NULL);",
+		"INSERT INTO finance_client VALUES (1,1,1234,'DEMANDED',NULL);",
+		"INSERT INTO invoice VALUES (9,1,1,'AD','AD000001/24','2024-10-07','2024-10-07',10000,NULL,'2024-10-07',NULL,'2024-10-07','Created manually',NULL,NULL,'2024-10-07 09:31:44',1);",
+		"INSERT INTO invoice VALUES (10,1,1,'AD','AD000002/24','2024-10-07','2024-10-07',10000,NULL,'2024-10-07',NULL,'2024-10-07','Created manually',NULL,NULL,'2024-10-07 09:35:03',1);",
+		"INSERT INTO invoice_adjustment VALUES (4,1,9,'2024-10-07','CREDIT WRITE OFF',10000,'Writing off','REJECTED','2024-10-07 09:32:23',1,'2024-10-07 09:33:24',1)",
+		"INSERT INTO invoice_adjustment VALUES (5,1,9,'2024-10-07','CREDIT MEMO',10000,'Adding credit','APPROVED','2024-10-07 09:34:38',1,'2024-10-07 09:34:44',1)",
+		"INSERT INTO fee_reduction VALUES (1, 1, 'HARDSHIP', NULL, '2019-04-01', '2020-03-31', 'Legacy (no created date) - do not display', FALSE, '2019-05-01');",
+		"INSERT INTO fee_reduction VALUES (5,1,'REMISSION',NULL,'2024-04-01','2027-03-31','Needs remission',TRUE,'2024-10-07','2024-10-07 09:32:50',1,'2024-10-07 09:33:19',1,'Wrong remission');",
+		"INSERT INTO ledger VALUES (5,'09799ea2-5f8f-4ecb-8200-f021ab96def1','2024-10-07 09:32:50','',5000,'Credit due to approved remission','CREDIT REMISSION','APPROVED',1,NULL,5,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);",
+		"INSERT INTO ledger VALUES (6,'6e469827-fff7-4c22-a2e2-8b7d3580350c','2024-10-07 09:34:44','',5000,'Credit due to approved credit memo','CREDIT MEMO','APPROVED',1,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);",
+		"INSERT INTO ledger VALUES (7,'babda0f7-2f07-4b85-a991-7d45be9474e2','2024-10-07 09:35:03','',5000,'Excess credit applied to invoice','CREDIT REAPPLY','CONFIRMED',1,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);",
+		"INSERT INTO ledger_allocation VALUES (5,5,9,'2024-10-07 09:32:50',5000,'ALLOCATED');",
+		"INSERT INTO ledger_allocation VALUES (6,6,9,'2024-10-07 09:34:44',10000,'ALLOCATED');",
+		"INSERT INTO ledger_allocation VALUES (7,6,9,'2024-10-07 09:34:44',-5000,'UNAPPLIED',NULL,'Unapplied funds as a result of applying credit memo');",
+		"INSERT INTO ledger_allocation VALUES (8,7,10,'2024-10-07 09:35:03',5000,'REAPPLIED');",
 	)
 
 	Store := store.New(conn)
-
-	debtMemoDate, _ := time.Parse("2006-01-02", "2025-04-11")
-	creditMemoDate, _ := time.Parse("2006-01-02", "2022-04-11")
-	invoiceDate, _ := time.Parse("2006-01-02", "2019-06-06")
-	reductionStartDate, _ := time.Parse("2006-01-02", "2020-03-31")
-	reductionEndDate, _ := time.Parse("2006-01-02", "2023-03-31")
-	reductionReceivedDate, _ := time.Parse("2006-01-02", "2020-03-03")
-	awardedReductionDate, _ := time.Parse("2006-01-02", "2020-04-01")
-	appliedReductionDate, _ := time.Parse("2006-01-02", "2025-04-12")
-	cancelledReductionDate, _ := time.Parse("2006-01-02", "2021-04-01")
 
 	tests := []struct {
 		name    string
@@ -52,107 +44,196 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 			want: []shared.BillingHistory{
 				{
 					User: 1,
-					Date: shared.Date{Time: appliedReductionDate},
+					Date: shared.NewDate("2024-10-07 09:35:03"),
 					Event: shared.FeeReductionApplied{
-						ClientId:      1,
-						ReductionType: shared.FeeReductionTypeRemission,
-						PaymentBreakdown: shared.PaymentBreakdown{
-							InvoiceReference: shared.InvoiceEvent{
-								ID:        1,
-								Reference: "S203531/19",
+						TransactionEvent: shared.TransactionEvent{
+							ClientId:        1,
+							TransactionType: shared.TransactionTypeReapply,
+							Amount:          5000,
+							Breakdown: []shared.PaymentBreakdown{
+								{
+									InvoiceReference: shared.InvoiceEvent{
+										ID:        10,
+										Reference: "AD000002/24",
+									},
+									Amount: 5000,
+									Status: "REAPPLIED",
+								},
 							},
-							Amount: 12300,
-						},
-						BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeFeeReductionApplied},
-					},
-					OutstandingBalance: 19700,
-				},
-				{
-					User: 65,
-					Date: shared.Date{Time: debtMemoDate},
-					Event: shared.InvoiceAdjustmentPending{
-						AdjustmentType: shared.AdjustmentTypeDebitMemo,
-						ClientId:       1,
-						Notes:          "Debit notes here",
-						PaymentBreakdown: shared.PaymentBreakdown{
-							InvoiceReference: shared.InvoiceEvent{
-								ID:        1,
-								Reference: "S203531/19",
+							BaseBillingEvent: shared.BaseBillingEvent{
+								Type: shared.EventTypeReappliedCredit,
 							},
-							Amount: 55555,
 						},
-						BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeInvoiceAdjustmentPending},
 					},
-					OutstandingBalance: 32000,
-				},
-				{
-					User: 65,
-					Date: shared.Date{Time: creditMemoDate},
-					Event: shared.InvoiceAdjustmentPending{
-						AdjustmentType: shared.AdjustmentTypeCreditMemo,
-						ClientId:       1,
-						Notes:          "Credit notes here",
-						PaymentBreakdown: shared.PaymentBreakdown{
-							InvoiceReference: shared.InvoiceEvent{
-								ID:        1,
-								Reference: "S203531/19",
-							},
-							Amount: 12300,
-						},
-						BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeInvoiceAdjustmentPending},
-					},
-					OutstandingBalance: 32000,
-				},
-				{
-					User: 2,
-					Date: shared.Date{Time: cancelledReductionDate},
-					Event: shared.FeeReductionCancelled{
-						ReductionType:      shared.FeeReductionTypeRemission,
-						CancellationReason: "Cancelled text here",
-						BaseBillingEvent:   shared.BaseBillingEvent{Type: shared.EventTypeFeeReductionCancelled},
-					},
-					OutstandingBalance: 32000,
+					OutstandingBalance: 5000,
+					CreditBalance:      0,
 				},
 				{
 					User: 1,
-					Date: shared.Date{Time: awardedReductionDate},
-					Event: shared.FeeReductionAwarded{
-						ReductionType:    shared.FeeReductionTypeRemission,
-						StartDate:        shared.Date{Time: reductionStartDate},
-						EndDate:          shared.Date{Time: reductionEndDate},
-						DateReceived:     shared.Date{Time: reductionReceivedDate},
-						Notes:            "Remission awarded",
-						BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeFeeReductionAwarded},
-					},
-					OutstandingBalance: 32000,
-				},
-				{
-					User: 1,
-					Date: shared.Date{Time: awardedReductionDate},
-					Event: shared.FeeReductionAwarded{
-						ReductionType:    shared.FeeReductionTypeRemission,
-						StartDate:        shared.Date{Time: reductionStartDate},
-						EndDate:          shared.Date{Time: reductionEndDate},
-						DateReceived:     shared.Date{Time: reductionReceivedDate},
-						Notes:            "Remission approved",
-						BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeFeeReductionAwarded},
-					},
-					OutstandingBalance: 32000,
-				},
-				{
-					User: 99,
-					Date: shared.Date{Time: invoiceDate},
+					Date: shared.NewDate("2024-10-07 09:35:03"),
 					Event: shared.InvoiceGenerated{
 						ClientId: 1,
 						InvoiceReference: shared.InvoiceEvent{
-							ID:        1,
-							Reference: "S203531/19",
+							ID:        10,
+							Reference: "AD000002/24",
 						},
-						InvoiceType:      shared.InvoiceTypeS2,
-						Amount:           32000,
-						BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeInvoiceGenerated},
+						InvoiceType: shared.InvoiceTypeAD,
+						Amount:      10000,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeInvoiceGenerated,
+						},
 					},
-					OutstandingBalance: 32000,
+					OutstandingBalance: 10000,
+					CreditBalance:      5000,
+				},
+				{
+					User: 1,
+					Date: shared.NewDate("2024-10-07 09:34:38"),
+					Event: shared.InvoiceAdjustmentApplied{
+						TransactionEvent: shared.TransactionEvent{
+							ClientId:        1,
+							TransactionType: shared.TransactionTypeCreditMemo,
+							Amount:          10000,
+							Breakdown: []shared.PaymentBreakdown{
+								{
+									InvoiceReference: shared.InvoiceEvent{
+										ID:        9,
+										Reference: "AD000001/24",
+									},
+									Amount: 10000,
+									Status: "ALLOCATED",
+								},
+								{
+									InvoiceReference: shared.InvoiceEvent{
+										ID:        9,
+										Reference: "AD000001/24",
+									},
+									Amount: 5000,
+									Status: "UNAPPLIED",
+								},
+							},
+							BaseBillingEvent: shared.BaseBillingEvent{
+								Type: shared.EventTypeInvoiceAdjustmentApplied,
+							},
+						},
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      5000,
+				},
+				{
+					User: 1,
+					Date: shared.NewDate("2024-10-07 09:34:38"),
+					Event: shared.InvoiceAdjustmentPending{
+						AdjustmentType: shared.AdjustmentTypeCreditMemo,
+						ClientId:       1,
+						Notes:          "Adding credit",
+						PaymentBreakdown: shared.PaymentBreakdown{
+							InvoiceReference: shared.InvoiceEvent{
+								ID:        9,
+								Reference: "AD000001/24",
+							},
+							Amount: 10000,
+						},
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeInvoiceAdjustmentPending,
+						},
+					},
+					OutstandingBalance: 5000,
+					CreditBalance:      0,
+				},
+				{
+					User: 1,
+					Date: shared.NewDate("2024-10-07 09:33:19"),
+					Event: shared.FeeReductionCancelled{
+						ReductionType:      shared.FeeReductionTypeRemission,
+						CancellationReason: "Wrong remission",
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeFeeReductionCancelled,
+						},
+					},
+					OutstandingBalance: 5000,
+					CreditBalance:      0,
+				},
+				{
+					User: 1,
+					Date: shared.NewDate("2024-10-07 09:32:50"),
+					Event: shared.FeeReductionApplied{
+						TransactionEvent: shared.TransactionEvent{
+							ClientId:        1,
+							TransactionType: shared.TransactionTypeRemission,
+							Amount:          5000,
+							Breakdown: []shared.PaymentBreakdown{
+								{
+									InvoiceReference: shared.InvoiceEvent{
+										ID:        9,
+										Reference: "AD000001/24",
+									},
+									Amount: 5000,
+									Status: "ALLOCATED",
+								},
+							},
+							BaseBillingEvent: shared.BaseBillingEvent{
+								Type: shared.EventTypeFeeReductionApplied,
+							},
+						},
+					},
+					OutstandingBalance: 5000,
+					CreditBalance:      0,
+				},
+				{
+					User: 1,
+					Date: shared.NewDate("2024-10-07 09:32:50"),
+					Event: shared.FeeReductionAwarded{
+						ReductionType: shared.FeeReductionTypeRemission,
+						StartDate:     shared.NewDate("2024-10-07"),
+						EndDate:       shared.NewDate("2024-04-01"),
+						DateReceived:  shared.NewDate("2027-03-31"),
+						Notes:         "Needs remission",
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeFeeReductionAwarded,
+						},
+					},
+					OutstandingBalance: 10000,
+					CreditBalance:      0,
+				},
+				{
+					User: 1,
+					Date: shared.NewDate("2024-10-07 09:32:23"),
+					Event: shared.InvoiceAdjustmentPending{
+						AdjustmentType: shared.AdjustmentTypeWriteOff,
+						ClientId:       1,
+						Notes:          "Writing off",
+						PaymentBreakdown: shared.PaymentBreakdown{
+							InvoiceReference: shared.InvoiceEvent{
+								ID:        9,
+								Reference: "AD000001/24",
+							},
+							Amount: 10000,
+						},
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeInvoiceAdjustmentPending,
+						},
+					},
+					OutstandingBalance: 10000,
+					CreditBalance:      0,
+				},
+				{
+					User: 1,
+					Date: shared.NewDate("2024-10-07 09:31:44"),
+					Event: shared.InvoiceGenerated{
+						ClientId: 1,
+						InvoiceReference: shared.InvoiceEvent{
+							ID:        9,
+							Reference: "AD000001/24",
+						},
+						InvoiceType: shared.InvoiceTypeAD,
+						Amount:      10000,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeInvoiceGenerated,
+						},
+					},
+					OutstandingBalance: 10000,
+					CreditBalance:      0,
 				},
 			},
 		},
@@ -177,9 +258,17 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 				assert.Empty(t, got)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GetBillingHistory() got = %v, want %v", got, tt.want)
-			}
+
+			// need to compare the unmarshalled states due to using shared.TransactionEvent as the abstract type preventing DeepEqual working
+			marshalledWant, _ := json.Marshal(&tt.want)
+			marshalledGot, _ := json.Marshal(got)
+
+			var data1, data2 map[string]interface{}
+
+			_ = json.Unmarshal(marshalledWant, &data1)
+			_ = json.Unmarshal(marshalledGot, &data2)
+
+			assert.Equal(t, data1, data2, "The unmarshalled data structures are not equal")
 		})
 	}
 }
@@ -188,23 +277,31 @@ func Test_computeBillingHistory(t *testing.T) {
 	history := []historyHolder{
 		{
 			billingHistory: shared.BillingHistory{
+				Date: shared.NewDate("2020-01-01"),
+				Event: shared.TransactionEvent{
+					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeReappliedCredit},
+				},
+			},
+			balanceAdjustment: -500,
+			creditAdjustment:  -500,
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				Date: shared.NewDate("2020-01-01"),
+				Event: shared.TransactionEvent{
+					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeInvoiceAdjustmentApplied},
+				},
+			},
+			balanceAdjustment: 500,
+		},
+		{
+			billingHistory: shared.BillingHistory{
 				Date: shared.NewDate("2021-01-01"),
 				Event: shared.InvoiceGenerated{
 					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeInvoiceGenerated},
 				},
-				OutstandingBalance: 0,
 			},
-			balanceAdjustment: 3200,
-		},
-		{
-			billingHistory: shared.BillingHistory{
-				Date: shared.NewDate("2022-01-01"),
-				Event: shared.InvoiceAdjustmentPending{
-					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeInvoiceAdjustmentPending},
-				},
-				OutstandingBalance: 0,
-			},
-			balanceAdjustment: 0,
+			balanceAdjustment: 32000,
 		},
 		{
 			billingHistory: shared.BillingHistory{
@@ -212,9 +309,8 @@ func Test_computeBillingHistory(t *testing.T) {
 				Event: shared.InvoiceGenerated{
 					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeInvoiceGenerated},
 				},
-				OutstandingBalance: 0,
 			},
-			balanceAdjustment: 1000,
+			balanceAdjustment: 10000,
 		},
 		{
 			billingHistory: shared.BillingHistory{
@@ -222,7 +318,6 @@ func Test_computeBillingHistory(t *testing.T) {
 				Event: shared.FeeReductionCancelled{
 					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeFeeReductionCancelled},
 				},
-				OutstandingBalance: 0,
 			},
 			balanceAdjustment: 0,
 		},
@@ -232,7 +327,6 @@ func Test_computeBillingHistory(t *testing.T) {
 				Event: shared.FeeReductionAwarded{
 					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeFeeReductionAwarded},
 				},
-				OutstandingBalance: 0,
 			},
 			balanceAdjustment: 0,
 		},
@@ -244,39 +338,52 @@ func Test_computeBillingHistory(t *testing.T) {
 			Event: shared.InvoiceGenerated{
 				BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeInvoiceGenerated},
 			},
-			OutstandingBalance: 4200,
+			OutstandingBalance: 42000,
+			CreditBalance:      -500,
 		},
 		{
 			Date: shared.NewDate("2024-01-01"),
 			Event: shared.FeeReductionCancelled{
 				BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeFeeReductionCancelled},
 			},
-			OutstandingBalance: 3200,
+			OutstandingBalance: 32000,
+			CreditBalance:      -500,
 		},
 		{
 			Date: shared.NewDate("2023-01-01"),
 			Event: shared.FeeReductionAwarded{
 				BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeFeeReductionAwarded},
 			},
-			OutstandingBalance: 3200,
-		},
-		{
-			Date: shared.NewDate("2022-01-01"),
-			Event: shared.InvoiceAdjustmentPending{
-				BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeInvoiceAdjustmentPending},
-			},
-			OutstandingBalance: 3200,
+			OutstandingBalance: 32000,
+			CreditBalance:      -500,
 		},
 		{
 			Date: shared.NewDate("2021-01-01"),
 			Event: shared.InvoiceGenerated{
 				BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeInvoiceGenerated},
 			},
-			OutstandingBalance: 3200,
+			OutstandingBalance: 32000,
+			CreditBalance:      -500,
+		},
+		{
+			Date: shared.NewDate("2020-01-01"),
+			Event: shared.TransactionEvent{
+				BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeReappliedCredit},
+			},
+			OutstandingBalance: 0,
+			CreditBalance:      -500,
+		},
+		{
+			Date: shared.NewDate("2020-01-01"),
+			Event: shared.TransactionEvent{
+				BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeInvoiceAdjustmentApplied},
+			},
+			OutstandingBalance: 500,
 		},
 	}
 
-	assert.Equalf(t, expected, computeBillingHistory(history), "computeBillingHistory(%v)", history)
+	billingHistory := computeBillingHistory(history)
+	assert.Equalf(t, expected, billingHistory, "computeBillingHistory(%v)", history)
 }
 
 func Test_invoiceEvents(t *testing.T) {
@@ -321,7 +428,7 @@ func Test_processFeeReductionEvents(t *testing.T) {
 			Startdate:          pgtype.Date{Time: now, Valid: true},
 			Enddate:            pgtype.Date{Time: now.Add(24 * time.Hour), Valid: true},
 			Datereceived:       pgtype.Date{Time: now.Add(48 * time.Hour), Valid: true},
-			Notes:              "Awarded",
+			Notes:              "Awarded 1",
 			CreatedAt:          pgtype.Timestamp(pgtype.Date{Time: now.Add(72 * time.Hour), Valid: true}),
 			CreatedBy:          pgtype.Int4{Int32: 1, Valid: true},
 			CancelledAt:        pgtype.Timestamp{},
@@ -333,7 +440,7 @@ func Test_processFeeReductionEvents(t *testing.T) {
 			Startdate:          pgtype.Date{Time: now, Valid: true},
 			Enddate:            pgtype.Date{Time: now.Add(24 * time.Hour), Valid: true},
 			Datereceived:       pgtype.Date{Time: now.Add(48 * time.Hour), Valid: true},
-			Notes:              "Awarded",
+			Notes:              "Awarded 2",
 			CreatedAt:          pgtype.Timestamp{Time: now.Add(72 * time.Hour), Valid: true},
 			CreatedBy:          pgtype.Int4{Int32: 1, Valid: true},
 			CancelledAt:        pgtype.Timestamp{Time: now.Add(96 * time.Hour), Valid: true},
@@ -352,7 +459,7 @@ func Test_processFeeReductionEvents(t *testing.T) {
 					StartDate:        shared.Date{Time: now},
 					EndDate:          shared.Date{Time: now.Add(24 * time.Hour)},
 					DateReceived:     shared.Date{Time: now.Add(48 * time.Hour)},
-					Notes:            "Awarded",
+					Notes:            "Awarded 1",
 					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeFeeReductionAwarded},
 				},
 				OutstandingBalance: 0,
@@ -372,7 +479,173 @@ func Test_processFeeReductionEvents(t *testing.T) {
 			},
 			balanceAdjustment: 0,
 		},
+		{
+			billingHistory: shared.BillingHistory{
+				User: 1,
+				Date: shared.Date{Time: now.Add(72 * time.Hour)},
+				Event: shared.FeeReductionAwarded{
+					ReductionType:    shared.FeeReductionTypeRemission,
+					StartDate:        shared.Date{Time: now},
+					EndDate:          shared.Date{Time: now.Add(24 * time.Hour)},
+					DateReceived:     shared.Date{Time: now.Add(48 * time.Hour)},
+					Notes:            "Awarded 2",
+					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeFeeReductionAwarded},
+				},
+				OutstandingBalance: 0,
+			},
+			balanceAdjustment: 0,
+		},
 	}
 
 	assert.Equalf(t, expected, processFeeReductionEvents(reductions), "processFeeReductionEvents(%v)", reductions)
+}
+
+func Test_processLedgerAllocations(t *testing.T) {
+	now := time.Now()
+
+	tests := []struct {
+		name        string
+		allocations []store.GetLedgerAllocationsForClientRow
+		clientID    int
+		want        []historyHolder
+	}{
+		{
+			name:        "No allocations",
+			allocations: []store.GetLedgerAllocationsForClientRow{},
+			clientID:    1,
+			want:        nil,
+		},
+		{
+			name: "Unapply",
+			allocations: []store.GetLedgerAllocationsForClientRow{
+				{
+					LedgerID:         1,
+					InvoiceID:        pgtype.Int4{Int32: 2, Valid: true},
+					Reference:        pgtype.Text{String: "abc1/23", Valid: true},
+					Type:             "CREDIT MEMO",
+					Status:           "ALLOCATED",
+					LedgerAmount:     5000,
+					AllocationAmount: 10000,
+					CreatedAt: pgtype.Timestamp{
+						Time:  now,
+						Valid: true,
+					},
+					CreatedBy: pgtype.Int4{
+						Int32: 3,
+						Valid: true,
+					},
+				},
+				{
+					LedgerID:         1,
+					InvoiceID:        pgtype.Int4{Int32: 2, Valid: true},
+					Reference:        pgtype.Text{String: "abc1/23", Valid: true},
+					Type:             "CREDIT MEMO",
+					Status:           "UNAPPLIED",
+					LedgerAmount:     5000,
+					AllocationAmount: -5000,
+					CreatedAt: pgtype.Timestamp{
+						Time:  now,
+						Valid: true,
+					},
+					CreatedBy: pgtype.Int4{
+						Int32: 3,
+						Valid: true,
+					},
+				},
+			},
+			clientID: 99,
+			want: []historyHolder{
+				{
+					billingHistory: shared.BillingHistory{
+						User: 3,
+						Date: shared.Date{Time: now},
+						Event: shared.TransactionEvent{
+							ClientId:        99,
+							TransactionType: shared.TransactionTypeCreditMemo,
+							Amount:          10000,
+							Breakdown: []shared.PaymentBreakdown{
+								{
+									InvoiceReference: shared.InvoiceEvent{
+										ID:        2,
+										Reference: "abc1/23",
+									},
+									Amount: 10000,
+									Status: "ALLOCATED",
+								},
+								{
+									InvoiceReference: shared.InvoiceEvent{
+										ID:        2,
+										Reference: "abc1/23",
+									},
+									Amount: 5000,
+									Status: "UNAPPLIED",
+								},
+							},
+							BaseBillingEvent: shared.BaseBillingEvent{
+								Type: shared.EventTypeInvoiceAdjustmentApplied,
+							},
+						},
+					},
+					balanceAdjustment: -5000,
+					creditAdjustment:  5000,
+				},
+			},
+		},
+		{
+			name: "Reapply",
+			allocations: []store.GetLedgerAllocationsForClientRow{
+				{
+					LedgerID:         1,
+					InvoiceID:        pgtype.Int4{Int32: 2, Valid: true},
+					Reference:        pgtype.Text{String: "abc1/23", Valid: true},
+					Type:             "CREDIT REAPPLY",
+					Status:           "REAPPLIED",
+					LedgerAmount:     5000,
+					AllocationAmount: 5000,
+					CreatedAt: pgtype.Timestamp{
+						Time:  now,
+						Valid: true,
+					},
+					CreatedBy: pgtype.Int4{
+						Int32: 3,
+						Valid: true,
+					},
+				},
+			},
+			clientID: 99,
+			want: []historyHolder{
+				{
+					billingHistory: shared.BillingHistory{
+						User: 3,
+						Date: shared.Date{Time: now},
+						Event: shared.TransactionEvent{
+							ClientId:        99,
+							TransactionType: shared.TransactionTypeReapply,
+							Amount:          5000,
+							Breakdown: []shared.PaymentBreakdown{
+								{
+									InvoiceReference: shared.InvoiceEvent{
+										ID:        2,
+										Reference: "abc1/23",
+									},
+									Amount: 5000,
+									Status: "REAPPLIED",
+								},
+							},
+							BaseBillingEvent: shared.BaseBillingEvent{
+								Type: shared.EventTypeReappliedCredit,
+							},
+						},
+					},
+					balanceAdjustment: -5000,
+					creditAdjustment:  -5000,
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, processLedgerAllocations(tt.allocations, tt.clientID), "processLedgerAllocations(%v, %v)", tt.allocations, tt.clientID)
+		})
+	}
 }
