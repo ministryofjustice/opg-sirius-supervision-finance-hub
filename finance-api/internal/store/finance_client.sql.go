@@ -7,6 +7,8 @@ package store
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const getAccountInformation = `-- name: GetAccountInformation :one
@@ -54,4 +56,18 @@ func (q *Queries) GetAccountInformation(ctx context.Context, clientID int32) (Ge
 	var i GetAccountInformationRow
 	err := row.Scan(&i.Outstanding, &i.Credit, &i.PaymentMethod)
 	return i, err
+}
+
+const updateClient = `-- name: UpdateClient :exec
+UPDATE finance_client SET court_ref = $1 WHERE client_id = $2
+`
+
+type UpdateClientParams struct {
+	CourtRef pgtype.Text
+	ClientID int32
+}
+
+func (q *Queries) UpdateClient(ctx context.Context, arg UpdateClientParams) error {
+	_, err := q.db.Exec(ctx, updateClient, arg.CourtRef, arg.ClientID)
+	return err
 }

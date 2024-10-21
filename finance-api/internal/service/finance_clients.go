@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"github.com/opg-sirius-finance-hub/shared"
 )
 
@@ -16,4 +18,11 @@ func (s *Service) GetAccountInformation(ctx context.Context, id int) (*shared.Ac
 		OutstandingBalance: int(fc.Outstanding),
 		PaymentMethod:      fc.PaymentMethod,
 	}, nil
+}
+
+func (s *Service) UpdateClient(ctx context.Context, id int, courtRef string) error {
+	return s.store.UpdateClient(ctx, store.UpdateClientParams{
+		CourtRef: pgtype.Text{String: courtRef, Valid: true},
+		ClientID: int32(id),
+	})
 }
