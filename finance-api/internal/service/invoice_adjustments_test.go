@@ -25,7 +25,7 @@ func (suite *IntegrationSuite) TestService_GetInvoiceAdjustments() {
 
 	dateString := "2022-04-02"
 	date, _ := time.Parse("2006-01-02", dateString)
-	s := NewService(conn.Conn, nil)
+	s := NewService(conn.Conn, nil, nil)
 
 	tests := []struct {
 		name    string

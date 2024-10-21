@@ -6,6 +6,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/event"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
+	"io"
 )
 
 type TX interface {
@@ -16,16 +17,22 @@ type Dispatch interface {
 	CreditOnAccount(ctx context.Context, event event.CreditOnAccount) error
 }
 
-type Service struct {
-	store    *store.Queries
-	dispatch Dispatch
-	tx       TX
+type FileStorage interface {
+	GetFile(ctx context.Context, bucketName string, fileName string) (io.ReadCloser, error)
 }
 
-func NewService(conn *pgxpool.Pool, dispatch Dispatch) Service {
+type Service struct {
+	store       *store.Queries
+	dispatch    Dispatch
+	filestorage FileStorage
+	tx          TX
+}
+
+func NewService(conn *pgxpool.Pool, dispatch Dispatch, filestorage FileStorage) Service {
 	return Service{
-		store:    store.New(conn),
-		dispatch: dispatch,
-		tx:       conn,
+		store:       store.New(conn),
+		dispatch:    dispatch,
+		filestorage: filestorage,
+		tx:          conn,
 	}
 }
