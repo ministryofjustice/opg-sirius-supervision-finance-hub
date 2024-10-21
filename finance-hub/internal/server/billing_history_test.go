@@ -28,7 +28,10 @@ func TestBillingHistory(t *testing.T) {
 		},
 	}
 
-	client := mockApiClient{BillingHistory: data}
+	client := mockApiClient{
+		BillingHistory: data,
+		User:           shared.Assignee{DisplayName: "Mr Testman"},
+	}
 	ro := &mockRoute{client: client}
 
 	w := httptest.NewRecorder()
@@ -44,8 +47,16 @@ func TestBillingHistory(t *testing.T) {
 	assert.True(t, ro.executed)
 
 	expected := &BillingHistoryVars{
-		BillingHistory: data,
-		AppVars:        appVars,
+		BillingHistory: []BillingHistory{
+			{
+				User:               "Mr Testman",
+				Date:               data[0].Date,
+				Event:              data[0].Event,
+				OutstandingBalance: "251.24",
+				CreditBalance:      "0",
+			},
+		},
+		AppVars: appVars,
 	}
 
 	assert.Equal(t, expected, ro.data)
