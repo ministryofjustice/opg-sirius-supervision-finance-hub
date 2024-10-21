@@ -1,4 +1,4 @@
-package awsclient
+package filestorage
 
 import (
 	"context"
@@ -6,14 +6,19 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"io"
 	"os"
 )
 
-type Client interface {
+type S3Client interface {
 	GetObject(ctx context.Context, params *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error)
 }
 
-func NewClient(ctx context.Context) (Client, error) {
+type Client struct {
+	s3 S3Client
+}
+
+func NewClient(ctx context.Context) (*Client, error) {
 	awsRegion := os.Getenv("AWS_REGION")
 
 	cfg, err := config.LoadDefaultConfig(
@@ -39,5 +44,18 @@ func NewClient(ctx context.Context) (Client, error) {
 		}
 	})
 
-	return client, nil
+	return &Client{client}, nil
+}
+
+func (c *Client) GetFile(ctx context.Context, bucketName string, fileName string) (io.ReadCloser, error) {
+	output, err := c.s3.GetObject(ctx, &s3.GetObjectInput{
+		Key:    &fileName,
+		Bucket: &bucketName,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return output.Body, nil
 }

@@ -65,8 +65,8 @@ type DebtPositionChangedEvent struct {
 }
 
 type ClientCreatedEvent struct {
-	ClientID      int    `json:"clientId"`
-	CaseRecNumber string `json:"caseRecNumber"`
+	ClientID int    `json:"clientId"`
+	CourtRef string `json:"courtRef"`
 }
 
 type FinanceAdminUploadEvent struct {

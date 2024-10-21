@@ -59,15 +59,15 @@ func (q *Queries) GetAccountInformation(ctx context.Context, clientID int32) (Ge
 }
 
 const updateClient = `-- name: UpdateClient :exec
-UPDATE finance_client SET caserecnumber = $1 WHERE client_id = $2
+UPDATE finance_client SET court_ref = $1 WHERE client_id = $2
 `
 
 type UpdateClientParams struct {
-	Caserecnumber pgtype.Text
-	ClientID      int32
+	CourtRef pgtype.Text
+	ClientID int32
 }
 
 func (q *Queries) UpdateClient(ctx context.Context, arg UpdateClientParams) error {
-	_, err := q.db.Exec(ctx, updateClient, arg.Caserecnumber, arg.ClientID)
+	_, err := q.db.Exec(ctx, updateClient, arg.CourtRef, arg.ClientID)
 	return err
 }

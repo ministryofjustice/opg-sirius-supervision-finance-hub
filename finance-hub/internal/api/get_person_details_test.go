@@ -18,7 +18,7 @@ func TestGetPersonDetails(t *testing.T) {
             "id": 2,
             "firstname": "Finance",
             "surname": "Person",
-			"caseRecNumber": "12345678"
+			"courtRef": "12345678"
         }`
 
 	r := io.NopCloser(bytes.NewReader([]byte(json)))

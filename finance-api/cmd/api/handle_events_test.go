@@ -45,7 +45,7 @@ func TestServer_handleEvents(t *testing.T) {
 			event: shared.Event{
 				Source:     "opg.supervision.sirius",
 				DetailType: "client-created",
-				Detail:     shared.ClientCreatedEvent{ClientID: 1, CaseRecNumber: "12345678"},
+				Detail:     shared.ClientCreatedEvent{ClientID: 1, CourtRef: "12345678"},
 			},
 			expectedErr:     nil,
 			expectedHandler: "UpdateClient",

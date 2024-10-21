@@ -15,7 +15,7 @@ SELECT nextval('ledger_id_seq'),
 FROM finance_client fc WHERE client_id = $1
 RETURNING id;
 
--- name: CreateLedgerForCaseRecNumber :one
+-- name: CreateLedgerForCourtRef :one
 INSERT INTO ledger (id, datetime, finance_client_id, amount, notes, type, status, created_at, created_by, reference, method)
 SELECT nextval('ledger_id_seq'),
        $2,
@@ -28,12 +28,12 @@ SELECT nextval('ledger_id_seq'),
        $7,
        gen_random_uuid(),
        ''
-FROM finance_client fc WHERE caserecnumber = $1
+FROM finance_client fc WHERE court_ref = $1
 RETURNING id;
 
 -- name: GetLedgerForPayment :one
 SELECT l.id
 FROM ledger l
 LEFT JOIN finance_client fc ON fc.id = l.finance_client_id
-WHERE l.amount = $1 AND l.status = 'APPROVED' AND l.datetime = $2 AND l.type = $3 AND fc.caserecnumber = $4
+WHERE l.amount = $1 AND l.status = 'APPROVED' AND l.datetime = $2 AND l.type = $3 AND fc.court_ref = $4
 LIMIT 1;

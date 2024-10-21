@@ -28,7 +28,7 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
 		}
 	} else if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeClientCreated {
 		if detail, ok := event.Detail.(shared.ClientCreatedEvent); ok {
-			err := s.Service.UpdateClient(ctx, detail.ClientID, detail.CaseRecNumber)
+			err := s.Service.UpdateClient(ctx, detail.ClientID, detail.CourtRef)
 			if err != nil {
 				return err
 			}

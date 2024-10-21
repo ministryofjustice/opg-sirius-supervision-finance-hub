@@ -48,7 +48,7 @@ type FinanceClient struct {
 	// (DC2Type:refdata)
 	PaymentMethod string
 	Batchnumber   pgtype.Int4
-	Caserecnumber pgtype.Text
+	CourtRef      pgtype.Text
 }
 
 type Invoice struct {

@@ -32,4 +32,4 @@ FROM finance_client fc
 GROUP BY fc.payment_method, b.paid, b.credit;
 
 -- name: UpdateClient :exec
-UPDATE finance_client SET caserecnumber = $1 WHERE client_id = $2;
+UPDATE finance_client SET court_ref = $1 WHERE client_id = $2;
