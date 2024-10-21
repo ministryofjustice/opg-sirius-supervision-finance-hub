@@ -22,7 +22,7 @@ func (suite *IntegrationSuite) TestService_AddInvoiceAdjustment() {
 		"INSERT INTO ledger_allocation VALUES (1, 1, 1, '2022-04-02T00:00:00+00:00', 22000, 'ALLOCATED', NULL, '', '2022-04-02', NULL);",
 		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 2;",
 	)
-	s := NewService(conn.Conn, nil)
+	s := NewService(conn.Conn, nil, nil)
 
 	testCases := []struct {
 		name      string
