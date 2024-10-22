@@ -20,15 +20,9 @@ func (s *Service) GetAccountInformation(ctx context.Context, id int) (*shared.Ac
 	}, nil
 }
 
-func (s *Service) UpdateClient(ctx context.Context, id int, caseRecNumber string) error {
-	err := s.store.UpdateClient(ctx, store.UpdateClientParams{
-		Caserecnumber: pgtype.Text{String: caseRecNumber, Valid: true},
-		ClientID:      int32(id),
+func (s *Service) UpdateClient(ctx context.Context, id int, courtRef string) error {
+	return s.store.UpdateClient(ctx, store.UpdateClientParams{
+		CourtRef: pgtype.Text{String: courtRef, Valid: true},
+		ClientID: int32(id),
 	})
-
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

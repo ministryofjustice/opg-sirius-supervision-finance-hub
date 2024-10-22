@@ -9,6 +9,7 @@ import (
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/opg-sirius-finance-hub/finance-api/cmd/api"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/event"
+	"github.com/opg-sirius-finance-hub/finance-api/internal/filestorage"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/service"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/validation"
 	"log/slog"
@@ -45,8 +46,13 @@ func run(ctx context.Context, logger *slog.Logger) error {
 	defer dbpool.Close()
 
 	eventclient := setupEventClient(ctx, logger)
+	filestorageclient, err := filestorage.NewClient(ctx)
 
-	Service := service.NewService(http.DefaultClient, dbpool, eventclient)
+	if err != nil {
+		return err
+	}
+
+	Service := service.NewService(http.DefaultClient, dbpool, eventclient, filestorageclient)
 
 	validator, err := validation.New()
 	if err != nil {

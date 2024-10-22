@@ -6,6 +6,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/event"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
+	"io"
 	"net/http"
 )
 
@@ -18,22 +19,28 @@ type Dispatch interface {
 	FinanceAdminUploadProcessed(ctx context.Context, event event.FinanceAdminUploadProcessed) error
 }
 
+type FileStorage interface {
+	GetFile(ctx context.Context, bucketName string, fileName string) (io.ReadCloser, error)
+}
+
 type Service struct {
-	http     HTTPClient
-	store    *store.Queries
-	dispatch Dispatch
-	tx       TX
+	http        HTTPClient
+	store       *store.Queries
+	dispatch    Dispatch
+	filestorage FileStorage
+	tx          TX
 }
 
 type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-func NewService(httpClient HTTPClient, conn *pgxpool.Pool, dispatch Dispatch) Service {
+func NewService(httpClient HTTPClient, conn *pgxpool.Pool, dispatch Dispatch, filestorage FileStorage) Service {
 	return Service{
-		http:     httpClient,
-		store:    store.New(conn),
-		dispatch: dispatch,
-		tx:       conn,
+		http:        httpClient,
+		store:       store.New(conn),
+		dispatch:    dispatch,
+		filestorage: filestorage,
+		tx:          conn,
 	}
 }

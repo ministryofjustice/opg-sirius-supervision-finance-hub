@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"github.com/stretchr/testify/assert"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -29,7 +30,7 @@ func (suite *IntegrationSuite) Test_processMotoCardPaymentsUploadLine() {
 
 	dispatch := &mockDispatch{}
 	client := SetUpTest()
-	s := NewService(client, conn.Conn, dispatch)
+	s := NewService(client, conn.Conn, dispatch, nil)
 
 	tests := []struct {
 		name                      string
@@ -51,7 +52,7 @@ func (suite *IntegrationSuite) Test_processMotoCardPaymentsUploadLine() {
 				{
 					10000,
 					"MOTO card payment",
-					"APPROVED",
+					"CONFIRMED",
 					time.Date(2024, 1, 17, 10, 15, 39, 0, time.UTC),
 					10000,
 					"ALLOCATED",
@@ -73,7 +74,7 @@ func (suite *IntegrationSuite) Test_processMotoCardPaymentsUploadLine() {
 				{
 					25010,
 					"MOTO card payment",
-					"APPROVED",
+					"CONFIRMED",
 					time.Date(2024, 1, 17, 15, 30, 27, 0, time.UTC),
 					10000,
 					"ALLOCATED",
@@ -82,7 +83,7 @@ func (suite *IntegrationSuite) Test_processMotoCardPaymentsUploadLine() {
 				{
 					25010,
 					"MOTO card payment",
-					"APPROVED",
+					"CONFIRMED",
 					time.Date(2024, 1, 17, 15, 30, 27, 0, time.UTC),
 					15010,
 					"UNAPPLIED",
@@ -123,37 +124,45 @@ func Test_parseAmount(t *testing.T) {
 	tests := []struct {
 		name         string
 		stringAmount string
-		want         int
+		wantAmount   int32
+		wantErr      bool
 	}{
 		{
 			name:         "No decimal",
 			stringAmount: "500",
-			want:         50000,
+			wantAmount:   50000,
 		},
 		{
 			name:         "Single decimal",
 			stringAmount: "500.1",
-			want:         50010,
+			wantAmount:   50010,
 		},
 		{
 			name:         "Two decimals",
 			stringAmount: "500.12",
-			want:         50012,
+			wantAmount:   50012,
 		},
 		{
 			name:         "Unable to parse",
 			stringAmount: "hehe",
-			want:         0,
+			wantErr:      true,
 		},
 		{
 			name:         "Empty string",
 			stringAmount: "",
-			want:         0,
+			wantAmount:   0,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.want, parseAmount(tt.stringAmount))
+			amount, err := parseAmount(tt.stringAmount)
+			assert.Equal(t, tt.wantAmount, amount)
+
+			if tt.wantErr {
+				assert.IsType(t, &strconv.NumError{}, err)
+			} else {
+				assert.Nil(t, err)
+			}
 		})
 	}
 }

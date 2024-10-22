@@ -21,7 +21,7 @@ func addFeeReductionSetup(conn testhelpers.TestConn) (Service, shared.AddFeeRedu
 	}
 
 	client := SetUpTest()
-	s := NewService(client, conn.Conn, nil)
+	s := NewService(client, conn.Conn, nil, nil)
 
 	return s, params
 }

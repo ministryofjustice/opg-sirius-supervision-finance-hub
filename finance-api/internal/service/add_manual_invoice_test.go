@@ -21,7 +21,7 @@ func addManualInvoiceSetup(conn testhelpers.TestConn) (Service, shared.AddManual
 	}
 
 	client := SetUpTest()
-	s := NewService(client, conn.Conn, nil)
+	s := NewService(client, conn.Conn, nil, nil)
 
 	return s, params
 }

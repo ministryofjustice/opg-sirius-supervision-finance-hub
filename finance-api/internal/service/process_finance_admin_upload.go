@@ -3,10 +3,7 @@ package service
 import (
 	"context"
 	"encoding/csv"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/opg-sirius-finance-hub/finance-api/internal/awsclient"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/event"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"os"
@@ -15,23 +12,18 @@ import (
 	"time"
 )
 
-func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, filename string, emailAddress string) error {
-	client, _ := awsclient.NewClient(ctx)
-
-	output, err := client.GetObject(ctx, &s3.GetObjectInput{
-		Key:    aws.String(filename),
-		Bucket: aws.String(os.Getenv("ASYNC_S3_BUCKET")),
-	})
+func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, filename string, email string) error {
+	file, err := s.filestorage.GetFile(ctx, os.Getenv("ASYNC_S3_BUCKET"), filename)
 
 	if err != nil {
-		failedEvent := event.FinanceAdminUploadProcessed{EmailAddress: emailAddress, Error: "Unable to download report"}
+		failedEvent := event.FinanceAdminUploadProcessed{EmailAddress: email, Error: "Unable to download report"}
 		return s.dispatch.FinanceAdminUploadProcessed(ctx, failedEvent)
 	}
 
-	csvReader := csv.NewReader(output.Body)
+	csvReader := csv.NewReader(file)
 	records, err := csvReader.ReadAll()
 	if err != nil {
-		failedEvent := event.FinanceAdminUploadProcessed{EmailAddress: emailAddress, Error: "Unable to read report"}
+		failedEvent := event.FinanceAdminUploadProcessed{EmailAddress: email, Error: "Unable to read report"}
 		return s.dispatch.FinanceAdminUploadProcessed(ctx, failedEvent)
 	}
 
@@ -47,14 +39,14 @@ func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, filename string
 	}
 
 	if len(failedLines) > 0 {
-		failedEvent := event.FinanceAdminUploadProcessed{EmailAddress: emailAddress, FailedLines: failedLines}
+		failedEvent := event.FinanceAdminUploadProcessed{EmailAddress: email, FailedLines: failedLines}
 		return s.dispatch.FinanceAdminUploadProcessed(ctx, failedEvent)
 	}
 
 	return nil
 }
 
-func parseAmount(amount string) int {
+func parseAmount(amount string) (int32, error) {
 	index := strings.Index(amount, ".")
 
 	if index != -1 && len(amount)-index == 2 {
@@ -63,13 +55,22 @@ func parseAmount(amount string) int {
 		amount = amount + "00"
 	}
 
-	intAmount, _ := strconv.Atoi(strings.Replace(amount, ".", "", 1))
-	return intAmount
+	intAmount, err := strconv.Atoi(strings.Replace(amount, ".", "", 1))
+	return int32(intAmount), err
 }
 
 func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record []string, index int, failedLines *map[int]string) error {
+	ctx, cancelTx := context.WithCancel(ctx)
+	defer cancelTx()
+
 	courtReference := strings.SplitN(record[0], "-", -1)[0]
-	amount := parseAmount(record[2])
+
+	amount, err := parseAmount(record[2])
+	if err != nil {
+		(*failedLines)[index] = "AMOUNT_PARSE_ERROR"
+		return nil
+	}
+
 	parsedDate, err := time.Parse("2006-01-02 15:04:05", record[1])
 	if err != nil {
 		(*failedLines)[index] = "DATE_PARSE_ERROR"
@@ -81,10 +82,10 @@ func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record 
 	}
 
 	ledgerId, _ := s.store.GetLedgerForPayment(ctx, store.GetLedgerForPaymentParams{
-		Caserecnumber: pgtype.Text{String: courtReference, Valid: true},
-		Amount:        int32(amount),
-		Type:          "MOTO card payment",
-		Datetime:      pgtype.Timestamp{Time: parsedDate, Valid: true},
+		CourtRef: pgtype.Text{String: courtReference, Valid: true},
+		Amount:   amount,
+		Type:     "MOTO card payment",
+		Datetime: pgtype.Timestamp{Time: parsedDate, Valid: true},
 	})
 
 	if ledgerId != 0 {
@@ -92,13 +93,20 @@ func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record 
 		return nil
 	}
 
-	ledgerId, err = s.store.CreateLedgerForCaseRecNumber(ctx, store.CreateLedgerForCaseRecNumberParams{
-		Caserecnumber: pgtype.Text{String: courtReference, Valid: true},
-		Amount:        int32(amount),
-		Type:          "MOTO card payment",
-		Status:        "APPROVED",
-		CreatedBy:     pgtype.Int4{Int32: 1, Valid: true},
-		Datetime:      pgtype.Timestamp{Time: parsedDate, Valid: true},
+	tx, err := s.tx.Begin(ctx)
+	if err != nil {
+		return err
+	}
+
+	transaction := s.store.WithTx(tx)
+
+	ledgerId, err = transaction.CreateLedgerForCourtRef(ctx, store.CreateLedgerForCourtRefParams{
+		CourtRef:  pgtype.Text{String: courtReference, Valid: true},
+		Amount:    amount,
+		Type:      "MOTO card payment",
+		Status:    "CONFIRMED",
+		CreatedBy: pgtype.Int4{Int32: 1, Valid: true},
+		Datetime:  pgtype.Timestamp{Time: parsedDate, Valid: true},
 	})
 
 	if err != nil {
@@ -106,35 +114,34 @@ func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record 
 		return nil
 	}
 
-	invoices, err := s.store.GetInvoicesForCaseRecNumber(ctx, pgtype.Text{String: courtReference, Valid: true})
+	invoices, err := transaction.GetInvoicesForCourtRef(ctx, pgtype.Text{String: courtReference, Valid: true})
+
 	if err != nil {
 		return err
 	}
 
 	for _, invoice := range invoices {
-		if !(invoice.Amount == invoice.Received) && amount > 0 {
-			allocationAmount := invoice.Amount - invoice.Received
-			if allocationAmount > int32(amount) {
-				allocationAmount = int32(amount)
-			}
-
-			err = s.store.CreateLedgerAllocation(ctx, store.CreateLedgerAllocationParams{
-				InvoiceID: pgtype.Int4{Int32: invoice.ID, Valid: true},
-				Amount:    allocationAmount,
-				Status:    "ALLOCATED",
-				LedgerID:  pgtype.Int4{Int32: ledgerId, Valid: true},
-			})
-			if err != nil {
-				return err
-			}
-
-			amount -= int(allocationAmount)
+		allocationAmount := invoice.Outstanding
+		if allocationAmount > amount {
+			allocationAmount = amount
 		}
+
+		err = transaction.CreateLedgerAllocation(ctx, store.CreateLedgerAllocationParams{
+			InvoiceID: pgtype.Int4{Int32: invoice.ID, Valid: true},
+			Amount:    allocationAmount,
+			Status:    "ALLOCATED",
+			LedgerID:  pgtype.Int4{Int32: ledgerId, Valid: true},
+		})
+		if err != nil {
+			return err
+		}
+
+		amount -= allocationAmount
 	}
 
 	if amount > 0 {
-		err = s.store.CreateLedgerAllocation(ctx, store.CreateLedgerAllocationParams{
-			Amount:   int32(amount),
+		err = transaction.CreateLedgerAllocation(ctx, store.CreateLedgerAllocationParams{
+			Amount:   amount,
 			Status:   "UNAPPLIED",
 			LedgerID: pgtype.Int4{Int32: ledgerId, Valid: true},
 		})
@@ -142,6 +149,11 @@ func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record 
 		if err != nil {
 			return err
 		}
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return err
 	}
 
 	return nil

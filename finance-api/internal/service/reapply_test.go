@@ -49,7 +49,7 @@ func (suite *IntegrationSuite) TestService_reapplyCredit_noInvoices() {
 	)
 	dispatch := &mockDispatch{}
 	client := SetUpTest()
-	s := NewService(client, conn.Conn, dispatch)
+	s := NewService(client, conn.Conn, dispatch, nil)
 	err := s.ReapplyCredit(ctx, 1)
 	assert.Nil(suite.T(), err)
 
@@ -85,7 +85,7 @@ func (suite *IntegrationSuite) TestService_reapplyCredit_oldestFirst() {
 	)
 	dispatch := &mockDispatch{}
 	client := SetUpTest()
-	s := NewService(client, conn.Conn, dispatch)
+	s := NewService(client, conn.Conn, dispatch, nil)
 	err := s.ReapplyCredit(ctx, 1)
 	assert.Nil(suite.T(), err)
 

@@ -54,7 +54,7 @@ func (q *Queries) CreateLedger(ctx context.Context, arg CreateLedgerParams) (int
 	return id, err
 }
 
-const createLedgerForCaseRecNumber = `-- name: CreateLedgerForCaseRecNumber :one
+const createLedgerForCourtRef = `-- name: CreateLedgerForCourtRef :one
 INSERT INTO ledger (id, datetime, finance_client_id, amount, notes, type, status, created_at, created_by, reference, method)
 SELECT nextval('ledger_id_seq'),
        $2,
@@ -67,23 +67,23 @@ SELECT nextval('ledger_id_seq'),
        $7,
        gen_random_uuid(),
        ''
-FROM finance_client fc WHERE caserecnumber = $1
+FROM finance_client fc WHERE court_ref = $1
 RETURNING id
 `
 
-type CreateLedgerForCaseRecNumberParams struct {
-	Caserecnumber pgtype.Text
-	Datetime      pgtype.Timestamp
-	Amount        int32
-	Notes         pgtype.Text
-	Type          string
-	Status        string
-	CreatedBy     pgtype.Int4
+type CreateLedgerForCourtRefParams struct {
+	CourtRef  pgtype.Text
+	Datetime  pgtype.Timestamp
+	Amount    int32
+	Notes     pgtype.Text
+	Type      string
+	Status    string
+	CreatedBy pgtype.Int4
 }
 
-func (q *Queries) CreateLedgerForCaseRecNumber(ctx context.Context, arg CreateLedgerForCaseRecNumberParams) (int32, error) {
-	row := q.db.QueryRow(ctx, createLedgerForCaseRecNumber,
-		arg.Caserecnumber,
+func (q *Queries) CreateLedgerForCourtRef(ctx context.Context, arg CreateLedgerForCourtRefParams) (int32, error) {
+	row := q.db.QueryRow(ctx, createLedgerForCourtRef,
+		arg.CourtRef,
 		arg.Datetime,
 		arg.Amount,
 		arg.Notes,
@@ -100,15 +100,15 @@ const getLedgerForPayment = `-- name: GetLedgerForPayment :one
 SELECT l.id
 FROM ledger l
 LEFT JOIN finance_client fc ON fc.id = l.finance_client_id
-WHERE l.amount = $1 AND l.status = 'APPROVED' AND l.datetime = $2 AND l.type = $3 AND fc.caserecnumber = $4
+WHERE l.amount = $1 AND l.status = 'APPROVED' AND l.datetime = $2 AND l.type = $3 AND fc.court_ref = $4
 LIMIT 1
 `
 
 type GetLedgerForPaymentParams struct {
-	Amount        int32
-	Datetime      pgtype.Timestamp
-	Type          string
-	Caserecnumber pgtype.Text
+	Amount   int32
+	Datetime pgtype.Timestamp
+	Type     string
+	CourtRef pgtype.Text
 }
 
 func (q *Queries) GetLedgerForPayment(ctx context.Context, arg GetLedgerForPaymentParams) (int32, error) {
@@ -116,7 +116,7 @@ func (q *Queries) GetLedgerForPayment(ctx context.Context, arg GetLedgerForPayme
 		arg.Amount,
 		arg.Datetime,
 		arg.Type,
-		arg.Caserecnumber,
+		arg.CourtRef,
 	)
 	var id int32
 	err := row.Scan(&id)
