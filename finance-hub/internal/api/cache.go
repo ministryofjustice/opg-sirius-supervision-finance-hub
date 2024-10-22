@@ -16,9 +16,15 @@ type Caches struct {
 }
 
 func newCaches() *Caches {
-	Cache := cache.New(defaultExpiration, defaultExpiration)
+	users := cache.New(defaultExpiration, defaultExpiration)
+	placeholder := shared.Assignee{
+		Id:          0,
+		DisplayName: "Unknown User",
+		Roles:       nil,
+	}
+	_ = users.Add("0", &placeholder, cache.NoExpiration)
 	return &Caches{
-		users: Cache,
+		users: users,
 	}
 }
 
