@@ -24,13 +24,15 @@ func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, filename string
 	})
 
 	if err != nil {
-		return err
+		failedEvent := event.FinanceAdminUploadProcessed{EmailAddress: emailAddress, Error: "Unable to download report"}
+		return s.dispatch.FinanceAdminUploadProcessed(ctx, failedEvent)
 	}
 
 	csvReader := csv.NewReader(output.Body)
 	records, err := csvReader.ReadAll()
 	if err != nil {
-		return err
+		failedEvent := event.FinanceAdminUploadProcessed{EmailAddress: emailAddress, Error: "Unable to read report"}
+		return s.dispatch.FinanceAdminUploadProcessed(ctx, failedEvent)
 	}
 
 	failedLines := make(map[int]string)
@@ -45,11 +47,8 @@ func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, filename string
 	}
 
 	if len(failedLines) > 0 {
-		failedEvent := event.FinanceAdminUploadFailed{EmailAddress: emailAddress, FailedLines: failedLines}
-		err := s.dispatch.FinanceAdminUploadFailed(ctx, failedEvent)
-		if err != nil {
-			return err
-		}
+		failedEvent := event.FinanceAdminUploadProcessed{EmailAddress: emailAddress, FailedLines: failedLines}
+		return s.dispatch.FinanceAdminUploadProcessed(ctx, failedEvent)
 	}
 
 	return nil

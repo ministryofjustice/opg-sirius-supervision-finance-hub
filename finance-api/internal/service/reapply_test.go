@@ -26,7 +26,7 @@ func (m *mockDispatch) CreditOnAccount(ctx context.Context, event event.CreditOn
 	return nil
 }
 
-func (m *mockDispatch) FinanceAdminUploadFailed(ctx context.Context, event event.FinanceAdminUploadFailed) error {
+func (m *mockDispatch) FinanceAdminUploadProcessed(ctx context.Context, event event.FinanceAdminUploadProcessed) error {
 	m.event = event
 	return nil
 }
