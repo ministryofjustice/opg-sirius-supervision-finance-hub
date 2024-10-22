@@ -4,33 +4,45 @@ import (
 	"context"
 	"encoding/csv"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/opg-sirius-finance-hub/finance-api/internal/event"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
+	"os"
 	"strconv"
 	"strings"
 	"time"
 )
 
-func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, bucketName string, key string) error {
-	file, err := s.filestorage.GetFile(ctx, bucketName, key)
+func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, filename string, email string) error {
+	file, err := s.filestorage.GetFile(ctx, os.Getenv("ASYNC_S3_BUCKET"), filename)
 
 	if err != nil {
-		return err
+		failedEvent := event.FinanceAdminUploadProcessed{EmailAddress: email, Error: "Unable to download report"}
+		return s.dispatch.FinanceAdminUploadProcessed(ctx, failedEvent)
 	}
 
 	csvReader := csv.NewReader(file)
 	records, err := csvReader.ReadAll()
 	if err != nil {
-		return err
+		failedEvent := event.FinanceAdminUploadProcessed{EmailAddress: email, Error: "Unable to read report"}
+		return s.dispatch.FinanceAdminUploadProcessed(ctx, failedEvent)
 	}
+
+	failedLines := make(map[int]string)
 
 	for index, record := range records {
 		if index != 0 {
-			err := s.processMotoCardPaymentsUploadLine(ctx, record)
+			err := s.processMotoCardPaymentsUploadLine(ctx, record, index, &failedLines)
 			if err != nil {
 				return err
 			}
 		}
 	}
+
+	if len(failedLines) > 0 {
+		failedEvent := event.FinanceAdminUploadProcessed{EmailAddress: email, FailedLines: failedLines}
+		return s.dispatch.FinanceAdminUploadProcessed(ctx, failedEvent)
+	}
+
 	return nil
 }
 
@@ -47,7 +59,7 @@ func parseAmount(amount string) (int32, error) {
 	return int32(intAmount), err
 }
 
-func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record []string) error {
+func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record []string, index int, failedLines *map[int]string) error {
 	ctx, cancelTx := context.WithCancel(ctx)
 	defer cancelTx()
 
@@ -55,19 +67,20 @@ func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record 
 
 	amount, err := parseAmount(record[2])
 	if err != nil {
-		return err
+		(*failedLines)[index] = "AMOUNT_PARSE_ERROR"
+		return nil
 	}
 
 	parsedDate, err := time.Parse("2006-01-02 15:04:05", record[1])
 	if err != nil {
-		return err
+		(*failedLines)[index] = "DATE_PARSE_ERROR"
+		return nil
 	}
 
 	if amount == 0 {
 		return nil
 	}
 
-	// check if payment has already been made
 	ledgerId, _ := s.store.GetLedgerForPayment(ctx, store.GetLedgerForPaymentParams{
 		CourtRef: pgtype.Text{String: courtReference, Valid: true},
 		Amount:   amount,
@@ -76,6 +89,7 @@ func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record 
 	})
 
 	if ledgerId != 0 {
+		(*failedLines)[index] = "DUPLICATE_PAYMENT"
 		return nil
 	}
 
@@ -96,10 +110,12 @@ func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record 
 	})
 
 	if err != nil {
-		return err
+		(*failedLines)[index] = "CLIENT_NOT_FOUND"
+		return nil
 	}
 
 	invoices, err := transaction.GetInvoicesForCourtRef(ctx, pgtype.Text{String: courtReference, Valid: true})
+
 	if err != nil {
 		return err
 	}
