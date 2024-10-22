@@ -43,7 +43,7 @@ func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, filename string
 		return s.dispatch.FinanceAdminUploadProcessed(ctx, failedEvent)
 	}
 
-	return nil
+	return s.dispatch.FinanceAdminUploadProcessed(ctx, event.FinanceAdminUploadProcessed{EmailAddress: email})
 }
 
 func parseAmount(amount string) (int32, error) {
@@ -62,6 +62,10 @@ func parseAmount(amount string) (int32, error) {
 func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record []string, index int, failedLines *map[int]string) error {
 	ctx, cancelTx := context.WithCancel(ctx)
 	defer cancelTx()
+
+	if record[0] == "" {
+		return nil
+	}
 
 	courtReference := strings.SplitN(record[0], "-", -1)[0]
 
