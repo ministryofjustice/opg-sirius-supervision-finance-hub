@@ -1,7 +1,9 @@
 package server
 
 import (
+	"context"
 	"errors"
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -35,7 +37,8 @@ func TestBillingHistory(t *testing.T) {
 	ro := &mockRoute{client: client}
 
 	w := httptest.NewRecorder()
-	r, _ := http.NewRequest(http.MethodGet, "", nil)
+	ctx := telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("opg-sirius-finance-hub"))
+	r, _ := http.NewRequestWithContext(ctx, http.MethodGet, "test-url/1", nil)
 	r.SetPathValue("clientId", "456")
 
 	appVars := AppVars{Path: "/path/"}

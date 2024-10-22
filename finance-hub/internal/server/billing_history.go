@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
 	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
@@ -37,17 +38,24 @@ func (h *BillingHistoryHandler) render(v AppVars, w http.ResponseWriter, r *http
 }
 
 func (h *BillingHistoryHandler) transform(ctx api.Context, in []shared.BillingHistory) []BillingHistory {
+	logger := telemetry.LoggerFromContext(ctx.Context)
+
 	var out []BillingHistory
 
 	for _, bh := range in {
-		user, _ := h.Client().GetUser(ctx, bh.User)
-		out = append(out, BillingHistory{
-			User:               user.DisplayName,
+		o := BillingHistory{
 			Date:               bh.Date,
 			Event:              bh.Event,
 			OutstandingBalance: shared.IntToDecimalString(bh.OutstandingBalance),
 			CreditBalance:      shared.IntToDecimalString(bh.CreditBalance),
-		})
+		}
+		user, err := h.Client().GetUser(ctx, bh.User)
+		if err != nil {
+			logger.Error(err.Error())
+		} else {
+			o.User = user.DisplayName
+		}
+		out = append(out, o)
 	}
 	return out
 }
