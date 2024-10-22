@@ -1,7 +1,6 @@
 package server
 
 import (
-	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
 	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
@@ -32,30 +31,31 @@ func (h *BillingHistoryHandler) render(v AppVars, w http.ResponseWriter, r *http
 		return err
 	}
 
-	data := &BillingHistoryVars{h.transform(ctx, billingHistory), v}
+	bh, err := h.transform(ctx, billingHistory)
+	if err != nil {
+		return err
+	}
+
+	data := &BillingHistoryVars{bh, v}
 	data.selectTab("billing-history")
 	return h.execute(w, r, data)
 }
 
-func (h *BillingHistoryHandler) transform(ctx api.Context, in []shared.BillingHistory) []BillingHistory {
-	logger := telemetry.LoggerFromContext(ctx.Context)
-
+func (h *BillingHistoryHandler) transform(ctx api.Context, in []shared.BillingHistory) ([]BillingHistory, error) {
 	var out []BillingHistory
 
 	for _, bh := range in {
-		o := BillingHistory{
+		user, err := h.Client().GetUser(ctx, bh.User)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, BillingHistory{
+			User:               user.DisplayName,
 			Date:               bh.Date,
 			Event:              bh.Event,
 			OutstandingBalance: shared.IntToDecimalString(bh.OutstandingBalance),
 			CreditBalance:      shared.IntToDecimalString(bh.CreditBalance),
-		}
-		user, err := h.Client().GetUser(ctx, bh.User)
-		if err != nil {
-			logger.Error(err.Error())
-		} else {
-			o.User = user.DisplayName
-		}
-		out = append(out, o)
+		})
 	}
-	return out
+	return out, nil
 }
