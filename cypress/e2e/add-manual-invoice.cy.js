@@ -40,7 +40,7 @@ describe("Add manual invoice form", () => {
         const now = new Date().toLocaleDateString("en-UK");
         cy.get(".moj-timeline__item").first().within((el) => {
             cy.get(".moj-timeline__title").contains("SO invoice created for £123");
-            cy.get(".moj-timeline__byline").contains(`by 1, ${now}`);
+            cy.get(".moj-timeline__byline").contains(`by Super User, ${now}`);
             cy.get(".moj-timeline__date").contains("Outstanding balance: £123 Credit balance: £0");
             cy.contains(".govuk-link", "SO000001/99");
         });
