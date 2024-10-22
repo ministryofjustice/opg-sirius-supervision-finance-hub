@@ -2,12 +2,15 @@ package api
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
 )
 
 func (c *ApiClient) GetUser(ctx Context, userId int) (shared.Assignee, error) {
+	logger := telemetry.LoggerFromContext(ctx.Context)
+
 	user, ok := c.caches.getUser(userId)
 
 	if ok {
@@ -43,7 +46,12 @@ func (c *ApiClient) GetUser(ctx Context, userId int) (shared.Assignee, error) {
 	c.caches.updateUsers(users)
 	user, ok = c.caches.getUser(userId)
 	if !ok {
-		return shared.Assignee{}, errors.New("user not found")
+		logger.Info(fmt.Sprintf("user %d not found - placeholder added to cache", userId))
+		return shared.Assignee{
+			Id:          userId,
+			DisplayName: "Unknown User",
+			Roles:       nil,
+		}, nil
 	}
 
 	return *user, err
