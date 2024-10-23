@@ -33,9 +33,9 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
 				return err
 			}
 		}
-	} else if event.Source == shared.EventSourceS3 && event.DetailType == shared.DetailTypeAWSCloudtrailEvent {
+	} else if event.Source == shared.EventSourceFinanceAdmin && event.DetailType == shared.DetailTypeFinanceAdminUpload {
 		if detail, ok := event.Detail.(shared.FinanceAdminUploadEvent); ok {
-			err := s.Service.ProcessFinanceAdminUpload(ctx, detail.RequestParameters.BucketName, detail.RequestParameters.Key)
+			err := s.Service.ProcessFinanceAdminUpload(ctx, detail.Filename, detail.EmailAddress)
 			if err != nil {
 				return err
 			}
