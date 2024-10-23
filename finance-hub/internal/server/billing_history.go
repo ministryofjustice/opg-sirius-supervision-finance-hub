@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
 	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
@@ -31,23 +32,20 @@ func (h *BillingHistoryHandler) render(v AppVars, w http.ResponseWriter, r *http
 		return err
 	}
 
-	bh, err := h.transform(ctx, billingHistory)
-	if err != nil {
-		return err
-	}
-
-	data := &BillingHistoryVars{bh, v}
+	data := &BillingHistoryVars{h.transform(ctx, billingHistory), v}
 	data.selectTab("billing-history")
 	return h.execute(w, r, data)
 }
 
-func (h *BillingHistoryHandler) transform(ctx api.Context, in []shared.BillingHistory) ([]BillingHistory, error) {
+func (h *BillingHistoryHandler) transform(ctx api.Context, in []shared.BillingHistory) []BillingHistory {
+	logger := telemetry.LoggerFromContext(ctx.Context)
+
 	var out []BillingHistory
 
 	for _, bh := range in {
 		user, err := h.Client().GetUser(ctx, bh.User)
 		if err != nil {
-			return nil, err
+			logger.Error("error fetching user from cache", "error", err)
 		}
 		out = append(out, BillingHistory{
 			User:               user.DisplayName,
@@ -57,5 +55,5 @@ func (h *BillingHistoryHandler) transform(ctx api.Context, in []shared.BillingHi
 			CreditBalance:      shared.IntToDecimalString(bh.CreditBalance),
 		})
 	}
-	return out, nil
+	return out
 }
