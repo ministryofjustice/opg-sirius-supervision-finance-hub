@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/opg-sirius-finance-hub/shared"
 	"net/http"
 )
@@ -43,7 +42,7 @@ func (c *ApiClient) GetUser(ctx Context, userId int) (shared.Assignee, error) {
 	c.caches.updateUsers(users)
 	user, ok = c.caches.getUser(userId)
 	if !ok {
-		return shared.Assignee{}, fmt.Errorf("user %d id found", userId)
+		return *c.caches.getAndSetPlaceholder(userId), nil
 	}
 
 	return *user, err
