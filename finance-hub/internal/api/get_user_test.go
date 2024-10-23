@@ -91,6 +91,32 @@ func TestGetUser_cacheRefresh(t *testing.T) {
 	assert.Equal(t, nil, err)
 }
 
+func TestGetUser_cacheMiss(t *testing.T) {
+	mockClient := SetUpTest()
+	client, _ := NewApiClient(mockClient, "http://localhost:3000", "http://localhost:8181")
+
+	json := `[]`
+
+	r := io.NopCloser(bytes.NewReader([]byte(json)))
+
+	GetDoFunc = func(*http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: 200,
+			Body:       r,
+		}, nil
+	}
+
+	expectedResponse := shared.Assignee{
+		Id:          0,
+		DisplayName: "Unknown User",
+		Roles:       nil,
+	}
+
+	teams, err := client.GetUser(getContext(nil), 1)
+	assert.Equal(t, expectedResponse, teams)
+	assert.Equal(t, nil, err)
+}
+
 func TestGetUserReturnsUnauthorisedClientError(t *testing.T) {
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)

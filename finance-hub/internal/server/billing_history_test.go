@@ -1,7 +1,9 @@
 package server
 
 import (
+	"context"
 	"errors"
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -28,11 +30,15 @@ func TestBillingHistory(t *testing.T) {
 		},
 	}
 
-	client := mockApiClient{BillingHistory: data}
+	client := mockApiClient{
+		BillingHistory: data,
+		User:           shared.Assignee{DisplayName: "Mr Testman"},
+	}
 	ro := &mockRoute{client: client}
 
 	w := httptest.NewRecorder()
-	r, _ := http.NewRequest(http.MethodGet, "", nil)
+	ctx := telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("opg-sirius-finance-hub"))
+	r, _ := http.NewRequestWithContext(ctx, http.MethodGet, "test-url/1", nil)
 	r.SetPathValue("clientId", "456")
 
 	appVars := AppVars{Path: "/path/"}
@@ -44,8 +50,16 @@ func TestBillingHistory(t *testing.T) {
 	assert.True(t, ro.executed)
 
 	expected := &BillingHistoryVars{
-		BillingHistory: data,
-		AppVars:        appVars,
+		BillingHistory: []BillingHistory{
+			{
+				User:               "Mr Testman",
+				Date:               data[0].Date,
+				Event:              data[0].Event,
+				OutstandingBalance: "251.24",
+				CreditBalance:      "0",
+			},
+		},
+		AppVars: appVars,
 	}
 
 	assert.Equal(t, expected, ro.data)
