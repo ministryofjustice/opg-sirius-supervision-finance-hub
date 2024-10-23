@@ -37,6 +37,15 @@ func (c Caches) getUser(id int) (*shared.Assignee, bool) {
 	}
 }
 
+// getAndSetPlaceholder gets the placeholder user and adds it for the id. This prevents subsequent cache requests for the
+// same value forcing a cache refresh.
+func (c Caches) getAndSetPlaceholder(id int) *shared.Assignee {
+	u, _ := c.users.Get("0")
+	placeholder := u.(*shared.Assignee)
+	_ = c.users.Add(strconv.Itoa(id), &placeholder, defaultExpiration)
+	return u.(*shared.Assignee)
+}
+
 func (c Caches) updateUsers(users []shared.Assignee) {
 	for _, user := range users {
 		_ = c.users.Add(strconv.Itoa(user.Id), &user, defaultExpiration)
