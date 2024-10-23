@@ -6,7 +6,7 @@ describe("Billing History Tab", () => {
 
         cy.get(".moj-timeline__item").last().within((el) => {
             cy.get(".moj-timeline__title").contains("AD invoice created for £100");
-            cy.get(".moj-timeline__byline").contains("by 99, 06/06/2017");
+            cy.get(".moj-timeline__byline").contains("by Tina Test, 06/06/2017");
             cy.get(".moj-timeline__date").contains("Outstanding balance: £100 Credit balance: £0");
             cy.contains(".govuk-link", "AD44444/17").click();
         });
