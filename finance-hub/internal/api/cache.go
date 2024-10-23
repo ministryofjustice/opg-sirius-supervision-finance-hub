@@ -16,9 +16,15 @@ type Caches struct {
 }
 
 func newCaches() *Caches {
-	Cache := cache.New(defaultExpiration, defaultExpiration)
+	users := cache.New(defaultExpiration, defaultExpiration)
+	placeholder := shared.Assignee{
+		Id:          0,
+		DisplayName: "Unknown User",
+		Roles:       nil,
+	}
+	_ = users.Add("0", &placeholder, cache.NoExpiration)
 	return &Caches{
-		users: Cache,
+		users: users,
 	}
 }
 
@@ -29,6 +35,14 @@ func (c Caches) getUser(id int) (*shared.Assignee, bool) {
 	} else {
 		return nil, false
 	}
+}
+
+// getAndSetPlaceholder gets the placeholder user and adds it for the id. This prevents subsequent cache requests for the
+// same value forcing a cache refresh.
+func (c Caches) getAndSetPlaceholder(id int) *shared.Assignee {
+	u, _ := c.users.Get("0")
+	_ = c.users.Add(strconv.Itoa(id), &u, defaultExpiration)
+	return u.(*shared.Assignee)
 }
 
 func (c Caches) updateUsers(users []shared.Assignee) {
