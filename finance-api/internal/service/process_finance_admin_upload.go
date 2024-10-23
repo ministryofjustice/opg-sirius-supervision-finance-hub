@@ -85,28 +85,24 @@ func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record 
 		return nil
 	}
 
-	tx, err := s.tx.Begin(ctx)
-	if err != nil {
-		return err
-	}
-
-	transaction := s.store.WithTx(tx)
-
-	ledgerId, _ := transaction.GetLedgerForPayment(ctx, store.GetLedgerForPaymentParams{
+	ledgerId, _ := s.store.GetLedgerForPayment(ctx, store.GetLedgerForPaymentParams{
 		CourtRef: pgtype.Text{String: courtReference, Valid: true},
 		Amount:   amount,
 		Type:     "MOTO card payment",
 		Datetime: pgtype.Timestamp{Time: parsedDate, Valid: true},
 	})
 
-	//if err != nil {
-	//	return err
-	//}
-
 	if ledgerId != 0 {
 		(*failedLines)[index] = "DUPLICATE_PAYMENT"
 		return nil
 	}
+
+	tx, err := s.tx.Begin(ctx)
+	if err != nil {
+		return err
+	}
+
+	transaction := s.store.WithTx(tx)
 
 	ledgerId, err = transaction.CreateLedgerForCourtRef(ctx, store.CreateLedgerForCourtRefParams{
 		CourtRef:  pgtype.Text{String: courtReference, Valid: true},
