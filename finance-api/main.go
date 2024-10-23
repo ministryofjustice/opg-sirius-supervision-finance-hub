@@ -52,7 +52,7 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		return err
 	}
 
-	Service := service.NewService(dbpool, eventclient, filestorageclient)
+	Service := service.NewService(http.DefaultClient, dbpool, eventclient, filestorageclient)
 
 	validator, err := validation.New()
 	if err != nil {
