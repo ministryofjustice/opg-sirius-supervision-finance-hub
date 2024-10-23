@@ -7,6 +7,7 @@ import (
 	"github.com/opg-sirius-finance-hub/finance-api/internal/event"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
 	"io"
+	"net/http"
 )
 
 type TX interface {
@@ -15,6 +16,7 @@ type TX interface {
 
 type Dispatch interface {
 	CreditOnAccount(ctx context.Context, event event.CreditOnAccount) error
+	FinanceAdminUploadProcessed(ctx context.Context, event event.FinanceAdminUploadProcessed) error
 }
 
 type FileStorage interface {
@@ -22,14 +24,20 @@ type FileStorage interface {
 }
 
 type Service struct {
+	http        HTTPClient
 	store       *store.Queries
 	dispatch    Dispatch
 	filestorage FileStorage
 	tx          TX
 }
 
-func NewService(conn *pgxpool.Pool, dispatch Dispatch, filestorage FileStorage) Service {
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
+func NewService(httpClient HTTPClient, conn *pgxpool.Pool, dispatch Dispatch, filestorage FileStorage) Service {
 	return Service{
+		http:        httpClient,
 		store:       store.New(conn),
 		dispatch:    dispatch,
 		filestorage: filestorage,

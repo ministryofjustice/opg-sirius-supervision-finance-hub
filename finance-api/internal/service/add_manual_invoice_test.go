@@ -20,7 +20,8 @@ func addManualInvoiceSetup(conn testhelpers.TestConn) (Service, shared.AddManual
 		SupervisionLevel: shared.Nillable[string]{Value: "GENERAL", Valid: true},
 	}
 
-	s := NewService(conn.Conn, nil, nil)
+	client := SetUpTest()
+	s := NewService(client, conn.Conn, nil, nil)
 
 	return s, params
 }
