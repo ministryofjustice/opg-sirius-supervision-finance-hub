@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/csv"
+	"fmt"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/event"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
@@ -12,38 +13,51 @@ import (
 	"time"
 )
 
-func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, filename string, email string) error {
+func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, filename string, email string, reportType string) error {
 	file, err := s.filestorage.GetFile(ctx, os.Getenv("ASYNC_S3_BUCKET"), filename)
 
 	if err != nil {
-		failedEvent := event.FinanceAdminUploadProcessed{EmailAddress: email, Error: "Unable to download report"}
+		failedEvent := event.FinanceAdminUploadProcessed{EmailAddress: email, ReportType: reportType, Error: "Unable to download report"}
 		return s.dispatch.FinanceAdminUploadProcessed(ctx, failedEvent)
 	}
 
 	csvReader := csv.NewReader(file)
 	records, err := csvReader.ReadAll()
 	if err != nil {
-		failedEvent := event.FinanceAdminUploadProcessed{EmailAddress: email, Error: "Unable to read report"}
+		failedEvent := event.FinanceAdminUploadProcessed{EmailAddress: email, ReportType: reportType, Error: "Unable to read report"}
 		return s.dispatch.FinanceAdminUploadProcessed(ctx, failedEvent)
 	}
 
-	failedLines := make(map[int]string)
+	var failedLines map[int]string
 
-	for index, record := range records {
-		if index != 0 {
-			err := s.processMotoCardPaymentsUploadLine(ctx, record, index, &failedLines)
-			if err != nil {
-				return err
-			}
-		}
+	switch reportType {
+	case "PAYMENTS_MOTO_CARD":
+	case "PAYMENTS_ONLINE_CARD":
+		failedLines, err = s.processPayments(ctx, records, getLedgerType(reportType))
+	default:
+		return fmt.Errorf("unknown report type: %s", reportType)
+	}
+
+	if err != nil {
+		return err
 	}
 
 	if len(failedLines) > 0 {
-		failedEvent := event.FinanceAdminUploadProcessed{EmailAddress: email, FailedLines: failedLines}
+		failedEvent := event.FinanceAdminUploadProcessed{EmailAddress: email, ReportType: reportType, FailedLines: failedLines}
 		return s.dispatch.FinanceAdminUploadProcessed(ctx, failedEvent)
 	}
 
-	return s.dispatch.FinanceAdminUploadProcessed(ctx, event.FinanceAdminUploadProcessed{EmailAddress: email})
+	return s.dispatch.FinanceAdminUploadProcessed(ctx, event.FinanceAdminUploadProcessed{EmailAddress: email, ReportType: reportType})
+}
+
+func getLedgerType(reportType string) string {
+	switch reportType {
+	case "PAYMENTS_MOTO_CARD":
+		return "MOTO card payment"
+	case "PAYMENTS_ONLINE_CARD":
+		return "Online card payment"
+	}
+	return ""
 }
 
 func parseAmount(amount string) (int32, error) {
@@ -59,7 +73,22 @@ func parseAmount(amount string) (int32, error) {
 	return int32(intAmount), err
 }
 
-func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record []string, index int, failedLines *map[int]string) error {
+func (s *Service) processPayments(ctx context.Context, records [][]string, ledgerType string) (map[int]string, error) {
+	failedLines := make(map[int]string)
+
+	for index, record := range records {
+		if index != 0 {
+			err := s.processPaymentsUploadLine(ctx, record, index, &failedLines, ledgerType)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return failedLines, nil
+}
+
+func (s *Service) processPaymentsUploadLine(ctx context.Context, record []string, index int, failedLines *map[int]string, ledgerType string) error {
 	ctx, cancelTx := context.WithCancel(ctx)
 	defer cancelTx()
 
@@ -88,7 +117,7 @@ func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record 
 	ledgerId, _ := s.store.GetLedgerForPayment(ctx, store.GetLedgerForPaymentParams{
 		CourtRef: pgtype.Text{String: courtReference, Valid: true},
 		Amount:   amount,
-		Type:     "MOTO card payment",
+		Type:     ledgerType,
 		Datetime: pgtype.Timestamp{Time: parsedDate, Valid: true},
 	})
 
@@ -107,7 +136,7 @@ func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record 
 	ledgerId, err = transaction.CreateLedgerForCourtRef(ctx, store.CreateLedgerForCourtRefParams{
 		CourtRef:  pgtype.Text{String: courtReference, Valid: true},
 		Amount:    amount,
-		Type:      "MOTO card payment",
+		Type:      ledgerType,
 		Status:    "CONFIRMED",
 		CreatedBy: pgtype.Int4{Int32: 1, Valid: true},
 		Datetime:  pgtype.Timestamp{Time: parsedDate, Valid: true},
