@@ -33,7 +33,7 @@ func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, filename string
 	switch reportType {
 	case "PAYMENTS_MOTO_CARD":
 	case "PAYMENTS_ONLINE_CARD":
-		failedLines, err = s.processMotoCardPayments(ctx, records)
+		failedLines, err = s.processPayments(ctx, records, getLedgerType(reportType))
 	default:
 		return fmt.Errorf("unknown report type: %s", reportType)
 	}
@@ -50,6 +50,16 @@ func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, filename string
 	return s.dispatch.FinanceAdminUploadProcessed(ctx, event.FinanceAdminUploadProcessed{EmailAddress: email})
 }
 
+func getLedgerType(reportType string) string {
+	switch reportType {
+	case "PAYMENTS_MOTO_CARD":
+		return "MOTO card payment"
+	case "PAYMENTS_ONLINE_CARD":
+		return "Online card payment"
+	}
+	return ""
+}
+
 func parseAmount(amount string) (int32, error) {
 	index := strings.Index(amount, ".")
 
@@ -63,12 +73,12 @@ func parseAmount(amount string) (int32, error) {
 	return int32(intAmount), err
 }
 
-func (s *Service) processMotoCardPayments(ctx context.Context, records [][]string) (map[int]string, error) {
+func (s *Service) processPayments(ctx context.Context, records [][]string, ledgerType string) (map[int]string, error) {
 	failedLines := make(map[int]string)
 
 	for index, record := range records {
 		if index != 0 {
-			err := s.processMotoCardPaymentsUploadLine(ctx, record, index, &failedLines)
+			err := s.processPaymentsUploadLine(ctx, record, index, &failedLines, ledgerType)
 			if err != nil {
 				return nil, err
 			}
@@ -78,7 +88,7 @@ func (s *Service) processMotoCardPayments(ctx context.Context, records [][]strin
 	return failedLines, nil
 }
 
-func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record []string, index int, failedLines *map[int]string) error {
+func (s *Service) processPaymentsUploadLine(ctx context.Context, record []string, index int, failedLines *map[int]string, ledgerType string) error {
 	ctx, cancelTx := context.WithCancel(ctx)
 	defer cancelTx()
 
@@ -107,7 +117,7 @@ func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record 
 	ledgerId, _ := s.store.GetLedgerForPayment(ctx, store.GetLedgerForPaymentParams{
 		CourtRef: pgtype.Text{String: courtReference, Valid: true},
 		Amount:   amount,
-		Type:     "MOTO card payment",
+		Type:     ledgerType,
 		Datetime: pgtype.Timestamp{Time: parsedDate, Valid: true},
 	})
 
@@ -126,7 +136,7 @@ func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record 
 	ledgerId, err = transaction.CreateLedgerForCourtRef(ctx, store.CreateLedgerForCourtRefParams{
 		CourtRef:  pgtype.Text{String: courtReference, Valid: true},
 		Amount:    amount,
-		Type:      "MOTO card payment",
+		Type:      ledgerType,
 		Status:    "CONFIRMED",
 		CreatedBy: pgtype.Int4{Int32: 1, Valid: true},
 		Datetime:  pgtype.Timestamp{Time: parsedDate, Valid: true},
