@@ -97,7 +97,7 @@ func (suite *IntegrationSuite) Test_processMotoCardPaymentsUploadLine() {
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
 			var failedLines map[int]string
-			err := s.processMotoCardPaymentsUploadLine(context.Background(), tt.record, 1, &failedLines)
+			err := s.processPaymentsUploadLine(context.Background(), tt.record, 1, &failedLines, "MOTO card payment")
 			assert.Equal(t, tt.want, err)
 			assert.Equal(t, tt.expectedFailedLines, failedLines)
 
