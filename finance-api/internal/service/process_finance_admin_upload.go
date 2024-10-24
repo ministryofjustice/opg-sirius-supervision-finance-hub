@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/csv"
+	"fmt"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/event"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
@@ -12,7 +13,7 @@ import (
 	"time"
 )
 
-func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, filename string, email string) error {
+func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, filename string, email string, reportType string) error {
 	file, err := s.filestorage.GetFile(ctx, os.Getenv("ASYNC_S3_BUCKET"), filename)
 
 	if err != nil {
@@ -27,15 +28,18 @@ func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, filename string
 		return s.dispatch.FinanceAdminUploadProcessed(ctx, failedEvent)
 	}
 
-	failedLines := make(map[int]string)
+	var failedLines map[int]string
 
-	for index, record := range records {
-		if index != 0 {
-			err := s.processMotoCardPaymentsUploadLine(ctx, record, index, &failedLines)
-			if err != nil {
-				return err
-			}
-		}
+	switch reportType {
+	case "PAYMENTS_MOTO_CARD":
+	case "PAYMENTS_ONLINE_CARD":
+		failedLines, err = s.processMotoCardPayments(ctx, records)
+	default:
+		return fmt.Errorf("unknown report type: %s", reportType)
+	}
+
+	if err != nil {
+		return err
 	}
 
 	if len(failedLines) > 0 {
@@ -57,6 +61,21 @@ func parseAmount(amount string) (int32, error) {
 
 	intAmount, err := strconv.Atoi(strings.Replace(amount, ".", "", 1))
 	return int32(intAmount), err
+}
+
+func (s *Service) processMotoCardPayments(ctx context.Context, records [][]string) (map[int]string, error) {
+	failedLines := make(map[int]string)
+
+	for index, record := range records {
+		if index != 0 {
+			err := s.processMotoCardPaymentsUploadLine(ctx, record, index, &failedLines)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return failedLines, nil
 }
 
 func (s *Service) processMotoCardPaymentsUploadLine(ctx context.Context, record []string, index int, failedLines *map[int]string) error {
