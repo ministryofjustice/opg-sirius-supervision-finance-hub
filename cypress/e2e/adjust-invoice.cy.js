@@ -37,7 +37,7 @@ describe("Adjust invoice form", () => {
         const now = new Date().toLocaleDateString("en-UK");
         cy.get(".moj-timeline__item").first().within((el) => {
             cy.get(".moj-timeline__title").contains("Pending credit memo of £100 added to AD11111/19");
-            cy.get(".moj-timeline__byline").contains(`by 1, ${now}`);
+            cy.get(".moj-timeline__byline").contains(`by Super User, ${now}`);
             cy.get(".moj-timeline__date").contains("Outstanding balance: £420 Credit balance: £0");
             cy.contains(".govuk-link", "AD11111/19").click();
         });
