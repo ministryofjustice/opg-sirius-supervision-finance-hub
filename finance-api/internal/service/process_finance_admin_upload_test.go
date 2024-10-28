@@ -112,7 +112,7 @@ func (suite *IntegrationSuite) Test_processPaymentsUploadLine() {
 
 	tests := []struct {
 		name                      string
-		record                    []string
+		details                   paymentDetails
 		expectedClientId          int
 		expectedLedgerAllocations []createdLedgerAllocation
 		expectedFailedLines       map[int]string
@@ -120,10 +120,11 @@ func (suite *IntegrationSuite) Test_processPaymentsUploadLine() {
 	}{
 		{
 			name: "Underpayment",
-			record: []string{
-				"1234-1",
-				"2024-01-17 10:15:39",
-				"100",
+			details: paymentDetails{
+				amount:     10000,
+				date:       time.Date(2024, 1, 17, 10, 15, 39, 0, time.UTC),
+				courtRef:   "1234",
+				ledgerType: "MOTO card payment",
 			},
 			expectedClientId: 1,
 			expectedLedgerAllocations: []createdLedgerAllocation{
@@ -137,15 +138,14 @@ func (suite *IntegrationSuite) Test_processPaymentsUploadLine() {
 					1,
 				},
 			},
-			expectedFailedLines: nil,
-			want:                nil,
 		},
 		{
 			name: "Overpayment",
-			record: []string{
-				"12345",
-				"2024-01-17 15:30:27",
-				"250.1",
+			details: paymentDetails{
+				amount:     25010,
+				date:       time.Date(2024, 1, 17, 15, 30, 27, 0, time.UTC),
+				courtRef:   "12345",
+				ledgerType: "MOTO card payment",
 			},
 			expectedClientId: 2,
 			expectedLedgerAllocations: []createdLedgerAllocation{
@@ -175,7 +175,7 @@ func (suite *IntegrationSuite) Test_processPaymentsUploadLine() {
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
 			var failedLines map[int]string
-			err := s.processPaymentsUploadLine(context.Background(), tt.record, 1, &failedLines, "MOTO card payment")
+			err := s.processPaymentsUploadLine(context.Background(), tt.details, 1, &failedLines)
 			assert.Equal(t, tt.want, err)
 			assert.Equal(t, tt.expectedFailedLines, failedLines)
 
