@@ -23,10 +23,8 @@ type createdLedgerAllocation struct {
 }
 
 type mockFileStorage struct {
-	filename   string
-	bucketname string
-	file       io.ReadCloser
-	err        error
+	file io.ReadCloser
+	err  error
 }
 
 func (m *mockFileStorage) GetFile(ctx context.Context, bucketName string, fileName string) (io.ReadCloser, error) {
