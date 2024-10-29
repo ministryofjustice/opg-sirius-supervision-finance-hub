@@ -25,8 +25,8 @@ func TestGetUser_cacheHit(t *testing.T) {
 
 	expectedResponse := user
 
-	teams, err := client.GetUser(getContext(nil), 1)
-	assert.Equal(t, expectedResponse, teams)
+	user, err := client.GetUser(getContext(nil), 1)
+	assert.Equal(t, expectedResponse, user)
 	assert.Equal(t, nil, err)
 }
 
@@ -39,7 +39,7 @@ func TestGetUser_cacheRefresh(t *testing.T) {
 				   "id":1,
 				   "name":"tina",
 				   "phoneNumber":"12345678",
-				   "teams":[{
+				   "user":[{
 					  "displayName":"Finance Test",
 					  "id":2
 				   }],
@@ -56,7 +56,7 @@ func TestGetUser_cacheRefresh(t *testing.T) {
 				   "id":65,
 				   "name":"case",
 				   "phoneNumber":"12345678",
-				   "teams":[{
+				   "user":[{
 					  "displayName":"Lay Team 1 - (Supervision)",
 					  "id":13
 				   }],
@@ -86,8 +86,39 @@ func TestGetUser_cacheRefresh(t *testing.T) {
 		Roles:       []string{"Test Role"},
 	}
 
-	teams, err := client.GetUser(getContext(nil), 1)
-	assert.Equal(t, expectedResponse, teams)
+	user, err := client.GetUser(getContext(nil), 1)
+	assert.Equal(t, expectedResponse, user)
+	assert.Equal(t, nil, err)
+}
+
+func TestGetUser_cacheMiss(t *testing.T) {
+	mockClient := SetUpTest()
+	client, _ := NewApiClient(mockClient, "http://localhost:3000", "http://localhost:8181")
+
+	json := `[]`
+
+	r := io.NopCloser(bytes.NewReader([]byte(json)))
+
+	GetDoFunc = func(*http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: 200,
+			Body:       r,
+		}, nil
+	}
+
+	expectedResponse := shared.Assignee{
+		Id:          0,
+		DisplayName: "Unknown User",
+		Roles:       nil,
+	}
+
+	user, err := client.GetUser(getContext(nil), 1)
+	assert.Equal(t, expectedResponse, user)
+	assert.Equal(t, nil, err)
+
+	// the second time, the placeholder is set, so test to ensure it is fetched correctly
+	user, err = client.GetUser(getContext(nil), 1)
+	assert.Equal(t, expectedResponse, user)
 	assert.Equal(t, nil, err)
 }
 
