@@ -25,7 +25,7 @@ type Service interface {
 	GetBillingHistory(ctx context.Context, id int) ([]shared.BillingHistory, error)
 	ReapplyCredit(ctx context.Context, clientID int32) error
 	UpdateClient(ctx context.Context, clientID int, courtRef string) error
-	ProcessFinanceAdminUpload(ctx context.Context, filename string, email string) error
+	ProcessFinanceAdminUpload(ctx context.Context, filename string, email string, uploadType string) error
 }
 
 type Server struct {

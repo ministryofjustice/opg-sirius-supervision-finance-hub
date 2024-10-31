@@ -2,8 +2,12 @@ package service
 
 import (
 	"context"
+	"fmt"
+	"github.com/opg-sirius-finance-hub/finance-api/internal/event"
 	"github.com/stretchr/testify/assert"
+	"io"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 )
@@ -18,7 +22,81 @@ type createdLedgerAllocation struct {
 	invoiceId        int
 }
 
-func (suite *IntegrationSuite) Test_processMotoCardPaymentsUploadLine() {
+type mockFileStorage struct {
+	file io.ReadCloser
+	err  error
+}
+
+func (m *mockFileStorage) GetFile(ctx context.Context, bucketName string, fileName string) (io.ReadCloser, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return m.file, nil
+}
+
+func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
+	conn := suite.testDB.GetConn()
+
+	dispatch := &mockDispatch{}
+	filestorage := &mockFileStorage{}
+	client := SetUpTest()
+	filestorage.file = io.NopCloser(strings.NewReader("test"))
+
+	s := NewService(client, conn.Conn, dispatch, filestorage)
+
+	tests := []struct {
+		name           string
+		uploadType     string
+		fileStorageErr error
+		expectedErr    string
+		expectedEvent  any
+	}{
+		{
+			name:        "Unknown report",
+			uploadType:  "test",
+			expectedErr: "unknown upload type: test",
+		},
+		{
+			name:           "S3 error",
+			fileStorageErr: fmt.Errorf("test"),
+			uploadType:     "PAYMENTS_MOTO_CARD",
+			expectedEvent: event.FinanceAdminUploadProcessed{
+				EmailAddress: "test@email.com",
+				Error:        "Unable to download report",
+				UploadType:   "PAYMENTS_MOTO_CARD",
+			},
+		},
+		{
+			name:       "Known report",
+			uploadType: "PAYMENTS_MOTO_CARD",
+			expectedEvent: event.FinanceAdminUploadProcessed{
+				EmailAddress: "test@email.com",
+				UploadType:   "PAYMENTS_MOTO_CARD",
+			},
+		},
+	}
+	for _, tt := range tests {
+		suite.T().Run(tt.name, func(t *testing.T) {
+			filename := "test.csv"
+			emailAddress := "test@email.com"
+			filestorage.err = tt.fileStorageErr
+
+			err := s.ProcessFinanceAdminUpload(context.Background(), filename, emailAddress, tt.uploadType)
+
+			if tt.expectedErr != "" {
+				assert.Equal(t, tt.expectedErr, err.Error())
+			} else {
+				assert.Nil(t, err)
+			}
+
+			if tt.expectedEvent != nil {
+				assert.Equal(t, tt.expectedEvent, dispatch.event)
+			}
+		})
+	}
+}
+
+func (suite *IntegrationSuite) Test_processPayments() {
 	conn := suite.testDB.GetConn()
 
 	conn.SeedData(
@@ -34,7 +112,7 @@ func (suite *IntegrationSuite) Test_processMotoCardPaymentsUploadLine() {
 
 	tests := []struct {
 		name                      string
-		record                    []string
+		records                   [][]string
 		expectedClientId          int
 		expectedLedgerAllocations []createdLedgerAllocation
 		expectedFailedLines       map[int]string
@@ -42,10 +120,13 @@ func (suite *IntegrationSuite) Test_processMotoCardPaymentsUploadLine() {
 	}{
 		{
 			name: "Underpayment",
-			record: []string{
-				"1234-1",
-				"2024-01-17 10:15:39",
-				"100",
+			records: [][]string{
+				{"Ordercode", "Date", "Amount"},
+				{
+					"1234-1",
+					"2024-01-17 10:15:39",
+					"100",
+				},
 			},
 			expectedClientId: 1,
 			expectedLedgerAllocations: []createdLedgerAllocation{
@@ -59,15 +140,18 @@ func (suite *IntegrationSuite) Test_processMotoCardPaymentsUploadLine() {
 					1,
 				},
 			},
-			expectedFailedLines: nil,
+			expectedFailedLines: map[int]string{},
 			want:                nil,
 		},
 		{
 			name: "Overpayment",
-			record: []string{
-				"12345",
-				"2024-01-17 15:30:27",
-				"250.1",
+			records: [][]string{
+				{"Ordercode", "Date", "Amount"},
+				{
+					"12345",
+					"2024-01-17 15:30:27",
+					"250.1",
+				},
 			},
 			expectedClientId: 2,
 			expectedLedgerAllocations: []createdLedgerAllocation{
@@ -90,14 +174,14 @@ func (suite *IntegrationSuite) Test_processMotoCardPaymentsUploadLine() {
 					0,
 				},
 			},
-			expectedFailedLines: nil,
+			expectedFailedLines: map[int]string{},
 			want:                nil,
 		},
 	}
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
 			var failedLines map[int]string
-			err := s.processMotoCardPaymentsUploadLine(context.Background(), tt.record, 1, &failedLines)
+			failedLines, err := s.processPayments(context.Background(), tt.records, "MOTO card payment")
 			assert.Equal(t, tt.want, err)
 			assert.Equal(t, tt.expectedFailedLines, failedLines)
 
