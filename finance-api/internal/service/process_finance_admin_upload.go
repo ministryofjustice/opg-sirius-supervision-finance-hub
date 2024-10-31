@@ -13,51 +13,49 @@ import (
 	"time"
 )
 
-func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, filename string, email string, reportType string) error {
+func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, filename string, email string, uploadType string) error {
 	file, err := s.filestorage.GetFile(ctx, os.Getenv("ASYNC_S3_BUCKET"), filename)
 
 	if err != nil {
-		failedEvent := event.FinanceAdminUploadProcessed{EmailAddress: email, ReportType: reportType, Error: "Unable to download report"}
+		failedEvent := event.FinanceAdminUploadProcessed{EmailAddress: email, UploadType: uploadType, Error: "Unable to download report"}
 		return s.dispatch.FinanceAdminUploadProcessed(ctx, failedEvent)
 	}
 
 	csvReader := csv.NewReader(file)
 	records, err := csvReader.ReadAll()
 	if err != nil {
-		failedEvent := event.FinanceAdminUploadProcessed{EmailAddress: email, ReportType: reportType, Error: "Unable to read report"}
+		failedEvent := event.FinanceAdminUploadProcessed{EmailAddress: email, UploadType: uploadType, Error: "Unable to read report"}
 		return s.dispatch.FinanceAdminUploadProcessed(ctx, failedEvent)
 	}
 
-	var failedLines map[int]string
-
-	switch reportType {
-	case "PAYMENTS_MOTO_CARD":
-	case "PAYMENTS_ONLINE_CARD":
-		failedLines, err = s.processPayments(ctx, records, getLedgerType(reportType))
-	default:
-		return fmt.Errorf("unknown report type: %s", reportType)
-	}
-
+	ledgerType, err := getLedgerType(uploadType)
 	if err != nil {
 		return err
 	}
 
-	if len(failedLines) > 0 {
-		failedEvent := event.FinanceAdminUploadProcessed{EmailAddress: email, ReportType: reportType, FailedLines: failedLines}
+	failedLines, err := s.processPayments(ctx, records, ledgerType)
+
+	if err != nil {
+		failedEvent := event.FinanceAdminUploadProcessed{EmailAddress: email, UploadType: uploadType, Error: err.Error()}
 		return s.dispatch.FinanceAdminUploadProcessed(ctx, failedEvent)
 	}
 
-	return s.dispatch.FinanceAdminUploadProcessed(ctx, event.FinanceAdminUploadProcessed{EmailAddress: email, ReportType: reportType})
+	if len(failedLines) > 0 {
+		failedEvent := event.FinanceAdminUploadProcessed{EmailAddress: email, UploadType: uploadType, FailedLines: failedLines}
+		return s.dispatch.FinanceAdminUploadProcessed(ctx, failedEvent)
+	}
+
+	return s.dispatch.FinanceAdminUploadProcessed(ctx, event.FinanceAdminUploadProcessed{EmailAddress: email, UploadType: uploadType})
 }
 
-func getLedgerType(reportType string) string {
-	switch reportType {
+func getLedgerType(uploadType string) (string, error) {
+	switch uploadType {
 	case "PAYMENTS_MOTO_CARD":
-		return "MOTO card payment"
+		return "MOTO card payment", nil
 	case "PAYMENTS_ONLINE_CARD":
-		return "Online card payment"
+		return "Online card payment", nil
 	}
-	return ""
+	return "", fmt.Errorf("unknown upload type: %s", uploadType)
 }
 
 func parseAmount(amount string) (int32, error) {
@@ -76,22 +74,34 @@ func parseAmount(amount string) (int32, error) {
 func (s *Service) processPayments(ctx context.Context, records [][]string, ledgerType string) (map[int]string, error) {
 	failedLines := make(map[int]string)
 
+	ctx, cancelTx := context.WithCancel(ctx)
+	defer cancelTx()
+
+	tx, err := s.tx.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	transaction := s.store.WithTx(tx)
+
 	for index, record := range records {
 		if index != 0 {
-			err := s.processPaymentsUploadLine(ctx, record, index, &failedLines, ledgerType)
+			err := s.processPaymentsUploadLine(ctx, record, index, &failedLines, ledgerType, transaction)
 			if err != nil {
 				return nil, err
 			}
 		}
 	}
 
+	err = tx.Commit(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	return failedLines, nil
 }
 
-func (s *Service) processPaymentsUploadLine(ctx context.Context, record []string, index int, failedLines *map[int]string, ledgerType string) error {
-	ctx, cancelTx := context.WithCancel(ctx)
-	defer cancelTx()
-
+func (s *Service) processPaymentsUploadLine(ctx context.Context, record []string, index int, failedLines *map[int]string, ledgerType string, transaction *store.Queries) error {
 	if record[0] == "" {
 		return nil
 	}
@@ -125,13 +135,6 @@ func (s *Service) processPaymentsUploadLine(ctx context.Context, record []string
 		(*failedLines)[index] = "DUPLICATE_PAYMENT"
 		return nil
 	}
-
-	tx, err := s.tx.Begin(ctx)
-	if err != nil {
-		return err
-	}
-
-	transaction := s.store.WithTx(tx)
 
 	ledgerId, err = transaction.CreateLedgerForCourtRef(ctx, store.CreateLedgerForCourtRefParams{
 		CourtRef:  pgtype.Text{String: courtReference, Valid: true},
@@ -182,11 +185,6 @@ func (s *Service) processPaymentsUploadLine(ctx context.Context, record []string
 		if err != nil {
 			return err
 		}
-	}
-
-	err = tx.Commit(ctx)
-	if err != nil {
-		return err
 	}
 
 	return nil

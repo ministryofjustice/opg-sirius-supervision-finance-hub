@@ -46,32 +46,32 @@ func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
 
 	tests := []struct {
 		name           string
-		reportType     string
+		uploadType     string
 		fileStorageErr error
 		expectedErr    string
 		expectedEvent  any
 	}{
 		{
 			name:        "Unknown report",
-			reportType:  "test",
-			expectedErr: "unknown report type: test",
+			uploadType:  "test",
+			expectedErr: "unknown upload type: test",
 		},
 		{
 			name:           "S3 error",
 			fileStorageErr: fmt.Errorf("test"),
-			reportType:     "PAYMENTS_MOTO_CARD",
+			uploadType:     "PAYMENTS_MOTO_CARD",
 			expectedEvent: event.FinanceAdminUploadProcessed{
 				EmailAddress: "test@email.com",
 				Error:        "Unable to download report",
-				ReportType:   "PAYMENTS_MOTO_CARD",
+				UploadType:   "PAYMENTS_MOTO_CARD",
 			},
 		},
 		{
 			name:       "Known report",
-			reportType: "PAYMENTS_MOTO_CARD",
+			uploadType: "PAYMENTS_MOTO_CARD",
 			expectedEvent: event.FinanceAdminUploadProcessed{
 				EmailAddress: "test@email.com",
-				ReportType:   "PAYMENTS_MOTO_CARD",
+				UploadType:   "PAYMENTS_MOTO_CARD",
 			},
 		},
 	}
@@ -81,7 +81,7 @@ func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
 			emailAddress := "test@email.com"
 			filestorage.err = tt.fileStorageErr
 
-			err := s.ProcessFinanceAdminUpload(context.Background(), filename, emailAddress, tt.reportType)
+			err := s.ProcessFinanceAdminUpload(context.Background(), filename, emailAddress, tt.uploadType)
 
 			if tt.expectedErr != "" {
 				assert.Equal(t, tt.expectedErr, err.Error())
@@ -96,7 +96,7 @@ func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
 	}
 }
 
-func (suite *IntegrationSuite) Test_processPaymentsUploadLine() {
+func (suite *IntegrationSuite) Test_processPayments() {
 	conn := suite.testDB.GetConn()
 
 	conn.SeedData(
@@ -112,7 +112,7 @@ func (suite *IntegrationSuite) Test_processPaymentsUploadLine() {
 
 	tests := []struct {
 		name                      string
-		record                    []string
+		records                   [][]string
 		expectedClientId          int
 		expectedLedgerAllocations []createdLedgerAllocation
 		expectedFailedLines       map[int]string
@@ -120,10 +120,13 @@ func (suite *IntegrationSuite) Test_processPaymentsUploadLine() {
 	}{
 		{
 			name: "Underpayment",
-			record: []string{
-				"1234-1",
-				"2024-01-17 10:15:39",
-				"100",
+			records: [][]string{
+				{"Ordercode", "Date", "Amount"},
+				{
+					"1234-1",
+					"2024-01-17 10:15:39",
+					"100",
+				},
 			},
 			expectedClientId: 1,
 			expectedLedgerAllocations: []createdLedgerAllocation{
@@ -137,15 +140,18 @@ func (suite *IntegrationSuite) Test_processPaymentsUploadLine() {
 					1,
 				},
 			},
-			expectedFailedLines: nil,
+			expectedFailedLines: map[int]string{},
 			want:                nil,
 		},
 		{
 			name: "Overpayment",
-			record: []string{
-				"12345",
-				"2024-01-17 15:30:27",
-				"250.1",
+			records: [][]string{
+				{"Ordercode", "Date", "Amount"},
+				{
+					"12345",
+					"2024-01-17 15:30:27",
+					"250.1",
+				},
 			},
 			expectedClientId: 2,
 			expectedLedgerAllocations: []createdLedgerAllocation{
@@ -168,14 +174,14 @@ func (suite *IntegrationSuite) Test_processPaymentsUploadLine() {
 					0,
 				},
 			},
-			expectedFailedLines: nil,
+			expectedFailedLines: map[int]string{},
 			want:                nil,
 		},
 	}
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
 			var failedLines map[int]string
-			err := s.processPaymentsUploadLine(context.Background(), tt.record, 1, &failedLines, "MOTO card payment")
+			failedLines, err := s.processPayments(context.Background(), tt.records, "MOTO card payment")
 			assert.Equal(t, tt.want, err)
 			assert.Equal(t, tt.expectedFailedLines, failedLines)
 
