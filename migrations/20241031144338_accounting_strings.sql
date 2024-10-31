@@ -78,43 +78,37 @@ VALUES ('AD', 'AD', 4481102093, 'AD - Assessment deputy invoice'),
        ('SE', 'MINIMAL', 4481102099, 'SE - Order expired invoice'),
        ('SO', 'GENERAL', 4481102094, 'SO - Regained capacity invoice'),
        ('SO', 'MINIMAL', 4481102099, 'SO - Regained capacity invoice'),
-       ('GA', '', 4481102104, 'Guardianship assess invoice'),
-       ('GS', '', 4481102105, 'Guardianship supervision invoice'),
-       ('GT', '', 4481102106, 'Guardianship termination invoice'),
        ('ZR', 'AD', 4481102114, 'Remission Credit'),
        ('ZE', 'AD', 4481102114, 'Exemption Credit'),
        ('ZH', 'AD', 4481102114, 'Hardship Credit'),
        ('MCR', 'AD', 4481102093, 'Manual Credit'),
        ('MDR', 'AD', 4481102093, 'Manual Debit'),
        ('WO', 'AD', 5356202100, 'Manual Write-off'),
+       ('WOR', 'AD', 1816900000, 'Write-off reversal'),
        ('ZR', 'GENERAL', 4481102115, 'Remission Credit'),
        ('ZE', 'GENERAL', 4481102115, 'Exemption Credit'),
        ('ZH', 'GENERAL', 4481102115, 'Hardship Credit'),
        ('MCR', 'GENERAL', 4481102094, 'Manual Credit'),
        ('MDR', 'GENERAL', 4481102094, 'Manual Debit'),
        ('WO', 'GENERAL', 5356202102, 'Manual Write-off'),
+       ('WOR', 'GENERAL', 1816900000, 'Write-off reversal'),
        ('ZR', 'MINIMAL', 4481102120, 'Remission Credit'),
        ('ZE', 'MINIMAL', 4481102120, 'Exemption Credit'),
        ('ZH', 'MINIMAL', 4481102120, 'Hardship Credit'),
        ('MCR', 'MINIMAL', 4481102099, 'Manual Credit'),
        ('MDR', 'MINIMAL', 4481102099, 'Manual Debit'),
        ('WO', 'MINIMAL', 5356202104, 'Manual Write-off'),
-       ('WOR', '', 1816900000, 'Write-off reversal'),
+       ('WOR', 'MINIMAL', 1816900000, 'Write-off reversal'),
+       ('GA', '', 4481102104, 'Guardianship assess invoice'),
+       ('GS', '', 4481102105, 'Guardianship supervision invoice'),
+       ('GT', '', 4481102106, 'Guardianship termination invoice'),
        ('UA', '', 1816100001, 'Unapply (money from invoice)'),
        ('OP', '', 1816100002, 'Overpayment'),
        ('CQR', '', 1816100005, 'Cheque Refund'),
        ('BCR', '', 1816100005, 'BACS Refund');
--- not sure on these ones
---       ('DD', '', 1, 'Direct Debit Payment'),
---       ('OC', '', 1, 'Online Card Payment'),
---       ('PC', '', 1, 'MOTO (phone) Card Payment'),
---       ('BC', '', 1, 'BACS Payment'),
---       ('CQ', '', 1, 'Cheque Payment'),
---       ('CR', '', 1, 'Cheque reversal'),
---       ('RA', '', 1, 'Reapply/Reallocate (money to invoice)'),
 
 -- +goose Down
-SELECT 'down SQL query';
-DROP TABLE cost_centre;
-DROP TABLE account;
+
 DROP TABLE transaction_type;
+DROP TABLE account;
+DROP TABLE cost_centre;
