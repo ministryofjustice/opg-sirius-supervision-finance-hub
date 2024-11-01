@@ -80,7 +80,7 @@ services:
       - ./.trivy-cache:/root/.cache
       - ./test-results:/test-results
       - ./.trivyignore:/.trivyignore
-      - environment:
+    environment:
       - TRIVY_DB_REPOSITORY=${TRIVY_DB_REPOSITORY}
       - TRIVY_JAVA_DB_REPOSITORY=${TRIVY_JAVA_DB_REPOSITORY}
       - TRIVY_USERNAME=${DOCKER_USERNAME}
