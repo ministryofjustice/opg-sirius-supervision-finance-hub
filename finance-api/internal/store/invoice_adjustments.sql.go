@@ -11,9 +11,62 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createLedgerForAdjustment = `-- name: CreateLedgerForAdjustment :one
+WITH created AS (
+    INSERT INTO ledger (id, datetime, finance_client_id, amount, notes, type, status, fee_reduction_id, created_at,
+                        created_by, reference, method)
+        SELECT NEXTVAL('ledger_id_seq'),
+               NOW(),
+               fc.id,
+               $2,
+               $3,
+               $4,
+               $5,
+               $6,
+               NOW(),
+               $7,
+               gen_random_uuid(),
+               ''
+        FROM finance_client fc
+        WHERE client_id = $1
+        RETURNING id)
+UPDATE invoice_adjustment ia
+SET ledger_id = created.id
+FROM created
+WHERE ia.id = $8
+RETURNING created.id
+`
+
+type CreateLedgerForAdjustmentParams struct {
+	ClientID       int32
+	Amount         int32
+	Notes          pgtype.Text
+	Type           string
+	Status         string
+	FeeReductionID pgtype.Int4
+	CreatedBy      pgtype.Int4
+	ID             int32
+}
+
+func (q *Queries) CreateLedgerForAdjustment(ctx context.Context, arg CreateLedgerForAdjustmentParams) (int32, error) {
+	row := q.db.QueryRow(ctx, createLedgerForAdjustment,
+		arg.ClientID,
+		arg.Amount,
+		arg.Notes,
+		arg.Type,
+		arg.Status,
+		arg.FeeReductionID,
+		arg.CreatedBy,
+		arg.ID,
+	)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
+}
+
 const createPendingInvoiceAdjustment = `-- name: CreatePendingInvoiceAdjustment :one
 INSERT INTO invoice_adjustment (id, finance_client_id, invoice_id, raised_date, adjustment_type, amount, notes, status,
-                                 created_at, created_by)
+                                created_at, created_by)
 SELECT NEXTVAL('invoice_adjustment_id_seq'),
        fc.id,
        $2,
