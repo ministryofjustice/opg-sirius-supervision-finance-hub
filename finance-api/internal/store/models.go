@@ -197,6 +197,7 @@ type TransactionType struct {
 	ID               int32
 	FeeType          string
 	SupervisionLevel string
+	LedgerType       pgtype.Text
 	AccountCode      pgtype.Int8
 	Description      pgtype.Text
 }
