@@ -98,6 +98,7 @@ type InvoiceAdjustment struct {
 	CreatedBy       int32
 	UpdatedAt       pgtype.Timestamp
 	UpdatedBy       pgtype.Int4
+	LedgerID        pgtype.Int4
 }
 
 type InvoiceEmailStatus struct {

@@ -14,7 +14,7 @@ ORDER BY ia.raised_date DESC, ia.created_at DESC;
 
 -- name: CreatePendingInvoiceAdjustment :one
 INSERT INTO invoice_adjustment (id, finance_client_id, invoice_id, raised_date, adjustment_type, amount, notes, status,
-                                 created_at, created_by)
+                                created_at, created_by)
 SELECT NEXTVAL('invoice_adjustment_id_seq'),
        fc.id,
        $2,
@@ -54,3 +54,28 @@ RETURNING ia.amount, ia.adjustment_type, ia.finance_client_id, ia.invoice_id,
                         ON i.id = la.invoice_id AND la.status NOT IN ('PENDING', 'UNALLOCATED')
      WHERE i.id = ia.invoice_id
      GROUP BY i.amount);
+
+-- name: CreateLedgerForAdjustment :one
+WITH created AS (
+    INSERT INTO ledger (id, datetime, finance_client_id, amount, notes, type, status, fee_reduction_id, created_at,
+                        created_by, reference, method)
+        SELECT NEXTVAL('ledger_id_seq'),
+               NOW(),
+               fc.id,
+               $2,
+               $3,
+               $4,
+               $5,
+               $6,
+               NOW(),
+               $7,
+               gen_random_uuid(),
+               ''
+        FROM finance_client fc
+        WHERE client_id = $1
+        RETURNING id)
+UPDATE invoice_adjustment ia
+SET ledger_id = created.id
+FROM created
+WHERE ia.id = $8
+RETURNING created.id;
