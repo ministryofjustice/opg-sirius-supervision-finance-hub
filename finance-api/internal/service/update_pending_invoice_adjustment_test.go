@@ -116,15 +116,6 @@ func (suite *IntegrationSuite) TestService_UpdatePendingInvoiceAdjustment() {
 				return
 			}
 
-			var adjusted struct {
-				status string
-			}
-			q := conn.QueryRow(suite.ctx, "SELECT status FROM invoice_adjustment WHERE id = $1", tt.args.adjustmentId)
-			_ = q.Scan(
-				&adjusted.status,
-			)
-			assert.Equal(t, tt.args.status.Key(), adjusted.status)
-
 			rows, _ := conn.Query(suite.ctx,
 				"SELECT la.status FROM ledger_allocation la JOIN ledger l ON l.id = la.ledger_id WHERE l.finance_client_id = $1", tt.args.clientId)
 
@@ -136,6 +127,22 @@ func (suite *IntegrationSuite) TestService_UpdatePendingInvoiceAdjustment() {
 			}
 
 			assert.EqualValues(t, tt.expectedAllocationStatuses, statuses)
+
+			var adjusted struct {
+				status   string
+				ledgerId int
+			}
+			q := conn.QueryRow(suite.ctx, "SELECT status, ledger_id FROM invoice_adjustment WHERE id = $1", tt.args.adjustmentId)
+			_ = q.Scan(
+				&adjusted.status,
+				&adjusted.ledgerId,
+			)
+			assert.Equal(t, tt.args.status.Key(), adjusted.status)
+			if tt.args.status == shared.AdjustmentStatusRejected {
+				assert.Equal(t, 0, adjusted.ledgerId)
+			} else {
+				assert.NotEqual(t, 0, adjusted.ledgerId) // asserts ledgerId is set
+			}
 		})
 	}
 }
