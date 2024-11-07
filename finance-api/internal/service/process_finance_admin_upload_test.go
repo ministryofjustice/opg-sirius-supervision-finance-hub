@@ -48,13 +48,16 @@ func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
 		name           string
 		uploadType     string
 		fileStorageErr error
-		expectedErr    string
 		expectedEvent  any
 	}{
 		{
-			name:        "Unknown report",
-			uploadType:  "test",
-			expectedErr: "unknown upload type: test",
+			name:       "Unknown report",
+			uploadType: "test",
+			expectedEvent: event.FinanceAdminUploadProcessed{
+				EmailAddress: "test@email.com",
+				Error:        "unknown upload type",
+				UploadType:   "test",
+			},
 		},
 		{
 			name:           "S3 error",
@@ -82,16 +85,8 @@ func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
 			filestorage.err = tt.fileStorageErr
 
 			err := s.ProcessFinanceAdminUpload(context.Background(), filename, emailAddress, tt.uploadType)
-
-			if tt.expectedErr != "" {
-				assert.Equal(t, tt.expectedErr, err.Error())
-			} else {
-				assert.Nil(t, err)
-			}
-
-			if tt.expectedEvent != nil {
-				assert.Equal(t, tt.expectedEvent, dispatch.event)
-			}
+			assert.Nil(t, err)
+			assert.Equal(t, tt.expectedEvent, dispatch.event)
 		})
 	}
 }
@@ -141,7 +136,6 @@ func (suite *IntegrationSuite) Test_processPayments() {
 				},
 			},
 			expectedFailedLines: map[int]string{},
-			want:                nil,
 		},
 		{
 			name: "Overpayment",
@@ -175,13 +169,12 @@ func (suite *IntegrationSuite) Test_processPayments() {
 				},
 			},
 			expectedFailedLines: map[int]string{},
-			want:                nil,
 		},
 	}
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
 			var failedLines map[int]string
-			failedLines, err := s.processPayments(context.Background(), tt.records, "MOTO card payment")
+			failedLines, err := s.processPayments(context.Background(), tt.records, "PAYMENTS_MOTO_CARD")
 			assert.Equal(t, tt.want, err)
 			assert.Equal(t, tt.expectedFailedLines, failedLines)
 
