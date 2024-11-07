@@ -133,7 +133,9 @@ func translate(transactionType string, status string) string {
 	caser := cases.Title(language.English)
 	words := strings.Fields(transactionType)
 	for i, word := range words {
-		words[i] = caser.String(word)
+		if strings.ToUpper(word) != word {
+			words[i] = caser.String(word)
+		}
 	}
 	return strings.Join(words, " ")
 }
