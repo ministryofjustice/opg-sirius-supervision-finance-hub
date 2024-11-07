@@ -49,6 +49,8 @@ func getLedgerType(uploadType string) (string, error) {
 		return "MOTO card payment", nil
 	case "PAYMENTS_ONLINE_CARD":
 		return "Online card payment", nil
+	case "PAYMENTS_SUPERVISION_BACS":
+		return "BACS payment (Supervision account)", nil
 	}
 	return "", fmt.Errorf("unknown upload type")
 }
