@@ -14,17 +14,23 @@ const (
 	TransactionTypeHardship
 	TransactionTypeRemission
 	TransactionTypeReapply
+	TransactionTypeMotoCardPayment
+	TransactionTypeOnlineCardPayment
+	TransactionTypeSupervisionBACSPayment
 )
 
 var TransactionTypeMap = map[string]TransactionType{
-	"CREDIT WRITE OFF":   TransactionTypeWriteOff,
-	"CREDIT MEMO":        TransactionTypeCreditMemo,
-	"DEBIT MEMO":         TransactionTypeDebitMemo,
-	"WRITE OFF REVERSAL": TransactionTypeWriteOffReversal,
-	"EXEMPTION":          TransactionTypeExemption,
-	"HARDSHIP":           TransactionTypeHardship,
-	"REMISSION":          TransactionTypeRemission,
-	"CREDIT REAPPLY":     TransactionTypeReapply,
+	"CREDIT WRITE OFF":         TransactionTypeWriteOff,
+	"CREDIT MEMO":              TransactionTypeCreditMemo,
+	"DEBIT MEMO":               TransactionTypeDebitMemo,
+	"WRITE OFF REVERSAL":       TransactionTypeWriteOffReversal,
+	"EXEMPTION":                TransactionTypeExemption,
+	"HARDSHIP":                 TransactionTypeHardship,
+	"REMISSION":                TransactionTypeRemission,
+	"CREDIT REAPPLY":           TransactionTypeReapply,
+	"MOTO CARD PAYMENT":        TransactionTypeMotoCardPayment,
+	"ONLINE CARD PAYMENT":      TransactionTypeOnlineCardPayment,
+	"SUPERVISION BACS PAYMENT": TransactionTypeSupervisionBACSPayment,
 }
 
 func (t TransactionType) String() string {
@@ -45,6 +51,12 @@ func (t TransactionType) String() string {
 		return "Remission"
 	case TransactionTypeReapply:
 		return "Reapply"
+	case TransactionTypeMotoCardPayment:
+		return "MOTO card payment"
+	case TransactionTypeOnlineCardPayment:
+		return "Online card payment"
+	case TransactionTypeSupervisionBACSPayment:
+		return "BACS payment (Supervision account)"
 	default:
 		return ""
 	}
@@ -68,6 +80,12 @@ func (t TransactionType) Key() string {
 		return "REMISSION"
 	case TransactionTypeReapply:
 		return "REAPPLY"
+	case TransactionTypeMotoCardPayment:
+		return "MOTO CARD PAYMENT"
+	case TransactionTypeOnlineCardPayment:
+		return "ONLINE CARD PAYMENT"
+	case TransactionTypeSupervisionBACSPayment:
+		return "SUPERVISION BACS PAYMENT"
 	default:
 		return ""
 	}

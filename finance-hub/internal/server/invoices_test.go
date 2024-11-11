@@ -118,7 +118,7 @@ func Test_translate(t *testing.T) {
 	}{
 		{
 			name:       "returns a value for something that does not match",
-			ledgerType: "THIS WILL not MatcH Any Of thEm",
+			ledgerType: "THiS wILL not MatcH Any Of thEm",
 			want:       "This Will Not Match Any Of Them",
 		},
 		{
@@ -140,6 +140,11 @@ func Test_translate(t *testing.T) {
 			name:       "returns a correct value for DEBIT MEMO",
 			ledgerType: shared.AdjustmentTypeDebitMemo.Key(),
 			want:       "Manual Debit",
+		},
+		{
+			name:       "Does not title case uppercase words",
+			ledgerType: "BACS payment (supervision)",
+			want:       "BACS Payment (Supervision)",
 		},
 		{
 			name:   "returns a correct value for UNAPPLIED",
