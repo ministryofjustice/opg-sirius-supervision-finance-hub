@@ -55,16 +55,17 @@ func (q *Queries) CreateLedger(ctx context.Context, arg CreateLedgerParams) (int
 }
 
 const createLedgerForCourtRef = `-- name: CreateLedgerForCourtRef :one
-INSERT INTO ledger (id, datetime, finance_client_id, amount, notes, type, status, created_at, created_by, reference, method)
+INSERT INTO ledger (id, datetime, bankdate, finance_client_id, amount, notes, type, status, created_at, created_by, reference, method)
 SELECT nextval('ledger_id_seq'),
        $2,
-       fc.id,
        $3,
+       fc.id,
        $4,
        $5,
        $6,
-       now(),
        $7,
+       now(),
+       $8,
        gen_random_uuid(),
        ''
 FROM finance_client fc WHERE court_ref = $1
@@ -74,6 +75,7 @@ RETURNING id
 type CreateLedgerForCourtRefParams struct {
 	CourtRef  pgtype.Text
 	Datetime  pgtype.Timestamp
+	Bankdate  pgtype.Date
 	Amount    int32
 	Notes     pgtype.Text
 	Type      string
@@ -85,6 +87,7 @@ func (q *Queries) CreateLedgerForCourtRef(ctx context.Context, arg CreateLedgerF
 	row := q.db.QueryRow(ctx, createLedgerForCourtRef,
 		arg.CourtRef,
 		arg.Datetime,
+		arg.Bankdate,
 		arg.Amount,
 		arg.Notes,
 		arg.Type,
@@ -100,13 +103,13 @@ const getLedgerForPayment = `-- name: GetLedgerForPayment :one
 SELECT l.id
 FROM ledger l
 LEFT JOIN finance_client fc ON fc.id = l.finance_client_id
-WHERE l.amount = $1 AND l.status = 'CONFIRMED' AND l.datetime = $2 AND l.type = $3 AND fc.court_ref = $4
+WHERE l.amount = $1 AND l.status = 'CONFIRMED' AND l.bankdate = $2 AND l.type = $3 AND fc.court_ref = $4
 LIMIT 1
 `
 
 type GetLedgerForPaymentParams struct {
 	Amount   int32
-	Datetime pgtype.Timestamp
+	Bankdate pgtype.Date
 	Type     string
 	CourtRef pgtype.Text
 }
@@ -114,7 +117,7 @@ type GetLedgerForPaymentParams struct {
 func (q *Queries) GetLedgerForPayment(ctx context.Context, arg GetLedgerForPaymentParams) (int32, error) {
 	row := q.db.QueryRow(ctx, getLedgerForPayment,
 		arg.Amount,
-		arg.Datetime,
+		arg.Bankdate,
 		arg.Type,
 		arg.CourtRef,
 	)
