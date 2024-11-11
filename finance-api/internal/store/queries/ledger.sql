@@ -16,16 +16,17 @@ FROM finance_client fc WHERE client_id = $1
 RETURNING id;
 
 -- name: CreateLedgerForCourtRef :one
-INSERT INTO ledger (id, datetime, finance_client_id, amount, notes, type, status, created_at, created_by, reference, method)
+INSERT INTO ledger (id, datetime, bankdate, finance_client_id, amount, notes, type, status, created_at, created_by, reference, method)
 SELECT nextval('ledger_id_seq'),
        $2,
-       fc.id,
        $3,
+       fc.id,
        $4,
        $5,
        $6,
-       now(),
        $7,
+       now(),
+       $8,
        gen_random_uuid(),
        ''
 FROM finance_client fc WHERE court_ref = $1
@@ -35,5 +36,5 @@ RETURNING id;
 SELECT l.id
 FROM ledger l
 LEFT JOIN finance_client fc ON fc.id = l.finance_client_id
-WHERE l.amount = $1 AND l.status = 'CONFIRMED' AND l.datetime = $2 AND l.type = $3 AND fc.court_ref = $4
+WHERE l.amount = $1 AND l.status = 'CONFIRMED' AND l.bankdate = $2 AND l.type = $3 AND fc.court_ref = $4
 LIMIT 1;
