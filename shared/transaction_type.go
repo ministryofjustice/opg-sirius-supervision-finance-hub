@@ -14,17 +14,25 @@ const (
 	TransactionTypeHardship
 	TransactionTypeRemission
 	TransactionTypeReapply
+	TransactionTypeMotoCardPayment
+	TransactionTypeOnlineCardPayment
+	TransactionTypeSupervisionBACSPayment
+	TransactionTypeOPGBACSPayment
 )
 
 var TransactionTypeMap = map[string]TransactionType{
-	"CREDIT WRITE OFF":   TransactionTypeWriteOff,
-	"CREDIT MEMO":        TransactionTypeCreditMemo,
-	"DEBIT MEMO":         TransactionTypeDebitMemo,
-	"WRITE OFF REVERSAL": TransactionTypeWriteOffReversal,
-	"EXEMPTION":          TransactionTypeExemption,
-	"HARDSHIP":           TransactionTypeHardship,
-	"REMISSION":          TransactionTypeRemission,
-	"CREDIT REAPPLY":     TransactionTypeReapply,
+	"CREDIT WRITE OFF":         TransactionTypeWriteOff,
+	"CREDIT MEMO":              TransactionTypeCreditMemo,
+	"DEBIT MEMO":               TransactionTypeDebitMemo,
+	"WRITE OFF REVERSAL":       TransactionTypeWriteOffReversal,
+	"EXEMPTION":                TransactionTypeExemption,
+	"HARDSHIP":                 TransactionTypeHardship,
+	"REMISSION":                TransactionTypeRemission,
+	"CREDIT REAPPLY":           TransactionTypeReapply,
+	"MOTO CARD PAYMENT":        TransactionTypeMotoCardPayment,
+	"ONLINE CARD PAYMENT":      TransactionTypeOnlineCardPayment,
+	"SUPERVISION BACS PAYMENT": TransactionTypeSupervisionBACSPayment,
+	"OPG BACS PAYMENT":         TransactionTypeOPGBACSPayment,
 }
 
 func (t TransactionType) String() string {
@@ -45,6 +53,14 @@ func (t TransactionType) String() string {
 		return "Remission"
 	case TransactionTypeReapply:
 		return "Reapply"
+	case TransactionTypeMotoCardPayment:
+		return "MOTO card payment"
+	case TransactionTypeOnlineCardPayment:
+		return "Online card payment"
+	case TransactionTypeSupervisionBACSPayment:
+		return "BACS payment (Supervision account)"
+	case TransactionTypeOPGBACSPayment:
+		return "BACS payment (Main account)"
 	default:
 		return ""
 	}
@@ -68,6 +84,14 @@ func (t TransactionType) Key() string {
 		return "REMISSION"
 	case TransactionTypeReapply:
 		return "REAPPLY"
+	case TransactionTypeMotoCardPayment:
+		return "MOTO CARD PAYMENT"
+	case TransactionTypeOnlineCardPayment:
+		return "ONLINE CARD PAYMENT"
+	case TransactionTypeSupervisionBACSPayment:
+		return "SUPERVISION BACS PAYMENT"
+	case TransactionTypeOPGBACSPayment:
+		return "OPG BACS PAYMENT"
 	default:
 		return ""
 	}

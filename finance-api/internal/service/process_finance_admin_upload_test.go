@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/opg-sirius-finance-hub/finance-api/internal/event"
+	"github.com/opg-sirius-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"strconv"
@@ -48,13 +49,16 @@ func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
 		name           string
 		uploadType     string
 		fileStorageErr error
-		expectedErr    string
 		expectedEvent  any
 	}{
 		{
-			name:        "Unknown report",
-			uploadType:  "test",
-			expectedErr: "unknown upload type: test",
+			name:       "Unknown report",
+			uploadType: "test",
+			expectedEvent: event.FinanceAdminUploadProcessed{
+				EmailAddress: "test@email.com",
+				Error:        "unknown upload type",
+				UploadType:   "test",
+			},
 		},
 		{
 			name:           "S3 error",
@@ -81,17 +85,11 @@ func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
 			emailAddress := "test@email.com"
 			filestorage.err = tt.fileStorageErr
 
-			err := s.ProcessFinanceAdminUpload(context.Background(), filename, emailAddress, tt.uploadType)
-
-			if tt.expectedErr != "" {
-				assert.Equal(t, tt.expectedErr, err.Error())
-			} else {
-				assert.Nil(t, err)
-			}
-
-			if tt.expectedEvent != nil {
-				assert.Equal(t, tt.expectedEvent, dispatch.event)
-			}
+			err := s.ProcessFinanceAdminUpload(context.Background(), shared.FinanceAdminUploadEvent{
+				EmailAddress: emailAddress, Filename: filename, UploadType: tt.uploadType,
+			})
+			assert.Nil(t, err)
+			assert.Equal(t, tt.expectedEvent, dispatch.event)
 		})
 	}
 }
@@ -113,6 +111,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 	tests := []struct {
 		name                      string
 		records                   [][]string
+		uploadedDate              shared.Date
 		expectedClientId          int
 		expectedLedgerAllocations []createdLedgerAllocation
 		expectedFailedLines       map[int]string
@@ -128,20 +127,20 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					"100",
 				},
 			},
+			uploadedDate:     shared.NewDate("2024-01-01"),
 			expectedClientId: 1,
 			expectedLedgerAllocations: []createdLedgerAllocation{
 				{
 					10000,
-					"MOTO card payment",
+					"MOTO CARD PAYMENT",
 					"CONFIRMED",
-					time.Date(2024, 1, 17, 10, 15, 39, 0, time.UTC),
+					time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 					10000,
 					"ALLOCATED",
 					1,
 				},
 			},
 			expectedFailedLines: map[int]string{},
-			want:                nil,
 		},
 		{
 			name: "Overpayment",
@@ -153,35 +152,35 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					"250.1",
 				},
 			},
+			uploadedDate:     shared.NewDate("2024-01-01"),
 			expectedClientId: 2,
 			expectedLedgerAllocations: []createdLedgerAllocation{
 				{
 					25010,
-					"MOTO card payment",
+					"MOTO CARD PAYMENT",
 					"CONFIRMED",
-					time.Date(2024, 1, 17, 15, 30, 27, 0, time.UTC),
+					time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 					10000,
 					"ALLOCATED",
 					2,
 				},
 				{
 					25010,
-					"MOTO card payment",
+					"MOTO CARD PAYMENT",
 					"CONFIRMED",
-					time.Date(2024, 1, 17, 15, 30, 27, 0, time.UTC),
+					time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 					15010,
 					"UNAPPLIED",
 					0,
 				},
 			},
 			expectedFailedLines: map[int]string{},
-			want:                nil,
 		},
 	}
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
 			var failedLines map[int]string
-			failedLines, err := s.processPayments(context.Background(), tt.records, "MOTO card payment")
+			failedLines, err := s.processPayments(context.Background(), tt.records, "PAYMENTS_MOTO_CARD", tt.uploadedDate)
 			assert.Equal(t, tt.want, err)
 			assert.Equal(t, tt.expectedFailedLines, failedLines)
 
