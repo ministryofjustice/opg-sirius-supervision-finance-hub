@@ -57,6 +57,8 @@ func getLedgerType(uploadType string) (string, error) {
 		return shared.TransactionTypeOnlineCardPayment.Key(), nil
 	case "PAYMENTS_SUPERVISION_BACS":
 		return shared.TransactionTypeSupervisionBACSPayment.Key(), nil
+	case "PAYMENTS_OPG_BACS":
+		return shared.TransactionTypeOPGBACSPayment.Key(), nil
 	}
 	return "", fmt.Errorf("unknown upload type")
 }
@@ -103,7 +105,7 @@ func getPaymentDetails(record []string, uploadType string, uploadDate shared.Dat
 			(*failedLines)[index] = "DATE_PARSE_ERROR"
 			return paymentDetails{}
 		}
-	case "PAYMENTS_SUPERVISION_BACS":
+	case "PAYMENTS_SUPERVISION_BACS", "PAYMENTS_OPG_BACS":
 		courtRef = record[10]
 
 		amount, err = parseAmount(record[6])

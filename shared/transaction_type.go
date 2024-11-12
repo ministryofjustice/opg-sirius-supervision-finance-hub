@@ -17,6 +17,7 @@ const (
 	TransactionTypeMotoCardPayment
 	TransactionTypeOnlineCardPayment
 	TransactionTypeSupervisionBACSPayment
+	TransactionTypeOPGBACSPayment
 )
 
 var TransactionTypeMap = map[string]TransactionType{
@@ -31,6 +32,7 @@ var TransactionTypeMap = map[string]TransactionType{
 	"MOTO CARD PAYMENT":        TransactionTypeMotoCardPayment,
 	"ONLINE CARD PAYMENT":      TransactionTypeOnlineCardPayment,
 	"SUPERVISION BACS PAYMENT": TransactionTypeSupervisionBACSPayment,
+	"OPG BACS PAYMENT":         TransactionTypeOPGBACSPayment,
 }
 
 func (t TransactionType) String() string {
@@ -57,6 +59,8 @@ func (t TransactionType) String() string {
 		return "Online card payment"
 	case TransactionTypeSupervisionBACSPayment:
 		return "BACS payment (Supervision account)"
+	case TransactionTypeOPGBACSPayment:
+		return "BACS payment (Main account)"
 	default:
 		return ""
 	}
@@ -86,6 +90,8 @@ func (t TransactionType) Key() string {
 		return "ONLINE CARD PAYMENT"
 	case TransactionTypeSupervisionBACSPayment:
 		return "SUPERVISION BACS PAYMENT"
+	case TransactionTypeOPGBACSPayment:
+		return "OPG BACS PAYMENT"
 	default:
 		return ""
 	}
