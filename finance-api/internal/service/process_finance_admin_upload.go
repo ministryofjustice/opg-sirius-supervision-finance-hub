@@ -19,6 +19,7 @@ func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, detail shared.F
 	uploadProcessedEvent := event.FinanceAdminUploadProcessed{
 		EmailAddress: detail.EmailAddress,
 		UploadType:   detail.UploadType,
+		Filename:     detail.Filename,
 	}
 
 	if err != nil {

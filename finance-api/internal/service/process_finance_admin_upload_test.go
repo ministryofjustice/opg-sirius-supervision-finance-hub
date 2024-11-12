@@ -58,6 +58,7 @@ func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
 				EmailAddress: "test@email.com",
 				Error:        "unknown upload type",
 				UploadType:   "test",
+				Filename:     "test.csv",
 			},
 		},
 		{
@@ -68,6 +69,7 @@ func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
 				EmailAddress: "test@email.com",
 				Error:        "Unable to download report",
 				UploadType:   "PAYMENTS_MOTO_CARD",
+				Filename:     "test.csv",
 			},
 		},
 		{
@@ -76,6 +78,7 @@ func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
 			expectedEvent: event.FinanceAdminUploadProcessed{
 				EmailAddress: "test@email.com",
 				UploadType:   "PAYMENTS_MOTO_CARD",
+				Filename:     "test.csv",
 			},
 		},
 	}
