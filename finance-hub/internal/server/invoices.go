@@ -130,6 +130,11 @@ func translate(transactionType string, status string) string {
 		return "Manual Debit"
 	}
 
+	parsedTransactionType := shared.ParseTransactionType(transactionType)
+	if parsedTransactionType != shared.TransactionTypeUnknown {
+		return parsedTransactionType.String()
+	}
+
 	caser := cases.Title(language.English)
 	words := strings.Fields(transactionType)
 	for i, word := range words {
