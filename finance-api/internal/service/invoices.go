@@ -86,19 +86,13 @@ func (ib *invoiceBuilder) addLedgerAllocations(ilas []store.GetLedgerAllocations
 	for _, il := range ilas {
 		metadata := ib.invoices[il.InvoiceID.Int32]
 
-		transactionType := shared.ParseTransactionType(il.Type).String()
-		if transactionType == "" {
-			transactionType = il.Type
-		}
-
 		metadata.invoice.Ledgers = append(
 			metadata.invoice.Ledgers,
 			shared.Ledger{
 				Amount:          int(il.Amount),
 				ReceivedDate:    shared.Date{Time: il.RaisedDate.Time},
-				TransactionType: transactionType,
-				//TransactionType: il.Type,
-				Status: il.Status,
+				TransactionType: il.Type,
+				Status:          il.Status,
 			})
 
 		if il.Type == "WRITE OFF REVERSAL" {
