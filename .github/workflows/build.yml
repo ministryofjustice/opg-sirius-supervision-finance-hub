@@ -38,7 +38,7 @@ jobs:
         if: always()
 
       - name: Upload Code Coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           files: test-results/test-coverage.txt
           fail_ci_if_error: false
