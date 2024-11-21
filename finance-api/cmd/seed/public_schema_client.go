@@ -1,3 +1,5 @@
+//go:build seed && !release
+
 package seed
 
 import (
@@ -17,44 +19,39 @@ type person struct {
 }
 
 type client struct {
-	courtRef string
-	person
-}
-
-type clientIds struct {
-	clientId        int
+	id              int
 	financeClientId int
+	courtRef        string
+	person
 }
 
 type deputy struct {
 	deputyType string
-	clientId   int
+	client     *client
 	person
 }
 
 // createClient creates a new client in the public schema
-func (p *publicSchemaClient) createClient(ctx context.Context, data client) clientIds {
-	var clientId int
-	err := p.db.QueryRow(ctx, "INSERT INTO public.persons VALUES (NEXTVAL('public.persons_id_seq'), $1, $2, $3) RETURNING id", data.firstName, data.surname, data.courtRef).Scan(&clientId)
+func (p *publicSchemaClient) createClient(ctx context.Context, data *client) *client {
+	err := p.db.QueryRow(ctx, "INSERT INTO public.persons VALUES (NEXTVAL('public.persons_id_seq'), $1, $2, $3) RETURNING id", data.firstName, data.surname, data.courtRef).Scan(data.id)
 	if err != nil {
 		log.Fatalf("failed to add client: %v", err)
 	}
-	var financeClientId int
-	err = p.db.QueryRow(ctx, "INSERT INTO supervision_finance.finance_client VALUES (NEXTVAL('supervision_finance.finance_client_id_seq'), $1, '', 'DEMANDED') RETURNING id", clientId).Scan(&financeClientId)
+	err = p.db.QueryRow(ctx, "INSERT INTO supervision_finance.finance_client VALUES (NEXTVAL('supervision_finance.finance_client_id_seq'), $1, '', 'DEMANDED') RETURNING id", data.id).Scan(data.financeClientId)
 	if err != nil {
 		log.Fatalf("failed to add finance_client: %v", err)
 	}
-	return clientIds{clientId: clientId, financeClientId: financeClientId}
+	return data
 }
 
 // createDeputy creates a new deputy in the public schema
 func (p *publicSchemaClient) createDeputy(ctx context.Context, data deputy) int {
 	var deputyId int
-	err := p.db.QueryRow(ctx, "INSERT INTO public.persons VALUES (NEXTVAL('public.persons_id_seq'), $1, $2, NULL, $3, $4) RETURNING id", data.firstName, data.surname, data.clientId, data.deputyType).Scan(&deputyId)
+	err := p.db.QueryRow(ctx, "INSERT INTO public.persons VALUES (NEXTVAL('public.persons_id_seq'), $1, $2, NULL, $3, $4) RETURNING id", data.firstName, data.surname, data.client.id, data.deputyType).Scan(&deputyId)
 	if err != nil {
 		log.Fatalf("failed to add deputy: %v", err)
 	}
-	_, err = p.db.Exec(ctx, "UPDATE public.persons SET feepayer_id = $1 WHERE id = $2", deputyId, data.clientId)
+	_, err = p.db.Exec(ctx, "UPDATE public.persons SET feepayer_id = $1 WHERE id = $2", deputyId, data.client.id)
 	if err != nil {
 		log.Fatalf("failed to add deputy to client: %v", err)
 	}

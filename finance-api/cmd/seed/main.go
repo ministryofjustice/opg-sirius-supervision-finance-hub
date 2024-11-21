@@ -13,6 +13,11 @@ import (
 	"os"
 )
 
+type seeder struct {
+	publicClient   publicSchemaClient
+	paymentsClient service.Service
+}
+
 func main() {
 	ctx := context.Background()
 
@@ -22,7 +27,7 @@ func main() {
 	}
 	defer publicDb.Close()
 
-	_ = publicSchemaClient{publicDb}
+	publicClient := publicSchemaClient{publicDb}
 
 	financeDb, err := setupDbPool(ctx, "supervision_finance")
 	if err != nil {
@@ -30,13 +35,15 @@ func main() {
 	}
 	defer financeDb.Close()
 
-	_ = service.NewService(http.DefaultClient, financeDb, &dispatchStub{}, &fileStorageStub{})
+	paymentsClient := service.NewService(http.DefaultClient, financeDb, &dispatchStub{}, &fileStorageStub{})
 
-	//// Seed data
-	//if err := seedData(ctx, svc); err != nil {
-	//	logger.Error("failed to seed data", slog.Any("err", err))
-	//	os.Exit(1)
-	//}
+	s := seeder{
+		publicClient:   publicClient,
+		paymentsClient: paymentsClient,
+	}
+
+	s.fixture1(ctx)
+	s.fixture2(ctx)
 
 	log.Println("seed data complete")
 }

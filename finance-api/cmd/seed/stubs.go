@@ -1,3 +1,5 @@
+//go:build seed && !release
+
 package seed
 
 import (
