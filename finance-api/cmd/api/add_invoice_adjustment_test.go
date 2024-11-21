@@ -3,9 +3,9 @@ package api
 import (
 	"bytes"
 	"errors"
-	"github.com/opg-sirius-finance-hub/apierror"
-	"github.com/opg-sirius-finance-hub/finance-api/internal/validation"
-	"github.com/opg-sirius-finance-hub/shared"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"

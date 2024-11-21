@@ -2,8 +2,8 @@ package api
 
 import (
 	"github.com/jackc/pgx/v5"
-	"github.com/opg-sirius-finance-hub/apierror"
-	"github.com/opg-sirius-finance-hub/shared"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"

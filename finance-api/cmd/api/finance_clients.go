@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/jackc/pgx/v5"
-	"github.com/opg-sirius-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"net/http"
 	"strconv"
 )
