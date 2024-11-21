@@ -1,4 +1,4 @@
-module github.com/opg-sirius-finance-hub
+module github.com/ministryofjustice/opg-sirius-supervision-finance-hub
 
 go 1.22.0
 

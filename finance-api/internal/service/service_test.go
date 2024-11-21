@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
-	"github.com/opg-sirius-finance-hub/finance-api/internal/testhelpers"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/testhelpers"
 	"github.com/stretchr/testify/suite"
 	"net/http"
 	"testing"
