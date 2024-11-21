@@ -67,7 +67,7 @@ func TestServer_AddInvoiceAdjustment(t *testing.T) {
 
 			mock := &mockService{err: tt.err, expectedIds: []int{1, 2}}
 			server := Server{Service: mock, Validator: validator}
-			err := server.AddInvoiceAdjustment(w, req)
+			err := server.addInvoiceAdjustment(w, req)
 
 			assert.Equal(t, 1, mock.expectedIds[0])
 			assert.Equal(t, 2, mock.expectedIds[1])
