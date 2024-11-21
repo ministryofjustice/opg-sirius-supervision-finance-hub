@@ -2,7 +2,7 @@ package api
 
 import (
 	"context"
-	"github.com/opg-sirius-finance-hub/shared"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
 type mockService struct {
