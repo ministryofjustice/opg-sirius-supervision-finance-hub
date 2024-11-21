@@ -3,8 +3,8 @@ package service
 import (
 	"fmt"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
-	"github.com/opg-sirius-finance-hub/shared"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"strings"
 )
 
