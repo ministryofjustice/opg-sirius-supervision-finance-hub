@@ -4,7 +4,6 @@
     <h1 class="govuk-heading-l  govuk-!-margin-bottom-0  govuk-!-margin-top-0">Invoices</h1>
     <div style="float: right;">
       <div class="moj-button-menu">
-        <div class="moj-button-menu__wrapper">
           <a
             class="govuk-button moj-button-menu__item govuk-button--secondary"
             role="button"
@@ -15,7 +14,6 @@
             hx-push-url="{{ prefix  (printf "/clients/%s/invoices/add" .ClientId) }}">
             Add manual invoice
           </a>
-        </div>
       </div>
     </div>
   </header>
@@ -55,7 +53,6 @@
               <td class="govuk-table__cell" data-cy="invoice-outstanding-balance">£{{ .OutstandingBalance }}</td>
               <td class="govuk-table__cell">
                 <div class="moj-button-menu">
-                  <div class="moj-button-menu__wrapper">
                     <a
                       class="govuk-button moj-button-menu__item govuk-button--secondary"
                       role="button"
@@ -66,7 +63,6 @@
                       hx-push-url="{{ prefix (printf "/clients/%d/invoices/%d/adjustments" .ClientId .Id) }}">
                       Adjust invoice
                     </a>
-                  </div>
                 </div>
               </td>
             </tr>
