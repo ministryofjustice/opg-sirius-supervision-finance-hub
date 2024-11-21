@@ -4,8 +4,8 @@ import (
 	"context"
 	"github.com/ministryofjustice/opg-go-common/securityheaders"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
-	"github.com/opg-sirius-finance-hub/finance-api/internal/validation"
-	"github.com/opg-sirius-finance-hub/shared"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"log/slog"
 	"net/http"
@@ -51,7 +51,7 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 	handleFunc("GET /clients/{clientId}/billing-history", s.getBillingHistory)
 
 	handleFunc("POST /clients/{clientId}/invoices", s.addManualInvoice)
-	handleFunc("POST /clients/{clientId}/invoices/{invoiceId}/invoice-adjustments", s.AddInvoiceAdjustment)
+	handleFunc("POST /clients/{clientId}/invoices/{invoiceId}/invoice-adjustments", s.addInvoiceAdjustment)
 	handleFunc("PUT /clients/{clientId}/invoice-adjustments/{adjustmentId}", s.updatePendingInvoiceAdjustment)
 	handleFunc("POST /clients/{clientId}/fee-reductions", s.addFeeReduction)
 	handleFunc("PUT /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", s.cancelFeeReduction)

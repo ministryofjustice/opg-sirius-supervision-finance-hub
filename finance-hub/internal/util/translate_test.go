@@ -1,7 +1,7 @@
 package util
 
 import (
-	"github.com/opg-sirius-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

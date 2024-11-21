@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/opg-sirius-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"io"
 	"net/http"
 	"net/http/httptest"

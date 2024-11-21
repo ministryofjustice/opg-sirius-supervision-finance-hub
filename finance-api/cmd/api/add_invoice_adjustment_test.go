@@ -3,9 +3,9 @@ package api
 import (
 	"bytes"
 	"errors"
-	"github.com/opg-sirius-finance-hub/apierror"
-	"github.com/opg-sirius-finance-hub/finance-api/internal/validation"
-	"github.com/opg-sirius-finance-hub/shared"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -67,7 +67,7 @@ func TestServer_AddInvoiceAdjustment(t *testing.T) {
 
 			mock := &mockService{err: tt.err, expectedIds: []int{1, 2}}
 			server := Server{Service: mock, Validator: validator}
-			err := server.AddInvoiceAdjustment(w, req)
+			err := server.addInvoiceAdjustment(w, req)
 
 			assert.Equal(t, 1, mock.expectedIds[0])
 			assert.Equal(t, 2, mock.expectedIds[1])

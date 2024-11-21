@@ -2,7 +2,7 @@ package api
 
 import (
 	"context"
-	"github.com/opg-sirius-finance-hub/shared"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
 type mockService struct {
@@ -91,7 +91,7 @@ func (s *mockService) GetInvoiceAdjustments(ctx context.Context, id int) (*share
 func (s *mockService) AddInvoiceAdjustment(ctx context.Context, clientId int, invoiceId int, ledgerEntry *shared.AddInvoiceAdjustmentRequest) (*shared.InvoiceReference, error) {
 	s.ledger = ledgerEntry
 	s.expectedIds = []int{clientId, invoiceId}
-	s.lastCalled = "AddInvoiceAdjustment"
+	s.lastCalled = "addInvoiceAdjustment"
 	return s.invoiceReference, s.err
 }
 

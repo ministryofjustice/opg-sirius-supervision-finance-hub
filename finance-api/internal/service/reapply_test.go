@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"github.com/opg-sirius-finance-hub/finance-api/internal/event"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/stretchr/testify/assert"
 )
 
