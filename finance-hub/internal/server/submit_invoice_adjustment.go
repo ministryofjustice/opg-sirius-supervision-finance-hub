@@ -3,9 +3,9 @@ package server
 import (
 	"errors"
 	"fmt"
-	"github.com/opg-sirius-finance-hub/apierror"
-	"github.com/opg-sirius-finance-hub/finance-hub/internal/util"
-	"github.com/opg-sirius-finance-hub/shared"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/util"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"net/http"
 	"strconv"
 )
