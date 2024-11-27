@@ -5,9 +5,9 @@ import (
 	"github.com/ministryofjustice/opg-go-common/env"
 	"github.com/ministryofjustice/opg-go-common/paginate"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
-	"github.com/opg-sirius-finance-hub/finance-hub/internal/api"
-	"github.com/opg-sirius-finance-hub/finance-hub/internal/server"
-	"github.com/opg-sirius-finance-hub/shared"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/api"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/server"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"html/template"
 	"log/slog"
 	"net/http"
@@ -22,7 +22,7 @@ import (
 
 func main() {
 	ctx := context.Background()
-	logger := telemetry.NewLogger("opg-sirius-finance-hub")
+	logger := telemetry.NewLogger("opg-sirius-supervision-finance-hub")
 
 	err := run(ctx, logger)
 	if err != nil {

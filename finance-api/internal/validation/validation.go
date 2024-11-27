@@ -3,8 +3,8 @@ package validation
 import (
 	"fmt"
 	"github.com/go-playground/validator/v10"
-	"github.com/opg-sirius-finance-hub/apierror"
-	"github.com/opg-sirius-finance-hub/shared"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"strconv"
 	"strings"
 	"time"
