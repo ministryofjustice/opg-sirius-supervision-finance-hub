@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/opg-sirius-finance-hub/shared"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/patrickmn/go-cache"
 	"strconv"
 	"time"

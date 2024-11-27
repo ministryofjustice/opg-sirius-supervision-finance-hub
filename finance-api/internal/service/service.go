@@ -4,8 +4,8 @@ import (
 	"context"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/opg-sirius-finance-hub/finance-api/internal/event"
-	"github.com/opg-sirius-finance-hub/finance-api/internal/store"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"io"
 	"net/http"
 )
