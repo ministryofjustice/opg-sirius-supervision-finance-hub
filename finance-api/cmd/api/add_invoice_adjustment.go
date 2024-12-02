@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-func (s *Server) AddInvoiceAdjustment(w http.ResponseWriter, r *http.Request) error {
+func (s *Server) addInvoiceAdjustment(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 
 	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
