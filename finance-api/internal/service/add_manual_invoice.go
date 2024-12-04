@@ -17,6 +17,10 @@ func processInvoiceData(data shared.AddManualInvoice) shared.AddManualInvoice {
 		data.Amount = shared.Nillable[int]{Value: 10000, Valid: true}
 		data.StartDate = data.RaisedDate
 		data.EndDate = data.RaisedDate
+	case shared.InvoiceTypeGA:
+		data.Amount = shared.Nillable[int]{Value: 20000, Valid: true}
+		data.StartDate = data.RaisedDate
+		data.EndDate = data.RaisedDate
 	case shared.InvoiceTypeS2, shared.InvoiceTypeB2:
 		data.EndDate = data.RaisedDate
 		data.SupervisionLevel = shared.Nillable[string]{Value: "GENERAL", Valid: true}

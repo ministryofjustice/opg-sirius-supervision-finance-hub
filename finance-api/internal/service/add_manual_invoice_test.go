@@ -324,6 +324,22 @@ func Test_invoiceData(t *testing.T) {
 			supervisionLevel: shared.Nillable[string]{},
 		},
 		{
+			name: "GA invoice returns correct values",
+			args: shared.AddManualInvoice{
+				InvoiceType:      shared.InvoiceTypeGA,
+				Amount:           shared.Nillable[int]{},
+				StartDate:        shared.Nillable[shared.Date]{},
+				RaisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2023-04-01"), Valid: true},
+				EndDate:          shared.Nillable[shared.Date]{},
+				SupervisionLevel: shared.Nillable[string]{},
+			},
+			amount:           shared.Nillable[int]{Value: 20000, Valid: true},
+			startDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2023-04-01"), Valid: true},
+			raisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2023-04-01"), Valid: true},
+			endDate:          shared.Nillable[shared.Date]{Value: shared.NewDate("2023-04-01"), Valid: true},
+			supervisionLevel: shared.Nillable[string]{},
+		},
+		{
 			name: "B2 invoice returns correct values",
 			args: shared.AddManualInvoice{
 				InvoiceType:      shared.InvoiceTypeB2,
