@@ -144,3 +144,12 @@ func (i InvoiceType) RequiresDateValidation() bool {
 		return false
 	}
 }
+
+func (i InvoiceType) RequiresSameFinancialYearValidation() bool {
+	switch i {
+	case InvoiceTypeSF, InvoiceTypeSE, InvoiceTypeSO:
+		return true
+	default:
+		return false
+	}
+}

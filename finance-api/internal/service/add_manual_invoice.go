@@ -34,10 +34,10 @@ func processInvoiceData(data shared.AddManualInvoice) shared.AddManualInvoice {
 
 func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data shared.AddManualInvoice) error {
 	data = processInvoiceData(data)
-	validationsErrors := s.validateManualInvoice(data)
+	validationErrors := s.validateManualInvoice(data)
 
-	if len(validationsErrors) != 0 {
-		return apierror.BadRequestsError(validationsErrors)
+	if len(validationErrors) != 0 {
+		return apierror.ValidationError{Errors: validationErrors}
 	}
 
 	ctx, cancelTx := context.WithCancel(ctx)
@@ -133,25 +133,33 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 	return s.ReapplyCredit(ctx, int32(clientId))
 }
 
-func (s *Service) validateManualInvoice(data shared.AddManualInvoice) []string {
-	var validationsErrors []string
+func (s *Service) validateManualInvoice(data shared.AddManualInvoice) apierror.ValidationErrors {
+	validationErrors := apierror.ValidationErrors{}
 
 	if data.InvoiceType.RequiresDateValidation() {
 		if !data.RaisedDate.Value.Time.Before(time.Now()) {
-			validationsErrors = append(validationsErrors, "RaisedDateForAnInvoice")
+			validationErrors["RaisedDate"] = map[string]string{"RaisedDate": "Raised date not in the past"}
+		}
+	}
+
+	if data.InvoiceType.RequiresSameFinancialYearValidation() {
+		isSameFinancialYear := validateSameFinancialYear(data.StartDate.Value, data.EndDate.Value)
+		if !isSameFinancialYear {
+			validationErrors["StartDate"] = map[string]string{"StartDate": "Start date and end date must be in same financial year"}
 		}
 	}
 
 	isStartDateValid := validateStartDate(data.StartDate.Value, data.EndDate.Value)
 	if !isStartDateValid {
-		validationsErrors = append(validationsErrors, "StartDate")
+		validationErrors["StartDate"] = map[string]string{"StartDate": "Start date must be before end date"}
 	}
 
 	isEndDateValid := validateEndDate(data.StartDate.Value, data.EndDate.Value)
 	if !isEndDateValid {
-		validationsErrors = append(validationsErrors, "EndDate")
+		validationErrors["EndDate"] = map[string]string{"EndDate": "End date must be after start date"}
 	}
-	return validationsErrors
+
+	return validationErrors
 }
 
 func addLeadingZeros(counter string) string {
@@ -168,13 +176,9 @@ func validateEndDate(startDate shared.Date, endDate shared.Date) bool {
 }
 
 func validateStartDate(startDate shared.Date, endDate shared.Date) bool {
-	if startDate.Time.After(endDate.Time) {
-		return false
-	}
+	return !startDate.Time.After(endDate.Time)
+}
 
-	if !startDate.IsSameFinancialYear(endDate) {
-		return false
-	}
-
-	return true
+func validateSameFinancialYear(startDate shared.Date, endDate shared.Date) bool {
+	return startDate.IsSameFinancialYear(endDate)
 }

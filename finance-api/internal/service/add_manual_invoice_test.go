@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/testhelpers"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
@@ -103,10 +104,15 @@ func (suite *IntegrationSuite) TestService_AddManualInvoiceRaisedDateForAnInvoic
 	params.EndDate = shared.Nillable[shared.Date]{Value: shared.Date{Time: time.Now().AddDate(0, 0, -1)}, Valid: true}
 	params.InvoiceType = shared.InvoiceTypeSO
 
+	expectedErr := apierror.ValidationError{Errors: apierror.ValidationErrors{
+		"RaisedDate": {"RaisedDate": "Raised date not in the past"},
+		"StartDate":  {"StartDate": "Start date must be before end date"},
+		"EndDate":    {"EndDate": "End date must be after start date"},
+	}}
+
 	err := s.AddManualInvoice(suite.ctx, 24, params)
 	if err != nil {
-		assert.Equalf(suite.T(), "bad requests: RaisedDateForAnInvoice, StartDate, EndDate", err.Error(), "Raised date %s is not in the past", params.RaisedDate)
-		return
+		assert.Equal(suite.T(), expectedErr, err)
 	}
 }
 
