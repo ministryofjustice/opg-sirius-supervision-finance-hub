@@ -273,27 +273,29 @@ WITH allocations AS (SELECT la.invoice_id,
                             COALESCE(l.bankdate, la.datetime) AS raised_date,
                             l.type,
                             la.status,
-                            la.datetime AS created_at
+                            la.datetime AS created_at,
+                            la.id AS ledger_allocation_id
                      FROM ledger_allocation la
                               JOIN ledger l ON la.ledger_id = l.id
                      WHERE la.invoice_id = ANY ($1::INT[])
                      UNION
-                     SELECT ia.invoice_id, ia.amount, ia.raised_date, ia.adjustment_type, ia.status, ia.created_at
+                     SELECT ia.invoice_id, ia.amount, ia.raised_date, ia.adjustment_type, ia.status, ia.created_at, ia.id
                      FROM invoice_adjustment ia
                      WHERE ia.status = 'PENDING'
                        AND ia.invoice_id = ANY ($1::INT[]))
-SELECT invoice_id, amount, raised_date, type, status, created_at
+SELECT invoice_id, amount, raised_date, type, status, created_at, ledger_allocation_id
 FROM allocations
-ORDER BY raised_date DESC, created_at DESC, status DESC
+ORDER BY raised_date DESC, created_at DESC, status, ledger_allocation_id DESC
 `
 
 type GetLedgerAllocationsRow struct {
-	InvoiceID  pgtype.Int4
-	Amount     int32
-	RaisedDate pgtype.Date
-	Type       string
-	Status     string
-	CreatedAt  pgtype.Timestamp
+	InvoiceID          pgtype.Int4
+	Amount             int32
+	RaisedDate         pgtype.Date
+	Type               string
+	Status             string
+	CreatedAt          pgtype.Timestamp
+	LedgerAllocationID int32
 }
 
 func (q *Queries) GetLedgerAllocations(ctx context.Context, dollar_1 []int32) ([]GetLedgerAllocationsRow, error) {
@@ -312,6 +314,7 @@ func (q *Queries) GetLedgerAllocations(ctx context.Context, dollar_1 []int32) ([
 			&i.Type,
 			&i.Status,
 			&i.CreatedAt,
+			&i.LedgerAllocationID,
 		); err != nil {
 			return nil, err
 		}
