@@ -34,7 +34,7 @@ describe("Customer credit balance", () => {
             cy.wrap($el).contains(amounts[index]);
         });
 
-        const statuses = ["Allocated", "Unapplied", "Allocated"];
+        const statuses = ["Unapplied", "Allocated", "Allocated"];
         cy.get('[data-cy="ledger-status-data"]').each(($el, index) => {
             cy.wrap($el).contains(statuses[index]);
         });
