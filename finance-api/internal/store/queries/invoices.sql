@@ -47,7 +47,7 @@ WITH allocations AS (SELECT la.invoice_id,
                        AND ia.invoice_id = ANY ($1::INT[]))
 SELECT *
 FROM allocations
-ORDER BY raised_date DESC, created_at DESC, status, ledger_allocation_id DESC;
+ORDER BY raised_date DESC, created_at DESC, status DESC, ledger_allocation_id ASC;
 
 -- name: GetSupervisionLevels :many
 SELECT invoice_id, supervisionlevel, fromdate, todate, amount
