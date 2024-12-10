@@ -13,6 +13,9 @@ var InvoiceTypes = []InvoiceType{
 	InvoiceTypeSF,
 	InvoiceTypeSE,
 	InvoiceTypeSO,
+	InvoiceTypeGA,
+	InvoiceTypeGS,
+	InvoiceTypeGT,
 }
 
 type InvoiceType int
@@ -27,6 +30,9 @@ const (
 	InvoiceTypeSF
 	InvoiceTypeSE
 	InvoiceTypeSO
+	InvoiceTypeGA
+	InvoiceTypeGS
+	InvoiceTypeGT
 )
 
 var invoiceTypeMap = map[string]InvoiceType{
@@ -38,6 +44,9 @@ var invoiceTypeMap = map[string]InvoiceType{
 	"SF": InvoiceTypeSF,
 	"SE": InvoiceTypeSE,
 	"SO": InvoiceTypeSO,
+	"GA": InvoiceTypeGA,
+	"GS": InvoiceTypeGS,
+	"GT": InvoiceTypeGT,
 }
 
 func (i InvoiceType) String() string {
@@ -62,6 +71,12 @@ func (i InvoiceType) Translation() string {
 		return "SE - Full order expired final fee invoice"
 	case InvoiceTypeSO:
 		return "SO - Client regained capacity final fee invoice"
+	case InvoiceTypeGA:
+		return "GA - Assessment of Guardian"
+	case InvoiceTypeGS:
+		return "GS - Guardianship supervision invoice "
+	case InvoiceTypeGT:
+		return "GT - Guardianship termination invoice"
 	default:
 		return ""
 	}
@@ -85,6 +100,12 @@ func (i InvoiceType) Key() string {
 		return "SE"
 	case InvoiceTypeSO:
 		return "SO"
+	case InvoiceTypeGA:
+		return "GA"
+	case InvoiceTypeGS:
+		return "GS"
+	case InvoiceTypeGT:
+		return "GT"
 	default:
 		return ""
 	}
@@ -117,7 +138,16 @@ func (i *InvoiceType) UnmarshalJSON(data []byte) (err error) {
 
 func (i InvoiceType) RequiresDateValidation() bool {
 	switch i {
-	case InvoiceTypeAD, InvoiceTypeSF, InvoiceTypeSE, InvoiceTypeSO:
+	case InvoiceTypeAD, InvoiceTypeSF, InvoiceTypeSE, InvoiceTypeSO, InvoiceTypeGA, InvoiceTypeGT, InvoiceTypeGS:
+		return true
+	default:
+		return false
+	}
+}
+
+func (i InvoiceType) RequiresSameFinancialYearValidation() bool {
+	switch i {
+	case InvoiceTypeSF, InvoiceTypeSE, InvoiceTypeSO:
 		return true
 	default:
 		return false

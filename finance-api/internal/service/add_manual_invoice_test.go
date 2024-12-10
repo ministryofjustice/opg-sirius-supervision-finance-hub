@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/testhelpers"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
@@ -103,10 +104,15 @@ func (suite *IntegrationSuite) TestService_AddManualInvoiceRaisedDateForAnInvoic
 	params.EndDate = shared.Nillable[shared.Date]{Value: shared.Date{Time: time.Now().AddDate(0, 0, -1)}, Valid: true}
 	params.InvoiceType = shared.InvoiceTypeSO
 
+	expectedErr := apierror.ValidationError{Errors: apierror.ValidationErrors{
+		"RaisedDate": {"RaisedDate": "Raised date not in the past"},
+		"StartDate":  {"StartDate": "Start date must be before end date"},
+		"EndDate":    {"EndDate": "End date must be after start date"},
+	}}
+
 	err := s.AddManualInvoice(suite.ctx, 24, params)
 	if err != nil {
-		assert.Equalf(suite.T(), "bad requests: RaisedDateForAnInvoice, StartDate, EndDate", err.Error(), "Raised date %s is not in the past", params.RaisedDate)
-		return
+		assert.Equal(suite.T(), expectedErr, err)
 	}
 }
 
@@ -318,6 +324,22 @@ func Test_invoiceData(t *testing.T) {
 				SupervisionLevel: shared.Nillable[string]{},
 			},
 			amount:           shared.Nillable[int]{Value: 10000, Valid: true},
+			startDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2023-04-01"), Valid: true},
+			raisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2023-04-01"), Valid: true},
+			endDate:          shared.Nillable[shared.Date]{Value: shared.NewDate("2023-04-01"), Valid: true},
+			supervisionLevel: shared.Nillable[string]{},
+		},
+		{
+			name: "GA invoice returns correct values",
+			args: shared.AddManualInvoice{
+				InvoiceType:      shared.InvoiceTypeGA,
+				Amount:           shared.Nillable[int]{},
+				StartDate:        shared.Nillable[shared.Date]{},
+				RaisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2023-04-01"), Valid: true},
+				EndDate:          shared.Nillable[shared.Date]{},
+				SupervisionLevel: shared.Nillable[string]{},
+			},
+			amount:           shared.Nillable[int]{Value: 20000, Valid: true},
 			startDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2023-04-01"), Valid: true},
 			raisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2023-04-01"), Valid: true},
 			endDate:          shared.Nillable[shared.Date]{Value: shared.NewDate("2023-04-01"), Valid: true},
