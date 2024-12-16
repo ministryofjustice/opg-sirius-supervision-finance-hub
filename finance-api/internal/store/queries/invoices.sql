@@ -77,7 +77,10 @@ FROM invoice i
          JOIN fee_reduction fr ON i.finance_client_id = fr.finance_client_id
          LEFT JOIN ledger_allocation la ON i.id = la.invoice_id
          LEFT JOIN ledger l ON l.id = la.ledger_id
-         LEFT JOIN invoice_fee_range ifr ON i.id = ifr.invoice_id AND i.supervisionlevel = 'GENERAL'
+         LEFT JOIN invoice_fee_range ifr
+                   ON i.id = ifr.invoice_id
+                       AND ifr.supervisionlevel = 'GENERAL'
+                       AND NOW() BETWEEN ifr.fromdate AND ifr.todate
 WHERE i.raiseddate >= (fr.datereceived - INTERVAL '6 months')
   AND i.raiseddate BETWEEN fr.startdate AND fr.enddate
   AND fr.id = $1
