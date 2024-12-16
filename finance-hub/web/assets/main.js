@@ -58,6 +58,7 @@ htmx.onLoad(content => {
             invoiceTypeSelect.value =  invoiceTypeSelectValue
             switch (invoiceTypeSelect.value) {
                 case "AD":
+                case "GA":
                     htmx.removeClass(htmx.find("#raised-date-field-input"), "hide")
                     document.querySelector('#raised-date-field-input #raisedDate').removeAttribute("disabled")
                     break;
@@ -77,6 +78,10 @@ htmx.onLoad(content => {
                 case "SF":
                 case "SE":
                 case "SO":
+                    htmx.removeClass(htmx.find("#supervision-level-field-input"), "hide")
+                    document.querySelector('#supervision-level-field-input #supervisionLevel').removeAttribute("disabled")
+                case "GS":
+                case "GT":
                     htmx.removeClass(htmx.find("#amount-field-input"), "hide")
                     document.querySelector('#amount-field-input #amount').removeAttribute("disabled")
                     htmx.removeClass(htmx.find("#raised-date-field-input"), "hide")
@@ -85,8 +90,6 @@ htmx.onLoad(content => {
                     document.querySelector('#start-date-field-input #startDate').removeAttribute("disabled")
                     htmx.removeClass(htmx.find("#end-date-field-input"), "hide")
                     document.querySelector('#end-date-field-input #endDate').removeAttribute("disabled")
-                    htmx.removeClass(htmx.find("#supervision-level-field-input"), "hide")
-                    document.querySelector('#supervision-level-field-input #supervisionLevel').removeAttribute("disabled")
                     break;
                 default:
                     break;
