@@ -210,6 +210,16 @@ func Test_calculateFeeReduction(t *testing.T) {
 			want: 5000,
 		},
 		{
+			name: "remission - GA",
+			args: args{
+				feeReductionType:      shared.FeeReductionTypeRemission,
+				invoiceTotal:          10000,
+				invoiceFeeType:        "GA",
+				generalSupervisionFee: 0,
+			},
+			want: 5000,
+		},
+		{
 			name: "remission - non-AD - general supervision fee",
 			args: args{
 				feeReductionType:      shared.FeeReductionTypeRemission,

@@ -139,6 +139,12 @@ func (r route) getSuccess(req *http.Request) string {
 		return "The SE invoice has been successfully created"
 	case "invoice-type[SO]":
 		return "The SO invoice has been successfully created"
+	case "invoice-type[GA]":
+		return "The GA invoice has been successfully created"
+	case "invoice-type[GS]":
+		return "The GS invoice has been successfully created"
+	case "invoice-type[GT]":
+		return "The GT invoice has been successfully created"
 	}
 	return ""
 }
