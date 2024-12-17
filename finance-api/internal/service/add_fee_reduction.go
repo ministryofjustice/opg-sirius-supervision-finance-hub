@@ -87,20 +87,16 @@ func (s *Service) AddFeeReduction(ctx context.Context, clientId int, data shared
 }
 
 func calculateFeeReduction(feeReductionType shared.FeeReductionType, invoiceTotal int32, invoiceFeeType string, generalSupervisionFee int32) int32 {
-	var reduction int32
-	if feeReductionType == shared.FeeReductionTypeRemission {
-		nonGeneralRemissionFeeTypes := []string{"AD", "GA", "GT", "GS"}
-		if slices.Contains(nonGeneralRemissionFeeTypes, invoiceFeeType) {
-			reduction = invoiceTotal / 2
-		} else {
-			if generalSupervisionFee > 0 {
-				reduction = generalSupervisionFee / 2
-			}
-		}
-	} else {
-		reduction = invoiceTotal
+	if feeReductionType != shared.FeeReductionTypeRemission {
+		return invoiceTotal
 	}
-	return reduction
+
+	nonGeneralRemissionFeeTypes := []string{"AD", "GA", "GT", "GS"}
+	if slices.Contains(nonGeneralRemissionFeeTypes, invoiceFeeType) {
+		return invoiceTotal / 2
+	}
+
+	return generalSupervisionFee / 2
 }
 
 func calculateFeeReductionEndDate(startYear string, lengthOfAward int) pgtype.Date {

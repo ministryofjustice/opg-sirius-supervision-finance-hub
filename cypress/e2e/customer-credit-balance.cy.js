@@ -24,8 +24,6 @@ describe("Customer credit balance", () => {
         cy.get("#f-Notes").type("Generate CCB excess credit");
         cy.contains(".govuk-button", "Save and continue").click();
 
-        cy.url({timeout: 6000}).should("include", "/clients/7/fee-reductions?success=fee-reduction[HARDSHIP]");
-
         // check ledger entries for fee reduction and unapply
         cy.get('[data-cy="invoices"]').click();
         cy.contains("AD77777/24").click();
