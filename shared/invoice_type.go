@@ -74,7 +74,7 @@ func (i InvoiceType) Translation() string {
 	case InvoiceTypeGA:
 		return "GA - Assessment of Guardian"
 	case InvoiceTypeGS:
-		return "GS - Guardianship supervision invoice "
+		return "GS - Guardianship supervision invoice"
 	case InvoiceTypeGT:
 		return "GT - Guardianship termination invoice"
 	default:
