@@ -70,18 +70,25 @@ GROUP BY i.amount, i.feetype, i.id;
 -- name: GetInvoiceBalancesForFeeReductionRange :many
 SELECT i.id,
        i.amount,
-       ifr.amount AS                          general_supervision_fee,
+       CASE WHEN ifr.supervision_level = 'GENERAL' THEN ifr.general_amount ELSE 0 END AS                          general_supervision_fee,
        i.amount - COALESCE(SUM(la.amount), 0) outstanding,
        i.feetype
 FROM invoice i
          JOIN fee_reduction fr ON i.finance_client_id = fr.finance_client_id
          LEFT JOIN ledger_allocation la ON i.id = la.invoice_id
          LEFT JOIN ledger l ON l.id = la.ledger_id
-         LEFT JOIN invoice_fee_range ifr ON i.id = ifr.invoice_id AND i.supervisionlevel = 'GENERAL'
+         LEFT JOIN LATERAL (
+        SELECT ifr.supervisionlevel AS supervision_level,
+               ifr.amount AS general_amount
+        FROM invoice_fee_range ifr
+        WHERE ifr.invoice_id = i.id
+        ORDER BY id
+        LIMIT 1
+        ) ifr ON TRUE
 WHERE i.raiseddate >= (fr.datereceived - INTERVAL '6 months')
   AND i.raiseddate BETWEEN fr.startdate AND fr.enddate
   AND fr.id = $1
-GROUP BY i.id, ifr.amount;
+GROUP BY i.id, ifr.general_amount, ifr.supervision_level;
 
 -- name: AddInvoice :one
 INSERT INTO invoice (id, person_id, finance_client_id, feetype, reference, startdate, enddate, amount, confirmeddate,
