@@ -120,11 +120,11 @@ FROM invoice i
          LEFT JOIN ledger_allocation la ON i.id = la.invoice_id
          LEFT JOIN ledger l ON l.id = la.ledger_id
          LEFT JOIN LATERAL (
-        SELECT SUM(ifr.amount) AS amount
-        FROM invoice_fee_range ifr
-        WHERE ifr.invoice_id = i.id
-        AND ifr.supervisionlevel = 'GENERAL'
-        ) general_fee ON TRUE
+             SELECT SUM(ifr.amount) AS amount
+             FROM invoice_fee_range ifr
+             WHERE ifr.invoice_id = i.id
+             AND ifr.supervisionlevel = 'GENERAL'
+         ) general_fee ON TRUE
 WHERE i.raiseddate >= (fr.datereceived - INTERVAL '6 months')
   AND i.raiseddate BETWEEN fr.startdate AND fr.enddate
   AND fr.id = $1
