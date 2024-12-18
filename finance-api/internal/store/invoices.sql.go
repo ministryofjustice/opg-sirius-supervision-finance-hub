@@ -112,7 +112,7 @@ func (q *Queries) GetInvoiceBalanceDetails(ctx context.Context, id int32) (GetIn
 const getInvoiceBalancesForFeeReductionRange = `-- name: GetInvoiceBalancesForFeeReductionRange :many
 SELECT i.id,
        i.amount,
-       general_fee.amount                          general_supervision_fee,
+       COALESCE(general_fee.amount, 0)                          general_supervision_fee,
        i.amount - COALESCE(SUM(la.amount), 0) outstanding,
        i.feetype
 FROM invoice i
