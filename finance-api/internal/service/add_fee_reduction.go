@@ -54,7 +54,7 @@ func (s *Service) AddFeeReduction(ctx context.Context, clientId int, data shared
 	}
 
 	for _, invoice := range invoices {
-		amount := calculateFeeReduction(shared.ParseFeeReductionType(feeReduction.Type), invoice.Amount, invoice.Feetype, invoice.GeneralSupervisionFee.Int32)
+		amount := calculateFeeReduction(shared.ParseFeeReductionType(feeReduction.Type), invoice.Amount, invoice.Feetype, invoice.GeneralSupervisionFee)
 		ledger, allocations := generateLedgerEntries(addLedgerVars{
 			amount:             amount,
 			transactionType:    data.FeeType,

@@ -32,15 +32,26 @@ func (suite *IntegrationSuite) TestService_AddFeeReduction() {
 	conn.SeedData(
 		"INSERT INTO finance_client VALUES (22, 22, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO fee_reduction VALUES (22, 22, 'REMISSION', NULL, '2019-04-01', '2021-03-31', 'Remission to see the notes', FALSE, '2019-05-01');",
+		"INSERT INTO invoice VALUES (22, 22, 22, 'S2', 'S200123/24', '2024-01-01', '2025-03-31', 10000, null, '2024-01-01', null, '2024-01-01')",
+		"INSERT INTO invoice_fee_range VALUES (22, 22, 'GENERAL', '2022-04-01', '2025-03-31', 10000)",
 	)
 	ctx := suite.ctx
 
 	s, params := addFeeReductionSetup(conn)
 	err := s.AddFeeReduction(ctx, 22, params)
 
-	row := conn.QueryRow(ctx, "SELECT id, finance_client_id, type, startdate, enddate, notes, datereceived, created_by, created_at FROM supervision_finance.fee_reduction WHERE id = 1")
+	feeReductionRow := conn.QueryRow(ctx, "SELECT id, finance_client_id, type, startdate, enddate, notes, datereceived, created_by, created_at FROM supervision_finance.fee_reduction WHERE id = 1")
+	remissionLedgerRow := conn.QueryRow(ctx, "SELECT l.amount, l.notes, l.type FROM ledger_allocation la LEFT JOIN ledger l ON l.id = la.ledger_id WHERE invoice_id = 22")
 
-	var (
+	var remissionLedger struct {
+		amount     int
+		notes      string
+		ledgerType string
+	}
+
+	_ = remissionLedgerRow.Scan(&remissionLedger.amount, &remissionLedger.notes, &remissionLedger.ledgerType)
+
+	var feeReduction struct {
 		id            int
 		financeClient int
 		feeType       string
@@ -50,19 +61,33 @@ func (suite *IntegrationSuite) TestService_AddFeeReduction() {
 		dateReceived  time.Time
 		createdBy     int
 		createdDate   time.Time
+	}
+
+	_ = feeReductionRow.Scan(
+		&feeReduction.id,
+		&feeReduction.financeClient,
+		&feeReduction.feeType,
+		&feeReduction.startDate,
+		&feeReduction.endDate,
+		&feeReduction.notes,
+		&feeReduction.dateReceived,
+		&feeReduction.createdBy,
+		&feeReduction.createdDate,
 	)
 
-	_ = row.Scan(&id, &financeClient, &feeType, &startDate, &endDate, &notes, &dateReceived, &createdBy, &createdDate)
+	assert.Equal(suite.T(), 1, feeReduction.id)
+	assert.Equal(suite.T(), 22, feeReduction.financeClient)
+	assert.Equal(suite.T(), "REMISSION", feeReduction.feeType)
+	assert.Equal(suite.T(), "2021-04-01", feeReduction.startDate.Format("2006-01-02"))
+	assert.Equal(suite.T(), "2024-03-31", feeReduction.endDate.Format("2006-01-02"))
+	assert.Equal(suite.T(), params.Notes, feeReduction.notes)
+	assert.Equal(suite.T(), "2024-01-01", feeReduction.dateReceived.Format("2006-01-02"))
+	assert.Equal(suite.T(), 1, feeReduction.createdBy)
+	assert.NotEqual(suite.T(), feeReduction.createdDate, "0001-01-01")
 
-	assert.Equal(suite.T(), 1, id)
-	assert.Equal(suite.T(), 22, financeClient)
-	assert.Equal(suite.T(), "REMISSION", feeType)
-	assert.Equal(suite.T(), "2021-04-01", startDate.Format("2006-01-02"))
-	assert.Equal(suite.T(), "2024-03-31", endDate.Format("2006-01-02"))
-	assert.Equal(suite.T(), params.Notes, notes)
-	assert.Equal(suite.T(), "2024-01-01", dateReceived.Format("2006-01-02"))
-	assert.Equal(suite.T(), 1, createdBy)
-	assert.NotEqual(suite.T(), createdDate, "0001-01-01")
+	assert.Equal(suite.T(), 5000, remissionLedger.amount)
+	assert.Equal(suite.T(), "Credit due to approved remission", remissionLedger.notes)
+	assert.Equal(suite.T(), "CREDIT REMISSION", remissionLedger.ledgerType)
 
 	if err == nil {
 		return
