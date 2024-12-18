@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
@@ -51,7 +50,6 @@ func (s *Service) AddFeeReduction(ctx context.Context, clientId int, data shared
 
 	invoices, err := transaction.GetInvoiceBalancesForFeeReductionRange(ctx, feeReduction.ID)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 
