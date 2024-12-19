@@ -9,90 +9,95 @@ import (
 	"testing"
 )
 
-func TestEmptyAccountHolderReturnsValidationError(t *testing.T) {
-	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
-	defer svr.Close()
+func TestSubmitDirectDebitValidationErrors(t *testing.T) {
+	tests := []struct {
+		name          string
+		accountHolder string
+		accountName   string
+		sortCode      string
+		accountNumber string
+		expectedError apierror.ValidationError
+	}{
+		{
+			name:          "Empty AccountHolder Returns ValidationError",
+			accountHolder: "",
+			accountName:   "testing",
+			sortCode:      "123456",
+			accountNumber: "12345678",
+			expectedError: apierror.ValidationError{Errors: apierror.ValidationErrors{"AccountHolder": map[string]string{"required": ""}}},
+		},
+		{
+			name:          "Empty AccountName Returns ValidationError",
+			accountHolder: "CLIENT",
+			accountName:   "",
+			sortCode:      "123456",
+			accountNumber: "12345678",
+			expectedError: apierror.ValidationError{Errors: apierror.ValidationErrors{"AccountName": map[string]string{"required": ""}}},
+		},
+		{
+			name:          "AccountName Over 18 Characters Returns ValidationError",
+			accountHolder: "CLIENT",
+			accountName:   strings.Repeat("a", 19),
+			sortCode:      "123456",
+			accountNumber: "12345678",
+			expectedError: apierror.ValidationError{Errors: apierror.ValidationErrors{"AccountName": map[string]string{"gteEighteen": ""}}},
+		},
+		{
+			name:          "Empty SortCode Returns ValidationError",
+			accountHolder: "CLIENT",
+			accountName:   "account Name",
+			sortCode:      "",
+			accountNumber: "12345678",
+			expectedError: apierror.ValidationError{Errors: apierror.ValidationErrors{"SortCode": map[string]string{"eqSix": ""}}},
+		},
+		{
+			name:          "SortCode Not Six Characters Returns ValidationError",
+			accountHolder: "CLIENT",
+			accountName:   "account Name",
+			sortCode:      "12345",
+			accountNumber: "12345678",
+			expectedError: apierror.ValidationError{Errors: apierror.ValidationErrors{"SortCode": map[string]string{"eqSix": ""}}},
+		},
+		{
+			name:          "SortCode Six Characters All Zeros Returns ValidationError",
+			accountHolder: "CLIENT",
+			accountName:   "account Name",
+			sortCode:      "000000",
+			accountNumber: "12345678",
+			expectedError: apierror.ValidationError{Errors: apierror.ValidationErrors{"SortCode": map[string]string{"eqSix": ""}}},
+		},
+		{
+			name:          "AccountNumber Not Eight Characters Returns ValidationError",
+			accountHolder: "CLIENT",
+			accountName:   "account Name",
+			sortCode:      "123456",
+			accountNumber: "123456789",
+			expectedError: apierror.ValidationError{Errors: apierror.ValidationErrors{"AccountNumber": map[string]string{"eqEight": ""}}},
+		},
+		{
+			name:          "Successful payload Returns Nil",
+			accountHolder: "CLIENT",
+			accountName:   "testing",
+			sortCode:      "123456",
+			accountNumber: "12345678",
+			expectedError: apierror.ValidationError{},
+		},
+	}
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+			defer svr.Close()
 
-	err := client.SubmitDirectDebit("", "testing", "123456", "12345678")
-	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"AccountHolder": map[string]string{"required": ""}}}
-	assert.Equal(t, expectedError, err.(apierror.ValidationError))
-}
+			client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
-func TestEmptyAccountNameReturnsValidationError(t *testing.T) {
-	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
-	defer svr.Close()
+			err := client.SubmitDirectDebit(tt.accountHolder, tt.accountName, tt.sortCode, tt.accountNumber)
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
-
-	err := client.SubmitDirectDebit("CLIENT", "", "123456", "12345678")
-	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"AccountName": map[string]string{"required": ""}}}
-	assert.Equal(t, expectedError, err.(apierror.ValidationError))
-}
-
-func TestAccountNameOver18CharactersReturnsValidationError(t *testing.T) {
-	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
-	defer svr.Close()
-
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
-	accountNameOver18Characters := strings.Repeat("a", 19)
-
-	err := client.SubmitDirectDebit("CLIENT", accountNameOver18Characters, "123456", "12345678")
-	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"AccountName": map[string]string{"gteEighteen": ""}}}
-	assert.Equal(t, expectedError, err.(apierror.ValidationError))
-}
-
-func TestEmptySortCodeReturnsValidationError(t *testing.T) {
-	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
-	defer svr.Close()
-
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
-
-	err := client.SubmitDirectDebit("CLIENT", "account Name", "", "12345678")
-	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"SortCode": map[string]string{"eqSix": ""}}}
-	assert.Equal(t, expectedError, err.(apierror.ValidationError))
-}
-
-func TestSortCodeNotSixCharactersReturnsValidationError(t *testing.T) {
-	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
-	defer svr.Close()
-
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
-
-	err := client.SubmitDirectDebit("CLIENT", "account Name", "12345", "12345678")
-	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"SortCode": map[string]string{"eqSix": ""}}}
-	assert.Equal(t, expectedError, err.(apierror.ValidationError))
-}
-
-func TestSortCodeSixCharactersAllZerosReturnsValidationError(t *testing.T) {
-	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
-	defer svr.Close()
-
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
-
-	err := client.SubmitDirectDebit("CLIENT", "account Name", "000000", "12345678")
-	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"SortCode": map[string]string{"eqSix": ""}}}
-	assert.Equal(t, expectedError, err.(apierror.ValidationError))
-}
-
-func TestAccountNumberNotEightCharactersReturnsValidationError(t *testing.T) {
-	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
-	defer svr.Close()
-
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
-
-	err := client.SubmitDirectDebit("CLIENT", "account Name", "123456", "123456789")
-	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"AccountNumber": map[string]string{"eqEight": ""}}}
-	assert.Equal(t, expectedError, err.(apierror.ValidationError))
-}
-
-func TestEmptyAccountHolderReturnsNil(t *testing.T) {
-	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
-	defer svr.Close()
-
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
-
-	err := client.SubmitDirectDebit("CLIENT", "testing", "123456", "12345678")
-	assert.Nil(t, err)
+			if tt.expectedError.Errors != nil {
+				assert.Equal(t, tt.expectedError, err.(apierror.ValidationError))
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
 }
