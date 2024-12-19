@@ -11,17 +11,20 @@ SET account_code = CASE
     END
 WHERE fee_type IN ('MCR', 'MDR');
 
+UPDATE transaction_type
+SET supervision_level = NULL WHERE supervision_level = '';
+
 INSERT INTO transaction_type (fee_type, supervision_level, ledger_type, account_code, description)
 VALUES
-('DD', '', 'DIRECT DEBIT PAYMENT', 1816100000, 'Direct Debit Payment'),
-('OC', '', 'ONLINE CARD PAYMENT', 1816100000, 'Online Card Payment'),
-('PC', '', 'MOTO CARD PAYMENT', 1816100000, 'MOTO (phone) Card Payment'),
-('BC', '', 'SUPERVISION BACS PAYMENT', 1816100000, 'BACS Payment'),
-('BC', '', 'OPG BACS PAYMENT', 1816100000, 'BACS Payment'),
-('CQ', '', 'CHEQUE PAYMENT', 1816100000, 'Cheque Payment'),
-('RA', '', 'CREDIT REAPPLY', 1816100000, 'Reapply/Reallocate (money to invoice)'),
-('BC', '', 'BACS TRANSFER', 1816100000, 'BACS Payment'),
-('PC', '', 'CARD PAYMENT', 1816100000, 'Card Payment');
+('DD', NULL, 'DIRECT DEBIT PAYMENT', 1816100000, 'Direct Debit Payment'),
+('OC', NULL, 'ONLINE CARD PAYMENT', 1816100000, 'Online Card Payment'),
+('PC', NULL, 'MOTO CARD PAYMENT', 1816100000, 'MOTO (phone) Card Payment'),
+('BC', NULL, 'SUPERVISION BACS PAYMENT', 1816100000, 'BACS Payment'),
+('BC', NULL, 'OPG BACS PAYMENT', 1816100000, 'BACS Payment'),
+('CQ', NULL, 'CHEQUE PAYMENT', 1816100000, 'Cheque Payment'),
+('RA', NULL, 'CREDIT REAPPLY', 1816100000, 'Reapply/Reallocate (money to invoice)'),
+('BC', NULL, 'BACS TRANSFER', 1816100000, 'BACS Payment'),
+('PC', NULL, 'CARD PAYMENT', 1816100000, 'Card Payment');
 
 -- +goose Down
 
@@ -38,3 +41,6 @@ SET account_code = CASE
                        ELSE account_code
                    END
 WHERE fee_type IN ('MCR', 'MDR');
+
+UPDATE transaction_type
+SET supervision_level = '' WHERE supervision_level IS NULL;
