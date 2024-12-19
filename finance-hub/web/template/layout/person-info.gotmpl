@@ -10,4 +10,13 @@
             <span data-cy="payment-method" class="govuk-caption-m  govuk-!-margin-bottom-1">Payment method: {{ .PaymentMethod }}</span>
         </div>
     </div>
+    <a class="govuk-button moj-button-menu__item govuk-button--secondary govuk-!-margin-top-5"
+       role="button"
+       draggable="false"
+       data-module="govuk-button"
+       hx-get="{{ prefix (printf "/clients/%s/direct-debit/add" .ClientId) }}"
+       hx-target="#main-content"
+       hx-push-url="{{ prefix (printf "/clients/%s/direct-debit/add" .ClientId) }}">
+        Set up Direct Debit
+    </a>
 {{ end }}

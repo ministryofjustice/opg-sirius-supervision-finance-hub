@@ -54,6 +54,19 @@ var validationMappings = map[string]map[string]pair{
 	"Overlap": {
 		"start-or-end-date": pair{"start-or-end-date", "A fee reduction already exists for the period specified"},
 	},
+	"AccountHolder": {
+		"required": pair{"AccountHolder", "Select who the account holder is"},
+	},
+	"AccountName": {
+		"required":    pair{"AccountName", "Enter the name on the account"},
+		"gteEighteen": pair{"AccountName", "Account name can not be over 18 characters"},
+	},
+	"SortCode": {
+		"eqSix": pair{"SortCode", "Sort code must consist of 6 digits and cannot be all zeros"},
+	},
+	"AccountNumber": {
+		"eqEight": pair{"AccountNumber", "Enter the account number, must consist of 8 digits"},
+	},
 	"StartDate": {
 		"nillable-date-required": pair{"StartDate", "Enter a start date"},
 	},

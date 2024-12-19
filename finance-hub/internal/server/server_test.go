@@ -62,6 +62,10 @@ type mockApiClient struct {
 	User               shared.Assignee
 }
 
+func (m mockApiClient) SubmitDirectDebit(s string, s2 string, s3 string, s4 string) error {
+	return m.error
+}
+
 func (m mockApiClient) GetUser(context api.Context, i int) (shared.Assignee, error) {
 	return m.User, m.error
 }

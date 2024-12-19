@@ -69,6 +69,7 @@ func TestRoute_fullPage(t *testing.T) {
 			OutstandingBalance: "123",
 			CreditBalance:      "1.23",
 			PaymentMethod:      "Demanded",
+			ClientId:           "1",
 		},
 		MyDetails: client.CurrentUserDetails,
 	}
