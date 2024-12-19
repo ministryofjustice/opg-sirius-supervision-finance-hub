@@ -6,6 +6,7 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"net/http"
+	"strconv"
 )
 
 type FinanceClient struct {
@@ -15,6 +16,7 @@ type FinanceClient struct {
 	OutstandingBalance string
 	CreditBalance      string
 	PaymentMethod      string
+	ClientId           string
 }
 
 type HeaderData struct {
@@ -145,6 +147,8 @@ func (r route) getSuccess(req *http.Request) string {
 		return "The GS invoice has been successfully created"
 	case "invoice-type[GT]":
 		return "The GT invoice has been successfully created"
+	case "direct-debit":
+		return "The Direct Debit has been setup"
 	}
 	return ""
 }
@@ -155,6 +159,7 @@ func IsHxRequest(req *http.Request) bool {
 
 func (r route) transformFinanceClient(person shared.Person, accountInfo shared.AccountInformation) FinanceClient {
 	return FinanceClient{
+		ClientId:           strconv.Itoa(person.ID),
 		FirstName:          person.FirstName,
 		Surname:            person.Surname,
 		CourtRef:           person.CourtRef,
