@@ -15,7 +15,7 @@ type IntegrationSuite struct {
 	ctx    context.Context
 }
 
-func (suite *IntegrationSuite) SetupTest() {
+func (suite *IntegrationSuite) SetupSuite() {
 	suite.testDB = testhelpers.InitDb()
 	suite.ctx = telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test"))
 }
