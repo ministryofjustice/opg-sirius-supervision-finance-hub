@@ -1,4 +1,7 @@
 -- +goose Up
+ALTER TABLE transaction_type
+ALTER COLUMN supervision_level DROP NOT NULL;
+
 UPDATE transaction_type
 SET account_code = CASE
                        WHEN fee_type = 'MCR' AND supervision_level = 'AD' THEN 4481102114
@@ -44,3 +47,6 @@ WHERE fee_type IN ('MCR', 'MDR');
 
 UPDATE transaction_type
 SET supervision_level = '' WHERE supervision_level IS NULL;
+
+ALTER TABLE transaction_type
+    ALTER COLUMN supervision_level SET NOT NULL;
