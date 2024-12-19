@@ -55,18 +55,13 @@ var validationMappings = map[string]map[string]pair{
 		"start-or-end-date": pair{"start-or-end-date", "A fee reduction already exists for the period specified"},
 	},
 	"StartDate": {
-		"StartDate":              pair{"StartDate", "Start date must be before end date and in same financial year"},
 		"nillable-date-required": pair{"StartDate", "Enter a start date"},
 	},
 	"EndDate": {
-		"EndDate":                pair{"EndDate", "End date must be after start date and in same financial year"},
 		"nillable-date-required": pair{"EndDate", "Enter an end date"},
 	},
 	"RaisedDateNotInPast": {
 		"RaisedDateNotInPast": pair{"RaisedDateNotInPast", "Raised date not in the past"},
-	},
-	"RaisedDateForAnInvoice": {
-		"RaisedDateForAnInvoice": pair{"RaisedDateForAnInvoice", "Raised date not in the past"},
 	},
 	"InvoiceType": {
 		"required": pair{"InvoiceType", "Please select an invoice type"},
