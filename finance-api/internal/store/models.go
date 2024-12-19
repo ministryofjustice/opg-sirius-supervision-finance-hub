@@ -197,7 +197,7 @@ type Report struct {
 type TransactionType struct {
 	ID               int32
 	FeeType          string
-	SupervisionLevel string
+	SupervisionLevel pgtype.Text
 	LedgerType       pgtype.Text
 	AccountCode      pgtype.Int8
 	Description      pgtype.Text
