@@ -40,6 +40,16 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
 				return err
 			}
 		}
+		// TODO: Remove once this process is simplified
+		else if event.Source == shared.EventSourceFinanceHub && event.DetailType == shared.DetailTypeFinanceAdminUploadProcessed {
+			if detail, ok := event.Detail.(shared.FinanceAdminUploadProcessedEvent); ok {
+
+				payload := createUploadNotifyPayload(detail)
+				err := s.SendEmailToNotify(ctx, payload)
+				if err != nil {
+					return err
+				}
+			}
 	} else {
 		return apierror.BadRequestError("event", fmt.Sprintf("could not match event: %s %s", event.Source, event.DetailType), errors.New("no match"))
 	}

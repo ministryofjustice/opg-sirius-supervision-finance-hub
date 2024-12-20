@@ -43,6 +43,7 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 		handler := otelhttp.WithRouteTag(pattern, h)
 		mux.Handle(pattern, handler)
 	}
+	// page handlers
 	handleFunc("GET /clients/{clientId}", s.getAccountInformation)
 	handleFunc("GET /clients/{clientId}/invoices", s.getInvoices)
 	handleFunc("GET /clients/{clientId}/invoices/{invoiceId}/permitted-adjustments", s.getPermittedAdjustments)
@@ -50,11 +51,19 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 	handleFunc("GET /clients/{clientId}/invoice-adjustments", s.getInvoiceAdjustments)
 	handleFunc("GET /clients/{clientId}/billing-history", s.getBillingHistory)
 
+	// form handlers
 	handleFunc("POST /clients/{clientId}/invoices", s.addManualInvoice)
 	handleFunc("POST /clients/{clientId}/invoices/{invoiceId}/invoice-adjustments", s.AddInvoiceAdjustment)
 	handleFunc("PUT /clients/{clientId}/invoice-adjustments/{adjustmentId}", s.updatePendingInvoiceAdjustment)
 	handleFunc("POST /clients/{clientId}/fee-reductions", s.addFeeReduction)
 	handleFunc("PUT /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", s.cancelFeeReduction)
+
+	// admin handlers
+	handleFunc("GET /download", s.download)
+	handleFunc("HEAD /download", s.checkDownload)
+
+	handleFunc("POST /downloads", s.requestReport)
+	handleFunc("POST /uploads", s.upload)
 
 	handleFunc("POST /events", s.handleEvents)
 

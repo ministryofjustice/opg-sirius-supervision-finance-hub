@@ -52,6 +52,8 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		return err
 	}
 
+	// TODO: Add HTTP client to service
+	// TODO: Add second read-only DB Pool to service
 	Service := service.NewService(http.DefaultClient, dbpool, eventclient, filestorageclient)
 
 	validator, err := validation.New()
@@ -59,6 +61,7 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		return err
 	}
 
+	// TODO: Decide if Notify and reports goes here or in service
 	server := api.Server{Service: &Service, Validator: validator}
 
 	s := &http.Server{
