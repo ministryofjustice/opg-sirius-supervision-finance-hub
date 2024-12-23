@@ -28,7 +28,7 @@ func TestServer_cancelFeeReduction(t *testing.T) {
 	validator, _ := validation.New()
 
 	mock := &mockService{cancelFeeReduction: cancelFeeReductionInfo}
-	server := Server{Service: mock, Validator: validator}
+	server := NewServer(mock, nil, validator)
 	_ = server.cancelFeeReduction(w, req)
 
 	res := w.Result()
@@ -54,7 +54,7 @@ func TestServer_cancelFeeReductionsValidationErrors(t *testing.T) {
 	validator, _ := validation.New()
 
 	mock := &mockService{cancelFeeReduction: cancelFeeReductionInfo}
-	server := Server{Service: mock, Validator: validator}
+	server := NewServer(mock, nil, validator)
 	err := server.cancelFeeReduction(w, req)
 
 	expected := apierror.ValidationError{Errors: apierror.ValidationErrors{
@@ -79,7 +79,7 @@ func TestServer_cancelFeeReductions500Error(t *testing.T) {
 	validator, _ := validation.New()
 
 	mock := &mockService{cancelFeeReduction: cancelFeeReductionInfo, err: errors.New("Something is wrong")}
-	server := Server{Service: mock, Validator: validator}
+	server := NewServer(mock, nil, validator)
 	err := server.cancelFeeReduction(w, req)
 
 	assert.Error(t, err)

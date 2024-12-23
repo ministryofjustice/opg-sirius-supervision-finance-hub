@@ -19,7 +19,7 @@ func TestServer_getPermittedAdjustments(t *testing.T) {
 	types := []shared.AdjustmentType{shared.AdjustmentTypeCreditMemo, shared.AdjustmentTypeDebitMemo}
 
 	mock := &mockService{adjustmentTypes: types}
-	server := Server{Service: mock}
+	server := NewServer(mock, nil, nil)
 	_ = server.getPermittedAdjustments(w, req)
 
 	res := w.Result()
@@ -38,7 +38,7 @@ func TestServer_getPermittedAdjustments_invoiceNotFound(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	mock := &mockService{err: pgx.ErrNoRows}
-	server := Server{Service: mock}
+	server := NewServer(mock, nil, nil)
 	err := server.getPermittedAdjustments(w, req)
 
 	expected := apierror.NotFoundError(pgx.ErrNoRows)
@@ -51,7 +51,7 @@ func TestServer_getPermittedAdjustments_error(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	mock := &mockService{err: pgx.ErrTooManyRows}
-	server := Server{Service: mock}
+	server := NewServer(mock, nil, nil)
 	err := server.getPermittedAdjustments(w, req)
 
 	assert.Error(t, err)
