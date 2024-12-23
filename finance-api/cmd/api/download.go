@@ -21,8 +21,7 @@ func (s *Server) download(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	// TODO: Decide if this should be checked here or moved to Service layer
-	result, err := s.filestorage.GetFile(ctx, os.Getenv("REPORTS_S3_BUCKET"), downloadRequest.Key, downloadRequest.VersionId)
+	result, err := s.fileStorage.GetFile(ctx, os.Getenv("REPORTS_S3_BUCKET"), downloadRequest.Key, downloadRequest.VersionId)
 	if err != nil {
 		var apiErr smithy.APIError
 		if errors.As(err, &apiErr) {

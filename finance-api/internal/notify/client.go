@@ -1,4 +1,4 @@
-package api
+package notify
 
 import (
 	"bytes"
@@ -15,9 +15,9 @@ import (
 
 const notifyUrl = "https://api.notifications.service.gov.uk"
 const emailEndpoint = "v2/notifications/email"
-const processingErrorTemplateId = "872d88b3-076e-495c-bf81-a2be2d3d234c"
-const processingFailedTemplateId = "a8f9ab79-1489-4639-9e6c-cad1f079ebcf"
-const processingSuccessTemplateId = "8c85cf6c-695f-493a-a25f-77b4fb5f6a8e"
+const ProcessingErrorTemplateId = "872d88b3-076e-495c-bf81-a2be2d3d234c"
+const ProcessingFailedTemplateId = "a8f9ab79-1489-4639-9e6c-cad1f079ebcf"
+const ProcessingSuccessTemplateId = "8c85cf6c-695f-493a-a25f-77b4fb5f6a8e"
 
 type ProcessingFailedPersonalisation struct {
 	FailedLines []string `json:"failed_lines"`
@@ -28,7 +28,7 @@ type ProcessingSuccessPersonalisation struct {
 	UploadType string `json:"upload_type"`
 }
 
-type NotifyPayload struct {
+type Payload struct {
 	EmailAddress    string      `json:"email_address"`
 	TemplateId      string      `json:"template_id"`
 	Personalisation interface{} `json:"personalisation"`
@@ -90,7 +90,15 @@ func formatFailedLines(failedLines map[int]string) []string {
 	return formattedLines
 }
 
-func (s *Server) SendEmailToNotify(ctx context.Context, payload NotifyPayload) error {
+type Client struct {
+	http *http.Client
+}
+
+func NewClient(httpClient *http.Client) *Client {
+	return &Client{httpClient}
+}
+
+func (c *Client) Send(ctx context.Context, payload Payload) error {
 	signedToken, err := createSignedJwtToken()
 	if err != nil {
 		return err
@@ -103,7 +111,6 @@ func (s *Server) SendEmailToNotify(ctx context.Context, payload NotifyPayload) e
 		return err
 	}
 
-	// TODO: This should be done in the service layer
 	r, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/%s", notifyUrl, emailEndpoint), &body)
 
 	if err != nil {
@@ -113,7 +120,7 @@ func (s *Server) SendEmailToNotify(ctx context.Context, payload NotifyPayload) e
 	r.Header.Add("Content-Type", "application/json")
 	r.Header.Add("Authorization", "Bearer "+signedToken)
 
-	resp, err := s.http.Do(r)
+	resp, err := c.http.Do(r)
 	if err != nil {
 		return err
 	}
@@ -124,5 +131,5 @@ func (s *Server) SendEmailToNotify(ctx context.Context, payload NotifyPayload) e
 		return nil
 	}
 
-	return newStatusError(resp)
+	return err
 }

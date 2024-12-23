@@ -5,7 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-admin/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
@@ -25,7 +25,12 @@ func TestServer_download(t *testing.T) {
 		ContentType: aws.String("text/csv"),
 	}
 
-	server := NewServer(nil, nil, nil, &mockS3)
+	server := Server{
+		service:     nil,
+		fileStorage: &mockS3,
+		validator:   nil,
+	}
+
 	_ = server.download(w, req)
 
 	res := w.Result()
@@ -43,7 +48,11 @@ func TestServer_download_noMatch(t *testing.T) {
 
 	mockS3 := MockFileStorage{}
 	mockS3.err = &types.NoSuchKey{}
-	server := NewServer(nil, nil, nil, &mockS3)
+	server := Server{
+		service:     nil,
+		fileStorage: &mockS3,
+		validator:   nil,
+	}
 
 	err := server.download(w, req)
 

@@ -19,13 +19,13 @@ func (s *Server) updatePendingInvoiceAdjustment(w http.ResponseWriter, r *http.R
 		return err
 	}
 
-	validationError := s.Validator.ValidateStruct(body)
+	validationError := s.validator.ValidateStruct(body)
 
 	if len(validationError.Errors) != 0 {
 		return validationError
 	}
 
-	err := s.Service.UpdatePendingInvoiceAdjustment(ctx, clientId, adjustmentId, body.Status)
+	err := s.service.UpdatePendingInvoiceAdjustment(ctx, clientId, adjustmentId, body.Status)
 
 	if err != nil {
 		return err

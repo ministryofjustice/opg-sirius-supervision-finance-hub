@@ -3,8 +3,8 @@ package api
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-admin/apierror"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-admin/shared"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -126,7 +126,7 @@ func Test_reportHeadersByType(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, reportHeadersByType(tt.reportType), "reportHeadersByType(%v)", tt.reportType)
+			assert.Equalf(t, tt.want, reportByType(tt.reportType), "reportByType(%v)", tt.reportType)
 		})
 	}
 }

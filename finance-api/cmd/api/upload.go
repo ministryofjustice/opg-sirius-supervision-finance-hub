@@ -6,65 +6,60 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"io"
 	"net/http"
-	"os"
 	"reflect"
 	"strings"
 	"unicode"
 )
 
-const s3Directory = "finance-admin"
+type PaymentReportLine struct {
+	Line             string `json:"Line"`
+	Type             string `json:"Type"`
+	Code             string `json:"Code"`
+	Number           string `json:"Number"`
+	TransactionDate  string `json:"Transaction Date"`
+	ValueDate        string `json:"Value Date"`
+	Amount           string `json:"Amount"`
+	AmountReconciled string `json:"Amount Reconciled"`
+	Charges          string `json:"Charges"`
+	Status           string `json:"Status"`
+	DescFlex         string `json:"Desc Flex"`
+	ConsolidatedLine string `json:"Consolidated line"`
+}
 
-func validateCSVHeaders(file []byte, reportUploadType shared.ReportUploadType) error {
-	fileReader := bytes.NewReader(file)
-	csvReader := csv.NewReader(fileReader)
-	expectedHeaders := reportUploadType.CSVHeaders()
+func headerRow() []string {
+	return []string{"Line", "Type", "Code", "Number", "Transaction Date", "Value Date", "Amount", "Amount Reconciled", "Charges", "Status", "Desc Flex"}
+}
 
-	readHeaders, err := csvReader.Read()
-	if err != nil {
-		return apierror.ValidationError{Errors: apierror.ValidationErrors{
-			"FileUpload": {
-				"read-failed": "Failed to read CSV headers",
-			},
-		},
-		}
+func (s *Server) upload(w http.ResponseWriter, r *http.Request) error {
+	ctx := r.Context()
+
+	var upload shared.Upload
+	defer r.Body.Close()
+
+	if err := json.NewDecoder(r.Body).Decode(&upload); err != nil {
+		return err
 	}
 
-	for i, header := range readHeaders {
-		readHeaders[i] = cleanString(header)
-	}
-
-	// Compare the extracted headers with the expected headers
-	if !reflect.DeepEqual(readHeaders, expectedHeaders) {
-		return apierror.ValidationError{Errors: apierror.ValidationErrors{
-			"FileUpload": {
-				"incorrect-headers": "CSV headers do not match for the report trying to be uploaded",
-			},
-		},
-		}
-	}
-
-	_, err = fileReader.Seek(0, io.SeekStart)
+	report, err := readPaymentReport(upload.File)
 	if err != nil {
 		return err
 	}
-	return nil
-}
 
-func reportHeadersByType(reportType string) []string {
-	switch reportType {
-	case shared.ReportTypeUploadDeputySchedule.Key():
-		return []string{"Deputy number", "Deputy name", "Case number", "Client forename", "Client surname", "Do not invoice", "Total outstanding"}
-	case shared.ReportTypeUploadDebtChase.Key():
-		return []string{"Client_no", "Deputy_name", "Total_debt"}
-	case shared.ReportTypeUploadPaymentsOPGBACS.Key():
-		return []string{"Line", "Type", "Code", "Number", "Transaction", "Value Date", "Amount", "Amount Reconciled", "Charges", "Status", "Desc Flex", "Consolidated line"}
-	default:
-		return []string{"Unknown report type"}
+	// TODO: make async
+	err = s.service.ProcessFinanceAdminUpload(ctx, report)
+
+	if err != nil {
+		return err
 	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	return nil
 }
 
 func cleanString(s string) string {
@@ -79,47 +74,108 @@ func cleanString(s string) string {
 	}, s)
 }
 
-func (s *Server) upload(w http.ResponseWriter, r *http.Request) error {
-	ctx := r.Context()
+func readPaymentReport(file []byte) ([]PaymentReportLine, error) {
+	fileReader := bytes.NewReader(file)
+	csvReader := csv.NewReader(fileReader)
 
-	var upload shared.Upload
-	defer r.Body.Close()
-
-	if err := json.NewDecoder(r.Body).Decode(&upload); err != nil {
-		return err
-	}
-
-	err := validateCSVHeaders(upload.File, upload.ReportUploadType)
+	headers, err := csvReader.Read()
 	if err != nil {
-		return err
+		return nil, apierror.ValidationError{Errors: apierror.ValidationErrors{
+			"FileUpload": {
+				"read-failed": "Failed to read CSV headers",
+			},
+		},
+		}
 	}
 
-	// TODO: update filestorage
-	_, err = s.filestorage.PutFile(
-		ctx,
-		os.Getenv("ASYNC_S3_BUCKET"),
-		fmt.Sprintf("%s/%s", s3Directory, upload.Filename),
-		bytes.NewReader(upload.File))
-
-	if err != nil {
-		return err
+	for i, h := range headers {
+		headers[i] = cleanString(h)
 	}
 
-	uploadEvent := event.FinanceAdminUpload{
-		EmailAddress: upload.Email,
-		Filename:     fmt.Sprintf("%s/%s", s3Directory, upload.Filename),
-		UploadType:   upload.ReportUploadType.Key(),
-		UploadDate:   upload.UploadDate,
+	var (
+		report []PaymentReportLine
+	)
+
+	if !reflect.DeepEqual(headers, headerRow()) {
+		return nil, apierror.ValidationError{Errors: apierror.ValidationErrors{
+			"FileUpload": {
+				"incorrect-headers": "CSV headers do not match for the report trying to be uploaded",
+			},
+		},
+		}
 	}
-	// TODO: Change this to send to notify
-	err = s.dispatch.FinanceAdminUpload(ctx, uploadEvent)
 
-	if err != nil {
-		return err
+	for {
+		record, err := csvReader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			fmt.Println("Error reading record:", err)
+			return nil, err
+		}
+
+		data := make(map[string]string)
+		for i, header := range headers {
+			data[header] = record[i]
+		}
+
+		jsonData, err := json.Marshal(data)
+		if err != nil {
+			fmt.Println("Error marshalling JSON:", err)
+			return nil, err
+		}
+
+		var line PaymentReportLine
+		err = json.Unmarshal(jsonData, &line)
+		if err != nil {
+			fmt.Println("Error unmarshalling JSON:", err)
+			return nil, err
+		}
+
+		report = append(report, line)
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
+	return report, nil
+}
 
-	return nil
+func createUploadNotifyPayload(detail shared.FinanceAdminUploadProcessedEvent) notify.Payload {
+	var payload notify.Payload
+
+	uploadType := shared.ParseReportUploadType(detail.UploadType)
+	if detail.Error != "" {
+		payload = notify.Payload{
+			EmailAddress: detail.EmailAddress,
+			TemplateId:   notify.ProcessingErrorTemplateId,
+			Personalisation: struct {
+				Error      string `json:"error"`
+				UploadType string `json:"upload_type"`
+			}{
+				detail.Error,
+				uploadType.Translation(),
+			},
+		}
+	} else if len(detail.FailedLines) != 0 {
+		payload = notify.Payload{
+			EmailAddress: detail.EmailAddress,
+			TemplateId:   notify.ProcessingFailedTemplateId,
+			Personalisation: struct {
+				FailedLines []string `json:"failed_lines"`
+				UploadType  string   `json:"upload_type"`
+			}{
+				formatFailedLines(detail.FailedLines),
+				uploadType.Translation(),
+			},
+		}
+	} else {
+		payload = notify.Payload{
+			EmailAddress: detail.EmailAddress,
+			TemplateId:   notify.ProcessingSuccessTemplateId,
+			Personalisation: struct {
+				UploadType string `json:"upload_type"`
+			}{uploadType.Translation()},
+		}
+	}
+
+	return payload
 }

@@ -6,6 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/db"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
@@ -159,7 +163,7 @@ func TestCreateDownloadNotifyPayload(t *testing.T) {
 	os.Setenv("SIRIUS_PUBLIC_URL", "www.sirius.com")
 	os.Setenv("PREFIX", "/finance")
 
-	want := NotifyPayload{
+	want := notify.Payload{
 		EmailAddress: emailAddress,
 		TemplateId:   reportRequestedTemplateId,
 		Personalisation: reportRequestedNotifyPersonalisation{

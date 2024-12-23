@@ -5,37 +5,18 @@ import (
 	"encoding/csv"
 	"fmt"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/cmd/api"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"os"
 	"strconv"
 	"strings"
 	"time"
 )
 
-func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, detail shared.FinanceAdminUploadEvent) error {
-	file, err := s.filestorage.GetFile(ctx, os.Getenv("ASYNC_S3_BUCKET"), detail.Filename)
-	uploadProcessedEvent := event.FinanceAdminUploadProcessed{
-		EmailAddress: detail.EmailAddress,
-		UploadType:   detail.UploadType,
-		Filename:     detail.Filename,
-	}
-
-	if err != nil {
-		uploadProcessedEvent.Error = "Unable to download report"
-		return s.dispatch.FinanceAdminUploadProcessed(ctx, uploadProcessedEvent)
-	}
-
-	csvReader := csv.NewReader(file)
-	records, err := csvReader.ReadAll()
-	if err != nil {
-		uploadProcessedEvent.Error = "Unable to read report"
-		return s.dispatch.FinanceAdminUploadProcessed(ctx, uploadProcessedEvent)
-	}
-
+func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, payments []api.PaymentReportLine) error {
 	failedLines, err := s.processPayments(ctx, records, detail.UploadType, detail.UploadDate)
 
+	// TODO: failed lines need to send to notify
 	if err != nil {
 		uploadProcessedEvent.Error = err.Error()
 		return s.dispatch.FinanceAdminUploadProcessed(ctx, uploadProcessedEvent)

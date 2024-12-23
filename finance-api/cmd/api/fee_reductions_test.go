@@ -31,7 +31,7 @@ func TestServer_getFeeReductions(t *testing.T) {
 	}
 
 	mock := &mockService{feeReductions: feeReductionInfo}
-	server := Server{Service: mock}
+	server := Server{service: mock}
 	_ = server.getFeeReductions(w, req)
 
 	res := w.Result()
@@ -50,7 +50,7 @@ func TestServer_getFeeReductions_error(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	mock := &mockService{err: pgx.ErrTooManyRows}
-	server := Server{Service: mock}
+	server := Server{service: mock}
 	err := server.getFeeReductions(w, req)
 
 	assert.Error(t, err)

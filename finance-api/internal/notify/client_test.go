@@ -1,4 +1,4 @@
-package api
+package notify
 
 import (
 	"bytes"
@@ -114,7 +114,7 @@ func Test_SendEmailToNotify(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockHttpClient := MockHttpClient{}
-			server := Server{http: &mockHttpClient}
+			client := Client{http: &mockHttpClient}
 			ctx := context.Background()
 
 			GetDoFunc = func(*http.Request) (*http.Response, error) {
@@ -134,7 +134,7 @@ func Test_SendEmailToNotify(t *testing.T) {
 				UploadType:   shared.ReportTypeUploadPaymentsMOTOCard.Key(),
 			}
 
-			err := server.SendEmailToNotify(ctx, createUploadNotifyPayload(detail))
+			err := client.Send(ctx, createUploadNotifyPayload(detail))
 			assert.Equal(t, tt.expectedErr, err)
 		})
 	}

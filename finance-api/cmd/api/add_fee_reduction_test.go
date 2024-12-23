@@ -38,7 +38,7 @@ func TestServer_addFeeReductions(t *testing.T) {
 	validator, _ := validation.New()
 
 	mock := &mockService{feeReduction: feeReductionInfo}
-	server := Server{Service: mock, Validator: validator}
+	server := Server{service: mock, validator: validator}
 	_ = server.addFeeReduction(w, req)
 
 	res := w.Result()
@@ -67,7 +67,7 @@ func TestServer_addFeeReductionsValidationErrors(t *testing.T) {
 	validator, _ := validation.New()
 
 	mock := &mockService{feeReduction: feeReductionInfo}
-	server := Server{Service: mock, Validator: validator}
+	server := Server{service: mock, validator: validator}
 	err := server.addFeeReduction(w, req)
 
 	expected := apierror.ValidationError{Errors: apierror.ValidationErrors{
@@ -113,7 +113,7 @@ func TestServer_addFeeReductionsValidationErrorsForThousandCharacters(t *testing
 	validator, _ := validation.New()
 
 	mock := &mockService{feeReduction: feeReductionInfo}
-	server := Server{Service: mock, Validator: validator}
+	server := Server{service: mock, validator: validator}
 	err := server.addFeeReduction(w, req)
 
 	expected := apierror.ValidationError{Errors: apierror.ValidationErrors{
@@ -146,7 +146,7 @@ func TestServer_addFeeReductionsOverlapError(t *testing.T) {
 	validator, _ := validation.New()
 
 	mock := &mockService{feeReduction: feeReductionInfo, err: apierror.BadRequest{Reason: "overlap"}}
-	server := Server{Service: mock, Validator: validator}
+	server := Server{service: mock, validator: validator}
 	err := server.addFeeReduction(w, req)
 
 	var e apierror.BadRequest
@@ -175,7 +175,7 @@ func TestServer_addFeeReductions500Error(t *testing.T) {
 	validator, _ := validation.New()
 
 	mock := &mockService{feeReduction: feeReductionInfo, err: errors.New("something is wrong")}
-	server := Server{Service: mock, Validator: validator}
+	server := Server{service: mock, validator: validator}
 	err := server.addFeeReduction(w, req)
 	assert.Error(t, err)
 }

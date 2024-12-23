@@ -43,7 +43,7 @@ func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
 	client := SetUpTest()
 	filestorage.file = io.NopCloser(strings.NewReader("test"))
 
-	s := NewService(client, conn.Conn, dispatch, filestorage)
+	s := NewService(client, conn.Conn, dispatch, filestorage, nil)
 
 	tests := []struct {
 		name           string
@@ -109,7 +109,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 
 	dispatch := &mockDispatch{}
 	client := SetUpTest()
-	s := NewService(client, conn.Conn, dispatch, nil)
+	s := NewService(client, conn.Conn, dispatch, nil, nil)
 
 	tests := []struct {
 		name                      string

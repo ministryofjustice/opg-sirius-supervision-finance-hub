@@ -6,13 +6,10 @@ import (
 )
 
 const (
-	EventSourceSirius                     = "opg.supervision.sirius"
-	EventSourceFinanceAdmin               = "opg.supervision.finance.admin"
-	DetailTypeDebtPositionChanged         = "debt-position-changed"
-	DetailTypeClientCreated               = "client-created"
-	DetailTypeFinanceAdminUpload          = "finance-admin-upload"
-	EventSourceFinanceHub                 = "opg.supervision.finance"
-	DetailTypeFinanceAdminUploadProcessed = "finance-admin-upload-processed"
+	EventSourceSirius             = "opg.supervision.sirius"
+	EventSourceFinanceAdmin       = "opg.supervision.finance.admin"
+	DetailTypeDebtPositionChanged = "debt-position-changed"
+	DetailTypeClientCreated       = "client-created"
 )
 
 type Event struct {
@@ -43,20 +40,8 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		e.Detail = detail
-	case DetailTypeFinanceAdminUpload:
-		var detail FinanceAdminUploadEvent
-		if err := json.Unmarshal(raw.Detail, &detail); err != nil {
-			return err
-		}
-		e.Detail = detail
 	case DetailTypeClientCreated:
 		var detail ClientCreatedEvent
-		if err := json.Unmarshal(raw.Detail, &detail); err != nil {
-			return err
-		}
-		e.Detail = detail
-	case DetailTypeFinanceAdminUploadProcessed:
-		var detail FinanceAdminUploadProcessedEvent
 		if err := json.Unmarshal(raw.Detail, &detail); err != nil {
 			return err
 		}
@@ -75,20 +60,6 @@ type DebtPositionChangedEvent struct {
 type ClientCreatedEvent struct {
 	ClientID int    `json:"clientId"`
 	CourtRef string `json:"courtRef"`
-}
-
-type FinanceAdminUploadEvent struct {
-	EmailAddress string `json:"emailAddress"`
-	Filename     string `json:"filename"`
-	UploadType   string `json:"uploadType"`
-	UploadDate   Date   `json:"uploadDate"`
-}
-
-type FinanceAdminUploadProcessedEvent struct {
-	EmailAddress string         `json:"emailAddress"`
-	FailedLines  map[int]string `json:"failedLines"`
-	Error        string         `json:"error"`
-	UploadType   string         `json:"uploadType"`
 }
 
 type RequestParameters struct {

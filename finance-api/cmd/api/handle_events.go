@@ -21,35 +21,18 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
 
 	if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeDebtPositionChanged {
 		if detail, ok := event.Detail.(shared.DebtPositionChangedEvent); ok {
-			err := s.Service.ReapplyCredit(ctx, int32(detail.ClientID))
+			err := s.service.ReapplyCredit(ctx, int32(detail.ClientID))
 			if err != nil {
 				return err
 			}
 		}
 	} else if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeClientCreated {
 		if detail, ok := event.Detail.(shared.ClientCreatedEvent); ok {
-			err := s.Service.UpdateClient(ctx, detail.ClientID, detail.CourtRef)
+			err := s.service.UpdateClient(ctx, detail.ClientID, detail.CourtRef)
 			if err != nil {
 				return err
 			}
 		}
-	} else if event.Source == shared.EventSourceFinanceAdmin && event.DetailType == shared.DetailTypeFinanceAdminUpload {
-		if detail, ok := event.Detail.(shared.FinanceAdminUploadEvent); ok {
-			err := s.Service.ProcessFinanceAdminUpload(ctx, detail)
-			if err != nil {
-				return err
-			}
-		}
-		// TODO: Remove once this process is simplified
-		else if event.Source == shared.EventSourceFinanceHub && event.DetailType == shared.DetailTypeFinanceAdminUploadProcessed {
-			if detail, ok := event.Detail.(shared.FinanceAdminUploadProcessedEvent); ok {
-
-				payload := createUploadNotifyPayload(detail)
-				err := s.SendEmailToNotify(ctx, payload)
-				if err != nil {
-					return err
-				}
-			}
 	} else {
 		return apierror.BadRequestError("event", fmt.Sprintf("could not match event: %s %s", event.Source, event.DetailType), errors.New("no match"))
 	}

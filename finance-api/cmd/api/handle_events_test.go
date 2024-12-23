@@ -31,16 +31,6 @@ func TestServer_handleEvents(t *testing.T) {
 			expectedHandler: "ReapplyCredit",
 		},
 		{
-			name: "upload event",
-			event: shared.Event{
-				Source:     "opg.supervision.finance.admin",
-				DetailType: "finance-admin-upload",
-				Detail:     shared.FinanceAdminUploadEvent{Filename: "file.csv", EmailAddress: "hello@test.com"},
-			},
-			expectedErr:     nil,
-			expectedHandler: "ProcessFinanceAdminUpload",
-		},
-		{
 			name: "client created event",
 			event: shared.Event{
 				Source:     "opg.supervision.sirius",
@@ -63,7 +53,7 @@ func TestServer_handleEvents(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			mock := &mockService{}
-			server := Server{Service: mock}
+			server := Server{service: mock}
 
 			var body bytes.Buffer
 			_ = json.NewEncoder(&body).Encode(test.event)

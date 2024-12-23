@@ -40,7 +40,7 @@ func TestServer_getInvoices(t *testing.T) {
 	}
 
 	mock := &mockService{invoices: invoicesInfo}
-	server := Server{Service: mock}
+	server := Server{service: mock}
 	_ = server.getInvoices(w, req)
 
 	res := w.Result()
@@ -61,7 +61,7 @@ func TestServer_getInvoices_returns_an_empty_array(t *testing.T) {
 	invoicesInfo := &shared.Invoices{}
 
 	mock := &mockService{invoices: invoicesInfo}
-	server := Server{Service: mock}
+	server := Server{service: mock}
 	_ = server.getInvoices(w, req)
 
 	res := w.Result()
@@ -80,7 +80,7 @@ func TestServer_getInvoices_error(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	mock := &mockService{err: pgx.ErrTooManyRows}
-	server := Server{Service: mock}
+	server := Server{service: mock}
 	err := server.getInvoices(w, req)
 
 	assert.Error(t, err)

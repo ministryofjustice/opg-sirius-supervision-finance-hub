@@ -7,6 +7,7 @@ import (
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/db"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"log/slog"
 	"net/http"
@@ -46,6 +47,7 @@ func (s *Server) requestReport(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
+// TODO: move to service
 func (s *Server) generateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) error {
 	var query db.ReportQuery
 	var err error
@@ -75,7 +77,7 @@ func (s *Server) generateAndUploadReport(ctx context.Context, reportRequest shar
 
 	defer file.Close()
 
-	versionId, err := s.filestorage.PutFile(
+	versionId, err := s.fileStorage.PutFile(
 		ctx,
 		os.Getenv("REPORTS_S3_BUCKET"),
 		filename,
@@ -106,9 +108,9 @@ type reportRequestedNotifyPersonalisation struct {
 	RequestedDateTime string `json:"requested_date_time"`
 }
 
-func createDownloadNotifyPayload(emailAddress string, filename string, versionId *string, requestedDate time.Time, reportName string) (NotifyPayload, error) {
+func createDownloadNotifyPayload(emailAddress string, filename string, versionId *string, requestedDate time.Time, reportName string) (notify.Payload, error) {
 	if versionId == nil {
-		return NotifyPayload{}, fmt.Errorf("S3 version ID not found")
+		return notify.Payload{}, fmt.Errorf("s3 version ID not found")
 	}
 
 	downloadRequest := shared.DownloadRequest{
@@ -118,12 +120,12 @@ func createDownloadNotifyPayload(emailAddress string, filename string, versionId
 
 	uid, err := downloadRequest.Encode()
 	if err != nil {
-		return NotifyPayload{}, err
+		return notify.Payload{}, err
 	}
 
 	downloadLink := fmt.Sprintf("%s%s/download?uid=%s", os.Getenv("SIRIUS_PUBLIC_URL"), os.Getenv("PREFIX"), uid)
 
-	payload := NotifyPayload{
+	payload := notify.Payload{
 		EmailAddress: emailAddress,
 		TemplateId:   reportRequestedTemplateId,
 		Personalisation: reportRequestedNotifyPersonalisation{

@@ -23,7 +23,7 @@ func TestServer_getAccountInformation(t *testing.T) {
 	}
 
 	mock := &mockService{accountInfo: accountInfo}
-	server := Server{Service: mock}
+	server := Server{service: mock}
 	_ = server.getAccountInformation(w, req)
 
 	res := w.Result()
@@ -42,7 +42,7 @@ func TestServer_getAccountInformation_clientNotFound(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	mock := &mockService{err: pgx.ErrNoRows}
-	server := Server{Service: mock}
+	server := Server{service: mock}
 	err := server.getAccountInformation(w, req)
 
 	expected := apierror.NotFoundError(pgx.ErrNoRows)
@@ -55,7 +55,7 @@ func TestServer_getAccountInformation_error(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	mock := &mockService{err: pgx.ErrTooManyRows}
-	server := Server{Service: mock}
+	server := Server{service: mock}
 	err := server.getAccountInformation(w, req)
 
 	assert.Error(t, err)
