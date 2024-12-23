@@ -10,7 +10,7 @@ func (s *Server) getBillingHistory(w http.ResponseWriter, r *http.Request) error
 	ctx := r.Context()
 
 	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
-	billingHistory, err := s.Service.GetBillingHistory(ctx, clientId)
+	billingHistory, err := s.service.GetBillingHistory(ctx, clientId)
 
 	if err != nil {
 		return err
