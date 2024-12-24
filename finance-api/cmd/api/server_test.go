@@ -5,6 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"io"
+	"time"
 )
 
 type mockService struct {
@@ -104,6 +105,11 @@ func (s *mockService) ProcessFinanceAdminUpload(ctx context.Context, detail shar
 
 func (s *mockService) UpdateClient(ctx context.Context, clientId int, courtRef string) error {
 	s.lastCalled = "UpdateClient"
+	return s.err
+}
+
+func (s *mockService) GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) error {
+	s.lastCalled = "GenerateAndUploadReport"
 	return s.err
 }
 

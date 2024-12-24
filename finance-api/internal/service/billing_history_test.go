@@ -11,9 +11,10 @@ import (
 )
 
 func (suite *IntegrationSuite) TestService_GetBillingHistory() {
-	conn := suite.testDB.GetConn()
+	ctx := suite.ctx
+	seeder := suite.testDB.Seeder(ctx)
 
-	conn.SeedData(
+	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (1,1,1234,'DEMANDED',NULL);",
 		"INSERT INTO invoice VALUES (9,1,1,'AD','AD000001/24','2024-10-07','2024-10-07',10000,NULL,'2024-10-07',NULL,'2024-10-07','Created manually',NULL,NULL,'2024-10-07 09:31:44',1);",
 		"INSERT INTO invoice VALUES (10,1,1,'AD','AD000002/24','2024-10-07','2024-10-07',10000,NULL,'2024-10-07',NULL,'2024-10-07','Created manually',NULL,NULL,'2024-10-07 09:35:03',1);",
@@ -30,7 +31,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 		"INSERT INTO ledger_allocation VALUES (8,7,10,'2024-10-07 09:35:03',5000,'REAPPLIED');",
 	)
 
-	Store := store.New(conn)
+	Store := store.New(seeder.Conn)
 
 	tests := []struct {
 		name    string

@@ -3,10 +3,9 @@ package testhelpers
 import (
 	"context"
 	"database/sql"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/service"
 	"github.com/pressly/goose/v3"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
@@ -26,25 +25,24 @@ const (
 
 var basePath string
 
-// TestDatabase is a test utility containing a fully-migrated Postgres instance. To use this, run InitDb within a TestMain
+// ContainerManager is a test utility containing a fully-migrated Postgres instance. To use this, run Init within a TestMain
 // function and use the DbInstance to interact with the database as needed (e.g. to insert data prior to testing).
 // Ensure to run TearDown at the end of the tests to clean up.
-type TestDatabase struct {
+type ContainerManager struct {
 	Address   string
 	Container *postgres.PostgresContainer
+	Service   *service.Service
 }
 
 // Restore restores the DB to the snapshot backup and re-establishes the connection
-func (db *TestDatabase) Restore() {
-	err := db.Container.Restore(context.Background())
+func (db *ContainerManager) Restore(ctx context.Context) {
+	err := db.Container.Restore(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func InitDb() *TestDatabase {
-	ctx := context.Background()
-
+func Init(ctx context.Context) *ContainerManager {
 	_, b, _, _ := runtime.Caller(0)
 	testPath := filepath.Dir(b)
 	basePath = filepath.Join(testPath, "../../..")
@@ -70,7 +68,7 @@ func InitDb() *TestDatabase {
 		log.Fatal(err)
 	}
 
-	err = migrateDb(connString)
+	err = migrateDb(ctx, connString)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -80,13 +78,13 @@ func InitDb() *TestDatabase {
 		log.Fatal(err)
 	}
 
-	return &TestDatabase{
+	return &ContainerManager{
 		Container: container,
 		Address:   connString,
 	}
 }
 
-func migrateDb(connString string) error {
+func migrateDb(ctx context.Context, connString string) error {
 	db, err := sql.Open("pgx", connString)
 	if err != nil {
 		return err
@@ -104,51 +102,25 @@ func migrateDb(connString string) error {
 		return err
 	}
 
-	if _, err = provider.Up(context.Background()); err != nil {
+	if _, err = provider.Up(ctx); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (db *TestDatabase) TearDown() {
-	_ = db.Container.Terminate(context.Background())
+func (db *ContainerManager) TearDown(ctx context.Context) {
+	_ = db.Container.Terminate(ctx)
 }
 
-func (db *TestDatabase) GetConn() TestConn {
-	conn, err := pgxpool.New(context.Background(), db.Address)
+func (db *ContainerManager) Seeder(ctx context.Context) *Seeder {
+	conn, err := pgxpool.New(ctx, db.Address)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return TestConn{conn}
-}
-
-type TestConn struct {
-	Conn *pgxpool.Pool
-}
-
-func (c TestConn) Exec(ctx context.Context, s string, i ...interface{}) (pgconn.CommandTag, error) {
-	return c.Conn.Exec(ctx, s, i...)
-}
-
-func (c TestConn) Query(ctx context.Context, s string, i ...interface{}) (pgx.Rows, error) {
-	return c.Conn.Query(ctx, s, i...)
-}
-
-func (c TestConn) QueryRow(ctx context.Context, s string, i ...interface{}) pgx.Row {
-	return c.Conn.QueryRow(ctx, s, i...)
-}
-
-func (c TestConn) Begin(ctx context.Context) (pgx.Tx, error) {
-	return c.Conn.BeginTx(ctx, pgx.TxOptions{})
-}
-
-func (c TestConn) SeedData(data ...string) {
-	ctx := context.Background()
-	for _, d := range data {
-		_, err := c.Exec(ctx, d)
-		if err != nil {
-			log.Fatal("Unable to seed data with db connection: " + err.Error())
-		}
+	s := service.NewService(conn, nil, nil, nil, nil)
+	return &Seeder{
+		Conn:    conn,
+		Service: &s,
 	}
 }

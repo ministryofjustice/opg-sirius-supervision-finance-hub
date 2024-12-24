@@ -32,10 +32,10 @@ func (m *mockDispatch) FinanceAdminUploadProcessed(ctx context.Context, event ev
 }
 
 func (suite *IntegrationSuite) TestService_reapplyCredit_noInvoices() {
-	conn := suite.testDB.GetConn()
-	ctx := context.Background()
+	ctx := suite.ctx
+	seeder := suite.testDB.Seeder(ctx)
 
-	conn.SeedData(
+	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (1, 1, 'no-invoice', 'DEMANDED', NULL);",
 		"INSERT INTO ledger VALUES (1, '1', '2022-04-02T00:00:00+00:00', '', -10000, 'Overpayment', 'CARD PAYMENT', 'CONFIRMED', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2020-05-05', 1);",
 		"INSERT INTO ledger_allocation VALUES (1, 1, NULL, '2022-04-02T00:00:00+00:00', -10000, 'UNAPPLIED', NULL, '', '2022-04-02', NULL);",
@@ -48,13 +48,12 @@ func (suite *IntegrationSuite) TestService_reapplyCredit_noInvoices() {
 		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 3;",
 	)
 	dispatch := &mockDispatch{}
-	client := SetUpTest()
-	s := NewService(client, conn.Conn, dispatch, nil)
+	s := NewService(seeder.Conn, dispatch, nil, nil, nil)
 	err := s.ReapplyCredit(ctx, 1)
 	assert.Nil(suite.T(), err)
 
 	var credit int
-	row := conn.QueryRow(ctx, customerCreditQuery)
+	row := seeder.QueryRow(ctx, customerCreditQuery)
 	_ = row.Scan(&credit)
 
 	assert.Equal(suite.T(), 10000, credit)
@@ -67,10 +66,10 @@ func (suite *IntegrationSuite) TestService_reapplyCredit_noInvoices() {
 }
 
 func (suite *IntegrationSuite) TestService_reapplyCredit_oldestFirst() {
-	conn := suite.testDB.GetConn()
-	ctx := context.Background()
+	ctx := suite.ctx
+	seeder := suite.testDB.Seeder(ctx)
 
-	conn.SeedData(
+	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (1, 1, 'no-invoice', 'DEMANDED', NULL);",
 		"INSERT INTO ledger VALUES (1, '1', '2022-04-02T00:00:00+00:00', '', 8000, 'Overpayment', 'CARD PAYMENT', 'CONFIRMED', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2020-05-05', 1);",
 		"INSERT INTO ledger_allocation VALUES (1, 1, NULL, '2022-04-02T00:00:00+00:00', -8000, 'UNAPPLIED', NULL, '', '2022-04-02', NULL);",
@@ -84,30 +83,29 @@ func (suite *IntegrationSuite) TestService_reapplyCredit_oldestFirst() {
 		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 3;",
 	)
 	dispatch := &mockDispatch{}
-	client := SetUpTest()
-	s := NewService(client, conn.Conn, dispatch, nil)
+	s := NewService(seeder.Conn, dispatch, nil, nil, nil)
 	err := s.ReapplyCredit(ctx, 1)
 	assert.Nil(suite.T(), err)
 
 	var amount int
-	row := conn.QueryRow(ctx, customerCreditQuery)
+	row := seeder.QueryRow(ctx, customerCreditQuery)
 	_ = row.Scan(&amount)
 
 	assert.Equal(suite.T(), 0, amount)
 
-	row = conn.QueryRow(ctx, countReappliedQuery)
+	row = seeder.QueryRow(ctx, countReappliedQuery)
 	_ = row.Scan(&amount)
 
 	// two new reapply allocations
 	assert.Equal(suite.T(), 2, amount)
 
-	row = conn.QueryRow(ctx, "SELECT SUM(la.amount) FROM supervision_finance.ledger_allocation la WHERE la.invoice_id = 1;")
+	row = seeder.QueryRow(ctx, "SELECT SUM(la.amount) FROM supervision_finance.ledger_allocation la WHERE la.invoice_id = 1;")
 	_ = row.Scan(&amount)
 
 	// pays off the oldest in full
 	assert.Equal(suite.T(), 10000, amount)
 
-	row = conn.QueryRow(ctx, "SELECT SUM(la.amount) FROM supervision_finance.ledger_allocation la WHERE la.invoice_id = 2;")
+	row = seeder.QueryRow(ctx, "SELECT SUM(la.amount) FROM supervision_finance.ledger_allocation la WHERE la.invoice_id = 2;")
 	_ = row.Scan(&amount)
 
 	// the remainder goes to the next oldest
