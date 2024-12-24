@@ -2,6 +2,7 @@ package filestorage
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -11,7 +12,10 @@ import (
 )
 
 type S3Client interface {
+	PutObject(ctx context.Context, params *s3.PutObjectInput, optFns ...func(*s3.Options)) (*s3.PutObjectOutput, error)
 	GetObject(ctx context.Context, params *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error)
+	HeadObject(ctx context.Context, params *s3.HeadObjectInput, optFns ...func(*s3.Options)) (*s3.HeadObjectOutput, error)
+	Options() s3.Options
 }
 
 type Client struct {
@@ -52,10 +56,41 @@ func (c *Client) GetFile(ctx context.Context, bucketName string, fileName string
 		Key:    &fileName,
 		Bucket: &bucketName,
 	})
-
 	if err != nil {
 		return nil, err
 	}
-
 	return output.Body, nil
+}
+
+func (c *Client) GetFileByVersion(ctx context.Context, bucketName string, filename string, versionID string) (*s3.GetObjectOutput, error) {
+	return c.s3.GetObject(ctx, &s3.GetObjectInput{
+		Bucket:    aws.String(bucketName),
+		Key:       aws.String(filename),
+		VersionId: aws.String(versionID),
+	})
+}
+
+func (c *Client) PutFile(ctx context.Context, bucketName string, fileName string, file io.Reader) (*string, error) {
+	output, err := c.s3.PutObject(ctx, &s3.PutObjectInput{
+		Bucket:               &bucketName,
+		Key:                  &fileName,
+		Body:                 file,
+		ServerSideEncryption: "aws:kms",
+		SSEKMSKeyId:          aws.String(os.Getenv("S3_ENCRYPTION_KEY")),
+	})
+
+	if output == nil {
+		return nil, err
+	}
+
+	return output.VersionId, err
+}
+
+func (c *Client) FileExists(ctx context.Context, bucketName string, filename string, versionID string) bool {
+	_, err := c.s3.HeadObject(ctx, &s3.HeadObjectInput{
+		Bucket:    aws.String(bucketName),
+		Key:       aws.String(filename),
+		VersionId: aws.String(versionID),
+	})
+	return err == nil
 }
