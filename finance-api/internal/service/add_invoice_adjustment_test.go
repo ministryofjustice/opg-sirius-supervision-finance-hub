@@ -12,9 +12,10 @@ import (
 )
 
 func (suite *IntegrationSuite) TestService_AddInvoiceAdjustment() {
-	conn := suite.testDB.GetConn()
+	ctx := suite.ctx
+	seeder := suite.testDB.Seeder(ctx)
 
-	conn.SeedData(
+	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (1, 1, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO invoice VALUES (1, 1, 1, 'S2', 'S204642/19', '2022-04-02', '2022-04-02', 32000, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2022-04-02', 1);",
 		"INSERT INTO ledger VALUES (1, 'abc1', '2022-04-02T00:00:00+00:00', '', 22000, 'Initial payment', 'UNKNOWN DEBIT', 'CONFIRMED', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '05/05/2022', 1);",
@@ -22,8 +23,8 @@ func (suite *IntegrationSuite) TestService_AddInvoiceAdjustment() {
 		"INSERT INTO ledger_allocation VALUES (1, 1, 1, '2022-04-02T00:00:00+00:00', 22000, 'ALLOCATED', NULL, '', '2022-04-02', NULL);",
 		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 2;",
 	)
-	client := SetUpTest()
-	s := NewService(client, conn.Conn, nil, nil)
+
+	s := NewService(seeder.Conn, nil, nil, nil, nil)
 
 	testCases := []struct {
 		name      string
@@ -77,7 +78,7 @@ func (suite *IntegrationSuite) TestService_AddInvoiceAdjustment() {
 			}
 
 			var pendingAdjustment store.InvoiceAdjustment
-			q := conn.QueryRow(ctx, "SELECT id, finance_client_id, invoice_id, raised_date, adjustment_type, amount, notes, status FROM invoice_adjustment LIMIT 1")
+			q := seeder.QueryRow(ctx, "SELECT id, finance_client_id, invoice_id, raised_date, adjustment_type, amount, notes, status FROM invoice_adjustment LIMIT 1")
 			_ = q.Scan(
 				&pendingAdjustment.ID,
 				&pendingAdjustment.FinanceClientID,

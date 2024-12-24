@@ -15,7 +15,7 @@ import (
 )
 
 func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, detail shared.FinanceAdminUploadEvent) error {
-	file, err := s.filestorage.GetFile(ctx, os.Getenv("ASYNC_S3_BUCKET"), detail.Filename)
+	file, err := s.fileStorage.GetFile(ctx, os.Getenv("ASYNC_S3_BUCKET"), detail.Filename)
 	uploadProcessedEvent := event.FinanceAdminUploadProcessed{
 		EmailAddress: detail.EmailAddress,
 		UploadType:   detail.UploadType,

@@ -8,9 +8,9 @@ import (
 )
 
 func (suite *IntegrationSuite) TestService_GetAccountInformation() {
-	conn := suite.testDB.GetConn()
+	seeder := suite.testDB.Seeder(suite.ctx)
 
-	conn.SeedData(
+	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (1, 1, 'sop123', 'DEMANDED', NULL)",
 		"INSERT INTO finance_client VALUES (3, 3, 'sop123', 'DEMANDED', NULL)",
 		"INSERT INTO invoice VALUES (1, 1, 1, 'S2', 'Paid in full', '2019-04-01', '2020-03-31', 32000, NULL, '2020-03-20',1, '2020-03-16', 10, NULL, 0, '2019-06-06', 99);",
@@ -28,7 +28,7 @@ func (suite *IntegrationSuite) TestService_GetAccountInformation() {
 		"INSERT INTO ledger_allocation VALUES (6, 4, NULL, '2022-04-11T08:36:40+00:00', 5000, 'REAPPLIED', NULL, 'Refund', '2022-04-11', NULL);",
 	)
 
-	Store := store.New(conn)
+	Store := store.New(seeder)
 	tests := []struct {
 		name    string
 		id      int

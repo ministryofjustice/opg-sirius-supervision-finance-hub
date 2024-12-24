@@ -8,9 +8,9 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	"io"
 	"log/slog"
 	"net/http"
+	"time"
 )
 
 type Service interface {
@@ -28,11 +28,11 @@ type Service interface {
 	ReapplyCredit(ctx context.Context, clientID int32) error
 	UpdateClient(ctx context.Context, clientID int, courtRef string) error
 	ProcessFinanceAdminUpload(ctx context.Context, detail shared.FinanceAdminUploadEvent) error
+	GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) error
 }
 
 type FileStorage interface {
 	GetFileByVersion(ctx context.Context, bucketName string, filename string, versionID string) (*s3.GetObjectOutput, error)
-	PutFile(ctx context.Context, bucketName string, fileName string, file io.Reader) (*string, error)
 	FileExists(ctx context.Context, bucketName string, filename string, versionID string) bool
 }
 
