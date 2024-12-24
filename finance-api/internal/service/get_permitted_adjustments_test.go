@@ -8,9 +8,10 @@ import (
 )
 
 func (suite *IntegrationSuite) TestService_GetPermittedAdjustments() {
-	conn := suite.testDB.GetConn()
+	ctx := suite.ctx
+	seeder := suite.testDB.Seeder(ctx)
 
-	conn.SeedData(
+	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (1, 1, 'sop123', 'DEMANDED', 3)",
 		// two invoices
 		"INSERT INTO invoice VALUES (1, 1, 1, 'S2', 'S204642/19', '2022-04-02', '2022-04-02', 32000, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2022-04-02', 1);",
@@ -32,7 +33,7 @@ func (suite *IntegrationSuite) TestService_GetPermittedAdjustments() {
 		"INSERT INTO ledger_allocation VALUES (4, 4, 6, '2022-04-02T00:00:00+00:00', 1, 'ALLOCATED', NULL, '', '2022-04-02', NULL);",
 	)
 
-	Store := store.New(conn)
+	Store := store.New(seeder.Conn)
 	tests := []struct {
 		name    string
 		id      int

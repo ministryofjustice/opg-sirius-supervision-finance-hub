@@ -8,23 +8,23 @@ import (
 )
 
 func (suite *IntegrationSuite) TestService_CancelFeeReduction() {
-	conn := suite.testDB.GetConn()
+	ctx := suite.ctx
+	seeder := suite.testDB.Seeder(ctx)
 
-	conn.SeedData(
+	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (33, 33, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO fee_reduction VALUES (33, 33, 'REMISSION', NULL, '2019-04-01', '2021-03-31', 'Remission to see the notes', FALSE, '2019-05-01');",
 	)
 
-	ctx := suite.ctx
-	Store := store.New(conn)
+	Store := store.New(seeder.Conn)
 
 	s := &Service{
 		store: Store,
-		tx:    conn,
+		tx:    seeder.Conn,
 	}
 
 	err := s.CancelFeeReduction(ctx, 33, shared.CancelFeeReduction{CancellationReason: "Reason for cancellation"})
-	rows := conn.QueryRow(ctx, "SELECT deleted, cancelled_at, cancelled_by, cancellation_reason FROM supervision_finance.fee_reduction WHERE id = 33")
+	rows := seeder.QueryRow(ctx, "SELECT deleted, cancelled_at, cancelled_by, cancellation_reason FROM supervision_finance.fee_reduction WHERE id = 33")
 
 	var (
 		deleted            bool

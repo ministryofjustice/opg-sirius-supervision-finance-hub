@@ -9,9 +9,10 @@ import (
 )
 
 func (suite *IntegrationSuite) TestService_GetInvoiceAdjustments() {
-	conn := suite.testDB.GetConn()
+	ctx := suite.ctx
+	seeder := suite.testDB.Seeder(ctx)
 
-	conn.SeedData(
+	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (1, 1, '1234', 'DEMANDED', NULL);",
 
 		// two invoices
@@ -25,8 +26,7 @@ func (suite *IntegrationSuite) TestService_GetInvoiceAdjustments() {
 
 	dateString := "2022-04-02"
 	date, _ := time.Parse("2006-01-02", dateString)
-	client := SetUpTest()
-	s := NewService(client, conn.Conn, nil, nil)
+	s := NewService(seeder.Conn, nil, nil, nil, nil)
 
 	tests := []struct {
 		name    string
