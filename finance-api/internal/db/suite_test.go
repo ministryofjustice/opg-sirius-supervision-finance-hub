@@ -18,7 +18,10 @@ type IntegrationSuite struct {
 func (suite *IntegrationSuite) SetupSuite() {
 	suite.ctx = telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test"))
 	cm := testhelpers.Init(suite.ctx)
-	suite.seeder = cm.Seeder(suite.ctx)
+	seeder := cm.Seeder(suite.ctx)
+	//serv := service.NewService(seeder.Conn, nil, nil, nil)
+	suite.seeder = seeder
+	//.WithService(serv)
 	suite.cm = cm
 }
 

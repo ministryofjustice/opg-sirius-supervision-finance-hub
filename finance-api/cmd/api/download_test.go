@@ -25,7 +25,7 @@ func TestServer_download(t *testing.T) {
 		ContentType: aws.String("text/csv"),
 	}
 
-	server := NewServer(nil, &mockS3, nil)
+	server := NewServer(nil, nil, &mockS3, nil)
 	_ = server.download(w, req)
 
 	res := w.Result()
@@ -43,7 +43,7 @@ func TestServer_download_noMatch(t *testing.T) {
 
 	mockS3 := MockFileStorage{}
 	mockS3.err = &types.NoSuchKey{}
-	server := NewServer(nil, &mockS3, nil)
+	server := NewServer(nil, nil, &mockS3, nil)
 
 	err := server.download(w, req)
 

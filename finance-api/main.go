@@ -47,9 +47,6 @@ func run(ctx context.Context, logger *slog.Logger) error {
 	dbPool := setupDbPool(ctx, logger, "supervision_finance", false)
 	defer dbPool.Close()
 
-	reportsClient := reports.NewClient(setupDbPool(ctx, logger, "supervision_finance,public", true))
-	defer reportsClient.Close()
-
 	eventClient := setupEventClient(ctx, logger)
 	fileStorageClient, err := filestorage.NewClient(ctx) // TODO: remove once upload flow changes
 
@@ -57,14 +54,23 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		return err
 	}
 
-	Service := service.NewService(dbPool, eventClient, fileStorageClient, reportsClient, notify.NewClient())
+	notifyClient := notify.NewClient()
+
+	Service := service.NewService(dbPool, eventClient, fileStorageClient, notifyClient)
 
 	validator, err := validation.New()
 	if err != nil {
 		return err
 	}
 
-	server := api.NewServer(&Service, fileStorageClient, validator)
+	reportsClient := reports.NewClient(
+		setupDbPool(ctx, logger, "supervision_finance,public", true),
+		fileStorageClient,
+		notify.NewClient(),
+	)
+	defer reportsClient.Close()
+
+	server := api.NewServer(Service, reportsClient, fileStorageClient, validator)
 
 	s := &http.Server{
 		Addr:    ":8080",

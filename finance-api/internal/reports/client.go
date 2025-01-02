@@ -5,6 +5,8 @@ import (
 	"encoding/csv"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/db"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
+	"io"
 	"os"
 )
 
@@ -13,19 +15,33 @@ type dbClient interface {
 	Close()
 }
 
+type fileStorageClient interface {
+	PutFile(ctx context.Context, bucketName string, fileName string, file io.Reader) (*string, error)
+}
+
+type notifyClient interface {
+	Send(ctx context.Context, payload notify.Payload) error
+}
+
 type Client struct {
-	db dbClient
+	db          dbClient
+	fileStorage fileStorageClient
+	notify      notifyClient
 }
 
 func (c *Client) Close() {
 	c.db.Close()
 }
 
-func NewClient(dbPool *pgxpool.Pool) *Client {
-	return &Client{db: db.NewClient(dbPool)}
+func NewClient(dbPool *pgxpool.Pool, fileStorage fileStorageClient, notify notifyClient) *Client {
+	return &Client{
+		db:          db.NewClient(dbPool),
+		fileStorage: fileStorage,
+		notify:      notify,
+	}
 }
 
-func (c *Client) Generate(ctx context.Context, filename string, query db.ReportQuery) (*os.File, error) {
+func (c *Client) generate(ctx context.Context, filename string, query db.ReportQuery) (*os.File, error) {
 	rows, err := c.db.Run(ctx, query)
 	if err != nil {
 		return nil, err

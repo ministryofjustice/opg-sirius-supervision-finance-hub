@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func addFeeReductionSetup(seeder *testhelpers.Seeder) (Service, shared.AddFeeReduction) {
+func addFeeReductionSetup(seeder *testhelpers.Seeder) (*Service, shared.AddFeeReduction) {
 	receivedDate := shared.NewDate("2024-01-01")
 
 	params := shared.AddFeeReduction{
@@ -20,7 +20,7 @@ func addFeeReductionSetup(seeder *testhelpers.Seeder) (Service, shared.AddFeeRed
 		Notes:         "Testing",
 	}
 
-	s := NewService(seeder.Conn, nil, nil, nil, nil)
+	s := NewService(seeder.Conn, nil, nil, nil)
 
 	return s, params
 }
