@@ -28,7 +28,6 @@ type Service interface {
 	ReapplyCredit(ctx context.Context, clientID int32) error
 	UpdateClient(ctx context.Context, clientID int, courtRef string) error
 	ProcessFinanceAdminUpload(ctx context.Context, detail shared.FinanceAdminUploadEvent) error
-	GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) error
 }
 
 type FileStorage interface {
@@ -36,15 +35,21 @@ type FileStorage interface {
 	FileExists(ctx context.Context, bucketName string, filename string, versionID string) bool
 }
 
+type Reports interface {
+	GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) error
+}
+
 type Server struct {
 	service     Service
+	reports     Reports
 	fileStorage FileStorage
 	validator   *validation.Validate
 }
 
-func NewServer(service Service, fileStorage FileStorage, validator *validation.Validate) *Server {
+func NewServer(service Service, reports Reports, fileStorage FileStorage, validator *validation.Validate) *Server {
 	return &Server{
 		service:     service,
+		reports:     reports,
 		fileStorage: fileStorage,
 		validator:   validator,
 	}

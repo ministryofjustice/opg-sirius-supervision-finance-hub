@@ -38,7 +38,7 @@ func (suite *IntegrationSuite) TestService_UpdatePendingInvoiceAdjustment() {
 	)
 
 	dispatch := &mockDispatch{}
-	s := NewService(seeder.Conn, dispatch, nil, nil, nil)
+	s := NewService(seeder.Conn, dispatch, nil, nil)
 
 	type args struct {
 		clientId     int

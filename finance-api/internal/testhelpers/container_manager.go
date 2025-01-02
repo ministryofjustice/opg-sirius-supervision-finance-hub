@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/service"
 	"github.com/pressly/goose/v3"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
@@ -31,7 +30,6 @@ var basePath string
 type ContainerManager struct {
 	Address   string
 	Container *postgres.PostgresContainer
-	Service   *service.Service
 }
 
 // Restore restores the DB to the snapshot backup and re-establishes the connection
@@ -118,9 +116,7 @@ func (db *ContainerManager) Seeder(ctx context.Context) *Seeder {
 	if err != nil {
 		log.Fatal(err)
 	}
-	s := service.NewService(conn, nil, nil, nil, nil)
 	return &Seeder{
-		Conn:    conn,
-		Service: &s,
+		Conn: conn,
 	}
 }
