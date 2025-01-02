@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/service"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/testhelpers"
 	"github.com/stretchr/testify/suite"
 	"testing"
@@ -17,11 +18,10 @@ type IntegrationSuite struct {
 
 func (suite *IntegrationSuite) SetupSuite() {
 	suite.ctx = telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test"))
-	cm := testhelpers.Init(suite.ctx)
+	cm := testhelpers.Init(suite.ctx, "public,supervision_finance")
 	seeder := cm.Seeder(suite.ctx)
-	//serv := service.NewService(seeder.Conn, nil, nil, nil)
-	suite.seeder = seeder
-	//.WithService(serv)
+	serv := service.NewService(seeder.Conn, nil, nil, nil)
+	suite.seeder = seeder.WithService(serv)
 	suite.cm = cm
 }
 
