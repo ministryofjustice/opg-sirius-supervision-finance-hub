@@ -5,14 +5,26 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/service"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"log"
 )
+
+type Service interface {
+	AddManualInvoice(ctx context.Context, clientID int, invoice shared.AddManualInvoice) error
+	AddInvoiceAdjustment(ctx context.Context, clientID int, invoiceId int, adjustment *shared.AddInvoiceAdjustmentRequest) (*shared.InvoiceReference, error)
+	UpdatePendingInvoiceAdjustment(ctx context.Context, clientID int, adjustmentId int, status shared.AdjustmentStatus) error
+	AddFeeReduction(ctx context.Context, clientId int, reduction shared.AddFeeReduction) error
+}
 
 // Seeder contains a test database connection pool and HTTP server for API calls
 type Seeder struct {
 	Conn    *pgxpool.Pool
-	Service *service.Service
+	Service Service
+}
+
+func (s *Seeder) WithService(service Service) *Seeder {
+	s.Service = service
+	return s
 }
 
 func (s *Seeder) Exec(ctx context.Context, str string, i ...interface{}) (pgconn.CommandTag, error) {

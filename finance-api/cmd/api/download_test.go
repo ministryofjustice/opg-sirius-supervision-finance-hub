@@ -48,7 +48,7 @@ func TestServer_download_noMatch(t *testing.T) {
 
 	mockS3 := MockFileStorage{}
 	mockS3.err = &types.NoSuchKey{}
-	server := NewServer(nil, &mockS3, nil)
+	server := NewServer(nil, nil, &mockS3, nil)
 
 	err := server.download(w, r)
 

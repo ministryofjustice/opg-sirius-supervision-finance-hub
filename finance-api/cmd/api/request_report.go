@@ -29,7 +29,7 @@ func (s *Server) requestReport(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	go func(logger *slog.Logger) {
-		err := s.service.GenerateAndUploadReport(context.Background(), reportRequest, time.Now())
+		err := s.reports.GenerateAndUploadReport(context.Background(), reportRequest, time.Now())
 		if err != nil {
 			logger.Error(err.Error())
 		}

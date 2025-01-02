@@ -30,7 +30,7 @@ func TestRequestReport(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	mock := &mockService{}
-	server := NewServer(mock, nil, nil)
+	server := NewServer(mock, nil, nil, nil)
 	_ = server.requestReport(w, r)
 
 	res := w.Result()
@@ -58,7 +58,7 @@ func TestRequestReportNoEmail(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	mock := &mockService{}
-	server := NewServer(mock, nil, nil)
+	server := NewServer(mock, nil, nil, nil)
 	err := server.requestReport(w, r)
 
 	res := w.Result()

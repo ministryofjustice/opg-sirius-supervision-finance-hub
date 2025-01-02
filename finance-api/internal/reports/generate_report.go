@@ -1,4 +1,4 @@
-package service
+package reports
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 
 const reportRequestedTemplateId = "bade69e4-0eb1-4896-a709-bd8f8371a629"
 
-func (s *Service) GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) error {
+func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) error {
 	var query db.ReportQuery
 	var err error
 
@@ -30,18 +30,18 @@ func (s *Service) GenerateAndUploadReport(ctx context.Context, reportRequest sha
 		case shared.ReportAccountTypeAgedDebtByCustomer:
 			query = &db.AgedDebtByCustomer{}
 		default:
-			return fmt.Errorf("Unknown query")
+			return fmt.Errorf("unknown query")
 		}
 	}
 
-	file, err := s.reports.Generate(ctx, filename, query)
+	file, err := c.generate(ctx, filename, query)
 	if err != nil {
 		return err
 	}
 
 	defer file.Close()
 
-	versionId, err := s.fileStorage.PutFile(
+	versionId, err := c.fileStorage.PutFile(
 		ctx,
 		os.Getenv("REPORTS_S3_BUCKET"),
 		filename,
@@ -57,7 +57,7 @@ func (s *Service) GenerateAndUploadReport(ctx context.Context, reportRequest sha
 		return err
 	}
 
-	err = s.notify.Send(ctx, payload)
+	err = c.notify.Send(ctx, payload)
 	if err != nil {
 		return err
 	}

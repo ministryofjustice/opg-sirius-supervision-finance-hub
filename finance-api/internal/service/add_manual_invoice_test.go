@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func addManualInvoiceSetup(seeder *testhelpers.Seeder) (Service, shared.AddManualInvoice) {
+func addManualInvoiceSetup(seeder *testhelpers.Seeder) (*Service, shared.AddManualInvoice) {
 	params := shared.AddManualInvoice{
 		InvoiceType:      shared.InvoiceTypeS2,
 		Amount:           shared.Nillable[int]{Value: 50000, Valid: true},
@@ -21,7 +21,7 @@ func addManualInvoiceSetup(seeder *testhelpers.Seeder) (Service, shared.AddManua
 		SupervisionLevel: shared.Nillable[string]{Value: "GENERAL", Valid: true},
 	}
 
-	s := NewService(seeder.Conn, nil, nil, nil, nil)
+	s := NewService(seeder.Conn, nil, nil, nil)
 
 	return s, params
 }
