@@ -62,17 +62,22 @@ func Init(ctx context.Context, searchPath string) *ContainerManager {
 		log.Fatal(err)
 	}
 
-	connString, err := container.ConnectionString(ctx, fmt.Sprintf("search_path=%s", searchPath))
+	migrationConn, err := container.ConnectionString(ctx, "search_path=supervision_finance")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = migrateDb(ctx, connString)
+	err = migrateDb(ctx, migrationConn)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	err = container.Snapshot(ctx, postgres.WithSnapshotName("test-snapshot"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	connString, err := container.ConnectionString(ctx, fmt.Sprintf("search_path=%s", searchPath))
 	if err != nil {
 		log.Fatal(err)
 	}
