@@ -3,6 +3,7 @@ package testhelpers
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
@@ -40,7 +41,7 @@ func (db *ContainerManager) Restore(ctx context.Context) {
 	}
 }
 
-func Init(ctx context.Context) *ContainerManager {
+func Init(ctx context.Context, searchPath string) *ContainerManager {
 	_, b, _, _ := runtime.Caller(0)
 	testPath := filepath.Dir(b)
 	basePath = filepath.Join(testPath, "../../..")
@@ -61,7 +62,7 @@ func Init(ctx context.Context) *ContainerManager {
 		log.Fatal(err)
 	}
 
-	connString, err := container.ConnectionString(ctx, "search_path=supervision_finance")
+	connString, err := container.ConnectionString(ctx, fmt.Sprintf("search_path=%s", searchPath))
 	if err != nil {
 		log.Fatal(err)
 	}
