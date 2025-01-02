@@ -18,7 +18,7 @@ type IntegrationSuite struct {
 
 func (suite *IntegrationSuite) SetupSuite() {
 	suite.ctx = telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test"))
-	suite.testDB = testhelpers.Init(suite.ctx)
+	suite.testDB = testhelpers.Init(suite.ctx, "supervision_finance")
 }
 
 func TestSuite(t *testing.T) {
