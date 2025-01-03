@@ -17,14 +17,14 @@ func (s *Server) addManualInvoice(w http.ResponseWriter, r *http.Request) error 
 		return err
 	}
 
-	validationError := s.Validator.ValidateStruct(addManualInvoice)
+	validationError := s.validator.ValidateStruct(addManualInvoice)
 
 	if len(validationError.Errors) != 0 {
 		return validationError
 	}
 
 	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
-	err := s.Service.AddManualInvoice(ctx, clientId, addManualInvoice)
+	err := s.service.AddManualInvoice(ctx, clientId, addManualInvoice)
 
 	if err != nil {
 		return err

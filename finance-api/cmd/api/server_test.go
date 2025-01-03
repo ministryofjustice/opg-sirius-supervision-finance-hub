@@ -2,7 +2,10 @@ package api
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"io"
+	"time"
 )
 
 type mockService struct {
@@ -103,4 +106,48 @@ func (s *mockService) ProcessFinanceAdminUpload(ctx context.Context, detail shar
 func (s *mockService) UpdateClient(ctx context.Context, clientId int, courtRef string) error {
 	s.lastCalled = "UpdateClient"
 	return s.err
+}
+
+func (s *mockService) GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) error {
+	s.lastCalled = "GenerateAndUploadReport"
+	return s.err
+}
+
+type MockFileStorage struct {
+	versionId      string
+	bucketname     string
+	filename       string
+	file           io.Reader
+	outgoingObject *s3.GetObjectOutput
+	err            error
+	exists         bool
+}
+
+func (m *MockFileStorage) GetFileByVersion(ctx context.Context, bucketName string, fileName string, versionId string) (*s3.GetObjectOutput, error) {
+	return m.outgoingObject, m.err
+}
+
+func (m *MockFileStorage) PutFile(ctx context.Context, bucketName string, fileName string, file io.Reader) (*string, error) {
+	m.bucketname = bucketName
+	m.filename = fileName
+	m.file = file
+
+	return &m.versionId, nil
+}
+
+// add a FileExists method to the MockFileStorage struct
+func (m *MockFileStorage) FileExists(ctx context.Context, bucketName string, filename string, versionID string) bool {
+	return m.exists
+}
+
+type MockReports struct {
+	requestedReport *shared.ReportRequest
+	requestedDate   time.Time
+	err             error
+}
+
+func (m *MockReports) GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) error {
+	m.requestedReport = &reportRequest
+	m.requestedDate = requestedDate
+	return m.err
 }
