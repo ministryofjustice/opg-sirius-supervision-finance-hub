@@ -9,7 +9,7 @@ import (
 
 func (suite *IntegrationSuite) TestService_GetPermittedAdjustments() {
 	ctx := suite.ctx
-	seeder := suite.testDB.Seeder(ctx)
+	seeder := suite.cm.Seeder(ctx, suite.T())
 
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (1, 1, 'sop123', 'DEMANDED', 3)",

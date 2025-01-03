@@ -139,3 +139,15 @@ func (m *MockFileStorage) PutFile(ctx context.Context, bucketName string, fileNa
 func (m *MockFileStorage) FileExists(ctx context.Context, bucketName string, filename string, versionID string) bool {
 	return m.exists
 }
+
+type MockReports struct {
+	requestedReport *shared.ReportRequest
+	requestedDate   time.Time
+	err             error
+}
+
+func (m *MockReports) GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) error {
+	m.requestedReport = &reportRequest
+	m.requestedDate = requestedDate
+	return m.err
+}

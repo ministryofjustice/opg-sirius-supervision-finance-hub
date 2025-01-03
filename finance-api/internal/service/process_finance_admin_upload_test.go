@@ -25,7 +25,7 @@ type createdLedgerAllocation struct {
 
 func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
 	ctx := suite.ctx
-	seeder := suite.testDB.Seeder(ctx)
+	seeder := suite.cm.Seeder(ctx, suite.T())
 
 	dispatch := &mockDispatch{}
 	fileStorage := &mockFileStorage{}
@@ -87,7 +87,7 @@ func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
 
 func (suite *IntegrationSuite) Test_processPayments() {
 	ctx := suite.ctx
-	seeder := suite.testDB.Seeder(ctx)
+	seeder := suite.cm.Seeder(ctx, suite.T())
 
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (1, 1, 'invoice-1', 'DEMANDED', NULL, '1234');",

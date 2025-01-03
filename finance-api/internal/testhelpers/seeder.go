@@ -6,7 +6,8 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"log"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 type Service interface {
@@ -18,6 +19,7 @@ type Service interface {
 
 // Seeder contains a test database connection pool and HTTP server for API calls
 type Seeder struct {
+	t       *testing.T
 	Conn    *pgxpool.Pool
 	Service Service
 }
@@ -47,8 +49,6 @@ func (s *Seeder) SeedData(data ...string) {
 	ctx := context.Background()
 	for _, d := range data {
 		_, err := s.Exec(ctx, d)
-		if err != nil {
-			log.Fatal("Unable to seed data with db connection: " + err.Error())
-		}
+		assert.NoError(s.t, err, "failed to seed data")
 	}
 }

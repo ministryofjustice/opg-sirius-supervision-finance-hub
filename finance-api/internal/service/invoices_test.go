@@ -12,7 +12,7 @@ import (
 
 func (suite *IntegrationSuite) TestService_GetInvoices() {
 	ctx := suite.ctx
-	seeder := suite.testDB.Seeder(ctx)
+	seeder := suite.cm.Seeder(ctx, suite.T())
 
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (7, 1, '1234', 'DEMANDED', NULL);",
