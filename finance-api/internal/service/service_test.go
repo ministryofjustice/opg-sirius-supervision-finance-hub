@@ -12,13 +12,15 @@ import (
 
 type IntegrationSuite struct {
 	suite.Suite
-	testDB *testhelpers.ContainerManager
+	cm     *testhelpers.ContainerManager
+	seeder *testhelpers.Seeder
 	ctx    context.Context
 }
 
 func (suite *IntegrationSuite) SetupSuite() {
 	suite.ctx = telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test"))
-	suite.testDB = testhelpers.Init(suite.ctx, "supervision_finance")
+	suite.cm = testhelpers.Init(suite.ctx, "supervision_finance")
+	suite.seeder = suite.cm.Seeder(suite.ctx, suite.T())
 }
 
 func TestSuite(t *testing.T) {
@@ -26,11 +28,11 @@ func TestSuite(t *testing.T) {
 }
 
 func (suite *IntegrationSuite) TearDownSuite() {
-	suite.testDB.TearDown(suite.ctx)
+	suite.cm.TearDown(suite.ctx)
 }
 
 func (suite *IntegrationSuite) AfterTest(suiteName, testName string) {
-	suite.testDB.Restore(suite.ctx)
+	suite.cm.Restore(suite.ctx)
 }
 
 type MockClient struct {

@@ -15,14 +15,14 @@ import (
 
 type MockFileStorage struct {
 	versionId  string
-	bucketname string
+	bucketName string
 	filename   string
 	file       io.Reader
 	err        error
 }
 
 func (m *MockFileStorage) PutFile(ctx context.Context, bucketName string, fileName string, file io.Reader) (*string, error) {
-	m.bucketname = bucketName
+	m.bucketName = bucketName
 	m.filename = fileName
 	m.file = file
 
@@ -103,8 +103,20 @@ func TestGenerateAndUploadReport(t *testing.T) {
 
 			err := client.GenerateAndUploadReport(ctx, tt.reportRequest, timeNow)
 
-			assert.Equal(t, tt.expectedErr, err)
-			assert.Equal(t, &tt.expectedQuery, mockDb.query)
+			switch expected := tt.expectedQuery.(type) {
+			case *db.AgedDebt:
+				actual, ok := mockDb.query.(*db.AgedDebt)
+				assert.True(t, ok)
+				assert.Equal(t, expected, actual)
+				assert.Nil(t, err)
+			case *db.AgedDebtByCustomer:
+				actual, ok := mockDb.query.(*db.AgedDebtByCustomer)
+				assert.True(t, ok)
+				assert.Equal(t, expected, actual)
+				assert.Nil(t, err)
+			default:
+				assert.Equal(t, tt.expectedErr, err)
+			}
 		})
 	}
 }

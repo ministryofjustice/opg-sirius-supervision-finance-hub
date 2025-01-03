@@ -29,17 +29,18 @@ func TestRequestReport(t *testing.T) {
 	r, _ := http.NewRequestWithContext(ctx, http.MethodPost, "/downloads", &b)
 	w := httptest.NewRecorder()
 
-	mock := &mockService{}
-	server := NewServer(mock, nil, nil, nil)
+	mock := &MockReports{}
+	mock.requestedReport = downloadForm
+	server := NewServer(nil, mock, nil, nil)
 	_ = server.requestReport(w, r)
 
 	res := w.Result()
 	defer res.Body.Close()
 
-	expected := ""
-
-	assert.Equal(t, expected, w.Body.String())
+	assert.Equal(t, "", w.Body.String())
 	assert.Equal(t, http.StatusCreated, w.Code)
+
+	assert.EqualValues(t, downloadForm, mock.requestedReport)
 }
 
 func TestRequestReportNoEmail(t *testing.T) {
@@ -57,8 +58,8 @@ func TestRequestReportNoEmail(t *testing.T) {
 	r, _ := http.NewRequestWithContext(ctx, http.MethodPost, "/downloads", &b)
 	w := httptest.NewRecorder()
 
-	mock := &mockService{}
-	server := NewServer(mock, nil, nil, nil)
+	mock := &MockReports{}
+	server := NewServer(nil, mock, nil, nil)
 	err := server.requestReport(w, r)
 
 	res := w.Result()

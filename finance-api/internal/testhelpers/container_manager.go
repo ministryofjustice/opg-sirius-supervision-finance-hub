@@ -14,6 +14,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"testing"
 	"time"
 )
 
@@ -39,6 +40,9 @@ func (db *ContainerManager) Restore(ctx context.Context) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// Restore sometimes "completes" before indexes have been rebuilt, so we need to wait a bit
+	time.Sleep(1 * time.Second)
 }
 
 func Init(ctx context.Context, searchPath string) *ContainerManager {
@@ -117,12 +121,13 @@ func (db *ContainerManager) TearDown(ctx context.Context) {
 	_ = db.Container.Terminate(ctx)
 }
 
-func (db *ContainerManager) Seeder(ctx context.Context) *Seeder {
+func (db *ContainerManager) Seeder(ctx context.Context, t *testing.T) *Seeder {
 	conn, err := pgxpool.New(ctx, db.Address)
 	if err != nil {
 		log.Fatal(err)
 	}
 	return &Seeder{
+		t:    t,
 		Conn: conn,
 	}
 }

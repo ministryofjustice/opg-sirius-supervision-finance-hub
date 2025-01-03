@@ -8,7 +8,7 @@ import (
 )
 
 func (suite *IntegrationSuite) TestService_GetAccountInformation() {
-	seeder := suite.testDB.Seeder(suite.ctx)
+	seeder := suite.cm.Seeder(suite.ctx, nil)
 
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (1, 1, 'sop123', 'DEMANDED', NULL)",

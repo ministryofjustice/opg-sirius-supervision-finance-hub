@@ -9,7 +9,7 @@ import (
 
 func (suite *IntegrationSuite) TestService_CancelFeeReduction() {
 	ctx := suite.ctx
-	seeder := suite.testDB.Seeder(ctx)
+	seeder := suite.cm.Seeder(ctx, suite.T())
 
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (33, 33, '1234', 'DEMANDED', NULL);",

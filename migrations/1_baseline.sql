@@ -1,7 +1,9 @@
 -- +goose Up
 CREATE ROLE api;
 
-CREATE TABLE public.persons
+SET SEARCH_PATH TO public;
+
+CREATE TABLE persons
 (
     id            INTEGER NOT NULL
         PRIMARY KEY,
@@ -10,7 +12,7 @@ CREATE TABLE public.persons
     caserecnumber VARCHAR(255) DEFAULT NULL,
     feepayer_id   INTEGER      DEFAULT NULL
         CONSTRAINT fk_a25cc7d3aff282de
-            REFERENCES public.persons,
+            REFERENCES persons,
     deputytype    VARCHAR(255) DEFAULT NULL
 );
 
@@ -31,13 +33,13 @@ CREATE INDEX cases_orderstatus_index ON public.cases (orderstatus);
 
 CREATE INDEX idx_1c1b038b19eb6921 ON public.cases (client_id);
 
-CREATE SEQUENCE persons_id_seq;
+CREATE SEQUENCE public.persons_id_seq;
 
-ALTER SEQUENCE persons_id_seq OWNER TO api;
+ALTER SEQUENCE public.persons_id_seq OWNER TO api;
 
-CREATE SEQUENCE cases_id_seq;
+CREATE SEQUENCE public.cases_id_seq;
 
-ALTER SEQUENCE cases_id_seq OWNER TO api;
+ALTER SEQUENCE public.cases_id_seq OWNER TO api;
 
 CREATE SCHEMA supervision_finance;
 GRANT ALL ON SCHEMA supervision_finance TO api;

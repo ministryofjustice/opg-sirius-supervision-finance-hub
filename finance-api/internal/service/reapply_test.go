@@ -33,7 +33,7 @@ func (m *mockDispatch) FinanceAdminUploadProcessed(ctx context.Context, event ev
 
 func (suite *IntegrationSuite) TestService_reapplyCredit_noInvoices() {
 	ctx := suite.ctx
-	seeder := suite.testDB.Seeder(ctx)
+	seeder := suite.cm.Seeder(ctx, suite.T())
 
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (1, 1, 'no-invoice', 'DEMANDED', NULL);",
@@ -67,7 +67,7 @@ func (suite *IntegrationSuite) TestService_reapplyCredit_noInvoices() {
 
 func (suite *IntegrationSuite) TestService_reapplyCredit_oldestFirst() {
 	ctx := suite.ctx
-	seeder := suite.testDB.Seeder(ctx)
+	seeder := suite.cm.Seeder(ctx, suite.T())
 
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (1, 1, 'no-invoice', 'DEMANDED', NULL);",
