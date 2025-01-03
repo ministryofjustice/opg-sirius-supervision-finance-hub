@@ -45,7 +45,7 @@ INSERT INTO ledger_allocation VALUES (3, 3, 6, '2024-04-11T08:36:40+00:00', 3000
 -- fee-reductions
 INSERT INTO finance_client VALUES (8, 8, 'fee-reductions', 'DEMANDED', null);
 INSERT INTO fee_reduction VALUES (3, 8, 'REMISSION', null, '2019-04-01', '2020-03-31', 'notes', false, '2019-05-01');
-INSERT INTO fee_reduction VALUES (4, 8, 'HARDSHIP', null, CONCAT(date_part('year', now()), '-04-01')::DATE, CONCAT(date_part('year', now()), '-03-31')::DATE + INTERVAL '1 year', 'current reduction', false, '2020-05-01', '2020-05-01', 1);
+INSERT INTO fee_reduction VALUES (4, 8, 'HARDSHIP', null, CONCAT(date_part('year', now()), '-01-01')::DATE, CONCAT(date_part('year', now()), '-12-31')::DATE + INTERVAL '1 year', 'current reduction', false, '2020-05-01', '2020-05-01', 1);
 
 -- invoices
 INSERT INTO finance_client VALUES (9, 9, 'customer-credit-balance', 'DEMANDED', null);
