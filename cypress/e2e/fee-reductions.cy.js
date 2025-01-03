@@ -1,5 +1,6 @@
 describe("Fee Reductions Tab", () => {
     it("displays table and content", () => {
+        const thisYear = new Date().getFullYear();
         cy.visit("/clients/8/fee-reductions");
 
         cy.get("table#fee-reductions > thead > tr")
@@ -20,8 +21,8 @@ describe("Fee Reductions Tab", () => {
             .first().within(() => {
             cy.get("td")
                 .first().contains("Hardship")
-                .next().contains("01/04/2024")
-                .next().contains("31/03/2025")
+                .next().contains(`01/04/${thisYear}`)
+                .next().contains(`31/03/${thisYear + 1}`)
                 .next().contains("01/05/2020")
                 .next().contains("Active")
                 .next().contains("current reduction")
