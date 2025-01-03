@@ -27,7 +27,7 @@ func addFeeReductionSetup(seeder *testhelpers.Seeder) (*Service, shared.AddFeeRe
 
 func (suite *IntegrationSuite) TestService_AddFeeReduction() {
 	ctx := suite.ctx
-	seeder := suite.testDB.Seeder(ctx)
+	seeder := suite.cm.Seeder(ctx, suite.T())
 
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (22, 22, '1234', 'DEMANDED', NULL);",
@@ -96,7 +96,7 @@ func (suite *IntegrationSuite) TestService_AddFeeReduction() {
 
 func (suite *IntegrationSuite) TestService_AddFeeReductionOverlap() {
 	ctx := suite.ctx
-	seeder := suite.testDB.Seeder(ctx)
+	seeder := suite.cm.Seeder(ctx, suite.T())
 
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (23, 23, '1234', 'DEMANDED', NULL);",

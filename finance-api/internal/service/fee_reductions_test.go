@@ -11,7 +11,7 @@ import (
 
 func (suite *IntegrationSuite) TestService_GetFeeReductions() {
 	ctx := suite.ctx
-	seeder := suite.testDB.Seeder(ctx)
+	seeder := suite.cm.Seeder(ctx, suite.T())
 
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (5, 5, '1234', 'DEMANDED', NULL);",
