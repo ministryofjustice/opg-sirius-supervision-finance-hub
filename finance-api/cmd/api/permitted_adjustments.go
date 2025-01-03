@@ -13,7 +13,7 @@ func (s *Server) getPermittedAdjustments(w http.ResponseWriter, r *http.Request)
 	ctx := r.Context()
 
 	invoiceId, _ := strconv.Atoi(r.PathValue("invoiceId"))
-	types, err := s.Service.GetPermittedAdjustments(ctx, invoiceId)
+	types, err := s.service.GetPermittedAdjustments(ctx, invoiceId)
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		return apierror.NotFoundError(err)

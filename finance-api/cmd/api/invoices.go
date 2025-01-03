@@ -10,7 +10,7 @@ func (s *Server) getInvoices(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 
 	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
-	invoices, err := s.Service.GetInvoices(ctx, clientId)
+	invoices, err := s.service.GetInvoices(ctx, clientId)
 
 	if err != nil {
 		return err

@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func addFeeReductionSetup(conn testhelpers.TestConn) (Service, shared.AddFeeReduction) {
+func addFeeReductionSetup(seeder *testhelpers.Seeder) (*Service, shared.AddFeeReduction) {
 	receivedDate := shared.NewDate("2024-01-01")
 
 	params := shared.AddFeeReduction{
@@ -20,28 +20,27 @@ func addFeeReductionSetup(conn testhelpers.TestConn) (Service, shared.AddFeeRedu
 		Notes:         "Testing",
 	}
 
-	client := SetUpTest()
-	s := NewService(client, conn.Conn, nil, nil)
+	s := NewService(seeder.Conn, nil, nil, nil)
 
 	return s, params
 }
 
 func (suite *IntegrationSuite) TestService_AddFeeReduction() {
-	conn := suite.testDB.GetConn()
+	ctx := suite.ctx
+	seeder := suite.cm.Seeder(ctx, suite.T())
 
-	conn.SeedData(
+	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (22, 22, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO fee_reduction VALUES (22, 22, 'REMISSION', NULL, '2019-04-01', '2021-03-31', 'Remission to see the notes', FALSE, '2019-05-01');",
-		"INSERT INTO invoice VALUES (22, 22, 22, 'S2', 'S200123/24', '2024-01-01', '2025-03-31', 10000, null, '2024-01-01', null, '2024-01-01')",
+		"INSERT INTO invoice VALUES (22, 22, 22, 'S2', 'S200123/24', '2024-01-01', '2025-03-31', 10000, NULL, '2024-01-01', NULL, '2024-01-01')",
 		"INSERT INTO invoice_fee_range VALUES (22, 22, 'GENERAL', '2022-04-01', '2025-03-31', 10000)",
 	)
-	ctx := suite.ctx
 
-	s, params := addFeeReductionSetup(conn)
+	s, params := addFeeReductionSetup(seeder)
 	err := s.AddFeeReduction(ctx, 22, params)
 
-	feeReductionRow := conn.QueryRow(ctx, "SELECT id, finance_client_id, type, startdate, enddate, notes, datereceived, created_by, created_at FROM supervision_finance.fee_reduction WHERE id = 1")
-	remissionLedgerRow := conn.QueryRow(ctx, "SELECT l.amount, l.notes, l.type FROM ledger_allocation la LEFT JOIN ledger l ON l.id = la.ledger_id WHERE invoice_id = 22")
+	feeReductionRow := seeder.QueryRow(ctx, "SELECT id, finance_client_id, type, startdate, enddate, notes, datereceived, created_by, created_at FROM supervision_finance.fee_reduction WHERE id = 1")
+	remissionLedgerRow := seeder.QueryRow(ctx, "SELECT l.amount, l.notes, l.type FROM ledger_allocation la LEFT JOIN ledger l ON l.id = la.ledger_id WHERE invoice_id = 22")
 
 	var remissionLedger struct {
 		amount     int
@@ -96,13 +95,14 @@ func (suite *IntegrationSuite) TestService_AddFeeReduction() {
 }
 
 func (suite *IntegrationSuite) TestService_AddFeeReductionOverlap() {
-	conn := suite.testDB.GetConn()
+	ctx := suite.ctx
+	seeder := suite.cm.Seeder(ctx, suite.T())
 
-	conn.SeedData(
+	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (23, 23, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO fee_reduction VALUES (23, 23, 'REMISSION', NULL, '2019-04-01', '2021-03-31', 'Remission to see the notes', FALSE, '2019-05-01');",
 	)
-	s, params := addFeeReductionSetup(conn)
+	s, params := addFeeReductionSetup(seeder)
 
 	testCases := []struct {
 		testName      string

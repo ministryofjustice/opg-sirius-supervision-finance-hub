@@ -22,6 +22,12 @@ type BillingPeriod struct {
 	EndDate         pgtype.Date
 }
 
+type Case struct {
+	ID          int32
+	ClientID    pgtype.Int4
+	Orderstatus pgtype.Text
+}
+
 type CostCentre struct {
 	Code                  int32
 	CostCentreDescription string
@@ -162,6 +168,15 @@ type LedgerAllocation struct {
 	Allocateddate pgtype.Date
 	Batchnumber   pgtype.Int4
 	Source        pgtype.Text
+}
+
+type Person struct {
+	ID            int32
+	Firstname     pgtype.Text
+	Surname       pgtype.Text
+	Caserecnumber pgtype.Text
+	FeepayerID    pgtype.Int4
+	Deputytype    pgtype.Text
 }
 
 type Property struct {
