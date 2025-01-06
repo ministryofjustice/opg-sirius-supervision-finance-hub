@@ -46,7 +46,7 @@ func run(ctx context.Context, logger *slog.Logger) error {
 	defer dbpool.Close()
 
 	eventClient := setupEventClient(ctx, logger)
-	fileStorageClient, err := filestorage.NewClient(ctx) // TODO: remove once upload flow changes
+	fileStorageClient, err := filestorage.NewClient(ctx)
 
 	if err != nil {
 		return err
@@ -59,7 +59,6 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		return err
 	}
 
-	// TODO: Decide if Notify and reports goes here or in service
 	server := api.NewServer(&Service, fileStorageClient, validator)
 
 	s := &http.Server{
