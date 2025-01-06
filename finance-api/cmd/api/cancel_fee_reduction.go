@@ -17,14 +17,14 @@ func (s *Server) cancelFeeReduction(w http.ResponseWriter, r *http.Request) erro
 		return err
 	}
 
-	validationError := s.Validator.ValidateStruct(cancelFeeReduction)
+	validationError := s.validator.ValidateStruct(cancelFeeReduction)
 
 	if len(validationError.Errors) != 0 {
 		return validationError
 	}
 
 	feeReductionId, _ := strconv.Atoi(r.PathValue("feeReductionId"))
-	err := s.Service.CancelFeeReduction(ctx, feeReductionId, cancelFeeReduction)
+	err := s.service.CancelFeeReduction(ctx, feeReductionId, cancelFeeReduction)
 
 	if err != nil {
 		return err
