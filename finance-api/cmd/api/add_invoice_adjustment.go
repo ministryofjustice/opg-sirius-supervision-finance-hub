@@ -18,13 +18,13 @@ func (s *Server) AddInvoiceAdjustment(w http.ResponseWriter, r *http.Request) er
 		return err
 	}
 
-	validationError := s.Validator.ValidateStruct(ledgerEntry)
+	validationError := s.validator.ValidateStruct(ledgerEntry)
 
 	if len(validationError.Errors) != 0 {
 		return validationError
 	}
 
-	invoiceReference, err := s.Service.AddInvoiceAdjustment(ctx, clientId, invoiceId, &ledgerEntry)
+	invoiceReference, err := s.service.AddInvoiceAdjustment(ctx, clientId, invoiceId, &ledgerEntry)
 
 	if err != nil {
 		return err

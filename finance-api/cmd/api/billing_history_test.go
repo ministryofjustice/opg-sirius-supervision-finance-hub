@@ -38,7 +38,7 @@ func TestServer_getBillingHistory(t *testing.T) {
 	}
 
 	mock := &mockService{billingHistory: billingHistoryInfo}
-	server := Server{Service: mock}
+	server := NewServer(mock, nil, nil, nil)
 	_ = server.getBillingHistory(w, req)
 
 	res := w.Result()
@@ -57,7 +57,7 @@ func TestServer_getBillingHistory_returns_an_empty_array(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	mock := &mockService{billingHistory: []shared.BillingHistory{}}
-	server := Server{Service: mock}
+	server := NewServer(mock, nil, nil, nil)
 	_ = server.getBillingHistory(w, req)
 
 	res := w.Result()
@@ -76,7 +76,7 @@ func TestServer_getBillingHistory_error(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	mock := &mockService{err: pgx.ErrTooManyRows}
-	server := Server{Service: mock}
+	server := NewServer(mock, nil, nil, nil)
 	err := server.getBillingHistory(w, req)
 
 	assert.Error(t, err)
