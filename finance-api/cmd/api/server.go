@@ -2,11 +2,13 @@ package api
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/ministryofjustice/opg-go-common/securityheaders"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"io"
 	"log/slog"
 	"net/http"
 )
@@ -28,9 +30,24 @@ type Service interface {
 	ProcessFinanceAdminUpload(ctx context.Context, detail shared.FinanceAdminUploadEvent) error
 }
 
+type FileStorage interface {
+	GetFileByVersion(ctx context.Context, bucketName string, filename string, versionID string) (*s3.GetObjectOutput, error)
+	PutFile(ctx context.Context, bucketName string, fileName string, file io.Reader) (*string, error)
+	FileExists(ctx context.Context, bucketName string, filename string, versionID string) bool
+}
+
 type Server struct {
-	Service   Service
-	Validator *validation.Validate
+	service     Service
+	fileStorage FileStorage
+	validator   *validation.Validate
+}
+
+func NewServer(service Service, fileStorage FileStorage, validator *validation.Validate) *Server {
+	return &Server{
+		service:     service,
+		fileStorage: fileStorage,
+		validator:   validator,
+	}
 }
 
 func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
@@ -55,6 +72,9 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 	handleFunc("PUT /clients/{clientId}/invoice-adjustments/{adjustmentId}", s.updatePendingInvoiceAdjustment)
 	handleFunc("POST /clients/{clientId}/fee-reductions", s.addFeeReduction)
 	handleFunc("PUT /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", s.cancelFeeReduction)
+
+	handleFunc("GET /download", s.download)
+	handleFunc("HEAD /download", s.checkDownload)
 
 	handleFunc("POST /events", s.handleEvents)
 
