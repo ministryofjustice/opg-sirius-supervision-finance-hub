@@ -21,21 +21,21 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
 
 	if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeDebtPositionChanged {
 		if detail, ok := event.Detail.(shared.DebtPositionChangedEvent); ok {
-			err := s.Service.ReapplyCredit(ctx, int32(detail.ClientID))
+			err := s.service.ReapplyCredit(ctx, int32(detail.ClientID))
 			if err != nil {
 				return err
 			}
 		}
 	} else if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeClientCreated {
 		if detail, ok := event.Detail.(shared.ClientCreatedEvent); ok {
-			err := s.Service.UpdateClient(ctx, detail.ClientID, detail.CourtRef)
+			err := s.service.UpdateClient(ctx, detail.ClientID, detail.CourtRef)
 			if err != nil {
 				return err
 			}
 		}
 	} else if event.Source == shared.EventSourceFinanceAdmin && event.DetailType == shared.DetailTypeFinanceAdminUpload {
 		if detail, ok := event.Detail.(shared.FinanceAdminUploadEvent); ok {
-			err := s.Service.ProcessFinanceAdminUpload(ctx, detail)
+			err := s.service.ProcessFinanceAdminUpload(ctx, detail)
 			if err != nil {
 				return err
 			}
