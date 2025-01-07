@@ -78,6 +78,8 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 	handleFunc("POST /clients/{clientId}/fee-reductions", s.addFeeReduction)
 	handleFunc("PUT /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", s.cancelFeeReduction)
 
+	handleFunc("POST /reports", s.requestReport)
+
 	handleFunc("POST /events", s.handleEvents)
 
 	handleFunc("/health-check", func(w http.ResponseWriter, r *http.Request) error { return nil })
