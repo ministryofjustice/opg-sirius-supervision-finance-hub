@@ -7,9 +7,10 @@ import (
 )
 
 func (suite *IntegrationSuite) TestService_UpdatePendingInvoiceAdjustment() {
-	conn := suite.testDB.GetConn()
+	ctx := suite.ctx
+	seeder := suite.cm.Seeder(ctx, suite.T())
 
-	conn.SeedData(
+	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (1, 1, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO invoice VALUES (1, 1, 1, 'S2', 'reject', '2019-04-01', '2020-03-31', 12300, NULL, '2020-03-20',1, '2020-03-16', 10, NULL, 12300, '2019-06-06', NULL);",
 		"INSERT INTO invoice_adjustment VALUES (NEXTVAL('invoice_adjustment_id_seq'), 1, 1, '2024-01-01', 'CREDIT MEMO', '5000', 'reject me', 'PENDING', '2024-01-01', 1)",
@@ -37,8 +38,7 @@ func (suite *IntegrationSuite) TestService_UpdatePendingInvoiceAdjustment() {
 	)
 
 	dispatch := &mockDispatch{}
-	client := SetUpTest()
-	s := NewService(client, conn.Conn, dispatch, nil)
+	s := NewService(seeder.Conn, dispatch, nil, nil)
 
 	type args struct {
 		clientId     int
@@ -116,7 +116,7 @@ func (suite *IntegrationSuite) TestService_UpdatePendingInvoiceAdjustment() {
 				return
 			}
 
-			rows, _ := conn.Query(suite.ctx,
+			rows, _ := seeder.Query(suite.ctx,
 				"SELECT la.status FROM ledger_allocation la JOIN ledger l ON l.id = la.ledger_id WHERE l.finance_client_id = $1", tt.args.clientId)
 
 			statuses := []string{}
@@ -132,7 +132,7 @@ func (suite *IntegrationSuite) TestService_UpdatePendingInvoiceAdjustment() {
 				status   string
 				ledgerId int
 			}
-			q := conn.QueryRow(suite.ctx, "SELECT status, ledger_id FROM invoice_adjustment WHERE id = $1", tt.args.adjustmentId)
+			q := seeder.QueryRow(suite.ctx, "SELECT status, ledger_id FROM invoice_adjustment WHERE id = $1", tt.args.adjustmentId)
 			_ = q.Scan(
 				&adjusted.status,
 				&adjusted.ledgerId,
