@@ -28,7 +28,7 @@ func TestServer_download(t *testing.T) {
 		ContentType: aws.String("text/csv"),
 	}
 
-	server := NewServer(nil, &mockS3, nil)
+	server := NewServer(nil, nil, &mockS3, nil)
 	_ = server.download(w, r)
 
 	res := w.Result()

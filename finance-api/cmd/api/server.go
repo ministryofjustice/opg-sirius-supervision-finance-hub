@@ -81,6 +81,8 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 	handleFunc("GET /download", s.download)
 	handleFunc("HEAD /download", s.checkDownload)
 
+	handleFunc("POST /reports", s.requestReport)
+
 	handleFunc("POST /events", s.handleEvents)
 
 	handleFunc("/health-check", func(w http.ResponseWriter, r *http.Request) error { return nil })
