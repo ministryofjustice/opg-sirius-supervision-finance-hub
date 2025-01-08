@@ -10,6 +10,8 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/cmd/api"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/filestorage"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/reports"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/service"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"log/slog"
@@ -42,8 +44,8 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		return err
 	}
 
-	dbpool := setupDbPool(ctx, logger)
-	defer dbpool.Close()
+	dbPool := setupDbPool(ctx, logger, "supervision_finance", false)
+	defer dbPool.Close()
 
 	eventClient := setupEventClient(ctx, logger)
 	fileStorageClient, err := filestorage.NewClient(ctx)
@@ -52,14 +54,23 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		return err
 	}
 
-	Service := service.NewService(http.DefaultClient, dbpool, eventClient, fileStorageClient)
+	notifyClient := notify.NewClient()
+
+	Service := service.NewService(dbPool, eventClient, fileStorageClient, notifyClient)
 
 	validator, err := validation.New()
 	if err != nil {
 		return err
 	}
 
-	server := api.NewServer(&Service, fileStorageClient, validator)
+	reportsClient := reports.NewClient(
+		setupDbPool(ctx, logger, "supervision_finance,public", true),
+		fileStorageClient,
+		notify.NewClient(),
+	)
+	defer reportsClient.Close()
+
+	server := api.NewServer(Service, reportsClient, fileStorageClient, validator)
 
 	s := &http.Server{
 		Addr:    ":8080",
@@ -86,13 +97,18 @@ func run(ctx context.Context, logger *slog.Logger) error {
 	return s.Shutdown(tc)
 }
 
-func setupDbPool(ctx context.Context, logger *slog.Logger) *pgxpool.Pool {
+func setupDbPool(ctx context.Context, logger *slog.Logger, searchPath string, readOnly bool) *pgxpool.Pool {
 	dbConn := os.Getenv("POSTGRES_CONN")
 	dbUser := os.Getenv("POSTGRES_USER")
 	dbPassword := os.Getenv("POSTGRES_PASSWORD")
 	pgDb := os.Getenv("POSTGRES_DB")
 
-	dbpool, err := pgxpool.New(ctx, fmt.Sprintf("postgresql://%s:%s@%s/%s?search_path=supervision_finance", dbUser, url.QueryEscape(dbPassword), dbConn, pgDb))
+	connString := fmt.Sprintf("postgresql://%s:%s@%s/%s?search_path=%s", dbUser, url.QueryEscape(dbPassword), dbConn, pgDb, searchPath)
+	if readOnly {
+		connString += "&default_transaction_read_only=true"
+	}
+
+	dbpool, err := pgxpool.New(ctx, connString)
 	if err != nil {
 		logger.Error("Unable to create connection pool", "error", err)
 		os.Exit(1)
