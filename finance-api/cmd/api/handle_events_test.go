@@ -63,7 +63,7 @@ func TestServer_handleEvents(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			mock := &mockService{}
-			server := Server{Service: mock}
+			server := NewServer(mock, nil, nil)
 
 			var body bytes.Buffer
 			_ = json.NewEncoder(&body).Encode(test.event)
