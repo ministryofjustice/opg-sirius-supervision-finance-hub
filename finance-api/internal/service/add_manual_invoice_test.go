@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func addManualInvoiceSetup(conn testhelpers.TestConn) (Service, shared.AddManualInvoice) {
+func addManualInvoiceSetup(seeder *testhelpers.Seeder) (*Service, shared.AddManualInvoice) {
 	params := shared.AddManualInvoice{
 		InvoiceType:      shared.InvoiceTypeS2,
 		Amount:           shared.Nillable[int]{Value: 50000, Valid: true},
@@ -21,24 +21,23 @@ func addManualInvoiceSetup(conn testhelpers.TestConn) (Service, shared.AddManual
 		SupervisionLevel: shared.Nillable[string]{Value: "GENERAL", Valid: true},
 	}
 
-	client := SetUpTest()
-	s := NewService(client, conn.Conn, nil, nil)
+	s := NewService(seeder.Conn, nil, nil, nil)
 
 	return s, params
 }
 
 func (suite *IntegrationSuite) TestService_AddManualInvoice() {
-	conn := suite.testDB.GetConn()
+	ctx := suite.ctx
+	seeder := suite.cm.Seeder(ctx, suite.T())
 
-	conn.SeedData(
+	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (24, 24, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO fee_reduction VALUES (24, 24, 'REMISSION', NULL, '2023-04-01', '2024-03-31', 'Remission to see the notes', FALSE, '2023-05-01');",
 	)
-	ctx := suite.ctx
-	s, params := addManualInvoiceSetup(conn)
+	s, params := addManualInvoiceSetup(seeder)
 
 	err := s.AddManualInvoice(ctx, 24, params)
-	rows := conn.QueryRow(ctx, "SELECT * FROM supervision_finance.invoice WHERE id = 1")
+	rows := seeder.QueryRow(ctx, "SELECT * FROM supervision_finance.invoice WHERE id = 1")
 
 	var (
 		id                int
@@ -91,13 +90,14 @@ func (suite *IntegrationSuite) TestService_AddManualInvoice() {
 }
 
 func (suite *IntegrationSuite) TestService_AddManualInvoiceRaisedDateForAnInvoiceReturnsErrorForInvalidDates() {
-	conn := suite.testDB.GetConn()
+	ctx := suite.ctx
+	seeder := suite.cm.Seeder(ctx, suite.T())
 
-	conn.SeedData(
+	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (24, 24, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO fee_reduction VALUES (24, 24, 'REMISSION', NULL, '2023-04-01', '2024-03-31', 'Remission to see the notes', FALSE, '2023-05-01');",
 	)
-	s, params := addManualInvoiceSetup(conn)
+	s, params := addManualInvoiceSetup(seeder)
 
 	params.RaisedDate = shared.Nillable[shared.Date]{Value: shared.Date{Time: time.Now().AddDate(0, 0, 1)}, Valid: true}
 	params.StartDate = shared.Nillable[shared.Date]{Value: shared.Date{Time: time.Now().AddDate(0, 0, 1)}, Valid: true}
@@ -117,13 +117,14 @@ func (suite *IntegrationSuite) TestService_AddManualInvoiceRaisedDateForAnInvoic
 }
 
 func (suite *IntegrationSuite) TestService_AddManualInvoiceRaisedDateForAnInvoiceReturnsNoError() {
-	conn := suite.testDB.GetConn()
+	ctx := suite.ctx
+	seeder := suite.cm.Seeder(ctx, suite.T())
 
-	conn.SeedData(
+	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (24, 24, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO fee_reduction VALUES (24, 24, 'REMISSION', NULL, '2023-04-01', '2024-03-31', 'Remission to see the notes', FALSE, '2023-05-01');",
 	)
-	s, params := addManualInvoiceSetup(conn)
+	s, params := addManualInvoiceSetup(seeder)
 
 	params.RaisedDate = shared.Nillable[shared.Date]{Value: shared.Date{Time: time.Now().AddDate(0, 0, -1)}, Valid: true}
 	params.InvoiceType = shared.InvoiceTypeSO
@@ -228,15 +229,15 @@ func Test_validateStartDate(t *testing.T) {
 }
 
 func (suite *IntegrationSuite) TestService_AddLedgerAndAllocationsForAnADInvoice() {
-	conn := suite.testDB.GetConn()
+	ctx := suite.ctx
+	seeder := suite.cm.Seeder(ctx, suite.T())
 
-	conn.SeedData(
+	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (25, 25, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO fee_reduction VALUES (25, 25, 'REMISSION', NULL, '2023-04-01', '2024-03-31', 'Remission to see the notes', FALSE, '2023-05-01');",
 	)
 
-	ctx := suite.ctx
-	s, params := addManualInvoiceSetup(conn)
+	s, params := addManualInvoiceSetup(seeder)
 
 	params.InvoiceType = shared.InvoiceTypeAD
 	dateString := "2023-05-01"
@@ -251,7 +252,7 @@ func (suite *IntegrationSuite) TestService_AddLedgerAndAllocationsForAnADInvoice
 		suite.T().Error("Add manual invoice ledger failed")
 	}
 	var ledger store.Ledger
-	q := conn.QueryRow(ctx, "SELECT id, amount, notes, type, status, finance_client_id FROM ledger WHERE id = 1")
+	q := seeder.QueryRow(ctx, "SELECT id, amount, notes, type, status, finance_client_id FROM ledger WHERE id = 1")
 	err = q.Scan(&ledger.ID, &ledger.Amount, &ledger.Notes, &ledger.Type, &ledger.Status, &ledger.FinanceClientID)
 	if err != nil {
 		suite.T().Error("Add manual invoice ledger failed")
@@ -270,22 +271,22 @@ func (suite *IntegrationSuite) TestService_AddLedgerAndAllocationsForAnADInvoice
 }
 
 func (suite *IntegrationSuite) TestService_AddLedgerAndAllocationsForAnExemption() {
-	conn := suite.testDB.GetConn()
+	ctx := suite.ctx
+	seeder := suite.cm.Seeder(ctx, suite.T())
 
-	conn.SeedData(
+	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (25, 25, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO fee_reduction VALUES (25, 25, 'EXEMPTION', NULL, '2022-04-01', '2025-03-31', 'Exemption to see the notes', FALSE, '2023-05-01');",
 	)
 
-	ctx := suite.ctx
-	s, params := addManualInvoiceSetup(conn)
+	s, params := addManualInvoiceSetup(seeder)
 
 	err := s.AddManualInvoice(ctx, 25, params)
 	if err != nil {
 		suite.T().Error("Add manual invoice ledger with an exemption failed")
 	}
 	var ledger store.Ledger
-	q := conn.QueryRow(ctx, "SELECT id, amount, notes, type, status, finance_client_id FROM ledger WHERE id = 1")
+	q := seeder.QueryRow(ctx, "SELECT id, amount, notes, type, status, finance_client_id FROM ledger WHERE id = 1")
 	err = q.Scan(&ledger.ID, &ledger.Amount, &ledger.Notes, &ledger.Type, &ledger.Status, &ledger.FinanceClientID)
 	if err != nil {
 		suite.T().Error("Add manual invoice ledger with an exemption failed")

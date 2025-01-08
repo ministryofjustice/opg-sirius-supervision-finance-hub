@@ -23,27 +23,15 @@ type createdLedgerAllocation struct {
 	invoiceId        int
 }
 
-type mockFileStorage struct {
-	file io.ReadCloser
-	err  error
-}
-
-func (m *mockFileStorage) GetFile(ctx context.Context, bucketName string, fileName string) (io.ReadCloser, error) {
-	if m.err != nil {
-		return nil, m.err
-	}
-	return m.file, nil
-}
-
 func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
-	conn := suite.testDB.GetConn()
+	ctx := suite.ctx
+	seeder := suite.cm.Seeder(ctx, suite.T())
 
 	dispatch := &mockDispatch{}
-	filestorage := &mockFileStorage{}
-	client := SetUpTest()
-	filestorage.file = io.NopCloser(strings.NewReader("test"))
+	fileStorage := &mockFileStorage{}
+	fileStorage.file = io.NopCloser(strings.NewReader("test"))
 
-	s := NewService(client, conn.Conn, dispatch, filestorage)
+	s := NewService(seeder.Conn, dispatch, fileStorage, nil)
 
 	tests := []struct {
 		name           string
@@ -86,7 +74,7 @@ func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
 		suite.T().Run(tt.name, func(t *testing.T) {
 			filename := "test.csv"
 			emailAddress := "test@email.com"
-			filestorage.err = tt.fileStorageErr
+			fileStorage.err = tt.fileStorageErr
 
 			err := s.ProcessFinanceAdminUpload(context.Background(), shared.FinanceAdminUploadEvent{
 				EmailAddress: emailAddress, Filename: filename, UploadType: tt.uploadType,
@@ -98,18 +86,18 @@ func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
 }
 
 func (suite *IntegrationSuite) Test_processPayments() {
-	conn := suite.testDB.GetConn()
+	ctx := suite.ctx
+	seeder := suite.cm.Seeder(ctx, suite.T())
 
-	conn.SeedData(
+	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (1, 1, 'invoice-1', 'DEMANDED', NULL, '1234');",
 		"INSERT INTO finance_client VALUES (2, 2, 'invoice-2', 'DEMANDED', NULL, '12345');",
-		"INSERT INTO invoice VALUES (1, 1, 1, 'AD', 'AD11223/19', '2023-04-01', '2025-03-31', 15000, null, '2024-03-31', 11, '2024-03-31', null, null, null, '2024-03-31 00:00:00', '99');",
-		"INSERT INTO invoice VALUES (2, 2, 2, 'AD', 'AD11224/19', '2023-04-01', '2025-03-31', 10000, null, '2024-03-31', 11, '2024-03-31', null, null, null, '2024-03-31 00:00:00', '99');",
+		"INSERT INTO invoice VALUES (1, 1, 1, 'AD', 'AD11223/19', '2023-04-01', '2025-03-31', 15000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
+		"INSERT INTO invoice VALUES (2, 2, 2, 'AD', 'AD11224/19', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 	)
 
 	dispatch := &mockDispatch{}
-	client := SetUpTest()
-	s := NewService(client, conn.Conn, dispatch, nil)
+	s := NewService(seeder.Conn, dispatch, nil, nil)
 
 	tests := []struct {
 		name                      string
@@ -189,7 +177,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 
 			var createdLedgerAllocations []createdLedgerAllocation
 
-			rows, _ := conn.Query(suite.ctx,
+			rows, _ := seeder.Query(suite.ctx,
 				"SELECT l.amount, l.type, l.status, l.datetime, la.amount, la.status, la.invoice_id "+
 					"FROM ledger l "+
 					"LEFT JOIN ledger_allocation la ON l.id = la.ledger_id "+
