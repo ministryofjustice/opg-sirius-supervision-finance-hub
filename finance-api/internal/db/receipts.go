@@ -18,34 +18,36 @@ const ReceiptsQuery = `SELECT CONCAT(p.firstname, ' ', p.surname)               
        cc.cost_centre_description                                                             AS "Receivables cost centre description",
        a.code                                                                                 AS "Receivables account code",
        a.account_code_description                                                             AS "Receivables account code description",
-       CONCAT(tt.fee_type, i.reference)                                                       AS "Txn number",
-       tt.description                                                                         AS "Txn description",
-       l.bankdate                                                                             AS "Receipt date",
-       l.datetime                                                                             AS "Sirius upload date",
+       CONCAT(ft.fee_type, COALESCE(i.reference, p.caserecnumber))                            AS "Txn number",
+       ft.description                                                                         AS "Txn description",
+       CASE WHEN l.bankdate IS NOT NULL THEN TO_CHAR(l.bankdate, 'YYYY-MM-DD') ELSE '' END    AS "Receipt date",
+       TO_CHAR(l.datetime, 'YYYY-MM-DD')                                                      AS "Sirius upload date",
        CASE
            WHEN la.datetime >= DATE_TRUNC('year', la.datetime) + INTERVAL '3 months'
-               THEN CONCAT(EXTRACT(YEAR FROM la.datetime), '/', TO_CHAR(EXTRACT(YEAR FROM la.datetime) + 1, 'YY'))
-           ELSE CONCAT(EXTRACT(YEAR FROM la.datetime) - 1, '/', TO_CHAR(EXTRACT(YEAR FROM la.datetime), 'YY'))
+               THEN CONCAT(EXTRACT(YEAR FROM la.datetime), '/', TO_CHAR(la.datetime + INTERVAL '1 year', 'YY'))
+           ELSE CONCAT(EXTRACT(YEAR FROM la.datetime - INTERVAL '1 year'), '/', TO_CHAR(la.datetime, 'YY'))
            END                                                                                AS "Financial Year",
-       CASE WHEN la.status = 'ALLOCATED' THEN (la.amount / 100.0)::NUMERIC(10, 2) ELSE 0 END  AS "Receipt amount",
-       CASE WHEN la.status <> 'UNAPPLIED' THEN (la.amount / 100.0)::NUMERIC(10, 2) ELSE 0 END AS "Amount applied",
-       CASE WHEN la.status = 'UNAPPLIED' THEN (la.amount / 100.0)::NUMERIC(10, 2) ELSE 0 END  AS "Amount unapplied"
+       CASE WHEN la.status = 'ALLOCATED' OR la.status = 'UNAPPLIED' AND la.invoice_id IS NULL 
+           THEN ((l.amount / 100.0)::NUMERIC(10, 2))::VARCHAR(255) ELSE '0.00' END  		  AS "Receipt amount",
+       CASE WHEN la.status <> 'UNAPPLIED' THEN ((la.amount / 100.0)::NUMERIC(10, 2))::VARCHAR(255) ELSE '0.00' END AS "Amount applied",
+       CASE WHEN la.status = 'UNAPPLIED' THEN ((ABS(la.amount) / 100.0)::NUMERIC(10, 2))::VARCHAR(255) ELSE '0.00' END  AS "Amount unapplied"       
 FROM supervision_finance.ledger_allocation la
          JOIN supervision_finance.ledger l ON l.id = la.ledger_id
-         JOIN supervision_finance.invoice i ON i.id = la.invoice_id
+         LEFT JOIN supervision_finance.invoice i ON i.id = la.invoice_id
          JOIN supervision_finance.finance_client fc ON fc.id = l.finance_client_id
          JOIN public.persons p ON fc.client_id = p.id
-         LEFT JOIN supervision_finance.invoice_adjustment ia ON i.id = ia.invoice_id
-         LEFT JOIN supervision_finance.fee_reduction fr ON fr.id = l.fee_reduction_id
-         JOIN supervision_finance.transaction_type tt
-              ON l.type = tt.ledger_type
+    	 JOIN supervision_finance.transaction_type ft ON CASE WHEN la.status = 'UNAPPLIED' AND la.invoice_id IS NOT NULL THEN ft.fee_type = 'UA' ELSE l.type = ft.ledger_type END
+         JOIN supervision_finance.transaction_type tt ON 
+             CASE WHEN la.status = 'UNAPPLIED' THEN 
+                  CASE WHEN la.invoice_id IS NULL THEN  tt.fee_type = 'OP' ELSE tt.fee_type = 'UA' END 
+			 ELSE l.type = tt.ledger_type END
          JOIN supervision_finance.account a ON tt.account_code = a.code
          JOIN supervision_finance.cost_centre cc ON cc.code = a.cost_centre
 WHERE (la.status IN ('UNAPPLIED', 'REAPPLIED') OR
        (l.type IN ('MOTO CARD PAYMENT', 'ONLINE CARD PAYMENT', 'SUPERVISION BACS PAYMENT', 'OPG BACS PAYMENT') AND
-        la.status = 'ALLOCATED')
-    )
-  AND l.datetime BETWEEN $1 AND $2;`
+        la.status = 'ALLOCATED'))
+  AND l.datetime::DATE BETWEEN $1 AND $2
+ORDER BY la.id;`
 
 func (r *Receipts) GetHeaders() []string {
 	return []string{
@@ -62,7 +64,6 @@ func (r *Receipts) GetHeaders() []string {
 		"Receipt date",
 		"Sirius upload date",
 		"Financial Year",
-		"Receipt number",
 		"Receipt amount",
 		"Amount applied",
 		"Amount unapplied",
@@ -74,15 +75,21 @@ func (r *Receipts) GetQuery() string {
 }
 
 func (r *Receipts) GetParams() []any {
+	var (
+		from, to time.Time
+	)
+
 	if r.FromDate == nil {
-		from := shared.NewDate("")
-		r.FromDate = &from
+		from = time.Time{}
+	} else {
+		from = r.FromDate.Time
 	}
 
 	if r.ToDate == nil {
-		to := shared.Date{Time: time.Now()}
-		r.ToDate = &to
+		to = time.Now()
+	} else {
+		to = r.ToDate.Time
 	}
 
-	return []any{r.FromDate.Time.Format("2006-01-02"), r.ToDate.Time.Format("2006-01-02")}
+	return []any{from.Format("2006-01-02"), to.Format("2006-01-02")}
 }
