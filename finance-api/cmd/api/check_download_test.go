@@ -15,7 +15,7 @@ func TestCheckDownload(t *testing.T) {
 	mockS3 := MockFileStorage{}
 	mockS3.exists = true
 
-	server := NewServer(nil, &mockS3, nil)
+	server := NewServer(nil, nil, &mockS3, nil)
 	err := server.checkDownload(w, req)
 
 	assert.NoError(t, err)
@@ -29,7 +29,7 @@ func TestCheckDownload_noMatch(t *testing.T) {
 	mockS3 := MockFileStorage{}
 	mockS3.exists = false
 
-	server := NewServer(nil, &mockS3, nil)
+	server := NewServer(nil, nil, &mockS3, nil)
 	err := server.checkDownload(w, req)
 
 	assert.ErrorIs(t, err, apierror.NotFound{})
