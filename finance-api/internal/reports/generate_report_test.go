@@ -92,8 +92,10 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			reportRequest: shared.ReportRequest{
 				ReportType:        "AccountsReceivable",
 				ReportAccountType: "TotalReceiptsReport",
+				ToDateField:       &toDate,
+				FromDateField:     &fromDate,
 			},
-			expectedQuery: &db.AgedDebtByCustomer{},
+			expectedQuery: &db.Receipts{FromDate: &fromDate, ToDate: &toDate},
 		},
 		{
 			name: "Unknown",
@@ -127,6 +129,11 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				assert.Nil(t, err)
 			case *db.AgedDebtByCustomer:
 				actual, ok := mockDb.query.(*db.AgedDebtByCustomer)
+				assert.True(t, ok)
+				assert.Equal(t, expected, actual)
+				assert.Nil(t, err)
+			case *db.BadDebtWriteOff:
+				actual, ok := mockDb.query.(*db.BadDebtWriteOff)
 				assert.True(t, ok)
 				assert.Equal(t, expected, actual)
 				assert.Nil(t, err)
