@@ -10,7 +10,7 @@ func (s *Server) getInvoiceAdjustments(w http.ResponseWriter, r *http.Request) e
 	ctx := r.Context()
 
 	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
-	data, err := s.Service.GetInvoiceAdjustments(ctx, clientId)
+	data, err := s.service.GetInvoiceAdjustments(ctx, clientId)
 
 	if err != nil {
 		return err
