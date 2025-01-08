@@ -8,9 +8,9 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	"io"
 	"log/slog"
 	"net/http"
+	"time"
 )
 
 type Service interface {
@@ -32,19 +32,24 @@ type Service interface {
 
 type FileStorage interface {
 	GetFileByVersion(ctx context.Context, bucketName string, filename string, versionID string) (*s3.GetObjectOutput, error)
-	PutFile(ctx context.Context, bucketName string, fileName string, file io.Reader) (*string, error)
 	FileExists(ctx context.Context, bucketName string, filename string, versionID string) bool
+}
+
+type Reports interface {
+	GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) error
 }
 
 type Server struct {
 	service     Service
+	reports     Reports
 	fileStorage FileStorage
 	validator   *validation.Validate
 }
 
-func NewServer(service Service, fileStorage FileStorage, validator *validation.Validate) *Server {
+func NewServer(service Service, reports Reports, fileStorage FileStorage, validator *validation.Validate) *Server {
 	return &Server{
 		service:     service,
+		reports:     reports,
 		fileStorage: fileStorage,
 		validator:   validator,
 	}
@@ -72,9 +77,6 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 	handleFunc("PUT /clients/{clientId}/invoice-adjustments/{adjustmentId}", s.updatePendingInvoiceAdjustment)
 	handleFunc("POST /clients/{clientId}/fee-reductions", s.addFeeReduction)
 	handleFunc("PUT /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", s.cancelFeeReduction)
-
-	handleFunc("GET /download", s.download)
-	handleFunc("HEAD /download", s.checkDownload)
 
 	handleFunc("POST /events", s.handleEvents)
 

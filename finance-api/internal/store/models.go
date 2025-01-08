@@ -14,12 +14,24 @@ type Account struct {
 	CostCentre             pgtype.Int4
 }
 
+type Assignee struct {
+	ID      int32
+	Name    pgtype.Text
+	Surname pgtype.Text
+}
+
 type BillingPeriod struct {
 	ID              int32
 	FinanceClientID pgtype.Int4
 	OrderID         pgtype.Int4
 	StartDate       pgtype.Date
 	EndDate         pgtype.Date
+}
+
+type Case struct {
+	ID          int32
+	ClientID    pgtype.Int4
+	Orderstatus pgtype.Text
 }
 
 type CostCentre struct {
@@ -162,6 +174,15 @@ type LedgerAllocation struct {
 	Allocateddate pgtype.Date
 	Batchnumber   pgtype.Int4
 	Source        pgtype.Text
+}
+
+type Person struct {
+	ID            int32
+	Firstname     pgtype.Text
+	Surname       pgtype.Text
+	Caserecnumber pgtype.Text
+	FeepayerID    pgtype.Int4
+	Deputytype    pgtype.Text
 }
 
 type Property struct {
