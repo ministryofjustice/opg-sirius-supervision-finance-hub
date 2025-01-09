@@ -48,7 +48,7 @@ func run(ctx context.Context, logger *slog.Logger) error {
 	defer dbPool.Close()
 
 	eventClient := setupEventClient(ctx, logger)
-	fileStorageClient, err := filestorage.NewClient(ctx) // TODO: remove once upload flow changes
+	fileStorageClient, err := filestorage.NewClient(ctx)
 
 	if err != nil {
 		return err
