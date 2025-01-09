@@ -66,7 +66,6 @@ func (r *Receipts) GetHeaders() []string {
 		"Receipt amount",
 		"Amount applied",
 		"Amount unapplied",
-		"Line description (does not feature on report)",
 	}
 }
 

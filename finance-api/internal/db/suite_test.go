@@ -35,3 +35,7 @@ func (suite *IntegrationSuite) TearDownSuite() {
 func (suite *IntegrationSuite) AfterTest(suiteName, testName string) {
 	suite.cm.Restore(suite.ctx)
 }
+
+func valToPtr[T any](val T) *T {
+	return &val
+}
