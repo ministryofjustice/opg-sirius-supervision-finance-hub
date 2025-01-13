@@ -23,7 +23,7 @@ INSERT INTO ledger VALUES (1, 'add-debit', '2024-04-11T08:36:40+00:00', '', 1000
 INSERT INTO ledger_allocation VALUES (1, 1, 3, '2022-04-11T08:36:40+00:00', 10000, 'ALLOCATED', null, 'Notes here', '2022-04-11', null);
 
 INSERT INTO invoice VALUES (4, 4, 4, 'AD', 'AD03533/24', '2023-04-01', '2024-03-31', 10000, null, '2024-03-31', 10, '2023-04-01', null, null, null, '2024-03-31', '99'); -- write off reversal
-INSERT INTO ledger VALUES (2, 'write-off', '2024-04-11T08:36:40+00:00', '', 10000, '', 'CREDIT WRITE OFF', 'APPROVED', 4);
+INSERT INTO ledger VALUES (2, 'write-off', '2024-04-11T08:36:40+00:00', '', 10000, '', 'CREDIT WRITE OFF', 'CONFIRMED', 4);
 INSERT INTO ledger_allocation VALUES (2, 2, 4, '2022-04-11T08:36:40+00:00', 10000, 'ALLOCATED', null, null, '2022-04-11');
 INSERT INTO invoice_adjustment VALUES (1, 4, 4, '2022-12-04', 'CREDIT WRITE OFF', 10000, 'credit write off for 100.00', 'APPROVED', '2022-12-04T08:36:40+00:00', 65);
 

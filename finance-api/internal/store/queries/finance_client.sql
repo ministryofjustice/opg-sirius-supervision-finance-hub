@@ -2,7 +2,7 @@
 WITH balances AS (SELECT fc.id,
                          COALESCE(SUM(
                                           CASE
-                                              WHEN la.status IN ('ALLOCATED', 'APPROVED')
+                                              WHEN la.status = 'ALLOCATED'
                                                   THEN la.amount
                                               WHEN la.status IN ('UNAPPLIED', 'REAPPLIED') AND la.invoice_id IS NOT NULL
                                                   THEN la.amount
