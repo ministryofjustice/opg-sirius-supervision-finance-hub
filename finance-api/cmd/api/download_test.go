@@ -26,7 +26,7 @@ func TestServer_download(t *testing.T) {
 	}
 
 	server := NewServer(nil, nil, &mockS3, nil)
-	_ = server.download(w, req)
+	_ = server.download(w, r)
 
 	res := w.Result()
 	defer res.Body.Close()
