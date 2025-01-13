@@ -14,7 +14,7 @@ import (
 )
 
 func TestServer_download(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/download?uid=eyJLZXkiOiJ0ZXN0LmNzdiIsIlZlcnNpb25JZCI6InZwckF4c1l0TFZzYjVQOUhfcUhlTlVpVTlNQm5QTmN6In0=", nil)
+	r := httptest.NewRequest(http.MethodGet, "/download?uid=eyJLZXkiOiJ0ZXN0LmNzdiIsIlZlcnNpb25JZCI6InZwckF4c1l0TFZzYjVQOUhfcUhlTlVpVTlNQm5QTmN6In0=", nil)
 	w := httptest.NewRecorder()
 
 	fileContent := "col1,col2,col3\n1,a,Z\n"
