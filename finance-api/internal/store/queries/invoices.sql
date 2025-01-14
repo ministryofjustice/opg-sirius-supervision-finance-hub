@@ -10,7 +10,7 @@ SELECT i.id,
 FROM invoice i
          JOIN finance_client fc ON fc.id = i.finance_client_id
          LEFT JOIN ledger_allocation la ON i.id = la.invoice_id AND la.status NOT IN ('PENDING', 'UNALLOCATED')
-         LEFT JOIN ledger l ON la.ledger_id = l.id
+         LEFT JOIN ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
          LEFT JOIN fee_reduction fr ON l.fee_reduction_id = fr.id
 WHERE fc.client_id = $1
 GROUP BY i.id, i.raiseddate
@@ -22,7 +22,7 @@ SELECT i.id,
 FROM invoice i
          JOIN finance_client fc ON fc.id = i.finance_client_id
          LEFT JOIN ledger_allocation la ON i.id = la.invoice_id AND la.status NOT IN ('PENDING', 'UNALLOCATED')
-         LEFT JOIN ledger l ON la.ledger_id = l.id
+         LEFT JOIN ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
          LEFT JOIN fee_reduction fr ON l.fee_reduction_id = fr.id
 WHERE fc.court_ref = $1
 GROUP BY i.id, i.raiseddate
@@ -38,7 +38,7 @@ WITH allocations AS (SELECT la.invoice_id,
                             la.datetime AS created_at,
                             la.id AS ledger_allocation_id
                      FROM ledger_allocation la
-                              JOIN ledger l ON la.ledger_id = l.id
+                              JOIN ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
                      WHERE la.invoice_id = ANY ($1::INT[])
                      UNION
                      SELECT ia.invoice_id, ia.amount, ia.raised_date, ia.adjustment_type, ia.status, ia.created_at, ia.id
@@ -61,9 +61,8 @@ SELECT i.amount                                                    initial,
        i.feetype,
        COALESCE((SELECT SUM(ledger_allocation.amount) FROM ledger_allocation LEFT JOIN ledger ON ledger_allocation.ledger_id = ledger.id LEFT JOIN invoice ON ledger_allocation.invoice_id = invoice.id WHERE ledger.type = 'CREDIT WRITE OFF' AND invoice.id = i.id), 0)::INT write_off_amount
 FROM invoice i
-         LEFT JOIN ledger_allocation la ON i.id = la.invoice_id
-         LEFT JOIN ledger l ON l.id = la.ledger_id
-    AND la.status NOT IN ('PENDING', 'UNALLOCATED')
+         LEFT JOIN ledger_allocation la ON i.id = la.invoice_id AND la.status NOT IN ('PENDING', 'UNALLOCATED')
+         LEFT JOIN ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
 WHERE i.id = $1
 GROUP BY i.amount, i.feetype, i.id;
 
@@ -75,8 +74,8 @@ SELECT i.id,
        i.feetype
 FROM invoice i
          JOIN fee_reduction fr ON i.finance_client_id = fr.finance_client_id
-         LEFT JOIN ledger_allocation la ON i.id = la.invoice_id
-         LEFT JOIN ledger l ON l.id = la.ledger_id
+         LEFT JOIN ledger_allocation la ON i.id = la.invoice_id AND la.status NOT IN ('PENDING', 'UNALLOCATED')
+         LEFT JOIN ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
          LEFT JOIN LATERAL (
              SELECT SUM(ifr.amount) AS amount
              FROM invoice_fee_range ifr

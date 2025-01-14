@@ -15,20 +15,16 @@ WITH balances AS (SELECT fc.id,
                                                   ELSE 0
                                                   END), 0))::INT AS credit
                   FROM finance_client fc
-                           LEFT JOIN
-                       ledger l ON fc.id = l.finance_client_id
-                           LEFT JOIN
-                       ledger_allocation la ON l.id = la.ledger_id
+                           LEFT JOIN ledger l ON fc.id = l.finance_client_id AND l.status = 'CONFIRMED'
+                           LEFT JOIN ledger_allocation la ON l.id = la.ledger_id
                   WHERE fc.client_id = $1
                   GROUP BY fc.id)
 SELECT COALESCE(SUM(i.amount), 0)::INT - b.paid AS outstanding,
        b.credit,
        fc.payment_method
 FROM finance_client fc
-         JOIN
-     balances b ON fc.id = b.id
-         LEFT JOIN
-     invoice i ON fc.id = i.finance_client_id
+         JOIN balances b ON fc.id = b.id
+         LEFT JOIN invoice i ON fc.id = i.finance_client_id
 GROUP BY fc.payment_method, b.paid, b.credit;
 
 -- name: UpdateClient :exec
