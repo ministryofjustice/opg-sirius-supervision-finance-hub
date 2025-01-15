@@ -111,7 +111,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 		{
 			name: "Underpayment",
 			records: [][]string{
-				{"Ordercode", "Date", "Amount"},
+				{"Ordercode", "BankDate", "Amount"},
 				{
 					"1234-1",
 					"2024-01-17 10:15:39",
@@ -136,7 +136,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 		{
 			name: "Overpayment",
 			records: [][]string{
-				{"Ordercode", "Date", "Amount"},
+				{"Ordercode", "BankDate", "Amount"},
 				{
 					"12345",
 					"2024-01-17 15:30:27",
@@ -160,7 +160,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					"MOTO CARD PAYMENT",
 					"CONFIRMED",
 					time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
-					15010,
+					-15010,
 					"UNAPPLIED",
 					0,
 				},
@@ -178,7 +178,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 			var createdLedgerAllocations []createdLedgerAllocation
 
 			rows, _ := seeder.Query(suite.ctx,
-				"SELECT l.amount, l.type, l.status, l.datetime, la.amount, la.status, la.invoice_id "+
+				"SELECT l.Amount, l.type, l.status, l.datetime, la.Amount, la.status, la.invoice_id "+
 					"FROM ledger l "+
 					"LEFT JOIN ledger_allocation la ON l.id = la.ledger_id "+
 					"WHERE l.finance_client_id = $1", tt.expectedClientId)

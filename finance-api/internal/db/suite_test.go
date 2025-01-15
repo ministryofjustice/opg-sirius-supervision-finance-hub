@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/service"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/testhelpers"
 	"github.com/stretchr/testify/suite"
@@ -16,11 +17,21 @@ type IntegrationSuite struct {
 	ctx    context.Context
 }
 
+type mockDispatch struct{}
+
+func (m *mockDispatch) FinanceAdminUploadProcessed(ctx context.Context, event event.FinanceAdminUploadProcessed) error {
+	return nil
+}
+
+func (m *mockDispatch) CreditOnAccount(ctx context.Context, event event.CreditOnAccount) error {
+	return nil
+}
+
 func (suite *IntegrationSuite) SetupSuite() {
 	suite.ctx = telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test"))
 	suite.cm = testhelpers.Init(suite.ctx, "public,supervision_finance")
 	seeder := suite.cm.Seeder(suite.ctx, suite.T())
-	serv := service.NewService(seeder.Conn, nil, nil, nil)
+	serv := service.NewService(seeder.Conn, &mockDispatch{}, nil, nil)
 	suite.seeder = seeder.WithService(serv)
 }
 
@@ -34,4 +45,8 @@ func (suite *IntegrationSuite) TearDownSuite() {
 
 func (suite *IntegrationSuite) AfterTest(suiteName, testName string) {
 	suite.cm.Restore(suite.ctx)
+}
+
+func valToPtr[T any](val T) *T {
+	return &val
 }
