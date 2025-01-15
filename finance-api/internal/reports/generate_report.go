@@ -39,6 +39,11 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 		}
 	}
 
+	fmt.Println("Generating CSV for query")
+	fmt.Println(query.GetQuery())
+	fmt.Println(query.GetHeaders())
+	fmt.Println(query.GetParams())
+
 	file, err := c.generate(ctx, filename, query)
 	if err != nil {
 		return err
