@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
@@ -31,6 +32,7 @@ func (s *Server) requestReport(w http.ResponseWriter, r *http.Request) error {
 	go func(logger *slog.Logger) {
 		err := s.reports.GenerateAndUploadReport(context.Background(), reportRequest, time.Now())
 		if err != nil {
+			fmt.Println(err)
 			logger.Error(err.Error())
 		}
 	}(telemetry.LoggerFromContext(r.Context()))
