@@ -27,7 +27,7 @@ func NewEnvironmentVars() (EnvironmentVars, error) {
 		WebDir:                 getEnv("WEB_DIR", "web"),
 		SiriusURL:              getEnv("SIRIUS_URL", "http://host.docker.internal:8080"),
 		SiriusPublicURL:        getEnv("SIRIUS_PUBLIC_URL", ""),
-		Prefix:                 getEnv("FINANCE_ADMIN_PREFIX", ""),
+		Prefix:                 getEnv("PREFIX", ""),
 		BackendUrl:             getEnv("BACKEND_URL", ""),
 		SupervisionBillingTeam: supervisionBillingTeamId,
 	}, nil
