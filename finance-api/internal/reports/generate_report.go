@@ -29,6 +29,11 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 			}
 		case shared.ReportAccountTypeAgedDebtByCustomer:
 			query = &db.AgedDebtByCustomer{}
+		case shared.ReportAccountTypeARPaidInvoiceReport:
+			query = &db.PaidInvoices{
+				FromDate: reportRequest.FromDateField,
+				ToDate:   reportRequest.ToDateField,
+			}
 		default:
 			return fmt.Errorf("unknown query")
 		}
@@ -87,7 +92,7 @@ func createDownloadNotifyPayload(emailAddress string, filename string, versionId
 		return notify.Payload{}, err
 	}
 
-	downloadLink := fmt.Sprintf("%s%s/download?uid=%s", os.Getenv("SIRIUS_PUBLIC_URL"), os.Getenv("PREFIX"), uid)
+	downloadLink := fmt.Sprintf("%s%s/download?uid=%s", os.Getenv("SIRIUS_PUBLIC_URL"), os.Getenv("FINANCE_ADMIN_PREFIX"), uid)
 
 	payload := notify.Payload{
 		EmailAddress: emailAddress,
