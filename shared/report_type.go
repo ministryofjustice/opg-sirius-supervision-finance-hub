@@ -12,18 +12,20 @@ var ReportAccountTypes = []ReportAccountType{
 	ReportAccountTypeTotalReceiptsReport,
 	ReportAccountTypeBadDebtWriteOffReport,
 	ReportAccountTypeFeeAccrual,
+	ReportAccountTypeCustomerCredit,
 }
 
 var reportAccountTypeMap = map[string]ReportAccountType{
-	"AgedDebt":                    ReportAccountTypeAgedDebt,
-	"AgedDebtByCustomer":          ReportAccountTypeAgedDebtByCustomer,
-	"UnappliedReceipts":           ReportAccountTypeUnappliedReceipts,
-	"CustomerAgeingBuckets":       ReportAccountTypeCustomerAgeingBuckets,
-	"ARPaidInvoiceReport":         ReportAccountTypeARPaidInvoiceReport,
-	"PaidInvoiceTransactionLines": ReportAccountTypePaidInvoiceTransactionLines,
-	"TotalReceiptsReport":         ReportAccountTypeTotalReceiptsReport,
-	"BadDebtWriteOffReport":       ReportAccountTypeBadDebtWriteOffReport,
-	"FeeAccrual":                  ReportAccountTypeFeeAccrual,
+	"AgedDebt":                        ReportAccountTypeAgedDebt,
+	"AgedDebtByCustomer":              ReportAccountTypeAgedDebtByCustomer,
+	"UnappliedReceipts":               ReportAccountTypeUnappliedReceipts,
+	"CustomerAgeingBuckets":           ReportAccountTypeCustomerAgeingBuckets,
+	"ARPaidInvoiceReport":             ReportAccountTypeARPaidInvoiceReport,
+	"PaidInvoiceTransactionLines":     ReportAccountTypePaidInvoiceTransactionLines,
+	"TotalReceiptsReport":             ReportAccountTypeTotalReceiptsReport,
+	"BadDebtWriteOffReport":           ReportAccountTypeBadDebtWriteOffReport,
+	"FeeAccrual":                      ReportAccountTypeFeeAccrual,
+	"ReportAccountTypeCustomerCredit": ReportAccountTypeCustomerCredit,
 }
 
 type ReportAccountType int
@@ -39,6 +41,7 @@ const (
 	ReportAccountTypeTotalReceiptsReport
 	ReportAccountTypeBadDebtWriteOffReport
 	ReportAccountTypeFeeAccrual
+	ReportAccountTypeCustomerCredit
 )
 
 func (i ReportAccountType) String() string {
@@ -65,6 +68,8 @@ func (i ReportAccountType) Translation() string {
 		return "Bad Debt Write-off Report"
 	case ReportAccountTypeFeeAccrual:
 		return "Fee Accrual"
+	case ReportAccountTypeCustomerCredit:
+		return "Customer Credit"
 	default:
 		return ""
 	}
@@ -90,6 +95,8 @@ func (i ReportAccountType) Key() string {
 		return "BadDebtWriteOffReport"
 	case ReportAccountTypeFeeAccrual:
 		return "FeeAccrual"
+	case ReportAccountTypeCustomerCredit:
+		return "CustomerCredit"
 	default:
 		return ""
 	}

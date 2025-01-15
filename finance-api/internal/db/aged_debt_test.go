@@ -64,7 +64,7 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	assert.NotEmpty(suite.T(), results)
 
 	// client 1
-	assert.Equal(suite.T(), "Ian Test", results[0]["Customer Name"], "Customer Name - client 1")
+	assert.Equal(suite.T(), "Ian Test", results[0]["Customer name"], "Customer name - client 1")
 	assert.Equal(suite.T(), "12345678", results[0]["Customer number"], "Customer number - client 1")
 	assert.Equal(suite.T(), "1234", results[0]["SOP number"], "SOP number - client 1")
 	assert.Equal(suite.T(), "LAY", results[0]["Deputy type"], "Deputy type - client 1")
@@ -79,7 +79,7 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	assert.Equal(suite.T(), "INC - RECEIPT OF FEES AND CHARGES - GUARDIANSHIP ASSESS", results[0]["Revenue account code description"], "Revenue account code description - client 1")
 	assert.Equal(suite.T(), "GA", results[0]["Invoice type"], "Invoice type - client 1")
 	assert.Equal(suite.T(), c1i1Ref, results[0]["Trx number"], "Trx number - client 1")
-	assert.Equal(suite.T(), "Guardianship assess invoice", results[0]["Transaction Description"], "Transaction Description - client 1")
+	assert.Equal(suite.T(), "Guardianship assess invoice", results[0]["Transaction description"], "Transaction description - client 1")
 	assert.Equal(suite.T(), twoMonthsAgo.String(), results[0]["Invoice date"], "Invoice date - client 1")
 	assert.Equal(suite.T(), twoMonthsAgo.Add(0, 0, 30).String(), results[0]["Due date"], "Due date - client 1")
 	assert.Equal(suite.T(), twoMonthsAgo.FinancialYear(), results[0]["Financial year"], "Financial year - client 1")
@@ -95,7 +95,7 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	assert.Equal(suite.T(), "=\"0-1\"", results[0]["Debt impairment years"], "Debt impairment years - client 1")
 
 	// client 2 - invoice 1
-	assert.Equal(suite.T(), "John Suite", results[1]["Customer Name"], "Customer Name - client 2, invoice 1")
+	assert.Equal(suite.T(), "John Suite", results[1]["Customer name"], "Customer name - client 2, invoice 1")
 	assert.Equal(suite.T(), "87654321", results[1]["Customer number"], "Customer number - client 2, invoice 1")
 	assert.Equal(suite.T(), "4321", results[1]["SOP number"], "SOP number - client 2, invoice 1")
 	assert.Equal(suite.T(), "PRO", results[1]["Deputy type"], "Deputy type - client 2, invoice 1")
@@ -110,7 +110,7 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	assert.Equal(suite.T(), "INC - RECEIPT OF FEES AND CHARGES - Appoint Deputy", results[1]["Revenue account code description"], "Revenue account code description - client 2, invoice 1")
 	assert.Equal(suite.T(), "AD", results[1]["Invoice type"], "Invoice type - client 2, invoice 1")
 	assert.Equal(suite.T(), c2i1Ref, results[1]["Trx number"], "Trx number - client 2, invoice 1")
-	assert.Equal(suite.T(), "AD - Assessment deputy invoice", results[1]["Transaction Description"], "Transaction Description - client 2, invoice 1")
+	assert.Equal(suite.T(), "AD - Assessment deputy invoice", results[1]["Transaction description"], "Transaction description - client 2, invoice 1")
 	assert.Equal(suite.T(), fourYearsAgo.String(), results[1]["Invoice date"], "Invoice date - client 2, invoice 1")
 	assert.Equal(suite.T(), fourYearsAgo.Add(0, 0, 30).String(), results[1]["Due date"], "Due date - client 2, invoice 1")
 	assert.Equal(suite.T(), fourYearsAgo.FinancialYear(), results[1]["Financial year"], "Financial year - client 2, invoice 1")
@@ -126,7 +126,7 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	assert.Equal(suite.T(), "=\"3-5\"", results[1]["Debt impairment years"], "Debt impairment years - client 2, invoice 1")
 
 	// client 2 - invoice 2
-	assert.Equal(suite.T(), "John Suite", results[2]["Customer Name"], "Customer Name - client 2, invoice 2")
+	assert.Equal(suite.T(), "John Suite", results[2]["Customer name"], "Customer name - client 2, invoice 2")
 	assert.Equal(suite.T(), "87654321", results[2]["Customer number"], "Customer number - client 2, invoice 2")
 	assert.Equal(suite.T(), "4321", results[2]["SOP number"], "SOP number - client 2, invoice 2")
 	assert.Equal(suite.T(), "PRO", results[2]["Deputy type"], "Deputy type - client 2, invoice 2")
@@ -141,7 +141,7 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	assert.Equal(suite.T(), "INC - RECEIPT OF FEES AND CHARGES - Supervision Fee 1", results[2]["Revenue account code description"], "Revenue account code description - client 2, invoice 2")
 	assert.Equal(suite.T(), "S2", results[2]["Invoice type"], "Invoice type - client 2, invoice 2")
 	assert.Equal(suite.T(), c2i2Ref, results[2]["Trx number"], "Trx number - client 2, invoice 2")
-	assert.Equal(suite.T(), "S2 - General invoice (Demanded)", results[2]["Transaction Description"], "Transaction Description - client 2, invoice 2")
+	assert.Equal(suite.T(), "S2 - General invoice (Demanded)", results[2]["Transaction description"], "Transaction description - client 2, invoice 2")
 	assert.Equal(suite.T(), twoYearsAgo.String(), results[2]["Invoice date"], "Invoice date - client 2, invoice 2")
 	assert.Equal(suite.T(), twoYearsAgo.Add(0, 0, 30).String(), results[2]["Due date"], "Due date - client 2, invoice 2")
 	assert.Equal(suite.T(), twoYearsAgo.FinancialYear(), results[2]["Financial year"], "Financial year - client 2, invoice 2")
