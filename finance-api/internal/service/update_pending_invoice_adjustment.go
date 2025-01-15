@@ -11,12 +11,10 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId i
 	ctx, cancelTx := context.WithCancel(ctx)
 	defer cancelTx()
 
-	tx, err := s.tx.Begin(ctx)
+	tx, err := s.BeginStoreTx(ctx)
 	if err != nil {
 		return err
 	}
-
-	transaction := s.store.WithTx(tx)
 
 	decisionParams := store.SetAdjustmentDecisionParams{
 		ID:        int32(adjustmentId),
@@ -24,7 +22,7 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId i
 		UpdatedBy: pgtype.Int4{Int32: int32(1), Valid: true},
 	}
 
-	adjustment, err := transaction.SetAdjustmentDecision(ctx, decisionParams)
+	adjustment, err := tx.SetAdjustmentDecision(ctx, decisionParams)
 	if err != nil {
 		return err
 	}
@@ -38,7 +36,7 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId i
 			outstandingBalance: adjustment.Outstanding,
 		})
 
-		ledgerId, err := transaction.CreateLedgerForAdjustment(ctx, store.CreateLedgerForAdjustmentParams{
+		ledgerId, err := tx.CreateLedgerForAdjustment(ctx, store.CreateLedgerForAdjustmentParams{
 			ClientID:       ledger.ClientID,
 			Amount:         ledger.Amount,
 			Notes:          ledger.Notes,
@@ -54,7 +52,7 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId i
 
 		for _, allocation := range allocations {
 			allocation.LedgerID = pgtype.Int4{Int32: ledgerId, Valid: true}
-			err = transaction.CreateLedgerAllocation(ctx, allocation)
+			err = tx.CreateLedgerAllocation(ctx, allocation)
 			if err != nil {
 				return err
 			}
