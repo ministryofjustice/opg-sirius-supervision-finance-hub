@@ -89,7 +89,8 @@ func (i *InvoiceAdjustments) GetParams() []any {
 		i.ToDate = &to
 	}
 
-	fmt.Println(i.ToDate.Time.Format("2006-01-02 15:04:05"))
+	from := fmt.Sprintf("%s 00:00:00", i.FromDate.Time.Format("2006-01-02"))
+	to := fmt.Sprintf("%s 23:59:59", i.ToDate.Time.Format("2006-01-02"))
 
-	return []any{i.FromDate.Time.Format("2006-01-02 15:04:05"), i.ToDate.Time.Format("2006-01-02 15:04:05")}
+	return []any{from, to}
 }
