@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
@@ -14,6 +15,9 @@ import (
 func (s *Server) requestReport(w http.ResponseWriter, r *http.Request) error {
 	var reportRequest shared.ReportRequest
 	defer r.Body.Close()
+
+	fmt.Println("Server: Received report request")
+	fmt.Println(r.Body)
 
 	if err := json.NewDecoder(r.Body).Decode(&reportRequest); err != nil {
 		return err

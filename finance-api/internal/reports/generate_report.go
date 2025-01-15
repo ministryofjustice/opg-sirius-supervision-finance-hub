@@ -16,6 +16,9 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 	var query db.ReportQuery
 	var err error
 
+	fmt.Println("Client: Received report request")
+	fmt.Println(reportRequest)
+
 	accountType := shared.ParseReportAccountType(reportRequest.ReportAccountType)
 	filename := fmt.Sprintf("%s_%s.csv", accountType.Key(), requestedDate.Format("02:01:2006"))
 
@@ -39,10 +42,16 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 		}
 	}
 
+	fmt.Println("Created query")
+	fmt.Println(query)
+
 	file, err := c.generate(ctx, filename, query)
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("Generated file")
+	fmt.Println(file)
 
 	defer file.Close()
 
@@ -53,6 +62,9 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 		file,
 	)
 
+	fmt.Println("Put file")
+	fmt.Println(versionId)
+
 	if err != nil {
 		return err
 	}
@@ -61,6 +73,9 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("Created notify payload")
+	fmt.Println(payload)
 
 	err = c.notify.Send(ctx, payload)
 	if err != nil {
