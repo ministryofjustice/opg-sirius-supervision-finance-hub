@@ -41,7 +41,7 @@ const AgedDebtQuery = `WITH outstanding_invoices AS (SELECT i.id,
                         FROM supervision_finance.finance_client fc
                                  JOIN outstanding_invoices oi ON fc.id = oi.finance_client_id
                         GROUP BY fc.client_id)
-SELECT CONCAT(p.firstname, ' ', p.surname)                 AS "Customer Name",
+SELECT CONCAT(p.firstname, ' ', p.surname)                 AS "Customer name",
        p.caserecnumber                                     AS "Customer number",
        fc.sop_number                                       AS "SOP number",
        d.deputytype                                        AS "Deputy type",
@@ -56,7 +56,7 @@ SELECT CONCAT(p.firstname, ' ', p.surname)                 AS "Customer Name",
        a.account_code_description                          AS "Revenue account code description",
        oi.feetype                                          AS "Invoice type",
        oi.reference                                        AS "Trx number",
-       tt.description                                      AS "Transaction Description",
+       tt.description                                      AS "Transaction description",
        TO_CHAR(oi.raiseddate, 'YYYY-MM-DD')                AS "Invoice date",
        TO_CHAR(oi.due_date, 'YYYY-MM-DD')                  AS "Due date",
        CASE
@@ -102,7 +102,7 @@ FROM supervision_finance.finance_client fc
 
 func (a *AgedDebt) GetHeaders() []string {
 	return []string{
-		"Customer Name",
+		"Customer name",
 		"Customer number",
 		"SOP number",
 		"Deputy type",
@@ -117,7 +117,7 @@ func (a *AgedDebt) GetHeaders() []string {
 		"Revenue account code description",
 		"Invoice type",
 		"Trx number",
-		"Transaction Description",
+		"Transaction description",
 		"Invoice date",
 		"Due date",
 		"Financial year",
