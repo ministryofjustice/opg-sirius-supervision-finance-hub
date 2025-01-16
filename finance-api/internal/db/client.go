@@ -32,12 +32,8 @@ type ReportQuery interface {
 
 func (c *Client) Run(ctx context.Context, query ReportQuery) ([][]string, error) {
 	headers := [][]string{query.GetHeaders()}
-	fmt.Println("Headers")
-	fmt.Println(headers)
 
 	rows, err := c.db.Query(ctx, query.GetQuery(), query.GetParams()...)
-	fmt.Println("Rows raw")
-	fmt.Println(rows)
 	if err != nil {
 		return nil, err
 	}
@@ -46,9 +42,6 @@ func (c *Client) Run(ctx context.Context, query ReportQuery) ([][]string, error)
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println("Rows")
-	fmt.Println(stringRows)
 
 	return append(headers, stringRows...), nil
 }
