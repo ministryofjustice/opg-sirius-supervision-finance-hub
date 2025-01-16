@@ -54,6 +54,9 @@ INSERT INTO ledger VALUES (4, 'invoice-test', '2024-04-11T08:36:40+00:00', '', 2
 INSERT INTO ledger_allocation VALUES (4, 4, 7, '2024-04-11T08:36:40+00:00', 2000, 'ALLOCATED', null, 'invoices-test', '2024-04-11', null);
 INSERT INTO invoice_adjustment VALUES (2, 9, 7, '2022-12-04', 'CREDIT MEMO', 1200, 'credit adjustment for 12.00', 'PENDING', '2022-12-04T08:36:40+00:00', 65);
 INSERT INTO invoice_fee_range VALUES (1, 7, 'GENERAL', '2022-04-01', '2023-03-31', 32000);
+-- this transaction should be ignored as the ledger contains a legacy status
+INSERT INTO ledger VALUES (5, 'ignore-me', '2024-04-11T08:36:40+00:00', '', 2000, '', 'CARD PAYMENT', 'APPROVED', 9, null, null, '11/04/2042', '12/04/2024', 1, '', '', 1, '05/05/2024', 65);
+INSERT INTO ledger_allocation VALUES (5, 5, 7, '2024-04-11T08:36:40+00:00', 2000, 'ALLOCATED', null, 'invoices-test', '2024-04-11', null);
 
 -- pending-invoice-adjustments
 INSERT INTO finance_client VALUES (10, 10, 'pending-invoice-adjustments', 'DEMANDED', null);
