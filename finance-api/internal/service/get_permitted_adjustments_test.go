@@ -31,6 +31,10 @@ func (suite *IntegrationSuite) TestService_GetPermittedAdjustments() {
 		"INSERT INTO ledger_allocation VALUES (2, 2, 2, '2022-04-02T00:00:00+00:00', 32000, 'ALLOCATED', NULL, '', '2022-04-02', NULL);",
 		"INSERT INTO ledger_allocation VALUES (3, 3, 5, '2022-04-02T00:00:00+00:00', 1, 'ALLOCATED', NULL, '', '2022-04-02', NULL);",
 		"INSERT INTO ledger_allocation VALUES (4, 4, 6, '2022-04-02T00:00:00+00:00', 1, 'ALLOCATED', NULL, '', '2022-04-02', NULL);",
+
+		// transactions to ignore
+		"INSERT INTO ledger VALUES (5, 'abc5', '2022-04-02T00:00:00+00:00', '', 32000, 'Write off', 'CREDIT WRITE OFF', 'APPROVED', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '05/05/2022', 1);",
+		"INSERT INTO ledger_allocation VALUES (5, 4, 2, '2022-04-02T00:00:00+00:00', 32000, 'ALLOCATED', NULL, '', '2022-04-02', NULL);",
 	)
 
 	Store := store.New(seeder.Conn)

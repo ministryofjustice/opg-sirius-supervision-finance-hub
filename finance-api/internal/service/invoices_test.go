@@ -23,6 +23,9 @@ func (suite *IntegrationSuite) TestService_GetInvoices() {
 		"INSERT INTO ledger_allocation VALUES (1, 1, 1, '2022-04-11T08:36:40+00:00', 12300, 'ALLOCATED', NULL, 'Notes here', '2022-04-11', NULL);",
 		"INSERT INTO ledger_allocation VALUES (2, 1, 1, '2022-04-11T08:36:40+00:00', -2300, 'UNAPPLIED', NULL, 'Notes here', '2022-04-11', NULL);",
 		"INSERT INTO invoice_fee_range VALUES (1, 1, 'GENERAL', '2022-04-01', '2023-03-31', 32000);",
+		// this ledger and allocation should be ignored as ledger is APPROVED, not CONFIRMED (PFS-206)
+		"INSERT INTO ledger VALUES (2, 'ignore', '2022-04-11T08:36:40+00:00', '', 99999, '', 'CREDIT MEMO', 'APPROVED', 7, NULL, NULL, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 65);",
+		"INSERT INTO ledger_allocation VALUES (3, 2, 1, '2022-04-11T08:36:40+00:00', 99999, 'ALLOCATED', NULL, 'Notes here', '2022-04-11', NULL);",
 	)
 
 	Store := store.New(seeder)
