@@ -12,8 +12,7 @@ import (
 )
 
 var (
-	PaymentTypes      = []string{"CARD PAYMENT", "BACS TRANSFER"}
-	AllocatedStatuses = []string{"ALLOCATED", "APPROVED", "CONFIRMED"} // TODO: PFS-107 & PFS-110 to investigate
+	PaymentTypes = []string{"CARD PAYMENT", "BACS TRANSFER"}
 )
 
 type invoiceMetadata struct {
@@ -98,7 +97,7 @@ func (ib *invoiceBuilder) addLedgerAllocations(ilas []store.GetLedgerAllocations
 		if il.Type == "WRITE OFF REVERSAL" {
 			writeOffReversed = true
 		}
-		if slices.Contains(AllocatedStatuses, il.Status) {
+		if il.Status == "ALLOCATED" {
 			if slices.Contains(PaymentTypes, il.Type) {
 				metadata.paymentReceived = true
 			} else if il.Type == "CREDIT WRITE OFF" && !writeOffReversed {
