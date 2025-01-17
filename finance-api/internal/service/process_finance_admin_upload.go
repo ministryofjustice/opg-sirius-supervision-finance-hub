@@ -8,14 +8,13 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"os"
 	"strconv"
 	"strings"
 	"time"
 )
 
 func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, detail shared.FinanceAdminUploadEvent) error {
-	file, err := s.fileStorage.GetFile(ctx, os.Getenv("ASYNC_S3_BUCKET"), detail.Filename)
+	file, err := s.fileStorage.GetFile(ctx, s.env.AsyncBucket, detail.Filename)
 	uploadProcessedEvent := event.FinanceAdminUploadProcessed{
 		EmailAddress: detail.EmailAddress,
 		UploadType:   detail.UploadType,
