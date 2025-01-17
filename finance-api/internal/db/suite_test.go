@@ -20,7 +20,7 @@ func (suite *IntegrationSuite) SetupSuite() {
 	suite.ctx = telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test"))
 	suite.cm = testhelpers.Init(suite.ctx, "public,supervision_finance")
 	seeder := suite.cm.Seeder(suite.ctx, suite.T())
-	serv := service.NewService(seeder.Conn, nil, nil, nil)
+	serv := service.NewService(seeder.Conn, nil, nil, nil, nil)
 	suite.seeder = seeder.WithService(serv)
 }
 

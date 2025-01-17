@@ -9,7 +9,6 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"io"
 	"net/http"
-	"os"
 )
 
 func (s *Server) download(w http.ResponseWriter, r *http.Request) error {
@@ -23,7 +22,7 @@ func (s *Server) download(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	result, err := s.fileStorage.GetFileByVersion(ctx, os.Getenv("REPORTS_S3_BUCKET"), downloadRequest.Key, downloadRequest.VersionId)
+	result, err := s.fileStorage.GetFileByVersion(ctx, s.reportsBucket, downloadRequest.Key, downloadRequest.VersionId)
 	if err != nil {
 		var apiErr smithy.APIError
 		if errors.As(err, &apiErr) {

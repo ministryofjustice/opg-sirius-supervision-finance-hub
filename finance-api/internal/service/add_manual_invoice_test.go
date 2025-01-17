@@ -21,7 +21,7 @@ func addManualInvoiceSetup(seeder *testhelpers.Seeder) (*Service, shared.AddManu
 		SupervisionLevel: shared.Nillable[string]{Value: "GENERAL", Valid: true},
 	}
 
-	s := NewService(seeder.Conn, nil, nil, nil)
+	s := NewService(seeder.Conn, nil, nil, nil, nil)
 
 	return s, params
 }
