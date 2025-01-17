@@ -4,7 +4,6 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"net/http"
-	"os"
 )
 
 func (s *Server) checkDownload(w http.ResponseWriter, r *http.Request) error {
@@ -17,7 +16,7 @@ func (s *Server) checkDownload(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	exists := s.fileStorage.FileExists(ctx, os.Getenv("REPORTS_S3_BUCKET"), downloadRequest.Key, downloadRequest.VersionId)
+	exists := s.fileStorage.FileExists(ctx, s.reportsBucket, downloadRequest.Key, downloadRequest.VersionId)
 	if !exists {
 		return apierror.NotFound{}
 	}
