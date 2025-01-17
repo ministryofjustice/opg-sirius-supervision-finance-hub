@@ -21,7 +21,7 @@ func addManualInvoiceSetup(seeder *testhelpers.Seeder) (*Service, shared.AddManu
 		SupervisionLevel: shared.Nillable[string]{Value: "GENERAL", Valid: true},
 	}
 
-	s := NewService(seeder.Conn, nil, nil, nil)
+	s := NewService(seeder.Conn, nil, nil, nil, nil)
 
 	return s, params
 }
@@ -105,9 +105,9 @@ func (suite *IntegrationSuite) TestService_AddManualInvoiceRaisedDateForAnInvoic
 	params.InvoiceType = shared.InvoiceTypeSO
 
 	expectedErr := apierror.ValidationError{Errors: apierror.ValidationErrors{
-		"RaisedDate": {"RaisedDate": "Raised date not in the past"},
-		"StartDate":  {"StartDate": "Start date must be before end date"},
-		"EndDate":    {"EndDate": "End date must be after start date"},
+		"RaisedDate": {"RaisedDate": "Raised BankDate not in the past"},
+		"StartDate":  {"StartDate": "Start BankDate must be before end BankDate"},
+		"EndDate":    {"EndDate": "End BankDate must be after start BankDate"},
 	}}
 
 	err := s.AddManualInvoice(suite.ctx, 24, params)
@@ -171,7 +171,7 @@ func Test_validateEndDate(t *testing.T) {
 		want bool
 	}{
 		{
-			name: "returns true if the end date is in the future compared to start date",
+			name: "returns true if the end BankDate is in the future compared to start BankDate",
 			args: args{
 				startDate: shared.Date{Time: time.Date(2024, 5, 1, 0, 0, 0, 0, time.UTC)},
 				endDate:   shared.Date{Time: time.Date(2024, 5, 2, 0, 0, 0, 0, time.UTC)},
@@ -179,7 +179,7 @@ func Test_validateEndDate(t *testing.T) {
 			want: true,
 		},
 		{
-			name: "returns false if the end date before start date",
+			name: "returns false if the end BankDate before start BankDate",
 			args: args{
 				startDate: shared.Date{Time: time.Date(2024, 5, 2, 0, 0, 0, 0, time.UTC)},
 				endDate:   shared.Date{Time: time.Date(2024, 5, 1, 0, 0, 0, 0, time.UTC)},
@@ -205,7 +205,7 @@ func Test_validateStartDate(t *testing.T) {
 		want bool
 	}{
 		{
-			name: "returns true if the start date is in the past compared to end date",
+			name: "returns true if the start BankDate is in the past compared to end BankDate",
 			args: args{
 				startDate: shared.Date{Time: time.Date(2024, 5, 1, 0, 0, 0, 0, time.UTC)},
 				endDate:   shared.Date{Time: time.Date(2024, 5, 2, 0, 0, 0, 0, time.UTC)},
@@ -213,7 +213,7 @@ func Test_validateStartDate(t *testing.T) {
 			want: true,
 		},
 		{
-			name: "returns false if the start date before end date",
+			name: "returns false if the start BankDate before end BankDate",
 			args: args{
 				startDate: shared.Date{Time: time.Date(2024, 5, 2, 0, 0, 0, 0, time.UTC)},
 				endDate:   shared.Date{Time: time.Date(2024, 5, 1, 0, 0, 0, 0, time.UTC)},
@@ -262,7 +262,7 @@ func (suite *IntegrationSuite) TestService_AddLedgerAndAllocationsForAnADInvoice
 			Amount:          int32(5000),
 			Notes:           pgtype.Text{String: "Credit due to approved remission", Valid: true},
 			Type:            "CREDIT REMISSION",
-			Status:          "APPROVED",
+			Status:          "CONFIRMED",
 			FinanceClientID: pgtype.Int4{Int32: int32(25), Valid: true},
 		}
 
@@ -296,7 +296,7 @@ func (suite *IntegrationSuite) TestService_AddLedgerAndAllocationsForAnExemption
 			Amount:          int32(params.Amount.Value),
 			Notes:           pgtype.Text{String: "Credit due to approved exemption", Valid: true},
 			Type:            "CREDIT EXEMPTION",
-			Status:          "APPROVED",
+			Status:          "CONFIRMED",
 			FinanceClientID: pgtype.Int4{Int32: int32(25), Valid: true},
 		}
 

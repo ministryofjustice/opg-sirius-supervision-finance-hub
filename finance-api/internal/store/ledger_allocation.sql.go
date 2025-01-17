@@ -44,22 +44,3 @@ func (q *Queries) CreateLedgerAllocation(ctx context.Context, arg CreateLedgerAl
 	)
 	return err
 }
-
-const updateLedgerAllocationAdjustment = `-- name: UpdateLedgerAllocationAdjustment :exec
-UPDATE ledger_allocation la
-SET status = $1
-FROM ledger l
-WHERE l.id = $2
-  AND l.id = la.ledger_id
-  AND l.type IN ('CREDIT MEMO', 'CREDIT WRITE OFF', 'DEBIT MEMO')
-`
-
-type UpdateLedgerAllocationAdjustmentParams struct {
-	Status string
-	ID     int32
-}
-
-func (q *Queries) UpdateLedgerAllocationAdjustment(ctx context.Context, arg UpdateLedgerAllocationAdjustmentParams) error {
-	_, err := q.db.Exec(ctx, updateLedgerAllocationAdjustment, arg.Status, arg.ID)
-	return err
-}
