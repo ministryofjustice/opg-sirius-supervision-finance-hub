@@ -178,10 +178,10 @@ func (suite *IntegrationSuite) Test_processPayments() {
 			var createdLedgerAllocations []createdLedgerAllocation
 
 			rows, _ := seeder.Query(suite.ctx,
-				"SELECT l.amount, l.type, l.status, l.datetime, la.amount, la.status, la.invoice_id "+
-					"FROM ledger l "+
-					"LEFT JOIN ledger_allocation la ON l.id = la.ledger_id "+
-					"WHERE l.finance_client_id = $1", tt.expectedClientId)
+				`SELECT l.amount, l.type, l.status, l.datetime, la.amount, la.status, la.invoice_id
+						FROM ledger l
+						LEFT JOIN ledger_allocation la ON l.id = la.ledger_id
+					WHERE l.finance_client_id = $1`, tt.expectedClientId)
 
 			for rows.Next() {
 				var r createdLedgerAllocation
