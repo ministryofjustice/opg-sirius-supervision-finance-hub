@@ -25,25 +25,31 @@ type FileStorage interface {
 	PutFile(ctx context.Context, bucketName string, fileName string, file io.Reader) (*string, error)
 }
 
+type Env struct {
+	AsyncBucket string
+}
+
 type Service struct {
 	store       *store.Queries
 	dispatch    Dispatch
 	fileStorage FileStorage
 	notify      *notify.Client
 	tx          TX
+	env         *Env
 }
 
 type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-func NewService(conn *pgxpool.Pool, dispatch Dispatch, fileStorage FileStorage, notify *notify.Client) *Service {
+func NewService(conn *pgxpool.Pool, dispatch Dispatch, fileStorage FileStorage, notify *notify.Client, env *Env) *Service {
 	return &Service{
 		store:       store.New(conn),
 		dispatch:    dispatch,
 		fileStorage: fileStorage,
 		notify:      notify,
 		tx:          conn,
+		env:         env,
 	}
 }
 

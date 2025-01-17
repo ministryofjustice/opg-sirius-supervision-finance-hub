@@ -8,7 +8,6 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"io"
-	"os"
 	"testing"
 	"time"
 )
@@ -133,7 +132,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			mockNotify := MockNotify{}
 			mockDb := MockDb{}
 
-			client := NewClient(nil, &mockFileStorage, &mockNotify)
+			client := NewClient(nil, &mockFileStorage, &mockNotify, &Envs{ReportsBucket: "test"})
 			client.db = &mockDb
 
 			ctx := context.Background()
@@ -183,8 +182,6 @@ func TestCreateDownloadNotifyPayload(t *testing.T) {
 	}
 	uid, _ := downloadRequest.Encode()
 	requestedDate, _ := time.Parse("2006-01-02 15:04:05", "2024-01-01 13:37:00")
-	_ = os.Setenv("SIRIUS_PUBLIC_URL", "www.sirius.com")
-	_ = os.Setenv("FINANCE_ADMIN_PREFIX", "/finance")
 
 	want := notify.Payload{
 		EmailAddress: emailAddress,
@@ -197,7 +194,11 @@ func TestCreateDownloadNotifyPayload(t *testing.T) {
 		},
 	}
 
-	payload, err := createDownloadNotifyPayload(emailAddress, downloadRequest.Key, &downloadRequest.VersionId, requestedDate, reportName)
+	client := NewClient(nil, nil, nil, &Envs{
+		ReportsBucket:   "test",
+		FinanceAdminURL: "www.sirius.com/finance",
+	})
+	payload, err := client.createDownloadNotifyPayload(emailAddress, downloadRequest.Key, &downloadRequest.VersionId, requestedDate, reportName)
 
 	assert.Equal(t, want, payload)
 	assert.Nil(t, err)
