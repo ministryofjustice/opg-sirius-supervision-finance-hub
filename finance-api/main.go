@@ -48,15 +48,29 @@ func run(ctx context.Context, logger *slog.Logger) error {
 	defer dbPool.Close()
 
 	eventClient := setupEventClient(ctx, logger)
-	fileStorageClient, err := filestorage.NewClient(ctx)
+	fileStorageClient, err := filestorage.NewClient(
+		ctx,
+		os.Getenv("AWS_REGION"),
+		os.Getenv("AWS_IAM_ROLE"),
+		os.Getenv("AWS_S3_ENDPOINT"),
+		os.Getenv("S3_ENCRYPTION_KEY"),
+	)
 
 	if err != nil {
 		return err
 	}
 
-	notifyClient := notify.NewClient()
+	notifyClient := notify.NewClient(os.Getenv("OPG_NOTIFY_API_KEY"))
 
-	Service := service.NewService(dbPool, eventClient, fileStorageClient, notifyClient)
+	Service := service.NewService(
+		dbPool,
+		eventClient,
+		fileStorageClient,
+		notifyClient,
+		&service.Env{
+			AsyncBucket: os.Getenv("ASYNC_S3_BUCKET"),
+		},
+	)
 
 	validator, err := validation.New()
 	if err != nil {
@@ -66,11 +80,15 @@ func run(ctx context.Context, logger *slog.Logger) error {
 	reportsClient := reports.NewClient(
 		setupDbPool(ctx, logger, "supervision_finance,public", true),
 		fileStorageClient,
-		notify.NewClient(),
+		notifyClient,
+		&reports.Envs{
+			ReportsBucket:   os.Getenv("REPORTS_S3_BUCKET"),
+			FinanceAdminURL: os.Getenv("FINANCE_ADMIN_URL"),
+		},
 	)
 	defer reportsClient.Close()
 
-	server := api.NewServer(Service, reportsClient, fileStorageClient, validator)
+	server := api.NewServer(Service, reportsClient, os.Getenv("REPORTS_S3_BUCKET"), fileStorageClient, validator)
 
 	s := &http.Server{
 		Addr:    ":8080",
