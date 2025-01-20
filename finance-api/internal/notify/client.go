@@ -133,7 +133,7 @@ func formatFailedLines(failedLines map[int]string) []string {
 
 		switch failedLine {
 		case "DATE_PARSE_ERROR":
-			errorMessage = "Unable to parse date - please use the format YYYY-MM-DD"
+			errorMessage = "Unable to parse date - please use the format DD/MM/YYYY"
 		case "DATE_TIME_PARSE_ERROR":
 			errorMessage = "Unable to parse date - please use the format YYYY-MM-DD HH:MM:SS"
 		case "AMOUNT_PARSE_ERROR":
