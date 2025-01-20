@@ -102,7 +102,7 @@ func getPaymentDetails(record []string, uploadType string, uploadDate shared.Dat
 
 		date, err = time.Parse("2006-01-02 15:04:05", record[1])
 		if err != nil {
-			(*failedLines)[index] = "DATE_PARSE_ERROR"
+			(*failedLines)[index] = "DATE_TIME_PARSE_ERROR"
 			return paymentDetails{}
 		}
 	case "PAYMENTS_SUPERVISION_BACS", "PAYMENTS_OPG_BACS":

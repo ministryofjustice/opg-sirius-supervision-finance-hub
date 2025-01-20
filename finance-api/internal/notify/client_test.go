@@ -67,7 +67,7 @@ func TestServer_formatFailedLines(t *testing.T) {
 			want: []string{
 				"Line 1: Duplicate payment line",
 				"Line 3: Could not find a client with this court reference",
-				"Line 5: Unable to parse date",
+				"Line 5: Unable to parse date - please use the format YYYY-MM-DD",
 				"Line 8: Duplicate payment line",
 			},
 		},
