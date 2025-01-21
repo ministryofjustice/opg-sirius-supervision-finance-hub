@@ -24,7 +24,7 @@ func (suite *IntegrationSuite) TestService_AddInvoiceAdjustment() {
 		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 2;",
 	)
 
-	s := NewService(seeder.Conn, nil, nil, nil)
+	s := NewService(seeder.Conn, nil, nil, nil, nil)
 
 	testCases := []struct {
 		name      string
@@ -34,7 +34,7 @@ func (suite *IntegrationSuite) TestService_AddInvoiceAdjustment() {
 		err       error
 	}{
 		{
-			name:      "Invalid adjustment amount",
+			name:      "Invalid adjustment Amount",
 			invoiceId: 1,
 			clientId:  1,
 			data: &shared.AddInvoiceAdjustmentRequest{
@@ -78,7 +78,7 @@ func (suite *IntegrationSuite) TestService_AddInvoiceAdjustment() {
 			}
 
 			var pendingAdjustment store.InvoiceAdjustment
-			q := seeder.QueryRow(ctx, "SELECT id, finance_client_id, invoice_id, raised_date, adjustment_type, amount, notes, status FROM invoice_adjustment LIMIT 1")
+			q := seeder.QueryRow(ctx, "SELECT id, finance_client_id, invoice_id, raised_date, adjustment_type, Amount, notes, status FROM invoice_adjustment LIMIT 1")
 			_ = q.Scan(
 				&pendingAdjustment.ID,
 				&pendingAdjustment.FinanceClientID,
@@ -286,7 +286,7 @@ func TestService_CalculateAdjustmentAmount(t *testing.T) {
 			expected: 10000,
 		},
 		{
-			name: "Add debit returns the amount as a negative",
+			name: "Add debit returns the Amount as a negative",
 			adjustment: &shared.AddInvoiceAdjustmentRequest{
 				AdjustmentType: shared.AdjustmentTypeDebitMemo,
 				Amount:         22000,
@@ -298,7 +298,7 @@ func TestService_CalculateAdjustmentAmount(t *testing.T) {
 			expected: -22000,
 		},
 		{
-			name: "Add credit returns amount",
+			name: "Add credit returns Amount",
 			adjustment: &shared.AddInvoiceAdjustmentRequest{
 				AdjustmentType: shared.AdjustmentTypeCreditMemo,
 				Amount:         52000,
@@ -321,7 +321,7 @@ func TestService_CalculateAdjustmentAmount(t *testing.T) {
 			expected: 0,
 		},
 		{
-			name: "Write off reversal returns customer credit balance if less than write off amount",
+			name: "Write off reversal returns customer credit balance if less than write off Amount",
 			adjustment: &shared.AddInvoiceAdjustmentRequest{
 				AdjustmentType: shared.AdjustmentTypeWriteOffReversal,
 			},
@@ -334,7 +334,7 @@ func TestService_CalculateAdjustmentAmount(t *testing.T) {
 			expected:              -500,
 		},
 		{
-			name: "Write off reversal returns write off amount if less than customer credit balance",
+			name: "Write off reversal returns write off Amount if less than customer credit balance",
 			adjustment: &shared.AddInvoiceAdjustmentRequest{
 				AdjustmentType: shared.AdjustmentTypeWriteOffReversal,
 			},

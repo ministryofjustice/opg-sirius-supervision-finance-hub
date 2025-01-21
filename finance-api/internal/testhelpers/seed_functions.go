@@ -4,13 +4,14 @@ import (
 	"context"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
+	"time"
 )
 
 func (s *Seeder) CreateClient(ctx context.Context, firstName string, surname string, courtRef string, sopNumber string) int {
 	var clientId int
 	err := s.Conn.QueryRow(ctx, "INSERT INTO public.persons VALUES (NEXTVAL('public.persons_id_seq'), $1, $2, $3) RETURNING id", firstName, surname, courtRef).Scan(&clientId)
 	assert.NoError(s.t, err, "failed to add Person: %v", err)
-	_, err = s.Conn.Exec(ctx, "INSERT INTO supervision_finance.finance_client VALUES (NEXTVAL('supervision_finance.finance_client_id_seq'), $1, $2, 'DEMANDED') RETURNING id", clientId, sopNumber)
+	_, err = s.Conn.Exec(ctx, "INSERT INTO supervision_finance.finance_client VALUES (NEXTVAL('supervision_finance.finance_client_id_seq'), $1, $2, 'DEMANDED', NULL, $3) RETURNING id", clientId, sopNumber, courtRef)
 	assert.NoError(s.t, err, "failed to add FinanceClient: %v", err)
 	return clientId
 }
@@ -46,6 +47,13 @@ func (s *Seeder) CreateInvoice(ctx context.Context, clientID int, invoiceType sh
 	var reference string
 	err = s.Conn.QueryRow(ctx, "SELECT id, reference FROM supervision_finance.invoice ORDER BY id DESC LIMIT 1").Scan(&id, &reference)
 	assert.NoError(s.t, err, "failed find created invoice: %v", err)
+
+	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger SET datetime = $1, created_at = $1 WHERE id IN (SELECT ledger_id FROM supervision_finance.ledger_allocation WHERE invoice_id = $2)", raisedDate, id)
+	assert.NoError(s.t, err, "failed to update ledger dates for reduction: %v", err)
+
+	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger_allocation SET datetime = $1 WHERE invoice_id = $2", raisedDate, id)
+	assert.NoError(s.t, err, "failed to update ledger allocation dates for reduction: %v", err)
+
 	return id, reference
 }
 
@@ -70,7 +78,7 @@ func (s *Seeder) ApproveAdjustment(ctx context.Context, clientID int, adjustment
 	assert.NoError(s.t, err, "failed to approve adjustment: %v", err)
 }
 
-func (s *Seeder) CreateFeeReduction(ctx context.Context, clientId int, feeType shared.FeeReductionType, startYear string, length int, notes string) {
+func (s *Seeder) CreateFeeReduction(ctx context.Context, clientId int, feeType shared.FeeReductionType, startYear string, length int, notes string, createdAt time.Time) {
 	received := shared.NewDate(startYear + "-01-01")
 	reduction := shared.AddFeeReduction{
 		FeeType:       feeType,
@@ -81,4 +89,37 @@ func (s *Seeder) CreateFeeReduction(ctx context.Context, clientId int, feeType s
 	}
 	err := s.Service.AddFeeReduction(ctx, clientId, reduction)
 	assert.NoError(s.t, err, "failed to create fee reduction: %v", err)
+
+	// update created dates to enable testing reductions added in the past
+	var id int
+	err = s.Conn.QueryRow(ctx, "SELECT id FROM supervision_finance.fee_reduction ORDER BY id DESC LIMIT 1").Scan(&id)
+	assert.NoError(s.t, err, "failed find created reduction: %v", err)
+
+	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger SET datetime = $1, created_at = $1 WHERE fee_reduction_id = $2", createdAt, id)
+	assert.NoError(s.t, err, "failed to update ledger dates for reduction: %v", err)
+
+	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger_allocation SET datetime = $1 WHERE ledger_id = (SELECT id FROM supervision_finance.ledger WHERE fee_reduction_id = $2)", createdAt, id)
+	assert.NoError(s.t, err, "failed to update ledger allocation dates for reduction: %v", err)
+}
+
+func (s *Seeder) CreatePayment(ctx context.Context, amount int, date time.Time, courtRef string, ledgerType shared.TransactionType, uploadDate time.Time) {
+	payment := shared.PaymentDetails{
+		Amount:     int32(amount),
+		BankDate:   date,
+		CourtRef:   courtRef,
+		LedgerType: ledgerType.Key(),
+		UploadDate: uploadDate,
+	}
+
+	tx, err := s.Service.BeginStoreTx(ctx)
+	assert.NoError(s.t, err, "failed to begin transaction: %v", err)
+
+	failedLines := make(map[int]string)
+
+	err = s.Service.ProcessPaymentsUploadLine(ctx, tx, payment, 0, &failedLines)
+	assert.NoError(s.t, err, "payment not processed: %v", err)
+	assert.Len(s.t, failedLines, 0, "payment failed: %v", failedLines)
+
+	err = tx.Commit(ctx)
+	assert.NoError(s.t, err, "failed to commit payment: %v", err)
 }

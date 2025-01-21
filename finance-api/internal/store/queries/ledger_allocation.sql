@@ -11,11 +11,3 @@ SELECT nextval('ledger_allocation_id_seq'),
        $4,
        $5
 FROM this_ledger WHERE this_ledger.id = $1;
-
--- name: UpdateLedgerAllocationAdjustment :exec
-UPDATE ledger_allocation la
-SET status = $1
-FROM ledger l
-WHERE l.id = $2
-  AND l.id = la.ledger_id
-  AND l.type IN ('CREDIT MEMO', 'CREDIT WRITE OFF', 'DEBIT MEMO');

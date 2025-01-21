@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/stretchr/testify/assert"
-	"os"
 	"testing"
 )
 
@@ -36,22 +35,14 @@ func (m *mockS3Client) Options() s3.Options {
 }
 
 func TestNewClient(t *testing.T) {
-	os.Unsetenv("AWS_REGION")
-	os.Unsetenv("AWS_S3_ENDPOINT")
-
-	region := "eu-west-1"
-	os.Setenv("AWS_REGION", "eu-west-1")
-
-	endpoint := "some-endpoint"
-	os.Setenv("AWS_S3_ENDPOINT", endpoint)
-
-	got, err := NewClient(context.Background())
+	got, err := NewClient(context.Background(), "eu-west-1", "role", "some-endpoint", "key")
 
 	assert.Nil(t, err)
 
 	assert.IsType(t, new(Client), got)
-	assert.Equal(t, region, got.s3.Options().Region)
-	assert.Equal(t, endpoint, *got.s3.Options().BaseEndpoint)
+	assert.Equal(t, "eu-west-1", got.s3.Options().Region)
+	assert.Equal(t, "some-endpoint", *got.s3.Options().BaseEndpoint)
+	assert.Equal(t, "key", got.kmsKey)
 }
 
 func TestGetFile(t *testing.T) {

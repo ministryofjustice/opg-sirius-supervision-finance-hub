@@ -20,7 +20,7 @@ func addFeeReductionSetup(seeder *testhelpers.Seeder) (*Service, shared.AddFeeRe
 		Notes:         "Testing",
 	}
 
-	s := NewService(seeder.Conn, nil, nil, nil)
+	s := NewService(seeder.Conn, nil, nil, nil, nil)
 
 	return s, params
 }
@@ -115,12 +115,12 @@ func (suite *IntegrationSuite) TestService_AddFeeReductionOverlap() {
 			lengthOfAward: 2,
 		},
 		{
-			testName:      "Overlap starts the same date as existing",
+			testName:      "Overlap starts the same BankDate as existing",
 			startYear:     "2019",
 			lengthOfAward: 1,
 		},
 		{
-			testName:      "Overlap end date is the same as existing",
+			testName:      "Overlap end BankDate is the same as existing",
 			startYear:     "2018",
 			lengthOfAward: 3,
 		},
@@ -157,7 +157,7 @@ func Test_calculateEndDate(t *testing.T) {
 		want pgtype.Date
 	}{
 		{
-			name: "returns the correct end date for a three year length award",
+			name: "returns the correct end BankDate for a three year length award",
 			args: args{
 				startYear:     "2024",
 				lengthOfAward: 3,
@@ -165,7 +165,7 @@ func Test_calculateEndDate(t *testing.T) {
 			want: pgtype.Date{Time: time.Date(2027, time.March, 31, 0, 0, 0, 0, time.UTC), Valid: true},
 		},
 		{
-			name: "returns the correct end date for a two year length award",
+			name: "returns the correct end BankDate for a two year length award",
 			args: args{
 				startYear:     "2024",
 				lengthOfAward: 2,
@@ -173,7 +173,7 @@ func Test_calculateEndDate(t *testing.T) {
 			want: pgtype.Date{Time: time.Date(2026, time.March, 31, 0, 0, 0, 0, time.UTC), Valid: true},
 		},
 		{
-			name: "returns the correct end date for a one year length award",
+			name: "returns the correct end BankDate for a one year length award",
 			args: args{
 				startYear:     "2024",
 				lengthOfAward: 1,
@@ -198,7 +198,7 @@ func Test_calculateStartDate(t *testing.T) {
 		want pgtype.Date
 	}{
 		{
-			name: "returns the correct start date",
+			name: "returns the correct start BankDate",
 			args: args{
 				startYear: "2024",
 			},
