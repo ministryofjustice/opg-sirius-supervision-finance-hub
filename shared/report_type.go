@@ -12,6 +12,7 @@ var ReportAccountTypes = []ReportAccountType{
 	ReportAccountTypeTotalReceiptsReport,
 	ReportAccountTypeBadDebtWriteOffReport,
 	ReportAccountTypeFeeAccrual,
+	ReportAccountTypeInvoiceAdjustments,
 }
 
 var reportAccountTypeMap = map[string]ReportAccountType{
@@ -24,6 +25,7 @@ var reportAccountTypeMap = map[string]ReportAccountType{
 	"TotalReceiptsReport":         ReportAccountTypeTotalReceiptsReport,
 	"BadDebtWriteOffReport":       ReportAccountTypeBadDebtWriteOffReport,
 	"FeeAccrual":                  ReportAccountTypeFeeAccrual,
+	"InvoiceAdjustments":          ReportAccountTypeInvoiceAdjustments,
 }
 
 type ReportAccountType int
@@ -39,6 +41,7 @@ const (
 	ReportAccountTypeTotalReceiptsReport
 	ReportAccountTypeBadDebtWriteOffReport
 	ReportAccountTypeFeeAccrual
+	ReportAccountTypeInvoiceAdjustments
 )
 
 func (i ReportAccountType) String() string {
@@ -65,6 +68,8 @@ func (i ReportAccountType) Translation() string {
 		return "Bad Debt Write-off Report"
 	case ReportAccountTypeFeeAccrual:
 		return "Fee Accrual"
+	case ReportAccountTypeInvoiceAdjustments:
+		return "Invoice Adjustments"
 	default:
 		return ""
 	}
@@ -90,6 +95,8 @@ func (i ReportAccountType) Key() string {
 		return "BadDebtWriteOffReport"
 	case ReportAccountTypeFeeAccrual:
 		return "FeeAccrual"
+	case ReportAccountTypeInvoiceAdjustments:
+		return "InvoiceAdjustments"
 	default:
 		return ""
 	}
