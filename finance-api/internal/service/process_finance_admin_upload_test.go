@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"io"
@@ -23,50 +23,72 @@ type createdLedgerAllocation struct {
 	invoiceId        int
 }
 
+type mockNotify struct {
+	payload notify.Payload
+	err     error
+}
+
+func (n *mockNotify) Send(ctx context.Context, payload notify.Payload) error {
+	n.payload = payload
+	return n.err
+}
+
 func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
 	ctx := suite.ctx
 	seeder := suite.cm.Seeder(ctx, suite.T())
 
-	dispatch := &mockDispatch{}
 	fileStorage := &mockFileStorage{}
 	fileStorage.file = io.NopCloser(strings.NewReader("test"))
+	notifyClient := &mockNotify{}
 
-	s := NewService(seeder.Conn, dispatch, fileStorage, nil)
+	s := NewService(seeder.Conn, nil, fileStorage, notifyClient)
 
 	tests := []struct {
-		name           string
-		uploadType     string
-		fileStorageErr error
-		expectedEvent  any
+		name            string
+		uploadType      string
+		fileStorageErr  error
+		expectedPayload notify.Payload
 	}{
 		{
 			name:       "Unknown report",
 			uploadType: "test",
-			expectedEvent: event.FinanceAdminUploadProcessed{
+			expectedPayload: notify.Payload{
 				EmailAddress: "test@email.com",
-				Error:        "unknown upload type",
-				UploadType:   "test",
-				Filename:     "test.csv",
+				TemplateId:   notify.ProcessingErrorTemplateId,
+				Personalisation: struct {
+					Error      string `json:"error"`
+					UploadType string `json:"upload_type"`
+				}{
+					"unknown upload type",
+					"test",
+				},
 			},
 		},
 		{
 			name:           "S3 error",
+			uploadType:     "test",
 			fileStorageErr: fmt.Errorf("test"),
-			uploadType:     "PAYMENTS_MOTO_CARD",
-			expectedEvent: event.FinanceAdminUploadProcessed{
+			expectedPayload: notify.Payload{
 				EmailAddress: "test@email.com",
-				Error:        "Unable to download report",
-				UploadType:   "PAYMENTS_MOTO_CARD",
-				Filename:     "test.csv",
+				TemplateId:   notify.ProcessingErrorTemplateId,
+				Personalisation: struct {
+					Error      string `json:"error"`
+					UploadType string `json:"upload_type"`
+				}{
+					"Unable to download report",
+					"test",
+				},
 			},
 		},
 		{
 			name:       "Known report",
 			uploadType: "PAYMENTS_MOTO_CARD",
-			expectedEvent: event.FinanceAdminUploadProcessed{
+			expectedPayload: notify.Payload{
 				EmailAddress: "test@email.com",
-				UploadType:   "PAYMENTS_MOTO_CARD",
-				Filename:     "test.csv",
+				TemplateId:   notify.ProcessingSuccessTemplateId,
+				Personalisation: struct {
+					UploadType string `json:"upload_type"`
+				}{"PAYMENTS_MOTO_CARD"},
 			},
 		},
 	}
@@ -80,7 +102,7 @@ func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
 				EmailAddress: emailAddress, Filename: filename, UploadType: tt.uploadType,
 			})
 			assert.Nil(t, err)
-			assert.Equal(t, tt.expectedEvent, dispatch.event)
+			assert.Equal(t, tt.expectedPayload, notifyClient.payload)
 		})
 	}
 }
