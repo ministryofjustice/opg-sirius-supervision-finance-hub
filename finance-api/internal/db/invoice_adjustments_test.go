@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
+	"strconv"
 	"time"
 )
 
@@ -28,7 +29,7 @@ func (suite *IntegrationSuite) Test_invoice_adjustments() {
 	suite.seeder.CreateInvoiceFeeRange(ctx, invoiceId, "MINIMAL")
 	invoiceId, _ = suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, today.StringPtr(), nil, nil, nil)
 	suite.seeder.CreateInvoiceFeeRange(ctx, invoiceId, "AD")
-	suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeRemission, "2023", 4, "Test remission")
+	suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeRemission, strconv.Itoa(today.Date().Year()-1), 4, "Test remission")
 
 	c := Client{suite.seeder.Conn}
 
