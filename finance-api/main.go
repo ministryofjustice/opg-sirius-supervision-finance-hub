@@ -54,9 +54,7 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		return err
 	}
 
-	notifyClient := notify.NewClient()
-
-	Service := service.NewService(dbPool, eventClient, fileStorageClient, notifyClient)
+	Service := service.NewService(dbPool, eventClient, fileStorageClient, notify.NewClient())
 
 	validator, err := validation.New()
 	if err != nil {
