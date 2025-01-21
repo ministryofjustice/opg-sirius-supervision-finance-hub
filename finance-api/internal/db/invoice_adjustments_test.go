@@ -30,14 +30,6 @@ func (suite *IntegrationSuite) Test_invoice_adjustments() {
 	suite.seeder.CreateInvoiceFeeRange(ctx, invoiceId, "AD")
 	suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeRemission, "2023", 4, "Test remission")
 
-	//// one client with two orders and a credit memo:
-	//client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234")
-	//suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
-	//invoiceId, _ := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, today.StringPtr(), nil, nil, nil)
-	//suite.seeder.CreateInvoiceFeeRange(ctx, invoiceId, "AD")
-	//creditMemoID := suite.seeder.CreateAdjustment(ctx, client1ID, invoiceId, shared.AdjustmentTypeCreditMemo, 10000, "£100 credit")
-	//suite.seeder.ApproveAdjustment(ctx, client1ID, creditMemoID)
-
 	c := Client{suite.seeder.Conn}
 
 	from := shared.NewDate(fourYearsAgo.String())
