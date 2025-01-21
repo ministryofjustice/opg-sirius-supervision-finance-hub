@@ -262,7 +262,7 @@ func (s *Service) processPaymentsUploadLine(ctx context.Context, details payment
 func createUploadNotifyPayload(detail shared.FinanceAdminUploadEvent, error string, failedLines map[int]string) notify.Payload {
 	var payload notify.Payload
 
-	uploadType := detail.UploadType
+	uploadType := shared.ParseReportUploadType(detail.UploadType)
 	if error != "" {
 		payload = notify.Payload{
 			EmailAddress: detail.EmailAddress,
@@ -272,7 +272,7 @@ func createUploadNotifyPayload(detail shared.FinanceAdminUploadEvent, error stri
 				UploadType string `json:"upload_type"`
 			}{
 				Error:      error,
-				UploadType: uploadType,
+				UploadType: uploadType.Translation(),
 			},
 		}
 	} else if len(failedLines) != 0 {
@@ -284,7 +284,7 @@ func createUploadNotifyPayload(detail shared.FinanceAdminUploadEvent, error stri
 				UploadType  string   `json:"upload_type"`
 			}{
 				FailedLines: formatFailedLines(failedLines),
-				UploadType:  uploadType,
+				UploadType:  uploadType.Translation(),
 			},
 		}
 	} else {
@@ -293,7 +293,7 @@ func createUploadNotifyPayload(detail shared.FinanceAdminUploadEvent, error stri
 			TemplateId:   notify.ProcessingSuccessTemplateId,
 			Personalisation: struct {
 				UploadType string `json:"upload_type"`
-			}{uploadType},
+			}{uploadType.Translation()},
 		}
 	}
 

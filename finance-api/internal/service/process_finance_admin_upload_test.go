@@ -60,7 +60,7 @@ func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
 					UploadType string `json:"upload_type"`
 				}{
 					"unknown upload type",
-					"test",
+					"",
 				},
 			},
 		},
@@ -76,7 +76,7 @@ func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
 					UploadType string `json:"upload_type"`
 				}{
 					"Unable to download report",
-					"test",
+					"",
 				},
 			},
 		},
@@ -88,7 +88,7 @@ func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
 				TemplateId:   notify.ProcessingSuccessTemplateId,
 				Personalisation: struct {
 					UploadType string `json:"upload_type"`
-				}{"PAYMENTS_MOTO_CARD"},
+				}{"Payments - MOTO card"},
 			},
 		},
 	}
