@@ -262,3 +262,38 @@ func Test_parseAmount(t *testing.T) {
 		})
 	}
 }
+
+func Test_formatFailedLines(t *testing.T) {
+	tests := []struct {
+		name        string
+		failedLines map[int]string
+		want        []string
+	}{
+		{
+			name:        "Empty",
+			failedLines: map[int]string{},
+			want:        []string(nil),
+		},
+		{
+			name: "Unsorted lines",
+			failedLines: map[int]string{
+				5: "DATE_PARSE_ERROR",
+				3: "CLIENT_NOT_FOUND",
+				8: "DUPLICATE_PAYMENT",
+				1: "DUPLICATE_PAYMENT",
+			},
+			want: []string{
+				"Line 1: Duplicate payment line",
+				"Line 3: Could not find a client with this court reference",
+				"Line 5: Unable to parse date - please use the format DD/MM/YYYY",
+				"Line 8: Duplicate payment line",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			formattedLines := formatFailedLines(tt.failedLines)
+			assert.Equal(t, tt.want, formattedLines)
+		})
+	}
+}
