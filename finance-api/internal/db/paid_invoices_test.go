@@ -3,6 +3,7 @@ package db
 import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
+	"strconv"
 	"time"
 )
 
@@ -19,7 +20,7 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234")
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
 	_, c1i1Ref := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil)
-	suite.seeder.CreateFeeReduction(ctx, client1ID, shared.FeeReductionTypeExemption, "2024", 1, "Test exemption")
+	suite.seeder.CreateFeeReduction(ctx, client1ID, shared.FeeReductionTypeExemption, strconv.Itoa(twoYearsAgo.Date().Year()), 2, "Test exemption")
 
 	// one client with:
 	// one invoice with no outstanding balance due to an exemption
@@ -27,15 +28,14 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	client2ID := suite.seeder.CreateClient(ctx, "John", "Suite", "87654321", "4321")
 	suite.seeder.CreateOrder(ctx, client2ID, "ACTIVE")
 	_, c2i1Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeAD, nil, fourYearsAgo.StringPtr(), nil, nil, nil)
-	_, _ = suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, &general, twoYearsAgo.StringPtr(), twoYearsAgo.StringPtr(), nil, nil)
-	suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeExemption, "2020", 1, "Test exemption")
-	// Update exemption years
+	_, _ = suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, &general, twoMonthsAgo.StringPtr(), twoMonthsAgo.StringPtr(), nil, nil)
+	suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeExemption, strconv.Itoa(fourYearsAgo.Date().Year()-1), 2, "Test exemption")
 
 	// one client with one invoice partially paid due to a remission
 	client3ID := suite.seeder.CreateClient(ctx, "John", "Suite", "87654321", "4321")
 	suite.seeder.CreateOrder(ctx, client3ID, "ACTIVE")
 	_, _ = suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeAD, nil, fourYearsAgo.StringPtr(), nil, nil, nil)
-	suite.seeder.CreateFeeReduction(ctx, client3ID, shared.FeeReductionTypeRemission, "2018", 4, "Test remission")
+	suite.seeder.CreateFeeReduction(ctx, client3ID, shared.FeeReductionTypeRemission, strconv.Itoa(fourYearsAgo.Date().Year()-1), 4, "Test remission")
 
 	c := Client{suite.seeder.Conn}
 
