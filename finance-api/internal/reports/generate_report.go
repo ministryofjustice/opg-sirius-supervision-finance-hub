@@ -34,7 +34,7 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 				FromDate: reportRequest.FromDateField,
 				ToDate:   reportRequest.ToDateField,
 			}
-		case shared.ReportAccountTypeCustomerCredit:
+		case shared.ReportAccountTypeUnappliedReceipts:
 			query = &db.CustomerCredit{}
 		default:
 			return fmt.Errorf("unknown query")
