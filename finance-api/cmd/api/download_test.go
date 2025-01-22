@@ -5,6 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/stretchr/testify/assert"
 	"io"
@@ -15,6 +16,8 @@ import (
 
 func TestServer_download(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, "/download?uid=eyJLZXkiOiJ0ZXN0LmNzdiIsIlZlcnNpb25JZCI6InZwckF4c1l0TFZzYjVQOUhfcUhlTlVpVTlNQm5QTmN6In0=", nil)
+	ctx := telemetry.ContextWithLogger(r.Context(), telemetry.NewLogger("test"))
+	r = r.WithContext(ctx)
 	w := httptest.NewRecorder()
 
 	fileContent := "col1,col2,col3\n1,a,Z\n"
@@ -38,14 +41,16 @@ func TestServer_download(t *testing.T) {
 }
 
 func TestServer_download_noMatch(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/download?uid=eyJLZXkiOiJ0ZXN0LmNzdiIsIlZlcnNpb25JZCI6InZwckF4c1l0TFZzYjVQOUhfcUhlTlVpVTlNQm5QTmN6In0=", nil)
+	r := httptest.NewRequest(http.MethodGet, "/download?uid=eyJLZXkiOiJ0ZXN0LmNzdiIsIlZlcnNpb25JZCI6InZwckF4c1l0TFZzYjVQOUhfcUhlTlVpVTlNQm5QTmN6In0=", nil)
+	ctx := telemetry.ContextWithLogger(r.Context(), telemetry.NewLogger("test"))
+	r = r.WithContext(ctx)
 	w := httptest.NewRecorder()
 
 	mockS3 := MockFileStorage{}
 	mockS3.err = &types.NoSuchKey{}
 	server := NewServer(nil, nil, &mockS3, nil)
 
-	err := server.download(w, req)
+	err := server.download(w, r)
 
 	expected := apierror.NotFoundError(&types.NoSuchKey{})
 	assert.ErrorAs(t, err, &expected)

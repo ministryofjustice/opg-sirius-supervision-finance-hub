@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/aws/smithy-go"
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"io"
@@ -13,6 +14,7 @@ import (
 
 func (s *Server) download(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
+	logger := telemetry.LoggerFromContext(ctx)
 	uid := r.URL.Query().Get("uid")
 
 	var downloadRequest shared.DownloadRequest
@@ -29,6 +31,7 @@ func (s *Server) download(w http.ResponseWriter, r *http.Request) error {
 				return apierror.NotFoundError(err)
 			}
 		}
+		logger.Error("failed to get object from S3", "err", err)
 		return fmt.Errorf("failed to get object from S3: %w", err)
 	}
 	defer result.Body.Close()
