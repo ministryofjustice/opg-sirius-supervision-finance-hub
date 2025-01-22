@@ -43,13 +43,12 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 	ctx, cancelTx := context.WithCancel(ctx)
 	defer cancelTx()
 
-	tx, err := s.tx.Begin(ctx)
+	tx, err := s.BeginStoreTx(ctx)
 	if err != nil {
 		return err
 	}
 
-	transaction := s.store.WithTx(tx)
-	counter, err := transaction.GetInvoiceCounter(ctx, strconv.Itoa(data.StartDate.Value.Time.Year())+"InvoiceNumber")
+	counter, err := tx.GetInvoiceCounter(ctx, strconv.Itoa(data.StartDate.Value.Time.Year())+"InvoiceNumber")
 	if err != nil {
 		return err
 	}
@@ -70,7 +69,7 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 	}
 
 	var invoice store.Invoice
-	invoice, err = transaction.AddInvoice(ctx, invoiceParams)
+	invoice, err = tx.AddInvoice(ctx, invoiceParams)
 	if err != nil {
 		return err
 	}
@@ -84,7 +83,7 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 			Amount:           invoice.Amount,
 		}
 
-		err = transaction.AddInvoiceRange(ctx, addInvoiceRangeQueryArgs)
+		err = tx.AddInvoiceRange(ctx, addInvoiceRangeQueryArgs)
 		if err != nil {
 			return err
 		}
@@ -95,7 +94,7 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 		Datereceived: invoice.Raiseddate,
 	}
 
-	feeReduction, _ := transaction.GetFeeReductionForDate(ctx, reductionForDateParams)
+	feeReduction, _ := tx.GetFeeReductionForDate(ctx, reductionForDateParams)
 
 	if feeReduction.ID != 0 {
 		var generalSupervisionFee int32
@@ -111,14 +110,14 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 			invoiceId:          invoice.ID,
 			outstandingBalance: invoice.Amount,
 		})
-		ledgerId, err := transaction.CreateLedger(ctx, ledger)
+		ledgerId, err := tx.CreateLedger(ctx, ledger)
 		if err != nil {
 			return err
 		}
 
 		for _, allocation := range allocations {
 			allocation.LedgerID = pgtype.Int4{Int32: ledgerId, Valid: true}
-			err = transaction.CreateLedgerAllocation(ctx, allocation)
+			err = tx.CreateLedgerAllocation(ctx, allocation)
 			if err != nil {
 				return err
 			}
@@ -138,25 +137,25 @@ func (s *Service) validateManualInvoice(data shared.AddManualInvoice) apierror.V
 
 	if data.InvoiceType.RequiresDateValidation() {
 		if !data.RaisedDate.Value.Time.Before(time.Now()) {
-			validationErrors["RaisedDate"] = map[string]string{"RaisedDate": "Raised date not in the past"}
+			validationErrors["RaisedDate"] = map[string]string{"RaisedDate": "Raised BankDate not in the past"}
 		}
 	}
 
 	if data.InvoiceType.RequiresSameFinancialYearValidation() {
 		isSameFinancialYear := validateSameFinancialYear(data.StartDate.Value, data.EndDate.Value)
 		if !isSameFinancialYear {
-			validationErrors["StartDate"] = map[string]string{"StartDate": "Start date and end date must be in same financial year"}
+			validationErrors["StartDate"] = map[string]string{"StartDate": "Start BankDate and end BankDate must be in same financial year"}
 		}
 	}
 
 	isStartDateValid := validateStartDate(data.StartDate.Value, data.EndDate.Value)
 	if !isStartDateValid {
-		validationErrors["StartDate"] = map[string]string{"StartDate": "Start date must be before end date"}
+		validationErrors["StartDate"] = map[string]string{"StartDate": "Start BankDate must be before end BankDate"}
 	}
 
 	isEndDateValid := validateEndDate(data.StartDate.Value, data.EndDate.Value)
 	if !isEndDateValid {
-		validationErrors["EndDate"] = map[string]string{"EndDate": "End date must be after start date"}
+		validationErrors["EndDate"] = map[string]string{"EndDate": "End BankDate must be after start BankDate"}
 	}
 
 	return validationErrors
