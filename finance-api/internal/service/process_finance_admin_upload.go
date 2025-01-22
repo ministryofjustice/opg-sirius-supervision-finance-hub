@@ -76,17 +76,9 @@ func parseAmount(amount string) (int32, error) {
 	return int32(intAmount), err
 }
 
-type paymentDetails struct {
-	amount     int32
-	date       time.Time
-	courtRef   string
-	ledgerType string
-	uploadDate shared.Date
-}
-
-func getPaymentDetails(record []string, uploadType string, uploadDate shared.Date, ledgerType string, index int, failedLines *map[int]string) paymentDetails {
+func getPaymentDetails(record []string, uploadType string, uploadDate shared.Date, ledgerType string, index int, failedLines *map[int]string) shared.PaymentDetails {
 	var courtRef string
-	var date time.Time
+	var bankDate time.Time
 	var amount int32
 	var err error
 
@@ -97,13 +89,13 @@ func getPaymentDetails(record []string, uploadType string, uploadDate shared.Dat
 		amount, err = parseAmount(record[2])
 		if err != nil {
 			(*failedLines)[index] = "AMOUNT_PARSE_ERROR"
-			return paymentDetails{}
+			return shared.PaymentDetails{}
 		}
 
-		date, err = time.Parse("2006-01-02 15:04:05", record[1])
+		bankDate, err = time.Parse("2006-01-02 15:04:05", record[1])
 		if err != nil {
 			(*failedLines)[index] = "DATE_PARSE_ERROR"
-			return paymentDetails{}
+			return shared.PaymentDetails{}
 		}
 	case "PAYMENTS_SUPERVISION_BACS", "PAYMENTS_OPG_BACS":
 		courtRef = record[10]
@@ -111,17 +103,17 @@ func getPaymentDetails(record []string, uploadType string, uploadDate shared.Dat
 		amount, err = parseAmount(record[6])
 		if err != nil {
 			(*failedLines)[index] = "AMOUNT_PARSE_ERROR"
-			return paymentDetails{}
+			return shared.PaymentDetails{}
 		}
 
-		date, err = time.Parse("02/01/2006", record[4])
+		bankDate, err = time.Parse("02/01/2006", record[4])
 		if err != nil {
 			(*failedLines)[index] = "DATE_PARSE_ERROR"
-			return paymentDetails{}
+			return shared.PaymentDetails{}
 		}
 	}
 
-	return paymentDetails{amount, date, courtRef, ledgerType, uploadDate}
+	return shared.PaymentDetails{Amount: amount, BankDate: bankDate, CourtRef: courtRef, LedgerType: ledgerType, UploadDate: uploadDate.Time}
 }
 
 func (s *Service) processPayments(ctx context.Context, records [][]string, uploadType string, uploadDate shared.Date) (map[int]string, error) {
@@ -130,12 +122,10 @@ func (s *Service) processPayments(ctx context.Context, records [][]string, uploa
 	ctx, cancelTx := context.WithCancel(ctx)
 	defer cancelTx()
 
-	tx, err := s.tx.Begin(ctx)
+	tx, err := s.BeginStoreTx(ctx)
 	if err != nil {
 		return nil, err
 	}
-
-	transaction := s.store.WithTx(tx)
 
 	ledgerType, err := getLedgerType(uploadType)
 	if err != nil {
@@ -146,8 +136,8 @@ func (s *Service) processPayments(ctx context.Context, records [][]string, uploa
 		if index != 0 && record[0] != "" {
 			details := getPaymentDetails(record, uploadType, uploadDate, ledgerType, index, &failedLines)
 
-			if details != (paymentDetails{}) {
-				err := s.processPaymentsUploadLine(ctx, details, index, &failedLines, transaction)
+			if details != (shared.PaymentDetails{}) {
+				err := s.ProcessPaymentsUploadLine(ctx, tx, details, index, &failedLines)
 				if err != nil {
 					return nil, err
 				}
@@ -163,16 +153,16 @@ func (s *Service) processPayments(ctx context.Context, records [][]string, uploa
 	return failedLines, nil
 }
 
-func (s *Service) processPaymentsUploadLine(ctx context.Context, details paymentDetails, index int, failedLines *map[int]string, transaction *store.Queries) error {
-	if details.amount == 0 {
+func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, details shared.PaymentDetails, index int, failedLines *map[int]string) error {
+	if details.Amount == 0 {
 		return nil
 	}
 
 	ledgerId, _ := s.store.GetLedgerForPayment(ctx, store.GetLedgerForPaymentParams{
-		CourtRef: pgtype.Text{String: details.courtRef, Valid: true},
-		Amount:   details.amount,
-		Type:     details.ledgerType,
-		Bankdate: pgtype.Date{Time: details.date, Valid: true},
+		CourtRef: pgtype.Text{String: details.CourtRef, Valid: true},
+		Amount:   details.Amount,
+		Type:     details.LedgerType,
+		Bankdate: pgtype.Date{Time: details.BankDate, Valid: true},
 	})
 
 	if ledgerId != 0 {
@@ -180,14 +170,14 @@ func (s *Service) processPaymentsUploadLine(ctx context.Context, details payment
 		return nil
 	}
 
-	ledgerId, err := transaction.CreateLedgerForCourtRef(ctx, store.CreateLedgerForCourtRefParams{
-		CourtRef:  pgtype.Text{String: details.courtRef, Valid: true},
-		Amount:    details.amount,
-		Type:      details.ledgerType,
+	ledgerId, err := tx.CreateLedgerForCourtRef(ctx, store.CreateLedgerForCourtRefParams{
+		CourtRef:  pgtype.Text{String: details.CourtRef, Valid: true},
+		Amount:    details.Amount,
+		Type:      details.LedgerType,
 		Status:    "CONFIRMED",
 		CreatedBy: pgtype.Int4{Int32: 1, Valid: true},
-		Bankdate:  pgtype.Date{Time: details.date, Valid: true},
-		Datetime:  pgtype.Timestamp{Time: details.uploadDate.Time, Valid: true},
+		Bankdate:  pgtype.Date{Time: details.BankDate, Valid: true},
+		Datetime:  pgtype.Timestamp{Time: details.UploadDate, Valid: true},
 	})
 
 	if err != nil {
@@ -195,19 +185,21 @@ func (s *Service) processPaymentsUploadLine(ctx context.Context, details payment
 		return nil
 	}
 
-	invoices, err := transaction.GetInvoicesForCourtRef(ctx, pgtype.Text{String: details.courtRef, Valid: true})
+	invoices, err := tx.GetInvoicesForCourtRef(ctx, pgtype.Text{String: details.CourtRef, Valid: true})
 
 	if err != nil {
 		return err
 	}
 
+	remaining := details.Amount
+
 	for _, invoice := range invoices {
 		allocationAmount := invoice.Outstanding
-		if allocationAmount > details.amount {
-			allocationAmount = details.amount
+		if allocationAmount > remaining {
+			allocationAmount = remaining
 		}
 
-		err = transaction.CreateLedgerAllocation(ctx, store.CreateLedgerAllocationParams{
+		err = tx.CreateLedgerAllocation(ctx, store.CreateLedgerAllocationParams{
 			InvoiceID: pgtype.Int4{Int32: invoice.ID, Valid: true},
 			Amount:    allocationAmount,
 			Status:    "ALLOCATED",
@@ -217,12 +209,12 @@ func (s *Service) processPaymentsUploadLine(ctx context.Context, details payment
 			return err
 		}
 
-		details.amount -= allocationAmount
+		remaining -= allocationAmount
 	}
 
-	if details.amount > 0 {
-		err = transaction.CreateLedgerAllocation(ctx, store.CreateLedgerAllocationParams{
-			Amount:   details.amount,
+	if remaining > 0 {
+		err = tx.CreateLedgerAllocation(ctx, store.CreateLedgerAllocationParams{
+			Amount:   -remaining,
 			Status:   "UNAPPLIED",
 			LedgerID: pgtype.Int4{Int32: ledgerId, Valid: true},
 		})
