@@ -33,6 +33,13 @@ CREATE INDEX cases_orderstatus_index ON public.cases (orderstatus);
 
 CREATE INDEX idx_1c1b038b19eb6921 ON public.cases (client_id);
 
+CREATE TABLE public.assignees
+(
+    id INTEGER NOT NULL PRIMARY KEY,
+    name VARCHAR(255) DEFAULT NULL,
+    surname VARCHAR(255) DEFAULT NULL
+);
+
 CREATE SEQUENCE public.persons_id_seq;
 
 ALTER SEQUENCE public.persons_id_seq OWNER TO api;
@@ -40,6 +47,10 @@ ALTER SEQUENCE public.persons_id_seq OWNER TO api;
 CREATE SEQUENCE public.cases_id_seq;
 
 ALTER SEQUENCE public.cases_id_seq OWNER TO api;
+
+CREATE SEQUENCE public.assignees_id_seq;
+
+ALTER SEQUENCE public.assignees_id_seq OWNER TO api;
 
 CREATE SCHEMA supervision_finance;
 GRANT ALL ON SCHEMA supervision_finance TO api;
