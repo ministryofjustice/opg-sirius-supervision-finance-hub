@@ -21,12 +21,17 @@ const AgedDebtQuery = `WITH outstanding_invoices AS (SELECT i.id,
                                      i.raiseddate,
                                      i.raiseddate + '30 days'::INTERVAL AS due_date,
                                      ((i.amount / 100.0)::NUMERIC(10, 2))::VARCHAR(255) AS amount,
-                                     (((i.amount - SUM(COALESCE(la.amount, 0))) / 100.00)::NUMERIC(10, 2))::VARCHAR(255) AS outstanding,
+                                     (((i.amount - COALESCE(transactions.received, 0)) / 100.00)::NUMERIC(10, 2))::VARCHAR(255) AS outstanding,
 									 DATE_PART('year', AGE(NOW(), (i.raiseddate + '30 days'::INTERVAL))) + 
 									 DATE_PART('month', AGE(NOW(), (i.raiseddate + '30 days'::INTERVAL))) / 12.0 AS age
                               FROM supervision_finance.invoice i
-                                       LEFT JOIN supervision_finance.ledger_allocation la ON i.id = la.invoice_id
-                                  AND la.status = 'ALLOCATED'
+									   LEFT JOIN LATERAL (
+								  SELECT SUM(la.amount) AS received
+								  FROM supervision_finance.ledger_allocation la
+								  		 JOIN supervision_finance.ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
+									WHERE la.status NOT IN ('PENDING', 'UNALLOCATED')
+								    AND la.invoice_id = i.id
+								  ) transactions ON TRUE
                                        LEFT JOIN LATERAL (
                                   SELECT ifr.supervisionlevel AS supervision_level
                                   FROM supervision_finance.invoice_fee_range ifr
@@ -34,9 +39,7 @@ const AgedDebtQuery = `WITH outstanding_invoices AS (SELECT i.id,
                                   ORDER BY id
                                   LIMIT 1
                                   ) sl ON TRUE
-							WHERE i.raiseddate >= $1 AND i.raiseddate <= $2
-                              GROUP BY i.id, i.amount, sl.supervision_level
-                              HAVING i.amount > COALESCE(SUM(la.amount), 0)),
+							WHERE i.raiseddate >= $1 AND i.raiseddate <= $2 AND i.amount > COALESCE(transactions.received, 0)),
      age_per_client AS (SELECT fc.client_id, MAX(oi.age) AS age
                         FROM supervision_finance.finance_client fc
                                  JOIN outstanding_invoices oi ON fc.id = oi.finance_client_id
