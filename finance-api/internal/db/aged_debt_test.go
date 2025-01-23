@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
+	"strconv"
 )
 
 func (suite *IntegrationSuite) Test_aged_debt() {
@@ -13,6 +14,7 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	twoMonthsAgo := suite.seeder.Today().Sub(0, 2, 0)
 	twoYearsAgo := suite.seeder.Today().Sub(2, 0, 0)
 	fourYearsAgo := suite.seeder.Today().Sub(4, 0, 0)
+	fiveYearsAgo := suite.seeder.Today().Sub(5, 0, 0)
 	sixYearsAgo := suite.seeder.Today().Sub(6, 0, 0)
 	general := "320.00"
 
@@ -42,7 +44,7 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	client2ID := suite.seeder.CreateClient(ctx, "John", "Suite", "87654321", "4321")
 	suite.seeder.CreateDeputy(ctx, client2ID, "Jane", "Deputy", "PRO")
 	suite.seeder.CreateOrder(ctx, client2ID, "CLOSED")
-	suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeRemission, "2019", 2, "A reduction")
+	suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeRemission, strconv.Itoa(fiveYearsAgo.Date().Year()), 2, "A reduction", fiveYearsAgo.Date())
 	_, c2i1Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeAD, nil, fourYearsAgo.StringPtr(), nil, nil, nil)
 	_, c2i2Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, &general, twoYearsAgo.StringPtr(), twoYearsAgo.StringPtr(), nil, nil)
 
