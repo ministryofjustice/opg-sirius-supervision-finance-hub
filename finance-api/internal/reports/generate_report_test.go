@@ -80,6 +80,16 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			expectedQuery: &db.AgedDebtByCustomer{},
 		},
 		{
+			name: "Invoice Adjustments",
+			reportRequest: shared.ReportRequest{
+				ReportType:        "AccountsReceivable",
+				ReportAccountType: "InvoiceAdjustments",
+				ToDateField:       &toDate,
+				FromDateField:     &fromDate,
+			},
+			expectedQuery: &db.InvoiceAdjustments{FromDate: &fromDate, ToDate: &toDate},
+		},
+		{
 			name: "Unknown",
 			reportRequest: shared.ReportRequest{
 				ReportType:        "AccountsReceivable",
@@ -131,7 +141,7 @@ func TestCreateDownloadNotifyPayload(t *testing.T) {
 	uid, _ := downloadRequest.Encode()
 	requestedDate, _ := time.Parse("2006-01-02 15:04:05", "2024-01-01 13:37:00")
 	_ = os.Setenv("SIRIUS_PUBLIC_URL", "www.sirius.com")
-	_ = os.Setenv("PREFIX", "/finance")
+	_ = os.Setenv("FINANCE_ADMIN_PREFIX", "/finance")
 
 	want := notify.Payload{
 		EmailAddress: emailAddress,
