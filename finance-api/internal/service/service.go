@@ -17,7 +17,6 @@ type TX interface {
 
 type Dispatch interface {
 	CreditOnAccount(ctx context.Context, event event.CreditOnAccount) error
-	FinanceAdminUploadProcessed(ctx context.Context, event event.FinanceAdminUploadProcessed) error
 }
 
 type FileStorage interface {

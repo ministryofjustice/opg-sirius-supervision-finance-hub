@@ -5,7 +5,6 @@ import (
 	"encoding/csv"
 	"fmt"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
@@ -18,11 +17,6 @@ import (
 
 func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, detail shared.FinanceAdminUploadEvent) error {
 	file, err := s.fileStorage.GetFile(ctx, os.Getenv("ASYNC_S3_BUCKET"), detail.Filename)
-	uploadProcessedEvent := event.FinanceAdminUploadProcessed{
-		EmailAddress: detail.EmailAddress,
-		UploadType:   detail.UploadType,
-		Filename:     detail.Filename,
-	}
 
 	if err != nil {
 		payload := createUploadNotifyPayload(detail, "Unable to download report", map[int]string{})
@@ -56,7 +50,6 @@ func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, detail shared.F
 	}
 
 	if len(failedLines) > 0 {
-		uploadProcessedEvent.FailedLines = failedLines
 		payload := createUploadNotifyPayload(detail, "", failedLines)
 		err := s.notify.Send(ctx, payload)
 		if err != nil {
