@@ -80,6 +80,16 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			expectedQuery: &db.AgedDebtByCustomer{},
 		},
 		{
+			name: "Invoice Adjustments",
+			reportRequest: shared.ReportRequest{
+				ReportType:        "AccountsReceivable",
+				ReportAccountType: "InvoiceAdjustments",
+				ToDateField:       &toDate,
+				FromDateField:     &fromDate,
+			},
+			expectedQuery: &db.InvoiceAdjustments{FromDate: &fromDate, ToDate: &toDate},
+		},
+		{
 			name: "Bad Debt Write Off",
 			reportRequest: shared.ReportRequest{
 				ReportType:        "AccountsReceivable",
