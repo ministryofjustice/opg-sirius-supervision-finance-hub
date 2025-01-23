@@ -1,0 +1,102 @@
+package db
+
+import (
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"github.com/stretchr/testify/assert"
+	"time"
+)
+
+func (suite *IntegrationSuite) Test_bad_debt_write_off() {
+	ctx := suite.ctx
+	today := suite.seeder.Today()
+	twoMonthsAgo := suite.seeder.Today().Sub(0, 2, 0)
+	twoYearsAgo := suite.seeder.Today().Sub(2, 0, 0)
+	fourYearsAgo := suite.seeder.Today().Sub(4, 0, 0)
+	general := "320.00"
+
+	suite.seeder.CreateTestAssignee(ctx)
+
+	// one client with:
+	// - one written off invoice
+	// - one active invoice
+	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234")
+	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
+	_, _ = suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeGA, nil, twoMonthsAgo.StringPtr(), nil, nil, nil)
+	paidInvoiceID, c1i1Ref := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil)
+	writeOffId := suite.seeder.CreateAdjustment(ctx, client1ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 10000, "Written off")
+	suite.seeder.ApproveAdjustment(ctx, client1ID, writeOffId)
+
+	// one client with two written off invoices
+	client2ID := suite.seeder.CreateClient(ctx, "John", "Suite", "87654321", "4321")
+	suite.seeder.CreateOrder(ctx, client2ID, "ACTIVE")
+	paidInvoiceID, c2i1Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeAD, nil, fourYearsAgo.StringPtr(), nil, nil, nil)
+	writeOffId = suite.seeder.CreateAdjustment(ctx, client1ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 10000, "Written off")
+	suite.seeder.ApproveAdjustment(ctx, client1ID, writeOffId)
+
+	paidInvoiceID, c2i2Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, &general, twoYearsAgo.StringPtr(), twoYearsAgo.StringPtr(), nil, nil)
+	writeOffId = suite.seeder.CreateAdjustment(ctx, client1ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 10000, "Written off")
+	suite.seeder.ApproveAdjustment(ctx, client1ID, writeOffId)
+
+	// one client with one unapproved write off
+	client3ID := suite.seeder.CreateClient(ctx, "John", "Suite", "87654321", "4321")
+	suite.seeder.CreateOrder(ctx, client3ID, "ACTIVE")
+	paidInvoiceID, _ = suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeAD, nil, fourYearsAgo.StringPtr(), nil, nil, nil)
+	suite.seeder.CreateAdjustment(ctx, client1ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 10000, "Written off")
+
+	c := Client{suite.seeder.Conn}
+
+	from := shared.NewDate(fourYearsAgo.String())
+	to := shared.NewDate(today.String())
+
+	rows, err := c.Run(ctx, &BadDebtWriteOff{
+		FromDate: &from,
+		ToDate:   &to,
+	})
+
+	runTime := time.Now()
+
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), 4, len(rows))
+
+	results := mapByHeader(rows)
+	assert.NotEmpty(suite.T(), results)
+
+	// client 1
+	assert.Equal(suite.T(), "Ian Test", results[0]["Customer name"], "Customer Name - client 1")
+	assert.Equal(suite.T(), "12345678", results[0]["Customer number"], "Customer number - client 1")
+	assert.Equal(suite.T(), "1234", results[0]["SOP number"], "SOP number - client 1")
+	assert.Equal(suite.T(), "=\"0470\"", results[0]["Entity"], "Entity - client 1")
+	assert.Equal(suite.T(), "10482009", results[0]["Cost centre"], "Cost centre - client 1")
+	assert.Equal(suite.T(), "5356202100", results[0]["Account code"], "Account code - client 1")
+	assert.Equal(suite.T(), "EXP - IMPAIRMENT - BAD DEBTS-Appoint Deputy Write Off", results[0]["Account code description"], "Account code description - client 1")
+	assert.Equal(suite.T(), "100.00", results[0]["Adjustment amount"], "Adjustment amount - client 1")
+	assert.Contains(suite.T(), results[0]["Adjustment date"], runTime.Format("2006-01-02 15:04"), "Adjustment date - client 1")
+	assert.Equal(suite.T(), "WO"+c1i1Ref, results[0]["Txn number"], "Txn number - client 1")
+	assert.Equal(suite.T(), "Johnny Test", results[0]["Approver"], "Approver - client 1")
+
+	// client 2 - write off 1
+	assert.Equal(suite.T(), "Ian Test", results[1]["Customer name"], "Customer Name - client 2 write off 1")
+	assert.Equal(suite.T(), "12345678", results[1]["Customer number"], "Customer number - client 2 write off 1")
+	assert.Equal(suite.T(), "1234", results[1]["SOP number"], "SOP number - client 2 write off 1")
+	assert.Equal(suite.T(), "=\"0470\"", results[1]["Entity"], "Entity - client 2 write off 1")
+	assert.Equal(suite.T(), "10482009", results[1]["Cost centre"], "Cost centre - client 2 write off 1")
+	assert.Equal(suite.T(), "5356202100", results[1]["Account code"], "Account code - client 2 write off 1")
+	assert.Equal(suite.T(), "EXP - IMPAIRMENT - BAD DEBTS-Appoint Deputy Write Off", results[1]["Account code description"], "Account code description - client 2 write off 1")
+	assert.Equal(suite.T(), "100.00", results[1]["Adjustment amount"], "Adjustment amount - client 2 write off 1")
+	assert.Contains(suite.T(), results[1]["Adjustment date"], runTime.Format("2006-01-02 15:04"), "Adjustment date - client 2 write off 1")
+	assert.Equal(suite.T(), "WO"+c2i1Ref, results[1]["Txn number"], "Txn number - client 2 write off 1")
+	assert.Equal(suite.T(), "Johnny Test", results[1]["Approver"], "Approver - client 2 write off 1")
+
+	// client 2 - write off 2
+	assert.Equal(suite.T(), "Ian Test", results[2]["Customer name"], "Customer Name - client 2 write off 2")
+	assert.Equal(suite.T(), "12345678", results[2]["Customer number"], "Customer number - client 2 write off 2")
+	assert.Equal(suite.T(), "1234", results[2]["SOP number"], "SOP number - client 2 write off 2")
+	assert.Equal(suite.T(), "=\"0470\"", results[2]["Entity"], "Entity - client 2 write off 2")
+	assert.Equal(suite.T(), "10482009", results[2]["Cost centre"], "Cost centre - client 2 write off 2")
+	assert.Equal(suite.T(), "5356202102", results[2]["Account code"], "Account code - client 2 write off 2")
+	assert.Equal(suite.T(), "EXP - IMPAIRMENT - BAD DEBTS-Sup Fee 2 Write Off\tWrite-off", results[2]["Account code description"], "Account code description - client 2 write off 2")
+	assert.Equal(suite.T(), "320.00", results[2]["Adjustment amount"], "Adjustment amount - client 2 write off 2")
+	assert.Contains(suite.T(), results[2]["Adjustment date"], runTime.Format("2006-01-02 15:04"), "Adjustment date - client 2 write off 2")
+	assert.Equal(suite.T(), "WO"+c2i2Ref, results[2]["Txn number"], "Txn number - client 2 write off 2")
+	assert.Equal(suite.T(), "Johnny Test", results[2]["Approver"], "Approver - client 2 write off 2")
+}

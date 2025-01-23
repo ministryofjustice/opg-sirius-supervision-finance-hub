@@ -30,6 +30,11 @@ func (s *Seeder) CreateOrder(ctx context.Context, clientId int, status string) {
 	assert.NoError(s.t, err, "failed to add order: %v", err)
 }
 
+func (s *Seeder) CreateTestAssignee(ctx context.Context) {
+	_, err := s.Conn.Exec(ctx, "INSERT INTO public.assignees VALUES (NEXTVAL('public.assignees_id_seq'), $1, $2)", "Johnny", "Test")
+	assert.NoError(s.t, err, "failed to create test assignee: %v", err)
+}
+
 func (s *Seeder) CreateInvoice(ctx context.Context, clientID int, invoiceType shared.InvoiceType, amount *string, raisedDate *string, startDate *string, endDate *string, supervisionLevel *string) (int, string) {
 	invoice := shared.AddManualInvoice{
 		InvoiceType:      invoiceType,
