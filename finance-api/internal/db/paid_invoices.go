@@ -69,7 +69,7 @@ FROM paid_invoices pa
     SELECT CASE WHEN i.feetype = 'AD' THEN 'AD' ELSE COALESCE(ifr.supervisionlevel, '') END AS supervision_level
     FROM supervision_finance.invoice_fee_range ifr
     WHERE ifr.invoice_id = i.id
-    ORDER BY id
+    ORDER BY id DESC
     LIMIT 1
     ) sl ON TRUE
          LEFT JOIN supervision_finance.transaction_type tt ON
