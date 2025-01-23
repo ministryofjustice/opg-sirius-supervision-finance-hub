@@ -14,6 +14,12 @@ type Account struct {
 	CostCentre             pgtype.Int4
 }
 
+type Assignee struct {
+	ID      int32
+	Name    pgtype.Text
+	Surname pgtype.Text
+}
+
 type BillingPeriod struct {
 	ID              int32
 	FinanceClientID pgtype.Int4
