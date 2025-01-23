@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	customerCreditQuery = `SELECT ABS(SUM(la.amount)) FROM finance_client fc 
+	customerCreditQuery = `SELECT ABS(SUM(la.Amount)) FROM finance_client fc 
 								JOIN supervision_finance.ledger l ON fc.id = l.finance_client_id 
 								JOIN supervision_finance.ledger_allocation la ON l.id = la.ledger_id 
                       				WHERE la.status IN ('UNAPPLIED', 'REAPPLIED') AND fc.client_id = 1;`
@@ -94,13 +94,13 @@ func (suite *IntegrationSuite) TestService_reapplyCredit_oldestFirst() {
 	// two new reapply allocations
 	assert.Equal(suite.T(), 2, amount)
 
-	row = seeder.QueryRow(ctx, "SELECT SUM(la.amount) FROM supervision_finance.ledger_allocation la WHERE la.invoice_id = 1;")
+	row = seeder.QueryRow(ctx, "SELECT SUM(la.Amount) FROM supervision_finance.ledger_allocation la WHERE la.invoice_id = 1;")
 	_ = row.Scan(&amount)
 
 	// pays off the oldest in full
 	assert.Equal(suite.T(), 10000, amount)
 
-	row = seeder.QueryRow(ctx, "SELECT SUM(la.amount) FROM supervision_finance.ledger_allocation la WHERE la.invoice_id = 2;")
+	row = seeder.QueryRow(ctx, "SELECT SUM(la.Amount) FROM supervision_finance.ledger_allocation la WHERE la.invoice_id = 2;")
 	_ = row.Scan(&amount)
 
 	// the remainder goes to the next oldest

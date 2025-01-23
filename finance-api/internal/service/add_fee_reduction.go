@@ -37,19 +37,17 @@ func (s *Service) AddFeeReduction(ctx context.Context, clientId int, data shared
 	ctx, cancelTx := context.WithCancel(ctx)
 	defer cancelTx()
 
-	tx, err := s.tx.Begin(ctx)
+	tx, err := s.BeginStoreTx(ctx)
 	if err != nil {
 		return err
 	}
 
-	transaction := s.store.WithTx(tx)
-
-	feeReduction, err := transaction.AddFeeReduction(ctx, feeReductionParams)
+	feeReduction, err := tx.AddFeeReduction(ctx, feeReductionParams)
 	if err != nil {
 		return err
 	}
 
-	invoices, err := transaction.GetInvoiceBalancesForFeeReductionRange(ctx, feeReduction.ID)
+	invoices, err := tx.GetInvoiceBalancesForFeeReductionRange(ctx, feeReduction.ID)
 	if err != nil {
 		return err
 	}
@@ -64,14 +62,14 @@ func (s *Service) AddFeeReduction(ctx context.Context, clientId int, data shared
 			invoiceId:          invoice.ID,
 			outstandingBalance: invoice.Outstanding,
 		})
-		ledgerId, err := transaction.CreateLedger(ctx, ledger)
+		ledgerId, err := tx.CreateLedger(ctx, ledger)
 		if err != nil {
 			return err
 		}
 
 		for _, allocation := range allocations {
 			allocation.LedgerID = pgtype.Int4{Int32: ledgerId, Valid: true}
-			err = transaction.CreateLedgerAllocation(ctx, allocation)
+			err = tx.CreateLedgerAllocation(ctx, allocation)
 			if err != nil {
 				return err
 			}

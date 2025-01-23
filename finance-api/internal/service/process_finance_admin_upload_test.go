@@ -133,7 +133,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 		{
 			name: "Underpayment",
 			records: [][]string{
-				{"Ordercode", "Date", "Amount"},
+				{"Ordercode", "BankDate", "Amount"},
 				{
 					"1234-1",
 					"2024-01-17 10:15:39",
@@ -158,7 +158,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 		{
 			name: "Overpayment",
 			records: [][]string{
-				{"Ordercode", "Date", "Amount"},
+				{"Ordercode", "BankDate", "Amount"},
 				{
 					"12345",
 					"2024-01-17 15:30:27",
