@@ -40,7 +40,7 @@ SELECT CONCAT(p.firstname, ' ', p.surname)                                      
        l.datetime                                                                                              AS "Sirius upload date",
        CASE
            WHEN l.type IN (
-                           'BACS TRANSFER', 'CARD PAYMENT', 'UNKNOWN DEBIT',
+                           'BACS TRANSFER', 'CARD PAYMENT',
                            'DIRECT DEBIT PAYMENT', 'ONLINE CARD PAYMENT', 'MOTO CARD PAYMENT',
                            'SUPERVISION BACS PAYMENT', 'OPG BACS PAYMENT', 'CHEQUE PAYMENT'
                )
