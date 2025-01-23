@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
+	"time"
 )
 
 func (s *Seeder) CreateClient(ctx context.Context, firstName string, surname string, courtRef string, sopNumber string) int {
@@ -81,4 +82,21 @@ func (s *Seeder) CreateFeeReduction(ctx context.Context, clientId int, feeType s
 	}
 	err := s.Service.AddFeeReduction(ctx, clientId, reduction)
 	assert.NoError(s.t, err, "failed to create fee reduction: %v", err)
+}
+
+type InvoiceRange struct {
+	FromDate         time.Time
+	ToDate           time.Time
+	SupervisionLevel string
+	Amount           int
+}
+
+func (s *Seeder) AddFeeRanges(ctx context.Context, invoiceId int, ranges []InvoiceRange) {
+	for _, r := range ranges {
+
+		_, err := s.Conn.Exec(ctx,
+			"INSERT INTO supervision_finance.invoice_fee_range VALUES (NEXTVAL('supervision_finance.invoice_fee_range_id_seq'), $1, $2, $3, $4, $5)",
+			invoiceId, r.SupervisionLevel, r.FromDate, r.ToDate, r.Amount)
+		assert.NoError(s.t, err, "failed to add fee range: %v", err)
+	}
 }
