@@ -20,7 +20,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 		"INSERT INTO invoice VALUES (10,1,1,'AD','AD000002/24','2024-10-07','2024-10-07',10000,NULL,'2024-10-07',NULL,'2024-10-07','Created manually',NULL,NULL,'2024-10-07 09:35:03',1);",
 		"INSERT INTO invoice_adjustment VALUES (4,1,9,'2024-10-07','CREDIT WRITE OFF',10000,'Writing off','REJECTED','2024-10-07 09:32:23',1,'2024-10-07 09:33:24',1)",
 		"INSERT INTO invoice_adjustment VALUES (5,1,9,'2024-10-07','CREDIT MEMO',10000,'Adding credit','APPROVED','2024-10-07 09:34:38',1,'2024-10-07 09:34:44',1)",
-		"INSERT INTO fee_reduction VALUES (1, 1, 'HARDSHIP', NULL, '2019-04-01', '2020-03-31', 'Legacy (no created date) - do not display', FALSE, '2019-05-01');",
+		"INSERT INTO fee_reduction VALUES (1, 1, 'HARDSHIP', NULL, '2019-04-01', '2020-03-31', 'Legacy (no created BankDate) - do not display', FALSE, '2019-05-01');",
 		"INSERT INTO fee_reduction VALUES (5,1,'REMISSION',NULL,'2024-04-01','2027-03-31','Needs remission',TRUE,'2024-10-07','2024-10-07 09:32:50',1,'2024-10-07 09:33:19',1,'Wrong remission');",
 		"INSERT INTO ledger VALUES (5,'09799ea2-5f8f-4ecb-8200-f021ab96def1','2024-10-07 09:32:50','',5000,'Credit due to approved remission','CREDIT REMISSION','CONFIRMED',1,NULL,5,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);",
 		"INSERT INTO ledger VALUES (6,'6e469827-fff7-4c22-a2e2-8b7d3580350c','2024-10-07 09:34:44','',5000,'Credit due to approved credit memo','CREDIT MEMO','CONFIRMED',1,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);",
