@@ -21,13 +21,7 @@ SELECT fr.type,
        fr.created_by,
        fr.cancelled_at,
        fr.cancelled_by,
-       fr.cancellation_reason,
-       l.status,
-       l.amount,
-       l.datetime ledger_date,
-       fc.client_id,
-       i.id AS    invoice_id,
-       i.reference
+       fr.cancellation_reason
 FROM fee_reduction fr
          JOIN finance_client fc ON fc.id = fr.finance_client_id
          LEFT JOIN ledger l ON l.fee_reduction_id = fr.id
@@ -48,12 +42,6 @@ type GetFeeReductionEventsRow struct {
 	CancelledAt        pgtype.Timestamp
 	CancelledBy        pgtype.Int4
 	CancellationReason pgtype.Text
-	Status             pgtype.Text
-	Amount             pgtype.Int4
-	LedgerDate         pgtype.Timestamp
-	ClientID           int32
-	InvoiceID          pgtype.Int4
-	Reference          pgtype.Text
 }
 
 func (q *Queries) GetFeeReductionEvents(ctx context.Context, clientID int32) ([]GetFeeReductionEventsRow, error) {
@@ -76,12 +64,6 @@ func (q *Queries) GetFeeReductionEvents(ctx context.Context, clientID int32) ([]
 			&i.CancelledAt,
 			&i.CancelledBy,
 			&i.CancellationReason,
-			&i.Status,
-			&i.Amount,
-			&i.LedgerDate,
-			&i.ClientID,
-			&i.InvoiceID,
-			&i.Reference,
 		); err != nil {
 			return nil, err
 		}

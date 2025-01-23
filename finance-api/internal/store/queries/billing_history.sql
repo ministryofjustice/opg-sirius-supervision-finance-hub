@@ -25,13 +25,7 @@ SELECT fr.type,
        fr.created_by,
        fr.cancelled_at,
        fr.cancelled_by,
-       fr.cancellation_reason,
-       l.status,
-       l.amount,
-       l.datetime ledger_date,
-       fc.client_id,
-       i.id AS    invoice_id,
-       i.reference
+       fr.cancellation_reason
 FROM fee_reduction fr
          JOIN finance_client fc ON fc.id = fr.finance_client_id
          LEFT JOIN ledger l ON l.fee_reduction_id = fr.id

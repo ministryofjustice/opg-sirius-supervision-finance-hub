@@ -10,7 +10,7 @@ func (s *Seeder) CreateClient(ctx context.Context, firstName string, surname str
 	var clientId int
 	err := s.Conn.QueryRow(ctx, "INSERT INTO public.persons VALUES (NEXTVAL('public.persons_id_seq'), $1, $2, $3) RETURNING id", firstName, surname, courtRef).Scan(&clientId)
 	assert.NoError(s.t, err, "failed to add Person: %v", err)
-	_, err = s.Conn.Exec(ctx, "INSERT INTO supervision_finance.finance_client VALUES (NEXTVAL('supervision_finance.finance_client_id_seq'), $1, $2, 'DEMANDED') RETURNING id", clientId, sopNumber)
+	_, err = s.Conn.Exec(ctx, "INSERT INTO supervision_finance.finance_client VALUES ($1, $1, $2, 'DEMANDED') RETURNING id", clientId, sopNumber)
 	assert.NoError(s.t, err, "failed to add FinanceClient: %v", err)
 	return clientId
 }

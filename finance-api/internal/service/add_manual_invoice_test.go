@@ -262,7 +262,7 @@ func (suite *IntegrationSuite) TestService_AddLedgerAndAllocationsForAnADInvoice
 			Amount:          int32(5000),
 			Notes:           pgtype.Text{String: "Credit due to approved remission", Valid: true},
 			Type:            "CREDIT REMISSION",
-			Status:          "APPROVED",
+			Status:          "CONFIRMED",
 			FinanceClientID: pgtype.Int4{Int32: int32(25), Valid: true},
 		}
 
@@ -296,7 +296,7 @@ func (suite *IntegrationSuite) TestService_AddLedgerAndAllocationsForAnExemption
 			Amount:          int32(params.Amount.Value),
 			Notes:           pgtype.Text{String: "Credit due to approved exemption", Valid: true},
 			Type:            "CREDIT EXEMPTION",
-			Status:          "APPROVED",
+			Status:          "CONFIRMED",
 			FinanceClientID: pgtype.Int4{Int32: int32(25), Valid: true},
 		}
 
