@@ -9,11 +9,9 @@ import (
 func (suite *IntegrationSuite) Test_bad_debt_write_off() {
 	ctx := suite.ctx
 	today := suite.seeder.Today()
-	//yesterday := suite.seeder.Today().Sub(0, 0, 1)
 	twoMonthsAgo := suite.seeder.Today().Sub(0, 2, 0)
 	twoYearsAgo := suite.seeder.Today().Sub(2, 0, 0)
 	fourYearsAgo := suite.seeder.Today().Sub(4, 0, 0)
-	//sixYearsAgo := suite.seeder.Today().Sub(6, 0, 0)
 	general := "320.00"
 
 	suite.seeder.CreateTestAssignee(ctx)
@@ -101,5 +99,4 @@ func (suite *IntegrationSuite) Test_bad_debt_write_off() {
 	assert.Contains(suite.T(), results[2]["Adjustment date"], runTime.Format("2006-01-02 15:04"), "Adjustment date - client 2 write off 2")
 	assert.Equal(suite.T(), "WO"+c2i2Ref, results[2]["Txn number"], "Txn number - client 2 write off 2")
 	assert.Equal(suite.T(), "Johnny Test", results[2]["Approver"], "Approver - client 2 write off 2")
-
 }
