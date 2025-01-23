@@ -111,7 +111,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 		{
 			name: "Underpayment",
 			records: [][]string{
-				{"Ordercode", "Date", "Amount"},
+				{"Ordercode", "BankDate", "Amount"},
 				{
 					"1234-1",
 					"2024-01-17 10:15:39",
@@ -136,7 +136,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 		{
 			name: "Overpayment",
 			records: [][]string{
-				{"Ordercode", "Date", "Amount"},
+				{"Ordercode", "BankDate", "Amount"},
 				{
 					"12345",
 					"2024-01-17 15:30:27",
@@ -178,10 +178,10 @@ func (suite *IntegrationSuite) Test_processPayments() {
 			var createdLedgerAllocations []createdLedgerAllocation
 
 			rows, _ := seeder.Query(suite.ctx,
-				"SELECT l.amount, l.type, l.status, l.datetime, la.amount, la.status, la.invoice_id "+
-					"FROM ledger l "+
-					"LEFT JOIN ledger_allocation la ON l.id = la.ledger_id "+
-					"WHERE l.finance_client_id = $1", tt.expectedClientId)
+				`SELECT l.amount, l.type, l.status, l.datetime, la.amount, la.status, la.invoice_id
+						FROM ledger l
+						LEFT JOIN ledger_allocation la ON l.id = la.ledger_id
+					WHERE l.finance_client_id = $1`, tt.expectedClientId)
 
 			for rows.Next() {
 				var r createdLedgerAllocation

@@ -46,3 +46,12 @@ func NewService(conn *pgxpool.Pool, dispatch Dispatch, fileStorage FileStorage, 
 		tx:          conn,
 	}
 }
+
+func (s *Service) BeginStoreTx(ctx context.Context) (*store.Tx, error) {
+	tx, err := s.tx.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return store.NewTx(tx), nil
+}
