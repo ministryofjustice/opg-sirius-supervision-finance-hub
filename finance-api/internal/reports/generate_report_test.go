@@ -64,44 +64,46 @@ func TestGenerateAndUploadReport(t *testing.T) {
 		{
 			name: "Aged Debt",
 			reportRequest: shared.ReportRequest{
-				ReportType:        "AccountsReceivable",
-				ReportAccountType: "AgedDebt",
-				ToDateField:       &toDate,
-				FromDateField:     &fromDate,
+				ReportType: shared.ReportTypeAgedDebt,
+				ToDate:     &toDate,
+				FromDate:   &fromDate,
 			},
 			expectedQuery: &db.AgedDebt{FromDate: &fromDate, ToDate: &toDate},
 		},
 		{
 			name: "Aged Debt By Customer",
 			reportRequest: shared.ReportRequest{
-				ReportType:        "AccountsReceivable",
-				ReportAccountType: "AgedDebtByCustomer",
+				ReportType: shared.ReportTypeAgedDebtByCustomer,
 			},
 			expectedQuery: &db.AgedDebtByCustomer{},
 		},
 		{
 			name: "Bad Debt Write Off",
 			reportRequest: shared.ReportRequest{
-				ReportType:        "AccountsReceivable",
-				ReportAccountType: "BadDebtWriteOffReport",
+				ReportType: shared.ReportTypeBadDebtWriteOff,
 			},
 			expectedQuery: &db.BadDebtWriteOff{},
 		},
 		{
 			name: "Receipts",
 			reportRequest: shared.ReportRequest{
-				ReportType:        "AccountsReceivable",
-				ReportAccountType: "TotalReceiptsReport",
-				ToDateField:       &toDate,
-				FromDateField:     &fromDate,
+				ReportType: shared.ReportTypeTotalReceipts,
+				ToDate:     &toDate,
+				FromDate:   &fromDate,
 			},
 			expectedQuery: &db.Receipts{FromDate: &fromDate, ToDate: &toDate},
 		},
 		{
+			name: "Customer Credit",
+			reportRequest: shared.ReportRequest{
+				ReportType: shared.ReportTypeUnappliedReceipts,
+			},
+			expectedQuery: &db.CustomerCredit{},
+		},
+		{
 			name: "Unknown",
 			reportRequest: shared.ReportRequest{
-				ReportType:        "AccountsReceivable",
-				ReportAccountType: "Garbleglarg",
+				ReportType: shared.ReportAccountTypeUnknown,
 			},
 			expectedErr: fmt.Errorf("unknown query"),
 		},
@@ -142,8 +144,16 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				assert.True(t, ok)
 				assert.Equal(t, expected, actual)
 				assert.Nil(t, err)
+			case *db.CustomerCredit:
+				actual, ok := mockDb.query.(*db.CustomerCredit)
+				assert.True(t, ok)
+				assert.Equal(t, expected, actual)
+				assert.Nil(t, err)
 			default:
 				assert.Equal(t, tt.expectedErr, err)
+			}
+			if err == nil {
+				assert.NoError(t, os.Remove(mockFileStorage.filename))
 			}
 		})
 	}

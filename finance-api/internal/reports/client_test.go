@@ -24,6 +24,11 @@ func TestCreateCsv(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, string(wantBytes), string(gotBytes))
+
+	if err == nil {
+		assert.NoError(t, os.Remove("test.csv"))
+		assert.NoError(t, os.Remove("test2.csv"))
+	}
 }
 
 func TestCreateCsvNoItems(t *testing.T) {
@@ -33,4 +38,8 @@ func TestCreateCsvNoItems(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, "", string(gotBytes))
+
+	if err == nil {
+		assert.NoError(t, os.Remove("test.csv"))
+	}
 }
