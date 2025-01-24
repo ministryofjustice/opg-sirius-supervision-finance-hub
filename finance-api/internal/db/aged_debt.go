@@ -36,7 +36,7 @@ const AgedDebtQuery = `WITH outstanding_invoices AS (SELECT i.id,
                                   SELECT ifr.supervisionlevel AS supervision_level
                                   FROM supervision_finance.invoice_fee_range ifr
                                   WHERE ifr.invoice_id = i.id
-                                  ORDER BY id
+                                  ORDER BY id DESC
                                   LIMIT 1
                                   ) sl ON TRUE
 							WHERE i.raiseddate >= $1 AND i.raiseddate <= $2 AND i.amount > COALESCE(transactions.received, 0)),
