@@ -2,102 +2,92 @@ package shared
 
 import "encoding/json"
 
-var ReportAccountTypes = []ReportAccountType{
-	ReportAccountTypeAgedDebt,
-	ReportAccountTypeAgedDebtByCustomer,
-	ReportAccountTypeUnappliedReceipts,
-	ReportAccountTypeARPaidInvoiceReport,
-	ReportAccountTypeTotalReceiptsReport,
-	ReportAccountTypeBadDebtWriteOffReport,
-	ReportAccountTypeFeeAccrual,
+var reportAccountTypeMap = map[string]ReportType{
+	"AgedDebt":           ReportTypeAgedDebt,
+	"AgedDebtByCustomer": ReportTypeAgedDebtByCustomer,
+	"UnappliedReceipts":  ReportTypeUnappliedReceipts,
+	"ARPaidInvoice":      ReportTypeARPaidInvoice,
+	"TotalReceipts":      ReportTypeTotalReceipts,
+	"BadDebtWriteOff":    ReportTypeBadDebtWriteOff,
+	"FeeAccrual":         ReportTypeFeeAccrual,
 }
 
-var reportAccountTypeMap = map[string]ReportAccountType{
-	"AgedDebt":              ReportAccountTypeAgedDebt,
-	"AgedDebtByCustomer":    ReportAccountTypeAgedDebtByCustomer,
-	"UnappliedReceipts":     ReportAccountTypeUnappliedReceipts,
-	"ARPaidInvoiceReport":   ReportAccountTypeARPaidInvoiceReport,
-	"TotalReceiptsReport":   ReportAccountTypeTotalReceiptsReport,
-	"BadDebtWriteOffReport": ReportAccountTypeBadDebtWriteOffReport,
-	"FeeAccrual":            ReportAccountTypeFeeAccrual,
-}
-
-type ReportAccountType int
+type ReportType int
 
 const (
-	ReportAccountTypeUnknown ReportAccountType = iota
-	ReportAccountTypeAgedDebt
-	ReportAccountTypeAgedDebtByCustomer
-	ReportAccountTypeUnappliedReceipts
-	ReportAccountTypeARPaidInvoiceReport
-	ReportAccountTypeTotalReceiptsReport
-	ReportAccountTypeBadDebtWriteOffReport
-	ReportAccountTypeFeeAccrual
+	ReportAccountTypeUnknown ReportType = iota
+	ReportTypeAgedDebt
+	ReportTypeAgedDebtByCustomer
+	ReportTypeUnappliedReceipts
+	ReportTypeARPaidInvoice
+	ReportTypeTotalReceipts
+	ReportTypeBadDebtWriteOff
+	ReportTypeFeeAccrual
 )
 
-func (i ReportAccountType) String() string {
+func (i ReportType) String() string {
 	return i.Key()
 }
 
-func (i ReportAccountType) Translation() string {
+func (i ReportType) Translation() string {
 	switch i {
-	case ReportAccountTypeAgedDebt:
+	case ReportTypeAgedDebt:
 		return "Aged Debt"
-	case ReportAccountTypeAgedDebtByCustomer:
+	case ReportTypeAgedDebtByCustomer:
 		return "Ageing Buckets By Customer"
-	case ReportAccountTypeUnappliedReceipts:
+	case ReportTypeUnappliedReceipts:
 		return "Customer Credit Balance"
-	case ReportAccountTypeARPaidInvoiceReport:
+	case ReportTypeARPaidInvoice:
 		return "AR Paid Invoice"
-	case ReportAccountTypeTotalReceiptsReport:
+	case ReportTypeTotalReceipts:
 		return "Total Receipts"
-	case ReportAccountTypeBadDebtWriteOffReport:
+	case ReportTypeBadDebtWriteOff:
 		return "Bad Debt Write-off"
-	case ReportAccountTypeFeeAccrual:
+	case ReportTypeFeeAccrual:
 		return "Fee Accrual"
 	default:
 		return ""
 	}
 }
 
-func (i ReportAccountType) Key() string {
+func (i ReportType) Key() string {
 	switch i {
-	case ReportAccountTypeAgedDebt:
+	case ReportTypeAgedDebt:
 		return "AgedDebt"
-	case ReportAccountTypeAgedDebtByCustomer:
+	case ReportTypeAgedDebtByCustomer:
 		return "AgedDebtByCustomer"
-	case ReportAccountTypeUnappliedReceipts:
+	case ReportTypeUnappliedReceipts:
 		return "UnappliedReceipts"
-	case ReportAccountTypeARPaidInvoiceReport:
-		return "ARPaidInvoiceReport"
-	case ReportAccountTypeTotalReceiptsReport:
-		return "TotalReceiptsReport"
-	case ReportAccountTypeBadDebtWriteOffReport:
-		return "BadDebtWriteOffReport"
-	case ReportAccountTypeFeeAccrual:
+	case ReportTypeARPaidInvoice:
+		return "ARPaidInvoice"
+	case ReportTypeTotalReceipts:
+		return "TotalReceipts"
+	case ReportTypeBadDebtWriteOff:
+		return "BadDebtWriteOff"
+	case ReportTypeFeeAccrual:
 		return "FeeAccrual"
 	default:
 		return ""
 	}
 }
 
-func ParseReportAccountType(s string) ReportAccountType {
+func ParseReportAccountType(s string) ReportType {
 	value, ok := reportAccountTypeMap[s]
 	if !ok {
-		return ReportAccountType(0)
+		return ReportType(0)
 	}
 	return value
 }
 
-func (i ReportAccountType) Valid() bool {
+func (i ReportType) Valid() bool {
 	return i != ReportAccountTypeUnknown
 }
 
-func (i ReportAccountType) MarshalJSON() ([]byte, error) {
+func (i ReportType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(i.Key())
 }
 
-func (i *ReportAccountType) UnmarshalJSON(data []byte) (err error) {
+func (i *ReportType) UnmarshalJSON(data []byte) (err error) {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
 		return err
