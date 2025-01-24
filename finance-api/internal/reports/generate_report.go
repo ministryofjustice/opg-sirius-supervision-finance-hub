@@ -16,34 +16,30 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 	var query db.ReportQuery
 	var err error
 
-	accountType := shared.ParseReportAccountType(reportRequest.ReportAccountType)
-	filename := fmt.Sprintf("%s_%s.csv", accountType.Key(), requestedDate.Format("02:01:2006"))
+	filename := fmt.Sprintf("%s_%s.csv", reportRequest.ReportType.Key(), requestedDate.Format("02:01:2006"))
 
 	switch reportRequest.ReportType {
-	case "AccountsReceivable":
-		switch accountType {
-		case shared.ReportAccountTypeAgedDebt:
-			query = &db.AgedDebt{
-				FromDate: reportRequest.FromDateField,
-				ToDate:   reportRequest.ToDateField,
-			}
-		case shared.ReportAccountTypeAgedDebtByCustomer:
-			query = &db.AgedDebtByCustomer{}
-		case shared.ReportAccountTypeBadDebtWriteOffReport:
-			query = &db.BadDebtWriteOff{
-				FromDate: reportRequest.FromDateField,
-				ToDate:   reportRequest.ToDateField,
-			}
-		case shared.ReportAccountTypeTotalReceiptsReport:
-			query = &db.Receipts{
-				FromDate: reportRequest.FromDateField,
-				ToDate:   reportRequest.ToDateField,
-			}
-		case shared.ReportAccountTypeUnappliedReceipts:
-			query = &db.CustomerCredit{}
-		default:
-			return fmt.Errorf("unknown query")
+	case shared.ReportTypeAgedDebt:
+		query = &db.AgedDebt{
+			FromDate: reportRequest.FromDate,
+			ToDate:   reportRequest.ToDate,
 		}
+	case shared.ReportTypeAgedDebtByCustomer:
+		query = &db.AgedDebtByCustomer{}
+	case shared.ReportTypeBadDebtWriteOff:
+		query = &db.BadDebtWriteOff{
+			FromDate: reportRequest.FromDate,
+			ToDate:   reportRequest.ToDate,
+		}
+	case shared.ReportTypeTotalReceipts:
+		query = &db.Receipts{
+			FromDate: reportRequest.FromDate,
+			ToDate:   reportRequest.ToDate,
+		}
+	case shared.ReportTypeUnappliedReceipts:
+		query = &db.CustomerCredit{}
+	default:
+		return fmt.Errorf("unknown query")
 	}
 
 	file, err := c.generate(ctx, filename, query)
@@ -64,7 +60,7 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 		return err
 	}
 
-	payload, err := createDownloadNotifyPayload(reportRequest.Email, filename, versionId, requestedDate, accountType.Translation())
+	payload, err := createDownloadNotifyPayload(reportRequest.Email, filename, versionId, requestedDate, reportRequest.ReportType.Translation())
 	if err != nil {
 		return err
 	}

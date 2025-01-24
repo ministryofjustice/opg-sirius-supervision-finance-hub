@@ -19,9 +19,8 @@ func TestRequestReport(t *testing.T) {
 	ctx := telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("test"))
 
 	downloadForm := &shared.ReportRequest{
-		ReportType:        "AccountsReceivable",
-		ReportAccountType: "AgedDebt",
-		Email:             "joseph@test.com",
+		ReportType: shared.ReportTypeAgedDebt,
+		Email:      "joseph@test.com",
 	}
 
 	_ = json.NewEncoder(&b).Encode(downloadForm)
@@ -48,10 +47,9 @@ func TestRequestReportNoEmail(t *testing.T) {
 
 	ctx := telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("test"))
 
-	downloadForm := shared.ReportRequest{
-		ReportType:        "AccountsReceivable",
-		ReportAccountType: "AgedDebt",
-		Email:             "",
+	downloadForm := &shared.ReportRequest{
+		ReportType: shared.ReportTypeAgedDebt,
+		Email:      "",
 	}
 
 	_ = json.NewEncoder(&b).Encode(downloadForm)
