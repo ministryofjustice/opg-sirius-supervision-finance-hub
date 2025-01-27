@@ -80,7 +80,7 @@ func Test_calculateStatus(t *testing.T) {
 		want string
 	}{
 		{
-			name: "returns pending when today is before start date and not deleted",
+			name: "returns pending when today is before start BankDate and not deleted",
 			args: args{
 				startDate: shared.Date{Time: time.Now().AddDate(-1, 0, 0).Truncate(time.Hour * 24)},
 				endDate:   shared.Date{Time: time.Now().AddDate(1, 0, 0).Truncate(time.Hour * 24)},
@@ -89,7 +89,7 @@ func Test_calculateStatus(t *testing.T) {
 			want: shared.StatusActive,
 		},
 		{
-			name: "returns active when today is the start date and before end date and not deleted",
+			name: "returns active when today is the start BankDate and before end BankDate and not deleted",
 			args: args{
 				startDate: shared.Date{Time: time.Now().Truncate(time.Hour * 24)},
 				endDate:   shared.Date{Time: time.Now().AddDate(1, 0, 0).Truncate(time.Hour * 24)},
@@ -98,7 +98,7 @@ func Test_calculateStatus(t *testing.T) {
 			want: shared.StatusActive,
 		},
 		{
-			name: "returns active when today is after start date and before end date and not deleted",
+			name: "returns active when today is after start BankDate and before end BankDate and not deleted",
 			args: args{
 				startDate: shared.Date{Time: time.Now().AddDate(-1, 0, 0).Truncate(time.Hour * 24)},
 				endDate:   shared.Date{Time: time.Now().AddDate(1, 0, 0).Truncate(time.Hour * 24)},
@@ -107,7 +107,7 @@ func Test_calculateStatus(t *testing.T) {
 			want: shared.StatusActive,
 		},
 		{
-			name: "returns active when today is the end date and not deleted",
+			name: "returns active when today is the end BankDate and not deleted",
 			args: args{
 				startDate: shared.Date{Time: time.Now().AddDate(-2, 0, 0).Truncate(time.Hour * 24)},
 				endDate:   shared.Date{Time: time.Now().Truncate(time.Hour * 24)},
@@ -116,7 +116,7 @@ func Test_calculateStatus(t *testing.T) {
 			want: shared.StatusActive,
 		},
 		{
-			name: "returns expired when today is after end date and not deleted",
+			name: "returns expired when today is after end BankDate and not deleted",
 			args: args{
 				startDate: shared.Date{Time: time.Now().AddDate(-2, 0, 0).Truncate(time.Hour * 24)},
 				endDate:   shared.Date{Time: time.Now().AddDate(-1, 0, 0).Truncate(time.Hour * 24)},

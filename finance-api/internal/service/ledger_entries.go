@@ -45,7 +45,7 @@ func generateLedgerEntries(vars addLedgerVars) (store.CreateLedgerParams, []stor
 		Amount:         total,
 		Notes:          pgtype.Text{String: "Credit due to approved " + strings.ToLower(vars.transactionType.Key()), Valid: true},
 		Type:           transformEnumToLedgerType(vars.transactionType),
-		Status:         "APPROVED",
+		Status:         "CONFIRMED",
 		FeeReductionID: pgtype.Int4{Int32: vars.feeReductionId, Valid: vars.feeReductionId != 0},
 		//TODO make sure we have correct createdby ID in ticket PFS-136
 		CreatedBy: pgtype.Int4{Int32: 1, Valid: true},
