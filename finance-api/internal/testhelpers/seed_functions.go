@@ -133,3 +133,20 @@ func (s *Seeder) CreatePayment(ctx context.Context, amount int, date time.Time, 
 	err = tx.Commit(ctx)
 	assert.NoError(s.t, err, "failed to commit payment: %v", err)
 }
+
+type InvoiceRange struct {
+	FromDate         time.Time
+	ToDate           time.Time
+	SupervisionLevel string
+	Amount           int
+}
+
+func (s *Seeder) AddFeeRanges(ctx context.Context, invoiceId int, ranges []InvoiceRange) {
+	for _, r := range ranges {
+
+		_, err := s.Conn.Exec(ctx,
+			"INSERT INTO supervision_finance.invoice_fee_range VALUES (NEXTVAL('supervision_finance.invoice_fee_range_id_seq'), $1, $2, $3, $4, $5)",
+			invoiceId, r.SupervisionLevel, r.FromDate, r.ToDate, r.Amount)
+		assert.NoError(s.t, err, "failed to add fee range: %v", err)
+	}
+}
