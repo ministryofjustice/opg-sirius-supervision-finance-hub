@@ -26,11 +26,6 @@ func (m *mockDispatch) CreditOnAccount(ctx context.Context, event event.CreditOn
 	return nil
 }
 
-func (m *mockDispatch) FinanceAdminUploadProcessed(ctx context.Context, event event.FinanceAdminUploadProcessed) error {
-	m.event = event
-	return nil
-}
-
 func (suite *IntegrationSuite) TestService_reapplyCredit_noInvoices() {
 	ctx := suite.ctx
 	seeder := suite.cm.Seeder(ctx, suite.T())

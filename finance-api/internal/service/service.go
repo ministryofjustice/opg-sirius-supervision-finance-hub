@@ -17,7 +17,6 @@ type TX interface {
 
 type Dispatch interface {
 	CreditOnAccount(ctx context.Context, event event.CreditOnAccount) error
-	FinanceAdminUploadProcessed(ctx context.Context, event event.FinanceAdminUploadProcessed) error
 }
 
 type FileStorage interface {
@@ -25,11 +24,15 @@ type FileStorage interface {
 	PutFile(ctx context.Context, bucketName string, fileName string, file io.Reader) (*string, error)
 }
 
+type NotifyClient interface {
+	Send(ctx context.Context, payload notify.Payload) error
+}
+
 type Service struct {
 	store       *store.Queries
 	dispatch    Dispatch
 	fileStorage FileStorage
-	notify      *notify.Client
+	notify      NotifyClient
 	tx          TX
 }
 
@@ -37,7 +40,7 @@ type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-func NewService(conn *pgxpool.Pool, dispatch Dispatch, fileStorage FileStorage, notify *notify.Client) *Service {
+func NewService(conn *pgxpool.Pool, dispatch Dispatch, fileStorage FileStorage, notify NotifyClient) *Service {
 	return &Service{
 		store:       store.New(conn),
 		dispatch:    dispatch,
