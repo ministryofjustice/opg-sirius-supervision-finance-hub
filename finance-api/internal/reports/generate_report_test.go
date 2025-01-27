@@ -64,18 +64,18 @@ func TestGenerateAndUploadReport(t *testing.T) {
 		{
 			name: "Aged Debt",
 			reportRequest: shared.ReportRequest{
-				ReportType:        "AccountsReceivable",
-				ReportAccountType: "AgedDebt",
-				ToDateField:       &toDate,
-				FromDateField:     &fromDate,
+				ReportType:             shared.ReportsTypeAccountsReceivable,
+				AccountsReceivableType: shared.ReportAccountsReceivableTypeAgedDebt,
+				ToDate:                 &toDate,
+				FromDate:               &fromDate,
 			},
 			expectedQuery: &db.AgedDebt{FromDate: &fromDate, ToDate: &toDate},
 		},
 		{
 			name: "Aged Debt By Customer",
 			reportRequest: shared.ReportRequest{
-				ReportType:        "AccountsReceivable",
-				ReportAccountType: "AgedDebtByCustomer",
+				ReportType:             shared.ReportsTypeAccountsReceivable,
+				AccountsReceivableType: shared.ReportAccountsReceivableTypeAgedDebtByCustomer,
 			},
 			expectedQuery: &db.AgedDebtByCustomer{},
 		},
@@ -102,28 +102,36 @@ func TestGenerateAndUploadReport(t *testing.T) {
 		{
 			name: "Bad Debt Write Off",
 			reportRequest: shared.ReportRequest{
-				ReportType:        "AccountsReceivable",
-				ReportAccountType: "BadDebtWriteOffReport",
+				ReportType:             shared.ReportsTypeAccountsReceivable,
+				AccountsReceivableType: shared.ReportAccountsReceivableTypeBadDebtWriteOff,
 			},
 			expectedQuery: &db.BadDebtWriteOff{},
 		},
 		{
 			name: "Receipts",
 			reportRequest: shared.ReportRequest{
-				ReportType:        "AccountsReceivable",
-				ReportAccountType: "TotalReceiptsReport",
-				ToDateField:       &toDate,
-				FromDateField:     &fromDate,
+				ReportType:             shared.ReportsTypeAccountsReceivable,
+				AccountsReceivableType: shared.ReportAccountsReceivableTypeTotalReceipts,
+				ToDate:                 &toDate,
+				FromDate:               &fromDate,
 			},
 			expectedQuery: &db.Receipts{FromDate: &fromDate, ToDate: &toDate},
 		},
 		{
+			name: "Customer Credit",
+			reportRequest: shared.ReportRequest{
+				ReportType:             shared.ReportsTypeAccountsReceivable,
+				AccountsReceivableType: shared.ReportAccountsReceivableTypeUnappliedReceipts,
+			},
+			expectedQuery: &db.CustomerCredit{},
+		},
+		{
 			name: "Unknown",
 			reportRequest: shared.ReportRequest{
-				ReportType:        "AccountsReceivable",
-				ReportAccountType: "Garbleglarg",
+				ReportType:             shared.ReportsTypeAccountsReceivable,
+				AccountsReceivableType: shared.ReportAccountsReceivableTypeUnknown,
 			},
-			expectedErr: fmt.Errorf("unknown query"),
+			expectedErr: fmt.Errorf("unimplemented accounts receivable query: %s", shared.ReportAccountsReceivableTypeUnknown.Key()),
 		},
 	}
 
@@ -164,6 +172,11 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				assert.Nil(t, err)
 			case *db.Receipts:
 				actual, ok := mockDb.query.(*db.Receipts)
+				assert.True(t, ok)
+				assert.Equal(t, expected, actual)
+				assert.Nil(t, err)
+			case *db.CustomerCredit:
+				actual, ok := mockDb.query.(*db.CustomerCredit)
 				assert.True(t, ok)
 				assert.Equal(t, expected, actual)
 				assert.Nil(t, err)
