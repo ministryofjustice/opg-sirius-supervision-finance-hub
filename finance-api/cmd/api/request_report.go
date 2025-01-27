@@ -8,6 +8,7 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"log/slog"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -19,13 +20,9 @@ func (s *Server) requestReport(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	if reportRequest.Email == "" {
-		return apierror.ValidationError{Errors: apierror.ValidationErrors{
-			"Email": {
-				"required": "This field Email needs to be looked at required",
-			},
-		},
-		}
+	err := s.validateReportRequest(reportRequest)
+	if err != nil {
+		return err
 	}
 
 	go func(logger *slog.Logger) {
@@ -38,5 +35,46 @@ func (s *Server) requestReport(w http.ResponseWriter, r *http.Request) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 
+	return nil
+}
+
+func (s *Server) validateReportRequest(reportRequest shared.ReportRequest) error {
+	if reportRequest.Email == "" {
+		return apierror.ValidationError{
+			Errors: apierror.ValidationErrors{
+				"Email": {
+					"required": "This field Email needs to be looked at required",
+				},
+			},
+		}
+	}
+
+	if reportRequest.ReportType == shared.ReportsTypeSchedule {
+		if reportRequest.TransactionDate == nil {
+			return apierror.ValidationError{
+				Errors: apierror.ValidationErrors{
+					"Date": {
+						"required": "This field Date needs to be looked at required",
+					},
+				},
+			}
+		} else if !reportRequest.TransactionDate.Before(shared.Date{Time: time.Now().Truncate(24 * time.Hour)}) {
+			return apierror.ValidationError{
+				Errors: apierror.ValidationErrors{
+					"Date": {
+						"date-in-the-past": "This field Date needs to be looked at date-in-the-past",
+					},
+				},
+			}
+		} else if reportRequest.TransactionDate.After(shared.NewDate(os.Getenv("FINANCE_HUB_LIVE_DATE"))) { // TODO: This needs moving to main.go
+			return apierror.ValidationError{
+				Errors: apierror.ValidationErrors{
+					"Date": {
+						"min-go-live": "This field Date needs to be looked at min-go-live",
+					},
+				},
+			}
+		}
+	}
 	return nil
 }
