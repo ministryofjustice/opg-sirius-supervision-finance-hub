@@ -64,7 +64,7 @@ func (suite *IntegrationSuite) Test_aged_debt_by_customer() {
 	assert.NotEmpty(suite.T(), results)
 
 	// client 1
-	assert.Equal(suite.T(), "Ian Test", results[0]["Customer Name"], "Customer Name - client 1")
+	assert.Equal(suite.T(), "Ian Test", results[0]["Customer name"], "Customer name - client 1")
 	assert.Equal(suite.T(), "12345678", results[0]["Customer number"], "Customer number - client 1")
 	assert.Equal(suite.T(), "1234", results[0]["SOP number"], "SOP number - client 1")
 	assert.Equal(suite.T(), "LAY", results[0]["Deputy type"], "Deputy type - client 1")
@@ -84,7 +84,7 @@ func (suite *IntegrationSuite) Test_aged_debt_by_customer() {
 	assert.Equal(suite.T(), "0", results[0]["5+ years"], "5+ years - client 1")
 
 	// client 2
-	assert.Equal(suite.T(), "John Suite", results[1]["Customer Name"], "Customer Name - client 2")
+	assert.Equal(suite.T(), "John Suite", results[1]["Customer name"], "Customer name - client 2")
 	assert.Equal(suite.T(), "87654321", results[1]["Customer number"], "Customer number - client 2")
 	assert.Equal(suite.T(), "4321", results[1]["SOP number"], "SOP number - client 2")
 	assert.Equal(suite.T(), "PRO", results[1]["Deputy type"], "Deputy type - client 2")
@@ -104,7 +104,7 @@ func (suite *IntegrationSuite) Test_aged_debt_by_customer() {
 	assert.Equal(suite.T(), "0", results[1]["5+ years"], "5+ years - client 2")
 
 	// client 3
-	assert.Equal(suite.T(), "Billy Client", results[2]["Customer Name"], "Customer Name - client 2")
+	assert.Equal(suite.T(), "Billy Client", results[2]["Customer name"], "Customer name - client 2")
 	assert.Equal(suite.T(), "23456789", results[2]["Customer number"], "Customer number - client 2")
 	assert.Equal(suite.T(), "2345", results[2]["SOP number"], "SOP number - client 2")
 	assert.Equal(suite.T(), "PA", results[2]["Deputy type"], "Deputy type - client 2")

@@ -6,9 +6,7 @@ var ReportAccountTypes = []ReportAccountType{
 	ReportAccountTypeAgedDebt,
 	ReportAccountTypeAgedDebtByCustomer,
 	ReportAccountTypeUnappliedReceipts,
-	ReportAccountTypeCustomerAgeingBuckets,
 	ReportAccountTypeARPaidInvoiceReport,
-	ReportAccountTypePaidInvoiceTransactionLines,
 	ReportAccountTypeTotalReceiptsReport,
 	ReportAccountTypeBadDebtWriteOffReport,
 	ReportAccountTypeFeeAccrual,
@@ -16,16 +14,14 @@ var ReportAccountTypes = []ReportAccountType{
 }
 
 var reportAccountTypeMap = map[string]ReportAccountType{
-	"AgedDebt":                    ReportAccountTypeAgedDebt,
-	"AgedDebtByCustomer":          ReportAccountTypeAgedDebtByCustomer,
-	"UnappliedReceipts":           ReportAccountTypeUnappliedReceipts,
-	"CustomerAgeingBuckets":       ReportAccountTypeCustomerAgeingBuckets,
-	"ARPaidInvoiceReport":         ReportAccountTypeARPaidInvoiceReport,
-	"PaidInvoiceTransactionLines": ReportAccountTypePaidInvoiceTransactionLines,
-	"TotalReceiptsReport":         ReportAccountTypeTotalReceiptsReport,
-	"BadDebtWriteOffReport":       ReportAccountTypeBadDebtWriteOffReport,
-	"FeeAccrual":                  ReportAccountTypeFeeAccrual,
-	"InvoiceAdjustments":          ReportAccountTypeInvoiceAdjustments,
+	"AgedDebt":              ReportAccountTypeAgedDebt,
+	"AgedDebtByCustomer":    ReportAccountTypeAgedDebtByCustomer,
+	"UnappliedReceipts":     ReportAccountTypeUnappliedReceipts,
+	"ARPaidInvoiceReport":   ReportAccountTypeARPaidInvoiceReport,
+	"TotalReceiptsReport":   ReportAccountTypeTotalReceiptsReport,
+	"BadDebtWriteOffReport": ReportAccountTypeBadDebtWriteOffReport,
+	"FeeAccrual":            ReportAccountTypeFeeAccrual,
+	"InvoiceAdjustments":    ReportAccountTypeInvoiceAdjustments,
 }
 
 type ReportAccountType int
@@ -35,9 +31,7 @@ const (
 	ReportAccountTypeAgedDebt
 	ReportAccountTypeAgedDebtByCustomer
 	ReportAccountTypeUnappliedReceipts
-	ReportAccountTypeCustomerAgeingBuckets
 	ReportAccountTypeARPaidInvoiceReport
-	ReportAccountTypePaidInvoiceTransactionLines
 	ReportAccountTypeTotalReceiptsReport
 	ReportAccountTypeBadDebtWriteOffReport
 	ReportAccountTypeFeeAccrual
@@ -53,19 +47,15 @@ func (i ReportAccountType) Translation() string {
 	case ReportAccountTypeAgedDebt:
 		return "Aged Debt"
 	case ReportAccountTypeAgedDebtByCustomer:
-		return "Aged Debt By Customer"
+		return "Ageing Buckets By Customer"
 	case ReportAccountTypeUnappliedReceipts:
-		return "Unapplied Receipts"
-	case ReportAccountTypeCustomerAgeingBuckets:
-		return "Customer Ageing Buckets"
+		return "Customer Credit Balance"
 	case ReportAccountTypeARPaidInvoiceReport:
-		return "AR Paid Invoice Report"
-	case ReportAccountTypePaidInvoiceTransactionLines:
-		return "Paid Invoice Transaction Lines"
+		return "AR Paid Invoice"
 	case ReportAccountTypeTotalReceiptsReport:
-		return "Total Receipts Report"
+		return "Total Receipts"
 	case ReportAccountTypeBadDebtWriteOffReport:
-		return "Bad Debt Write-off Report"
+		return "Bad Debt Write-off"
 	case ReportAccountTypeFeeAccrual:
 		return "Fee Accrual"
 	case ReportAccountTypeInvoiceAdjustments:
@@ -83,12 +73,8 @@ func (i ReportAccountType) Key() string {
 		return "AgedDebtByCustomer"
 	case ReportAccountTypeUnappliedReceipts:
 		return "UnappliedReceipts"
-	case ReportAccountTypeCustomerAgeingBuckets:
-		return "CustomerAgeingBuckets"
 	case ReportAccountTypeARPaidInvoiceReport:
 		return "ARPaidInvoiceReport"
-	case ReportAccountTypePaidInvoiceTransactionLines:
-		return "PaidInvoiceTransactionLines"
 	case ReportAccountTypeTotalReceiptsReport:
 		return "TotalReceiptsReport"
 	case ReportAccountTypeBadDebtWriteOffReport:
