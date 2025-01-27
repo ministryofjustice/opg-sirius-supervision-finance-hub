@@ -54,9 +54,9 @@ func (suite *IntegrationSuite) Test_invoice_adjustments() {
 	assert.Equal(suite.T(), "INC - RECEIPT OF FEES AND CHARGES - Rem Appoint Deputy", results[0]["Revenue account descriptions"], "Account code description - client 1")
 	assert.Equal(suite.T(), fmt.Sprintf("MCR%s", client1Invoice2Ref), results[0]["Txn number and type"], "Txn number - client 1")
 	assert.Equal(suite.T(), "Manual Credit", results[0]["Txn description"], "Txn description - client 1")
-	assert.Equal(suite.T(), "<nil>", results[0]["Remission/exemption term"], "Remission/Exemption award term - client 1")
+	assert.Equal(suite.T(), "", results[0]["Remission/exemption term"], "Remission/Exemption award term - client 1")
 	assert.Equal(suite.T(), "24/25", results[0]["Financial Year"], "Financial Year - client 1")
-	assert.Contains(suite.T(), results[0]["Approved date"], time.Now().Format("2006-01-02 15:04"), "Approved date - client 1")
+	assert.Equal(suite.T(), time.Now().Format("2006-01-02"), results[0]["Approved date"], "Approved date - client 1")
 	assert.Equal(suite.T(), "100.00", results[0]["Adjustment amount"], "Adjustment amount - client 1")
 	assert.Equal(suite.T(), "£100 credit", results[0]["Reason for adjustment"], "Reason for adjustment - client 1")
 
@@ -73,7 +73,7 @@ func (suite *IntegrationSuite) Test_invoice_adjustments() {
 	assert.Equal(suite.T(), "Remission Credit", results[1]["Txn description"], "Txn description - client 2")
 	assert.Equal(suite.T(), "3 year", results[1]["Remission/exemption term"], "Remission/Exemption award term - client 2")
 	assert.Equal(suite.T(), "24/25", results[1]["Financial Year"], "Financial Year - client 2")
-	assert.Contains(suite.T(), results[1]["Approved date"], time.Now().Format("2006-01-02 15:04"), "Approved date - client 2")
+	assert.Equal(suite.T(), time.Now().Format("2006-01-02"), results[1]["Approved date"], "Approved date - client 2")
 	assert.Equal(suite.T(), "100.00", results[1]["Adjustment amount"], "Adjustment amount - client 2")
 	assert.Equal(suite.T(), "Test remission", results[1]["Reason for adjustment"], "Reason for adjustment - client 2")
 }

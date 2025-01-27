@@ -22,13 +22,16 @@ const InvoiceAdjustmentsQuery = `SELECT CONCAT(p.firstname, ' ', p.surname)     
    a.account_code_description                                        AS "Revenue account code description",
    CONCAT(tt.fee_type, i.reference)                                  AS "Txn number",
    tt.description                                                    AS "Txn description",
-   CASE WHEN fr.startdate IS NOT NULL AND fr.enddate IS NOT NULL THEN CONCAT(EXTRACT(YEAR FROM AGE(fr.enddate, fr.startdate)), ' year') END AS "Remission/Exemption award term",
+   CASE WHEN fr.startdate IS NOT NULL 
+       THEN CONCAT(EXTRACT(YEAR FROM AGE(fr.enddate, fr.startdate)), ' year') 
+       ELSE '' 
+       END AS "Remission/Exemption award term",
    CASE
        WHEN la.datetime >= DATE_TRUNC('year', la.datetime) + INTERVAL '3 months'
            THEN CONCAT(TO_CHAR(la.datetime, 'YY'), '/', TO_CHAR((la.datetime + INTERVAL '1 YEAR'), 'YY'))
        ELSE CONCAT(TO_CHAR((la.datetime - INTERVAL '1 YEAR'), 'YY'), '/', TO_CHAR(la.datetime, 'YY'))
        END                                                           AS "Financial Year",
-   la.datetime                                                       AS "Approved date",
+   TO_CHAR(la.datetime, 'YYYY-MM-DD')                                                       AS "Approved date",
    (la.amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255)                               AS "Adjustment amount",
    COALESCE(ia.notes, fr.notes)                                      AS "Reason for adjustment"
 FROM supervision_finance.ledger_allocation la
