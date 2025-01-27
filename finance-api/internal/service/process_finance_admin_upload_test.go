@@ -182,7 +182,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					"MOTO CARD PAYMENT",
 					"CONFIRMED",
 					time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
-					15010,
+					-15010,
 					"UNAPPLIED",
 					0,
 				},

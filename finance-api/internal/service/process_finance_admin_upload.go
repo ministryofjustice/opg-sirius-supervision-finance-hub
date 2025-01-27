@@ -208,10 +208,12 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 		return err
 	}
 
+	remaining := details.Amount
+
 	for _, invoice := range invoices {
 		allocationAmount := invoice.Outstanding
-		if allocationAmount > details.Amount {
-			allocationAmount = details.Amount
+		if allocationAmount > remaining {
+			allocationAmount = remaining
 		}
 
 		err = tx.CreateLedgerAllocation(ctx, store.CreateLedgerAllocationParams{
@@ -224,12 +226,12 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 			return err
 		}
 
-		details.Amount -= allocationAmount
+		remaining -= allocationAmount
 	}
 
-	if details.Amount > 0 {
+	if remaining > 0 {
 		err = tx.CreateLedgerAllocation(ctx, store.CreateLedgerAllocationParams{
-			Amount:   details.Amount,
+			Amount:   -remaining,
 			Status:   "UNAPPLIED",
 			LedgerID: pgtype.Int4{Int32: ledgerId, Valid: true},
 		})

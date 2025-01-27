@@ -32,7 +32,7 @@ const AgedDebtByCustomerQuery = `WITH outstanding_invoices AS (SELECT i.id AS in
                                 MAX(oi.overdue_banding)                       AS max_age
                          FROM outstanding_invoices oi
                          GROUP BY oi.finance_client_id)
-SELECT CONCAT(p.firstname, ' ', p.surname)                                         "Customer Name",
+SELECT CONCAT(p.firstname, ' ', p.surname)                                         "Customer name",
        p.caserecnumber                                                             "Customer number",
        fc.sop_number                                                               "SOP number",
        d.deputytype                                                                "Deputy type",
@@ -64,7 +64,7 @@ FROM supervision_finance.finance_client fc
 
 func (a *AgedDebtByCustomer) GetHeaders() []string {
 	return []string{
-		"Customer Name",
+		"Customer name",
 		"Customer number",
 		"SOP number",
 		"Deputy type",
