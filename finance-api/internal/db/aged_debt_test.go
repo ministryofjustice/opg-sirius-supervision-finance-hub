@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/testhelpers"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"strconv"
@@ -12,6 +13,7 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	today := suite.seeder.Today()
 	yesterday := suite.seeder.Today().Sub(0, 0, 1)
 	twoMonthsAgo := suite.seeder.Today().Sub(0, 2, 0)
+	oneYearAgo := suite.seeder.Today().Sub(1, 0, 0)
 	twoYearsAgo := suite.seeder.Today().Sub(2, 0, 0)
 	fourYearsAgo := suite.seeder.Today().Sub(4, 0, 0)
 	fiveYearsAgo := suite.seeder.Today().Sub(5, 0, 0)
@@ -48,23 +50,34 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	_, c2i1Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeAD, nil, fourYearsAgo.StringPtr(), nil, nil, nil)
 	_, c2i2Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, &general, twoYearsAgo.StringPtr(), twoYearsAgo.StringPtr(), nil, nil)
 
+	// one client with:
+	// split invoice
+	i3amount := "170.00"
+	client3ID := suite.seeder.CreateClient(ctx, "Freddy", "Splitz", "11111111", "1111")
+	suite.seeder.CreateDeputy(ctx, client3ID, "Frank", "Deputy", "LAY")
+	suite.seeder.CreateOrder(ctx, client3ID, "ACTIVE")
+	suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeRemission, strconv.Itoa(twoYearsAgo.Date().Year()), 2, "A reduction", twoYearsAgo.Date())
+	c3i1ID, c3i1Ref := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeS2, &i3amount, oneYearAgo.StringPtr(), oneYearAgo.StringPtr(), nil, nil)
+	suite.seeder.AddFeeRanges(ctx, c3i1ID, []testhelpers.InvoiceRange{
+		{FromDate: oneYearAgo.Date(), ToDate: oneYearAgo.Add(0, 6, 0).Date(), SupervisionLevel: "GENERAL", Amount: 16000},
+		{FromDate: oneYearAgo.Add(0, 6, 0).Date(), ToDate: oneYearAgo.Add(0, 11, 0).Date(), SupervisionLevel: "GENERAL", Amount: 1000},
+	})
+
 	// excluded clients as out of range
-	client3ID := suite.seeder.CreateClient(ctx, "Too", "Early", "99999999", "9999")
-	suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeAD, nil, sixYearsAgo.StringPtr(), nil, nil, nil)
-	client4ID := suite.seeder.CreateClient(ctx, "Too", "Early", "99999999", "9999")
-	suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeAD, nil, today.StringPtr(), nil, nil, nil)
+	excluded1ID := suite.seeder.CreateClient(ctx, "Too", "Early", "99999999", "9999")
+	suite.seeder.CreateInvoice(ctx, excluded1ID, shared.InvoiceTypeAD, nil, sixYearsAgo.StringPtr(), nil, nil, nil)
+	excluded2ID := suite.seeder.CreateClient(ctx, "Too", "Early", "99999999", "9999")
+	suite.seeder.CreateInvoice(ctx, excluded2ID, shared.InvoiceTypeAD, nil, today.StringPtr(), nil, nil, nil)
 
 	c := Client{suite.seeder.Conn}
 
 	from := shared.NewDate(fourYearsAgo.String())
 	to := shared.NewDate(yesterday.String())
 
-	rows, err := c.Run(ctx, &AgedDebt{
-		FromDate: &from,
-		ToDate:   &to,
-	})
+	rows, err := c.Run(ctx, &AgedDebt{FromDate: &from, ToDate: &to})
+
 	assert.NoError(suite.T(), err)
-	assert.Equal(suite.T(), 4, len(rows))
+	assert.Equal(suite.T(), 5, len(rows))
 
 	results := mapByHeader(rows)
 	assert.NotEmpty(suite.T(), results)
@@ -161,4 +174,34 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	assert.Equal(suite.T(), "0", results[2]["3-5 years"], "3-5 years - client 2, invoice 2")
 	assert.Equal(suite.T(), "0", results[2]["5+ years"], "5+ years - client 2, invoice 2")
 	assert.Equal(suite.T(), "=\"3-5\"", results[2]["Debt impairment years"], "Debt impairment years - client 2, invoice 2")
+
+	assert.Equal(suite.T(), "Freddy Splitz", results[3]["Customer name"], "Customer Name - client 3")
+	assert.Equal(suite.T(), "11111111", results[3]["Customer number"], "Customer number - client 3")
+	assert.Equal(suite.T(), "1111", results[3]["SOP number"], "SOP number - client 3")
+	assert.Equal(suite.T(), "LAY", results[3]["Deputy type"], "Deputy type - client 3")
+	assert.Equal(suite.T(), "Yes", results[3]["Active case?"], "Active case? - client 3")
+	assert.Equal(suite.T(), "=\"0470\"", results[3]["Entity"], "Entity - client 3")
+	assert.Equal(suite.T(), "99999999", results[3]["Receivable cost centre"], "Receivable cost centre - client 3")
+	assert.Equal(suite.T(), "BALANCE SHEET", results[3]["Receivable cost centre description"], "Receivable cost centre description - client 3")
+	assert.Equal(suite.T(), "1816100000", results[3]["Receivable account code"], "Receivable account code - client 3")
+	assert.Equal(suite.T(), "10482009", results[3]["Revenue cost centre"], "Revenue cost centre - client 3")
+	assert.Equal(suite.T(), "Supervision Investigations", results[3]["Revenue cost centre description"], "Revenue cost centre description - client 3")
+	assert.Equal(suite.T(), "4481102094", results[3]["Revenue account code"], "Revenue account code - client 3")
+	assert.Equal(suite.T(), "INC - RECEIPT OF FEES AND CHARGES - Supervision Fee 1", results[3]["Revenue account code description"], "Revenue account code description - client 3")
+	assert.Equal(suite.T(), "S2", results[3]["Invoice type"], "Invoice type - client 3")
+	assert.Equal(suite.T(), c3i1Ref, results[3]["Trx number"], "Trx number - client 3")
+	assert.Equal(suite.T(), "S2 - General invoice (Demanded)", results[3]["Transaction description"], "Transaction Description - client 3")
+	assert.Equal(suite.T(), oneYearAgo.String(), results[3]["Invoice date"], "Invoice date - client 3")
+	assert.Equal(suite.T(), oneYearAgo.Add(0, 0, 30).String(), results[3]["Due date"], "Due date - client 3")
+	assert.Equal(suite.T(), oneYearAgo.FinancialYear(), results[3]["Financial year"], "Financial year - client 3")
+	assert.Equal(suite.T(), "30 NET", results[3]["Payment terms"], "Payment terms - client 3")
+	assert.Equal(suite.T(), "170.00", results[3]["Original amount"], "Original amount - client 3")
+	assert.Equal(suite.T(), "170.00", results[3]["Outstanding amount"], "Outstanding amount - client 3")
+	assert.Equal(suite.T(), "0", results[3]["Current"], "Current - client 3")
+	assert.Equal(suite.T(), "170.00", results[3]["0-1 years"], "0-1 years - client 3")
+	assert.Equal(suite.T(), "0", results[3]["1-2 years"], "1-2 years - client 3")
+	assert.Equal(suite.T(), "0", results[3]["2-3 years"], "2-3 years - client 3")
+	assert.Equal(suite.T(), "0", results[3]["3-5 years"], "3-5 years - client 3")
+	assert.Equal(suite.T(), "0", results[3]["5+ years"], "5+ years - client 3")
+	assert.Equal(suite.T(), "=\"0-1\"", results[3]["Debt impairment years"], "Debt impairment years - client 3")
 }

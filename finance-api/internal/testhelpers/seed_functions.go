@@ -62,6 +62,11 @@ func (s *Seeder) CreateInvoice(ctx context.Context, clientID int, invoiceType sh
 	return id, reference
 }
 
+func (s *Seeder) CreateInvoiceFeeRange(ctx context.Context, invoiceId int, supervisionLevel string) {
+	_, err := s.Conn.Exec(ctx, "INSERT INTO supervision_finance.invoice_fee_range VALUES (NEXTVAL('supervision_finance.invoice_fee_range_id_seq'), $1, $2, $3, $4, $5)", invoiceId, supervisionLevel, time.Now(), time.Now(), 0)
+	assert.NoError(s.t, err, "failed to add invoice fee range: %v", err)
+}
+
 func (s *Seeder) CreateAdjustment(ctx context.Context, clientID int, invoiceId int, adjustmentType shared.AdjustmentType, amount int, notes string) int {
 	adjustment := shared.AddInvoiceAdjustmentRequest{
 		AdjustmentType:  adjustmentType,
@@ -127,4 +132,21 @@ func (s *Seeder) CreatePayment(ctx context.Context, amount int, date time.Time, 
 
 	err = tx.Commit(ctx)
 	assert.NoError(s.t, err, "failed to commit payment: %v", err)
+}
+
+type InvoiceRange struct {
+	FromDate         time.Time
+	ToDate           time.Time
+	SupervisionLevel string
+	Amount           int
+}
+
+func (s *Seeder) AddFeeRanges(ctx context.Context, invoiceId int, ranges []InvoiceRange) {
+	for _, r := range ranges {
+
+		_, err := s.Conn.Exec(ctx,
+			"INSERT INTO supervision_finance.invoice_fee_range VALUES (NEXTVAL('supervision_finance.invoice_fee_range_id_seq'), $1, $2, $3, $4, $5)",
+			invoiceId, r.SupervisionLevel, r.FromDate, r.ToDate, r.Amount)
+		assert.NoError(s.t, err, "failed to add fee range: %v", err)
+	}
 }
