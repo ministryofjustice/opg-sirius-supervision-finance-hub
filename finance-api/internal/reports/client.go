@@ -8,6 +8,7 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"io"
 	"os"
+	"time"
 )
 
 type dbClient interface {
@@ -26,6 +27,7 @@ type notifyClient interface {
 type Envs struct {
 	ReportsBucket   string
 	FinanceAdminURL string
+	GoLiveDate      time.Time
 }
 
 type Client struct {

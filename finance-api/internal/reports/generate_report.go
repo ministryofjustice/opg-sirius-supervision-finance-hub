@@ -35,13 +35,15 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
       }
 		case shared.ReportAccountTypeInvoiceAdjustments:
 			query = &db.InvoiceAdjustments{
-				FromDate: reportRequest.FromDateField,
-				ToDate:   reportRequest.ToDateField,
+				FromDate:   reportRequest.FromDateField,
+				ToDate:     reportRequest.ToDateField,
+				GoLiveDate: c.envs.GoLiveDate,
 			}
 		case shared.ReportAccountTypeBadDebtWriteOffReport:
 			query = &db.BadDebtWriteOff{
-				FromDate: reportRequest.FromDateField,
-				ToDate:   reportRequest.ToDateField,
+				FromDate:   reportRequest.FromDateField,
+				ToDate:     reportRequest.ToDateField,
+				GoLiveDate: c.envs.GoLiveDate,
 			}
 		case shared.ReportAccountTypeTotalReceiptsReport:
 			query = &db.Receipts{

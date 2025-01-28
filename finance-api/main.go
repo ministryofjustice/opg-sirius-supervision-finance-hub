@@ -77,6 +77,8 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		return err
 	}
 
+	goLiveDate, _ := time.Parse("2006-01-02", os.Getenv("FINANCE_HUB_LIVE_DATE"))
+
 	reportsClient := reports.NewClient(
 		setupDbPool(ctx, logger, "supervision_finance,public", true),
 		fileStorageClient,
@@ -84,6 +86,7 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		&reports.Envs{
 			ReportsBucket:   os.Getenv("REPORTS_S3_BUCKET"),
 			FinanceAdminURL: fmt.Sprintf("%s%s", os.Getenv("SIRIUS_PUBLIC_URL"), os.Getenv("FINANCE_ADMIN_PREFIX")),
+			GoLiveDate:      goLiveDate,
 		},
 	)
 	defer reportsClient.Close()
