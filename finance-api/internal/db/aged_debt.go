@@ -142,15 +142,21 @@ func (a *AgedDebt) GetQuery() string {
 }
 
 func (a *AgedDebt) GetParams() []any {
+	var (
+		from, to time.Time
+	)
+
 	if a.FromDate == nil {
-		from := shared.NewDate("")
-		a.FromDate = &from
+		from = time.Time{}
+	} else {
+		from = a.FromDate.Time
 	}
 
 	if a.ToDate == nil {
-		to := shared.Date{Time: time.Now()}
-		a.ToDate = &to
+		to = time.Now()
+	} else {
+		to = a.ToDate.Time
 	}
 
-	return []any{a.FromDate.Time.Format("2006-01-02"), a.ToDate.Time.Format("2006-01-02")}
+	return []any{from.Format("2006-01-02"), to.Format("2006-01-02")}
 }

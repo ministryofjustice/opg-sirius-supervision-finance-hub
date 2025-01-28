@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"io"
-	"os"
 )
 
 type S3Client interface {
@@ -19,11 +18,12 @@ type S3Client interface {
 }
 
 type Client struct {
-	s3 S3Client
+	s3     S3Client
+	kmsKey string
 }
 
-func NewClient(ctx context.Context) (*Client, error) {
-	awsRegion := os.Getenv("AWS_REGION")
+func NewClient(ctx context.Context, region string, iamRole string, endpoint string, kmsKey string) (*Client, error) {
+	awsRegion := region
 
 	cfg, err := config.LoadDefaultConfig(
 		ctx,
@@ -33,7 +33,7 @@ func NewClient(ctx context.Context) (*Client, error) {
 		return nil, err
 	}
 
-	if iamRole, ok := os.LookupEnv("AWS_IAM_ROLE"); ok {
+	if iamRole != "" {
 		client := sts.NewFromConfig(cfg)
 		cfg.Credentials = stscreds.NewAssumeRoleProvider(client, iamRole)
 	}
@@ -42,13 +42,15 @@ func NewClient(ctx context.Context) (*Client, error) {
 		u.UsePathStyle = true
 		u.Region = awsRegion
 
-		endpoint := os.Getenv("AWS_S3_ENDPOINT")
 		if endpoint != "" {
 			u.BaseEndpoint = &endpoint
 		}
 	})
 
-	return &Client{client}, nil
+	return &Client{
+		s3:     client,
+		kmsKey: kmsKey,
+	}, nil
 }
 
 func (c *Client) GetFile(ctx context.Context, bucketName string, fileName string) (io.ReadCloser, error) {
@@ -76,7 +78,7 @@ func (c *Client) PutFile(ctx context.Context, bucketName string, fileName string
 		Key:                  &fileName,
 		Body:                 file,
 		ServerSideEncryption: "aws:kms",
-		SSEKMSKeyId:          aws.String(os.Getenv("S3_ENCRYPTION_KEY")),
+		SSEKMSKeyId:          aws.String(c.kmsKey),
 	})
 
 	if output == nil {

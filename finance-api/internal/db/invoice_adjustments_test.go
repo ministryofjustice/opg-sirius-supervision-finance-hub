@@ -5,6 +5,7 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"strconv"
+	"testing"
 	"time"
 )
 
@@ -76,4 +77,43 @@ func (suite *IntegrationSuite) Test_invoice_adjustments() {
 	assert.Equal(suite.T(), time.Now().Format("2006-01-02"), results[1]["Approved date"], "Approved date - client 2")
 	assert.Equal(suite.T(), "100.00", results[1]["Adjustment amount"], "Adjustment amount - client 2")
 	assert.Equal(suite.T(), "Test remission", results[1]["Reason for adjustment"], "Reason for adjustment - client 2")
+}
+
+func Test_invoiceAdjustments_getParams(t *testing.T) {
+	today := time.Now()
+	goLiveDate := today.AddDate(-4, 0, 0)
+	toDate := shared.NewDate(today.AddDate(-1, 0, 0).Format("2006-01-02"))
+	fromDate := shared.NewDate(today.AddDate(-2, 0, 0).Format("2006-01-02"))
+
+	tests := []struct {
+		name     string
+		fromDate *shared.Date
+		toDate   *shared.Date
+		expected []any
+	}{
+		{
+			name:     "No FromDate and ToDate",
+			fromDate: nil,
+			toDate:   nil,
+			expected: []any{goLiveDate.Format("2006-01-02"), today.Format("2006-01-02")},
+		},
+		{
+			name:     "With FromDate and ToDate",
+			fromDate: &toDate,
+			toDate:   &fromDate,
+			expected: []any{toDate.Time.Format("2006-01-02"), fromDate.Time.Format("2006-01-02")},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			invoiceAdjustments := &InvoiceAdjustments{
+				FromDate:   tt.fromDate,
+				ToDate:     tt.toDate,
+				GoLiveDate: goLiveDate,
+			}
+			params := invoiceAdjustments.GetParams()
+			assert.Equal(t, tt.expected, params)
+		})
+	}
 }
