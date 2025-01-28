@@ -8,7 +8,6 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"log/slog"
 	"net/http"
-	"os"
 	"time"
 )
 
@@ -66,7 +65,7 @@ func (s *Server) validateReportRequest(reportRequest shared.ReportRequest) error
 					},
 				},
 			}
-		} else if reportRequest.TransactionDate.After(shared.NewDate(os.Getenv("FINANCE_HUB_LIVE_DATE"))) { // TODO: This needs moving to main.go
+		} else if reportRequest.TransactionDate.Before(shared.Date{Time: s.envs.GoLiveDate}) {
 			return apierror.ValidationError{
 				Errors: apierror.ValidationErrors{
 					"Date": {

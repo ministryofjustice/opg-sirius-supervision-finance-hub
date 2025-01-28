@@ -32,7 +32,7 @@ func TestRequestReport(t *testing.T) {
 
 	mock := &MockReports{}
 	mock.requestedReport = downloadForm
-	server := NewServer(nil, mock, "", nil, nil)
+	server := NewServer(nil, mock, nil, nil, nil)
 	_ = server.requestReport(w, r)
 
 	res := w.Result()
@@ -60,7 +60,7 @@ func TestRequestReportNoEmail(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	mock := &MockReports{}
-	server := NewServer(nil, mock, "", nil, nil)
+	server := NewServer(nil, mock, nil, nil, nil)
 	err := server.requestReport(w, r)
 
 	res := w.Result()
@@ -77,6 +77,7 @@ func TestRequestReportNoEmail(t *testing.T) {
 }
 
 func TestValidateReportRequest(t *testing.T) {
+	goLive := time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
 	tests := []struct {
 		name          string
 		reportRequest shared.ReportRequest
@@ -87,7 +88,7 @@ func TestValidateReportRequest(t *testing.T) {
 			reportRequest: shared.ReportRequest{
 				Email:           "test@example.com",
 				ReportType:      shared.ReportsTypeSchedule,
-				TransactionDate: &shared.Date{Time: time.Now().AddDate(0, 0, -1)},
+				TransactionDate: &shared.Date{Time: goLive},
 			},
 			expectedError: nil,
 		},
@@ -96,7 +97,7 @@ func TestValidateReportRequest(t *testing.T) {
 			reportRequest: shared.ReportRequest{
 				Email:           "",
 				ReportType:      shared.ReportsTypeSchedule,
-				TransactionDate: &shared.Date{Time: time.Now().AddDate(0, 0, -1)},
+				TransactionDate: &shared.Date{Time: goLive},
 			},
 			expectedError: apierror.ValidationError{
 				Errors: apierror.ValidationErrors{
@@ -137,11 +138,11 @@ func TestValidateReportRequest(t *testing.T) {
 			},
 		},
 		{
-			name: "transaction date after go-live date",
+			name: "transaction date before go-live date",
 			reportRequest: shared.ReportRequest{
 				Email:           "test@example.com",
 				ReportType:      shared.ReportsTypeSchedule,
-				TransactionDate: &shared.Date{Time: time.Now().AddDate(0, 0, -1)},
+				TransactionDate: &shared.Date{Time: goLive.AddDate(0, 0, -1)},
 			},
 			expectedError: apierror.ValidationError{
 				Errors: apierror.ValidationErrors{
@@ -155,7 +156,7 @@ func TestValidateReportRequest(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			server := &Server{}
+			server := &Server{nil, nil, nil, nil, &Envs{GoLiveDate: goLive}}
 			err := server.validateReportRequest(tt.reportRequest)
 			assert.Equal(t, tt.expectedError, err)
 		})

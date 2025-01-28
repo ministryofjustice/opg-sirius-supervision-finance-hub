@@ -31,7 +31,7 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 			}
 		case shared.ReportAccountsReceivableTypeAgedDebtByCustomer:
 			query = &db.AgedDebtByCustomer{}
-		case shared.ReportAccountsReceivableTypeARPaidInvoiceReport:
+		case shared.ReportAccountsReceivableTypeARPaidInvoice:
 			query = &db.PaidInvoices{
 				FromDate:   reportRequest.FromDate,
 				ToDate:     reportRequest.ToDate,
@@ -43,7 +43,7 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 				ToDate:     reportRequest.ToDate,
 				GoLiveDate: c.envs.GoLiveDate,
 			}
-		case shared.ReportAccountsReceivableTypeBadDebtWriteOffReport:
+		case shared.ReportAccountsReceivableTypeBadDebtWriteOff:
 			query = &db.BadDebtWriteOff{
 				FromDate:   reportRequest.FromDate,
 				ToDate:     reportRequest.ToDate,

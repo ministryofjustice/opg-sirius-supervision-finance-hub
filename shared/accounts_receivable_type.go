@@ -2,16 +2,6 @@ package shared
 
 import "encoding/json"
 
-var ReportAccountsReceivableTypes = []ReportAccountsReceivableType{
-	ReportAccountsReceivableTypeAgedDebt,
-	ReportAccountsReceivableTypeAgedDebtByCustomer,
-	ReportAccountsReceivableTypeUnappliedReceipts,
-	ReportAccountsReceivableTypeARPaidInvoice,
-	ReportAccountsReceivableTypeTotalReceipts,
-	ReportAccountsReceivableTypeBadDebtWriteOff,
-	ReportAccountsReceivableTypeFeeAccrual,
-}
-
 var ReportAccountsReceivableTypeMap = map[string]ReportAccountsReceivableType{
 	"AgedDebt":           ReportAccountsReceivableTypeAgedDebt,
 	"AgedDebtByCustomer": ReportAccountsReceivableTypeAgedDebtByCustomer,
@@ -20,6 +10,7 @@ var ReportAccountsReceivableTypeMap = map[string]ReportAccountsReceivableType{
 	"TotalReceipts":      ReportAccountsReceivableTypeTotalReceipts,
 	"BadDebtWriteOff":    ReportAccountsReceivableTypeBadDebtWriteOff,
 	"FeeAccrual":         ReportAccountsReceivableTypeFeeAccrual,
+	"InvoiceAdjustments": ReportAccountsReceivableTypeInvoiceAdjustments,
 }
 
 type ReportAccountsReceivableType int
@@ -33,6 +24,7 @@ const (
 	ReportAccountsReceivableTypeTotalReceipts
 	ReportAccountsReceivableTypeBadDebtWriteOff
 	ReportAccountsReceivableTypeFeeAccrual
+	ReportAccountsReceivableTypeInvoiceAdjustments
 )
 
 func (i ReportAccountsReceivableType) String() string {
@@ -55,6 +47,8 @@ func (i ReportAccountsReceivableType) Translation() string {
 		return "Bad Debt Write-off"
 	case ReportAccountsReceivableTypeFeeAccrual:
 		return "Fee Accrual"
+	case ReportAccountsReceivableTypeInvoiceAdjustments:
+		return "Invoice Adjustments"
 	default:
 		return ""
 	}
@@ -76,6 +70,8 @@ func (i ReportAccountsReceivableType) Key() string {
 		return "BadDebtWriteOff"
 	case ReportAccountsReceivableTypeFeeAccrual:
 		return "FeeAccrual"
+	case ReportAccountsReceivableTypeInvoiceAdjustments:
+		return "InvoiceAdjustments"
 	default:
 		return ""
 	}

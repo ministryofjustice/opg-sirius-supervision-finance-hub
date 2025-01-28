@@ -82,20 +82,20 @@ func TestGenerateAndUploadReport(t *testing.T) {
 		{
 			name: "Paid Invoices",
 			reportRequest: shared.ReportRequest{
-				ReportType:        "AccountsReceivable",
-				ReportAccountType: "ARPaidInvoiceReport",
-				ToDateField:       &toDate,
-				FromDateField:     &fromDate,
+				ReportType:             shared.ReportsTypeAccountsReceivable,
+				AccountsReceivableType: shared.ReportAccountsReceivableTypeARPaidInvoice,
+				ToDate:                 &toDate,
+				FromDate:               &fromDate,
 			},
 			expectedQuery: &db.PaidInvoices{FromDate: &fromDate, ToDate: &toDate},
-    },
-    {
+		},
+		{
 			name: "Invoice Adjustments",
 			reportRequest: shared.ReportRequest{
-				ReportType:        "AccountsReceivable",
-				ReportAccountType: "InvoiceAdjustments",
-				ToDateField:       &toDate,
-				FromDateField:     &fromDate,
+				ReportType:             shared.ReportsTypeAccountsReceivable,
+				AccountsReceivableType: shared.ReportAccountsReceivableTypeInvoiceAdjustments,
+				ToDate:                 &toDate,
+				FromDate:               &fromDate,
 			},
 			expectedQuery: &db.InvoiceAdjustments{FromDate: &fromDate, ToDate: &toDate},
 		},
