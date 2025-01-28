@@ -40,5 +40,5 @@ func (p *PaymentsSchedule) GetParams() []any {
 	default:
 		transactionType = shared.TransactionTypeUnknown
 	}
-	return []any{p.Date.Time.Format("2006-01-02 15:04:05"), transactionType.Key()} // TODO: Add golive
+	return []any{p.Date.Time.Format("2006-01-02 15:04:05"), transactionType.Key()}
 }
