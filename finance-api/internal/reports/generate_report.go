@@ -12,49 +12,74 @@ import (
 
 const reportRequestedTemplateId = "bade69e4-0eb1-4896-a709-bd8f8371a629"
 
-func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) error {
-	var query db.ReportQuery
-	var err error
-
-	accountType := shared.ParseReportAccountType(reportRequest.ReportAccountType)
-	filename := fmt.Sprintf("%s_%s.csv", accountType.Key(), requestedDate.Format("02:01:2006"))
-
-	switch reportRequest.ReportType {
-	case "AccountsReceivable":
-		switch accountType {
-		case shared.ReportAccountTypeAgedDebt:
-			query = &db.AgedDebt{
-				FromDate: reportRequest.FromDateField,
-				ToDate:   reportRequest.ToDateField,
-			}
-		case shared.ReportAccountTypeAgedDebtByCustomer:
-			query = &db.AgedDebtByCustomer{}
-		case shared.ReportAccountTypeARPaidInvoiceReport:
-			query = &db.PaidInvoices{
-				FromDate: reportRequest.FromDateField,
-				ToDate:   reportRequest.ToDateField,
-      }
-		case shared.ReportAccountTypeInvoiceAdjustments:
-			query = &db.InvoiceAdjustments{
-				FromDate: reportRequest.FromDateField,
-				ToDate:   reportRequest.ToDateField,
-			}
-		case shared.ReportAccountTypeBadDebtWriteOffReport:
-			query = &db.BadDebtWriteOff{
-				FromDate: reportRequest.FromDateField,
-				ToDate:   reportRequest.ToDateField,
-			}
-		case shared.ReportAccountTypeTotalReceiptsReport:
-			query = &db.Receipts{
-				FromDate: reportRequest.FromDateField,
-				ToDate:   reportRequest.ToDateField,
-			}
-		case shared.ReportAccountTypeUnappliedReceipts:
-			query = &db.CustomerCredit{}
-		default:
-			return fmt.Errorf("unknown query")
-		}
+func getAccountsReceivableQuery(accountType shared.ReportAccountType, fromDate *shared.Date, toDate *shared.Date) (db.ReportQuery, error) {
+	switch accountType {
+	case shared.ReportAccountTypeAgedDebt:
+		return &db.AgedDebt{
+			FromDate: fromDate,
+			ToDate:   toDate,
+		}, nil
+	case shared.ReportAccountTypeAgedDebtByCustomer:
+		return &db.AgedDebtByCustomer{}, nil
+	case shared.ReportAccountTypeARPaidInvoiceReport:
+		return &db.PaidInvoices{
+			FromDate: fromDate,
+			ToDate:   toDate,
+		}, nil
+	case shared.ReportAccountTypeInvoiceAdjustments:
+		return &db.InvoiceAdjustments{
+			FromDate: fromDate,
+			ToDate:   toDate,
+		}, nil
+	case shared.ReportAccountTypeBadDebtWriteOffReport:
+		return &db.BadDebtWriteOff{
+			FromDate: fromDate,
+			ToDate:   toDate,
+		}, nil
+	case shared.ReportAccountTypeTotalReceiptsReport:
+		return &db.Receipts{
+			FromDate: fromDate,
+			ToDate:   toDate,
+		}, nil
+	case shared.ReportAccountTypeUnappliedReceipts:
+		return &db.CustomerCredit{}, nil
 	}
+
+	return nil, fmt.Errorf("Unrecognised report account type")
+}
+
+func getJournalQuery(journalType shared.ReportJournalType, date *shared.Date) (db.ReportQuery, error) {
+	switch journalType {
+	case shared.ReportTypeNonReceiptTransactions:
+		return &db.NonReceiptTransactions{Date: date}, nil
+	}
+
+	return nil, fmt.Errorf("Unrecognised report journal type")
+}
+func getQuery(reportType shared.ReportsType, reportRequest shared.ReportRequest) (db.ReportQuery, error) {
+	var query db.ReportQuery
+
+	switch reportType {
+	case shared.ReportsTypeAccountsReceivable:
+		accountType := shared.ParseReportAccountType(reportRequest.ReportAccountType)
+		return getAccountsReceivableQuery(accountType, reportRequest.FromDateField, reportRequest.ToDateField)
+	case shared.ReportsTypeJournal:
+		journalType := shared.ParseReportJournalType(reportRequest.ReportJournalType)
+		return getJournalQuery(journalType, reportRequest.DateOfTransaction)
+	}
+	return query, nil
+}
+
+func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) error {
+	reportType := shared.ParseReportsType(reportRequest.ReportType)
+
+	query, err := getQuery(reportType, reportRequest)
+	if err != nil {
+		return err
+	}
+
+	filename := "test.csv"        //fmt.Sprintf("%s_%s.csv", accountType.Key(), requestedDate.Format("02:01:2006"))
+	friendlyName := "test report" //accountType.Translation()
 
 	file, err := c.generate(ctx, filename, query)
 	if err != nil {
@@ -74,7 +99,7 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 		return err
 	}
 
-	payload, err := createDownloadNotifyPayload(reportRequest.Email, filename, versionId, requestedDate, accountType.Translation())
+	payload, err := createDownloadNotifyPayload(reportRequest.Email, filename, versionId, requestedDate, friendlyName)
 	if err != nil {
 		return err
 	}
