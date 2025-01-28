@@ -69,7 +69,8 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 			shared.ReportSupervisionBACSTransfer,
 			shared.ReportDirectDebitPayments:
 			query = &db.PaymentsSchedule{
-				Date: *reportRequest.TransactionDate,
+				Date:         *reportRequest.TransactionDate,
+				ScheduleType: reportRequest.ScheduleType,
 			}
 		default:
 			return fmt.Errorf("unimplemented schedule query: %s", reportRequest.ScheduleType.Key())
