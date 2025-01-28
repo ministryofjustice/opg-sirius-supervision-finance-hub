@@ -31,7 +31,7 @@ func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
 	fileStorage := &mockFileStorage{}
 	fileStorage.file = io.NopCloser(strings.NewReader("test"))
 
-	s := NewService(seeder.Conn, dispatch, fileStorage, nil)
+	s := NewService(seeder.Conn, dispatch, fileStorage, nil, &Env{AsyncBucket: "test"})
 
 	tests := []struct {
 		name           string
@@ -97,7 +97,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 	)
 
 	dispatch := &mockDispatch{}
-	s := NewService(seeder.Conn, dispatch, nil, nil)
+	s := NewService(seeder.Conn, dispatch, nil, nil, nil)
 
 	tests := []struct {
 		name                      string

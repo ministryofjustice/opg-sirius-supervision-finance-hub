@@ -8,6 +8,7 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"io"
 	"os"
+	"time"
 )
 
 type dbClient interface {
@@ -23,21 +24,29 @@ type notifyClient interface {
 	Send(ctx context.Context, payload notify.Payload) error
 }
 
+type Envs struct {
+	ReportsBucket   string
+	FinanceAdminURL string
+	GoLiveDate      time.Time
+}
+
 type Client struct {
 	db          dbClient
 	fileStorage fileStorageClient
 	notify      notifyClient
+	envs        *Envs
 }
 
 func (c *Client) Close() {
 	c.db.Close()
 }
 
-func NewClient(dbPool *pgxpool.Pool, fileStorage fileStorageClient, notify notifyClient) *Client {
+func NewClient(dbPool *pgxpool.Pool, fileStorage fileStorageClient, notify notifyClient, envs *Envs) *Client {
 	return &Client{
 		db:          db.NewClient(dbPool),
 		fileStorage: fileStorage,
 		notify:      notify,
+		envs:        envs,
 	}
 }
 
