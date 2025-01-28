@@ -6,7 +6,6 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/db"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"os"
 	"time"
 )
 
@@ -31,18 +30,21 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 			query = &db.AgedDebtByCustomer{}
 		case shared.ReportAccountTypeARPaidInvoiceReport:
 			query = &db.PaidInvoices{
-				FromDate: reportRequest.FromDateField,
-				ToDate:   reportRequest.ToDateField,
-      }
+				FromDate:   reportRequest.FromDateField,
+				ToDate:     reportRequest.ToDateField,
+				GoLiveDate: c.envs.GoLiveDate,
+			}
 		case shared.ReportAccountTypeInvoiceAdjustments:
 			query = &db.InvoiceAdjustments{
-				FromDate: reportRequest.FromDateField,
-				ToDate:   reportRequest.ToDateField,
+				FromDate:   reportRequest.FromDateField,
+				ToDate:     reportRequest.ToDateField,
+				GoLiveDate: c.envs.GoLiveDate,
 			}
 		case shared.ReportAccountTypeBadDebtWriteOffReport:
 			query = &db.BadDebtWriteOff{
-				FromDate: reportRequest.FromDateField,
-				ToDate:   reportRequest.ToDateField,
+				FromDate:   reportRequest.FromDateField,
+				ToDate:     reportRequest.ToDateField,
+				GoLiveDate: c.envs.GoLiveDate,
 			}
 		case shared.ReportAccountTypeTotalReceiptsReport:
 			query = &db.Receipts{
@@ -65,7 +67,7 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 
 	versionId, err := c.fileStorage.PutFile(
 		ctx,
-		os.Getenv("REPORTS_S3_BUCKET"),
+		c.envs.ReportsBucket,
 		filename,
 		file,
 	)
@@ -74,7 +76,7 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 		return err
 	}
 
-	payload, err := createDownloadNotifyPayload(reportRequest.Email, filename, versionId, requestedDate, accountType.Translation())
+	payload, err := c.createDownloadNotifyPayload(reportRequest.Email, filename, versionId, requestedDate, accountType.Translation())
 	if err != nil {
 		return err
 	}
@@ -94,7 +96,7 @@ type reportRequestedNotifyPersonalisation struct {
 	RequestedDateTime string `json:"requested_date_time"`
 }
 
-func createDownloadNotifyPayload(emailAddress string, filename string, versionId *string, requestedDate time.Time, reportName string) (notify.Payload, error) {
+func (c *Client) createDownloadNotifyPayload(emailAddress string, filename string, versionId *string, requestedDate time.Time, reportName string) (notify.Payload, error) {
 	if versionId == nil {
 		return notify.Payload{}, fmt.Errorf("s3 version ID not found")
 	}
@@ -109,7 +111,7 @@ func createDownloadNotifyPayload(emailAddress string, filename string, versionId
 		return notify.Payload{}, err
 	}
 
-	downloadLink := fmt.Sprintf("%s%s/download?uid=%s", os.Getenv("SIRIUS_PUBLIC_URL"), os.Getenv("FINANCE_ADMIN_PREFIX"), uid)
+	downloadLink := fmt.Sprintf("%s/download?uid=%s", c.envs.FinanceAdminURL, uid)
 
 	payload := notify.Payload{
 		EmailAddress: emailAddress,

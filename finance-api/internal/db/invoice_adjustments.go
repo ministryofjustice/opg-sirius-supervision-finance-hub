@@ -1,18 +1,17 @@
 package db
 
 import (
-	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"os"
 	"time"
 )
 
 type InvoiceAdjustments struct {
-	FromDate *shared.Date
-	ToDate   *shared.Date
+	FromDate   *shared.Date
+	ToDate     *shared.Date
+	GoLiveDate time.Time
 }
 
-const InvoiceAdjustmentsQuery = `SELECT CONCAT(p.firstname, ' ', p.surname)                               AS "Customer Name",
+const InvoiceAdjustmentsQuery = `SELECT CONCAT(p.firstname, ' ', p.surname) AS "Customer Name",
    p.caserecnumber                                                   AS "Customer number",
    fc.sop_number                                                     AS "SOP number",
    '="0470"'                                                            AS "Entity",
@@ -35,11 +34,11 @@ const InvoiceAdjustmentsQuery = `SELECT CONCAT(p.firstname, ' ', p.surname)     
    (la.amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255)                               AS "Adjustment amount",
    COALESCE(ia.notes, fr.notes)                                      AS "Reason for adjustment"
 FROM supervision_finance.ledger_allocation la
-     JOIN supervision_finance.ledger l on l.id = la.ledger_id
-     JOIN supervision_finance.invoice i on i.id = la.invoice_id
-     JOIN supervision_finance.finance_client fc on fc.id = l.finance_client_id
+     JOIN supervision_finance.ledger l ON l.id = la.ledger_id
+     JOIN supervision_finance.invoice i ON i.id = la.invoice_id
+     JOIN supervision_finance.finance_client fc ON fc.id = l.finance_client_id
      JOIN public.persons p ON fc.client_id = p.id
-     LEFT JOIN supervision_finance.invoice_adjustment ia on i.id = ia.invoice_id
+     LEFT JOIN supervision_finance.invoice_adjustment ia ON i.id = ia.invoice_id
      LEFT JOIN supervision_finance.fee_reduction fr ON fr.id = l.fee_reduction_id
      LEFT JOIN LATERAL (
 SELECT CASE WHEN i.feetype = 'AD' THEN 'AD' ELSE COALESCE(ifr.supervisionlevel, '') END AS supervision_level
@@ -55,7 +54,7 @@ LIMIT 1
 WHERE la.status = 'ALLOCATED'
 AND ((ia.status = 'APPROVED' AND ia.adjustment_type NOT IN ('CREDIT WRITE OFF', 'WRITE OFF REVERSAL')) OR
    fr.id IS NOT NULL)
-AND l.datetime BETWEEN $1 AND $2;`
+AND l.datetime::DATE BETWEEN $1 AND $2;`
 
 func (i *InvoiceAdjustments) GetHeaders() []string {
 	return []string{
@@ -82,18 +81,21 @@ func (i *InvoiceAdjustments) GetQuery() string {
 }
 
 func (i *InvoiceAdjustments) GetParams() []any {
+	var (
+		from, to time.Time
+	)
+
 	if i.FromDate == nil {
-		from := shared.NewDate(os.Getenv("FINANCE_HUB_LIVE_DATE"))
-		i.FromDate = &from
+		from = i.GoLiveDate
+	} else {
+		from = i.FromDate.Time
 	}
 
 	if i.ToDate == nil {
-		to := shared.Date{Time: time.Now()}
-		i.ToDate = &to
+		to = time.Now()
+	} else {
+		to = i.ToDate.Time
 	}
 
-	from := fmt.Sprintf("%s 00:00:00", i.FromDate.Time.Format("2006-01-02"))
-	to := fmt.Sprintf("%s 23:59:59", i.ToDate.Time.Format("2006-01-02"))
-
-	return []any{from, to}
+	return []any{from.Format("2006-01-02"), to.Format("2006-01-02")}
 }
