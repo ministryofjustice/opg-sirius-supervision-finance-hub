@@ -5,12 +5,13 @@ import (
 )
 
 type PaymentsSchedule struct {
-	Date shared.Date
+	Date         shared.Date
+	ScheduleType shared.ReportScheduleType
 }
 
 const PaymentsScheduleQuery = ``
 
-func (b *PaymentsSchedule) GetHeaders() []string {
+func (p *PaymentsSchedule) GetHeaders() []string {
 	return []string{
 		"Court reference",
 		"Invoice reference",
@@ -21,10 +22,23 @@ func (b *PaymentsSchedule) GetHeaders() []string {
 	}
 }
 
-func (b *PaymentsSchedule) GetQuery() string {
+func (p *PaymentsSchedule) GetQuery() string {
 	return PaymentsScheduleQuery
 }
 
-func (b *PaymentsSchedule) GetParams() []any {
-	return []any{b.Date.Time.Format("2006-01-02 15:04:05")}
+func (p *PaymentsSchedule) GetParams() []any {
+	var transactionType shared.TransactionType
+	switch p.ScheduleType {
+	case shared.ReportTypeMOTOCardPayments:
+		transactionType = shared.TransactionTypeMotoCardPayment
+	case shared.ReportTypeOnlineCardPayments:
+		transactionType = shared.TransactionTypeOnlineCardPayment
+	case shared.ReportOPGBACSTransfer:
+		transactionType = shared.TransactionTypeOPGBACSPayment
+	case shared.ReportSupervisionBACSTransfer:
+		transactionType = shared.TransactionTypeSupervisionBACSPayment
+	default:
+		transactionType = shared.TransactionTypeUnknown
+	}
+	return []any{p.Date.Time.Format("2006-01-02 15:04:05"), transactionType.Key()} // TODO: Add golive
 }
