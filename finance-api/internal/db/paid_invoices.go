@@ -2,13 +2,13 @@ package db
 
 import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"os"
 	"time"
 )
 
 type PaidInvoices struct {
-	FromDate *shared.Date
-	ToDate   *shared.Date
+	FromDate   *shared.Date
+	ToDate     *shared.Date
+	GoLiveDate time.Time
 }
 
 const PaidInvoicesQuery = `WITH paid_invoices AS (SELECT i.id
@@ -18,7 +18,7 @@ const PaidInvoicesQuery = `WITH paid_invoices AS (SELECT i.id
                                 LEFT JOIN supervision_finance.invoice_adjustment ia ON i.id = ia.invoice_id
                        WHERE la.status IN ('ALLOCATED', 'REAPPLIED')
                          AND l.type NOT IN ('CREDIT WRITE OFF', 'WRITE OFF REVERSAL')
-                         AND l.datetime BETWEEN $1 AND $2
+                         AND l.datetime::DATE BETWEEN $1 AND $2
                        GROUP BY i.id, i.amount
                        HAVING i.amount <= COALESCE(SUM(la.amount), 0))
 SELECT CONCAT(p.firstname, ' ', p.surname)                                                                     AS "Customer Name",
@@ -113,17 +113,21 @@ func (p *PaidInvoices) GetQuery() string {
 }
 
 func (p *PaidInvoices) GetParams() []any {
+	var (
+		from, to time.Time
+	)
+
 	if p.FromDate == nil {
-		from := shared.NewDate(os.Getenv("FINANCE_HUB_LIVE_DATE"))
-		p.FromDate = &from
+		from = p.GoLiveDate
+	} else {
+		from = p.FromDate.Time
 	}
 
 	if p.ToDate == nil {
-		to := shared.Date{Time: time.Now()}
-		p.ToDate = &to
+		to = time.Now()
+	} else {
+		to = p.ToDate.Time
 	}
 
-	p.ToDate.Time = p.ToDate.Time.Truncate(24 * time.Hour).Add(24 * time.Hour)
-
-	return []any{p.FromDate.Time.Format("2006-01-02 15:04:05"), p.ToDate.Time.Format("2006-01-02 15:04:05")}
+	return []any{from.Format("2006-01-02"), to.Format("2006-01-02")}
 }

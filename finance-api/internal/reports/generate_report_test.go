@@ -8,6 +8,7 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"io"
+	"os"
 	"testing"
 	"time"
 )
@@ -169,6 +170,8 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			default:
 				assert.Equal(t, tt.expectedErr, err)
 			}
+
+			_ = os.Remove(mockFileStorage.filename)
 		})
 	}
 }
