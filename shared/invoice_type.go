@@ -58,7 +58,7 @@ func (i InvoiceType) Translation() string {
 	case InvoiceTypeAD:
 		return "AD - Assessment of deputy fee invoice"
 	case InvoiceTypeS2:
-		return "S2- General annual fee invoice (Non-direct debit)"
+		return "S2 - General annual fee invoice (Non-direct debit)"
 	case InvoiceTypeS3:
 		return "S3 - Minimal annual fee invoice (Non-direct debit)"
 	case InvoiceTypeB2:
