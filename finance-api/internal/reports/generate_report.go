@@ -23,38 +23,38 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 	case shared.ReportsTypeAccountsReceivable:
 		filename = fmt.Sprintf("%s_%s.csv", reportRequest.AccountsReceivableType.Key(), requestedDate.Format("02:01:2006"))
 		reportName = reportRequest.AccountsReceivableType.Translation()
-		switch reportRequest.AccountsReceivableType {
-		case shared.ReportAccountsReceivableTypeAgedDebt:
+		switch *reportRequest.AccountsReceivableType {
+		case shared.AccountsReceivableTypeAgedDebt:
 			query = &db.AgedDebt{
 				FromDate: reportRequest.FromDate,
 				ToDate:   reportRequest.ToDate,
 			}
-		case shared.ReportAccountsReceivableTypeAgedDebtByCustomer:
+		case shared.AccountsReceivableTypeAgedDebtByCustomer:
 			query = &db.AgedDebtByCustomer{}
-		case shared.ReportAccountsReceivableTypeARPaidInvoice:
+		case shared.AccountsReceivableTypeARPaidInvoice:
 			query = &db.PaidInvoices{
 				FromDate:   reportRequest.FromDate,
 				ToDate:     reportRequest.ToDate,
 				GoLiveDate: c.envs.GoLiveDate,
 			}
-		case shared.ReportAccountsReceivableTypeInvoiceAdjustments:
+		case shared.AccountsReceivableTypeInvoiceAdjustments:
 			query = &db.InvoiceAdjustments{
 				FromDate:   reportRequest.FromDate,
 				ToDate:     reportRequest.ToDate,
 				GoLiveDate: c.envs.GoLiveDate,
 			}
-		case shared.ReportAccountsReceivableTypeBadDebtWriteOff:
+		case shared.AccountsReceivableTypeBadDebtWriteOff:
 			query = &db.BadDebtWriteOff{
 				FromDate:   reportRequest.FromDate,
 				ToDate:     reportRequest.ToDate,
 				GoLiveDate: c.envs.GoLiveDate,
 			}
-		case shared.ReportAccountsReceivableTypeTotalReceipts:
+		case shared.AccountsReceivableTypeTotalReceipts:
 			query = &db.Receipts{
 				FromDate: reportRequest.FromDate,
 				ToDate:   reportRequest.ToDate,
 			}
-		case shared.ReportAccountsReceivableTypeUnappliedReceipts:
+		case shared.AccountsReceivableTypeUnappliedReceipts:
 			query = &db.CustomerCredit{}
 		default:
 			return fmt.Errorf("unimplemented accounts receivable query: %s", reportRequest.AccountsReceivableType.Key())
@@ -62,14 +62,14 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 	case shared.ReportsTypeSchedule:
 		filename = fmt.Sprintf("%s_%s.csv", reportRequest.ScheduleType.Key(), requestedDate.Format("02:01:2006"))
 		reportName = reportRequest.ScheduleType.Translation()
-		switch reportRequest.ScheduleType {
-		case shared.ReportTypeMOTOCardPayments,
-			shared.ReportTypeOnlineCardPayments,
-			shared.ReportOPGBACSTransfer,
-			shared.ReportSupervisionBACSTransfer,
-			shared.ReportDirectDebitPayments:
+		switch *reportRequest.ScheduleType {
+		case shared.ScheduleTypeMOTOCardPayments,
+			shared.ScheduleTypeOnlineCardPayments,
+			shared.ScheduleTypeOPGBACSTransfer,
+			shared.ScheduleTypeSupervisionBACSTransfer,
+			shared.ScheduleTypeDirectDebitPayments:
 			query = &db.PaymentsSchedule{
-				Date:         *reportRequest.TransactionDate,
+				Date:         reportRequest.TransactionDate,
 				ScheduleType: reportRequest.ScheduleType,
 			}
 		default:

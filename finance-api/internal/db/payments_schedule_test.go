@@ -31,14 +31,14 @@ func (suite *IntegrationSuite) Test_payments_schedules() {
 	tests := []struct {
 		name         string
 		date         shared.Date
-		scheduleType shared.ReportScheduleType
+		scheduleType shared.ScheduleType
 		expectedRows int
 		expectedData []map[string]string
 	}{
 		{
 			name:         "filter by bank date",
 			date:         shared.Date{Time: yesterday.Date()},
-			scheduleType: shared.ReportOPGBACSTransfer,
+			scheduleType: shared.ScheduleTypeOPGBACSTransfer,
 			expectedRows: 2,
 			expectedData: []map[string]string{
 				{
@@ -53,7 +53,7 @@ func (suite *IntegrationSuite) Test_payments_schedules() {
 		{
 			name:         "multi client filter by bank date",
 			date:         shared.Date{Time: today.Date()},
-			scheduleType: shared.ReportOPGBACSTransfer,
+			scheduleType: shared.ScheduleTypeOPGBACSTransfer,
 			expectedRows: 3,
 			expectedData: []map[string]string{
 				{
@@ -75,7 +75,7 @@ func (suite *IntegrationSuite) Test_payments_schedules() {
 		{
 			name:         "filter by payment type",
 			date:         shared.Date{Time: today.Date()},
-			scheduleType: shared.ReportTypeMOTOCardPayments,
+			scheduleType: shared.ScheduleTypeMOTOCardPayments,
 			expectedRows: 2,
 			expectedData: []map[string]string{
 				{
@@ -92,8 +92,8 @@ func (suite *IntegrationSuite) Test_payments_schedules() {
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
 			rows, err := c.Run(ctx, &PaymentsSchedule{
-				Date:         tt.date,
-				ScheduleType: tt.scheduleType,
+				Date:         &tt.date,
+				ScheduleType: &tt.scheduleType,
 			})
 			assert.NoError(suite.T(), err)
 			assert.Equal(suite.T(), tt.expectedRows, len(rows))

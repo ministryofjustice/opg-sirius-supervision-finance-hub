@@ -2,71 +2,66 @@ package shared
 
 import "encoding/json"
 
-var ReportDebtTypes = []ReportDebtType{
-	ReportDebtTypeFeeChase,
-	ReportDebtTypeFinalFee,
-}
-
-type ReportDebtType int
+type DebtType int
 
 const (
-	ReportDebtTypeUnknown ReportDebtType = iota
-	ReportDebtTypeFeeChase
-	ReportDebtTypeFinalFee
+	DebtTypeUnknown DebtType = iota
+	DebtTypeFeeChase
+	DebtTypeFinalFee
 )
 
-var reportDebtTypeMap = map[string]ReportDebtType{
-	"FeeChase": ReportDebtTypeFeeChase,
-	"FinalFee": ReportDebtTypeFinalFee,
+var debtTypeMap = map[string]DebtType{
+	"FeeChase": DebtTypeFeeChase,
+	"FinalFee": DebtTypeFinalFee,
 }
 
-func (i ReportDebtType) String() string {
-	return i.Key()
+func (d DebtType) String() string {
+	return d.Key()
 }
 
-func (i ReportDebtType) Translation() string {
-	switch i {
-	case ReportDebtTypeFeeChase:
+func (d DebtType) Translation() string {
+	switch d {
+	case DebtTypeFeeChase:
 		return "Fee Chase"
-	case ReportDebtTypeFinalFee:
+	case DebtTypeFinalFee:
 		return "Final Fee"
 	default:
 		return ""
 	}
 }
 
-func (i ReportDebtType) Key() string {
-	switch i {
-	case ReportDebtTypeFeeChase:
+func (d DebtType) Key() string {
+	switch d {
+	case DebtTypeFeeChase:
 		return "FeeChase"
-	case ReportDebtTypeFinalFee:
+	case DebtTypeFinalFee:
 		return "FinalFee"
 	default:
 		return ""
 	}
 }
 
-func ParseReportDebtType(s string) ReportDebtType {
-	value, ok := reportDebtTypeMap[s]
+func ParseReportDebtType(s string) DebtType {
+	value, ok := debtTypeMap[s]
 	if !ok {
-		return ReportDebtType(0)
+		return DebtType(0)
 	}
 	return value
 }
 
-func (i ReportDebtType) Valid() bool {
-	return i != ReportDebtTypeUnknown
+func (d DebtType) Valid() bool {
+	return d != DebtTypeUnknown
 }
 
-func (i ReportDebtType) MarshalJSON() ([]byte, error) {
-	return json.Marshal(i.Key())
+func (d DebtType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(d.Key())
 }
 
-func (i *ReportDebtType) UnmarshalJSON(data []byte) (err error) {
+func (d *DebtType) UnmarshalJSON(data []byte) (err error) {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
 		return err
 	}
-	*i = ParseReportDebtType(s)
+	*d = ParseReportDebtType(s)
 	return nil
 }
