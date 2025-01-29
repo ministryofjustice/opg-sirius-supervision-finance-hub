@@ -38,42 +38,64 @@ func (s *Server) requestReport(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (s *Server) validateReportRequest(reportRequest shared.ReportRequest) error {
+	validationErrors := apierror.ValidationErrors{}
+
+	switch reportRequest.ReportType {
+	case shared.ReportsTypeAccountsReceivable:
+		if reportRequest.AccountsReceivableType == nil {
+			validationErrors["AccountsReceivableType"] = map[string]string{
+				"required": "This field AccountsReceivableType needs to be looked at required",
+			}
+		}
+	case shared.ReportsTypeJournal:
+		if reportRequest.JournalType == nil {
+			validationErrors["JournalType"] = map[string]string{
+				"required": "This field JournalType needs to be looked at required",
+			}
+		}
+	case shared.ReportsTypeSchedule:
+		if reportRequest.ScheduleType == nil {
+			validationErrors["ScheduleType"] = map[string]string{
+				"required": "This field ScheduleType needs to be looked at required",
+			}
+		}
+	case shared.ReportsTypeDebt:
+		if reportRequest.DebtType == nil {
+			validationErrors["DebtType"] = map[string]string{
+				"required": "This field DebtType needs to be looked at required",
+			}
+		}
+	default:
+		validationErrors["ReportType"] = map[string]string{
+			"required": "This field ReportType needs to be looked at required",
+		}
+	}
+
 	if reportRequest.Email == "" {
-		return apierror.ValidationError{
-			Errors: apierror.ValidationErrors{
-				"Email": {
-					"required": "This field Email needs to be looked at required",
-				},
-			},
+		validationErrors["Email"] = map[string]string{
+			"required": "This field Email needs to be looked at required",
 		}
 	}
 
 	if reportRequest.ReportType == shared.ReportsTypeSchedule {
 		if reportRequest.TransactionDate == nil {
-			return apierror.ValidationError{
-				Errors: apierror.ValidationErrors{
-					"Date": {
-						"required": "This field Date needs to be looked at required",
-					},
-				},
+			validationErrors["Date"] = map[string]string{
+				"required": "This field Date needs to be looked at required",
 			}
 		} else if !reportRequest.TransactionDate.Before(shared.Date{Time: time.Now().Truncate(24 * time.Hour)}) {
-			return apierror.ValidationError{
-				Errors: apierror.ValidationErrors{
-					"Date": {
-						"date-in-the-past": "This field Date needs to be looked at date-in-the-past",
-					},
-				},
+			validationErrors["Date"] = map[string]string{
+				"date-in-the-past": "This field Date needs to be looked at date-in-the-past",
 			}
 		} else if reportRequest.TransactionDate.Before(shared.Date{Time: s.envs.GoLiveDate}) {
-			return apierror.ValidationError{
-				Errors: apierror.ValidationErrors{
-					"Date": {
-						"min-go-live": "This field Date needs to be looked at min-go-live",
-					},
-				},
+			validationErrors["Date"] = map[string]string{
+				"min-go-live": "This field Date needs to be looked at min-go-live",
 			}
 		}
 	}
+
+	if len(validationErrors) > 0 {
+		return apierror.ValidationError{Errors: validationErrors}
+	}
+
 	return nil
 }
