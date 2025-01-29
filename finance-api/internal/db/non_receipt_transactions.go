@@ -18,14 +18,16 @@ const NonReceiptTransactionsQuery = `WITH transaction_totals AS (
         supervision_finance.ledger_allocation la
         JOIN supervision_finance.ledger l ON l.id = la.ledger_id
         JOIN supervision_finance.invoice i ON i.id = la.invoice_id
-        LEFT JOIN LATERAL ( SELECT ifr.supervisionlevel AS supervision_level
-                            FROM supervision_finance.invoice_fee_range ifr
-                            WHERE ifr.invoice_id = i.id
-                            ORDER BY id
-                            LIMIT 1 ) sl ON TRUE
+         LEFT JOIN LATERAL (
+			SELECT CASE WHEN i.feetype = 'AD' THEN 'AD' ELSE COALESCE(ifr.supervisionlevel, '') END AS supervision_level
+			FROM supervision_finance.invoice_fee_range ifr
+			WHERE ifr.invoice_id = i.id
+			ORDER BY id DESC
+			LIMIT 1
+    ) sl ON TRUE
         JOIN supervision_finance.transaction_type tt
                   ON l.type = tt.ledger_type AND sl.supervision_level = tt.supervision_level
-    WHERE tt.is_receipt = false AND l.created_at = $1
+    WHERE tt.is_receipt = false AND TO_CHAR(l.created_at, 'YYYY-MM-DD') = $1
     GROUP BY
         tt.line_description, TO_CHAR(l.created_at, 'DD/MM/YYYY'), tt.account_code
 ),
