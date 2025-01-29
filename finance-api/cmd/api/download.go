@@ -22,7 +22,7 @@ func (s *Server) download(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	result, err := s.fileStorage.GetFileByVersion(ctx, s.reportsBucket, downloadRequest.Key, downloadRequest.VersionId)
+	result, err := s.fileStorage.GetFileByVersion(ctx, s.envs.ReportsBucket, downloadRequest.Key, downloadRequest.VersionId)
 	if err != nil {
 		var apiErr smithy.APIError
 		if errors.As(err, &apiErr) {
