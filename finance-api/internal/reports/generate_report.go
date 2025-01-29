@@ -56,28 +56,31 @@ func getJournalQuery(journalType shared.ReportJournalType, date *shared.Date) (d
 	return nil, fmt.Errorf("Unrecognised report journal type")
 }
 
-func getQuery(reportType shared.ReportsType, reportRequest shared.ReportRequest) (db.ReportQuery, error) {
+func getQuery(reportType shared.ReportsType, reportRequest shared.ReportRequest, requestedDate time.Time) (db.ReportQuery, string, string, error) {
 	switch reportType {
 	case shared.ReportsTypeAccountsReceivable:
 		accountType := shared.ParseReportAccountType(reportRequest.ReportAccountType)
-		return getAccountsReceivableQuery(accountType, reportRequest.FromDateField, reportRequest.ToDateField)
+		filename := fmt.Sprintf("%s_%s.csv", accountType.Key(), requestedDate.Format("02:01:2006"))
+		friendlyName := accountType.Translation()
+		query, err := getAccountsReceivableQuery(accountType, reportRequest.FromDateField, reportRequest.ToDateField)
+		return query, filename, friendlyName, err
 	case shared.ReportsTypeJournal:
 		journalType := shared.ParseReportJournalType(reportRequest.ReportJournalType)
-		return getJournalQuery(journalType, reportRequest.DateOfTransaction)
+		filename := fmt.Sprintf("%s_%s.csv", journalType.Key(), requestedDate.Format("02:01:2006"))
+		friendlyName := journalType.Translation()
+		query, err := getJournalQuery(journalType, reportRequest.DateOfTransaction)
+		return query, filename, friendlyName, err
 	}
-	return nil, nil
+	return nil, "", "", fmt.Errorf("Unknown report type")
 }
 
 func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) error {
 	reportType := shared.ParseReportsType(reportRequest.ReportType)
 
-	query, err := getQuery(reportType, reportRequest)
+	query, filename, friendlyName, err := getQuery(reportType, reportRequest, requestedDate)
 	if err != nil {
 		return err
 	}
-
-	filename := "test.csv"        //fmt.Sprintf("%s_%s.csv", accountType.Key(), requestedDate.Format("02:01:2006"))
-	friendlyName := "test report" //accountType.Translation()
 
 	file, err := c.generate(ctx, filename, query)
 	if err != nil {
@@ -97,7 +100,7 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 		return err
 	}
 
-	payload, err := c.createDownloadNotifyPayload(reportRequest.Email, filename, versionId, requestedDate, accountType.Translation())
+	payload, err := c.createDownloadNotifyPayload(reportRequest.Email, filename, versionId, requestedDate, friendlyName)
 	if err != nil {
 		return err
 	}
