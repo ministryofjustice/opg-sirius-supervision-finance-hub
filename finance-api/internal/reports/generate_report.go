@@ -60,7 +60,7 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 			return fmt.Errorf("unimplemented accounts receivable query: %s", reportRequest.AccountsReceivableType.Key())
 		}
 	case shared.ReportsTypeSchedule:
-		filename = fmt.Sprintf("%s_%s.csv", reportRequest.ScheduleType.Key(), requestedDate.Format("02:01:2006"))
+		filename = fmt.Sprintf("schedule_%s_%s.csv", reportRequest.ScheduleType.Key(), requestedDate.Format("02:01:2006"))
 		reportName = reportRequest.ScheduleType.Translation()
 		switch *reportRequest.ScheduleType {
 		case shared.ScheduleTypeMOTOCardPayments,

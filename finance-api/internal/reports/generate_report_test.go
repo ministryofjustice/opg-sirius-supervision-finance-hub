@@ -60,10 +60,11 @@ func TestGenerateAndUploadReport(t *testing.T) {
 	fromDate := shared.NewDate("2024-10-01")
 
 	tests := []struct {
-		name          string
-		reportRequest shared.ReportRequest
-		expectedQuery db.ReportQuery
-		expectedErr   error
+		name             string
+		reportRequest    shared.ReportRequest
+		expectedQuery    db.ReportQuery
+		expectedFilename string
+		expectedErr      error
 	}{
 		{
 			name: "Aged Debt",
@@ -73,7 +74,8 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				ToDate:                 &toDate,
 				FromDate:               &fromDate,
 			},
-			expectedQuery: &db.AgedDebt{FromDate: &fromDate, ToDate: &toDate},
+			expectedQuery:    &db.AgedDebt{FromDate: &fromDate, ToDate: &toDate},
+			expectedFilename: "AgedDebt_01:01:2024.csv",
 		},
 		{
 			name: "Aged Debt By Customer",
@@ -81,7 +83,8 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				ReportType:             shared.ReportsTypeAccountsReceivable,
 				AccountsReceivableType: toPtr(shared.AccountsReceivableTypeAgedDebtByCustomer),
 			},
-			expectedQuery: &db.AgedDebtByCustomer{},
+			expectedQuery:    &db.AgedDebtByCustomer{},
+			expectedFilename: "AgedDebtByCustomer_01:01:2024.csv",
 		},
 		{
 			name: "Paid Invoices",
@@ -91,7 +94,8 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				ToDate:                 &toDate,
 				FromDate:               &fromDate,
 			},
-			expectedQuery: &db.PaidInvoices{FromDate: &fromDate, ToDate: &toDate},
+			expectedQuery:    &db.PaidInvoices{FromDate: &fromDate, ToDate: &toDate},
+			expectedFilename: "ARPaidInvoice_01:01:2024.csv",
 		},
 		{
 			name: "Invoice Adjustments",
@@ -101,7 +105,8 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				ToDate:                 &toDate,
 				FromDate:               &fromDate,
 			},
-			expectedQuery: &db.InvoiceAdjustments{FromDate: &fromDate, ToDate: &toDate},
+			expectedQuery:    &db.InvoiceAdjustments{FromDate: &fromDate, ToDate: &toDate},
+			expectedFilename: "InvoiceAdjustments_01:01:2024.csv",
 		},
 		{
 			name: "Bad Debt Write Off",
@@ -109,7 +114,8 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				ReportType:             shared.ReportsTypeAccountsReceivable,
 				AccountsReceivableType: toPtr(shared.AccountsReceivableTypeBadDebtWriteOff),
 			},
-			expectedQuery: &db.BadDebtWriteOff{},
+			expectedQuery:    &db.BadDebtWriteOff{},
+			expectedFilename: "BadDebtWriteOff_01:01:2024.csv",
 		},
 		{
 			name: "Receipts",
@@ -119,7 +125,8 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				ToDate:                 &toDate,
 				FromDate:               &fromDate,
 			},
-			expectedQuery: &db.Receipts{FromDate: &fromDate, ToDate: &toDate},
+			expectedQuery:    &db.Receipts{FromDate: &fromDate, ToDate: &toDate},
+			expectedFilename: "TotalReceipts_01:01:2024.csv",
 		},
 		{
 			name: "Customer Credit",
@@ -127,7 +134,8 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				ReportType:             shared.ReportsTypeAccountsReceivable,
 				AccountsReceivableType: toPtr(shared.AccountsReceivableTypeUnappliedReceipts),
 			},
-			expectedQuery: &db.CustomerCredit{},
+			expectedQuery:    &db.CustomerCredit{},
+			expectedFilename: "UnappliedReceipts_01:01:2024.csv",
 		},
 		{
 			name: "Unknown",
@@ -148,6 +156,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				Date:         &toDate,
 				ScheduleType: toPtr(shared.ScheduleTypeOnlineCardPayments),
 			},
+			expectedFilename: "schedule_OnlineCardPayments_01:01:2024.csv",
 		},
 	}
 
@@ -205,6 +214,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				assert.Equal(t, tt.expectedErr, err)
 			}
 
+			assert.Equal(t, tt.expectedFilename, mockFileStorage.filename)
 			_ = os.Remove(mockFileStorage.filename)
 		})
 	}
