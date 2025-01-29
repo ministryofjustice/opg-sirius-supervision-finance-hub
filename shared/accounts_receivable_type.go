@@ -2,102 +2,102 @@ package shared
 
 import "encoding/json"
 
-var ReportAccountsReceivableTypeMap = map[string]ReportAccountsReceivableType{
-	"AgedDebt":           ReportAccountsReceivableTypeAgedDebt,
-	"AgedDebtByCustomer": ReportAccountsReceivableTypeAgedDebtByCustomer,
-	"UnappliedReceipts":  ReportAccountsReceivableTypeUnappliedReceipts,
-	"ARPaidInvoice":      ReportAccountsReceivableTypeARPaidInvoice,
-	"TotalReceipts":      ReportAccountsReceivableTypeTotalReceipts,
-	"BadDebtWriteOff":    ReportAccountsReceivableTypeBadDebtWriteOff,
-	"FeeAccrual":         ReportAccountsReceivableTypeFeeAccrual,
-	"InvoiceAdjustments": ReportAccountsReceivableTypeInvoiceAdjustments,
+var AccountsReceivableTypeMap = map[string]AccountsReceivableType{
+	"AgedDebt":           AccountsReceivableTypeAgedDebt,
+	"AgedDebtByCustomer": AccountsReceivableTypeAgedDebtByCustomer,
+	"UnappliedReceipts":  AccountsReceivableTypeUnappliedReceipts,
+	"ARPaidInvoice":      AccountsReceivableTypeARPaidInvoice,
+	"TotalReceipts":      AccountsReceivableTypeTotalReceipts,
+	"BadDebtWriteOff":    AccountsReceivableTypeBadDebtWriteOff,
+	"FeeAccrual":         AccountsReceivableTypeFeeAccrual,
+	"InvoiceAdjustments": AccountsReceivableTypeInvoiceAdjustments,
 }
 
-type ReportAccountsReceivableType int
+type AccountsReceivableType int
 
 const (
-	ReportAccountsReceivableTypeUnknown ReportAccountsReceivableType = iota
-	ReportAccountsReceivableTypeAgedDebt
-	ReportAccountsReceivableTypeAgedDebtByCustomer
-	ReportAccountsReceivableTypeUnappliedReceipts
-	ReportAccountsReceivableTypeARPaidInvoice
-	ReportAccountsReceivableTypeTotalReceipts
-	ReportAccountsReceivableTypeBadDebtWriteOff
-	ReportAccountsReceivableTypeFeeAccrual
-	ReportAccountsReceivableTypeInvoiceAdjustments
+	AccountsReceivableTypeUnknown AccountsReceivableType = iota
+	AccountsReceivableTypeAgedDebt
+	AccountsReceivableTypeAgedDebtByCustomer
+	AccountsReceivableTypeUnappliedReceipts
+	AccountsReceivableTypeARPaidInvoice
+	AccountsReceivableTypeTotalReceipts
+	AccountsReceivableTypeBadDebtWriteOff
+	AccountsReceivableTypeFeeAccrual
+	AccountsReceivableTypeInvoiceAdjustments
 )
 
-func (i ReportAccountsReceivableType) String() string {
-	return i.Key()
+func (a AccountsReceivableType) String() string {
+	return a.Key()
 }
 
-func (i ReportAccountsReceivableType) Translation() string {
-	switch i {
-	case ReportAccountsReceivableTypeAgedDebt:
+func (a AccountsReceivableType) Translation() string {
+	switch a {
+	case AccountsReceivableTypeAgedDebt:
 		return "Aged Debt"
-	case ReportAccountsReceivableTypeAgedDebtByCustomer:
+	case AccountsReceivableTypeAgedDebtByCustomer:
 		return "Ageing Buckets By Customer"
-	case ReportAccountsReceivableTypeUnappliedReceipts:
+	case AccountsReceivableTypeUnappliedReceipts:
 		return "Customer Credit Balance"
-	case ReportAccountsReceivableTypeARPaidInvoice:
+	case AccountsReceivableTypeARPaidInvoice:
 		return "AR Paid Invoice"
-	case ReportAccountsReceivableTypeTotalReceipts:
+	case AccountsReceivableTypeTotalReceipts:
 		return "Total Receipts"
-	case ReportAccountsReceivableTypeBadDebtWriteOff:
+	case AccountsReceivableTypeBadDebtWriteOff:
 		return "Bad Debt Write-off"
-	case ReportAccountsReceivableTypeFeeAccrual:
+	case AccountsReceivableTypeFeeAccrual:
 		return "Fee Accrual"
-	case ReportAccountsReceivableTypeInvoiceAdjustments:
+	case AccountsReceivableTypeInvoiceAdjustments:
 		return "Invoice Adjustments"
 	default:
 		return ""
 	}
 }
 
-func (i ReportAccountsReceivableType) Key() string {
-	switch i {
-	case ReportAccountsReceivableTypeAgedDebt:
+func (a AccountsReceivableType) Key() string {
+	switch a {
+	case AccountsReceivableTypeAgedDebt:
 		return "AgedDebt"
-	case ReportAccountsReceivableTypeAgedDebtByCustomer:
+	case AccountsReceivableTypeAgedDebtByCustomer:
 		return "AgedDebtByCustomer"
-	case ReportAccountsReceivableTypeUnappliedReceipts:
+	case AccountsReceivableTypeUnappliedReceipts:
 		return "UnappliedReceipts"
-	case ReportAccountsReceivableTypeARPaidInvoice:
+	case AccountsReceivableTypeARPaidInvoice:
 		return "ARPaidInvoice"
-	case ReportAccountsReceivableTypeTotalReceipts:
+	case AccountsReceivableTypeTotalReceipts:
 		return "TotalReceipts"
-	case ReportAccountsReceivableTypeBadDebtWriteOff:
+	case AccountsReceivableTypeBadDebtWriteOff:
 		return "BadDebtWriteOff"
-	case ReportAccountsReceivableTypeFeeAccrual:
+	case AccountsReceivableTypeFeeAccrual:
 		return "FeeAccrual"
-	case ReportAccountsReceivableTypeInvoiceAdjustments:
+	case AccountsReceivableTypeInvoiceAdjustments:
 		return "InvoiceAdjustments"
 	default:
 		return ""
 	}
 }
 
-func ParseReportAccountsReceivableType(s string) ReportAccountsReceivableType {
-	value, ok := ReportAccountsReceivableTypeMap[s]
+func ParseAccountsReceivableType(s string) AccountsReceivableType {
+	value, ok := AccountsReceivableTypeMap[s]
 	if !ok {
-		return ReportAccountsReceivableType(0)
+		return AccountsReceivableType(0)
 	}
 	return value
 }
 
-func (i ReportAccountsReceivableType) Valid() bool {
-	return i != ReportAccountsReceivableTypeUnknown
+func (a AccountsReceivableType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(a.Key())
 }
 
-func (i ReportAccountsReceivableType) MarshalJSON() ([]byte, error) {
-	return json.Marshal(i.Key())
-}
-
-func (i *ReportAccountsReceivableType) UnmarshalJSON(data []byte) (err error) {
+func (a *AccountsReceivableType) UnmarshalJSON(data []byte) (err error) {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
 		return err
 	}
-	*i = ParseReportAccountsReceivableType(s)
+	*a = ParseAccountsReceivableType(s)
 	return nil
+}
+
+func (a AccountsReceivableType) Valid() bool {
+	return a != AccountsReceivableTypeUnknown
 }

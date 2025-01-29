@@ -2,216 +2,216 @@ package shared
 
 import "encoding/json"
 
-type ReportScheduleType int
+type ScheduleType int
 
 const (
-	ReportScheduleTypeUnknown ReportScheduleType = iota
-	ReportTypeMOTOCardPayments
-	ReportTypeOnlineCardPayments
-	ReportOPGBACSTransfer
-	ReportSupervisionBACSTransfer
-	ReportDirectDebitPayments
-	ReportAdFeeInvoices
-	ReportS2FeeInvoices
-	ReportS3FeeInvoices
-	ReportB2FeeInvoices
-	ReportB3FeeInvoices
-	ReportSFFeeInvoicesGeneral
-	ReportSFFeeInvoicesMinimal
-	ReportSEFeeInvoicesGeneral
-	ReportSEFeeInvoicesMinimal
-	ReportSOFeeInvoicesGeneral
-	ReportSOFeeInvoicesMinimal
-	ReportADFeeReductions
-	ReportGeneralManualCredits
-	ReportMinimalManualCredits
-	ReportGeneralManualDebits
-	ReportMinimalManualDebits
-	ReportADWriteOffs
-	ReportGeneralWriteOffs
-	ReportMinimalWriteOffs
-	ReportADWriteOffReversals
-	ReportGeneralWriteOffReversals
-	ReportMinimalWriteOffReversals
+	ScheduleTypeUnknown ScheduleType = iota
+	ScheduleTypeMOTOCardPayments
+	ScheduleTypeOnlineCardPayments
+	ScheduleTypeOPGBACSTransfer
+	ScheduleTypeSupervisionBACSTransfer
+	ScheduleTypeDirectDebitPayments
+	ScheduleTypeAdFeeInvoices
+	ScheduleTypeS2FeeInvoices
+	ScheduleTypeS3FeeInvoices
+	ScheduleTypeB2FeeInvoices
+	ScheduleTypeB3FeeInvoices
+	ScheduleTypeSFFeeInvoicesGeneral
+	ScheduleTypeSFFeeInvoicesMinimal
+	ScheduleTypeSEFeeInvoicesGeneral
+	ScheduleTypeSEFeeInvoicesMinimal
+	ScheduleTypeSOFeeInvoicesGeneral
+	ScheduleTypeSOFeeInvoicesMinimal
+	ScheduleTypeADFeeReductions
+	ScheduleTypeGeneralManualCredits
+	ScheduleTypeMinimalManualCredits
+	ScheduleTypeGeneralManualDebits
+	ScheduleTypeMinimalManualDebits
+	ScheduleTypeADWriteOffs
+	ScheduleTypeGeneralWriteOffs
+	ScheduleTypeMinimalWriteOffs
+	ScheduleTypeADWriteOffReversals
+	ScheduleTypeGeneralWriteOffReversals
+	ScheduleTypeMinimalWriteOffReversals
 )
 
-var reportScheduleTypeMap = map[string]ReportScheduleType{
-	"MOTOCardPayments":         ReportTypeMOTOCardPayments,
-	"OnlineCardPayments":       ReportTypeOnlineCardPayments,
-	"OPGBACSTransfer":          ReportOPGBACSTransfer,
-	"SupervisionBACSTransfer":  ReportSupervisionBACSTransfer,
-	"DirectDebitPayment":       ReportDirectDebitPayments,
-	"AdFeeInvoices":            ReportAdFeeInvoices,
-	"S2FeeInvoices":            ReportS2FeeInvoices,
-	"S3FeeInvoices":            ReportS3FeeInvoices,
-	"B2FeeInvoices":            ReportB2FeeInvoices,
-	"B3FeeInvoices":            ReportB3FeeInvoices,
-	"SFFeeInvoicesGeneral":     ReportSFFeeInvoicesGeneral,
-	"SFFeeInvoicesMinimal":     ReportSFFeeInvoicesMinimal,
-	"SEFeeInvoicesGeneral":     ReportSEFeeInvoicesGeneral,
-	"SEFeeInvoicesMinimal":     ReportSEFeeInvoicesMinimal,
-	"SOFeeInvoicesGeneral":     ReportSOFeeInvoicesGeneral,
-	"SOFeeInvoicesMinimal":     ReportSOFeeInvoicesMinimal,
-	"ADFeeReductions":          ReportADFeeReductions,
-	"GeneralManualCredits":     ReportGeneralManualCredits,
-	"MinimalManualCredits":     ReportMinimalManualCredits,
-	"GeneralManualDebits":      ReportGeneralManualDebits,
-	"MinimalManualDebits":      ReportMinimalManualDebits,
-	"ADWrite-offs":             ReportADWriteOffs,
-	"GeneralWrite-offs":        ReportGeneralWriteOffs,
-	"MinimalWriteOffs":         ReportMinimalWriteOffs,
-	"ADWriteOffReversals":      ReportADWriteOffReversals,
-	"GeneralWriteOffReversals": ReportGeneralWriteOffReversals,
-	"MinimalWriteOffReversals": ReportMinimalWriteOffReversals,
+var scheduleTypeMap = map[string]ScheduleType{
+	"MOTOCardPayments":         ScheduleTypeMOTOCardPayments,
+	"OnlineCardPayments":       ScheduleTypeOnlineCardPayments,
+	"OPGBACSTransfer":          ScheduleTypeOPGBACSTransfer,
+	"SupervisionBACSTransfer":  ScheduleTypeSupervisionBACSTransfer,
+	"DirectDebitPayment":       ScheduleTypeDirectDebitPayments,
+	"AdFeeInvoices":            ScheduleTypeAdFeeInvoices,
+	"S2FeeInvoices":            ScheduleTypeS2FeeInvoices,
+	"S3FeeInvoices":            ScheduleTypeS3FeeInvoices,
+	"B2FeeInvoices":            ScheduleTypeB2FeeInvoices,
+	"B3FeeInvoices":            ScheduleTypeB3FeeInvoices,
+	"SFFeeInvoicesGeneral":     ScheduleTypeSFFeeInvoicesGeneral,
+	"SFFeeInvoicesMinimal":     ScheduleTypeSFFeeInvoicesMinimal,
+	"SEFeeInvoicesGeneral":     ScheduleTypeSEFeeInvoicesGeneral,
+	"SEFeeInvoicesMinimal":     ScheduleTypeSEFeeInvoicesMinimal,
+	"SOFeeInvoicesGeneral":     ScheduleTypeSOFeeInvoicesGeneral,
+	"SOFeeInvoicesMinimal":     ScheduleTypeSOFeeInvoicesMinimal,
+	"ADFeeReductions":          ScheduleTypeADFeeReductions,
+	"GeneralManualCredits":     ScheduleTypeGeneralManualCredits,
+	"MinimalManualCredits":     ScheduleTypeMinimalManualCredits,
+	"GeneralManualDebits":      ScheduleTypeGeneralManualDebits,
+	"MinimalManualDebits":      ScheduleTypeMinimalManualDebits,
+	"ADWrite-offs":             ScheduleTypeADWriteOffs,
+	"GeneralWrite-offs":        ScheduleTypeGeneralWriteOffs,
+	"MinimalWriteOffs":         ScheduleTypeMinimalWriteOffs,
+	"ADWriteOffReversals":      ScheduleTypeADWriteOffReversals,
+	"GeneralWriteOffReversals": ScheduleTypeGeneralWriteOffReversals,
+	"MinimalWriteOffReversals": ScheduleTypeMinimalWriteOffReversals,
 }
 
-func (i ReportScheduleType) String() string {
-	return i.Key()
+func (s ScheduleType) String() string {
+	return s.Key()
 }
 
-func (i ReportScheduleType) Translation() string {
-	switch i {
-	case ReportTypeMOTOCardPayments:
+func (s ScheduleType) Translation() string {
+	switch s {
+	case ScheduleTypeMOTOCardPayments:
 		return "MOTO Card Payments"
-	case ReportTypeOnlineCardPayments:
+	case ScheduleTypeOnlineCardPayments:
 		return "Online Card Payments"
-	case ReportOPGBACSTransfer:
+	case ScheduleTypeOPGBACSTransfer:
 		return "OPG BACS Transfer"
-	case ReportSupervisionBACSTransfer:
+	case ScheduleTypeSupervisionBACSTransfer:
 		return "Supervision BACS transfer"
-	case ReportDirectDebitPayments:
+	case ScheduleTypeDirectDebitPayments:
 		return "Direct Debit Payment"
-	case ReportAdFeeInvoices:
+	case ScheduleTypeAdFeeInvoices:
 		return "Ad Fee Invoices"
-	case ReportS2FeeInvoices:
+	case ScheduleTypeS2FeeInvoices:
 		return "S2 Fee Invoices"
-	case ReportS3FeeInvoices:
+	case ScheduleTypeS3FeeInvoices:
 		return "S3 Fee Invoices"
-	case ReportB2FeeInvoices:
+	case ScheduleTypeB2FeeInvoices:
 		return "B2 Fee Invoices"
-	case ReportB3FeeInvoices:
+	case ScheduleTypeB3FeeInvoices:
 		return "B3 Fee Invoices"
-	case ReportSFFeeInvoicesGeneral:
+	case ScheduleTypeSFFeeInvoicesGeneral:
 		return "SF Fee Invoices (General) "
-	case ReportSFFeeInvoicesMinimal:
+	case ScheduleTypeSFFeeInvoicesMinimal:
 		return "SF Fee Invoices (Minimal)"
-	case ReportSEFeeInvoicesGeneral:
+	case ScheduleTypeSEFeeInvoicesGeneral:
 		return "SE Fee Invoices (General)"
-	case ReportSEFeeInvoicesMinimal:
+	case ScheduleTypeSEFeeInvoicesMinimal:
 		return "SE Fee Invoices (Minimal)"
-	case ReportSOFeeInvoicesGeneral:
+	case ScheduleTypeSOFeeInvoicesGeneral:
 		return "SO Fee Invoices (General)"
-	case ReportSOFeeInvoicesMinimal:
+	case ScheduleTypeSOFeeInvoicesMinimal:
 		return "SO Fee Invoices (Minimal)"
-	case ReportADFeeReductions:
+	case ScheduleTypeADFeeReductions:
 		return "AD Fee Reductions"
-	case ReportGeneralManualCredits:
+	case ScheduleTypeGeneralManualCredits:
 		return "General Manual Credits"
-	case ReportMinimalManualCredits:
+	case ScheduleTypeMinimalManualCredits:
 		return "Minimal Manual Credits"
-	case ReportGeneralManualDebits:
+	case ScheduleTypeGeneralManualDebits:
 		return "General Manual Debits"
-	case ReportMinimalManualDebits:
+	case ScheduleTypeMinimalManualDebits:
 		return "Minimal Manual Debits"
-	case ReportADWriteOffs:
+	case ScheduleTypeADWriteOffs:
 		return "AD Write-offs"
-	case ReportGeneralWriteOffs:
+	case ScheduleTypeGeneralWriteOffs:
 		return "General Write-offs"
-	case ReportMinimalWriteOffs:
+	case ScheduleTypeMinimalWriteOffs:
 		return "Minimal Write-offs"
-	case ReportADWriteOffReversals:
+	case ScheduleTypeADWriteOffReversals:
 		return "AD Write-off Reversals"
-	case ReportGeneralWriteOffReversals:
+	case ScheduleTypeGeneralWriteOffReversals:
 		return "General Write-off Reversals"
-	case ReportMinimalWriteOffReversals:
+	case ScheduleTypeMinimalWriteOffReversals:
 		return "Minimal Write-off Reversals"
 	default:
 		return ""
 	}
 }
 
-func (i ReportScheduleType) Key() string {
-	switch i {
-	case ReportTypeMOTOCardPayments:
+func (s ScheduleType) Key() string {
+	switch s {
+	case ScheduleTypeMOTOCardPayments:
 		return "MOTOCardPayments"
-	case ReportTypeOnlineCardPayments:
+	case ScheduleTypeOnlineCardPayments:
 		return "OnlineCardPayments"
-	case ReportOPGBACSTransfer:
+	case ScheduleTypeOPGBACSTransfer:
 		return "OPGBACSTransfer"
-	case ReportSupervisionBACSTransfer:
+	case ScheduleTypeSupervisionBACSTransfer:
 		return "SupervisionBACSTransfer"
-	case ReportDirectDebitPayments:
+	case ScheduleTypeDirectDebitPayments:
 		return "DirectDebitPayment"
-	case ReportAdFeeInvoices:
+	case ScheduleTypeAdFeeInvoices:
 		return "AdFeeInvoices"
-	case ReportS2FeeInvoices:
+	case ScheduleTypeS2FeeInvoices:
 		return "S2FeeInvoices"
-	case ReportS3FeeInvoices:
+	case ScheduleTypeS3FeeInvoices:
 		return "S3FeeInvoices"
-	case ReportB2FeeInvoices:
+	case ScheduleTypeB2FeeInvoices:
 		return "B2FeeInvoices"
-	case ReportB3FeeInvoices:
+	case ScheduleTypeB3FeeInvoices:
 		return "B3FeeInvoices"
-	case ReportSFFeeInvoicesGeneral:
+	case ScheduleTypeSFFeeInvoicesGeneral:
 		return "SFFeeInvoicesGeneral "
-	case ReportSFFeeInvoicesMinimal:
+	case ScheduleTypeSFFeeInvoicesMinimal:
 		return "SFFeeInvoicesMinimal"
-	case ReportSEFeeInvoicesGeneral:
+	case ScheduleTypeSEFeeInvoicesGeneral:
 		return "SEFeeInvoicesGeneral"
-	case ReportSEFeeInvoicesMinimal:
+	case ScheduleTypeSEFeeInvoicesMinimal:
 		return "SEFeeInvoicesMinimal"
-	case ReportSOFeeInvoicesGeneral:
+	case ScheduleTypeSOFeeInvoicesGeneral:
 		return "SOFeeInvoicesGeneral"
-	case ReportSOFeeInvoicesMinimal:
+	case ScheduleTypeSOFeeInvoicesMinimal:
 		return "SOFeeInvoicesMinimal"
-	case ReportADFeeReductions:
+	case ScheduleTypeADFeeReductions:
 		return "ADFeeReductions"
-	case ReportGeneralManualCredits:
+	case ScheduleTypeGeneralManualCredits:
 		return "GeneralManualCredits"
-	case ReportMinimalManualCredits:
+	case ScheduleTypeMinimalManualCredits:
 		return "MinimalManualCredits"
-	case ReportGeneralManualDebits:
+	case ScheduleTypeGeneralManualDebits:
 		return "GeneralManualDebits"
-	case ReportMinimalManualDebits:
+	case ScheduleTypeMinimalManualDebits:
 		return "MinimalManualDebits"
-	case ReportADWriteOffs:
+	case ScheduleTypeADWriteOffs:
 		return "ADWrite-offs"
-	case ReportGeneralWriteOffs:
+	case ScheduleTypeGeneralWriteOffs:
 		return "GeneralWrite-offs"
-	case ReportMinimalWriteOffs:
+	case ScheduleTypeMinimalWriteOffs:
 		return "MinimalWriteOffs"
-	case ReportADWriteOffReversals:
+	case ScheduleTypeADWriteOffReversals:
 		return "ADWriteOffReversals"
-	case ReportGeneralWriteOffReversals:
+	case ScheduleTypeGeneralWriteOffReversals:
 		return "GeneralWriteOffReversals"
-	case ReportMinimalWriteOffReversals:
+	case ScheduleTypeMinimalWriteOffReversals:
 		return "MinimalWriteOffReversals"
 	default:
 		return ""
 	}
 }
 
-func ParseReportScheduleType(s string) ReportScheduleType {
-	value, ok := reportScheduleTypeMap[s]
+func ParseScheduleType(s string) ScheduleType {
+	value, ok := scheduleTypeMap[s]
 	if !ok {
-		return ReportScheduleType(0)
+		return ScheduleType(0)
 	}
 	return value
 }
 
-func (i ReportScheduleType) Valid() bool {
-	return i != ReportScheduleTypeUnknown
+func (s ScheduleType) Valid() bool {
+	return s != ScheduleTypeUnknown
 }
 
-func (i ReportScheduleType) MarshalJSON() ([]byte, error) {
-	return json.Marshal(i.Key())
+func (s ScheduleType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Key())
 }
 
-func (i *ReportScheduleType) UnmarshalJSON(data []byte) (err error) {
-	var s string
-	if err := json.Unmarshal(data, &s); err != nil {
+func (s *ScheduleType) UnmarshalJSON(data []byte) (err error) {
+	var st string
+	if err := json.Unmarshal(data, &st); err != nil {
 		return err
 	}
-	*i = ParseReportScheduleType(s)
+	*s = ParseScheduleType(st)
 	return nil
 }

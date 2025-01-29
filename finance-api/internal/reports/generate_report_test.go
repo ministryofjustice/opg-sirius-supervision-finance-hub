@@ -51,6 +51,10 @@ func (m *MockDb) Run(ctx context.Context, query db.ReportQuery) ([][]string, err
 
 func (m *MockDb) Close() {}
 
+func toPtr[T any](val T) *T {
+	return &val
+}
+
 func TestGenerateAndUploadReport(t *testing.T) {
 	toDate := shared.NewDate("2024-01-01")
 	fromDate := shared.NewDate("2024-10-01")
@@ -65,7 +69,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			name: "Aged Debt",
 			reportRequest: shared.ReportRequest{
 				ReportType:             shared.ReportsTypeAccountsReceivable,
-				AccountsReceivableType: shared.ReportAccountsReceivableTypeAgedDebt,
+				AccountsReceivableType: toPtr(shared.AccountsReceivableTypeAgedDebt),
 				ToDate:                 &toDate,
 				FromDate:               &fromDate,
 			},
@@ -75,7 +79,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			name: "Aged Debt By Customer",
 			reportRequest: shared.ReportRequest{
 				ReportType:             shared.ReportsTypeAccountsReceivable,
-				AccountsReceivableType: shared.ReportAccountsReceivableTypeAgedDebtByCustomer,
+				AccountsReceivableType: toPtr(shared.AccountsReceivableTypeAgedDebtByCustomer),
 			},
 			expectedQuery: &db.AgedDebtByCustomer{},
 		},
@@ -83,7 +87,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			name: "Paid Invoices",
 			reportRequest: shared.ReportRequest{
 				ReportType:             shared.ReportsTypeAccountsReceivable,
-				AccountsReceivableType: shared.ReportAccountsReceivableTypeARPaidInvoice,
+				AccountsReceivableType: toPtr(shared.AccountsReceivableTypeARPaidInvoice),
 				ToDate:                 &toDate,
 				FromDate:               &fromDate,
 			},
@@ -93,7 +97,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			name: "Invoice Adjustments",
 			reportRequest: shared.ReportRequest{
 				ReportType:             shared.ReportsTypeAccountsReceivable,
-				AccountsReceivableType: shared.ReportAccountsReceivableTypeInvoiceAdjustments,
+				AccountsReceivableType: toPtr(shared.AccountsReceivableTypeInvoiceAdjustments),
 				ToDate:                 &toDate,
 				FromDate:               &fromDate,
 			},
@@ -103,7 +107,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			name: "Bad Debt Write Off",
 			reportRequest: shared.ReportRequest{
 				ReportType:             shared.ReportsTypeAccountsReceivable,
-				AccountsReceivableType: shared.ReportAccountsReceivableTypeBadDebtWriteOff,
+				AccountsReceivableType: toPtr(shared.AccountsReceivableTypeBadDebtWriteOff),
 			},
 			expectedQuery: &db.BadDebtWriteOff{},
 		},
@@ -111,7 +115,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			name: "Receipts",
 			reportRequest: shared.ReportRequest{
 				ReportType:             shared.ReportsTypeAccountsReceivable,
-				AccountsReceivableType: shared.ReportAccountsReceivableTypeTotalReceipts,
+				AccountsReceivableType: toPtr(shared.AccountsReceivableTypeTotalReceipts),
 				ToDate:                 &toDate,
 				FromDate:               &fromDate,
 			},
@@ -121,7 +125,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			name: "Customer Credit",
 			reportRequest: shared.ReportRequest{
 				ReportType:             shared.ReportsTypeAccountsReceivable,
-				AccountsReceivableType: shared.ReportAccountsReceivableTypeUnappliedReceipts,
+				AccountsReceivableType: toPtr(shared.AccountsReceivableTypeUnappliedReceipts),
 			},
 			expectedQuery: &db.CustomerCredit{},
 		},
@@ -129,9 +133,21 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			name: "Unknown",
 			reportRequest: shared.ReportRequest{
 				ReportType:             shared.ReportsTypeAccountsReceivable,
-				AccountsReceivableType: shared.ReportAccountsReceivableTypeUnknown,
+				AccountsReceivableType: toPtr(shared.AccountsReceivableTypeUnknown),
 			},
-			expectedErr: fmt.Errorf("unimplemented accounts receivable query: %s", shared.ReportAccountsReceivableTypeUnknown.Key()),
+			expectedErr: fmt.Errorf("unimplemented accounts receivable query: %s", shared.AccountsReceivableTypeUnknown.Key()),
+		},
+		{
+			name: "Online card payment schedule",
+			reportRequest: shared.ReportRequest{
+				ReportType:      shared.ReportsTypeSchedule,
+				ScheduleType:    toPtr(shared.ScheduleTypeOnlineCardPayments),
+				TransactionDate: &toDate,
+			},
+			expectedQuery: &db.PaymentsSchedule{
+				Date:         &toDate,
+				ScheduleType: toPtr(shared.ScheduleTypeOnlineCardPayments),
+			},
 		},
 	}
 
@@ -177,6 +193,11 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				assert.Nil(t, err)
 			case *db.CustomerCredit:
 				actual, ok := mockDb.query.(*db.CustomerCredit)
+				assert.True(t, ok)
+				assert.Equal(t, expected, actual)
+				assert.Nil(t, err)
+			case *db.PaymentsSchedule:
+				actual, ok := mockDb.query.(*db.PaymentsSchedule)
 				assert.True(t, ok)
 				assert.Equal(t, expected, actual)
 				assert.Nil(t, err)

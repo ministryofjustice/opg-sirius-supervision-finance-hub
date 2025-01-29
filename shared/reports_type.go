@@ -2,13 +2,6 @@ package shared
 
 import "encoding/json"
 
-var ReportsTypes = []ReportsType{
-	ReportsTypeJournal,
-	ReportsTypeSchedule,
-	ReportsTypeAccountsReceivable,
-	ReportsTypeDebt,
-}
-
 type ReportsType int
 
 const (
@@ -26,12 +19,12 @@ var reportsTypeMap = map[string]ReportsType{
 	"Debt":               ReportsTypeDebt,
 }
 
-func (i ReportsType) String() string {
-	return i.Key()
+func (r ReportsType) String() string {
+	return r.Key()
 }
 
-func (i ReportsType) Translation() string {
-	switch i {
+func (r ReportsType) Translation() string {
+	switch r {
 	case ReportsTypeJournal:
 		return "Journal"
 	case ReportsTypeSchedule:
@@ -45,8 +38,8 @@ func (i ReportsType) Translation() string {
 	}
 }
 
-func (i ReportsType) Key() string {
-	switch i {
+func (r ReportsType) Key() string {
+	switch r {
 	case ReportsTypeJournal:
 		return "Journal"
 	case ReportsTypeSchedule:
@@ -68,27 +61,27 @@ func ParseReportsType(s string) ReportsType {
 	return value
 }
 
-func (i ReportsType) Valid() bool {
-	return i != ReportsTypeUnknown
+func (r ReportsType) Valid() bool {
+	return r != ReportsTypeUnknown
 }
 
-func (i ReportsType) RequiresDateValidation() bool {
-	switch i {
+func (r ReportsType) RequiresDateValidation() bool {
+	switch r {
 	case ReportsTypeJournal:
 		return true
 	}
 	return false
 }
 
-func (i ReportsType) MarshalJSON() ([]byte, error) {
-	return json.Marshal(i.Key())
+func (r ReportsType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(r.Key())
 }
 
-func (i *ReportsType) UnmarshalJSON(data []byte) (err error) {
+func (r *ReportsType) UnmarshalJSON(data []byte) (err error) {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
 		return err
 	}
-	*i = ParseReportsType(s)
+	*r = ParseReportsType(s)
 	return nil
 }

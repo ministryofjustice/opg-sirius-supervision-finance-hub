@@ -5,8 +5,8 @@ import (
 )
 
 type PaymentsSchedule struct {
-	Date         shared.Date
-	ScheduleType shared.ReportScheduleType
+	Date         *shared.Date
+	ScheduleType *shared.ScheduleType
 }
 
 const PaymentsScheduleQuery = `SELECT
@@ -41,16 +41,16 @@ func (p *PaymentsSchedule) GetQuery() string {
 
 func (p *PaymentsSchedule) GetParams() []any {
 	var transactionType shared.TransactionType
-	switch p.ScheduleType {
-	case shared.ReportTypeMOTOCardPayments:
+	switch *p.ScheduleType {
+	case shared.ScheduleTypeMOTOCardPayments:
 		transactionType = shared.TransactionTypeMotoCardPayment
-	case shared.ReportTypeOnlineCardPayments:
+	case shared.ScheduleTypeOnlineCardPayments:
 		transactionType = shared.TransactionTypeOnlineCardPayment
-	case shared.ReportOPGBACSTransfer:
+	case shared.ScheduleTypeOPGBACSTransfer:
 		transactionType = shared.TransactionTypeOPGBACSPayment
-	case shared.ReportSupervisionBACSTransfer:
+	case shared.ScheduleTypeSupervisionBACSTransfer:
 		transactionType = shared.TransactionTypeSupervisionBACSPayment
-	case shared.ReportDirectDebitPayments:
+	case shared.ScheduleTypeDirectDebitPayments:
 		transactionType = shared.TransactionTypeDirectDebitPayment
 	default:
 		transactionType = shared.TransactionTypeUnknown

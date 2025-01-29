@@ -18,10 +18,11 @@ func TestRequestReport(t *testing.T) {
 	var b bytes.Buffer
 
 	ctx := telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("test"))
+	subType := shared.AccountsReceivableTypeAgedDebt
 
 	downloadForm := &shared.ReportRequest{
 		ReportType:             shared.ReportsTypeAccountsReceivable,
-		AccountsReceivableType: shared.ReportAccountsReceivableTypeAgedDebt,
+		AccountsReceivableType: &subType,
 		Email:                  "joseph@test.com",
 	}
 
@@ -48,10 +49,11 @@ func TestRequestReportNoEmail(t *testing.T) {
 	var b bytes.Buffer
 
 	ctx := telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("test"))
+	subType := shared.AccountsReceivableTypeAgedDebt
 
-	downloadForm := shared.ReportRequest{
+	downloadForm := &shared.ReportRequest{
 		ReportType:             shared.ReportsTypeAccountsReceivable,
-		AccountsReceivableType: shared.ReportAccountsReceivableTypeAgedDebt,
+		AccountsReceivableType: &subType,
 		Email:                  "",
 	}
 
