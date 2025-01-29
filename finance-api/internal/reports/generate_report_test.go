@@ -158,6 +158,19 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			},
 			expectedFilename: "schedule_OnlineCardPayments_01:01:2024.csv",
 		},
+		{
+			name: "SE Invoice schedule",
+			reportRequest: shared.ReportRequest{
+				ReportType:      shared.ReportsTypeSchedule,
+				ScheduleType:    toPtr(shared.ScheduleTypeSEFeeInvoicesGeneral),
+				TransactionDate: &toDate,
+			},
+			expectedQuery: &db.InvoicesSchedule{
+				Date:         &toDate,
+				ScheduleType: toPtr(shared.ScheduleTypeSEFeeInvoicesGeneral),
+			},
+			expectedFilename: "schedule_SEFeeInvoicesGeneral_01:01:2024.csv",
+		},
 	}
 
 	for _, tt := range tests {

@@ -92,7 +92,7 @@ func (s ScheduleType) Translation() string {
 	case ScheduleTypeB3FeeInvoices:
 		return "B3 Fee Invoices"
 	case ScheduleTypeSFFeeInvoicesGeneral:
-		return "SF Fee Invoices (General) "
+		return "SF Fee Invoices (General)"
 	case ScheduleTypeSFFeeInvoicesMinimal:
 		return "SF Fee Invoices (Minimal)"
 	case ScheduleTypeSEFeeInvoicesGeneral:
@@ -153,7 +153,7 @@ func (s ScheduleType) Key() string {
 	case ScheduleTypeB3FeeInvoices:
 		return "B3FeeInvoices"
 	case ScheduleTypeSFFeeInvoicesGeneral:
-		return "SFFeeInvoicesGeneral "
+		return "SFFeeInvoicesGeneral"
 	case ScheduleTypeSFFeeInvoicesMinimal:
 		return "SFFeeInvoicesMinimal"
 	case ScheduleTypeSEFeeInvoicesGeneral:
