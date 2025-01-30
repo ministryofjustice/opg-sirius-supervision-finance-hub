@@ -23,8 +23,12 @@ const (
 	ScheduleTypeSOFeeInvoicesGeneral
 	ScheduleTypeSOFeeInvoicesMinimal
 	ScheduleTypeADFeeReductions
+	ScheduleTypeGeneralFeeReductions
+	ScheduleTypeMinimalFeeReductions
+	ScheduleTypeADManualCredits
 	ScheduleTypeGeneralManualCredits
 	ScheduleTypeMinimalManualCredits
+	ScheduleTypeADManualDebits
 	ScheduleTypeGeneralManualDebits
 	ScheduleTypeMinimalManualDebits
 	ScheduleTypeADWriteOffs
@@ -53,12 +57,16 @@ var scheduleTypeMap = map[string]ScheduleType{
 	"SOFeeInvoicesGeneral":     ScheduleTypeSOFeeInvoicesGeneral,
 	"SOFeeInvoicesMinimal":     ScheduleTypeSOFeeInvoicesMinimal,
 	"ADFeeReductions":          ScheduleTypeADFeeReductions,
+	"GeneralFeeReductions":     ScheduleTypeGeneralFeeReductions,
+	"MinimalFeeReductions":     ScheduleTypeMinimalFeeReductions,
+	"ADManualCredits":          ScheduleTypeADManualCredits,
 	"GeneralManualCredits":     ScheduleTypeGeneralManualCredits,
 	"MinimalManualCredits":     ScheduleTypeMinimalManualCredits,
+	"ADManualDebits":           ScheduleTypeADManualDebits,
 	"GeneralManualDebits":      ScheduleTypeGeneralManualDebits,
 	"MinimalManualDebits":      ScheduleTypeMinimalManualDebits,
-	"ADWrite-offs":             ScheduleTypeADWriteOffs,
-	"GeneralWrite-offs":        ScheduleTypeGeneralWriteOffs,
+	"ADWriteOffs":              ScheduleTypeADWriteOffs,
+	"GeneralWriteOffs":         ScheduleTypeGeneralWriteOffs,
 	"MinimalWriteOffs":         ScheduleTypeMinimalWriteOffs,
 	"ADWriteOffReversals":      ScheduleTypeADWriteOffReversals,
 	"GeneralWriteOffReversals": ScheduleTypeGeneralWriteOffReversals,
@@ -92,7 +100,7 @@ func (s ScheduleType) Translation() string {
 	case ScheduleTypeB3FeeInvoices:
 		return "B3 Fee Invoices"
 	case ScheduleTypeSFFeeInvoicesGeneral:
-		return "SF Fee Invoices (General) "
+		return "SF Fee Invoices (General)"
 	case ScheduleTypeSFFeeInvoicesMinimal:
 		return "SF Fee Invoices (Minimal)"
 	case ScheduleTypeSEFeeInvoicesGeneral:
@@ -105,10 +113,18 @@ func (s ScheduleType) Translation() string {
 		return "SO Fee Invoices (Minimal)"
 	case ScheduleTypeADFeeReductions:
 		return "AD Fee Reductions"
+	case ScheduleTypeGeneralFeeReductions:
+		return "General Fee Reductions"
+	case ScheduleTypeMinimalFeeReductions:
+		return "Minimal Fee Reductions"
+	case ScheduleTypeADManualCredits:
+		return "AD Manual Credits"
 	case ScheduleTypeGeneralManualCredits:
 		return "General Manual Credits"
 	case ScheduleTypeMinimalManualCredits:
 		return "Minimal Manual Credits"
+	case ScheduleTypeADManualDebits:
+		return "AD Manual Debits"
 	case ScheduleTypeGeneralManualDebits:
 		return "General Manual Debits"
 	case ScheduleTypeMinimalManualDebits:
@@ -153,7 +169,7 @@ func (s ScheduleType) Key() string {
 	case ScheduleTypeB3FeeInvoices:
 		return "B3FeeInvoices"
 	case ScheduleTypeSFFeeInvoicesGeneral:
-		return "SFFeeInvoicesGeneral "
+		return "SFFeeInvoicesGeneral"
 	case ScheduleTypeSFFeeInvoicesMinimal:
 		return "SFFeeInvoicesMinimal"
 	case ScheduleTypeSEFeeInvoicesGeneral:
@@ -166,18 +182,26 @@ func (s ScheduleType) Key() string {
 		return "SOFeeInvoicesMinimal"
 	case ScheduleTypeADFeeReductions:
 		return "ADFeeReductions"
+	case ScheduleTypeGeneralFeeReductions:
+		return "GeneralFeeReductions"
+	case ScheduleTypeMinimalFeeReductions:
+		return "MinimalFeeReductions"
+	case ScheduleTypeADManualCredits:
+		return "ADManualCredits"
 	case ScheduleTypeGeneralManualCredits:
 		return "GeneralManualCredits"
 	case ScheduleTypeMinimalManualCredits:
 		return "MinimalManualCredits"
+	case ScheduleTypeADManualDebits:
+		return "ADManualDebits"
 	case ScheduleTypeGeneralManualDebits:
 		return "GeneralManualDebits"
 	case ScheduleTypeMinimalManualDebits:
 		return "MinimalManualDebits"
 	case ScheduleTypeADWriteOffs:
-		return "ADWrite-offs"
+		return "ADWriteOffs"
 	case ScheduleTypeGeneralWriteOffs:
-		return "GeneralWrite-offs"
+		return "GeneralWriteOffs"
 	case ScheduleTypeMinimalWriteOffs:
 		return "MinimalWriteOffs"
 	case ScheduleTypeADWriteOffReversals:
