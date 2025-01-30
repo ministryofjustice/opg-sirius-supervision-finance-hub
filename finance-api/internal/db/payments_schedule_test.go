@@ -12,6 +12,7 @@ func (suite *IntegrationSuite) Test_payments_schedules() {
 	oneMonthAgo := suite.seeder.Today().Sub(0, 1, 0)
 	courtRef1 := "12345678"
 	courtRef2 := "87654321"
+	courtRef3 := "10101010"
 	general := "320.00"
 
 	// client 1
@@ -25,6 +26,11 @@ func (suite *IntegrationSuite) Test_payments_schedules() {
 	_, inv2Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, &general, oneMonthAgo.StringPtr(), nil, nil, nil)
 	suite.seeder.CreatePayment(ctx, 12022, today.Date(), courtRef2, shared.TransactionTypeOPGBACSPayment, today.Date())
 	suite.seeder.CreatePayment(ctx, 13033, today.Date(), courtRef2, shared.TransactionTypeMotoCardPayment, today.Date())
+
+	// client 3
+	client3ID := suite.seeder.CreateClient(ctx, "C", "Lient", courtRef3, "1234")
+	_, inv3Ref := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeAD, nil, oneMonthAgo.StringPtr(), nil, nil, nil)
+	suite.seeder.CreatePayment(ctx, 12000, today.Date(), courtRef3, shared.TransactionTypeDirectDebitPayment, today.Date())
 
 	c := Client{suite.seeder.Conn}
 
@@ -82,6 +88,28 @@ func (suite *IntegrationSuite) Test_payments_schedules() {
 					"Court reference":   courtRef2,
 					"Invoice reference": inv2Ref,
 					"Amount":            "130.33",
+					"Payment date":      today.String(),
+					"Bank date":         today.String(),
+				},
+			},
+		},
+		{
+			name:         "overpayments",
+			date:         shared.Date{Time: today.Date()},
+			scheduleType: shared.ScheduleTypeDirectDebitPayments,
+			expectedRows: 3,
+			expectedData: []map[string]string{
+				{
+					"Court reference":   courtRef3,
+					"Invoice reference": inv3Ref,
+					"Amount":            "100.00",
+					"Payment date":      today.String(),
+					"Bank date":         today.String(),
+				},
+				{
+					"Court reference":   courtRef3,
+					"Invoice reference": "",
+					"Amount":            "20.00",
 					"Payment date":      today.String(),
 					"Bank date":         today.String(),
 				},
