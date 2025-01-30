@@ -87,6 +87,16 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 				Date:         reportRequest.TransactionDate,
 				ScheduleType: reportRequest.ScheduleType,
 			}
+		case shared.ScheduleTypeADFeeReductions,
+			shared.ScheduleTypeGeneralManualCredits,
+			shared.ScheduleTypeMinimalManualCredits,
+			shared.ScheduleTypeADWriteOffs,
+			shared.ScheduleTypeGeneralWriteOffs,
+			shared.ScheduleTypeMinimalWriteOffs:
+			query = &db.CreditsSchedule{
+				Date:         reportRequest.TransactionDate,
+				ScheduleType: reportRequest.ScheduleType,
+			}
 		default:
 			return fmt.Errorf("unimplemented schedule query: %s", reportRequest.ScheduleType.Key())
 		}
