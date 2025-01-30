@@ -171,6 +171,19 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			},
 			expectedFilename: "schedule_SEFeeInvoicesGeneral_01:01:2024.csv",
 		},
+		{
+			name: "AD Fee Reduction Credit schedule",
+			reportRequest: shared.ReportRequest{
+				ReportType:      shared.ReportsTypeSchedule,
+				ScheduleType:    toPtr(shared.ScheduleTypeADFeeReductions),
+				TransactionDate: &toDate,
+			},
+			expectedQuery: &db.CreditsSchedule{
+				Date:         &toDate,
+				ScheduleType: toPtr(shared.ScheduleTypeADFeeReductions),
+			},
+			expectedFilename: "schedule_ADFeeReductions_01:01:2024.csv",
+		},
 	}
 
 	for _, tt := range tests {
