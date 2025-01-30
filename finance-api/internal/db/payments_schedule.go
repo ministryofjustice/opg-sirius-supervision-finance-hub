@@ -11,17 +11,16 @@ type PaymentsSchedule struct {
 
 const PaymentsScheduleQuery = `SELECT
 	fc.court_ref AS "Court reference",
-	i.reference AS "Invoice reference",
-	(la.amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS "Amount",
+	COALESCE(i.reference, '') AS "Invoice reference",
+	(ABS(la.amount) / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS "Amount",
 	TO_CHAR(l.datetime, 'YYYY-MM-DD') AS "Payment date",
 	TO_CHAR(l.bankdate, 'YYYY-MM-DD') AS "Bank date",
 	TO_CHAR(l.created_at, 'YYYY-MM-DD') AS "Create date"
 	FROM supervision_finance.ledger_allocation la
-	LEFT JOIN supervision_finance.ledger l ON la.ledger_id = l.id
+	JOIN supervision_finance.ledger l ON la.ledger_id = l.id
 	LEFT JOIN supervision_finance.invoice i ON i.id = la.invoice_id
 	JOIN supervision_finance.finance_client fc ON fc.id = l.finance_client_id
-	WHERE la.status = 'ALLOCATED'
-	AND l.bankdate = $1 AND l.type = $2;
+	WHERE l.bankdate = $1 AND l.type = $2;
 `
 
 func (p *PaymentsSchedule) GetHeaders() []string {
