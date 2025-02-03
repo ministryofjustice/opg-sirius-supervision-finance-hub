@@ -190,6 +190,11 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				assert.True(t, ok)
 				assert.Equal(t, expected, actual)
 				assert.Nil(t, err)
+			case *db.ReceiptTransactions:
+				actual, ok := mockDb.query.(*db.ReceiptTransactions)
+				assert.True(t, ok)
+				assert.Equal(t, expected, actual)
+				assert.Nil(t, err)
 			default:
 				assert.Equal(t, tt.expectedErr, err)
 			}
