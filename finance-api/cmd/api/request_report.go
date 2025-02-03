@@ -3,11 +3,13 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"log/slog"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -25,6 +27,19 @@ func (s *Server) requestReport(w http.ResponseWriter, r *http.Request) error {
 				"required": "This field Email needs to be looked at required",
 			},
 		},
+		}
+	}
+
+	if reportRequest.ReportType == shared.ReportsTypeJournal.Key() {
+		goLiveDate := shared.NewDate(os.Getenv("FINANCE_HUB_LIVE_DATE"))
+		if !reportRequest.DateOfTransaction.Before(shared.NewDate(time.Now().Format("2006-01-02"))) ||
+			reportRequest.DateOfTransaction.Before(goLiveDate) {
+			return apierror.ValidationError{Errors: apierror.ValidationErrors{
+				"Date": {
+					"Date": fmt.Sprintf("Date must be before today and after %s", os.Getenv("FINANCE_HUB_LIVE_DATE")),
+				},
+			},
+			}
 		}
 	}
 
