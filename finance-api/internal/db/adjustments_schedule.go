@@ -88,6 +88,12 @@ func (c *AdjustmentsSchedule) GetParams() []any {
 		ledgerTypes = []string{
 			shared.TransactionTypeWriteOff.Key(),
 		}
+	case shared.ScheduleTypeADWriteOffReversals,
+		shared.ScheduleTypeGeneralWriteOffReversals,
+		shared.ScheduleTypeMinimalWriteOffReversals:
+		ledgerTypes = []string{
+			shared.TransactionTypeWriteOffReversal.Key(),
+		}
 	default:
 		ledgerTypes = []string{
 			shared.TransactionTypeUnknown.Key(),
