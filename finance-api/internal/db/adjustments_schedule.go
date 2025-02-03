@@ -4,15 +4,15 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
-type CreditsSchedule struct {
+type AdjustmentsSchedule struct {
 	Date         *shared.Date
 	ScheduleType *shared.ScheduleType
 }
 
-const CreditsScheduleQuery = `SELECT
+const AdjustmentsScheduleQuery = `SELECT
 	fc.court_ref AS "Court reference",
 	i.reference AS "Invoice reference",
-	(la.amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS "Amount",
+	(ABS(la.amount) / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS "Amount",
 	TO_CHAR(l.created_at, 'YYYY-MM-DD') AS "Created date"
 	FROM supervision_finance.ledger l
 	    JOIN supervision_finance.ledger_allocation la ON l.id = la.ledger_id AND la.status = 'ALLOCATED'
@@ -28,7 +28,7 @@ const CreditsScheduleQuery = `SELECT
 	WHERE l.created_at::DATE = $1 AND l.type = ANY($2) AND COALESCE(sl.supervision_level, '') = $3;
 `
 
-func (c *CreditsSchedule) GetHeaders() []string {
+func (c *AdjustmentsSchedule) GetHeaders() []string {
 	return []string{
 		"Court reference",
 		"Invoice reference",
@@ -37,11 +37,11 @@ func (c *CreditsSchedule) GetHeaders() []string {
 	}
 }
 
-func (c *CreditsSchedule) GetQuery() string {
-	return CreditsScheduleQuery
+func (c *AdjustmentsSchedule) GetQuery() string {
+	return AdjustmentsScheduleQuery
 }
 
-func (c *CreditsSchedule) GetParams() []any {
+func (c *AdjustmentsSchedule) GetParams() []any {
 	var (
 		ledgerTypes      []string
 		supervisionLevel string
@@ -49,10 +49,12 @@ func (c *CreditsSchedule) GetParams() []any {
 	switch *c.ScheduleType {
 	case shared.ScheduleTypeGeneralFeeReductions,
 		shared.ScheduleTypeGeneralManualCredits,
+		shared.ScheduleTypeGeneralManualDebits,
 		shared.ScheduleTypeGeneralWriteOffs:
 		supervisionLevel = "GENERAL"
 	case shared.ScheduleTypeMinimalFeeReductions,
 		shared.ScheduleTypeMinimalManualCredits,
+		shared.ScheduleTypeMinimalManualDebits,
 		shared.ScheduleTypeMinimalWriteOffs:
 		supervisionLevel = "MINIMAL"
 	default:
@@ -73,6 +75,12 @@ func (c *CreditsSchedule) GetParams() []any {
 		shared.ScheduleTypeMinimalManualCredits:
 		ledgerTypes = []string{
 			shared.TransactionTypeCreditMemo.Key(),
+		}
+	case shared.ScheduleTypeADManualDebits,
+		shared.ScheduleTypeGeneralManualDebits,
+		shared.ScheduleTypeMinimalManualDebits:
+		ledgerTypes = []string{
+			shared.TransactionTypeDebitMemo.Key(),
 		}
 	case shared.ScheduleTypeADWriteOffs,
 		shared.ScheduleTypeGeneralWriteOffs,
