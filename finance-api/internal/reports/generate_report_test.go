@@ -127,6 +127,15 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			expectedQuery: &db.NonReceiptTransactions{Date: &toDate},
 		},
 		{
+			name: "ReceiptTransactions",
+			reportRequest: shared.ReportRequest{
+				ReportType:        "Journal",
+				ReportJournalType: "ReceiptTransactions",
+				DateOfTransaction: &toDate,
+			},
+			expectedQuery: &db.ReceiptTransactions{Date: &toDate},
+		},
+		{
 			name: "Unknown",
 			reportRequest: shared.ReportRequest{
 				ReportType:        "AccountsReceivable",

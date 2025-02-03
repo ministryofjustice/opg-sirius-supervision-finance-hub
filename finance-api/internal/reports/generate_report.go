@@ -51,6 +51,8 @@ func getJournalQuery(journalType shared.ReportJournalType, date *shared.Date) (d
 	switch journalType {
 	case shared.ReportTypeNonReceiptTransactions:
 		return &db.NonReceiptTransactions{Date: date}, nil
+	case shared.ReportTypeReceiptTransactions:
+		return &db.NonReceiptTransactions{Date: date}, nil
 	}
 
 	return nil, fmt.Errorf("Unrecognised report journal type")

@@ -12,6 +12,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 )
 
 func TestRequestReport(t *testing.T) {
@@ -104,12 +105,12 @@ func TestRequestReportJournalDate(t *testing.T) {
 		},
 		{
 			"Yesterday",
-			shared.NewDate("2025-01-28"),
+			shared.NewDate(time.Now().AddDate(0, 0, -1).Format("2006-02-01")),
 			nil,
 		},
 		{
 			"Today",
-			shared.NewDate("2025-01-29"),
+			shared.NewDate(time.Now().Format("2006-02-01")),
 			apierror.ValidationError{Errors: apierror.ValidationErrors{
 				"Date": {
 					"Date": "Date must be before today and after 2024-01-01",
