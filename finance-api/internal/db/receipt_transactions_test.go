@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 )
@@ -12,7 +13,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	yesterday := suite.seeder.Today().Sub(0, 0, 1)
 	twoMonthsAgo := suite.seeder.Today().Sub(0, 2, 0)
 
-	// one client with one invoice and an exemption
+	// one client with one invoice and a BACS payment - credit
 	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234")
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
 	_, _ = suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil)
@@ -43,6 +44,6 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	assert.Equal(suite.T(), "0000", results[0]["Intercompany"], "Intercompany - client 1 invoice 1")
 	assert.Equal(suite.T(), "00000000", results[0]["Spare"], "Spare - client 1 invoice 1")
 	assert.Equal(suite.T(), "", results[0]["Debit"], "Debit - client 1 invoice 1")
-	assert.Equal(suite.T(), "", results[0]["Credit"], "Credit - client 1 invoice 1")
-	assert.Equal(suite.T(), "100", results[0]["Line description"], "Line description - client 1 invoice 1")
+	assert.Equal(suite.T(), "100", results[0]["Credit"], "Credit - client 1 invoice 1")
+	assert.Equal(suite.T(), fmt.Sprintf("BACS Payment [%s]", today.Date().Format("02/01/2006")), results[0]["Line description"], "Line description - client 1 invoice 1")
 }
