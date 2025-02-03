@@ -88,8 +88,8 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				FromDateField:     &fromDate,
 			},
 			expectedQuery: &db.PaidInvoices{FromDate: &fromDate, ToDate: &toDate},
-    },
-    {
+		},
+		{
 			name: "Invoice Adjustments",
 			reportRequest: shared.ReportRequest{
 				ReportType:        "AccountsReceivable",
@@ -118,12 +118,30 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			expectedQuery: &db.Receipts{FromDate: &fromDate, ToDate: &toDate},
 		},
 		{
+			name: "NonReceiptTransactions",
+			reportRequest: shared.ReportRequest{
+				ReportType:        "Journal",
+				ReportJournalType: "NonReceiptTransactions",
+				DateOfTransaction: &toDate,
+			},
+			expectedQuery: &db.NonReceiptTransactions{Date: &toDate},
+		},
+		{
+			name: "ReceiptTransactions",
+			reportRequest: shared.ReportRequest{
+				ReportType:        "Journal",
+				ReportJournalType: "ReceiptTransactions",
+				DateOfTransaction: &toDate,
+			},
+			expectedQuery: &db.ReceiptTransactions{Date: &toDate},
+		},
+		{
 			name: "Unknown",
 			reportRequest: shared.ReportRequest{
 				ReportType:        "AccountsReceivable",
 				ReportAccountType: "Garbleglarg",
 			},
-			expectedErr: fmt.Errorf("unknown query"),
+			expectedErr: fmt.Errorf("Unrecognised report account type"),
 		},
 	}
 
@@ -164,6 +182,11 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				assert.Nil(t, err)
 			case *db.Receipts:
 				actual, ok := mockDb.query.(*db.Receipts)
+				assert.True(t, ok)
+				assert.Equal(t, expected, actual)
+				assert.Nil(t, err)
+			case *db.NonReceiptTransactions:
+				actual, ok := mockDb.query.(*db.NonReceiptTransactions)
 				assert.True(t, ok)
 				assert.Equal(t, expected, actual)
 				assert.Nil(t, err)
