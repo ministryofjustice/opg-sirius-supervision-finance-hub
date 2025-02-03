@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/testhelpers"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"strconv"
@@ -19,7 +20,7 @@ func (suite *IntegrationSuite) Test_invoice_adjustments() {
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
 	_, _ = suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeGA, nil, today.StringPtr(), nil, nil, nil)
 	invoiceId, client1Invoice2Ref := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, today.StringPtr(), nil, nil, nil)
-	suite.seeder.CreateInvoiceFeeRange(ctx, invoiceId, "AD")
+	suite.seeder.AddFeeRanges(ctx, invoiceId, []testhelpers.FeeRange{{FromDate: today.Date(), ToDate: today.Date(), SupervisionLevel: "AD", Amount: 0}})
 	creditMemoID := suite.seeder.CreateAdjustment(ctx, client1ID, invoiceId, shared.AdjustmentTypeCreditMemo, 10000, "£100 credit")
 	suite.seeder.ApproveAdjustment(ctx, client1ID, creditMemoID)
 
@@ -27,9 +28,9 @@ func (suite *IntegrationSuite) Test_invoice_adjustments() {
 	client2ID := suite.seeder.CreateClient(ctx, "Barry", "Giggle", "87654321", "4321")
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
 	invoiceId, client2Invoice2Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeGA, nil, today.StringPtr(), nil, nil, nil)
-	suite.seeder.CreateInvoiceFeeRange(ctx, invoiceId, "MINIMAL")
+	suite.seeder.AddFeeRanges(ctx, invoiceId, []testhelpers.FeeRange{{FromDate: today.Date(), ToDate: today.Date(), SupervisionLevel: "MINIMAL", Amount: 0}})
 	invoiceId, _ = suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, today.StringPtr(), nil, nil, nil)
-	suite.seeder.CreateInvoiceFeeRange(ctx, invoiceId, "AD")
+	suite.seeder.AddFeeRanges(ctx, invoiceId, []testhelpers.FeeRange{{FromDate: today.Date(), ToDate: today.Date(), SupervisionLevel: "AD", Amount: 0}})
 	suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeRemission, strconv.Itoa(today.Date().Year()-1), 4, "Test remission", time.Now())
 
 	c := Client{suite.seeder.Conn}
