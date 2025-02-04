@@ -64,7 +64,10 @@ func (c *AdjustmentsSchedule) GetParams() []any {
 	switch *c.ScheduleType {
 	case shared.ScheduleTypeADFeeReductions,
 		shared.ScheduleTypeGeneralFeeReductions,
-		shared.ScheduleTypeMinimalFeeReductions:
+		shared.ScheduleTypeMinimalFeeReductions,
+		shared.ScheduleTypeGAFeeReductions,
+		shared.ScheduleTypeGSFeeReductions,
+		shared.ScheduleTypeGTFeeReductions:
 		ledgerTypes = []string{
 			"CREDIT " + shared.TransactionTypeHardship.Key(),
 			"CREDIT " + shared.TransactionTypeExemption.Key(),
@@ -72,25 +75,37 @@ func (c *AdjustmentsSchedule) GetParams() []any {
 		}
 	case shared.ScheduleTypeADManualCredits,
 		shared.ScheduleTypeGeneralManualCredits,
-		shared.ScheduleTypeMinimalManualCredits:
+		shared.ScheduleTypeMinimalManualCredits,
+		shared.ScheduleTypeGAManualCredits,
+		shared.ScheduleTypeGSManualCredits,
+		shared.ScheduleTypeGTManualCredits:
 		ledgerTypes = []string{
 			shared.TransactionTypeCreditMemo.Key(),
 		}
 	case shared.ScheduleTypeADManualDebits,
 		shared.ScheduleTypeGeneralManualDebits,
-		shared.ScheduleTypeMinimalManualDebits:
+		shared.ScheduleTypeMinimalManualDebits,
+		shared.ScheduleTypeGAManualDebits,
+		shared.ScheduleTypeGSManualDebits,
+		shared.ScheduleTypeGTManualDebits:
 		ledgerTypes = []string{
 			shared.TransactionTypeDebitMemo.Key(),
 		}
 	case shared.ScheduleTypeADWriteOffs,
 		shared.ScheduleTypeGeneralWriteOffs,
-		shared.ScheduleTypeMinimalWriteOffs:
+		shared.ScheduleTypeMinimalWriteOffs,
+		shared.ScheduleTypeGAWriteOffs,
+		shared.ScheduleTypeGSWriteOffs,
+		shared.ScheduleTypeGTWriteOffs:
 		ledgerTypes = []string{
 			shared.TransactionTypeWriteOff.Key(),
 		}
 	case shared.ScheduleTypeADWriteOffReversals,
 		shared.ScheduleTypeGeneralWriteOffReversals,
-		shared.ScheduleTypeMinimalWriteOffReversals:
+		shared.ScheduleTypeMinimalWriteOffReversals,
+		shared.ScheduleTypeGAWriteOffReversals,
+		shared.ScheduleTypeGSWriteOffReversals,
+		shared.ScheduleTypeGTWriteOffReversals:
 		ledgerTypes = []string{
 			shared.TransactionTypeWriteOffReversal.Key(),
 		}
@@ -100,5 +115,5 @@ func (c *AdjustmentsSchedule) GetParams() []any {
 		}
 	}
 
-	return []any{c.Date.Time.Format("2006-01-02 15:04:05"), ledgerTypes, supervisionLevel}
+	return []any{c.Date.Time.Format("2006-01-02"), ledgerTypes, supervisionLevel}
 }
