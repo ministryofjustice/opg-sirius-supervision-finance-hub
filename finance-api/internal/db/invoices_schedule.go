@@ -73,6 +73,12 @@ func (i *InvoicesSchedule) GetParams() []any {
 	case shared.ScheduleTypeSOFeeInvoicesMinimal:
 		invoiceType = shared.InvoiceTypeSO
 		supervisionLevel = "MINIMAL"
+	case shared.ScheduleTypeGAFeeInvoices:
+		invoiceType = shared.InvoiceTypeGA
+	case shared.ScheduleTypeGSFeeInvoices:
+		invoiceType = shared.InvoiceTypeGS
+	case shared.ScheduleTypeGTFeeInvoices:
+		invoiceType = shared.InvoiceTypeGT
 	default:
 		invoiceType = shared.InvoiceTypeUnknown
 	}
