@@ -12,50 +12,96 @@ import (
 const reportRequestedTemplateId = "bade69e4-0eb1-4896-a709-bd8f8371a629"
 
 func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) error {
-	var query db.ReportQuery
-	var err error
-
-	accountType := shared.ParseReportAccountType(reportRequest.ReportAccountType)
-	filename := fmt.Sprintf("%s_%s.csv", accountType.Key(), requestedDate.Format("02:01:2006"))
+	var (
+		query      db.ReportQuery
+		err        error
+		filename   string
+		reportName string
+	)
 
 	switch reportRequest.ReportType {
-	case "AccountsReceivable":
-		switch accountType {
-		case shared.ReportAccountTypeAgedDebt:
+	case shared.ReportsTypeAccountsReceivable:
+		filename = fmt.Sprintf("%s_%s.csv", reportRequest.AccountsReceivableType.Key(), requestedDate.Format("02:01:2006"))
+		reportName = reportRequest.AccountsReceivableType.Translation()
+		switch *reportRequest.AccountsReceivableType {
+		case shared.AccountsReceivableTypeAgedDebt:
 			query = &db.AgedDebt{
-				FromDate: reportRequest.FromDateField,
-				ToDate:   reportRequest.ToDateField,
+				FromDate: reportRequest.FromDate,
+				ToDate:   reportRequest.ToDate,
 			}
-		case shared.ReportAccountTypeAgedDebtByCustomer:
+		case shared.AccountsReceivableTypeAgedDebtByCustomer:
 			query = &db.AgedDebtByCustomer{}
-		case shared.ReportAccountTypeARPaidInvoiceReport:
+		case shared.AccountsReceivableTypeARPaidInvoice:
 			query = &db.PaidInvoices{
-				FromDate:   reportRequest.FromDateField,
-				ToDate:     reportRequest.ToDateField,
+				FromDate:   reportRequest.FromDate,
+				ToDate:     reportRequest.ToDate,
 				GoLiveDate: c.envs.GoLiveDate,
 			}
-		case shared.ReportAccountTypeInvoiceAdjustments:
+		case shared.AccountsReceivableTypeInvoiceAdjustments:
 			query = &db.InvoiceAdjustments{
-				FromDate:   reportRequest.FromDateField,
-				ToDate:     reportRequest.ToDateField,
+				FromDate:   reportRequest.FromDate,
+				ToDate:     reportRequest.ToDate,
 				GoLiveDate: c.envs.GoLiveDate,
 			}
-		case shared.ReportAccountTypeBadDebtWriteOffReport:
+		case shared.AccountsReceivableTypeBadDebtWriteOff:
 			query = &db.BadDebtWriteOff{
-				FromDate:   reportRequest.FromDateField,
-				ToDate:     reportRequest.ToDateField,
+				FromDate:   reportRequest.FromDate,
+				ToDate:     reportRequest.ToDate,
 				GoLiveDate: c.envs.GoLiveDate,
 			}
-		case shared.ReportAccountTypeTotalReceiptsReport:
+		case shared.AccountsReceivableTypeTotalReceipts:
 			query = &db.Receipts{
-				FromDate: reportRequest.FromDateField,
-				ToDate:   reportRequest.ToDateField,
+				FromDate: reportRequest.FromDate,
+				ToDate:   reportRequest.ToDate,
 			}
-		case shared.ReportAccountTypeUnappliedReceipts:
+		case shared.AccountsReceivableTypeUnappliedReceipts:
 			query = &db.CustomerCredit{}
 		default:
-			return fmt.Errorf("unknown query")
+			return fmt.Errorf("unimplemented accounts receivable query: %s", reportRequest.AccountsReceivableType.Key())
 		}
+	case shared.ReportsTypeSchedule:
+		filename = fmt.Sprintf("schedule_%s_%s.csv", reportRequest.ScheduleType.Key(), requestedDate.Format("02:01:2006"))
+		reportName = reportRequest.ScheduleType.Translation()
+		switch *reportRequest.ScheduleType {
+		case shared.ScheduleTypeMOTOCardPayments,
+			shared.ScheduleTypeOnlineCardPayments,
+			shared.ScheduleTypeOPGBACSTransfer,
+			shared.ScheduleTypeSupervisionBACSTransfer,
+			shared.ScheduleTypeDirectDebitPayments:
+			query = &db.PaymentsSchedule{
+				Date:         reportRequest.TransactionDate,
+				ScheduleType: reportRequest.ScheduleType,
+			}
+		case shared.ScheduleTypeAdFeeInvoices,
+			shared.ScheduleTypeS2FeeInvoices,
+			shared.ScheduleTypeS3FeeInvoices,
+			shared.ScheduleTypeB2FeeInvoices,
+			shared.ScheduleTypeB3FeeInvoices,
+			shared.ScheduleTypeSFFeeInvoicesGeneral,
+			shared.ScheduleTypeSFFeeInvoicesMinimal,
+			shared.ScheduleTypeSEFeeInvoicesGeneral,
+			shared.ScheduleTypeSEFeeInvoicesMinimal,
+			shared.ScheduleTypeSOFeeInvoicesGeneral,
+			shared.ScheduleTypeSOFeeInvoicesMinimal:
+			query = &db.InvoicesSchedule{
+				Date:         reportRequest.TransactionDate,
+				ScheduleType: reportRequest.ScheduleType,
+			}
+		case shared.ScheduleTypeADFeeReductions,
+			shared.ScheduleTypeGeneralManualCredits,
+			shared.ScheduleTypeMinimalManualCredits,
+			shared.ScheduleTypeADWriteOffs,
+			shared.ScheduleTypeGeneralWriteOffs,
+			shared.ScheduleTypeMinimalWriteOffs:
+			query = &db.CreditsSchedule{
+				Date:         reportRequest.TransactionDate,
+				ScheduleType: reportRequest.ScheduleType,
+			}
+		default:
+			return fmt.Errorf("unimplemented schedule query: %s", reportRequest.ScheduleType.Key())
+		}
+	default:
+		return fmt.Errorf("unknown query")
 	}
 
 	file, err := c.generate(ctx, filename, query)
@@ -76,7 +122,7 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 		return err
 	}
 
-	payload, err := c.createDownloadNotifyPayload(reportRequest.Email, filename, versionId, requestedDate, accountType.Translation())
+	payload, err := c.createDownloadNotifyPayload(reportRequest.Email, filename, versionId, requestedDate, reportName)
 	if err != nil {
 		return err
 	}
