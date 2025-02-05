@@ -16,23 +16,22 @@ import (
 )
 
 func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, detail shared.FinanceAdminUploadEvent) error {
-	payload := notify.Payload{}
 	file, err := s.fileStorage.GetFile(ctx, os.Getenv("ASYNC_S3_BUCKET"), detail.Filename)
 
 	if err != nil {
-		payload = createUploadNotifyPayload(detail, fmt.Errorf("Unable to download report"), map[int]string{})
+		payload := createUploadNotifyPayload(detail, fmt.Errorf("Unable to download report"), map[int]string{})
 		return s.notify.Send(ctx, payload)
 	}
 
 	csvReader := csv.NewReader(file)
 	records, err := csvReader.ReadAll()
 	if err != nil {
-		payload = createUploadNotifyPayload(detail, fmt.Errorf("Unable to read report"), map[int]string{})
+		payload := createUploadNotifyPayload(detail, fmt.Errorf("Unable to read report"), map[int]string{})
 		return s.notify.Send(ctx, payload)
 	}
 
 	failedLines, err := s.processPayments(ctx, records, detail.UploadType, detail.UploadDate)
-	payload = createUploadNotifyPayload(detail, err, failedLines)
+	payload := createUploadNotifyPayload(detail, err, failedLines)
 
 	return s.notify.Send(ctx, payload)
 }

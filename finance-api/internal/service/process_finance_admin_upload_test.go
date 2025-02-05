@@ -41,7 +41,7 @@ func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
 	fileStorage.file = io.NopCloser(strings.NewReader("test"))
 	notifyClient := &mockNotify{}
 
-	s := NewService(seeder.Conn, nil, fileStorage, notifyClient)
+	s := NewService(seeder.Conn, nil, fileStorage, notifyClient, nil)
 
 	tests := []struct {
 		name            string

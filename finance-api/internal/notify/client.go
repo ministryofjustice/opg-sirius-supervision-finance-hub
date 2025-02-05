@@ -8,8 +8,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"net/http"
-	"os"
-	"slices"
 	"strings"
 	"time"
 )

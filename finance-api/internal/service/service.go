@@ -26,6 +26,8 @@ type FileStorage interface {
 
 type NotifyClient interface {
 	Send(ctx context.Context, payload notify.Payload) error
+}
+
 type Env struct {
 	AsyncBucket string
 }
@@ -43,7 +45,7 @@ type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-func NewService(conn *pgxpool.Pool, dispatch Dispatch, fileStorage FileStorage, notify *notify.Client, env *Env) *Service {
+func NewService(conn *pgxpool.Pool, dispatch Dispatch, fileStorage FileStorage, notify NotifyClient, env *Env) *Service {
 	return &Service{
 		store:       store.New(conn),
 		dispatch:    dispatch,
