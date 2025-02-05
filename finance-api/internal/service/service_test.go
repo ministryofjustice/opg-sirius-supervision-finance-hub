@@ -71,3 +71,7 @@ func (m *mockFileStorage) PutFile(ctx context.Context, bucketName string, fileNa
 	}
 	return nil, nil
 }
+
+func Ptr[T any](val T) *T {
+	return &val
+}
