@@ -16,54 +16,25 @@ import (
 )
 
 func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, detail shared.FinanceAdminUploadEvent) error {
+	payload := notify.Payload{}
 	file, err := s.fileStorage.GetFile(ctx, os.Getenv("ASYNC_S3_BUCKET"), detail.Filename)
 
 	if err != nil {
-		payload := createUploadNotifyPayload(detail, "Unable to download report", map[int]string{})
-		err := s.notify.Send(ctx, payload)
-		if err != nil {
-			return err
-		}
-		return nil
+		payload = createUploadNotifyPayload(detail, fmt.Errorf("Unable to download report"), map[int]string{})
+		return s.notify.Send(ctx, payload)
 	}
 
 	csvReader := csv.NewReader(file)
 	records, err := csvReader.ReadAll()
 	if err != nil {
-		payload := createUploadNotifyPayload(detail, "Unable to read report", map[int]string{})
-		err := s.notify.Send(ctx, payload)
-		if err != nil {
-			return err
-		}
-		return nil
+		payload = createUploadNotifyPayload(detail, fmt.Errorf("Unable to read report"), map[int]string{})
+		return s.notify.Send(ctx, payload)
 	}
 
 	failedLines, err := s.processPayments(ctx, records, detail.UploadType, detail.UploadDate)
+	payload = createUploadNotifyPayload(detail, err, failedLines)
 
-	if err != nil {
-		payload := createUploadNotifyPayload(detail, err.Error(), map[int]string{})
-		err := s.notify.Send(ctx, payload)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-
-	if len(failedLines) > 0 {
-		payload := createUploadNotifyPayload(detail, "", failedLines)
-		err := s.notify.Send(ctx, payload)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-
-	payload := createUploadNotifyPayload(detail, "", map[int]string{})
-	err = s.notify.Send(ctx, payload)
-	if err != nil {
-		return err
-	}
-	return nil
+	return s.notify.Send(ctx, payload)
 }
 
 func getLedgerType(uploadType string) (string, error) {
@@ -244,11 +215,11 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 	return nil
 }
 
-func createUploadNotifyPayload(detail shared.FinanceAdminUploadEvent, error string, failedLines map[int]string) notify.Payload {
+func createUploadNotifyPayload(detail shared.FinanceAdminUploadEvent, err error, failedLines map[int]string) notify.Payload {
 	var payload notify.Payload
 
 	uploadType := shared.ParseReportUploadType(detail.UploadType)
-	if error != "" {
+	if err != nil {
 		payload = notify.Payload{
 			EmailAddress: detail.EmailAddress,
 			TemplateId:   notify.ProcessingErrorTemplateId,
@@ -256,7 +227,7 @@ func createUploadNotifyPayload(detail shared.FinanceAdminUploadEvent, error stri
 				Error      string `json:"error"`
 				UploadType string `json:"upload_type"`
 			}{
-				Error:      error,
+				Error:      err.Error(),
 				UploadType: uploadType.Translation(),
 			},
 		}
