@@ -114,8 +114,11 @@ func (suite *IntegrationSuite) Test_processPayments() {
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (1, 1, 'invoice-1', 'DEMANDED', NULL, '1234');",
 		"INSERT INTO finance_client VALUES (2, 2, 'invoice-2', 'DEMANDED', NULL, '12345');",
+		"INSERT INTO finance_client VALUES (3, 3, 'invoice-3', 'DEMANDED', NULL, '123456');",
 		"INSERT INTO invoice VALUES (1, 1, 1, 'AD', 'AD11223/19', '2023-04-01', '2025-03-31', 15000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 		"INSERT INTO invoice VALUES (2, 2, 2, 'AD', 'AD11224/19', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
+		"INSERT INTO invoice VALUES (3, 3, 3, 'AD', 'AD11225/19', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
+		"INSERT INTO invoice VALUES (4, 3, 3, 'AD', 'AD11226/19', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 	)
 
 	dispatch := &mockDispatch{}
@@ -185,6 +188,31 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					-15010,
 					"UNAPPLIED",
 					0,
+				},
+			},
+			expectedFailedLines: map[int]string{},
+		},
+		{
+			name: "Underpayment with multiple invoices",
+			records: [][]string{
+				{"Ordercode", "BankDate", "Amount"},
+				{
+					"123456",
+					"2024-01-17 15:30:27",
+					"50",
+				},
+			},
+			uploadedDate:     shared.NewDate("2024-01-01"),
+			expectedClientId: 3,
+			expectedLedgerAllocations: []createdLedgerAllocation{
+				{
+					5000,
+					"MOTO CARD PAYMENT",
+					"CONFIRMED",
+					time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+					5000,
+					"ALLOCATED",
+					3,
 				},
 			},
 			expectedFailedLines: map[int]string{},

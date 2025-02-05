@@ -157,6 +157,7 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 		return nil
 	}
 
+	// TODO: Rollback if no allocation can be made?
 	ledgerId, err := tx.CreateLedgerForCourtRef(ctx, store.CreateLedgerForCourtRefParams{
 		CourtRef:  pgtype.Text{String: details.CourtRef, Valid: true},
 		Amount:    details.Amount,
@@ -197,6 +198,9 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 		}
 
 		remaining -= allocationAmount
+		if remaining <= 0 {
+			break
+		}
 	}
 
 	if remaining > 0 {
