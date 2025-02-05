@@ -2,13 +2,13 @@ package db
 
 import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"os"
 	"time"
 )
 
 type BadDebtWriteOff struct {
-	FromDate *shared.Date
-	ToDate   *shared.Date
+	FromDate   *shared.Date
+	ToDate     *shared.Date
+	GoLiveDate time.Time
 }
 
 const BadDebtWriteOffQuery = `SELECT CONCAT(p.firstname, ' ', p.surname)        "Customer Name",
@@ -18,7 +18,7 @@ const BadDebtWriteOffQuery = `SELECT CONCAT(p.firstname, ' ', p.surname)        
        cc.code                                 AS "Cost centre",
        ac.code                                  AS "Account code",
        ac.account_code_description              AS "Account code description",
-       ((la.amount / 100.0)::NUMERIC(10, 2))::varchar(255)       AS "Adjustment amount",
+       ((la.amount / 100.0)::NUMERIC(10, 2))::VARCHAR(255)       AS "Adjustment amount",
        l.datetime                              AS "Adjustment date",
        CASE
            WHEN l.type = 'CREDIT WRITE OFF' THEN CONCAT('WO', i.reference)
@@ -44,7 +44,7 @@ FROM supervision_finance.finance_client fc
          JOIN supervision_finance.account ac ON tt.account_code = ac.code
          JOIN supervision_finance.cost_centre cc ON cc.code = ac.cost_centre
 WHERE l.type IN ('CREDIT WRITE OFF', 'WRITE OFF REVERSAL')
-  AND l.datetime BETWEEN $1 AND $2;`
+  AND l.datetime::DATE BETWEEN $1 AND $2;`
 
 func (b *BadDebtWriteOff) GetHeaders() []string {
 	return []string{
@@ -67,17 +67,21 @@ func (b *BadDebtWriteOff) GetQuery() string {
 }
 
 func (b *BadDebtWriteOff) GetParams() []any {
+	var (
+		from, to time.Time
+	)
+
 	if b.FromDate == nil {
-		from := shared.NewDate(os.Getenv("FINANCE_HUB_LIVE_DATE"))
-		b.FromDate = &from
+		from = b.GoLiveDate
+	} else {
+		from = b.FromDate.Time
 	}
 
 	if b.ToDate == nil {
-		to := shared.Date{Time: time.Now()}
-		b.ToDate = &to
+		to = time.Now()
+	} else {
+		to = b.ToDate.Time
 	}
 
-	b.ToDate.Time = b.ToDate.Time.Truncate(24 * time.Hour).Add(24 * time.Hour)
-
-	return []any{b.FromDate.Time.Format("2006-01-02 15:04:05"), b.ToDate.Time.Format("2006-01-02 15:04:05")}
+	return []any{from.Format("2006-01-02"), to.Format("2006-01-02")}
 }

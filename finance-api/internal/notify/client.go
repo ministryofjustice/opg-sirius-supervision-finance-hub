@@ -9,6 +9,7 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"net/http"
 	"os"
+	"slices"
 	"strings"
 	"time"
 )
@@ -35,15 +36,32 @@ type Payload struct {
 }
 
 type Client struct {
-	http *http.Client
+	http     *http.Client
+	iss      string
+	jwtToken string
 }
 
-func NewClient() *Client {
-	return &Client{http: http.DefaultClient}
+func NewClient(apiKey string) *Client {
+	iss, jwtToken := parseNotifyApiKey(apiKey)
+	return &Client{
+		http:     http.DefaultClient,
+		iss:      iss,
+		jwtToken: jwtToken,
+	}
+}
+
+func parseNotifyApiKey(notifyApiKey string) (string, string) {
+	splitKey := strings.Split(notifyApiKey, "-")
+	if len(splitKey) != 11 {
+		return "", ""
+	}
+	iss := fmt.Sprintf("%s-%s-%s-%s-%s", splitKey[1], splitKey[2], splitKey[3], splitKey[4], splitKey[5])
+	jwtToken := fmt.Sprintf("%s-%s-%s-%s-%s", splitKey[6], splitKey[7], splitKey[8], splitKey[9], splitKey[10])
+	return iss, jwtToken
 }
 
 func (c *Client) Send(ctx context.Context, payload Payload) error {
-	signedToken, err := createSignedJwtToken()
+	signedToken, err := c.createSignedJwtToken()
 	if err != nil {
 		return err
 	}
@@ -91,25 +109,13 @@ func (c *Client) Send(ctx context.Context, payload Payload) error {
 	}
 }
 
-func parseNotifyApiKey(notifyApiKey string) (string, string) {
-	splitKey := strings.Split(notifyApiKey, "-")
-	if len(splitKey) != 11 {
-		return "", ""
-	}
-	iss := fmt.Sprintf("%s-%s-%s-%s-%s", splitKey[1], splitKey[2], splitKey[3], splitKey[4], splitKey[5])
-	jwtToken := fmt.Sprintf("%s-%s-%s-%s-%s", splitKey[6], splitKey[7], splitKey[8], splitKey[9], splitKey[10])
-	return iss, jwtToken
-}
-
-func createSignedJwtToken() (string, error) {
-	iss, jwtKey := parseNotifyApiKey(os.Getenv("OPG_NOTIFY_API_KEY"))
-
+func (c *Client) createSignedJwtToken() (string, error) {
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"iss": iss,
+		"iss": c.iss,
 		"iat": time.Now().Unix(),
 	})
 
-	signedToken, err := t.SignedString([]byte(jwtKey))
+	signedToken, err := t.SignedString([]byte(c.jwtToken))
 	if err != nil {
 		return "", err
 	}

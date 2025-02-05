@@ -119,7 +119,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 	)
 
 	dispatch := &mockDispatch{}
-	s := NewService(seeder.Conn, dispatch, nil, nil)
+	s := NewService(seeder.Conn, dispatch, nil, nil, nil)
 
 	tests := []struct {
 		name                      string

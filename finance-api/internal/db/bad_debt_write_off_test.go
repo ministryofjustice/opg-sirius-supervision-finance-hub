@@ -3,6 +3,7 @@ package db
 import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
+	"testing"
 	"time"
 )
 
@@ -99,4 +100,43 @@ func (suite *IntegrationSuite) Test_bad_debt_write_off() {
 	assert.Contains(suite.T(), results[2]["Adjustment date"], runTime.Format("2006-01-02 15:04"), "Adjustment date - client 2 write off 2")
 	assert.Equal(suite.T(), "WO"+c2i2Ref, results[2]["Txn number"], "Txn number - client 2 write off 2")
 	assert.Equal(suite.T(), "Johnny Test", results[2]["Approver"], "Approver - client 2 write off 2")
+}
+
+func Test_badDebtWriteOff_getParams(t *testing.T) {
+	today := time.Now()
+	goLiveDate := today.AddDate(-4, 0, 0)
+	toDate := shared.NewDate(today.AddDate(-1, 0, 0).Format("2006-01-02"))
+	fromDate := shared.NewDate(today.AddDate(-2, 0, 0).Format("2006-01-02"))
+
+	tests := []struct {
+		name     string
+		fromDate *shared.Date
+		toDate   *shared.Date
+		expected []any
+	}{
+		{
+			name:     "No FromDate and ToDate",
+			fromDate: nil,
+			toDate:   nil,
+			expected: []any{goLiveDate.Format("2006-01-02"), today.Format("2006-01-02")},
+		},
+		{
+			name:     "With FromDate and ToDate",
+			fromDate: &toDate,
+			toDate:   &fromDate,
+			expected: []any{toDate.Time.Format("2006-01-02"), fromDate.Time.Format("2006-01-02")},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			badDebtWriteOff := &BadDebtWriteOff{
+				FromDate:   tt.fromDate,
+				ToDate:     tt.toDate,
+				GoLiveDate: goLiveDate,
+			}
+			params := badDebtWriteOff.GetParams()
+			assert.Equal(t, tt.expected, params)
+		})
+	}
 }
