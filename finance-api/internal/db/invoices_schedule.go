@@ -23,7 +23,7 @@ const InvoicesScheduleQuery = `SELECT
     ORDER BY id DESC
     LIMIT 1
     ) sl ON $3 <> ''
-	WHERE i.raiseddate = $1 AND i.feetype = $2 AND COALESCE(sl.supervision_level, '') = $3;
+	WHERE i.created_at::DATE = $1 AND i.feetype = $2 AND COALESCE(sl.supervision_level, '') = $3;
 `
 
 func (i *InvoicesSchedule) GetHeaders() []string {
@@ -83,5 +83,5 @@ func (i *InvoicesSchedule) GetParams() []any {
 		invoiceType = shared.InvoiceTypeUnknown
 	}
 
-	return []any{i.Date.Time.Format("2006-01-02 15:04:05"), invoiceType.Key(), supervisionLevel}
+	return []any{i.Date.Time.Format("2006-01-02"), invoiceType.Key(), supervisionLevel}
 }
