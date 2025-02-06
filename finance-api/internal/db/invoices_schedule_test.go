@@ -28,6 +28,7 @@ func (suite *IntegrationSuite) Test_invoices_schedules() {
 
 	// ignored as raised date in scope but created date out of scope
 	_, _ = suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeSE, valToPtr("10.00"), yesterday.StringPtr(), nil, nil, valToPtr("MINIMAL"), suite.seeder.Today().StringPtr())
+	_, _ = suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeSE, valToPtr("10.00"), oneMonthAgo.StringPtr(), nil, nil, valToPtr("MINIMAL"), oneMonthAgo.StringPtr())
 
 	c := Client{suite.seeder.Conn}
 
