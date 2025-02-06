@@ -108,7 +108,7 @@ func (s *Seeder) CreateFeeReduction(ctx context.Context, clientId int, feeType s
 	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger SET datetime = $1, created_at = $1 WHERE fee_reduction_id = $2", createdAt, id)
 	assert.NoError(s.t, err, "failed to update ledger dates for reduction: %v", err)
 
-	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger_allocation SET datetime = $1 WHERE ledger_id = (SELECT id FROM supervision_finance.ledger WHERE fee_reduction_id = $2)", createdAt, id)
+	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger_allocation SET datetime = $1 WHERE ledger_id IN (SELECT id FROM supervision_finance.ledger WHERE fee_reduction_id = $2)", createdAt, id)
 	assert.NoError(s.t, err, "failed to update ledger allocation dates for reduction: %v", err)
 }
 
