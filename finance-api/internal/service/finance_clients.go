@@ -34,13 +34,10 @@ func (s *Service) UpdatePaymentMethod(ctx context.Context, id int, paymentMethod
 		ClientID:      int32(id),
 	})
 
-	if err != nil {
+	if err == nil {
 		return s.dispatch.PaymentMethod(ctx, event.PaymentMethod{
-			ClientID: id,
-			PaymentMethod: shared.RefData{
-				Handle: paymentMethod.Key(),
-				Label:  paymentMethod.String(),
-			},
+			ClientID:      id,
+			PaymentMethod: paymentMethod.Key(),
 		})
 	}
 	return err

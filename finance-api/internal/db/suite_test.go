@@ -19,7 +19,7 @@ type IntegrationSuite struct {
 
 type mockDispatch struct{}
 
-func (m *mockDispatch) FinanceAdminUploadProcessed(ctx context.Context, event event.FinanceAdminUploadProcessed) error {
+func (m *mockDispatch) PaymentMethod(ctx context.Context, event event.PaymentMethod) error {
 	return nil
 }
 
