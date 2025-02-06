@@ -21,6 +21,11 @@ type mockDispatch struct {
 	event any
 }
 
+func (m *mockDispatch) PaymentMethod(ctx context.Context, event event.PaymentMethod) error {
+	m.event = event
+	return nil
+}
+
 func (m *mockDispatch) CreditOnAccount(ctx context.Context, event event.CreditOnAccount) error {
 	m.event = event
 	return nil

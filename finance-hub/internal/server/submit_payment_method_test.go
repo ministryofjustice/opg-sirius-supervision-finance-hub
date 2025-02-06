@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func TestAddDirectDebitSuccess(t *testing.T) {
+func TestAddPaymentMethodSuccess(t *testing.T) {
 	form := url.Values{
 		"accountHolder": {"CLIENT"},
 		"accountName":   {"account name"},
@@ -32,7 +32,7 @@ func TestAddDirectDebitSuccess(t *testing.T) {
 
 	appVars.EnvironmentVars.Prefix = "prefix"
 
-	sut := SubmitDirectDebitHandler{ro}
+	sut := SubmitPaymentMethodHandler{ro}
 
 	err := sut.render(appVars, w, r)
 
@@ -40,7 +40,7 @@ func TestAddDirectDebitSuccess(t *testing.T) {
 	assert.Equal(t, "prefix/clients/1/invoices?success=direct-debit", w.Header().Get("HX-Redirect"))
 }
 
-func TestDirectDebit_Errors(t *testing.T) {
+func TestPaymentMethod_Errors(t *testing.T) {
 	client := mockApiClient{}
 	client.error = errors.New("this has failed")
 	ro := &mockRoute{client: client}
@@ -51,7 +51,7 @@ func TestDirectDebit_Errors(t *testing.T) {
 
 	appVars := AppVars{Path: "/path/"}
 
-	sut := SubmitFeeReductionsHandler{ro}
+	sut := SubmitPaymentMethodHandler{ro}
 	err := sut.render(appVars, w, r)
 
 	assert.Equal(t, "this has failed", err.Error())

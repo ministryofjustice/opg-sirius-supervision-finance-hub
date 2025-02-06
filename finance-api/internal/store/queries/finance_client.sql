@@ -29,3 +29,6 @@ GROUP BY fc.payment_method, b.paid, b.credit;
 
 -- name: UpdateClient :exec
 UPDATE finance_client SET court_ref = $1 WHERE client_id = $2;
+
+-- name: UpdatePaymentMethod :exec
+UPDATE finance_client SET payment_method = $1 WHERE client_id = $2;
