@@ -220,6 +220,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					5000,
 					"ALLOCATED",
 					3,
+					0,
 				},
 			},
 			expectedFailedLines: map[int]string{},
@@ -365,6 +366,14 @@ func Test_getPaymentDetails(t *testing.T) {
 			uploadType:          "PAYMENTS_MOTO_CARD",
 			index:               0,
 			failedLines:         map[int]string{},
+			expectedFailedLines: map[int]string{0: "DATE_TIME_PARSE_ERROR"},
+		},
+		{
+			name:                "Date parse error returns failed line",
+			record:              []string{"23145746", "", "200", "", "yesterday"},
+			uploadType:          "PAYMENTS_SUPERVISION_CHEQUE",
+			index:               0,
+			failedLines:         map[int]string{},
 			expectedFailedLines: map[int]string{0: "DATE_PARSE_ERROR"},
 		},
 		{
@@ -373,7 +382,7 @@ func Test_getPaymentDetails(t *testing.T) {
 			uploadType:          "PAYMENTS_MOTO_CARD",
 			index:               1,
 			failedLines:         map[int]string{0: "AMOUNT_PARSE_ERROR"},
-			expectedFailedLines: map[int]string{0: "AMOUNT_PARSE_ERROR", 1: "DATE_PARSE_ERROR"},
+			expectedFailedLines: map[int]string{0: "AMOUNT_PARSE_ERROR", 1: "DATE_TIME_PARSE_ERROR"},
 		},
 	}
 	for _, tt := range tests {
@@ -381,8 +390,9 @@ func Test_getPaymentDetails(t *testing.T) {
 			paymentDetails := getPaymentDetails(tt.record, tt.uploadType, shared.NewDate("01/01/2025"), tt.ledgerType, tt.index, &tt.failedLines)
 			assert.Equal(t, tt.expectedPaymentDetails, paymentDetails)
 			assert.Equal(t, tt.expectedFailedLines, tt.failedLines)
-    }
-  }
+		})
+	}
+}
 func Test_formatFailedLines(t *testing.T) {
 	tests := []struct {
 		name        string
