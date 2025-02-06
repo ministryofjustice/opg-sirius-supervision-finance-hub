@@ -33,7 +33,7 @@ func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, detail shared.F
 		return s.dispatch.FinanceAdminUploadProcessed(ctx, uploadProcessedEvent)
 	}
 
-	failedLines, err := s.processPayments(ctx, records, detail.UploadType, detail.UploadDate)
+	failedLines, err := s.processPayments(ctx, records, detail.UploadType, detail.UploadDate, detail.PisNumber)
 
 	if err != nil {
 		uploadProcessedEvent.Error = err.Error()
@@ -110,12 +110,26 @@ func getPaymentDetails(record []string, uploadType string, uploadDate shared.Dat
 			(*failedLines)[index] = "DATE_PARSE_ERROR"
 			return shared.PaymentDetails{}
 		}
+	case "PAYMENTS_SUPERVISION_CHEQUE":
+		courtRef = record[0]
+
+		amount, err = parseAmount(record[2])
+		if err != nil {
+			(*failedLines)[index] = "AMOUNT_PARSE_ERROR"
+			return shared.PaymentDetails{}
+		}
+
+		bankDate, err = time.Parse("02/01/2006", record[4])
+		if err != nil {
+			(*failedLines)[index] = "DATE_PARSE_ERROR"
+			return shared.PaymentDetails{}
+		}
 	}
 
 	return shared.PaymentDetails{Amount: amount, BankDate: bankDate, CourtRef: courtRef, LedgerType: ledgerType, UploadDate: uploadDate.Time}
 }
 
-func (s *Service) processPayments(ctx context.Context, records [][]string, uploadType string, uploadDate shared.Date) (map[int]string, error) {
+func (s *Service) processPayments(ctx context.Context, records [][]string, uploadType string, uploadDate shared.Date, pisNumber int) (map[int]string, error) {
 	failedLines := make(map[int]string)
 
 	ctx, cancelTx := context.WithCancel(ctx)
@@ -136,7 +150,7 @@ func (s *Service) processPayments(ctx context.Context, records [][]string, uploa
 			details := getPaymentDetails(record, uploadType, uploadDate, ledgerType, index, &failedLines)
 
 			if details != (shared.PaymentDetails{}) {
-				err := s.ProcessPaymentsUploadLine(ctx, tx, details, index, &failedLines)
+				err := s.ProcessPaymentsUploadLine(ctx, tx, details, index, &failedLines, pisNumber)
 				if err != nil {
 					return nil, err
 				}
@@ -152,7 +166,7 @@ func (s *Service) processPayments(ctx context.Context, records [][]string, uploa
 	return failedLines, nil
 }
 
-func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, details shared.PaymentDetails, index int, failedLines *map[int]string) error {
+func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, details shared.PaymentDetails, index int, failedLines *map[int]string, pisNumber int) error {
 	if details.Amount == 0 {
 		return nil
 	}
@@ -177,6 +191,7 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 		CreatedBy: pgtype.Int4{Int32: 1, Valid: true},
 		Bankdate:  pgtype.Date{Time: details.BankDate, Valid: true},
 		Datetime:  pgtype.Timestamp{Time: details.UploadDate, Valid: true},
+		PisNumber: pgtype.Int4{Int32: int32(pisNumber), Valid: true},
 	})
 
 	if err != nil {
