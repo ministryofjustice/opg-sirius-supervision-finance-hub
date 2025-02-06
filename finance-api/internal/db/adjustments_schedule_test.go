@@ -10,6 +10,7 @@ func (suite *IntegrationSuite) Test_credits_schedules() {
 	ctx := suite.ctx
 	today := suite.seeder.Today()
 	yesterday := suite.seeder.Today().Sub(0, 0, 1)
+	sixMonthsAgo := today.Sub(0, 6, 0)
 	twoYearsAgo := suite.seeder.Today().Sub(2, 0, 0)
 	courtRef1 := "12345678"
 	courtRef2 := "87654321"
@@ -31,7 +32,8 @@ func (suite *IntegrationSuite) Test_credits_schedules() {
 	// client 3
 	client3ID := suite.seeder.CreateClient(ctx, "Dani", "Debit", courtRef3, "4321")
 	suite.seeder.CreateFeeReduction(ctx, client3ID, shared.FeeReductionTypeRemission, strconv.Itoa(twoYearsAgo.Date().Year()), 3, "notes", twoYearsAgo.Date()) // fee reduction to add credit that can be debited
-	inv3Id, inv3Ref := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeAD, nil, today.Sub(0, 6, 0).StringPtr(), nil, nil, nil, nil)
+	inv3Id, inv3Ref := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeAD, nil, sixMonthsAgo.StringPtr(), nil, nil, nil, nil)
+	suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeS2, &general, sixMonthsAgo.StringPtr(), nil, nil, valToPtr("GENERAL"), nil) // ignore as not AD
 	adjustment2Id := suite.seeder.CreateAdjustment(ctx, client3ID, inv3Id, shared.AdjustmentTypeDebitMemo, 5000, "Debit added")
 	suite.seeder.ApproveAdjustment(ctx, client3ID, adjustment2Id)
 
@@ -83,6 +85,20 @@ func (suite *IntegrationSuite) Test_credits_schedules() {
 					"Invoice reference": inv3Ref,
 					"Amount":            "50.00",
 					"Created date":      today.String(),
+				},
+			},
+		},
+		{
+			name:         "filter by AD",
+			date:         shared.Date{Time: sixMonthsAgo.Date()},
+			scheduleType: shared.ScheduleTypeADFeeReductions,
+			expectedRows: 2,
+			expectedData: []map[string]string{
+				{
+					"Court reference":   courtRef3,
+					"Invoice reference": inv3Ref,
+					"Amount":            "50.00",
+					"Created date":      sixMonthsAgo.String(),
 				},
 			},
 		},
