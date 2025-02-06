@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"io"
@@ -24,50 +24,72 @@ type createdLedgerAllocation struct {
 	pisNumber        int
 }
 
+type mockNotify struct {
+	payload notify.Payload
+	err     error
+}
+
+func (n *mockNotify) Send(ctx context.Context, payload notify.Payload) error {
+	n.payload = payload
+	return n.err
+}
+
 func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
 	ctx := suite.ctx
 	seeder := suite.cm.Seeder(ctx, suite.T())
 
-	dispatch := &mockDispatch{}
 	fileStorage := &mockFileStorage{}
 	fileStorage.file = io.NopCloser(strings.NewReader("test"))
+	notifyClient := &mockNotify{}
 
-	s := NewService(seeder.Conn, dispatch, fileStorage, nil, &Env{AsyncBucket: "test"})
+	s := NewService(seeder.Conn, nil, fileStorage, notifyClient, nil)
 
 	tests := []struct {
-		name           string
-		uploadType     string
-		fileStorageErr error
-		expectedEvent  any
+		name            string
+		uploadType      string
+		fileStorageErr  error
+		expectedPayload notify.Payload
 	}{
 		{
 			name:       "Unknown report",
 			uploadType: "test",
-			expectedEvent: event.FinanceAdminUploadProcessed{
+			expectedPayload: notify.Payload{
 				EmailAddress: "test@email.com",
-				Error:        "unknown upload type",
-				UploadType:   "test",
-				Filename:     "test.csv",
+				TemplateId:   notify.ProcessingErrorTemplateId,
+				Personalisation: struct {
+					Error      string `json:"error"`
+					UploadType string `json:"upload_type"`
+				}{
+					"unknown upload type",
+					"",
+				},
 			},
 		},
 		{
 			name:           "S3 error",
+			uploadType:     "test",
 			fileStorageErr: fmt.Errorf("test"),
-			uploadType:     "PAYMENTS_MOTO_CARD",
-			expectedEvent: event.FinanceAdminUploadProcessed{
+			expectedPayload: notify.Payload{
 				EmailAddress: "test@email.com",
-				Error:        "Unable to download report",
-				UploadType:   "PAYMENTS_MOTO_CARD",
-				Filename:     "test.csv",
+				TemplateId:   notify.ProcessingErrorTemplateId,
+				Personalisation: struct {
+					Error      string `json:"error"`
+					UploadType string `json:"upload_type"`
+				}{
+					"Unable to download report",
+					"",
+				},
 			},
 		},
 		{
 			name:       "Known report",
 			uploadType: "PAYMENTS_MOTO_CARD",
-			expectedEvent: event.FinanceAdminUploadProcessed{
+			expectedPayload: notify.Payload{
 				EmailAddress: "test@email.com",
-				UploadType:   "PAYMENTS_MOTO_CARD",
-				Filename:     "test.csv",
+				TemplateId:   notify.ProcessingSuccessTemplateId,
+				Personalisation: struct {
+					UploadType string `json:"upload_type"`
+				}{"Payments - MOTO card"},
 			},
 		},
 	}
@@ -81,7 +103,7 @@ func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
 				EmailAddress: emailAddress, Filename: filename, UploadType: tt.uploadType,
 			})
 			assert.Nil(t, err)
-			assert.Equal(t, tt.expectedEvent, dispatch.event)
+			assert.Equal(t, tt.expectedPayload, notifyClient.payload)
 		})
 	}
 }
@@ -93,8 +115,11 @@ func (suite *IntegrationSuite) Test_processPayments() {
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (1, 1, 'invoice-1', 'DEMANDED', NULL, '1234');",
 		"INSERT INTO finance_client VALUES (2, 2, 'invoice-2', 'DEMANDED', NULL, '12345');",
+		"INSERT INTO finance_client VALUES (3, 3, 'invoice-3', 'DEMANDED', NULL, '123456');",
 		"INSERT INTO invoice VALUES (1, 1, 1, 'AD', 'AD11223/19', '2023-04-01', '2025-03-31', 15000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 		"INSERT INTO invoice VALUES (2, 2, 2, 'AD', 'AD11224/19', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
+		"INSERT INTO invoice VALUES (3, 3, 3, 'AD', 'AD11225/19', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
+		"INSERT INTO invoice VALUES (4, 3, 3, 'AD', 'AD11226/19', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 	)
 
 	dispatch := &mockDispatch{}
@@ -170,6 +195,31 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					"UNAPPLIED",
 					0,
 					0,
+				},
+			},
+			expectedFailedLines: map[int]string{},
+		},
+		{
+			name: "Underpayment with multiple invoices",
+			records: [][]string{
+				{"Ordercode", "BankDate", "Amount"},
+				{
+					"123456",
+					"2024-01-17 15:30:27",
+					"50",
+				},
+			},
+			uploadedDate:     shared.NewDate("2024-01-01"),
+			expectedClientId: 3,
+			expectedLedgerAllocations: []createdLedgerAllocation{
+				{
+					5000,
+					"MOTO CARD PAYMENT",
+					"CONFIRMED",
+					time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+					5000,
+					"ALLOCATED",
+					3,
 				},
 			},
 			expectedFailedLines: map[int]string{},
@@ -331,6 +381,39 @@ func Test_getPaymentDetails(t *testing.T) {
 			paymentDetails := getPaymentDetails(tt.record, tt.uploadType, shared.NewDate("01/01/2025"), tt.ledgerType, tt.index, &tt.failedLines)
 			assert.Equal(t, tt.expectedPaymentDetails, paymentDetails)
 			assert.Equal(t, tt.expectedFailedLines, tt.failedLines)
+    }
+  }
+func Test_formatFailedLines(t *testing.T) {
+	tests := []struct {
+		name        string
+		failedLines map[int]string
+		want        []string
+	}{
+		{
+			name:        "Empty",
+			failedLines: map[int]string{},
+			want:        []string(nil),
+		},
+		{
+			name: "Unsorted lines",
+			failedLines: map[int]string{
+				5: "DATE_PARSE_ERROR",
+				3: "CLIENT_NOT_FOUND",
+				8: "DUPLICATE_PAYMENT",
+				1: "DUPLICATE_PAYMENT",
+			},
+			want: []string{
+				"Line 1: Duplicate payment line",
+				"Line 3: Could not find a client with this court reference",
+				"Line 5: Unable to parse date - please use the format DD/MM/YYYY",
+				"Line 8: Duplicate payment line",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			formattedLines := formatFailedLines(tt.failedLines)
+			assert.Equal(t, tt.want, formattedLines)
 		})
 	}
 }
