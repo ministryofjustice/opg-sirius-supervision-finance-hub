@@ -18,14 +18,19 @@ const AdjustmentsScheduleQuery = `SELECT
 	    JOIN supervision_finance.ledger_allocation la ON l.id = la.ledger_id AND la.status = 'ALLOCATED'
 	    JOIN supervision_finance.finance_client fc ON fc.id = l.finance_client_id
 	    JOIN supervision_finance.invoice i ON i.id = la.invoice_id
-	LEFT JOIN LATERAL (
-    SELECT ifr.supervisionlevel AS supervision_level
-    FROM supervision_finance.invoice_fee_range ifr
-    WHERE ifr.invoice_id = i.id
-    ORDER BY id DESC
-    LIMIT 1
-    ) sl ON $3 <> ''
-	WHERE l.created_at::DATE = $1 AND l.type = ANY($2) AND COALESCE(sl.supervision_level, '') = $3;
+		LEFT JOIN LATERAL (
+			SELECT ifr.supervisionlevel AS supervision_level
+			FROM supervision_finance.invoice_fee_range ifr
+			WHERE ifr.invoice_id = i.id
+			ORDER BY id DESC
+			LIMIT 1
+		) sl ON TRUE
+	WHERE l.created_at::DATE = $1
+	  AND l.type = ANY($2)
+	  AND (
+		  ($3 = '' AND sl.supervision_level IS NULL)
+		  OR ($3 <> '' AND sl.supervision_level = $3)
+  	);
 `
 
 func (c *AdjustmentsSchedule) GetHeaders() []string {
