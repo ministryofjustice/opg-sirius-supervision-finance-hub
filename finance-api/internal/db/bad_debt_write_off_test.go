@@ -24,22 +24,22 @@ func (suite *IntegrationSuite) Test_bad_debt_write_off() {
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
 	_, _ = suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeGA, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
 	paidInvoiceID, c1i1Ref := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
-	suite.seeder.CreateAdjustment(ctx, client1ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 10000, "Written off")
+	suite.seeder.CreateAdjustment(ctx, client1ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 10000, "Written off", nil)
 
 	// one client with two written off invoices
 	client2ID := suite.seeder.CreateClient(ctx, "John", "Suite", "87654321", "4321")
 	suite.seeder.CreateOrder(ctx, client2ID, "ACTIVE")
 	paidInvoiceID, c2i1Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeAD, nil, fourYearsAgo.StringPtr(), nil, nil, nil, nil)
-	suite.seeder.CreateAdjustment(ctx, client2ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 10000, "Written off")
+	suite.seeder.CreateAdjustment(ctx, client1ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 10000, "Written off", nil)
 
 	paidInvoiceID, c2i2Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, &general, twoYearsAgo.StringPtr(), twoYearsAgo.StringPtr(), nil, nil, nil)
-	suite.seeder.CreateAdjustment(ctx, client2ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 10000, "Written off")
+	suite.seeder.CreateAdjustment(ctx, client1ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 10000, "Written off", nil)
 
 	// one client with one unapproved write off
 	client3ID := suite.seeder.CreateClient(ctx, "John", "Suite", "87654321", "4321")
 	suite.seeder.CreateOrder(ctx, client3ID, "ACTIVE")
 	paidInvoiceID, _ = suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeAD, nil, fourYearsAgo.StringPtr(), nil, nil, nil, nil)
-	suite.seeder.CreateAdjustment(ctx, client3ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 10000, "Written off")
+	suite.seeder.CreatePendingAdjustment(ctx, client1ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 10000, "Written off")
 
 	c := Client{suite.seeder.Conn}
 
@@ -92,7 +92,7 @@ func (suite *IntegrationSuite) Test_bad_debt_write_off() {
 	assert.Equal(suite.T(), "=\"0470\"", results[2]["Entity"], "Entity - client 2 write off 2")
 	assert.Equal(suite.T(), "10482009", results[2]["Cost centre"], "Cost centre - client 2 write off 2")
 	assert.Equal(suite.T(), "5356202102", results[2]["Account code"], "Account code - client 2 write off 2")
-	assert.Equal(suite.T(), "EXP - IMPAIRMENT - BAD DEBTS-Sup Fee 2 Write Off", results[2]["Account code description"], "Account code description - client 2 write off 2")
+	assert.Equal(suite.T(), "EXP - IMPAIRMENT - BAD DEBTS-Sup Fee 2 Write Off\tWrite-off", results[2]["Account code description"], "Account code description - client 2 write off 2")
 	assert.Equal(suite.T(), "320.00", results[2]["Adjustment amount"], "Adjustment amount - client 2 write off 2")
 	assert.Contains(suite.T(), results[2]["Adjustment date"], runTime.Format("2006-01-02 15:04"), "Adjustment date - client 2 write off 2")
 	assert.Equal(suite.T(), "WO"+c2i2Ref, results[2]["Txn number"], "Txn number - client 2 write off 2")
