@@ -9,21 +9,18 @@ import (
 	"net/http"
 )
 
-type SubmitDirectDebitHandler struct {
+type SubmitPaymentMethodHandler struct {
 	router
 }
 
-func (h *SubmitDirectDebitHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
+func (h *SubmitPaymentMethodHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
 	ctx := getContext(r)
 
 	var (
-		accountHolder = r.PostFormValue("accountHolder")
-		accountName   = r.PostFormValue("accountName")
-		sortCode      = r.PostFormValue("sortCode")
-		accountNumber = r.PostFormValue("accountNumber")
+		paymentMethod = r.PostFormValue("paymentMethod")
 	)
 
-	err := h.Client().SubmitDirectDebit(accountHolder, accountName, sortCode, accountNumber)
+	err := h.Client().SubmitPaymentMethod(ctx, ctx.ClientId, paymentMethod)
 
 	if err == nil {
 		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices?success=direct-debit", v.EnvironmentVars.Prefix, ctx.ClientId))
