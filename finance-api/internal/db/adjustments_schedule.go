@@ -30,7 +30,7 @@ const AdjustmentsScheduleQuery = `SELECT
 	  AND (
 		  ($3 = '' AND sl.supervision_level IS NULL)
 		  OR ($3 <> '' AND sl.supervision_level = $3)
-  	);
+  	) AND i.feetype = ANY($4);
 `
 
 func (c *AdjustmentsSchedule) GetHeaders() []string {
@@ -50,6 +50,7 @@ func (c *AdjustmentsSchedule) GetParams() []any {
 	var (
 		ledgerTypes      []string
 		supervisionLevel string
+		invoiceTypes     []string
 	)
 	switch *c.ScheduleType {
 	case shared.ScheduleTypeGeneralFeeReductions,
@@ -120,5 +121,64 @@ func (c *AdjustmentsSchedule) GetParams() []any {
 		}
 	}
 
-	return []any{c.Date.Time.Format("2006-01-02"), ledgerTypes, supervisionLevel}
+	switch *c.ScheduleType {
+	case shared.ScheduleTypeADFeeReductions,
+		shared.ScheduleTypeADManualCredits,
+		shared.ScheduleTypeADManualDebits,
+		shared.ScheduleTypeADWriteOffs,
+		shared.ScheduleTypeADWriteOffReversals:
+		invoiceTypes = []string{
+			shared.InvoiceTypeAD.Key(),
+		}
+	case shared.ScheduleTypeGeneralFeeReductions,
+		shared.ScheduleTypeGeneralManualCredits,
+		shared.ScheduleTypeGeneralManualDebits,
+		shared.ScheduleTypeGeneralWriteOffs,
+		shared.ScheduleTypeGeneralWriteOffReversals:
+		invoiceTypes = []string{
+			shared.InvoiceTypeS2.Key(),
+			shared.InvoiceTypeB2.Key(),
+			shared.InvoiceTypeSF.Key(),
+			shared.InvoiceTypeSE.Key(),
+			shared.InvoiceTypeSO.Key(),
+		}
+	case shared.ScheduleTypeMinimalFeeReductions,
+		shared.ScheduleTypeMinimalManualCredits,
+		shared.ScheduleTypeMinimalManualDebits,
+		shared.ScheduleTypeMinimalWriteOffs,
+		shared.ScheduleTypeMinimalWriteOffReversals:
+		invoiceTypes = []string{
+			shared.InvoiceTypeS3.Key(),
+			shared.InvoiceTypeB3.Key(),
+			shared.InvoiceTypeSF.Key(),
+			shared.InvoiceTypeSE.Key(),
+			shared.InvoiceTypeSO.Key(),
+		}
+	case shared.ScheduleTypeGAFeeReductions,
+		shared.ScheduleTypeGAManualCredits,
+		shared.ScheduleTypeGAManualDebits,
+		shared.ScheduleTypeGAWriteOffs,
+		shared.ScheduleTypeGAWriteOffReversals:
+		invoiceTypes = []string{
+			shared.InvoiceTypeGA.Key(),
+		}
+	case shared.ScheduleTypeGSFeeReductions,
+		shared.ScheduleTypeGSManualCredits,
+		shared.ScheduleTypeGSManualDebits,
+		shared.ScheduleTypeGSWriteOffs,
+		shared.ScheduleTypeGSWriteOffReversals:
+		invoiceTypes = []string{
+			shared.InvoiceTypeGS.Key(),
+		}
+	case shared.ScheduleTypeGTFeeReductions,
+		shared.ScheduleTypeGTManualCredits,
+		shared.ScheduleTypeGTManualDebits,
+		shared.ScheduleTypeGTWriteOffs,
+		shared.ScheduleTypeGTWriteOffReversals:
+		invoiceTypes = []string{
+			shared.InvoiceTypeGT.Key(),
+		}
+	}
+
+	return []any{c.Date.Time.Format("2006-01-02"), ledgerTypes, supervisionLevel, invoiceTypes}
 }
