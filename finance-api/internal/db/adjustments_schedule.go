@@ -56,12 +56,14 @@ func (c *AdjustmentsSchedule) GetParams() []any {
 	case shared.ScheduleTypeGeneralFeeReductions,
 		shared.ScheduleTypeGeneralManualCredits,
 		shared.ScheduleTypeGeneralManualDebits,
-		shared.ScheduleTypeGeneralWriteOffs:
+		shared.ScheduleTypeGeneralWriteOffs,
+		shared.ScheduleTypeGeneralWriteOffReversals:
 		supervisionLevel = "GENERAL"
 	case shared.ScheduleTypeMinimalFeeReductions,
 		shared.ScheduleTypeMinimalManualCredits,
 		shared.ScheduleTypeMinimalManualDebits,
-		shared.ScheduleTypeMinimalWriteOffs:
+		shared.ScheduleTypeMinimalWriteOffs,
+		shared.ScheduleTypeMinimalWriteOffReversals:
 		supervisionLevel = "MINIMAL"
 	default:
 		supervisionLevel = ""
