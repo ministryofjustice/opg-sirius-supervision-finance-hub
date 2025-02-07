@@ -16,7 +16,7 @@ func (s *Server) checkDownload(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	exists := s.fileStorage.FileExists(ctx, s.reportsBucket, downloadRequest.Key, downloadRequest.VersionId)
+	exists := s.fileStorage.FileExists(ctx, s.envs.ReportsBucket, downloadRequest.Key, downloadRequest.VersionId)
 	if !exists {
 		return apierror.NotFound{}
 	}
