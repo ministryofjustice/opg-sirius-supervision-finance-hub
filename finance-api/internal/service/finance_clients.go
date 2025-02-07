@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
@@ -25,4 +26,22 @@ func (s *Service) UpdateClient(ctx context.Context, id int, courtRef string) err
 		CourtRef: pgtype.Text{String: courtRef, Valid: true},
 		ClientID: int32(id),
 	})
+}
+
+func (s *Service) UpdatePaymentMethod(ctx context.Context, id int, paymentMethod shared.PaymentMethod) error {
+	err := s.store.UpdatePaymentMethod(ctx, store.UpdatePaymentMethodParams{
+		PaymentMethod: paymentMethod.Key(),
+		ClientID:      int32(id),
+	})
+
+	if err != nil {
+		return s.dispatch.PaymentMethod(ctx, event.PaymentMethod{
+			ClientID: id,
+			PaymentMethod: shared.RefData{
+				Handle: paymentMethod.Key(),
+				Label:  paymentMethod.String(),
+			},
+		})
+	}
+	return err
 }
