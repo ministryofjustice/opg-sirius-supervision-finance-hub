@@ -67,7 +67,7 @@ func (s *Seeder) CreateInvoice(ctx context.Context, clientID int, invoiceType sh
 	return id, reference
 }
 
-func (s *Seeder) CreateAdjustment(ctx context.Context, clientID int, invoiceId int, adjustmentType shared.AdjustmentType, amount int, notes string) int {
+func (s *Seeder) CreateAdjustment(ctx context.Context, clientID int, invoiceId int, adjustmentType shared.AdjustmentType, amount int, notes string) {
 	adjustment := shared.AddInvoiceAdjustmentRequest{
 		AdjustmentType:  adjustmentType,
 		AdjustmentNotes: notes,
@@ -80,7 +80,9 @@ func (s *Seeder) CreateAdjustment(ctx context.Context, clientID int, invoiceId i
 	var id int
 	err = s.Conn.QueryRow(ctx, "SELECT id FROM supervision_finance.invoice_adjustment ORDER BY id DESC LIMIT 1").Scan(&id)
 	assert.NoError(s.t, err, "failed find created adjustment: %v", err)
-	return id
+
+	err = s.Service.UpdatePendingInvoiceAdjustment(ctx, clientID, id, shared.AdjustmentStatusApproved)
+	assert.NoError(s.t, err, "failed to approve adjustment: %v", err)
 }
 
 func (s *Seeder) ApproveAdjustment(ctx context.Context, clientID int, adjustmentId int) {
