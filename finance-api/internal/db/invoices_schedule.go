@@ -50,6 +50,23 @@ func (i *InvoicesSchedule) GetParams() []any {
 		supervisionLevel string
 	)
 	switch *i.ScheduleType {
+	case shared.ScheduleTypeS2FeeInvoices,
+		shared.ScheduleTypeB2FeeInvoices,
+		shared.ScheduleTypeSFFeeInvoicesGeneral,
+		shared.ScheduleTypeSEFeeInvoicesGeneral,
+		shared.ScheduleTypeSOFeeInvoicesGeneral:
+		supervisionLevel = "GENERAL"
+	case shared.ScheduleTypeS3FeeInvoices,
+		shared.ScheduleTypeB3FeeInvoices,
+		shared.ScheduleTypeSFFeeInvoicesMinimal,
+		shared.ScheduleTypeSEFeeInvoicesMinimal,
+		shared.ScheduleTypeSOFeeInvoicesMinimal:
+		supervisionLevel = "MINIMAL"
+	default:
+		supervisionLevel = ""
+	}
+
+	switch *i.ScheduleType {
 	case shared.ScheduleTypeAdFeeInvoices:
 		invoiceType = shared.InvoiceTypeAD
 	case shared.ScheduleTypeS2FeeInvoices:
@@ -62,22 +79,16 @@ func (i *InvoicesSchedule) GetParams() []any {
 		invoiceType = shared.InvoiceTypeB3
 	case shared.ScheduleTypeSFFeeInvoicesGeneral:
 		invoiceType = shared.InvoiceTypeSF
-		supervisionLevel = "GENERAL"
 	case shared.ScheduleTypeSFFeeInvoicesMinimal:
 		invoiceType = shared.InvoiceTypeSF
-		supervisionLevel = "MINIMAL"
 	case shared.ScheduleTypeSEFeeInvoicesGeneral:
 		invoiceType = shared.InvoiceTypeSE
-		supervisionLevel = "GENERAL"
 	case shared.ScheduleTypeSEFeeInvoicesMinimal:
 		invoiceType = shared.InvoiceTypeSE
-		supervisionLevel = "MINIMAL"
 	case shared.ScheduleTypeSOFeeInvoicesGeneral:
 		invoiceType = shared.InvoiceTypeSO
-		supervisionLevel = "GENERAL"
 	case shared.ScheduleTypeSOFeeInvoicesMinimal:
 		invoiceType = shared.InvoiceTypeSO
-		supervisionLevel = "MINIMAL"
 	case shared.ScheduleTypeGAFeeInvoices:
 		invoiceType = shared.InvoiceTypeGA
 	case shared.ScheduleTypeGSFeeInvoices:
