@@ -48,7 +48,7 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	client4ref := "11111111"
 	client4ID := suite.seeder.CreateClient(ctx, "Sally", "Supervision", client4ref, "1111")
 	suite.seeder.CreateOrder(ctx, client4ID, "ACTIVE")
-	_, c4i1Ref := suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeS3, &minimal, yesterday.StringPtr(), nil, nil, nil)
+	_, c4i1Ref := suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeS3, &minimal, yesterday.StringPtr(), nil, nil, nil, nil)
 	suite.seeder.CreatePayment(ctx, 1000, yesterday.Date(), client4ref, shared.TransactionTypeSupervisionBACSPayment, yesterday.Date())
 
 	// client with:
@@ -56,7 +56,7 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	client5ref := "22222222"
 	client5ID := suite.seeder.CreateClient(ctx, "Owen", "OPG", client5ref, "2222")
 	suite.seeder.CreateOrder(ctx, client5ID, "ACTIVE")
-	_, c5i1Ref := suite.seeder.CreateInvoice(ctx, client5ID, shared.InvoiceTypeS2, &general, today.StringPtr(), nil, nil, nil)
+	_, c5i1Ref := suite.seeder.CreateInvoice(ctx, client5ID, shared.InvoiceTypeS2, &general, today.StringPtr(), nil, nil, nil, nil)
 	suite.seeder.CreatePayment(ctx, 32000, today.Date(), client5ref, shared.TransactionTypeOPGBACSPayment, today.Date())
 
 	c := Client{suite.seeder.Conn}
