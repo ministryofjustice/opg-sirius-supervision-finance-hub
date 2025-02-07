@@ -78,7 +78,7 @@ func (suite *IntegrationSuite) TestService_AddInvoiceAdjustment() {
 			}
 
 			var pendingAdjustment store.InvoiceAdjustment
-			q := seeder.QueryRow(ctx, "SELECT id, finance_client_id, invoice_id, raised_date, adjustment_type, Amount, notes, status FROM invoice_adjustment LIMIT 1")
+			q := seeder.QueryRow(ctx, "SELECT id, finance_client_id, invoice_id, raised_date, adjustment_type, amount, notes, status FROM invoice_adjustment LIMIT 1")
 			_ = q.Scan(
 				&pendingAdjustment.ID,
 				&pendingAdjustment.FinanceClientID,
