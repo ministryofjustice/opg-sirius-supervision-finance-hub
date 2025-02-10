@@ -1,3 +1,4 @@
 # Temp ignore Vulns in Goose Package until this month's release
 CVE-2024-45336
 CVE-2024-45341
+CVE-2025-22866
