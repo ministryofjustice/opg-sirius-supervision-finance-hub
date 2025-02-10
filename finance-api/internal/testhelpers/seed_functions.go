@@ -126,7 +126,7 @@ func (s *Seeder) CreatePayment(ctx context.Context, amount int, date time.Time, 
 
 	failedLines := make(map[int]string)
 
-	err = s.Service.ProcessPaymentsUploadLine(ctx, tx, payment, 0, &failedLines)
+	err = s.Service.ProcessPaymentsUploadLine(ctx, tx, payment, 0, &failedLines, 0)
 	assert.NoError(s.t, err, "payment not processed: %v", err)
 	assert.Len(s.t, failedLines, 0, "payment failed: %v", failedLines)
 
