@@ -16,6 +16,8 @@ import (
 )
 
 func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, detail shared.FinanceAdminUploadEvent) error {
+	var pisNumber shared.Nillable[int]
+
 	file, err := s.fileStorage.GetFile(ctx, os.Getenv("ASYNC_S3_BUCKET"), detail.Filename)
 
 	if err != nil {
@@ -30,7 +32,11 @@ func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, detail shared.F
 		return s.notify.Send(ctx, payload)
 	}
 
-	failedLines, err := s.processPayments(ctx, records, detail.UploadType, detail.UploadDate, detail.PisNumber)
+	if detail.PisNumber != 0 {
+		pisNumber = shared.Nillable[int]{Value: detail.PisNumber, Valid: true}
+	}
+
+	failedLines, err := s.processPayments(ctx, records, detail.UploadType, detail.UploadDate, pisNumber)
 	payload := createUploadNotifyPayload(detail, err, failedLines)
 
 	return s.notify.Send(ctx, payload)
