@@ -11,7 +11,8 @@ type ReceiptTransactions struct {
 const ReceiptTransactionsQuery = `WITH transaction_totals AS (SELECT tt.line_description                 AS line_description,
                                   TO_CHAR(l.created_at, 'DD/MM/YYYY') AS transaction_date,
                                   tt.account_code                     AS account_code,
-                                  SUM(la.amount)                      AS amount
+                                  SUM(la.amount)                      AS amount,
+								  l.type AS ledger_type
                            FROM supervision_finance.ledger_allocation la
                                     JOIN supervision_finance.ledger l ON l.id = la.ledger_id
                                     JOIN supervision_finance.invoice i ON i.id = la.invoice_id
@@ -27,27 +28,27 @@ const ReceiptTransactionsQuery = `WITH transaction_totals AS (SELECT tt.line_des
                                                                              ELSE COALESCE(sl.supervision_level, '') END
                                                                             ) = tt.supervision_level
                            WHERE tt.is_receipt = true AND TO_CHAR(l.created_at, 'YYYY-MM-DD') = $1
-                           GROUP BY tt.line_description, TO_CHAR(l.created_at, 'DD/MM/YYYY'), tt.account_code)
+                           GROUP BY tt.line_description, TO_CHAR(l.created_at, 'DD/MM/YYYY'), tt.account_code, l.type)
 , partitioned_data AS (SELECT *,
                                 ROW_NUMBER() OVER (PARTITION BY account_code ORDER BY account_code) AS row_num
-                         FROM transaction_totals)
+                         FROM transaction_totals CROSS JOIN (select 1 as n union all select 2) n)
 SELECT '0470'                                              AS "Entity",
+	  '99999999'                                       AS "Cost Centre",
       CASE
           WHEN row_num % 2 = 1 THEN
-              '10482009'
-          ELSE
-              '99999999'
-          END                                             AS "Cost Centre",
-      CASE
-          WHEN row_num % 2 = 1 THEN
-              account_code
+              CASE WHEN ledger_type = 'SUPERVISION BACS PAYMENT' THEN '1841102088' ELSE '1841102050' END
           ELSE
               '1816100000'
           END                                             AS "Account",
       '0000000'                                           AS "Objective",
       '00000000'                                          AS "Analysis",
       '0000'                                              AS "Intercompany",
-      '00000000'                                          AS "Spare",
+      CASE
+          WHEN row_num % 2 = 1 THEN
+              '00000'
+          ELSE
+              '000000'
+          END                                          AS "Spare",
       CASE
           WHEN row_num % 2 = 1 THEN
               ''
@@ -61,7 +62,7 @@ SELECT '0470'                                              AS "Entity",
               ''
           END                                             AS "Credit",
       line_description || ' [' || transaction_date || ']' AS "Line description"
-FROM partitioned_data
+FROM partitioned_data 
 ORDER BY CASE
             WHEN line_description LIKE 'MOTO card%' THEN 1
             WHEN line_description LIKE 'Online card%' THEN 2

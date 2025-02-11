@@ -13,7 +13,8 @@ const NonReceiptTransactionsQuery = `WITH transaction_totals AS (
         tt.line_description AS line_description,
         TO_CHAR(l.created_at, 'DD/MM/YYYY') AS transaction_date,
         tt.account_code AS account_code,
-        SUM(la.amount) AS amount
+        SUM(la.amount) AS amount,
+		i.feetype
     FROM
         supervision_finance.ledger_allocation la
         JOIN supervision_finance.ledger l ON l.id = la.ledger_id
@@ -29,20 +30,21 @@ const NonReceiptTransactionsQuery = `WITH transaction_totals AS (
                   ON l.type = tt.ledger_type AND sl.supervision_level = tt.supervision_level
     WHERE tt.is_receipt = false AND TO_CHAR(l.created_at, 'YYYY-MM-DD') = $1
     GROUP BY
-        tt.line_description, TO_CHAR(l.created_at, 'DD/MM/YYYY'), tt.account_code
+        tt.line_description, TO_CHAR(l.created_at, 'DD/MM/YYYY'), tt.account_code, i.feetype
 ),
 partitioned_data AS (
     SELECT
         *,
         ROW_NUMBER() OVER (PARTITION BY account_code ORDER BY account_code) AS row_num
     FROM
-        transaction_totals
+        transaction_totals 
+	CROSS JOIN (select 1 as n union all select 2) n
 )
 SELECT
     '0470' AS "Entity",
     CASE
         WHEN row_num % 2 = 1 THEN
-            '10482009'
+            CASE WHEN feetype IN ('GA', 'GS', 'GT') THEN '10486000' ELSE '10482009' END
         ELSE
             '99999999'
         END AS "Cost Centre",
