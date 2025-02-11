@@ -21,6 +21,7 @@ type createdLedgerAllocation struct {
 	allocationAmount int
 	allocationStatus string
 	invoiceId        int
+	pisNumber        int
 }
 
 type mockNotify struct {
@@ -128,6 +129,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 		name                      string
 		records                   [][]string
 		uploadedDate              shared.Date
+		pisNumber                 int
 		expectedClientId          int
 		expectedLedgerAllocations []createdLedgerAllocation
 		expectedFailedLines       map[int]string
@@ -144,6 +146,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 				},
 			},
 			uploadedDate:     shared.NewDate("2024-01-01"),
+			pisNumber:        12,
 			expectedClientId: 1,
 			expectedLedgerAllocations: []createdLedgerAllocation{
 				{
@@ -154,6 +157,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					10000,
 					"ALLOCATED",
 					1,
+					12,
 				},
 			},
 			expectedFailedLines: map[int]string{},
@@ -169,6 +173,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 				},
 			},
 			uploadedDate:     shared.NewDate("2024-01-01"),
+			pisNumber:        150,
 			expectedClientId: 2,
 			expectedLedgerAllocations: []createdLedgerAllocation{
 				{
@@ -179,6 +184,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					10000,
 					"ALLOCATED",
 					2,
+					150,
 				},
 				{
 					25010,
@@ -187,6 +193,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 					-15010,
 					"UNAPPLIED",
+					0,
 					0,
 				},
 			},
@@ -213,6 +220,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					5000,
 					"ALLOCATED",
 					3,
+					0,
 				},
 			},
 			expectedFailedLines: map[int]string{},
@@ -221,21 +229,21 @@ func (suite *IntegrationSuite) Test_processPayments() {
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
 			var failedLines map[int]string
-			failedLines, err := s.processPayments(context.Background(), tt.records, "PAYMENTS_MOTO_CARD", tt.uploadedDate)
+			failedLines, err := s.processPayments(context.Background(), tt.records, "PAYMENTS_MOTO_CARD", tt.uploadedDate, shared.Nillable[int]{Value: tt.pisNumber, Valid: true})
 			assert.Equal(t, tt.want, err)
 			assert.Equal(t, tt.expectedFailedLines, failedLines)
 
 			var createdLedgerAllocations []createdLedgerAllocation
 
 			rows, _ := seeder.Query(suite.ctx,
-				`SELECT l.amount, l.type, l.status, l.datetime, la.amount, la.status, la.invoice_id
+				`SELECT l.amount, l.type, l.status, l.datetime, la.amount, la.status, la.invoice_id, l.pis_number
 						FROM ledger l
 						LEFT JOIN ledger_allocation la ON l.id = la.ledger_id
 					WHERE l.finance_client_id = $1`, tt.expectedClientId)
 
 			for rows.Next() {
 				var r createdLedgerAllocation
-				_ = rows.Scan(&r.ledgerAmount, &r.ledgerType, &r.ledgerStatus, &r.datetime, &r.allocationAmount, &r.allocationStatus, &r.invoiceId)
+				_ = rows.Scan(&r.ledgerAmount, &r.ledgerType, &r.ledgerStatus, &r.datetime, &r.allocationAmount, &r.allocationStatus, &r.invoiceId, &r.pisNumber)
 				createdLedgerAllocations = append(createdLedgerAllocations, r)
 			}
 
@@ -291,6 +299,100 @@ func Test_parseAmount(t *testing.T) {
 	}
 }
 
+func Test_getPaymentDetails(t *testing.T) {
+	tests := []struct {
+		name                   string
+		record                 []string
+		uploadType             string
+		ledgerType             string
+		index                  int
+		failedLines            map[int]string
+		expectedPaymentDetails shared.PaymentDetails
+		expectedFailedLines    map[int]string
+	}{
+		{
+			name:       "Moto card",
+			record:     []string{"12345678", "2025-01-02 12:04:32", "320.00"},
+			uploadType: "PAYMENTS_MOTO_CARD",
+			ledgerType: "Payments Moto Card",
+			index:      0,
+			expectedPaymentDetails: shared.PaymentDetails{
+				Amount:     32000,
+				BankDate:   time.Date(2025, time.January, 2, 12, 4, 32, 0, time.UTC),
+				CourtRef:   "12345678",
+				LedgerType: "Payments Moto Card",
+				UploadDate: time.Date(2025, time.January, 1, 0, 0, 0, 0, time.UTC),
+			},
+		},
+		{
+			name:       "BACS",
+			record:     []string{"", "", "", "", "01/06/2024", "", "20.50", "", "", "", "87654321"},
+			uploadType: "PAYMENTS_SUPERVISION_BACS",
+			ledgerType: "Payments Supervision BACS",
+			index:      0,
+			expectedPaymentDetails: shared.PaymentDetails{
+				Amount:     2050,
+				BankDate:   time.Date(2024, time.June, 1, 0, 0, 0, 0, time.UTC),
+				CourtRef:   "87654321",
+				LedgerType: "Payments Supervision BACS",
+				UploadDate: time.Date(2025, time.January, 1, 0, 0, 0, 0, time.UTC),
+			},
+		},
+		{
+			name:       "CHEQUE",
+			record:     []string{"23145746", "", "541.02", "", "31/10/2024"},
+			uploadType: "PAYMENTS_SUPERVISION_CHEQUE",
+			ledgerType: "Payments Supervision Cheque",
+			index:      0,
+			expectedPaymentDetails: shared.PaymentDetails{
+				Amount:     54102,
+				BankDate:   time.Date(2024, time.October, 31, 0, 0, 0, 0, time.UTC),
+				CourtRef:   "23145746",
+				LedgerType: "Payments Supervision Cheque",
+				UploadDate: time.Date(2025, time.January, 1, 0, 0, 0, 0, time.UTC),
+			},
+		},
+		{
+			name:                "Amount parse error returns failed line",
+			record:              []string{"23145746", "2024-01-01 00:00:00", "five hundred pounds!!!"},
+			uploadType:          "PAYMENTS_MOTO_CARD",
+			index:               0,
+			failedLines:         map[int]string{},
+			expectedFailedLines: map[int]string{0: "AMOUNT_PARSE_ERROR"},
+		},
+		{
+			name:                "Date time parse error returns failed line",
+			record:              []string{"23145746", "yesterday", "200"},
+			uploadType:          "PAYMENTS_MOTO_CARD",
+			index:               0,
+			failedLines:         map[int]string{},
+			expectedFailedLines: map[int]string{0: "DATE_TIME_PARSE_ERROR"},
+		},
+		{
+			name:                "Date parse error returns failed line",
+			record:              []string{"23145746", "", "200", "", "yesterday"},
+			uploadType:          "PAYMENTS_SUPERVISION_CHEQUE",
+			index:               0,
+			failedLines:         map[int]string{},
+			expectedFailedLines: map[int]string{0: "DATE_PARSE_ERROR"},
+		},
+		{
+			name:                "Failed line adds to existing failed lines",
+			record:              []string{"23145746", "yesterday", "200"},
+			uploadType:          "PAYMENTS_MOTO_CARD",
+			index:               1,
+			failedLines:         map[int]string{0: "AMOUNT_PARSE_ERROR"},
+			expectedFailedLines: map[int]string{0: "AMOUNT_PARSE_ERROR", 1: "DATE_TIME_PARSE_ERROR"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			paymentDetails := getPaymentDetails(tt.record, tt.uploadType, shared.NewDate("01/01/2025"), tt.ledgerType, tt.index, &tt.failedLines)
+			assert.Equal(t, tt.expectedPaymentDetails, paymentDetails)
+			assert.Equal(t, tt.expectedFailedLines, tt.failedLines)
+		})
+	}
+}
 func Test_formatFailedLines(t *testing.T) {
 	tests := []struct {
 		name        string
