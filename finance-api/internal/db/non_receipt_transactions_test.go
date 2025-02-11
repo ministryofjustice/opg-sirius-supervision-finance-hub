@@ -52,7 +52,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 	assert.Equal(suite.T(), "0000", results[0]["Intercompany"], "Intercompany - AD Remissions & Exemptions")
 	assert.Equal(suite.T(), "00000000", results[0]["Spare"], "Spare - AD Remissions & Exemptions")
 	assert.Equal(suite.T(), "", results[0]["Debit"], "Debit - AD Remissions & Exemptions")
-	assert.Equal(suite.T(), "10000", results[0]["Credit"], "Credit - AD Remissions & Exemptions")
+	assert.Equal(suite.T(), "100.00", results[0]["Credit"], "Credit - AD Remissions & Exemptions")
 	assert.Equal(suite.T(), fmt.Sprintf("AD Rem/Exem [%s]", yesterday.Date().Format("02/01/2006")), results[0]["Line description"], "Line description - AD Remissions & Exemptions")
 
 	// AD Remissions & Exemptions -- reverse
@@ -63,7 +63,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 	assert.Equal(suite.T(), "00000000", results[1]["Analysis"], "Analysis - AD Remissions & Exemptions 2")
 	assert.Equal(suite.T(), "0000", results[1]["Intercompany"], "Intercompany - AD Remissions & Exemptions 2")
 	assert.Equal(suite.T(), "00000000", results[1]["Spare"], "Spare - AD Remissions & Exemptions 2")
-	assert.Equal(suite.T(), "10000", results[1]["Debit"], "Debit - AD Remissions & Exemptions 2")
+	assert.Equal(suite.T(), "100.00", results[1]["Debit"], "Debit - AD Remissions & Exemptions 2")
 	assert.Equal(suite.T(), "", results[1]["Credit"], "Credit - AD Remissions & Exemptions 2")
 	assert.Equal(suite.T(), fmt.Sprintf("AD Rem/Exem [%s]", yesterday.Date().Format("02/01/2006")), results[1]["Line description"], "Line description - AD Remissions & Exemptions 2")
 
@@ -75,7 +75,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 	assert.Equal(suite.T(), "0000", results[2]["Intercompany"], "Intercompany - S2 Remissions & Exemptions")
 	assert.Equal(suite.T(), "00000000", results[2]["Spare"], "Spare - S2 Remissions & Exemptions")
 	assert.Equal(suite.T(), "", results[2]["Debit"], "Debit - S2 Remissions & Exemptions")
-	assert.Equal(suite.T(), "32000", results[2]["Credit"], "Credit - S2 Remissions & Exemptions")
+	assert.Equal(suite.T(), "320.00", results[2]["Credit"], "Credit - S2 Remissions & Exemptions")
 	assert.Equal(suite.T(), fmt.Sprintf("Gen Rem/Exem [%s]", yesterday.Date().Format("02/01/2006")), results[2]["Line description"], "Line description - S2 Remissions & Exemptions")
 
 	assert.Equal(suite.T(), "0470", results[3]["Entity"], "Entity - S2 Remissions & Exemptions 2")
@@ -85,7 +85,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 	assert.Equal(suite.T(), "00000000", results[3]["Analysis"], "Analysis - S2 Remissions & Exemptions 2")
 	assert.Equal(suite.T(), "0000", results[3]["Intercompany"], "Intercompany - S2 Remissions & Exemptions 2")
 	assert.Equal(suite.T(), "00000000", results[3]["Spare"], "Spare - S2 Remissions & Exemptions 2")
-	assert.Equal(suite.T(), "32000", results[3]["Debit"], "Debit - S2 Remissions & Exemptions 2")
+	assert.Equal(suite.T(), "320.00", results[3]["Debit"], "Debit - S2 Remissions & Exemptions 2")
 	assert.Equal(suite.T(), "", results[3]["Credit"], "Credit - S2 Remissions & Exemptions 2")
 	assert.Equal(suite.T(), fmt.Sprintf("Gen Rem/Exem [%s]", yesterday.Date().Format("02/01/2006")), results[3]["Line description"], "Line description - S2 Remissions & Exemptions 2")
 }

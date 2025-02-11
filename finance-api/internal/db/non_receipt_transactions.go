@@ -13,7 +13,7 @@ const NonReceiptTransactionsQuery = `WITH transaction_totals AS (
         tt.line_description AS line_description,
         TO_CHAR(l.created_at, 'DD/MM/YYYY') AS transaction_date,
         tt.account_code AS account_code,
-        SUM(la.amount) AS amount,
+        ((SUM(la.amount) / 100.0)::NUMERIC(10, 2))::VARCHAR(255) AS amount,
 		i.feetype
     FROM
         supervision_finance.ledger_allocation la
@@ -62,11 +62,11 @@ SELECT
         WHEN row_num % 2 = 1 THEN
             ''
         ELSE
-            amount::VARCHAR
+            amount
         END AS "Debit",
     CASE
         WHEN row_num % 2 = 1 THEN
-            amount::VARCHAR
+            amount
         ELSE
             ''
         END AS "Credit",

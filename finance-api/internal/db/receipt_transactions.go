@@ -11,7 +11,7 @@ type ReceiptTransactions struct {
 const ReceiptTransactionsQuery = `WITH transaction_totals AS (SELECT tt.line_description                 AS line_description,
                                   TO_CHAR(l.created_at, 'DD/MM/YYYY') AS transaction_date,
                                   tt.account_code                     AS account_code,
-                                  SUM(la.amount)                      AS amount,
+                                  ((SUM(la.amount) / 100.0)::NUMERIC(10, 2))::VARCHAR(255)                  AS amount,
 								  l.type AS ledger_type
                            FROM supervision_finance.ledger_allocation la
                                     JOIN supervision_finance.ledger l ON l.id = la.ledger_id
@@ -45,21 +45,21 @@ SELECT '0470'                                              AS "Entity",
       '0000'                                              AS "Intercompany",
       CASE
           WHEN row_num % 2 = 1 THEN
-              '00000'
-          ELSE
               '000000'
+          ELSE
+              '00000'
           END                                          AS "Spare",
       CASE
           WHEN row_num % 2 = 1 THEN
-              ''
+              amount
           ELSE
-              amount::VARCHAR
+              ''
           END                                             AS "Debit",
       CASE
           WHEN row_num % 2 = 1 THEN
-              amount::VARCHAR
-          ELSE
               ''
+          ELSE
+              amount
           END                                             AS "Credit",
       line_description || ' [' || transaction_date || ']' AS "Line description"
 FROM partitioned_data 
