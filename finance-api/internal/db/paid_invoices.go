@@ -36,8 +36,8 @@ SELECT CONCAT(p.firstname, ' ', p.surname)                                      
            ELSE CONCAT(tt.fee_type, i.reference) END                                                           AS "Txn number",
        COALESCE(tt.description, l.type)                                                                        AS "Txn description",
        ((i.amount / 100.0)::NUMERIC(10, 2))::VARCHAR(255)                                                                      AS "Original amount",
-       l.confirmeddate                                                                                         AS "Received date",
-       l.datetime                                                                                              AS "Sirius upload date",
+       COALESCE(TO_CHAR(l.bankdate, 'YYYY-MM-DD'), '')                                                                           AS "Received date",
+       TO_CHAR(l.datetime, 'YYYY-MM-DD')                                                                                             AS "Sirius upload date",
        CASE
            WHEN l.type IN (
                            'BACS TRANSFER', 'CARD PAYMENT',
@@ -56,7 +56,7 @@ SELECT CONCAT(p.firstname, ' ', p.surname)                                      
        CASE
            WHEN l.type IN ('DEBIT MEMO', 'UNKNOWN DEBIT') THEN ((la.amount / 100.0)::NUMERIC(10, 2))::VARCHAR(255)
            ELSE '0' END                                                                                          AS "Adjustment amount",
-       COALESCE(ia.notes, fr.notes)                                                                            AS "Memo line description"
+       COALESCE(ia.notes, fr.notes, '')                                                                            AS "Memo line description"
 FROM paid_invoices pa
          JOIN supervision_finance.invoice i ON pa.id = i.id
          JOIN supervision_finance.ledger_allocation la ON pa.id = la.invoice_id
@@ -73,14 +73,17 @@ FROM paid_invoices pa
     LIMIT 1
     ) sl ON TRUE
          LEFT JOIN supervision_finance.transaction_type tt ON
-    CASE
-        WHEN l.type = 'BACS TRANSFER' THEN
-            CASE WHEN l.bankaccount = 'BACS' THEN 'SUPERVISION BACS PAYMENT' ELSE 'OPG BACS PAYMENT' END
-        ELSE l.type
-        END = tt.ledger_type
-        AND CASE WHEN i.feetype = 'AD' THEN 'AD' ELSE sl.supervision_level END = tt.supervision_level
-         LEFT JOIN supervision_finance.account a ON tt.account_code = a.code
-         LEFT JOIN supervision_finance.cost_centre cc ON cc.code = a.cost_centre
+			CASE WHEN l.type = 'BACS TRANSFER' THEN
+					CASE WHEN l.bankaccount = 'BACS' THEN 'SUPERVISION BACS PAYMENT' ELSE 'OPG BACS PAYMENT' END
+				ELSE l.type
+			END = tt.ledger_type
+		AND 
+			CASE WHEN l.type IN ('BACS TRANSFER', 'CARD PAYMENT', 'DIRECT DEBIT PAYMENT', 'ONLINE CARD PAYMENT', 'MOTO CARD PAYMENT', 'SUPERVISION BACS PAYMENT', 'OPG BACS PAYMENT', 'CHEQUE PAYMENT') 
+					THEN '' 
+				ELSE CASE WHEN i.feetype = 'AD' THEN 'AD' ELSE sl.supervision_level END 
+			END = tt.supervision_level
+	 	LEFT JOIN supervision_finance.account a ON tt.account_code = a.code
+	 	LEFT JOIN supervision_finance.cost_centre cc ON cc.code = a.cost_centre
 WHERE la.status IN ('ALLOCATED', 'REAPPLIED')
   AND l.type NOT IN ('CREDIT WRITE OFF', 'WRITE OFF REVERSAL');`
 
