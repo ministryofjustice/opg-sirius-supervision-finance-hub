@@ -117,7 +117,7 @@ func getPaymentDetails(record []string, uploadType string, uploadDate shared.Dat
 	return shared.PaymentDetails{Amount: amount, BankDate: bankDate, CourtRef: courtRef, LedgerType: ledgerType, UploadDate: uploadDate.Time}
 }
 
-func (s *Service) processPayments(ctx context.Context, records [][]string, uploadType string, uploadDate shared.Date, pisNumber int) (map[int]string, error) {
+func (s *Service) processPayments(ctx context.Context, records [][]string, uploadType string, uploadDate shared.Date, pisNumber shared.Nillable[int]) (map[int]string, error) {
 	failedLines := make(map[int]string)
 
 	ctx, cancelTx := context.WithCancel(ctx)
@@ -154,7 +154,7 @@ func (s *Service) processPayments(ctx context.Context, records [][]string, uploa
 	return failedLines, nil
 }
 
-func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, details shared.PaymentDetails, index int, failedLines *map[int]string, pisNumber int) error {
+func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, details shared.PaymentDetails, index int, failedLines *map[int]string, pisNumber shared.Nillable[int]) error {
 	if details.Amount == 0 {
 		return nil
 	}
@@ -180,7 +180,7 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 		CreatedBy: pgtype.Int4{Int32: 1, Valid: true},
 		Bankdate:  pgtype.Date{Time: details.BankDate, Valid: true},
 		Datetime:  pgtype.Timestamp{Time: details.UploadDate, Valid: true},
-		PisNumber: pgtype.Int4{Int32: int32(pisNumber), Valid: true},
+		PisNumber: pgtype.Int4{Int32: int32(pisNumber.Value), Valid: pisNumber.Valid},
 	})
 
 	if err != nil {

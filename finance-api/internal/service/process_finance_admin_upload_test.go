@@ -229,7 +229,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
 			var failedLines map[int]string
-			failedLines, err := s.processPayments(context.Background(), tt.records, "PAYMENTS_MOTO_CARD", tt.uploadedDate, tt.pisNumber)
+			failedLines, err := s.processPayments(context.Background(), tt.records, "PAYMENTS_MOTO_CARD", tt.uploadedDate, shared.Nillable[int]{Value: tt.pisNumber, Valid: true})
 			assert.Equal(t, tt.want, err)
 			assert.Equal(t, tt.expectedFailedLines, failedLines)
 
