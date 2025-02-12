@@ -28,6 +28,7 @@ type Service interface {
 	ReapplyCredit(ctx context.Context, clientID int32) error
 	UpdateClient(ctx context.Context, clientID int, courtRef string) error
 	ProcessFinanceAdminUpload(ctx context.Context, detail shared.FinanceAdminUploadEvent) error
+	UpdatePaymentMethod(ctx context.Context, clientID int, paymentMethod shared.PaymentMethod) error
 }
 
 type FileStorage interface {
@@ -79,6 +80,7 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 	handleFunc("PUT /clients/{clientId}/invoice-adjustments/{adjustmentId}", s.updatePendingInvoiceAdjustment)
 	handleFunc("POST /clients/{clientId}/fee-reductions", s.addFeeReduction)
 	handleFunc("PUT /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", s.cancelFeeReduction)
+	handleFunc("PUT /clients/{clientId}/payment-method", s.updatePaymentMethod)
 
 	handleFunc("GET /download", s.download)
 	handleFunc("HEAD /download", s.checkDownload)
