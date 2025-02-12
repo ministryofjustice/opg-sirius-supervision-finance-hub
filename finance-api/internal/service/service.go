@@ -17,7 +17,7 @@ type TX interface {
 
 type Dispatch interface {
 	CreditOnAccount(ctx context.Context, event event.CreditOnAccount) error
-	PaymentMethod(ctx context.Context, event event.PaymentMethod) error
+	PaymentMethodChanged(ctx context.Context, event event.PaymentMethod) error
 }
 
 type FileStorage interface {

@@ -10,6 +10,6 @@ type PaymentMethod struct {
 	PaymentMethod shared.PaymentMethod `json:"paymentMethod"`
 }
 
-func (c *Client) PaymentMethod(ctx context.Context, event PaymentMethod) error {
+func (c *Client) PaymentMethodChanged(ctx context.Context, event PaymentMethod) error {
 	return c.send(ctx, "payment-method-changed", event)
 }
