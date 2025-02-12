@@ -31,7 +31,7 @@ func TestServer_getInvoiceAdjustments(t *testing.T) {
 	}
 
 	mock := &mockService{invoiceAdjustments: ia}
-	server := NewServer(mock, nil, "", nil, nil)
+	server := NewServer(mock, nil, nil, nil)
 	_ = server.getInvoiceAdjustments(w, req)
 
 	res := w.Result()
@@ -52,7 +52,7 @@ func TestServer_getInvoiceAdjustments_returns_an_empty_array(t *testing.T) {
 	ia := &shared.InvoiceAdjustments{}
 
 	mock := &mockService{invoiceAdjustments: ia}
-	server := NewServer(mock, nil, "", nil, nil)
+	server := NewServer(mock, nil, nil, nil)
 	_ = server.getInvoiceAdjustments(w, req)
 
 	res := w.Result()
@@ -71,7 +71,7 @@ func TestServer_getInvoiceAdjustments_error(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	mock := &mockService{err: pgx.ErrTooManyRows}
-	server := NewServer(mock, nil, "", nil, nil)
+	server := NewServer(mock, nil, nil, nil)
 	err := server.getInvoiceAdjustments(w, req)
 
 	assert.Error(t, err)

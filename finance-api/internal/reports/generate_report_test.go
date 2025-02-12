@@ -88,8 +88,8 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				FromDateField:     &fromDate,
 			},
 			expectedQuery: &db.PaidInvoices{FromDate: &fromDate, ToDate: &toDate},
-    },
-    {
+		},
+		{
 			name: "Invoice Adjustments",
 			reportRequest: shared.ReportRequest{
 				ReportType:        "AccountsReceivable",
@@ -116,6 +116,14 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				FromDateField:     &fromDate,
 			},
 			expectedQuery: &db.Receipts{FromDate: &fromDate, ToDate: &toDate},
+		},
+		{
+			name: "Fee Accrual",
+			reportRequest: shared.ReportRequest{
+				ReportType:        "AccountsReceivable",
+				ReportAccountType: "FeeAccrual",
+			},
+			expectedQuery: nil,
 		},
 		{
 			name: "Unknown",
@@ -182,6 +190,7 @@ func TestCreateDownloadNotifyPayload(t *testing.T) {
 	downloadRequest := shared.DownloadRequest{
 		Key:       "test.csv",
 		VersionId: "1",
+		Bucket:    "test",
 	}
 	uid, _ := downloadRequest.Encode()
 	requestedDate, _ := time.Parse("2006-01-02 15:04:05", "2024-01-01 13:37:00")

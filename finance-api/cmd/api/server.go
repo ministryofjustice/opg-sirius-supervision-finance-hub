@@ -32,6 +32,7 @@ type Service interface {
 
 type FileStorage interface {
 	GetFileByVersion(ctx context.Context, bucketName string, filename string, versionID string) (*s3.GetObjectOutput, error)
+	GetFile(ctx context.Context, bucketName string, filename string) (*s3.GetObjectOutput, error)
 	FileExists(ctx context.Context, bucketName string, filename string, versionID string) bool
 }
 
@@ -40,20 +41,18 @@ type Reports interface {
 }
 
 type Server struct {
-	service       Service
-	reports       Reports
-	reportsBucket string
-	fileStorage   FileStorage
-	validator     *validation.Validate
+	service     Service
+	reports     Reports
+	fileStorage FileStorage
+	validator   *validation.Validate
 }
 
-func NewServer(service Service, reports Reports, reportsBucket string, fileStorage FileStorage, validator *validation.Validate) *Server {
+func NewServer(service Service, reports Reports, fileStorage FileStorage, validator *validation.Validate) *Server {
 	return &Server{
-		service:       service,
-		reports:       reports,
-		reportsBucket: reportsBucket,
-		fileStorage:   fileStorage,
-		validator:     validator,
+		service:     service,
+		reports:     reports,
+		fileStorage: fileStorage,
+		validator:   validator,
 	}
 }
 

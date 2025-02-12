@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
@@ -38,7 +39,7 @@ func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
 	seeder := suite.cm.Seeder(ctx, suite.T())
 
 	fileStorage := &mockFileStorage{}
-	fileStorage.file = io.NopCloser(strings.NewReader("test"))
+	fileStorage.file = &s3.GetObjectOutput{Body: io.NopCloser(strings.NewReader("test"))}
 	notifyClient := &mockNotify{}
 
 	s := NewService(seeder.Conn, nil, fileStorage, notifyClient, nil)

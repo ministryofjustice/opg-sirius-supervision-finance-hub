@@ -11,6 +11,35 @@ import (
 
 const reportRequestedTemplateId = "bade69e4-0eb1-4896-a709-bd8f8371a629"
 
+func (c *Client) createDownloadFeeAccrualNotifyPayload(emailAddress string, requestedDate time.Time) (notify.Payload, error) {
+	filename := "Fee_Accrual.csv"
+
+	downloadRequest := shared.DownloadRequest{
+		Key:    filename,                   //Create download request with no version ID to get latest
+		Bucket: c.envs.LegacyReportsBucket, // Change to legacy finance bucket!
+	}
+
+	uid, err := downloadRequest.Encode()
+	if err != nil {
+		return notify.Payload{}, err
+	}
+
+	downloadLink := fmt.Sprintf("%s/download?uid=%s", c.envs.FinanceAdminURL, uid)
+
+	payload := notify.Payload{
+		EmailAddress: emailAddress,
+		TemplateId:   reportRequestedTemplateId,
+		Personalisation: reportRequestedNotifyPersonalisation{
+			downloadLink,
+			"Fee Accrual",
+			requestedDate.Format("2006-01-02"),
+			requestedDate.Format("2006-01-02 15:04:05"),
+		},
+	}
+
+	return payload, nil
+}
+
 func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) error {
 	var query db.ReportQuery
 	var err error
@@ -53,6 +82,15 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 			}
 		case shared.ReportAccountTypeUnappliedReceipts:
 			query = &db.CustomerCredit{}
+		case shared.ReportAccountTypeFeeAccrual:
+			payload, err := c.createDownloadFeeAccrualNotifyPayload(reportRequest.Email, requestedDate)
+			if err != nil {
+				return err
+			}
+
+			fmt.Println(payload.Personalisation)
+
+			return c.notify.Send(ctx, payload)
 		default:
 			return fmt.Errorf("unknown query")
 		}
@@ -104,6 +142,7 @@ func (c *Client) createDownloadNotifyPayload(emailAddress string, filename strin
 	downloadRequest := shared.DownloadRequest{
 		Key:       filename,
 		VersionId: *versionId,
+		Bucket:    c.envs.ReportsBucket,
 	}
 
 	uid, err := downloadRequest.Encode()
