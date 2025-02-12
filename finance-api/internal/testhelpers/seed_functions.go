@@ -35,7 +35,7 @@ func (s *Seeder) CreateTestAssignee(ctx context.Context) {
 	assert.NoError(s.t, err, "failed to create test assignee: %v", err)
 }
 
-func (s *Seeder) CreateInvoice(ctx context.Context, clientID int, invoiceType shared.InvoiceType, amount *string, raisedDate *string, startDate *string, endDate *string, supervisionLevel *string) (int, string) {
+func (s *Seeder) CreateInvoice(ctx context.Context, clientID int, invoiceType shared.InvoiceType, amount *string, raisedDate *string, startDate *string, endDate *string, supervisionLevel *string, createdDate *string) (int, string) {
 	invoice := shared.AddManualInvoice{
 		InvoiceType:      invoiceType,
 		Amount:           shared.TransformNillableInt(amount),
@@ -58,6 +58,11 @@ func (s *Seeder) CreateInvoice(ctx context.Context, clientID int, invoiceType sh
 
 	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger_allocation SET datetime = $1 WHERE invoice_id = $2", raisedDate, id)
 	assert.NoError(s.t, err, "failed to update ledger allocation dates for reduction: %v", err)
+
+	if createdDate != nil {
+		_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.invoice SET created_at = $2 WHERE id = $1", id, &createdDate)
+		assert.NoError(s.t, err, "failed to update created date: %v", err)
+	}
 
 	return id, reference
 }
