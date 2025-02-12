@@ -49,7 +49,7 @@ func TestUpdatePaymentMethodReturns500Error(t *testing.T) {
 	err := client.SubmitPaymentMethod(getContext(nil), 1, "DEMANDED")
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
-		URL:    svr.URL + "/clients/1",
+		URL:    svr.URL + "/clients/1/payment-method",
 		Method: http.MethodPut,
 	}, err)
 }

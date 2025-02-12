@@ -16,7 +16,7 @@ func TestServer_updatePaymentMethod(t *testing.T) {
 	var b bytes.Buffer
 
 	_ = json.NewEncoder(&b).Encode(shared.UpdatePaymentMethod{PaymentMethod: shared.PaymentMethodDemanded})
-	req := httptest.NewRequest(http.MethodPut, "/clients/1", &b)
+	req := httptest.NewRequest(http.MethodPut, "/clients/1/payment-method", &b)
 	req.SetPathValue("clientId", "1")
 	w := httptest.NewRecorder()
 
@@ -39,7 +39,7 @@ func TestServer_updatePaymentMethod500Error(t *testing.T) {
 	var b bytes.Buffer
 
 	_ = json.NewEncoder(&b).Encode(shared.UpdatePaymentMethod{PaymentMethod: shared.PaymentMethodUnknown})
-	req := httptest.NewRequest(http.MethodPut, "/clients/1", &b)
+	req := httptest.NewRequest(http.MethodPut, "/clients/1/payment-method", &b)
 	req.SetPathValue("clientId", "1")
 	w := httptest.NewRecorder()
 

@@ -37,7 +37,7 @@ func TestAddPaymentMethodSuccess(t *testing.T) {
 	err := sut.render(appVars, w, r)
 
 	assert.Nil(t, err)
-	assert.Equal(t, "prefix/clients/1/invoices?success=direct-debit", w.Header().Get("HX-Redirect"))
+	assert.Equal(t, "prefix/clients/1/invoices?success=payment-method", w.Header().Get("HX-Redirect"))
 }
 
 func TestPaymentMethod_Errors(t *testing.T) {

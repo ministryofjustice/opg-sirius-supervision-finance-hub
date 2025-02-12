@@ -23,7 +23,7 @@ func (h *SubmitPaymentMethodHandler) render(v AppVars, w http.ResponseWriter, r 
 	err := h.Client().SubmitPaymentMethod(ctx, ctx.ClientId, paymentMethod)
 
 	if err == nil {
-		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices?success=direct-debit", v.EnvironmentVars.Prefix, ctx.ClientId))
+		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices?success=payment-method", v.EnvironmentVars.Prefix, ctx.ClientId))
 	} else {
 		var (
 			valErr apierror.ValidationError

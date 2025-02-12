@@ -19,7 +19,7 @@ func (c *ApiClient) SubmitPaymentMethod(ctx Context, clientId int, paymentMethod
 		return err
 	}
 
-	url := fmt.Sprintf("/clients/%d", clientId)
+	url := fmt.Sprintf("/clients/%d/payment-method", clientId)
 	req, err := c.newBackendRequest(ctx, http.MethodPut, url, &body)
 
 	if err != nil {
