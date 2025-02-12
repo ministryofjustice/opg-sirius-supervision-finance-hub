@@ -67,3 +67,17 @@ func (q *Queries) UpdateClient(ctx context.Context, arg UpdateClientParams) erro
 	_, err := q.db.Exec(ctx, updateClient, arg.CourtRef, arg.ClientID)
 	return err
 }
+
+const updatePaymentMethod = `-- name: UpdatePaymentMethod :exec
+UPDATE finance_client SET payment_method = $1 WHERE client_id = $2
+`
+
+type UpdatePaymentMethodParams struct {
+	PaymentMethod string
+	ClientID      int32
+}
+
+func (q *Queries) UpdatePaymentMethod(ctx context.Context, arg UpdatePaymentMethodParams) error {
+	_, err := q.db.Exec(ctx, updatePaymentMethod, arg.PaymentMethod, arg.ClientID)
+	return err
+}
