@@ -53,15 +53,11 @@ func NewClient(ctx context.Context, region string, iamRole string, endpoint stri
 	}, nil
 }
 
-func (c *Client) GetFile(ctx context.Context, bucketName string, fileName string) (io.ReadCloser, error) {
-	output, err := c.s3.GetObject(ctx, &s3.GetObjectInput{
+func (c *Client) GetFile(ctx context.Context, bucketName string, fileName string) (*s3.GetObjectOutput, error) {
+	return c.s3.GetObject(ctx, &s3.GetObjectInput{
 		Key:    &fileName,
 		Bucket: &bucketName,
 	})
-	if err != nil {
-		return nil, err
-	}
-	return output.Body, nil
 }
 
 func (c *Client) GetFileByVersion(ctx context.Context, bucketName string, filename string, versionID string) (*s3.GetObjectOutput, error) {
