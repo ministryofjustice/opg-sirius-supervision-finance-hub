@@ -158,6 +158,7 @@ type Ledger struct {
 	Line        pgtype.Int4
 	CreatedAt   pgtype.Timestamp
 	CreatedBy   pgtype.Int4
+	PisNumber   pgtype.Int4
 }
 
 type LedgerAllocation struct {
