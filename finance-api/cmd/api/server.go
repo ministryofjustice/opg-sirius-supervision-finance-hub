@@ -80,7 +80,7 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 	handleFunc("PUT /clients/{clientId}/invoice-adjustments/{adjustmentId}", s.updatePendingInvoiceAdjustment)
 	handleFunc("POST /clients/{clientId}/fee-reductions", s.addFeeReduction)
 	handleFunc("PUT /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", s.cancelFeeReduction)
-	handleFunc("PUT /clients/{clientId}", s.updatePaymentMethod)
+	handleFunc("PUT /clients/{clientId}/payment-method", s.updatePaymentMethod)
 
 	handleFunc("GET /download", s.download)
 	handleFunc("HEAD /download", s.checkDownload)

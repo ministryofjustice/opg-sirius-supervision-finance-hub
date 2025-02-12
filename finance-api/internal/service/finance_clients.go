@@ -37,7 +37,7 @@ func (s *Service) UpdatePaymentMethod(ctx context.Context, id int, paymentMethod
 	if err == nil {
 		return s.dispatch.PaymentMethod(ctx, event.PaymentMethod{
 			ClientID:      id,
-			PaymentMethod: paymentMethod.Key(),
+			PaymentMethod: paymentMethod,
 		})
 	}
 	return err
