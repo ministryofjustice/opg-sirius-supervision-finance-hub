@@ -21,8 +21,7 @@ func (suite *IntegrationSuite) Test_invoice_adjustments() {
 	_, _ = suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeGA, nil, today.StringPtr(), nil, nil, nil, nil)
 	invoiceId, client1Invoice2Ref := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, today.StringPtr(), nil, nil, nil, nil)
 	suite.seeder.AddFeeRanges(ctx, invoiceId, []testhelpers.FeeRange{{FromDate: today.Date(), ToDate: today.Date(), SupervisionLevel: "AD", Amount: 0}})
-	creditMemoID := suite.seeder.CreateAdjustment(ctx, client1ID, invoiceId, shared.AdjustmentTypeCreditMemo, 10000, "£100 credit")
-	suite.seeder.ApproveAdjustment(ctx, client1ID, creditMemoID)
+	suite.seeder.CreateAdjustment(ctx, client1ID, invoiceId, shared.AdjustmentTypeCreditMemo, 10000, "£100 credit", nil)
 
 	// one client with two orders and a remission:
 	client2ID := suite.seeder.CreateClient(ctx, "Barry", "Giggle", "87654321", "4321")
