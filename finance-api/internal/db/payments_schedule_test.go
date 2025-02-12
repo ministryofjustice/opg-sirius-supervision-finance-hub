@@ -17,19 +17,19 @@ func (suite *IntegrationSuite) Test_payments_schedules() {
 
 	// client 1
 	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", courtRef1, "1234")
-	_, inv1Ref := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeS2, &general, oneMonthAgo.StringPtr(), nil, nil, nil)
+	_, inv1Ref := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeS2, &general, oneMonthAgo.StringPtr(), nil, nil, nil, nil)
 	suite.seeder.CreatePayment(ctx, 10000, yesterday.Date(), courtRef1, shared.TransactionTypeOPGBACSPayment, yesterday.Date())
 	suite.seeder.CreatePayment(ctx, 11011, today.Date(), courtRef1, shared.TransactionTypeOPGBACSPayment, yesterday.Date())
 
 	// client 2
 	client2ID := suite.seeder.CreateClient(ctx, "Alan", "Intelligence", courtRef2, "1234")
-	_, inv2Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, &general, oneMonthAgo.StringPtr(), nil, nil, nil)
+	_, inv2Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, &general, oneMonthAgo.StringPtr(), nil, nil, nil, nil)
 	suite.seeder.CreatePayment(ctx, 12022, today.Date(), courtRef2, shared.TransactionTypeOPGBACSPayment, today.Date())
 	suite.seeder.CreatePayment(ctx, 13033, today.Date(), courtRef2, shared.TransactionTypeMotoCardPayment, today.Date())
 
 	// client 3
 	client3ID := suite.seeder.CreateClient(ctx, "C", "Lient", courtRef3, "1234")
-	_, inv3Ref := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeAD, nil, oneMonthAgo.StringPtr(), nil, nil, nil)
+	_, inv3Ref := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeAD, nil, oneMonthAgo.StringPtr(), nil, nil, nil, nil)
 	suite.seeder.CreatePayment(ctx, 12000, today.Date(), courtRef3, shared.TransactionTypeDirectDebitPayment, today.Date())
 
 	c := Client{suite.seeder.Conn}

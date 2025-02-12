@@ -28,10 +28,9 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234")
 	suite.seeder.CreateDeputy(ctx, client1ID, "Suzie", "Deputy", "LAY")
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
-	unpaidInvoiceID, c1i1Ref := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeGA, nil, twoMonthsAgo.StringPtr(), nil, nil, nil)
-	paidInvoiceID, _ := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil)
-	writeOffID := suite.seeder.CreateAdjustment(ctx, client1ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 10000, "Written off")
-	suite.seeder.ApproveAdjustment(ctx, client1ID, writeOffID)
+	unpaidInvoiceID, c1i1Ref := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeGA, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
+	paidInvoiceID, _ := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
+	suite.seeder.CreateAdjustment(ctx, client1ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 10000, "Written off", nil)
 	// ignore these as legacy data with APPROVED ledger status
 	suite.seeder.SeedData(
 		fmt.Sprintf("INSERT INTO supervision_finance.ledger VALUES (99, 'ignore-me', '2022-04-11T08:36:40+00:00', '', 99999, '', 'CREDIT REMISSION', 'APPROVED', %d, NULL, NULL, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 65);", client1ID),
@@ -47,8 +46,8 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	suite.seeder.CreateDeputy(ctx, client2ID, "Jane", "Deputy", "PRO")
 	suite.seeder.CreateOrder(ctx, client2ID, "CLOSED")
 	suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeRemission, strconv.Itoa(fiveYearsAgo.Date().Year()), 2, "A reduction", fiveYearsAgo.Date())
-	_, c2i1Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeAD, nil, fourYearsAgo.StringPtr(), nil, nil, nil)
-	_, c2i2Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, &general, twoYearsAgo.StringPtr(), twoYearsAgo.StringPtr(), nil, nil)
+	_, c2i1Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeAD, nil, fourYearsAgo.StringPtr(), nil, nil, nil, nil)
+	_, c2i2Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, &general, twoYearsAgo.StringPtr(), twoYearsAgo.StringPtr(), nil, nil, nil)
 
 	// one client with:
 	// split invoice
@@ -57,7 +56,7 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	suite.seeder.CreateDeputy(ctx, client3ID, "Frank", "Deputy", "LAY")
 	suite.seeder.CreateOrder(ctx, client3ID, "ACTIVE")
 	suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeRemission, strconv.Itoa(twoYearsAgo.Date().Year()), 2, "A reduction", twoYearsAgo.Date())
-	c3i1ID, c3i1Ref := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeS2, &i3amount, oneYearAgo.StringPtr(), oneYearAgo.StringPtr(), nil, nil)
+	c3i1ID, c3i1Ref := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeS2, &i3amount, oneYearAgo.StringPtr(), oneYearAgo.StringPtr(), nil, nil, nil)
 	suite.seeder.AddFeeRanges(ctx, c3i1ID, []testhelpers.FeeRange{
 		{FromDate: oneYearAgo.Date(), ToDate: oneYearAgo.Add(0, 6, 0).Date(), SupervisionLevel: "GENERAL", Amount: 16000},
 		{FromDate: oneYearAgo.Add(0, 6, 0).Date(), ToDate: oneYearAgo.Add(0, 11, 0).Date(), SupervisionLevel: "GENERAL", Amount: 1000},
@@ -65,9 +64,9 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 
 	// excluded clients as out of range
 	excluded1ID := suite.seeder.CreateClient(ctx, "Too", "Early", "99999999", "9999")
-	suite.seeder.CreateInvoice(ctx, excluded1ID, shared.InvoiceTypeAD, nil, sixYearsAgo.StringPtr(), nil, nil, nil)
+	suite.seeder.CreateInvoice(ctx, excluded1ID, shared.InvoiceTypeAD, nil, sixYearsAgo.StringPtr(), nil, nil, nil, nil)
 	excluded2ID := suite.seeder.CreateClient(ctx, "Too", "Early", "99999999", "9999")
-	suite.seeder.CreateInvoice(ctx, excluded2ID, shared.InvoiceTypeAD, nil, today.StringPtr(), nil, nil, nil)
+	suite.seeder.CreateInvoice(ctx, excluded2ID, shared.InvoiceTypeAD, nil, today.StringPtr(), nil, nil, nil, nil)
 
 	c := Client{suite.seeder.Conn}
 

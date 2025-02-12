@@ -60,7 +60,7 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 			return fmt.Errorf("unimplemented accounts receivable query: %s", reportRequest.AccountsReceivableType.Key())
 		}
 	case shared.ReportsTypeSchedule:
-		filename = fmt.Sprintf("schedule_%s_%s.csv", reportRequest.ScheduleType.Key(), requestedDate.Format("02:01:2006"))
+		filename = fmt.Sprintf("schedule_%s_%s.csv", reportRequest.ScheduleType.Key(), reportRequest.TransactionDate.Time.Format("02:01:2006"))
 		reportName = reportRequest.ScheduleType.Translation()
 		switch *reportRequest.ScheduleType {
 		case shared.ScheduleTypeMOTOCardPayments,
@@ -69,6 +69,58 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 			shared.ScheduleTypeSupervisionBACSTransfer,
 			shared.ScheduleTypeDirectDebitPayments:
 			query = &db.PaymentsSchedule{
+				Date:         reportRequest.TransactionDate,
+				ScheduleType: reportRequest.ScheduleType,
+			}
+		case shared.ScheduleTypeAdFeeInvoices,
+			shared.ScheduleTypeS2FeeInvoices,
+			shared.ScheduleTypeS3FeeInvoices,
+			shared.ScheduleTypeB2FeeInvoices,
+			shared.ScheduleTypeB3FeeInvoices,
+			shared.ScheduleTypeSFFeeInvoicesGeneral,
+			shared.ScheduleTypeSFFeeInvoicesMinimal,
+			shared.ScheduleTypeSEFeeInvoicesGeneral,
+			shared.ScheduleTypeSEFeeInvoicesMinimal,
+			shared.ScheduleTypeSOFeeInvoicesGeneral,
+			shared.ScheduleTypeSOFeeInvoicesMinimal,
+			shared.ScheduleTypeGAFeeInvoices,
+			shared.ScheduleTypeGSFeeInvoices,
+			shared.ScheduleTypeGTFeeInvoices:
+			query = &db.InvoicesSchedule{
+				Date:         reportRequest.TransactionDate,
+				ScheduleType: reportRequest.ScheduleType,
+			}
+		case shared.ScheduleTypeADFeeReductions,
+			shared.ScheduleTypeGeneralFeeReductions,
+			shared.ScheduleTypeMinimalFeeReductions,
+			shared.ScheduleTypeGAFeeReductions,
+			shared.ScheduleTypeGSFeeReductions,
+			shared.ScheduleTypeGTFeeReductions,
+			shared.ScheduleTypeADManualCredits,
+			shared.ScheduleTypeGeneralManualCredits,
+			shared.ScheduleTypeMinimalManualCredits,
+			shared.ScheduleTypeGAManualCredits,
+			shared.ScheduleTypeGSManualCredits,
+			shared.ScheduleTypeGTManualCredits,
+			shared.ScheduleTypeADManualDebits,
+			shared.ScheduleTypeGeneralManualDebits,
+			shared.ScheduleTypeMinimalManualDebits,
+			shared.ScheduleTypeGAManualDebits,
+			shared.ScheduleTypeGSManualDebits,
+			shared.ScheduleTypeGTManualDebits,
+			shared.ScheduleTypeADWriteOffs,
+			shared.ScheduleTypeGeneralWriteOffs,
+			shared.ScheduleTypeMinimalWriteOffs,
+			shared.ScheduleTypeGAWriteOffs,
+			shared.ScheduleTypeGSWriteOffs,
+			shared.ScheduleTypeGTWriteOffs,
+			shared.ScheduleTypeADWriteOffReversals,
+			shared.ScheduleTypeGeneralWriteOffReversals,
+			shared.ScheduleTypeMinimalWriteOffReversals,
+			shared.ScheduleTypeGAWriteOffReversals,
+			shared.ScheduleTypeGSWriteOffReversals,
+			shared.ScheduleTypeGTWriteOffReversals:
+			query = &db.AdjustmentsSchedule{
 				Date:         reportRequest.TransactionDate,
 				ScheduleType: reportRequest.ScheduleType,
 			}

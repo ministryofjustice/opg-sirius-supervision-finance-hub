@@ -57,7 +57,7 @@ func toPtr[T any](val T) *T {
 
 func TestGenerateAndUploadReport(t *testing.T) {
 	toDate := shared.NewDate("2024-01-01")
-	fromDate := shared.NewDate("2024-10-01")
+	fromDate := shared.NewDate("2024-10-10")
 
 	tests := []struct {
 		name             string
@@ -158,6 +158,45 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			},
 			expectedFilename: "schedule_OnlineCardPayments_01:01:2024.csv",
 		},
+		{
+			name: "SE Invoice schedule",
+			reportRequest: shared.ReportRequest{
+				ReportType:      shared.ReportsTypeSchedule,
+				ScheduleType:    toPtr(shared.ScheduleTypeSEFeeInvoicesGeneral),
+				TransactionDate: &toDate,
+			},
+			expectedQuery: &db.InvoicesSchedule{
+				Date:         &toDate,
+				ScheduleType: toPtr(shared.ScheduleTypeSEFeeInvoicesGeneral),
+			},
+			expectedFilename: "schedule_SEFeeInvoicesGeneral_01:01:2024.csv",
+		},
+		{
+			name: "AD Fee Reduction adjustments schedule",
+			reportRequest: shared.ReportRequest{
+				ReportType:      shared.ReportsTypeSchedule,
+				ScheduleType:    toPtr(shared.ScheduleTypeADFeeReductions),
+				TransactionDate: &toDate,
+			},
+			expectedQuery: &db.AdjustmentsSchedule{
+				Date:         &toDate,
+				ScheduleType: toPtr(shared.ScheduleTypeADFeeReductions),
+			},
+			expectedFilename: "schedule_ADFeeReductions_01:01:2024.csv",
+		},
+		{
+			name: "Minimal debit adjustments schedule",
+			reportRequest: shared.ReportRequest{
+				ReportType:      shared.ReportsTypeSchedule,
+				ScheduleType:    toPtr(shared.ScheduleTypeMinimalManualDebits),
+				TransactionDate: &fromDate,
+			},
+			expectedQuery: &db.AdjustmentsSchedule{
+				Date:         &fromDate,
+				ScheduleType: toPtr(shared.ScheduleTypeMinimalManualDebits),
+			},
+			expectedFilename: "schedule_MinimalManualDebits_10:10:2024.csv",
+		},
 	}
 
 	for _, tt := range tests {
@@ -207,6 +246,11 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				assert.Nil(t, err)
 			case *db.PaymentsSchedule:
 				actual, ok := mockDb.query.(*db.PaymentsSchedule)
+				assert.True(t, ok)
+				assert.Equal(t, expected, actual)
+				assert.Nil(t, err)
+			case *db.AdjustmentsSchedule:
+				actual, ok := mockDb.query.(*db.AdjustmentsSchedule)
 				assert.True(t, ok)
 				assert.Equal(t, expected, actual)
 				assert.Nil(t, err)
