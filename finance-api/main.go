@@ -92,7 +92,9 @@ func run(ctx context.Context, logger *slog.Logger) error {
 	)
 	defer reportsClient.Close()
 
-	server := api.NewServer(Service, reportsClient, fileStorageClient, validator)
+	server := api.NewServer(Service, reportsClient, fileStorageClient, validator, &api.Envs{
+		GoLiveDate:    goLiveDate,
+	})
 
 	s := &http.Server{
 		Addr:    ":8080",

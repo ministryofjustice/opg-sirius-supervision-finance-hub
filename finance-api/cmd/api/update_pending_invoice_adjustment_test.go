@@ -25,7 +25,7 @@ func TestServer_updatePendingInvoiceAdjustment(t *testing.T) {
 	validator, _ := validation.New()
 
 	mock := &mockService{}
-	server := NewServer(mock, nil, nil, validator)
+	server := NewServer(mock, nil, nil, validator, nil)
 	_ = server.updatePendingInvoiceAdjustment(w, req)
 
 	res := w.Result()
@@ -49,7 +49,7 @@ func TestServer_updatePendingInvoiceAdjustment500Error(t *testing.T) {
 	validator, _ := validation.New()
 
 	mock := &mockService{err: errors.New("Something is wrong")}
-	server := NewServer(mock, nil, nil, validator)
+	server := NewServer(mock, nil, nil, validator, nil)
 	err := server.updatePendingInvoiceAdjustment(w, req)
 
 	assert.Error(t, err)
@@ -67,7 +67,7 @@ func TestServer_updatePendingInvoiceAdjustmentValidationError(t *testing.T) {
 	validator, _ := validation.New()
 
 	mock := &mockService{err: errors.New("Something is wrong")}
-	server := NewServer(mock, nil, nil, validator)
+	server := NewServer(mock, nil, nil, validator, nil)
 	err := server.updatePendingInvoiceAdjustment(w, req)
 
 	expected := apierror.ValidationError{Errors: apierror.ValidationErrors{

@@ -37,7 +37,7 @@ func TestServer_addManualInvoice(t *testing.T) {
 	validator, _ := validation.New()
 
 	mock := &mockService{manualInvoice: manualInvoiceInfo}
-	server := NewServer(mock, nil, nil, validator)
+	server := NewServer(mock, nil, nil, validator, nil)
 	_ = server.addManualInvoice(w, req)
 
 	res := w.Result()
@@ -68,7 +68,7 @@ func TestServer_addManualInvoiceNoValidationErrorsForNilFields(t *testing.T) {
 	validator, _ := validation.New()
 
 	mock := &mockService{manualInvoice: manualInvoiceInfo}
-	server := NewServer(mock, nil, nil, validator)
+	server := NewServer(mock, nil, nil, validator, nil)
 	_ = server.addManualInvoice(w, req)
 
 	res := w.Result()
@@ -99,7 +99,7 @@ func TestServer_addManualInvoiceValidationErrors(t *testing.T) {
 	validator, _ := validation.New()
 
 	mock := &mockService{manualInvoice: manualInvoiceInfo}
-	server := NewServer(mock, nil, nil, validator)
+	server := NewServer(mock, nil, nil, validator, nil)
 	err := server.addManualInvoice(w, req)
 
 	expected := apierror.ValidationError{Errors: apierror.ValidationErrors{
@@ -147,7 +147,7 @@ func TestServer_addManualInvoiceValidationErrorsForAmountTooHigh(t *testing.T) {
 	validator, _ := validation.New()
 
 	mock := &mockService{manualInvoice: manualInvoiceInfo}
-	server := NewServer(mock, nil, nil, validator)
+	server := NewServer(mock, nil, nil, validator, nil)
 	err := server.addManualInvoice(w, req)
 
 	expected := apierror.ValidationError{Errors: apierror.ValidationErrors{
@@ -180,7 +180,7 @@ func TestServer_addManualInvoiceDateErrors(t *testing.T) {
 	validator, _ := validation.New()
 
 	mock := &mockService{manualInvoice: manualInvoiceInfo, err: apierror.BadRequestsError([]string{"RaisedDateForAnInvoice", "StartDate", "EndDate"})}
-	server := NewServer(mock, nil, nil, validator)
+	server := NewServer(mock, nil, nil, validator, nil)
 	err := server.addFeeReduction(w, req)
 
 	res := w.Result()
@@ -212,7 +212,7 @@ func TestServer_addManualInvoice422Error(t *testing.T) {
 	validator, _ := validation.New()
 
 	mock := &mockService{manualInvoice: manualInvoiceInfo, err: errors.New("something is wrong")}
-	server := NewServer(mock, nil, nil, validator)
+	server := NewServer(mock, nil, nil, validator, nil)
 	err := server.addFeeReduction(w, req)
 
 	res := w.Result()

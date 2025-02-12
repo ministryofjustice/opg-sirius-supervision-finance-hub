@@ -45,14 +45,21 @@ type Server struct {
 	reports     Reports
 	fileStorage FileStorage
 	validator   *validation.Validate
+	envs        *Envs
 }
 
-func NewServer(service Service, reports Reports, fileStorage FileStorage, validator *validation.Validate) *Server {
+type Envs struct {
+	ReportsBucket string
+	GoLiveDate    time.Time
+}
+
+func NewServer(service Service, reports Reports, fileStorage FileStorage, validator *validation.Validate, envs *Envs) *Server {
 	return &Server{
 		service:     service,
 		reports:     reports,
 		fileStorage: fileStorage,
 		validator:   validator,
+		envs:        envs,
 	}
 }
 
