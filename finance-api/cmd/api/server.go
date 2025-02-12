@@ -41,20 +41,25 @@ type Reports interface {
 }
 
 type Server struct {
-	service       Service
-	reports       Reports
-	reportsBucket string
-	fileStorage   FileStorage
-	validator     *validation.Validate
+	service     Service
+	reports     Reports
+	fileStorage FileStorage
+	validator   *validation.Validate
+	envs        *Envs
 }
 
-func NewServer(service Service, reports Reports, reportsBucket string, fileStorage FileStorage, validator *validation.Validate) *Server {
+type Envs struct {
+	ReportsBucket string
+	GoLiveDate    time.Time
+}
+
+func NewServer(service Service, reports Reports, fileStorage FileStorage, validator *validation.Validate, envs *Envs) *Server {
 	return &Server{
-		service:       service,
-		reports:       reports,
-		reportsBucket: reportsBucket,
-		fileStorage:   fileStorage,
-		validator:     validator,
+		service:     service,
+		reports:     reports,
+		fileStorage: fileStorage,
+		validator:   validator,
+		envs:        envs,
 	}
 }
 
