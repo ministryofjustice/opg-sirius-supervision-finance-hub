@@ -67,7 +67,18 @@ func (s *Seeder) CreateInvoice(ctx context.Context, clientID int, invoiceType sh
 	return id, reference
 }
 
-func (s *Seeder) CreateAdjustment(ctx context.Context, clientID int, invoiceId int, adjustmentType shared.AdjustmentType, amount int, notes string) int {
+func (s *Seeder) CreatePendingAdjustment(ctx context.Context, clientID int, invoiceId int, adjustmentType shared.AdjustmentType, amount int, notes string) {
+	adjustment := shared.AddInvoiceAdjustmentRequest{
+		AdjustmentType:  adjustmentType,
+		AdjustmentNotes: notes,
+		Amount:          amount,
+	}
+
+	_, err := s.Service.AddInvoiceAdjustment(ctx, clientID, invoiceId, &adjustment)
+	assert.NoError(s.t, err, "failed to add adjustment: %v", err)
+}
+
+func (s *Seeder) CreateAdjustment(ctx context.Context, clientID int, invoiceId int, adjustmentType shared.AdjustmentType, amount int, notes string, approvedDate *time.Time) {
 	adjustment := shared.AddInvoiceAdjustmentRequest{
 		AdjustmentType:  adjustmentType,
 		AdjustmentNotes: notes,
@@ -80,7 +91,17 @@ func (s *Seeder) CreateAdjustment(ctx context.Context, clientID int, invoiceId i
 	var id int
 	err = s.Conn.QueryRow(ctx, "SELECT id FROM supervision_finance.invoice_adjustment ORDER BY id DESC LIMIT 1").Scan(&id)
 	assert.NoError(s.t, err, "failed find created adjustment: %v", err)
-	return id
+
+	var maxLedger int
+	_ = s.Conn.QueryRow(ctx, "SELECT MAX(id) FROM supervision_finance.ledger").Scan(&maxLedger)
+
+	err = s.Service.UpdatePendingInvoiceAdjustment(ctx, clientID, id, shared.AdjustmentStatusApproved)
+	assert.NoError(s.t, err, "failed to approve adjustment: %v", err)
+
+	if approvedDate != nil {
+		_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger SET created_at = $1 WHERE id > $2", &approvedDate, maxLedger)
+		assert.NoError(s.t, err, "failed to update created date: %v", err)
+	}
 }
 
 func (s *Seeder) ApproveAdjustment(ctx context.Context, clientID int, adjustmentId int) {
