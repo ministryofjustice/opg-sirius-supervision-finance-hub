@@ -140,8 +140,8 @@ func TestGenerateAndUploadReport(t *testing.T) {
 		{
 			name: "Fee Accrual",
 			reportRequest: shared.ReportRequest{
-				ReportType:        "AccountsReceivable",
-				ReportAccountType: "FeeAccrual",
+				ReportType:             shared.ReportsTypeAccountsReceivable,
+				AccountsReceivableType: toPtr(shared.AccountsReceivableTypeFeeAccrual),
 			},
 			expectedQuery: nil,
 		},

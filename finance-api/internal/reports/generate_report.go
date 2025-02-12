@@ -85,7 +85,7 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 			}
 		case shared.AccountsReceivableTypeUnappliedReceipts:
 			query = &db.CustomerCredit{}
-		case shared.ReportAccountTypeFeeAccrual:
+		case shared.AccountsReceivableTypeFeeAccrual:
 			payload, err := c.createDownloadFeeAccrualNotifyPayload(reportRequest.Email, requestedDate)
 			if err != nil {
 				return err
