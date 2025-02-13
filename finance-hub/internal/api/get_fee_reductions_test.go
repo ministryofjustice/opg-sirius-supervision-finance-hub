@@ -66,7 +66,7 @@ func TestGetFeeReductions(t *testing.T) {
 		},
 	}
 
-	feeReductions, err := client.GetFeeReductions(getContext(nil), 1)
+	feeReductions, err := client.GetFeeReductions(testContext(), 1)
 	assert.Equal(t, expectedResponse, feeReductions)
 	assert.Equal(t, nil, err)
 }
@@ -78,7 +78,7 @@ func TestGetFeeReductionsReturnsUnauthorisedClientError(t *testing.T) {
 	defer svr.Close()
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
-	_, err := client.GetFeeReductions(getContext(nil), 1)
+	_, err := client.GetFeeReductions(testContext(), 1)
 	assert.Equal(t, ErrUnauthorized, err)
 }
 
@@ -90,7 +90,7 @@ func TestFeeReductionsReturns500Error(t *testing.T) {
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
-	_, err := client.GetFeeReductions(getContext(nil), 1)
+	_, err := client.GetFeeReductions(testContext(), 1)
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/clients/1/fee-reductions",

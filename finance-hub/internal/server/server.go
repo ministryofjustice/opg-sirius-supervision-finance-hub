@@ -1,40 +1,39 @@
 package server
 
 import (
+	"context"
 	"github.com/ministryofjustice/opg-go-common/securityheaders"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/api"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"html/template"
 	"io"
 	"log/slog"
 	"net/http"
-	"net/url"
-	"strconv"
 )
 
 type ApiClient interface {
-	GetCurrentUserDetails(api.Context) (shared.Assignee, error)
-	GetPersonDetails(api.Context, int) (shared.Person, error)
-	GetFeeReductions(api.Context, int) (shared.FeeReductions, error)
-	GetInvoices(api.Context, int) (shared.Invoices, error)
-	GetPermittedAdjustments(api.Context, int, int) ([]shared.AdjustmentType, error)
-	AdjustInvoice(api.Context, int, int, int, string, string, string) error
-	GetAccountInformation(api.Context, int) (shared.AccountInformation, error)
-	GetInvoiceAdjustments(api.Context, int) (shared.InvoiceAdjustments, error)
-	AddFeeReduction(api.Context, int, string, string, string, string, string) error
-	CancelFeeReduction(api.Context, int, int, string) error
-	UpdatePendingInvoiceAdjustment(api.Context, int, int, string) error
-	AddManualInvoice(api.Context, int, string, *string, *string, *string, *string, *string, *string) error
-	GetBillingHistory(api.Context, int) ([]shared.BillingHistory, error)
-	GetUser(api.Context, int) (shared.Assignee, error)
-	SubmitPaymentMethod(api.Context, int, string) error
+	GetCurrentUserDetails(context.Context) (shared.Assignee, error)
+	GetPersonDetails(context.Context, int) (shared.Person, error)
+	GetFeeReductions(context.Context, int) (shared.FeeReductions, error)
+	GetInvoices(context.Context, int) (shared.Invoices, error)
+	GetPermittedAdjustments(context.Context, int, int) ([]shared.AdjustmentType, error)
+	AdjustInvoice(context.Context, int, int, int, string, string, string) error
+	GetAccountInformation(context.Context, int) (shared.AccountInformation, error)
+	GetInvoiceAdjustments(context.Context, int) (shared.InvoiceAdjustments, error)
+	AddFeeReduction(context.Context, int, string, string, string, string, string) error
+	CancelFeeReduction(context.Context, int, int, string) error
+	UpdatePendingInvoiceAdjustment(context.Context, int, int, string) error
+	AddManualInvoice(context.Context, int, string, *string, *string, *string, *string, *string, *string) error
+	GetBillingHistory(context.Context, int) ([]shared.BillingHistory, error)
+	GetUser(context.Context, int) (shared.Assignee, error)
+	SubmitPaymentMethod(context.Context, int, string) error
 }
 
 type router interface {
 	Client() ApiClient
 	execute(http.ResponseWriter, *http.Request, any) error
+	getClientID(r *http.Request) int
 }
 
 type Template interface {
@@ -82,25 +81,4 @@ func New(logger *slog.Logger, client ApiClient, templates map[string]*template.T
 	mux.Handle("/stylesheets/", static)
 
 	return otelhttp.NewHandler(http.StripPrefix(envs.Prefix, telemetry.Middleware(logger)(securityheaders.Use(mux))), "supervision-finance-hub")
-}
-
-func getContext(r *http.Request) api.Context {
-	token := ""
-
-	if r.Method == http.MethodGet {
-		if cookie, err := r.Cookie("XSRF-TOKEN"); err == nil {
-			token, _ = url.QueryUnescape(cookie.Value)
-		}
-	} else {
-		token = r.FormValue("xsrfToken")
-	}
-
-	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
-
-	return api.Context{
-		Context:   r.Context(),
-		Cookies:   r.Cookies(),
-		XSRFToken: token,
-		ClientId:  clientId,
-	}
 }
