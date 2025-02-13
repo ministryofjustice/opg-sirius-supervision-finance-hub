@@ -2,71 +2,66 @@ package shared
 
 import "encoding/json"
 
-var ReportJournalTypes = []ReportJournalType{
-	ReportTypeReceiptTransactions,
-	ReportTypeNonReceiptTransactions,
-}
-
 const (
-	ReportTypeUnknown ReportJournalType = iota
-	ReportTypeReceiptTransactions
-	ReportTypeNonReceiptTransactions
+	JournalTypeUnknown JournalType = iota
+	JournalTypeReceiptTransactions
+	JournalTypeNonReceiptTransactions
 )
 
-var reportJournalTypeMap = map[string]ReportJournalType{
-	"ReceiptTransactions":    ReportTypeReceiptTransactions,
-	"NonReceiptTransactions": ReportTypeNonReceiptTransactions,
+var journalTypeMap = map[string]JournalType{
+	"ReceiptTransactions":    JournalTypeReceiptTransactions,
+	"NonReceiptTransactions": JournalTypeNonReceiptTransactions,
 }
 
-type ReportJournalType int
+type JournalType int
 
-func (i ReportJournalType) String() string {
-	return i.Key()
+func (j JournalType) String() string {
+	return j.Key()
 }
 
-func (i ReportJournalType) Translation() string {
-	switch i {
-	case ReportTypeReceiptTransactions:
+func (j JournalType) Translation() string {
+	switch j {
+	case JournalTypeReceiptTransactions:
 		return "Receipt Transactions"
-	case ReportTypeNonReceiptTransactions:
+	case JournalTypeNonReceiptTransactions:
 		return "Non Receipt Transactions"
 	default:
 		return ""
 	}
 }
 
-func (i ReportJournalType) Key() string {
-	switch i {
-	case ReportTypeReceiptTransactions:
+func (j JournalType) Key() string {
+	switch j {
+	case JournalTypeReceiptTransactions:
 		return "ReceiptTransactions"
-	case ReportTypeNonReceiptTransactions:
+	case JournalTypeNonReceiptTransactions:
 		return "NonReceiptTransactions"
 	default:
 		return ""
 	}
 }
 
-func ParseReportJournalType(s string) ReportJournalType {
-	value, ok := reportJournalTypeMap[s]
+
+func ParseJournalType(s string) JournalType {
+	value, ok := journalTypeMap[s]
 	if !ok {
-		return ReportJournalType(0)
+		return JournalType(0)
 	}
 	return value
 }
 
-func (i ReportJournalType) Valid() bool {
-	return i != ReportTypeUnknown
+func (j JournalType) Valid() bool {
+	return j != JournalTypeUnknown
 }
 
-func (i ReportJournalType) MarshalJSON() ([]byte, error) {
-	return json.Marshal(i.Key())
+func (j JournalType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(j.Key())
 }
 
-func (i *ReportJournalType) UnmarshalJSON(data []byte) (err error) {
+func (j *JournalType) UnmarshalJSON(data []byte) (err error) {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
 		return err
 	}
-	*i = ParseReportJournalType(s)
 	return nil
 }

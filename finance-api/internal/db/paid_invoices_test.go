@@ -24,7 +24,7 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	// one exemption
 	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234")
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
-	_, c1i1Ref := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil)
+	_, c1i1Ref := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
 	suite.seeder.CreateFeeReduction(ctx, client1ID, shared.FeeReductionTypeExemption, strconv.Itoa(twoYearsAgo.Date().Year()), 2, "Test exemption", time.Now())
 
 	// client with:
@@ -32,15 +32,15 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	// one invoice with outstanding balance
 	client2ID := suite.seeder.CreateClient(ctx, "John", "Suite", "87654321", "4321")
 	suite.seeder.CreateOrder(ctx, client2ID, "ACTIVE")
-	_, c2i1Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeAD, nil, fourYearsAgo.StringPtr(), nil, nil, nil)
-	_, _ = suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, &general, twoMonthsAgo.StringPtr(), twoMonthsAgo.StringPtr(), nil, nil)
+	_, c2i1Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeAD, nil, fourYearsAgo.StringPtr(), nil, nil, nil, nil)
+	_, _ = suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, &general, twoMonthsAgo.StringPtr(), twoMonthsAgo.StringPtr(), nil, nil, nil)
 	suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeExemption, strconv.Itoa(fourYearsAgo.Date().Year()-1), 2, "Test exemption", time.Now())
 
 	// client with:
 	// one invoice partially paid due to a remission
 	client3ID := suite.seeder.CreateClient(ctx, "John", "Suite", "87654321", "4321")
 	suite.seeder.CreateOrder(ctx, client3ID, "ACTIVE")
-	_, _ = suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeAD, nil, fourYearsAgo.StringPtr(), nil, nil, nil)
+	_, _ = suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeAD, nil, fourYearsAgo.StringPtr(), nil, nil, nil, nil)
 	suite.seeder.CreateFeeReduction(ctx, client3ID, shared.FeeReductionTypeRemission, strconv.Itoa(fourYearsAgo.Date().Year()-1), 4, "Test remission", time.Now())
 
 	// client with:
@@ -48,7 +48,7 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	client4ref := "11111111"
 	client4ID := suite.seeder.CreateClient(ctx, "Sally", "Supervision", client4ref, "1111")
 	suite.seeder.CreateOrder(ctx, client4ID, "ACTIVE")
-	_, c4i1Ref := suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeS3, &minimal, yesterday.StringPtr(), nil, nil, nil)
+	_, c4i1Ref := suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeS3, &minimal, yesterday.StringPtr(), nil, nil, nil, nil)
 	suite.seeder.CreatePayment(ctx, 1000, yesterday.Date(), client4ref, shared.TransactionTypeSupervisionBACSPayment, yesterday.Date())
 
 	// client with:
@@ -56,7 +56,7 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	client5ref := "22222222"
 	client5ID := suite.seeder.CreateClient(ctx, "Owen", "OPG", client5ref, "2222")
 	suite.seeder.CreateOrder(ctx, client5ID, "ACTIVE")
-	_, c5i1Ref := suite.seeder.CreateInvoice(ctx, client5ID, shared.InvoiceTypeS2, &general, today.StringPtr(), nil, nil, nil)
+	_, c5i1Ref := suite.seeder.CreateInvoice(ctx, client5ID, shared.InvoiceTypeS2, &general, today.StringPtr(), nil, nil, nil, nil)
 	suite.seeder.CreatePayment(ctx, 32000, today.Date(), client5ref, shared.TransactionTypeOPGBACSPayment, today.Date())
 
 	c := Client{suite.seeder.Conn}
