@@ -14,9 +14,9 @@
        role="button"
        draggable="false"
        data-module="govuk-button"
-       hx-get="{{ prefix (printf "/clients/%s/direct-debit/add" .ClientId) }}"
+       hx-get="{{ prefix (printf "/clients/%s/payment-method/add" .ClientId) }}"
        hx-target="#main-content"
-       hx-push-url="{{ prefix (printf "/clients/%s/direct-debit/add" .ClientId) }}">
-        Set up Direct Debit
+       hx-push-url="{{ prefix (printf "/clients/%s/payment-method/add" .ClientId) }}">
+        Edit payment method
     </a>
 {{ end }}
