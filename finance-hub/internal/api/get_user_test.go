@@ -25,7 +25,7 @@ func TestGetUser_cacheHit(t *testing.T) {
 
 	expectedResponse := user
 
-	user, err := client.GetUser(getContext(nil), 1)
+	user, err := client.GetUser(testContext(), 1)
 	assert.Equal(t, expectedResponse, user)
 	assert.Equal(t, nil, err)
 }
@@ -86,7 +86,7 @@ func TestGetUser_cacheRefresh(t *testing.T) {
 		Roles:       []string{"Test Role"},
 	}
 
-	user, err := client.GetUser(getContext(nil), 1)
+	user, err := client.GetUser(testContext(), 1)
 	assert.Equal(t, expectedResponse, user)
 	assert.Equal(t, nil, err)
 }
@@ -112,12 +112,12 @@ func TestGetUser_cacheMiss(t *testing.T) {
 		Roles:       nil,
 	}
 
-	user, err := client.GetUser(getContext(nil), 1)
+	user, err := client.GetUser(testContext(), 1)
 	assert.Equal(t, expectedResponse, user)
 	assert.Equal(t, nil, err)
 
 	// the second time, the placeholder is set, so test to ensure it is fetched correctly
-	user, err = client.GetUser(getContext(nil), 1)
+	user, err = client.GetUser(testContext(), 1)
 	assert.Equal(t, expectedResponse, user)
 	assert.Equal(t, nil, err)
 }
@@ -129,7 +129,7 @@ func TestGetUserReturnsUnauthorisedClientError(t *testing.T) {
 	defer svr.Close()
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, "")
-	_, err := client.GetUser(getContext(nil), 1)
+	_, err := client.GetUser(testContext(), 1)
 	assert.Equal(t, ErrUnauthorized, err)
 }
 
@@ -141,7 +141,7 @@ func TestGetUserReturns500Error(t *testing.T) {
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, "")
 
-	_, err := client.GetUser(getContext(nil), 1)
+	_, err := client.GetUser(testContext(), 1)
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/supervision-api/v1/users",

@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
@@ -9,7 +10,7 @@ import (
 	"net/http"
 )
 
-func (c *ApiClient) CancelFeeReduction(ctx Context, clientId int, feeReductionId int, cancellationReason string) error {
+func (c *Client) CancelFeeReduction(ctx context.Context, clientId int, feeReductionId int, cancellationReason string) error {
 	var body bytes.Buffer
 
 	err := json.NewEncoder(&body).Encode(shared.CancelFeeReduction{

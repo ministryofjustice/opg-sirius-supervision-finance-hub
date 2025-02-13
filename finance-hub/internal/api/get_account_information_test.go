@@ -36,7 +36,7 @@ func TestGetAccountInformation(t *testing.T) {
 		PaymentMethod:      "DEMANDED",
 	}
 
-	headerDetails, err := client.GetAccountInformation(getContext(nil), 2)
+	headerDetails, err := client.GetAccountInformation(testContext(), 2)
 	assert.Equal(t, expectedResponse, headerDetails)
 	assert.Equal(t, nil, err)
 }
@@ -48,7 +48,7 @@ func TestGetAccountInformationReturnsUnauthorisedClientError(t *testing.T) {
 	defer svr.Close()
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
-	_, err := client.GetAccountInformation(getContext(nil), 2)
+	_, err := client.GetAccountInformation(testContext(), 2)
 	assert.Equal(t, ErrUnauthorized, err)
 }
 
@@ -60,7 +60,7 @@ func TestAccountInformationReturns500Error(t *testing.T) {
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
-	_, err := client.GetAccountInformation(getContext(nil), 1)
+	_, err := client.GetAccountInformation(testContext(), 1)
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/clients/1",

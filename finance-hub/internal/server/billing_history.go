@@ -1,8 +1,8 @@
 package server
 
 import (
+	"context"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/api"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"net/http"
 )
@@ -25,9 +25,10 @@ type BillingHistoryHandler struct {
 }
 
 func (h *BillingHistoryHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
-	ctx := getContext(r)
+	ctx := r.Context()
+	clientID := h.getClientID(r)
 
-	billingHistory, err := h.Client().GetBillingHistory(ctx, ctx.ClientId)
+	billingHistory, err := h.Client().GetBillingHistory(ctx, clientID)
 	if err != nil {
 		return err
 	}
@@ -37,8 +38,8 @@ func (h *BillingHistoryHandler) render(v AppVars, w http.ResponseWriter, r *http
 	return h.execute(w, r, data)
 }
 
-func (h *BillingHistoryHandler) transform(ctx api.Context, in []shared.BillingHistory) []BillingHistory {
-	logger := telemetry.LoggerFromContext(ctx.Context)
+func (h *BillingHistoryHandler) transform(ctx context.Context, in []shared.BillingHistory) []BillingHistory {
+	logger := telemetry.LoggerFromContext(ctx)
 
 	var out []BillingHistory
 

@@ -3,16 +3,10 @@ package api
 import (
 	"context"
 	"fmt"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
 	"io"
 	"net/http"
 )
-
-type Context struct {
-	Context   context.Context
-	Cookies   []*http.Cookie
-	XSRFToken string
-	ClientId  int
-}
 
 const ErrUnauthorized ClientError = "unauthorized"
 
@@ -22,16 +16,8 @@ func (e ClientError) Error() string {
 	return string(e)
 }
 
-func (ctx Context) With(c context.Context) Context {
-	return Context{
-		Context:   c,
-		Cookies:   ctx.Cookies,
-		XSRFToken: ctx.XSRFToken,
-	}
-}
-
-func NewApiClient(httpClient HTTPClient, siriusUrl string, backendUrl string) (*ApiClient, error) {
-	return &ApiClient{
+func NewApiClient(httpClient HTTPClient, siriusUrl string, backendUrl string) (*Client, error) {
+	return &Client{
 		http:       httpClient,
 		siriusUrl:  siriusUrl,
 		backendUrl: backendUrl,
@@ -43,43 +29,45 @@ type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-type ApiClient struct {
+type Client struct {
 	http       HTTPClient
 	siriusUrl  string
 	backendUrl string
 	caches     *Caches
 }
 
-func (c *ApiClient) newSiriusRequest(ctx Context, method, path string, body io.Reader) (*http.Request, error) {
-	req, err := http.NewRequestWithContext(ctx.Context, method, c.siriusUrl+"/supervision-api/v1"+path, body)
+func (c *Client) newSiriusRequest(ctx context.Context, method, path string, body io.Reader) (*http.Request, error) {
+	req, err := http.NewRequestWithContext(ctx, method, c.siriusUrl+"/supervision-api/v1"+path, body)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, c := range ctx.Cookies {
-		req.AddCookie(c)
-	}
-
+	addCookiesFromContext(ctx, req)
+	addXsrfFromContext(ctx, req)
 	req.Header.Add("OPG-Bypass-Membrane", "1")
-	req.Header.Add("X-XSRF-TOKEN", ctx.XSRFToken)
 
 	return req, err
 }
 
-func (c *ApiClient) newBackendRequest(ctx Context, method, path string, body io.Reader) (*http.Request, error) {
-	req, err := http.NewRequestWithContext(ctx.Context, method, c.backendUrl+path, body)
+func (c *Client) newBackendRequest(ctx context.Context, method, path string, body io.Reader) (*http.Request, error) {
+	req, err := http.NewRequestWithContext(ctx, method, c.backendUrl+path, body)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, c := range ctx.Cookies {
-		req.AddCookie(c)
-	}
-
-	req.Header.Add("OPG-Bypass-Membrane", "1")
-	req.Header.Add("X-XSRF-TOKEN", ctx.XSRFToken)
+	addCookiesFromContext(ctx, req)
 
 	return req, err
+}
+
+func addCookiesFromContext(ctx context.Context, req *http.Request) {
+	for _, c := range ctx.(auth.Context).Cookies {
+		req.AddCookie(c)
+	}
+}
+
+func addXsrfFromContext(ctx context.Context, req *http.Request) {
+	req.Header.Add("X-XSRF-TOKEN", ctx.(auth.Context).XSRFToken)
 }
 
 type StatusError struct {

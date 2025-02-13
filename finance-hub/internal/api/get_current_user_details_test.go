@@ -48,7 +48,7 @@ func TestGetCurrentUserDetails(t *testing.T) {
 		Roles:       []string{"Case Manager"},
 	}
 
-	teams, err := client.GetCurrentUserDetails(getContext(nil))
+	teams, err := client.GetCurrentUserDetails(testContext())
 	assert.Equal(t, expectedResponse, teams)
 	assert.Equal(t, nil, err)
 }
@@ -60,7 +60,7 @@ func TestGetCurrentUserDetailsReturnsUnauthorisedClientError(t *testing.T) {
 	defer svr.Close()
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, "")
-	_, err := client.GetCurrentUserDetails(getContext(nil))
+	_, err := client.GetCurrentUserDetails(testContext())
 	assert.Equal(t, ErrUnauthorized, err)
 }
 
@@ -72,7 +72,7 @@ func TestMyDetailsReturns500Error(t *testing.T) {
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, "")
 
-	_, err := client.GetCurrentUserDetails(getContext(nil))
+	_, err := client.GetCurrentUserDetails(testContext())
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/supervision-api/v1/users/current",
