@@ -37,7 +37,7 @@ func TestGetPersonDetails(t *testing.T) {
 		CourtRef:  "12345678",
 	}
 
-	person, err := client.GetPersonDetails(getContext(nil), 2)
+	person, err := client.GetPersonDetails(testContext(), 2)
 	assert.Equal(t, expectedResponse, person)
 	assert.Equal(t, nil, err)
 }
@@ -49,7 +49,7 @@ func TestGetPersonDetailsReturnsUnauthorisedClientError(t *testing.T) {
 	defer svr.Close()
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, "")
-	_, err := client.GetPersonDetails(getContext(nil), 2)
+	_, err := client.GetPersonDetails(testContext(), 2)
 	assert.Equal(t, ErrUnauthorized, err)
 }
 
@@ -61,7 +61,7 @@ func TestPersonDetailsReturns500Error(t *testing.T) {
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, "")
 
-	_, err := client.GetPersonDetails(getContext(nil), 1)
+	_, err := client.GetPersonDetails(testContext(), 1)
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/supervision-api/v1/clients/1",
