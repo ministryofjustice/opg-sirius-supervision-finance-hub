@@ -1,12 +1,13 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"net/http"
 )
 
-func (c *ApiClient) GetUser(ctx Context, userId int) (shared.Assignee, error) {
+func (c *Client) GetUser(ctx context.Context, userId int) (shared.Assignee, error) {
 	user, ok := c.caches.getUser(userId)
 
 	if ok {

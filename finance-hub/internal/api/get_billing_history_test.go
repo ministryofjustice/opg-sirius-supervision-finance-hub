@@ -71,7 +71,7 @@ func TestGetBillingHistoryCanReturn200(t *testing.T) {
 		},
 	}
 
-	invoiceList, err := client.GetBillingHistory(getContext(nil), 456)
+	invoiceList, err := client.GetBillingHistory(testContext(), 456)
 
 	assert.Equal(t, nil, err)
 	assert.Equal(t, expectedResponse, invoiceList)
@@ -85,7 +85,7 @@ func TestGetBillingHistoryCanThrow500Error(t *testing.T) {
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
-	_, err := client.GetBillingHistory(getContext(nil), 1)
+	_, err := client.GetBillingHistory(testContext(), 1)
 
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
@@ -102,7 +102,7 @@ func TestGetBillingHistoryUnauthorised(t *testing.T) {
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
-	clientList, err := client.GetBillingHistory(getContext(nil), 3)
+	clientList, err := client.GetBillingHistory(testContext(), 3)
 
 	var expectedResponse []shared.BillingHistory
 

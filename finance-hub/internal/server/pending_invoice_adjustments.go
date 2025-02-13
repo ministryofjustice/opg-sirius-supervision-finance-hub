@@ -30,14 +30,15 @@ type PendingInvoiceAdjustmentsHandler struct {
 }
 
 func (h *PendingInvoiceAdjustmentsHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
-	ctx := getContext(r)
+	ctx := r.Context()
+	clientID := h.getClientID(r)
 
-	ia, err := h.Client().GetInvoiceAdjustments(ctx, ctx.ClientId)
+	ia, err := h.Client().GetInvoiceAdjustments(ctx, clientID)
 	if err != nil {
 		return err
 	}
 
-	data := &PendingInvoiceAdjustmentsTab{PendingInvoiceAdjustments: h.transform(ia), ClientId: strconv.Itoa(ctx.ClientId), AppVars: v}
+	data := &PendingInvoiceAdjustmentsTab{PendingInvoiceAdjustments: h.transform(ia), ClientId: strconv.Itoa(clientID), AppVars: v}
 	data.selectTab("pending-invoice-adjustments")
 
 	return h.execute(w, r, data)

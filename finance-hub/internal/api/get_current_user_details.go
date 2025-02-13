@@ -1,12 +1,13 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"net/http"
 )
 
-func (c *ApiClient) GetCurrentUserDetails(ctx Context) (shared.Assignee, error) {
+func (c *Client) GetCurrentUserDetails(ctx context.Context) (shared.Assignee, error) {
 	var v shared.Assignee
 
 	req, err := c.newSiriusRequest(ctx, http.MethodGet, "/users/current", nil)

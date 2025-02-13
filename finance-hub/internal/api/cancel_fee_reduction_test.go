@@ -29,7 +29,7 @@ func TestCancelFeeReduction(t *testing.T) {
 		}, nil
 	}
 
-	err := client.CancelFeeReduction(getContext(nil), 1, 1, "Fee remission note for one award")
+	err := client.CancelFeeReduction(testContext(), 1, 1, "Fee remission note for one award")
 	assert.Equal(t, nil, err)
 }
 
@@ -41,7 +41,7 @@ func TestCancelFeeReductionUnauthorised(t *testing.T) {
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
-	err := client.CancelFeeReduction(getContext(nil), 1, 1, "Fee remission note for one award")
+	err := client.CancelFeeReduction(testContext(), 1, 1, "Fee remission note for one award")
 
 	assert.Equal(t, ErrUnauthorized.Error(), err.Error())
 }
@@ -54,7 +54,7 @@ func TestCancelFeeReductionReturns500Error(t *testing.T) {
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
-	err := client.CancelFeeReduction(getContext(nil), 1, 1, "Fee remission note for one award")
+	err := client.CancelFeeReduction(testContext(), 1, 1, "Fee remission note for one award")
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/clients/1/fee-reductions/1/cancel",
@@ -79,7 +79,7 @@ func TestCancelFeeReductionReturnsValidationError(t *testing.T) {
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
-	err := client.CancelFeeReduction(getContext(nil), 0, 0, "")
+	err := client.CancelFeeReduction(testContext(), 0, 0, "")
 	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"CancelFeeReductionNotes": map[string]string{"required": "This field CancelFeeReductionNotes needs to be looked at required"}}}
 	assert.Equal(t, expectedError, err.(apierror.ValidationError))
 }

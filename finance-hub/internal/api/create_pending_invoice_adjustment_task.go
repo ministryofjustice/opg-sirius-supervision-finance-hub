@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
@@ -31,7 +32,7 @@ func addWorkingDays(date time.Time, days int) time.Time {
 	}
 }
 
-func (c *ApiClient) CreatePendingInvoiceAdjustmentTask(ctx Context, clientId int, supervisionBillingTeamId int, invoiceRef string, adjustmentType string) error {
+func (c *Client) CreatePendingInvoiceAdjustmentTask(ctx context.Context, clientId int, supervisionBillingTeamId int, invoiceRef string, adjustmentType string) error {
 	var body bytes.Buffer
 
 	dueDate := addWorkingDays(time.Now(), 20)
