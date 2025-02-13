@@ -44,11 +44,12 @@ func (r route) Client() ApiClient {
 // a block, in response to a header added by HTMX. If the header is not present, the function will also fetch all
 // additional data needed by the page for a full page load.
 func (r route) execute(w http.ResponseWriter, req *http.Request, data any) error {
-	if IsHxRequest(req) {
+	if IsHxRequest(req) { // TODO: Does this include form submissions?
 		return r.tmpl.ExecuteTemplate(w, r.partial, data)
 	} else {
-		ctx := getContext(req)
-		group, groupCtx := errgroup.WithContext(ctx.Context)
+		ctx := req.Context()
+		clientID := r.getClientID(req)
+		group, groupCtx := errgroup.WithContext(ctx)
 
 		data := PageData{
 			Data: data,
@@ -58,7 +59,7 @@ func (r route) execute(w http.ResponseWriter, req *http.Request, data any) error
 		var accountInfo shared.AccountInformation
 
 		group.Go(func() error {
-			myDetails, err := r.client.GetCurrentUserDetails(ctx.With(groupCtx))
+			myDetails, err := r.client.GetCurrentUserDetails(groupCtx) // TODO: Remove/refactor into auth
 			if err != nil {
 				return err
 			}
@@ -66,7 +67,7 @@ func (r route) execute(w http.ResponseWriter, req *http.Request, data any) error
 			return nil
 		})
 		group.Go(func() error {
-			p, err := r.client.GetPersonDetails(ctx.With(groupCtx), ctx.ClientId)
+			p, err := r.client.GetPersonDetails(groupCtx, clientID)
 			if err != nil {
 				return err
 			}
@@ -74,7 +75,7 @@ func (r route) execute(w http.ResponseWriter, req *http.Request, data any) error
 			return nil
 		})
 		group.Go(func() error {
-			ai, err := r.client.GetAccountInformation(ctx.With(groupCtx), ctx.ClientId)
+			ai, err := r.client.GetAccountInformation(groupCtx, clientID)
 			if err != nil {
 				return err
 			}
@@ -167,4 +168,9 @@ func (r route) transformFinanceClient(person shared.Person, accountInfo shared.A
 		CreditBalance:      shared.IntToDecimalString(accountInfo.CreditBalance),
 		PaymentMethod:      cases.Title(language.English).String(accountInfo.PaymentMethod),
 	}
+}
+
+func (r route) getClientID(req *http.Request) int {
+	clientId, _ := strconv.Atoi(req.PathValue("clientId"))
+	return clientId
 }
