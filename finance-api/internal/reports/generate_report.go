@@ -11,6 +11,42 @@ import (
 
 const reportRequestedTemplateId = "bade69e4-0eb1-4896-a709-bd8f8371a629"
 
+func getAccountsReceivableQuery(accountType shared.ReportAccountType, fromDate *shared.Date, toDate *shared.Date) (db.ReportQuery, error) {
+	switch accountType {
+	case shared.ReportAccountTypeAgedDebt:
+		return &db.AgedDebt{
+			FromDate: fromDate,
+			ToDate:   toDate,
+		}, nil
+	case shared.ReportAccountTypeAgedDebtByCustomer:
+		return &db.AgedDebtByCustomer{}, nil
+	case shared.ReportAccountTypeARPaidInvoiceReport:
+		return &db.PaidInvoices{
+			FromDate: fromDate,
+			ToDate:   toDate,
+		}, nil
+	case shared.ReportAccountTypeInvoiceAdjustments:
+		return &db.InvoiceAdjustments{
+			FromDate: fromDate,
+			ToDate:   toDate,
+		}, nil
+	case shared.ReportAccountTypeBadDebtWriteOffReport:
+		return &db.BadDebtWriteOff{
+			FromDate: fromDate,
+			ToDate:   toDate,
+		}, nil
+	case shared.ReportAccountTypeTotalReceiptsReport:
+		return &db.Receipts{
+			FromDate: fromDate,
+			ToDate:   toDate,
+		}, nil
+	case shared.ReportAccountTypeUnappliedReceipts:
+		return &db.CustomerCredit{}, nil
+	}
+
+	return nil, fmt.Errorf("Unrecognised report account type")
+}
+
 func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) error {
 	var (
 		query      db.ReportQuery
@@ -59,6 +95,18 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 		default:
 			return fmt.Errorf("unimplemented accounts receivable query: %s", reportRequest.AccountsReceivableType.Key())
 		}
+  case shared.ReportsTypeJournal:
+		filename = fmt.Sprintf("%s_%s.csv", journalType.Key(), reportRequest.DateOfTransaction.Time.Format("02:01:2006"))
+		reportName = journalType.Translation()
+    switch *reportRequest.JournalType {
+    case shared.ReportTypeNonReceiptTransactions:
+      query = &db.NonReceiptTransactions{Date: date}, nil
+    case shared.ReportTypeReceiptTransactions:
+      query = &db.ReceiptTransactions{Date: date}, nil
+    default:
+      return fmt.Errorf("unimplemented journal query: %s", reportRequest.JournalType.Key())
+    }
+	}
 	case shared.ReportsTypeSchedule:
 		filename = fmt.Sprintf("schedule_%s_%s.csv", reportRequest.ScheduleType.Key(), reportRequest.TransactionDate.Time.Format("02:01:2006"))
 		reportName = reportRequest.ScheduleType.Translation()
