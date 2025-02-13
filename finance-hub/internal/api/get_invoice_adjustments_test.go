@@ -49,7 +49,7 @@ func TestGetInvoiceAdjustmentsCanReturn200(t *testing.T) {
 		},
 	}
 
-	resp, err := client.GetInvoiceAdjustments(getContext(nil), 3)
+	resp, err := client.GetInvoiceAdjustments(testContext(), 3)
 
 	assert.Equal(t, nil, err)
 	assert.Equal(t, expectedResponse, resp)
@@ -63,7 +63,7 @@ func TestGetInvoiceAdjustmentsCanThrow500Error(t *testing.T) {
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
-	_, err := client.GetInvoiceAdjustments(getContext(nil), 1)
+	_, err := client.GetInvoiceAdjustments(testContext(), 1)
 
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
@@ -80,7 +80,7 @@ func TestGetInvoiceAdjustmentsUnauthorised(t *testing.T) {
 
 	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
 
-	resp, err := client.GetInvoiceAdjustments(getContext(nil), 3)
+	resp, err := client.GetInvoiceAdjustments(testContext(), 3)
 
 	var expectedResponse shared.InvoiceAdjustments
 
