@@ -46,7 +46,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	assert.Equal(suite.T(), "000000", results[0]["Spare"], "Spare - BACS Payments")
 	assert.Equal(suite.T(), "25.50", results[0]["Debit"], "Debit - BACS Payments")
 	assert.Equal(suite.T(), "", results[0]["Credit"], "Credit - BACS Payments")
-	assert.Equal(suite.T(), fmt.Sprintf("BACS Payment [%s]", today.Date().Format("02/01/2006")), results[0]["Line description"], "Line description - BACS Payments")
+	assert.Equal(suite.T(), fmt.Sprintf("BACS Payment [%s]", yesterday.Date().Format("02/01/2006")), results[0]["Line description"], "Line description - BACS Payments")
 
 	// OPG BACS Payments double
 	assert.Equal(suite.T(), "0470", results[1]["Entity"], "Entity - BACS Payments 2")
@@ -58,7 +58,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	assert.Equal(suite.T(), "00000", results[1]["Spare"], "Spare - BACS Payments 2")
 	assert.Equal(suite.T(), "", results[1]["Debit"], "Debit - BACS Payments 2")
 	assert.Equal(suite.T(), "25.50", results[1]["Credit"], "Credit - BACS Payments 2")
-	assert.Equal(suite.T(), fmt.Sprintf("BACS Payment [%s]", today.Date().Format("02/01/2006")), results[1]["Line description"], "Line description - BACS Payments 2")
+	assert.Equal(suite.T(), fmt.Sprintf("BACS Payment [%s]", yesterday.Date().Format("02/01/2006")), results[1]["Line description"], "Line description - BACS Payments 2")
 
 	// Moto Payments
 	assert.Equal(suite.T(), "0470", results[2]["Entity"], "Entity - Moto Payments")
@@ -70,7 +70,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	assert.Equal(suite.T(), "000000", results[2]["Spare"], "Spare - Moto Payments")
 	assert.Equal(suite.T(), "15.00", results[2]["Debit"], "Debit - Moto Payments")
 	assert.Equal(suite.T(), "", results[2]["Credit"], "Credit - Moto Payments")
-	assert.Equal(suite.T(), fmt.Sprintf("MOTO (Phone) Card Payment [%s]", today.Date().Format("02/01/2006")), results[2]["Line description"], "Line description - Moto Payments")
+	assert.Equal(suite.T(), fmt.Sprintf("MOTO (Phone) Card Payment [%s]", yesterday.Date().Format("02/01/2006")), results[2]["Line description"], "Line description - Moto Payments")
 
 	// Moto Payments -- reverse
 	assert.Equal(suite.T(), "0470", results[3]["Entity"], "Entity - MOTO Payments 2")
@@ -82,5 +82,5 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	assert.Equal(suite.T(), "00000", results[3]["Spare"], "Spare - MOTO Payments 2")
 	assert.Equal(suite.T(), "", results[3]["Debit"], "Debit - MOTO Payments 2")
 	assert.Equal(suite.T(), "15.00", results[3]["Credit"], "Credit - MOTO Payments 2")
-	assert.Equal(suite.T(), fmt.Sprintf("MOTO (Phone) Card Payment [%s]", today.Date().Format("02/01/2006")), results[3]["Line description"], "Line description - MOTO Payments 2")
+	assert.Equal(suite.T(), fmt.Sprintf("MOTO (Phone) Card Payment [%s]", yesterday.Date().Format("02/01/2006")), results[3]["Line description"], "Line description - MOTO Payments 2")
 }

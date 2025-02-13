@@ -68,7 +68,7 @@ func getQuery(reportType shared.ReportsType, reportRequest shared.ReportRequest,
 		return query, filename, friendlyName, err
 	case shared.ReportsTypeJournal:
 		journalType := shared.ParseReportJournalType(reportRequest.ReportJournalType)
-		filename := fmt.Sprintf("%s_%s.csv", journalType.Key(), requestedDate.Format("02:01:2006"))
+		filename := fmt.Sprintf("%s_%s.csv", journalType.Key(), reportRequest.DateOfTransaction.Time.Format("02:01:2006"))
 		friendlyName := journalType.Translation()
 		query, err := getJournalQuery(journalType, reportRequest.DateOfTransaction)
 		return query, filename, friendlyName, err

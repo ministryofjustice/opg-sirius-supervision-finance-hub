@@ -30,7 +30,7 @@ const NonReceiptTransactionsQuery = `WITH transaction_totals AS (
                   ON l.type = tt.ledger_type AND sl.supervision_level = tt.supervision_level
     WHERE tt.is_receipt = false AND TO_CHAR(l.created_at, 'YYYY-MM-DD') = $1
     GROUP BY
-        tt.line_description, TO_CHAR(l.created_at, 'DD/MM/YYYY'), tt.account_code, i.feetype
+        tt.line_description, l.created_at, tt.account_code, i.feetype
 ),
 partitioned_data AS (
     SELECT
@@ -60,15 +60,15 @@ SELECT
     '00000000' AS "Spare",
     CASE
         WHEN row_num % 2 = 1 THEN
-            ''
-        ELSE
             amount
+        ELSE
+            ''
         END AS "Debit",
     CASE
         WHEN row_num % 2 = 1 THEN
-            amount
-        ELSE
             ''
+        ELSE
+            amount
         END AS "Credit",
     line_description || ' [' || transaction_date || ']' AS "Line description"
 FROM

@@ -9,7 +9,7 @@ type ReceiptTransactions struct {
 }
 
 const ReceiptTransactionsQuery = `WITH transaction_totals AS (SELECT tt.line_description                 AS line_description,
-                                  TO_CHAR(l.created_at, 'DD/MM/YYYY') AS transaction_date,
+                                  TO_CHAR(l.bankdate, 'DD/MM/YYYY') AS transaction_date,
                                   tt.account_code                     AS account_code,
                                   ((SUM(la.amount) / 100.0)::NUMERIC(10, 2))::VARCHAR(255)                  AS amount,
 								  l.type AS ledger_type
@@ -28,7 +28,7 @@ const ReceiptTransactionsQuery = `WITH transaction_totals AS (SELECT tt.line_des
                                                                              ELSE COALESCE(sl.supervision_level, '') END
                                                                             ) = tt.supervision_level
                            WHERE tt.is_receipt = true AND TO_CHAR(l.created_at, 'YYYY-MM-DD') = $1
-                           GROUP BY tt.line_description, TO_CHAR(l.created_at, 'DD/MM/YYYY'), tt.account_code, l.type)
+                           GROUP BY tt.line_description, TO_CHAR(l.bankdate, 'DD/MM/YYYY'), tt.account_code, l.type)
 , partitioned_data AS (SELECT *,
                                 ROW_NUMBER() OVER (PARTITION BY account_code ORDER BY account_code) AS row_num
                          FROM transaction_totals CROSS JOIN (select 1 as n union all select 2) n)
