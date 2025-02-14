@@ -9,6 +9,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/cmd/api"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/filestorage"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
@@ -191,10 +192,18 @@ func run(ctx context.Context, logger *slog.Logger) error {
 	)
 	defer reportsClient.Close()
 
-	server := api.NewServer(Service, reportsClient, fileStorageClient, validator, &api.Envs{
-		ReportsBucket: envs.reportsBucket,
-		GoLiveDate:    goLiveDate,
-	})
+	server := api.NewServer(
+		Service,
+		reportsClient,
+		fileStorageClient,
+		&auth.JWT{
+			Secret: envs.jwtSecret,
+			Expiry: envs.jwtExpiry,
+		},
+		validator, &api.Envs{
+			ReportsBucket: envs.reportsBucket,
+			GoLiveDate:    goLiveDate,
+		})
 
 	s := &http.Server{
 		Addr:    ":" + envs.port,
