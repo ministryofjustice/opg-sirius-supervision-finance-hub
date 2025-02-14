@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
 	"net/http"
 )
 
@@ -50,7 +51,7 @@ func NewAppVars(r *http.Request, envVars Envs) AppVars {
 
 	vars := AppVars{
 		Path:            r.URL.Path,
-		XSRFToken:       ctx.XSRFToken, // TODO: What to do here?
+		XSRFToken:       ctx.(auth.Context).XSRFToken,
 		EnvironmentVars: envVars,
 		Tabs:            tabs,
 	}
