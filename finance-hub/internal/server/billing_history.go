@@ -26,7 +26,7 @@ type BillingHistoryHandler struct {
 
 func (h *BillingHistoryHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
-	clientID := h.getClientID(r)
+	clientID := getClientID(r)
 
 	billingHistory, err := h.Client().GetBillingHistory(ctx, clientID)
 	if err != nil {

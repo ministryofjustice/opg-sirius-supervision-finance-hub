@@ -7,29 +7,28 @@ import (
 	"net/http"
 )
 
-func (c *Client) GetCurrentUserDetails(ctx context.Context) (shared.Assignee, error) {
-	var v shared.Assignee
-
-	req, err := c.newSiriusRequest(ctx, http.MethodGet, "/users/current", nil)
+func (c *Client) GetUserSession(ctx context.Context) (*shared.User, error) {
+	req, err := c.newSessionRequest(ctx)
 	if err != nil {
-		return v, err
+		return nil, err
 	}
 
 	resp, err := c.http.Do(req)
 	if err != nil {
-		return v, err
+		return nil, err
 	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusUnauthorized {
-		return v, ErrUnauthorized
+		return nil, ErrUnauthorized
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return v, newStatusError(resp)
+		return nil, newStatusError(resp)
 	}
 
+	var v shared.User
 	err = json.NewDecoder(resp.Body).Decode(&v)
-	return v, err
+	return &v, err
 }

@@ -23,6 +23,13 @@ func (m *MockClient) Do(req *http.Request) (*http.Response, error) {
 	return GetDoFunc(req)
 }
 
+type mockJWTClient struct {
+}
+
+func (m *mockJWTClient) CreateJWT(ctx context.Context) string {
+	return "jwt"
+}
+
 func TestClientError(t *testing.T) {
 	assert.Equal(t, "message", ClientError("message").Error())
 }
