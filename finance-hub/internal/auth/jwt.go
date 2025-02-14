@@ -20,6 +20,7 @@ type Claims struct {
 
 func (j *JWT) CreateJWT(ctx context.Context) string {
 	user := ctx.(Context).User
+	
 	exp := time.Now().Add(time.Second * time.Duration(j.Expiry))
 	claims := &Claims{
 		Roles: user.Roles,

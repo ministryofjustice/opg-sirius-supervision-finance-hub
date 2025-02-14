@@ -48,21 +48,22 @@ func (r route) execute(w http.ResponseWriter, req *http.Request, data any) error
 	if IsHxRequest(req) {
 		return r.tmpl.ExecuteTemplate(w, r.partial, data)
 	} else {
-		ctx := req.Context()
-		clientID := getClientID(req)
+		ctx := req.Context().(auth.Context)
 		group, groupCtx := errgroup.WithContext(ctx)
+		ctx = ctx.WithContext(groupCtx)
 
 		data := PageData{
 			Data: data,
 		}
 
-		data.User = req.Context().(auth.Context).User
-
+		data.User = ctx.User
+		
+		clientID := getClientID(req)
 		var person shared.Person
 		var accountInfo shared.AccountInformation
 
 		group.Go(func() error {
-			p, err := r.client.GetPersonDetails(groupCtx, clientID)
+			p, err := r.client.GetPersonDetails(ctx, clientID)
 			if err != nil {
 				return err
 			}
@@ -70,7 +71,7 @@ func (r route) execute(w http.ResponseWriter, req *http.Request, data any) error
 			return nil
 		})
 		group.Go(func() error {
-			ai, err := r.client.GetAccountInformation(groupCtx, clientID)
+			ai, err := r.client.GetAccountInformation(ctx, clientID)
 			if err != nil {
 				return err
 			}

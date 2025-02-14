@@ -16,6 +16,15 @@ type Context struct {
 	User      *shared.User
 }
 
+func (c Context) WithContext(ctx context.Context) Context {
+	return Context{
+		Context:   ctx,
+		Cookies:   c.Cookies,
+		XSRFToken: c.XSRFToken,
+		User:      c.User,
+	}
+}
+
 func newContext(r *http.Request) Context {
 	token := ""
 
