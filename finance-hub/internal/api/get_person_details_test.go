@@ -12,7 +12,8 @@ import (
 
 func TestGetPersonDetails(t *testing.T) {
 	mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "")
+	mockJWT := mockJWTClient{}
+	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""})
 
 	json := `{
             "id": 2,
@@ -48,7 +49,7 @@ func TestGetPersonDetailsReturnsUnauthorisedClientError(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, "")
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 	_, err := client.GetPersonDetails(testContext(), 2)
 	assert.Equal(t, ErrUnauthorized, err)
 }
@@ -59,7 +60,7 @@ func TestPersonDetailsReturns500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, "")
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
 	_, err := client.GetPersonDetails(testContext(), 1)
 	assert.Equal(t, StatusError{
