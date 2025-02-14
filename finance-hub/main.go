@@ -7,6 +7,7 @@ import (
 	"github.com/ministryofjustice/opg-go-common/paginate"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/api"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/server"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"html/template"
@@ -104,10 +105,16 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		return err
 	}
 
-	client, err := api.NewApiClient(http.DefaultClient, envs.siriusURL, envs.backendURL)
-	if err != nil {
-		return err
-	}
+	client := api.NewClient(
+		http.DefaultClient,
+		&auth.JWT{
+			Secret: envs.jwtSecret,
+			Expiry: envs.jwtExpiry,
+		},
+		api.Envs{
+			SiriusURL:  envs.siriusURL,
+			BackendURL: envs.backendURL,
+		})
 
 	templates := createTemplates(envs)
 

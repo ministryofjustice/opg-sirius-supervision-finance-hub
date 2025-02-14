@@ -33,7 +33,7 @@ type FeeReductionsHandler struct {
 
 func (h *FeeReductionsHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
-	clientID := h.getClientID(r)
+	clientID := getClientID(r)
 
 	feeReductions, err := h.Client().GetFeeReductions(ctx, clientID)
 	if err != nil {
