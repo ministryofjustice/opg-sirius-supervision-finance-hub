@@ -30,6 +30,8 @@ type Envs struct {
 	backendURL      string
 	prefix          string
 	port            string
+	jwtSecret       string
+	jwtExpiry       int
 	billingTeamID   int
 }
 
@@ -40,6 +42,7 @@ func parseEnvs() (*Envs, error) {
 		"PREFIX":                      os.Getenv("PREFIX"),
 		"BACKEND_URL":                 os.Getenv("BACKEND_URL"),
 		"SUPERVISION_BILLING_TEAM_ID": os.Getenv("SUPERVISION_BILLING_TEAM_ID"),
+		"JWT_SECRET":                  os.Getenv("JWT_SECRET"),
 	}
 
 	var missing []error
@@ -63,6 +66,8 @@ func parseEnvs() (*Envs, error) {
 		siriusPublicURL: envs["SIRIUS_PUBLIC_URL"],
 		prefix:          envs["PREFIX"],
 		backendURL:      envs["BACKEND_URL"],
+		jwtSecret:       envs["JWT_SECRET"],
+		jwtExpiry:       5,
 		billingTeamID:   billingTeamId,
 		webDir:          "web",
 		port:            "8888",
