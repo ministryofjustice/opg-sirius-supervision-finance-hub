@@ -16,7 +16,7 @@ type SubmitCancelFeeReductionsHandler struct {
 
 func (h *SubmitCancelFeeReductionsHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
-	clientID := h.getClientID(r)
+	clientID := getClientID(r)
 
 	var (
 		notes             = r.PostFormValue("cancellation-reason")

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/text/cases"
@@ -20,7 +21,7 @@ type FinanceClient struct {
 }
 
 type HeaderData struct {
-	MyDetails     shared.Assignee
+	User          *shared.User
 	FinanceClient FinanceClient
 }
 
@@ -44,28 +45,22 @@ func (r route) Client() ApiClient {
 // a block, in response to a header added by HTMX. If the header is not present, the function will also fetch all
 // additional data needed by the page for a full page load.
 func (r route) execute(w http.ResponseWriter, req *http.Request, data any) error {
-	if IsHxRequest(req) { // TODO: Does this include form submissions?
+	if IsHxRequest(req) {
 		return r.tmpl.ExecuteTemplate(w, r.partial, data)
 	} else {
 		ctx := req.Context()
-		clientID := r.getClientID(req)
+		clientID := getClientID(req)
 		group, groupCtx := errgroup.WithContext(ctx)
 
 		data := PageData{
 			Data: data,
 		}
 
+		data.User = req.Context().(auth.Context).User
+
 		var person shared.Person
 		var accountInfo shared.AccountInformation
 
-		group.Go(func() error {
-			myDetails, err := r.client.GetCurrentUserDetails(groupCtx) // TODO: Remove/refactor into auth
-			if err != nil {
-				return err
-			}
-			data.MyDetails = myDetails
-			return nil
-		})
 		group.Go(func() error {
 			p, err := r.client.GetPersonDetails(groupCtx, clientID)
 			if err != nil {
@@ -170,7 +165,7 @@ func (r route) transformFinanceClient(person shared.Person, accountInfo shared.A
 	}
 }
 
-func (r route) getClientID(req *http.Request) int {
+func getClientID(req *http.Request) int {
 	clientId, _ := strconv.Atoi(req.PathValue("clientId"))
 	return clientId
 }

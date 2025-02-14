@@ -13,7 +13,8 @@ import (
 
 func TestGetFeeReductions(t *testing.T) {
 	mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "")
+	mockJWT := mockJWTClient{}
+	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""})
 
 	json := `[
         {
@@ -77,7 +78,7 @@ func TestGetFeeReductionsReturnsUnauthorisedClientError(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 	_, err := client.GetFeeReductions(testContext(), 1)
 	assert.Equal(t, ErrUnauthorized, err)
 }
@@ -88,7 +89,7 @@ func TestFeeReductionsReturns500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
 	_, err := client.GetFeeReductions(testContext(), 1)
 	assert.Equal(t, StatusError{
