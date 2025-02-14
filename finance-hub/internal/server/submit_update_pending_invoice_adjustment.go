@@ -15,7 +15,7 @@ type SubmitUpdatePendingInvoiceAdjustmentHandler struct {
 
 func (h *SubmitUpdatePendingInvoiceAdjustmentHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
-	clientID := h.getClientID(r)
+	clientID := getClientID(r)
 	var (
 		adjustmentId, _ = strconv.Atoi(r.PathValue("adjustmentId"))
 		status          = strings.ToUpper(r.PathValue("status"))
