@@ -31,7 +31,7 @@ type PendingInvoiceAdjustmentsHandler struct {
 
 func (h *PendingInvoiceAdjustmentsHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
-	clientID := h.getClientID(r)
+	clientID := getClientID(r)
 
 	ia, err := h.Client().GetInvoiceAdjustments(ctx, clientID)
 	if err != nil {

@@ -63,7 +63,7 @@ func Test_authenticate_success(t *testing.T) {
 	rCtx := next.r.Context().(Context)
 	assert.Equal(t, "12345", rCtx.Cookies[1].Value)
 	assert.Equal(t, "abcde", rCtx.XSRFToken)
-	assert.Equal(t, user, rCtx.user)
+	assert.Equal(t, user, rCtx.User)
 }
 
 func Test_authenticate_unauthorised(t *testing.T) {

@@ -55,7 +55,7 @@ type InvoicesHandler struct {
 
 func (h *InvoicesHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
-	clientID := h.getClientID(r)
+	clientID := getClientID(r)
 
 	invoices, err := h.Client().GetInvoices(ctx, clientID)
 	if err != nil {

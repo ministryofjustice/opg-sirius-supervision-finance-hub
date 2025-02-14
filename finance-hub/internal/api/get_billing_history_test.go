@@ -13,7 +13,8 @@ import (
 
 func TestGetBillingHistoryCanReturn200(t *testing.T) {
 	mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "")
+	mockJWT := mockJWTClient{}
+	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""})
 
 	json := `
 	[
@@ -83,7 +84,7 @@ func TestGetBillingHistoryCanThrow500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
 	_, err := client.GetBillingHistory(testContext(), 1)
 
@@ -100,7 +101,7 @@ func TestGetBillingHistoryUnauthorised(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
 	clientList, err := client.GetBillingHistory(testContext(), 3)
 

@@ -13,18 +13,14 @@ type Context struct {
 	context.Context
 	Cookies   []*http.Cookie
 	XSRFToken string
-	user      *shared.User
+	User      *shared.User
 }
 
 func newContext(r *http.Request) Context {
 	token := ""
 
-	if r.Method == http.MethodGet {
-		if cookie, err := r.Cookie("XSRF-TOKEN"); err == nil {
-			token, _ = url.QueryUnescape(cookie.Value)
-		}
-	} else {
-		token = r.FormValue("xsrfToken")
+	if cookie, err := r.Cookie("XSRF-TOKEN"); err == nil {
+		token, _ = url.QueryUnescape(cookie.Value)
 	}
 	return Context{
 		Context:   r.Context(),
@@ -64,7 +60,7 @@ func (a *Auth) Authenticate(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx.user = user
+		ctx.User = user
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

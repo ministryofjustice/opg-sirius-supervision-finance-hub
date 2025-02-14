@@ -13,15 +13,16 @@ import (
 
 func TestGetUser_cacheHit(t *testing.T) {
 	mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "http://localhost:8181")
+	mockJWT := mockJWTClient{}
+	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", "http://localhost:8181"})
 
-	user := shared.Assignee{
-		Id:          1,
+	user := shared.User{
+		ID:          1,
 		DisplayName: "Tina Test",
 		Roles:       []string{"Test Role"},
 	}
 
-	client.caches.updateUsers([]shared.Assignee{user})
+	client.caches.updateUsers([]shared.User{user})
 
 	expectedResponse := user
 
@@ -32,7 +33,8 @@ func TestGetUser_cacheHit(t *testing.T) {
 
 func TestGetUser_cacheRefresh(t *testing.T) {
 	mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "http://localhost:8181")
+	mockJWT := mockJWTClient{}
+	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", "http://localhost:8181"})
 
 	json := `[
 				{
@@ -80,8 +82,8 @@ func TestGetUser_cacheRefresh(t *testing.T) {
 		}, nil
 	}
 
-	expectedResponse := shared.Assignee{
-		Id:          1,
+	expectedResponse := shared.User{
+		ID:          1,
 		DisplayName: "Tina Test",
 		Roles:       []string{"Test Role"},
 	}
@@ -93,7 +95,8 @@ func TestGetUser_cacheRefresh(t *testing.T) {
 
 func TestGetUser_cacheMiss(t *testing.T) {
 	mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "http://localhost:8181")
+	mockJWT := mockJWTClient{}
+	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", "http://localhost:8181"})
 
 	json := `[]`
 
@@ -106,8 +109,8 @@ func TestGetUser_cacheMiss(t *testing.T) {
 		}, nil
 	}
 
-	expectedResponse := shared.Assignee{
-		Id:          0,
+	expectedResponse := shared.User{
+		ID:          0,
 		DisplayName: "Unknown User",
 		Roles:       nil,
 	}
@@ -128,7 +131,7 @@ func TestGetUserReturnsUnauthorisedClientError(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, "")
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 	_, err := client.GetUser(testContext(), 1)
 	assert.Equal(t, ErrUnauthorized, err)
 }
@@ -139,7 +142,7 @@ func TestGetUserReturns500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, "")
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
 	_, err := client.GetUser(testContext(), 1)
 	assert.Equal(t, StatusError{

@@ -89,7 +89,7 @@ func TestSubmitDirectDebitValidationErrors(t *testing.T) {
 			svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 			defer svr.Close()
 
-			client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
+			client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
 			err := client.SubmitDirectDebit(tt.accountHolder, tt.accountName, tt.sortCode, tt.accountNumber)
 

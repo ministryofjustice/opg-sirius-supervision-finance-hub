@@ -12,7 +12,8 @@ import (
 
 func TestUpdatePendingInvoiceAdjustment(t *testing.T) {
 	mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "")
+	mockJWT := mockJWTClient{}
+	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""})
 	r := io.NopCloser(bytes.NewReader([]byte(nil)))
 
 	GetDoFunc = func(*http.Request) (*http.Response, error) {
@@ -32,7 +33,7 @@ func TestUpdatePendingInvoiceAdjustmentUnauthorised(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
 	err := client.UpdatePendingInvoiceAdjustment(testContext(), 1, 5, "APPROVED")
 
@@ -45,7 +46,7 @@ func TestUpdatePendingInvoiceAdjustmentReturns500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
 	err := client.UpdatePendingInvoiceAdjustment(testContext(), 1, 2, "APPROVED")
 	assert.Equal(t, StatusError{

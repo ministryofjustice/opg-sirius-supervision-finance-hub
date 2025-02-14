@@ -26,7 +26,7 @@ func getFieldPointer(postForm url.Values, key string) *string {
 
 func (h *SubmitManualInvoiceHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
-	clientID := h.getClientID(r)
+	clientID := getClientID(r)
 
 	invoiceType := r.PostFormValue("invoiceType")
 

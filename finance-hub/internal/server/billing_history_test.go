@@ -32,7 +32,7 @@ func TestBillingHistory(t *testing.T) {
 
 	client := mockApiClient{
 		BillingHistory: data,
-		User:           shared.Assignee{DisplayName: "Mr Testman"},
+		User:           shared.User{DisplayName: "Mr Testman"},
 	}
 	ro := &mockRoute{client: client}
 

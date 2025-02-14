@@ -14,7 +14,8 @@ import (
 
 func TestCancelFeeReduction(t *testing.T) {
 	mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "")
+	mockJWT := mockJWTClient{}
+	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""})
 
 	json := `{
 			"notes": "Fee remission note for cancelling",
@@ -39,7 +40,7 @@ func TestCancelFeeReductionUnauthorised(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
 	err := client.CancelFeeReduction(testContext(), 1, 1, "Fee remission note for one award")
 
@@ -52,7 +53,7 @@ func TestCancelFeeReductionReturns500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
 	err := client.CancelFeeReduction(testContext(), 1, 1, "Fee remission note for one award")
 	assert.Equal(t, StatusError{
@@ -77,7 +78,7 @@ func TestCancelFeeReductionReturnsValidationError(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
 	err := client.CancelFeeReduction(testContext(), 0, 0, "")
 	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"CancelFeeReductionNotes": map[string]string{"required": "This field CancelFeeReductionNotes needs to be looked at required"}}}

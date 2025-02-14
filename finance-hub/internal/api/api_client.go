@@ -16,28 +16,37 @@ func (e ClientError) Error() string {
 	return string(e)
 }
 
-func NewApiClient(httpClient HTTPClient, siriusUrl string, backendUrl string) (*Client, error) {
+type Envs struct {
+	SiriusURL  string
+	BackendURL string
+}
+
+type JWTClient interface {
+	CreateJWT(ctx context.Context) string
+}
+
+type Client struct {
+	http   HTTPClient
+	caches *Caches
+	jwt    JWTClient
+	Envs
+}
+
+func NewClient(httpClient HTTPClient, jwt JWTClient, envs Envs) *Client {
 	return &Client{
-		http:       httpClient,
-		siriusUrl:  siriusUrl,
-		backendUrl: backendUrl,
-		caches:     newCaches(),
-	}, nil
+		http:   httpClient,
+		caches: newCaches(),
+		jwt:    jwt,
+		Envs:   envs,
+	}
 }
 
 type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-type Client struct {
-	http       HTTPClient
-	siriusUrl  string
-	backendUrl string
-	caches     *Caches
-}
-
 func (c *Client) newSiriusRequest(ctx context.Context, method, path string, body io.Reader) (*http.Request, error) {
-	req, err := http.NewRequestWithContext(ctx, method, c.siriusUrl+"/supervision-api/v1"+path, body)
+	req, err := http.NewRequestWithContext(ctx, method, c.SiriusURL+"/supervision-api/v1"+path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -50,12 +59,25 @@ func (c *Client) newSiriusRequest(ctx context.Context, method, path string, body
 }
 
 func (c *Client) newBackendRequest(ctx context.Context, method, path string, body io.Reader) (*http.Request, error) {
-	req, err := http.NewRequestWithContext(ctx, method, c.backendUrl+path, body)
+	req, err := http.NewRequestWithContext(ctx, method, c.BackendURL+path, body)
 	if err != nil {
 		return nil, err
 	}
 
 	addCookiesFromContext(ctx, req)
+	req.Header.Add("Authorization", "Bearer "+c.jwt.CreateJWT(ctx))
+
+	return req, err
+}
+
+func (c *Client) newSessionRequest(ctx context.Context) (*http.Request, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", c.SiriusURL+"/supervision-api/v1/users/current", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	addCookiesFromContext(ctx, req)
+	req.Header.Add("OPG-Bypass-Membrane", "1")
 
 	return req, err
 }

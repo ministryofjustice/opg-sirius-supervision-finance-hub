@@ -14,7 +14,7 @@ type SubmitDirectDebitHandler struct {
 }
 
 func (h *SubmitDirectDebitHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
-	clientID := h.getClientID(r)
+	clientID := getClientID(r)
 
 	var (
 		accountHolder = r.PostFormValue("accountHolder")

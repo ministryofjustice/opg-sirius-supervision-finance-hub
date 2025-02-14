@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func (c *Client) GetUser(ctx context.Context, userId int) (shared.Assignee, error) {
+func (c *Client) GetUser(ctx context.Context, userId int) (shared.User, error) {
 	user, ok := c.caches.getUser(userId)
 
 	if ok {
@@ -16,28 +16,28 @@ func (c *Client) GetUser(ctx context.Context, userId int) (shared.Assignee, erro
 
 	req, err := c.newSiriusRequest(ctx, http.MethodGet, "/users", nil)
 	if err != nil {
-		return shared.Assignee{}, err
+		return shared.User{}, err
 	}
 
 	resp, err := c.http.Do(req)
 	if err != nil {
-		return shared.Assignee{}, err
+		return shared.User{}, err
 	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusUnauthorized {
-		return shared.Assignee{}, ErrUnauthorized
+		return shared.User{}, ErrUnauthorized
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return shared.Assignee{}, newStatusError(resp)
+		return shared.User{}, newStatusError(resp)
 	}
 
-	var users []shared.Assignee
+	var users []shared.User
 	err = json.NewDecoder(resp.Body).Decode(&users)
 	if err != nil {
-		return shared.Assignee{}, err
+		return shared.User{}, err
 	}
 
 	c.caches.updateUsers(users)

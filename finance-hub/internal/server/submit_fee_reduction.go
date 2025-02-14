@@ -16,7 +16,7 @@ type SubmitFeeReductionsHandler struct {
 
 func (h *SubmitFeeReductionsHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
-	clientID := h.getClientID(r)
+	clientID := getClientID(r)
 
 	var (
 		feeType       = r.PostFormValue("feeType")
