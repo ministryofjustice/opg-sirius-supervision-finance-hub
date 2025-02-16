@@ -68,7 +68,7 @@ services:
         condition: service_healthy
 
   go-lint:
-    image: golangci/golangci-lint:v1.63.4
+    image: golangci/golangci-lint:v1.64.4
     working_dir: /go/src/app
     volumes:
       - ./:/go/src/app
@@ -160,7 +160,7 @@ services:
     command: "up"
 
   localstack:
-    image: localstack/localstack:4.0
+    image: localstack/localstack:4.1
     ports:
       - "4566:4566"
     environment:
