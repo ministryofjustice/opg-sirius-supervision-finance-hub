@@ -75,6 +75,13 @@ services:
       - ./.cache/golangci-lint/v1.53.3:/root/.cache
     command: golangci-lint run -v --timeout 5m
 
+  gosec:
+    image: securego/gosec:latest
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: -exclude-dir=.gocache -fmt=sarif -out=/app/test-results/gosec.sarif -stdout -verbose=text /app/...
+
   trivy:
     image: aquasec/trivy:latest
     volumes:
