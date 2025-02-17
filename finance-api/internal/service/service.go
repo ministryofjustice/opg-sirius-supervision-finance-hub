@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
@@ -20,7 +21,7 @@ type Dispatch interface {
 }
 
 type FileStorage interface {
-	GetFile(ctx context.Context, bucketName string, fileName string) (io.ReadCloser, error)
+	GetFile(ctx context.Context, bucketName string, fileName string, versionID string) (*s3.GetObjectOutput, error)
 	PutFile(ctx context.Context, bucketName string, fileName string, file io.Reader) (*string, error)
 }
 
