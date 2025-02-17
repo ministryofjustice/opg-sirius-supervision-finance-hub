@@ -45,6 +45,7 @@ services:
       AWS_S3_ENDPOINT: http://localstack:4566
       SIRIUS_PUBLIC_URL: http://localhost:8080
       FINANCE_ADMIN_PREFIX: /supervision/finance-admin
+      JWT_SECRET: mysupersecrettestkeythatis128bits
       FINANCE_HUB_LIVE_DATE: 01/01/2024
       REPORTS_S3_BUCKET: opg-backoffice-reports-local
       ASYNC_S3_BUCKET: opg-backoffice-async-uploads-local
@@ -81,7 +82,7 @@ services:
     working_dir: /go/src/app
     volumes:
       - ./:/go/src/app
-      - ./.cache/golangci-lint/v1.53.3:/root/.cache
+      - ./.cache/golangci-lint/v1.64.5:/root/.cache
     command: golangci-lint run -v --timeout 5m
 
   trivy:
