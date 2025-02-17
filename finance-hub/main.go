@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"github.com/ministryofjustice/opg-go-common/env"
 	"github.com/ministryofjustice/opg-go-common/paginate"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
@@ -14,11 +15,58 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
 	"unicode"
 )
+
+type Envs struct {
+	webDir          string
+	siriusURL       string
+	siriusPublicURL string
+	backendURL      string
+	prefix          string
+	port            string
+	billingTeamID   int
+}
+
+func parseEnvs() (*Envs, error) {
+	envs := map[string]string{
+		"SIRIUS_URL":                  os.Getenv("SIRIUS_URL"),
+		"SIRIUS_PUBLIC_URL":           os.Getenv("SIRIUS_PUBLIC_URL"),
+		"PREFIX":                      os.Getenv("PREFIX"),
+		"BACKEND_URL":                 os.Getenv("BACKEND_URL"),
+		"SUPERVISION_BILLING_TEAM_ID": os.Getenv("SUPERVISION_BILLING_TEAM_ID"),
+	}
+
+	var missing []error
+	for k, v := range envs {
+		if v == "" {
+			missing = append(missing, errors.New("missing environment variable: "+k))
+		}
+	}
+
+	billingTeamId, err := strconv.Atoi(envs["SUPERVISION_BILLING_TEAM_ID"])
+	if err != nil {
+		missing = append(missing, errors.New("invalid SUPERVISION_BILLING_TEAM_ID"))
+	}
+
+	if len(missing) > 0 {
+		return nil, errors.Join(missing...)
+	}
+
+	return &Envs{
+		siriusURL:       envs["SIRIUS_URL"],
+		siriusPublicURL: envs["SIRIUS_PUBLIC_URL"],
+		prefix:          envs["PREFIX"],
+		backendURL:      envs["BACKEND_URL"],
+		billingTeamID:   billingTeamId,
+		webDir:          "web",
+		port:            "8888",
+	}, nil
+}
 
 func main() {
 	ctx := context.Background()
@@ -40,21 +88,29 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		return err
 	}
 
-	envVars, err := server.NewEnvironmentVars()
+	envs, err := parseEnvs()
 	if err != nil {
 		return err
 	}
 
-	client, err := api.NewApiClient(http.DefaultClient, envVars.SiriusURL, envVars.BackendUrl)
+	client, err := api.NewApiClient(http.DefaultClient, envs.siriusURL, envs.backendURL)
 	if err != nil {
 		return err
 	}
 
-	templates := createTemplates(envVars)
+	templates := createTemplates(envs)
 
 	s := &http.Server{
-		Addr:    ":" + envVars.Port,
-		Handler: server.New(logger, client, templates, envVars),
+		Addr: ":" + envs.port,
+		Handler: server.New(logger, client, templates, server.Envs{
+			Port:            envs.port,
+			WebDir:          envs.webDir,
+			SiriusURL:       envs.siriusURL,
+			SiriusPublicURL: envs.siriusPublicURL,
+			Prefix:          envs.prefix,
+			BackendURL:      envs.backendURL,
+			BillingTeamID:   envs.billingTeamID,
+		}),
 	}
 
 	go func() {
@@ -64,7 +120,7 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		}
 	}()
 
-	logger.Info("Running at :" + envVars.Port)
+	logger.Info("Running at :" + envs.port)
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
@@ -78,7 +134,7 @@ func run(ctx context.Context, logger *slog.Logger) error {
 	return s.Shutdown(tc)
 }
 
-func createTemplates(envVars server.EnvironmentVars) map[string]*template.Template {
+func createTemplates(envVars *Envs) map[string]*template.Template {
 	templates := map[string]*template.Template{}
 	templateFunctions := map[string]interface{}{
 		"contains": func(xs []string, needle string) bool {
@@ -100,17 +156,17 @@ func createTemplates(envVars server.EnvironmentVars) map[string]*template.Templa
 			return strings.ToLower(s)
 		},
 		"prefix": func(s string) string {
-			return envVars.Prefix + s
+			return envVars.prefix + s
 		},
 		"sirius": func(s string) string {
-			return envVars.SiriusPublicURL + s
+			return envVars.siriusPublicURL + s
 		},
 		"toCurrency": func(amount int) string {
 			return shared.IntToDecimalString(amount)
 		},
 	}
 
-	templateDirPath := envVars.WebDir + "/template"
+	templateDirPath := envVars.webDir + "/template"
 	templateDir, _ := os.Open(templateDirPath)
 	templateDirs, _ := templateDir.Readdir(0)
 	_ = templateDir.Close()
