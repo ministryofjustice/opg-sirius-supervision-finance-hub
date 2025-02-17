@@ -13,7 +13,8 @@ import (
 
 func TestGetPermittedAdjustments(t *testing.T) {
 	mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "http://localhost:8181")
+	mockJWT := mockJWTClient{}
+	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", "http://localhost:8181"})
 
 	json := `["CREDIT MEMO","DEBIT MEMO"]`
 
@@ -28,7 +29,7 @@ func TestGetPermittedAdjustments(t *testing.T) {
 
 	expectedResponse := []shared.AdjustmentType{shared.AdjustmentTypeCreditMemo, shared.AdjustmentTypeDebitMemo}
 
-	types, err := client.GetPermittedAdjustments(getContext(nil), 1, 2)
+	types, err := client.GetPermittedAdjustments(testContext(), 1, 2)
 	assert.Equal(t, expectedResponse, types)
 	assert.Equal(t, nil, err)
 }
@@ -39,8 +40,8 @@ func TestGetPermittedAdjustmentsReturnsUnauthorisedClientError(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
-	_, err := client.GetPermittedAdjustments(getContext(nil), 1, 2)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
+	_, err := client.GetPermittedAdjustments(testContext(), 1, 2)
 	assert.Equal(t, ErrUnauthorized, err)
 }
 
@@ -50,9 +51,9 @@ func TestGetPermittedAdjustmentsReturns500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	_, err := client.GetPermittedAdjustments(getContext(nil), 1, 2)
+	_, err := client.GetPermittedAdjustments(testContext(), 1, 2)
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/clients/1/invoices/2/permitted-adjustments",
