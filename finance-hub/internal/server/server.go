@@ -42,8 +42,18 @@ type Template interface {
 	ExecuteTemplate(wr io.Writer, name string, data any) error
 }
 
-func New(logger *slog.Logger, client ApiClient, templates map[string]*template.Template, envVars EnvironmentVars) http.Handler {
-	wrap := wrapHandler(templates["error.gotmpl"], "main", envVars)
+type Envs struct {
+	Port            string
+	WebDir          string
+	SiriusURL       string
+	SiriusPublicURL string
+	Prefix          string
+	BackendURL      string
+	BillingTeamID   int
+}
+
+func New(logger *slog.Logger, client ApiClient, templates map[string]*template.Template, envs Envs) http.Handler {
+	wrap := wrapHandler(templates["error.gotmpl"], "main", envs)
 
 	mux := http.NewServeMux()
 
@@ -66,12 +76,12 @@ func New(logger *slog.Logger, client ApiClient, templates map[string]*template.T
 
 	mux.Handle("/health-check", healthCheck())
 
-	static := http.FileServer(http.Dir(envVars.WebDir + "/static"))
+	static := http.FileServer(http.Dir(envs.WebDir + "/static"))
 	mux.Handle("/assets/", static)
 	mux.Handle("/javascript/", static)
 	mux.Handle("/stylesheets/", static)
 
-	return otelhttp.NewHandler(http.StripPrefix(envVars.Prefix, telemetry.Middleware(logger)(securityheaders.Use(mux))), "supervision-finance-hub")
+	return otelhttp.NewHandler(http.StripPrefix(envs.Prefix, telemetry.Middleware(logger)(securityheaders.Use(mux))), "supervision-finance-hub")
 }
 
 func getContext(r *http.Request) api.Context {
