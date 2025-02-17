@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-func (c *ApiClient) SubmitDirectDebit(accountHolder string, accountName string, sortCode string, accountNumber string) error {
+func (c *Client) SubmitDirectDebit(accountHolder string, accountName string, sortCode string, accountNumber string) error {
 	errors := make(map[string]map[string]string)
 
 	if accountHolder == "" {
