@@ -123,14 +123,7 @@ type MockFileStorage struct {
 	exists         bool
 }
 
-func (m *MockFileStorage) GetFile(ctx context.Context, bucketName string, fileName string) (*s3.GetObjectOutput, error) {
-	m.filename = fileName
-	m.bucketname = bucketName
-
-	return m.outgoingObject, m.err
-}
-
-func (m *MockFileStorage) GetFileByVersion(ctx context.Context, bucketName string, fileName string, versionId string) (*s3.GetObjectOutput, error) {
+func (m *MockFileStorage) GetFile(ctx context.Context, bucketName string, fileName string, versionID string) (*s3.GetObjectOutput, error) {
 	return m.outgoingObject, m.err
 }
 

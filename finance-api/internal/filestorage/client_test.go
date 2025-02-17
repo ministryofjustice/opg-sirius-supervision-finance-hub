@@ -75,7 +75,7 @@ func TestGetFile(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			client := &Client{s3: tt.mock}
-			got, err := client.GetFileByVersion(context.Background(), "bucket", "filename", "versionID")
+			got, err := client.GetFile(context.Background(), "bucket", "filename", "versionID")
 			assert.Equal(t, tt.want, got)
 			assert.Equal(t, tt.wantErr, err)
 		})

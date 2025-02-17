@@ -24,12 +24,8 @@ func (s *Server) download(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	var result *s3.GetObjectOutput
-	if downloadRequest.VersionId != "" {
-		result, err = s.fileStorage.GetFileByVersion(ctx, downloadRequest.Bucket, downloadRequest.Key, downloadRequest.VersionId)
-	} else {
-		result, err = s.fileStorage.GetFile(ctx, downloadRequest.Bucket, downloadRequest.Key)
-	}
-  
+	result, err = s.fileStorage.GetFile(ctx, downloadRequest.Bucket, downloadRequest.Key, downloadRequest.VersionId)
+
 	if err != nil {
 		var apiErr smithy.APIError
 		if errors.As(err, &apiErr) {
