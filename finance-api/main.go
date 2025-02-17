@@ -58,7 +58,6 @@ func parseEnvs() (*Envs, error) {
 		"AWS_S3_ENDPOINT":       os.Getenv("AWS_S3_ENDPOINT"),
 		"S3_ENCRYPTION_KEY":     os.Getenv("S3_ENCRYPTION_KEY"),
 		"JWT_SECRET":            os.Getenv("JWT_SECRET"),
-		"JWT_EXPIRY":            os.Getenv("JWT_EXPIRY"),
 		"OPG_NOTIFY_API_KEY":    os.Getenv("OPG_NOTIFY_API_KEY"),
 		"ASYNC_S3_BUCKET":       os.Getenv("ASYNC_S3_BUCKET"),
 		"FINANCE_HUB_LIVE_DATE": os.Getenv("FINANCE_HUB_LIVE_DATE"),
@@ -198,7 +197,6 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		fileStorageClient,
 		&auth.JWT{
 			Secret: envs.jwtSecret,
-			Expiry: envs.jwtExpiry,
 		},
 		validator, &api.Envs{
 			ReportsBucket: envs.reportsBucket,

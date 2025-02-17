@@ -14,7 +14,6 @@ type Context struct {
 
 type JWT struct {
 	Secret string
-	Expiry int
 }
 
 type Claims struct {
