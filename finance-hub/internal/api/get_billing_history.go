@@ -1,13 +1,14 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"net/http"
 )
 
-func (c *ApiClient) GetBillingHistory(ctx Context, clientId int) ([]shared.BillingHistory, error) {
+func (c *Client) GetBillingHistory(ctx context.Context, clientId int) ([]shared.BillingHistory, error) {
 	var billingHistory []shared.BillingHistory
 
 	url := fmt.Sprintf("/clients/%d/billing-history", clientId)
