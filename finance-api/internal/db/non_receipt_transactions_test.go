@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/testhelpers"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 )
@@ -11,29 +12,31 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 	general := "GENERAL"
 	amount := "320"
 
+	today := suite.seeder.Today()
 	yesterday := suite.seeder.Today().Sub(0, 0, 1)
 	twoMonthsAgo := suite.seeder.Today().Sub(0, 2, 0)
 	threeMonthsAgo := suite.seeder.Today().Sub(0, 3, 0)
+	oneYearAgo := suite.seeder.Today().Sub(1, 0, 0)
 
 	// one client with three invoices of different types and an exemption
 	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234")
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
-	invoice1Id, _ := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil)
-	suite.seeder.CreateInvoiceFeeRange(ctx, invoice1Id, "AD")
+	invoice1Id, _ := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
+	suite.seeder.AddFeeRanges(ctx, invoice1Id, []testhelpers.FeeRange{{SupervisionLevel: "AD", FromDate: oneYearAgo.Date(), ToDate: today.Date()}})
 
-	invoice2Id, _ := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeS2, &amount, threeMonthsAgo.StringPtr(), nil, nil, &general)
-	suite.seeder.CreateInvoiceFeeRange(ctx, invoice2Id, "GENERAL")
+	invoice2Id, _ := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeS2, &amount, threeMonthsAgo.StringPtr(), nil, nil, &general, nil)
+	suite.seeder.AddFeeRanges(ctx, invoice2Id, []testhelpers.FeeRange{{SupervisionLevel: "GENERAL", FromDate: oneYearAgo.Date(), ToDate: today.Date()}})
 
 	suite.seeder.CreateFeeReduction(ctx, client1ID, shared.FeeReductionTypeExemption, "2022", 4, "Test", yesterday.Date())
 
 	// one client with three invoices of different types and a remission
 	client2ID := suite.seeder.CreateClient(ctx, "Barry", "Test", "87654321", "4321")
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
-	invoice3Id, _ := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil)
-	suite.seeder.CreateInvoiceFeeRange(ctx, invoice3Id, "AD")
+	invoice3Id, _ := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
+	suite.seeder.AddFeeRanges(ctx, invoice3Id, []testhelpers.FeeRange{{SupervisionLevel: "AD", FromDate: oneYearAgo.Date(), ToDate: today.Date()}})
 
-	invoice4Id, _ := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeS2, &amount, threeMonthsAgo.StringPtr(), nil, nil, &general)
-	suite.seeder.CreateInvoiceFeeRange(ctx, invoice4Id, "GENERAL")
+	invoice4Id, _ := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeS2, &amount, threeMonthsAgo.StringPtr(), nil, nil, &general, nil)
+	suite.seeder.AddFeeRanges(ctx, invoice4Id, []testhelpers.FeeRange{{SupervisionLevel: "GENERAL", FromDate: oneYearAgo.Date(), ToDate: today.Date()}})
 
 	suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeRemission, "2024", 4, "Test", yesterday.Date())
 

@@ -124,10 +124,10 @@ func TestRequestReportJournalDate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			downloadForm := shared.ReportRequest{
-				ReportType:        "Journal",
-				ReportAccountType: "AgedDebt",
-				Email:             "email",
-				DateOfTransaction: &tt.date,
+				ReportType:      shared.ReportsTypeJournal,
+				JournalType:     toPtr(shared.JournalTypeReceiptTransactions),
+				Email:           "email",
+				TransactionDate: &tt.date,
 			}
 
 			_ = json.NewEncoder(&b).Encode(downloadForm)
@@ -135,7 +135,7 @@ func TestRequestReportJournalDate(t *testing.T) {
 			w := httptest.NewRecorder()
 
 			mock := &MockReports{}
-			server := NewServer(nil, mock, "", nil, nil)
+			server := NewServer(nil, mock, nil, nil, nil)
 			err := server.requestReport(w, r)
 
 			res := w.Result()

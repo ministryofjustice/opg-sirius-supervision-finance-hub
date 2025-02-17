@@ -16,7 +16,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	// one client with one invoice and a BACS payment - credit
 	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234")
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
-	_, _ = suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil)
+	_, _ = suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
 
 	//suite.seeder.CreatePayment(ctx, 100, yesterday.Date(), "12345678", shared.TransactionTypeOPGBACSPayment, yesterday.Date())
 	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "12345678", shared.TransactionTypeMotoCardPayment, yesterday.Date())

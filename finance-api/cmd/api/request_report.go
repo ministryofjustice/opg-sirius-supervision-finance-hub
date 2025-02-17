@@ -26,10 +26,10 @@ func (s *Server) requestReport(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	if reportRequest.ReportType == shared.ReportsTypeJournal.Key() {
+	if reportRequest.ReportType == shared.ReportsTypeJournal {
 		goLiveDate := shared.NewDate(os.Getenv("FINANCE_HUB_LIVE_DATE"))
-		if !reportRequest.DateOfTransaction.Before(shared.NewDate(time.Now().Format("2006-01-02"))) ||
-			reportRequest.DateOfTransaction.Before(goLiveDate) {
+		if !reportRequest.TransactionDate.Before(shared.NewDate(time.Now().Format("2006-01-02"))) ||
+			reportRequest.TransactionDate.Before(goLiveDate) {
 			return apierror.ValidationError{Errors: apierror.ValidationErrors{
 				"Date": {
 					"Date": fmt.Sprintf("Date must be before today and after %s", os.Getenv("FINANCE_HUB_LIVE_DATE")),
