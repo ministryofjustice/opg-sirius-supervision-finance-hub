@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/ministryofjustice/opg-go-common/securityheaders"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
@@ -39,10 +40,15 @@ type Reports interface {
 	GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) error
 }
 
+type JWTClient interface {
+	Verify(requestToken string) (*jwt.Token, error)
+}
+
 type Server struct {
 	service     Service
 	reports     Reports
 	fileStorage FileStorage
+	JWT         JWTClient
 	validator   *validation.Validate
 	envs        *Envs
 }
@@ -52,11 +58,12 @@ type Envs struct {
 	GoLiveDate    time.Time
 }
 
-func NewServer(service Service, reports Reports, fileStorage FileStorage, validator *validation.Validate, envs *Envs) *Server {
+func NewServer(service Service, reports Reports, fileStorage FileStorage, jwtClient JWTClient, validator *validation.Validate, envs *Envs) *Server {
 	return &Server{
 		service:     service,
 		reports:     reports,
 		fileStorage: fileStorage,
+		JWT:         jwtClient,
 		validator:   validator,
 		envs:        envs,
 	}
@@ -70,7 +77,7 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 	handleFunc := func(pattern string, h handlerFunc) {
 		// Configure the "http.route" for the HTTP instrumentation.
 		handler := otelhttp.WithRouteTag(pattern, h)
-		mux.Handle(pattern, handler)
+		mux.Handle(pattern, s.authenticate(handler))
 	}
 	handleFunc("GET /clients/{clientId}", s.getAccountInformation)
 	handleFunc("GET /clients/{clientId}/invoices", s.getInvoices)
@@ -92,12 +99,12 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 
 	handleFunc("POST /events", s.handleEvents)
 
-	handleFunc("/health-check", func(w http.ResponseWriter, r *http.Request) error { return nil })
+	mux.Handle("/health-check", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 
-	return otelhttp.NewHandler(telemetry.Middleware(logger)(securityheaders.Use(s.RequestLogger(mux))), "supervision-finance-api")
+	return otelhttp.NewHandler(telemetry.Middleware(logger)(securityheaders.Use(s.requestLogger(mux))), "supervision-finance-api")
 }
 
-func (s *Server) RequestLogger(h http.Handler) http.HandlerFunc {
+func (s *Server) requestLogger(h http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/health-check" {
 			telemetry.LoggerFromContext(r.Context()).Info(
