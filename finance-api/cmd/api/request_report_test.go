@@ -33,7 +33,7 @@ func TestRequestReport(t *testing.T) {
 
 	mock := &MockReports{}
 	mock.requestedReport = downloadForm
-	server := NewServer(nil, mock, nil, nil, nil)
+	server := NewServer(nil, mock, nil, nil, nil, nil)
 	_ = server.requestReport(w, r)
 
 	res := w.Result()
@@ -62,7 +62,7 @@ func TestRequestReportNoEmail(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	mock := &MockReports{}
-	server := NewServer(nil, mock, nil, nil, nil)
+	server := NewServer(nil, mock, nil, nil, nil, nil)
 	err := server.requestReport(w, r)
 
 	res := w.Result()
@@ -239,7 +239,7 @@ func TestValidateReportRequest(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			server := &Server{nil, nil, nil, nil, &Envs{GoLiveDate: goLive}}
+			server := &Server{nil, nil, nil, nil, nil, &Envs{GoLiveDate: goLive}}
 			err := server.validateReportRequest(tt.reportRequest)
 			assert.Equal(t, tt.expectedError, err)
 		})

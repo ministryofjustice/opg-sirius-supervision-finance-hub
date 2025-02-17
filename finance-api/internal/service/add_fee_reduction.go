@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"slices"
@@ -31,7 +32,7 @@ func (s *Service) AddFeeReduction(ctx context.Context, clientId int, data shared
 		Notes:        data.Notes,
 		Datereceived: pgtype.Date{Time: data.DateReceived.Time, Valid: true},
 		//TODO make sure we have correct createdby ID in ticket PFS-136
-		CreatedBy: pgtype.Int4{Int32: 1, Valid: true},
+		CreatedBy: pgtype.Int4{Int32: int32(ctx.(auth.Context).User.ID), Valid: true},
 	}
 
 	ctx, cancelTx := context.WithCancel(ctx)
