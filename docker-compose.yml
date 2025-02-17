@@ -172,7 +172,7 @@ services:
     command: "up"
 
   localstack:
-    image: localstack/localstack:4.0
+    image: localstack/localstack:4.1
     ports:
       - "4566:4566"
     environment:
