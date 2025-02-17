@@ -9,7 +9,7 @@ type AppVars struct {
 	Path            string
 	XSRFToken       string
 	Tabs            []Tab
-	EnvironmentVars EnvironmentVars
+	EnvironmentVars Envs
 	Errors          apierror.ValidationErrors
 	Error           string
 }
@@ -21,7 +21,7 @@ type Tab struct {
 	Selected bool
 }
 
-func NewAppVars(r *http.Request, envVars EnvironmentVars) AppVars {
+func NewAppVars(r *http.Request, envVars Envs) AppVars {
 	ctx := getContext(r)
 
 	clientId := r.PathValue("clientId")
