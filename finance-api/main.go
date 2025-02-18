@@ -21,7 +21,6 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
 
@@ -48,7 +47,6 @@ type Envs struct {
 	eventBusName       string
 	port               string
 	jwtSecret          string
-	jwtExpiry          int
 }
 
 func parseEnvs() (*Envs, error) {
@@ -58,6 +56,7 @@ func parseEnvs() (*Envs, error) {
 		"AWS_S3_ENDPOINT":       os.Getenv("AWS_S3_ENDPOINT"),
 		"S3_ENCRYPTION_KEY":     os.Getenv("S3_ENCRYPTION_KEY"),
 		"JWT_SECRET":            os.Getenv("JWT_SECRET"),
+		"JWT_EXPIRY":            os.Getenv("JWT_EXPIRY"),
 		"OPG_NOTIFY_API_KEY":    os.Getenv("OPG_NOTIFY_API_KEY"),
 		"ASYNC_S3_BUCKET":       os.Getenv("ASYNC_S3_BUCKET"),
 		"FINANCE_HUB_LIVE_DATE": os.Getenv("FINANCE_HUB_LIVE_DATE"),
@@ -100,7 +99,6 @@ func parseEnvs() (*Envs, error) {
 		dbName:             envs["POSTGRES_DB"],
 		awsBaseUrl:         os.Getenv("AWS_BASE_URL"), // can be empty
 		eventBusName:       envs["EVENT_BUS_NAME"],
-		jwtExpiry:          jwtExpiry,
 		webDir:             "web",
 		port:               "8080",
 	}, nil
