@@ -53,7 +53,6 @@ func parseEnvs() (*Envs, error) {
 	envs := map[string]string{
 		"AWS_REGION":            os.Getenv("AWS_REGION"),
 		"AWS_IAM_ROLE":          os.Getenv("AWS_IAM_ROLE"),
-		"AWS_S3_ENDPOINT":       os.Getenv("AWS_S3_ENDPOINT"),
 		"S3_ENCRYPTION_KEY":     os.Getenv("S3_ENCRYPTION_KEY"),
 		"JWT_SECRET":            os.Getenv("JWT_SECRET"),
 		"OPG_NOTIFY_API_KEY":    os.Getenv("OPG_NOTIFY_API_KEY"),
@@ -84,7 +83,7 @@ func parseEnvs() (*Envs, error) {
 	return &Envs{
 		awsRegion:          envs["AWS_REGION"],
 		iamRole:            envs["AWS_IAM_ROLE"],
-		s3Endpoint:         envs["AWS_S3_ENDPOINT"],
+		s3Endpoint:         os.Getenv("AWS_S3_ENDPOINT"), // used for testing
 		s3EncryptionKey:    envs["S3_ENCRYPTION_KEY"],
 		jwtSecret:          envs["JWT_SECRET"],
 		notifyKey:          envs["OPG_NOTIFY_API_KEY"],
@@ -97,7 +96,7 @@ func parseEnvs() (*Envs, error) {
 		dbUser:             envs["POSTGRES_USER"],
 		dbPassword:         envs["POSTGRES_PASSWORD"],
 		dbName:             envs["POSTGRES_DB"],
-		awsBaseUrl:         os.Getenv("AWS_BASE_URL"), // can be empty
+		awsBaseUrl:         os.Getenv("AWS_BASE_URL"), // used for testing
 		eventBusName:       envs["EVENT_BUS_NAME"],
 		webDir:             "web",
 		port:               envs["PORT"],
