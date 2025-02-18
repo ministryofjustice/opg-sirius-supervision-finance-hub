@@ -84,15 +84,15 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		fileStorageClient,
 		notifyClient,
 		&reports.Envs{
-			ReportsBucket:   os.Getenv("REPORTS_S3_BUCKET"),
-			FinanceAdminURL: fmt.Sprintf("%s%s", os.Getenv("SIRIUS_PUBLIC_URL"), os.Getenv("FINANCE_ADMIN_PREFIX")),
-			GoLiveDate:      goLiveDate,
+			ReportsBucket:       os.Getenv("REPORTS_S3_BUCKET"),
+			LegacyReportsBucket: os.Getenv("LEGACY_REPORTS_S3_BUCKET"),
+			FinanceAdminURL:     fmt.Sprintf("%s%s", os.Getenv("SIRIUS_PUBLIC_URL"), os.Getenv("FINANCE_ADMIN_PREFIX")),
+			GoLiveDate:          goLiveDate,
 		},
 	)
 	defer reportsClient.Close()
 
 	server := api.NewServer(Service, reportsClient, fileStorageClient, validator, &api.Envs{
-		ReportsBucket: os.Getenv("REPORTS_S3_BUCKET"),
 		GoLiveDate:    goLiveDate,
 	})
 
