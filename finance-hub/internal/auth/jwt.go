@@ -8,9 +8,10 @@ import (
 	"time"
 )
 
+const expiry = 5
+
 type JWT struct {
 	Secret string
-	Expiry int
 }
 
 type Claims struct {
@@ -20,8 +21,8 @@ type Claims struct {
 
 func (j *JWT) CreateJWT(ctx context.Context) string {
 	user := ctx.(Context).User
-	
-	exp := time.Now().Add(time.Second * time.Duration(j.Expiry))
+
+	exp := time.Now().Add(time.Second * time.Duration(expiry))
 	claims := &Claims{
 		Roles: user.Roles,
 		RegisteredClaims: jwt.RegisteredClaims{
