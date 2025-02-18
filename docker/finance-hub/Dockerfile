@@ -1,11 +1,11 @@
-FROM golang:1.23-alpine as base
+FROM golang:1.23-alpine AS base
 WORKDIR /app
 
 ENV CGO_ENABLED=0 GOOS=linux
 
 RUN update-ca-certificates
 
-FROM node:22-alpine3.19 as asset-env
+FROM node:22-alpine3.19 AS asset-env
 WORKDIR /app
 
 RUN mkdir -p web/static
@@ -28,7 +28,7 @@ EXPOSE 2345
 
 ENTRYPOINT ["air"]
 
-FROM base as build-env
+FROM base AS build-env
 WORKDIR /app
 
 COPY go.mod .
@@ -50,7 +50,7 @@ RUN apk --update --no-cache add \
     tzdata
 
 # Patch vulnerabilities
-RUN apk upgrade --no-cache busybox libcrypto3 libssl3
+RUN apk upgrade --no-cache busybox libcrypto3 libssl3 musl musl-utils
 
 COPY --from=build-env /go/bin/finance-hub finance-hub
 COPY --from=build-env /app/finance-hub/web/template web/template
