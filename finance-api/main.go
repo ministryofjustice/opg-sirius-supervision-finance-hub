@@ -21,7 +21,6 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
 
@@ -48,7 +47,6 @@ type Envs struct {
 	eventBusName       string
 	port               string
 	jwtSecret          string
-	jwtExpiry          int
 }
 
 func parseEnvs() (*Envs, error) {
@@ -100,7 +98,6 @@ func parseEnvs() (*Envs, error) {
 		dbName:             envs["POSTGRES_DB"],
 		awsBaseUrl:         os.Getenv("AWS_BASE_URL"), // can be empty
 		eventBusName:       envs["EVENT_BUS_NAME"],
-		jwtExpiry:          jwtExpiry,
 		webDir:             "web",
 		port:               "8080",
 	}, nil
