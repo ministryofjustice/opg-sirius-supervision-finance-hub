@@ -222,4 +222,12 @@ type TransactionType struct {
 	LedgerType       pgtype.Text
 	AccountCode      pgtype.Int8
 	Description      pgtype.Text
+	LineDescription  pgtype.Text
+	IsReceipt        pgtype.Bool
+}
+
+type TransactionTypeUpdate struct {
+	TransactionTypeID     int32
+	LineDescriptionUpdate pgtype.Text
+	IsReceiptUpdate       pgtype.Bool
 }
