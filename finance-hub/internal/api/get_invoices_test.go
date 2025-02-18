@@ -12,7 +12,8 @@ import (
 
 func TestGetInvoicesCanReturn200(t *testing.T) {
 	mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "")
+	mockJWT := mockJWTClient{}
+	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""})
 
 	json := `
 	[
@@ -81,7 +82,7 @@ func TestGetInvoicesCanReturn200(t *testing.T) {
 		},
 	}
 
-	invoiceList, err := client.GetInvoices(getContext(nil), 3)
+	invoiceList, err := client.GetInvoices(testContext(), 3)
 
 	assert.Equal(t, nil, err)
 	assert.Equal(t, expectedResponse, invoiceList)
@@ -93,9 +94,9 @@ func TestGetInvoicesCanThrow500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	_, err := client.GetInvoices(getContext(nil), 1)
+	_, err := client.GetInvoices(testContext(), 1)
 
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
@@ -110,9 +111,9 @@ func TestGetInvoicesUnauthorised(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	clientList, err := client.GetInvoices(getContext(nil), 3)
+	clientList, err := client.GetInvoices(testContext(), 3)
 
 	var expectedResponse shared.Invoices
 

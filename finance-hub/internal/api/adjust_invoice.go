@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
@@ -9,7 +10,7 @@ import (
 	"net/http"
 )
 
-func (c *ApiClient) AdjustInvoice(ctx Context, clientId int, supervisionBillingTeamId int, invoiceId int, adjustmentType string, notes string, amount string) error {
+func (c *Client) AdjustInvoice(ctx context.Context, clientId int, supervisionBillingTeamId int, invoiceId int, adjustmentType string, notes string, amount string) error {
 	var body bytes.Buffer
 
 	adjustment := shared.AddInvoiceAdjustmentRequest{

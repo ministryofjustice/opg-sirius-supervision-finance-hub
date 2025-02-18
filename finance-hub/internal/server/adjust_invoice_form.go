@@ -18,11 +18,11 @@ type AdjustInvoiceFormHandler struct {
 }
 
 func (h *AdjustInvoiceFormHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
-	ctx := getContext(r)
+	ctx := r.Context()
+	clientID := getClientID(r)
 
-	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
 	invoiceId, _ := strconv.Atoi(r.PathValue("invoiceId"))
-	allowedAdjustments, err := h.Client().GetPermittedAdjustments(ctx, clientId, invoiceId)
+	allowedAdjustments, err := h.Client().GetPermittedAdjustments(ctx, clientID, invoiceId)
 	if err != nil {
 		return err
 	}

@@ -14,7 +14,7 @@ type SubmitDirectDebitHandler struct {
 }
 
 func (h *SubmitDirectDebitHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
-	ctx := getContext(r)
+	clientID := getClientID(r)
 
 	var (
 		accountHolder = r.PostFormValue("accountHolder")
@@ -26,7 +26,7 @@ func (h *SubmitDirectDebitHandler) render(v AppVars, w http.ResponseWriter, r *h
 	err := h.Client().SubmitDirectDebit(accountHolder, accountName, sortCode, accountNumber)
 
 	if err == nil {
-		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices?success=direct-debit", v.EnvironmentVars.Prefix, ctx.ClientId))
+		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices?success=direct-debit", v.EnvironmentVars.Prefix, clientID))
 	} else {
 		var (
 			valErr apierror.ValidationError

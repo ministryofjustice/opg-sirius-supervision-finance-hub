@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
 	"net/http"
 	"testing"
 
@@ -22,12 +23,11 @@ func (m *MockClient) Do(req *http.Request) (*http.Response, error) {
 	return GetDoFunc(req)
 }
 
-func getContext(cookies []*http.Cookie) Context {
-	return Context{
-		Context:   context.Background(),
-		Cookies:   cookies,
-		XSRFToken: "abcde",
-	}
+type mockJWTClient struct {
+}
+
+func (m *mockJWTClient) CreateJWT(ctx context.Context) string {
+	return "jwt"
 }
 
 func TestClientError(t *testing.T) {
@@ -51,4 +51,10 @@ func TestStatusError(t *testing.T) {
 func SetUpTest() *MockClient {
 	mockClient := &MockClient{cache: newCaches()}
 	return mockClient
+}
+
+func testContext() auth.Context {
+	return auth.Context{
+		Context: context.Background(),
+	}
 }

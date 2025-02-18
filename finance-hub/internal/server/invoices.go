@@ -54,14 +54,15 @@ type InvoicesHandler struct {
 }
 
 func (h *InvoicesHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
-	ctx := getContext(r)
+	ctx := r.Context()
+	clientID := getClientID(r)
 
-	invoices, err := h.Client().GetInvoices(ctx, ctx.ClientId)
+	invoices, err := h.Client().GetInvoices(ctx, clientID)
 	if err != nil {
 		return err
 	}
 
-	data := &InvoicesVars{h.transform(invoices, ctx.ClientId), strconv.Itoa(ctx.ClientId), v}
+	data := &InvoicesVars{h.transform(invoices, clientID), strconv.Itoa(clientID), v}
 	data.selectTab("invoices")
 	return h.execute(w, r, data)
 }

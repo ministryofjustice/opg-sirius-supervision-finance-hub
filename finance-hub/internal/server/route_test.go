@@ -1,7 +1,9 @@
 package server
 
 import (
+	"context"
 	"errors"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -43,7 +45,11 @@ func TestRoute_fullPage(t *testing.T) {
 	template := &mockTemplate{}
 
 	w := httptest.NewRecorder()
-	r, _ := http.NewRequest(http.MethodGet, "", nil)
+	ctx := auth.Context{
+		User:    &shared.User{ID: 123},
+		Context: context.Background(),
+	}
+	r, _ := http.NewRequestWithContext(ctx, http.MethodGet, "", nil)
 	r.SetPathValue("clientId", "1")
 
 	client.PersonDetails = shared.Person{
@@ -57,8 +63,8 @@ func TestRoute_fullPage(t *testing.T) {
 		CreditBalance:      123,
 		PaymentMethod:      "DEMANDED",
 	}
-	client.CurrentUserDetails = shared.Assignee{
-		Id: 123,
+	client.CurrentUserDetails = shared.User{
+		ID: 123,
 	}
 
 	fetchedData := HeaderData{
@@ -71,7 +77,7 @@ func TestRoute_fullPage(t *testing.T) {
 			PaymentMethod:      "Demanded",
 			ClientId:           "1",
 		},
-		MyDetails: client.CurrentUserDetails,
+		User: &client.CurrentUserDetails,
 	}
 
 	data := PageData{
@@ -99,7 +105,11 @@ func TestRoute_error(t *testing.T) {
 	template := &mockTemplate{}
 
 	w := httptest.NewRecorder()
-	r, _ := http.NewRequest(http.MethodGet, "", nil)
+	ctx := auth.Context{
+		User:    &shared.User{ID: 123},
+		Context: context.Background(),
+	}
+	r, _ := http.NewRequestWithContext(ctx, http.MethodGet, "", nil)
 	r.SetPathValue("clientId", "abc")
 
 	data := PageData{

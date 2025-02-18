@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
@@ -8,7 +9,7 @@ import (
 	"net/http"
 )
 
-func (c *ApiClient) GetAccountInformation(ctx Context, ClientId int) (shared.AccountInformation, error) {
+func (c *Client) GetAccountInformation(ctx context.Context, ClientId int) (shared.AccountInformation, error) {
 	var v shared.AccountInformation
 
 	requestURL := fmt.Sprintf("/clients/%d", ClientId)

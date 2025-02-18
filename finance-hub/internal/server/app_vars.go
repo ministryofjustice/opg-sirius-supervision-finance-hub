@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
 	"net/http"
 )
 
@@ -22,7 +23,7 @@ type Tab struct {
 }
 
 func NewAppVars(r *http.Request, envVars Envs) AppVars {
-	ctx := getContext(r)
+	ctx := r.Context()
 
 	clientId := r.PathValue("clientId")
 	tabs := []Tab{
@@ -50,7 +51,7 @@ func NewAppVars(r *http.Request, envVars Envs) AppVars {
 
 	vars := AppVars{
 		Path:            r.URL.Path,
-		XSRFToken:       ctx.XSRFToken,
+		XSRFToken:       ctx.(auth.Context).XSRFToken,
 		EnvironmentVars: envVars,
 		Tabs:            tabs,
 	}
