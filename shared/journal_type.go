@@ -41,7 +41,6 @@ func (j JournalType) Key() string {
 	}
 }
 
-
 func ParseJournalType(s string) JournalType {
 	value, ok := journalTypeMap[s]
 	if !ok {
@@ -63,5 +62,6 @@ func (j *JournalType) UnmarshalJSON(data []byte) (err error) {
 	if err := json.Unmarshal(data, &s); err != nil {
 		return err
 	}
+	*j = ParseJournalType(s)
 	return nil
 }
