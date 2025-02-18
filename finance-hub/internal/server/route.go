@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/text/cases"
@@ -20,7 +21,7 @@ type FinanceClient struct {
 }
 
 type HeaderData struct {
-	MyDetails     shared.Assignee
+	User          *shared.User
 	FinanceClient FinanceClient
 }
 
@@ -47,26 +48,22 @@ func (r route) execute(w http.ResponseWriter, req *http.Request, data any) error
 	if IsHxRequest(req) {
 		return r.tmpl.ExecuteTemplate(w, r.partial, data)
 	} else {
-		ctx := getContext(req)
-		group, groupCtx := errgroup.WithContext(ctx.Context)
+		ctx := req.Context().(auth.Context)
+		group, groupCtx := errgroup.WithContext(ctx)
+		ctx = ctx.WithContext(groupCtx)
 
 		data := PageData{
 			Data: data,
 		}
 
+		data.User = ctx.User
+		
+		clientID := getClientID(req)
 		var person shared.Person
 		var accountInfo shared.AccountInformation
 
 		group.Go(func() error {
-			myDetails, err := r.client.GetCurrentUserDetails(ctx.With(groupCtx))
-			if err != nil {
-				return err
-			}
-			data.MyDetails = myDetails
-			return nil
-		})
-		group.Go(func() error {
-			p, err := r.client.GetPersonDetails(ctx.With(groupCtx), ctx.ClientId)
+			p, err := r.client.GetPersonDetails(ctx, clientID)
 			if err != nil {
 				return err
 			}
@@ -74,7 +71,7 @@ func (r route) execute(w http.ResponseWriter, req *http.Request, data any) error
 			return nil
 		})
 		group.Go(func() error {
-			ai, err := r.client.GetAccountInformation(ctx.With(groupCtx), ctx.ClientId)
+			ai, err := r.client.GetAccountInformation(ctx, clientID)
 			if err != nil {
 				return err
 			}
@@ -167,4 +164,9 @@ func (r route) transformFinanceClient(person shared.Person, accountInfo shared.A
 		CreditBalance:      shared.IntToDecimalString(accountInfo.CreditBalance),
 		PaymentMethod:      cases.Title(language.English).String(accountInfo.PaymentMethod),
 	}
+}
+
+func getClientID(req *http.Request) int {
+	clientId, _ := strconv.Atoi(req.PathValue("clientId"))
+	return clientId
 }
