@@ -15,8 +15,8 @@ func (c *Client) createDownloadFeeAccrualNotifyPayload(emailAddress string, requ
 	filename := "Fee_Accrual.csv"
 
 	downloadRequest := shared.DownloadRequest{
-		Key:    filename,                   //Create download request with no version ID to get latest
-		Bucket: c.envs.LegacyReportsBucket, // Change to legacy finance bucket!
+		Key:    filename,
+		Bucket: c.envs.LegacyReportsBucket,
 	}
 
 	uid, err := downloadRequest.Encode()
@@ -90,8 +90,6 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 			if err != nil {
 				return err
 			}
-
-			fmt.Println(payload.Personalisation)
 
 			return c.notify.Send(ctx, payload)
 		default:
