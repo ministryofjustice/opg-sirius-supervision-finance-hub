@@ -39,6 +39,7 @@ func parseEnvs() (*Envs, error) {
 		"PREFIX":                      os.Getenv("PREFIX"),
 		"BACKEND_URL":                 os.Getenv("BACKEND_URL"),
 		"SUPERVISION_BILLING_TEAM_ID": os.Getenv("SUPERVISION_BILLING_TEAM_ID"),
+		"PORT":                        os.Getenv("PORT"),
 	}
 
 	var missing []error
@@ -64,7 +65,7 @@ func parseEnvs() (*Envs, error) {
 		backendURL:      envs["BACKEND_URL"],
 		billingTeamID:   billingTeamId,
 		webDir:          "web",
-		port:            "8888",
+		port:            envs["PORT"],
 	}, nil
 }
 
