@@ -1,6 +1,14 @@
-all: go-lint gosec test build-all scan cypress axe down
+all:
+	$(MAKE) test -j 3
+	$(MAKE) build -j 3
+	$(MAKE) scan -j 3
+	$(MAKE) cypress
+	$(MAKE) down
+
 
 .PHONY: cypress
+
+test: go-lint gosec unit-test
 
 test-results:
 	mkdir -p -m 0777 test-results cypress/screenshots .trivy-cache .go-cache
@@ -12,6 +20,9 @@ go-lint:
 
 gosec: setup-directories
 	docker compose run --rm gosec
+
+unit-test: setup-directories
+	go run gotest.tools/gotestsum@latest --format testname  --junitfile test-results/unit-tests.xml -- ./... -coverprofile=test-results/test-coverage.txt
 
 build: build-api build-hub build-migrations
 build-api:
@@ -26,10 +37,6 @@ build-dev:
 
 build-all:
 	docker compose build --parallel finance-hub finance-api finance-migration json-server cypress sirius-db
-
-test: setup-directories
-	go run gotest.tools/gotestsum@latest --format testname  --junitfile test-results/unit-tests.xml -- ./... -coverprofile=test-results/test-coverage.txt
-
 
 scan: scan-api scan-hub scan-migrations
 scan-api: setup-directories
