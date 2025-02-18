@@ -31,7 +31,6 @@ type Envs struct {
 	prefix          string
 	port            string
 	jwtSecret       string
-	jwtExpiry       int
 	billingTeamID   int
 }
 
@@ -44,7 +43,6 @@ func parseEnvs() (*Envs, error) {
 		"SUPERVISION_BILLING_TEAM_ID": os.Getenv("SUPERVISION_BILLING_TEAM_ID"),
 		"PORT":                        os.Getenv("PORT"),
 		"JWT_SECRET":                  os.Getenv("JWT_SECRET"),
-		"JWT_EXPIRY":                  os.Getenv("JWT_EXPIRY"),
 	}
 
 	var missing []error
@@ -58,10 +56,6 @@ func parseEnvs() (*Envs, error) {
 	if err != nil {
 		missing = append(missing, errors.New("invalid SUPERVISION_BILLING_TEAM_ID"))
 	}
-	jwtExpiry, err := strconv.Atoi(envs["JWT_EXPIRY"])
-	if err != nil {
-		missing = append(missing, errors.New("invalid JWT_EXPIRY"))
-	}
 
 	if len(missing) > 0 {
 		return nil, errors.Join(missing...)
@@ -73,7 +67,6 @@ func parseEnvs() (*Envs, error) {
 		prefix:          envs["PREFIX"],
 		backendURL:      envs["BACKEND_URL"],
 		jwtSecret:       envs["JWT_SECRET"],
-		jwtExpiry:       jwtExpiry,
 		billingTeamID:   billingTeamId,
 		webDir:          "web",
 		port:            envs["PORT"],
@@ -109,7 +102,6 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		http.DefaultClient,
 		&auth.JWT{
 			Secret: envs.jwtSecret,
-			Expiry: envs.jwtExpiry,
 		},
 		api.Envs{
 			SiriusURL:  envs.siriusURL,
