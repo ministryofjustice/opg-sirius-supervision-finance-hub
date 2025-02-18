@@ -27,8 +27,8 @@ type ApiClient interface {
 	UpdatePendingInvoiceAdjustment(context.Context, int, int, string) error
 	AddManualInvoice(context.Context, int, string, *string, *string, *string, *string, *string, *string) error
 	GetBillingHistory(context.Context, int) ([]shared.BillingHistory, error)
-	GetUser(context.Context, int) (shared.User, error)
 	SubmitPaymentMethod(context.Context, int, string) error
+	GetUser(context.Context, int) (shared.User, error)
 }
 
 type router interface {
@@ -76,7 +76,7 @@ func New(logger *slog.Logger, client *api.Client, templates map[string]*template
 	handleMux("GET /clients/{clientId}/pending-invoice-adjustments", &PendingInvoiceAdjustmentsHandler{&route{client: client, tmpl: templates["pending-invoice-adjustments.gotmpl"], partial: "pending-invoice-adjustments"}})
 	handleMux("GET /clients/{clientId}/invoices/{invoiceId}/adjustments", &AdjustInvoiceFormHandler{&route{client: client, tmpl: templates["adjust-invoice.gotmpl"], partial: "adjust-invoice"}})
 	handleMux("GET /clients/{clientId}/fee-reductions/add", &UpdateFeeReductionHandler{&route{client: client, tmpl: templates["add-fee-reduction.gotmpl"], partial: "add-fee-reduction"}})
-	handleMux("GET /clients/{clientId}/direct-debit/add", &UpdateDirectDebitHandler{&route{client: client, tmpl: templates["set-up-direct-debit.gotmpl"], partial: "set-up-direct-debit"}})
+	handleMux("GET /clients/{clientId}/payment-method/add", &PaymentMethodHandler{&route{client: client, tmpl: templates["set-up-payment-method.gotmpl"], partial: "set-up-payment-method"}})
 	handleMux("GET /clients/{clientId}/invoices/add", &UpdateManualInvoiceHandler{&route{client: client, tmpl: templates["add-manual-invoice.gotmpl"], partial: "add-manual-invoice"}})
 	handleMux("GET /clients/{clientId}/billing-history", &BillingHistoryHandler{&route{client: client, tmpl: templates["billing-history.gotmpl"], partial: "billing-history"}})
 	handleMux("GET /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", &CancelFeeReductionHandler{&route{client: client, tmpl: templates["cancel-fee-reduction.gotmpl"], partial: "cancel-fee-reduction"}})

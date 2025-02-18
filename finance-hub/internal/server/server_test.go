@@ -62,7 +62,7 @@ type mockApiClient struct {
 	User               shared.User
 }
 
-func (m mockApiClient) SubmitPaymentMethod(context api.Context, i int, s string) error {
+func (m mockApiClient) SubmitPaymentMethod(context context.Context, i int, s string) error {
 	return m.error
 }
 

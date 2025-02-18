@@ -2,13 +2,14 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"net/http"
 )
 
-func (c *ApiClient) SubmitPaymentMethod(ctx Context, clientId int, paymentMethod string) error {
+func (c *Client) SubmitPaymentMethod(ctx context.Context, clientId int, paymentMethod string) error {
 	var body bytes.Buffer
 
 	err := json.NewEncoder(&body).Encode(shared.UpdatePaymentMethod{
