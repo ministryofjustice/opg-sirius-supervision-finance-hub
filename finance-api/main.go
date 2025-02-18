@@ -64,6 +64,7 @@ func parseEnvs() (*Envs, error) {
 		"POSTGRES_PASSWORD":     os.Getenv("POSTGRES_PASSWORD"),
 		"POSTGRES_DB":           os.Getenv("POSTGRES_DB"),
 		"EVENT_BUS_NAME":        os.Getenv("EVENT_BUS_NAME"),
+		"PORT":                  os.Getenv("PORT"),
 	}
 
 	var missing []error
@@ -95,7 +96,7 @@ func parseEnvs() (*Envs, error) {
 		awsBaseUrl:         os.Getenv("AWS_BASE_URL"), // can be empty
 		eventBusName:       envs["EVENT_BUS_NAME"],
 		webDir:             "web",
-		port:               "8080",
+		port:               envs["PORT"],
 	}, nil
 }
 
