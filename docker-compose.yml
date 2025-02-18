@@ -13,6 +13,7 @@ services:
       PREFIX: /finance
       SUPERVISION_BILLING_TEAM_ID: 41
       JWT_SECRET: mysupersecrettestkeythatis128bits
+      JWT_EXPIRY: 5
       FINANCE_HUB_LIVE_DATE: 01/01/2024
     healthcheck:
       test: wget -O /dev/null -S 'http://localhost:8888/finance/health-check' 2>&1 | grep 'HTTP/1.1 200 OK' || exit 1
