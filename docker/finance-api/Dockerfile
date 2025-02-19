@@ -14,7 +14,7 @@ EXPOSE 2345
 
 ENTRYPOINT ["air"]
 
-FROM base as build-env
+FROM base AS build-env
 WORKDIR /app
 
 COPY go.mod go.sum ./
@@ -34,7 +34,7 @@ RUN apk --update --no-cache add \
     tzdata
 
 # Patch vulnerabilities
-RUN apk upgrade --no-cache busybox libcrypto3 libssl3
+RUN apk upgrade --no-cache busybox libcrypto3 libssl3 musl musl-utils
 
 COPY --from=build-env /go/bin/finance-api finance-api
 ENTRYPOINT ["./finance-api"]
