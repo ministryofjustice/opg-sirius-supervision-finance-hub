@@ -19,22 +19,24 @@ const (
 	TransactionTypeSupervisionBACSPayment
 	TransactionTypeOPGBACSPayment
 	TransactionTypeDirectDebitPayment
+	TransactionTypeSupervisionChequePayment
 )
 
 var TransactionTypeMap = map[string]TransactionType{
-	"CREDIT WRITE OFF":         TransactionTypeWriteOff,
-	"CREDIT MEMO":              TransactionTypeCreditMemo,
-	"DEBIT MEMO":               TransactionTypeDebitMemo,
-	"WRITE OFF REVERSAL":       TransactionTypeWriteOffReversal,
-	"EXEMPTION":                TransactionTypeExemption,
-	"HARDSHIP":                 TransactionTypeHardship,
-	"REMISSION":                TransactionTypeRemission,
-	"CREDIT REAPPLY":           TransactionTypeReapply,
-	"MOTO CARD PAYMENT":        TransactionTypeMotoCardPayment,
-	"ONLINE CARD PAYMENT":      TransactionTypeOnlineCardPayment,
-	"SUPERVISION BACS PAYMENT": TransactionTypeSupervisionBACSPayment,
-	"OPG BACS PAYMENT":         TransactionTypeOPGBACSPayment,
-	"DIRECT DEBIT PAYMENT":     TransactionTypeDirectDebitPayment,
+	"CREDIT WRITE OFF":           TransactionTypeWriteOff,
+	"CREDIT MEMO":                TransactionTypeCreditMemo,
+	"DEBIT MEMO":                 TransactionTypeDebitMemo,
+	"WRITE OFF REVERSAL":         TransactionTypeWriteOffReversal,
+	"EXEMPTION":                  TransactionTypeExemption,
+	"HARDSHIP":                   TransactionTypeHardship,
+	"REMISSION":                  TransactionTypeRemission,
+	"CREDIT REAPPLY":             TransactionTypeReapply,
+	"MOTO CARD PAYMENT":          TransactionTypeMotoCardPayment,
+	"ONLINE CARD PAYMENT":        TransactionTypeOnlineCardPayment,
+	"SUPERVISION BACS PAYMENT":   TransactionTypeSupervisionBACSPayment,
+	"OPG BACS PAYMENT":           TransactionTypeOPGBACSPayment,
+	"DIRECT DEBIT PAYMENT":       TransactionTypeDirectDebitPayment,
+	"SUPERVISION CHEQUE PAYMENT": TransactionTypeSupervisionChequePayment,
 }
 
 func (t TransactionType) String() string {
@@ -65,6 +67,8 @@ func (t TransactionType) String() string {
 		return "BACS payment (Main account)"
 	case TransactionTypeDirectDebitPayment:
 		return "Direct Debit payment"
+	case TransactionTypeSupervisionChequePayment:
+		return "Cheque payment"
 	default:
 		return ""
 	}
@@ -98,6 +102,8 @@ func (t TransactionType) Key() string {
 		return "OPG BACS PAYMENT"
 	case TransactionTypeDirectDebitPayment:
 		return "DIRECT DEBIT PAYMENT"
+	case TransactionTypeSupervisionChequePayment:
+		return "SUPERVISION CHEQUE PAYMENT"
 	default:
 		return ""
 	}
