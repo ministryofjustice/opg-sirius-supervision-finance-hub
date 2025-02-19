@@ -72,32 +72,37 @@ func NewServer(service Service, reports Reports, fileStorage FileStorage, jwtCli
 func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 	mux := http.NewServeMux()
 
-	// handleFunc is a replacement for mux.HandleFunc
+	// authFunc is a replacement for mux.HandleFunc
 	// which enriches the handler's HTTP instrumentation with the pattern as the http.route.
-	handleFunc := func(pattern string, h handlerFunc) {
+	authFunc := func(pattern string, h handlerFunc) {
 		// Configure the "http.route" for the HTTP instrumentation.
 		handler := otelhttp.WithRouteTag(pattern, h)
 		mux.Handle(pattern, s.authenticate(handler))
 	}
-	handleFunc("GET /clients/{clientId}", s.getAccountInformation)
-	handleFunc("GET /clients/{clientId}/invoices", s.getInvoices)
-	handleFunc("GET /clients/{clientId}/invoices/{invoiceId}/permitted-adjustments", s.getPermittedAdjustments)
-	handleFunc("GET /clients/{clientId}/fee-reductions", s.getFeeReductions)
-	handleFunc("GET /clients/{clientId}/invoice-adjustments", s.getInvoiceAdjustments)
-	handleFunc("GET /clients/{clientId}/billing-history", s.getBillingHistory)
+	authFunc("GET /clients/{clientId}", s.getAccountInformation)
+	authFunc("GET /clients/{clientId}/invoices", s.getInvoices)
+	authFunc("GET /clients/{clientId}/invoices/{invoiceId}/permitted-adjustments", s.getPermittedAdjustments)
+	authFunc("GET /clients/{clientId}/fee-reductions", s.getFeeReductions)
+	authFunc("GET /clients/{clientId}/invoice-adjustments", s.getInvoiceAdjustments)
+	authFunc("GET /clients/{clientId}/billing-history", s.getBillingHistory)
 
-	handleFunc("POST /clients/{clientId}/invoices", s.addManualInvoice)
-	handleFunc("POST /clients/{clientId}/invoices/{invoiceId}/invoice-adjustments", s.AddInvoiceAdjustment)
-	handleFunc("PUT /clients/{clientId}/invoice-adjustments/{adjustmentId}", s.updatePendingInvoiceAdjustment)
-	handleFunc("POST /clients/{clientId}/fee-reductions", s.addFeeReduction)
-	handleFunc("PUT /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", s.cancelFeeReduction)
+	authFunc("POST /clients/{clientId}/invoices", s.addManualInvoice)
+	authFunc("POST /clients/{clientId}/invoices/{invoiceId}/invoice-adjustments", s.AddInvoiceAdjustment)
+	authFunc("PUT /clients/{clientId}/invoice-adjustments/{adjustmentId}", s.updatePendingInvoiceAdjustment)
+	authFunc("POST /clients/{clientId}/fee-reductions", s.addFeeReduction)
+	authFunc("PUT /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", s.cancelFeeReduction)
 
-	handleFunc("GET /download", s.download)
-	handleFunc("HEAD /download", s.checkDownload)
+	authFunc("GET /download", s.download)
+	authFunc("HEAD /download", s.checkDownload)
 
-	handleFunc("POST /reports", s.requestReport)
+	authFunc("POST /reports", s.requestReport)
 
-	handleFunc("POST /events", s.handleEvents)
+	// unauthenticated as request is coming from EventBridge
+	eventFunc := func(pattern string, h handlerFunc) {
+		handler := otelhttp.WithRouteTag(pattern, h)
+		mux.Handle(pattern, handler)
+	}
+	eventFunc("POST /events", s.handleEvents)
 
 	mux.Handle("/health-check", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 
