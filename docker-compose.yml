@@ -11,6 +11,9 @@ services:
       SIRIUS_URL: http://json-server:3000
       BACKEND_URL: http://finance-api:8080
       PREFIX: /finance
+      SUPERVISION_BILLING_TEAM_ID: 41
+      JWT_SECRET: mysupersecrettestkeythatis128bits
+      FINANCE_HUB_LIVE_DATE: 01/01/2024
     healthcheck:
       test: wget -O /dev/null -S 'http://localhost:8888/finance/health-check' 2>&1 | grep 'HTTP/1.1 200 OK' || exit 1
       interval: 15s
@@ -28,6 +31,7 @@ services:
     ports:
       - "8181:8080"
     environment:
+      PORT: 8080
       POSTGRES_CONN: sirius-db:5432
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
@@ -36,10 +40,17 @@ services:
       AWS_BASE_URL: http://localstack:4566
       AWS_ACCESS_KEY_ID: localstack
       AWS_SECRET_ACCESS_KEY: localstack
+      AWS_IAM_ROLE: arn:aws:iam::000000000000:role/role
       EVENT_BUS_NAME: local-main
       S3_ENCRYPTION_KEY: alias/aws/s3
+      AWS_S3_ENDPOINT: http://localstack:4566
       SIRIUS_PUBLIC_URL: http://localhost:8080
       FINANCE_ADMIN_PREFIX: /supervision/finance-admin
+      JWT_SECRET: mysupersecrettestkeythatis128bits
+      FINANCE_HUB_LIVE_DATE: 01/01/2024
+      REPORTS_S3_BUCKET: opg-backoffice-reports-local
+      ASYNC_S3_BUCKET: opg-backoffice-async-uploads-local
+      OPG_NOTIFY_API_KEY: test
     healthcheck:
       test: wget -O /dev/null -S 'http://localhost:8080/health-check' 2>&1 | grep 'HTTP/1.1 200 OK' || exit 1
       interval: 15s
