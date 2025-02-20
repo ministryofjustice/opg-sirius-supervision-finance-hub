@@ -12,6 +12,13 @@ type Context struct {
 	User *shared.User
 }
 
+func (c Context) WithContext(ctx context.Context) Context {
+	return Context{
+		Context: ctx,
+		User:    c.User,
+	}
+}
+
 type JWT struct {
 	Secret string
 }
