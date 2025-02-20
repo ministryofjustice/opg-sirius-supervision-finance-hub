@@ -19,6 +19,10 @@ type IntegrationSuite struct {
 
 type mockDispatch struct{}
 
+func (m *mockDispatch) PaymentMethodChanged(ctx context.Context, event event.PaymentMethod) error {
+	return nil
+}
+
 func (m *mockDispatch) CreditOnAccount(ctx context.Context, event event.CreditOnAccount) error {
 	return nil
 }
