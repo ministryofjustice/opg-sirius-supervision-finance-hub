@@ -12,6 +12,7 @@ services:
       BACKEND_URL: http://finance-api:8080
       PREFIX: /finance
       SUPERVISION_BILLING_TEAM_ID: 41
+      JWT_SECRET: mysupersecrettestkeythatis128bits
       FINANCE_HUB_LIVE_DATE: 01/01/2024
     healthcheck:
       test: wget -O /dev/null -S 'http://localhost:8888/finance/health-check' 2>&1 | grep 'HTTP/1.1 200 OK' || exit 1
@@ -45,10 +46,12 @@ services:
       AWS_S3_ENDPOINT: http://localstack:4566
       SIRIUS_PUBLIC_URL: http://localhost:8080
       FINANCE_ADMIN_PREFIX: /supervision/finance-admin
+      JWT_SECRET: mysupersecrettestkeythatis128bits
       FINANCE_HUB_LIVE_DATE: 01/01/2024
       REPORTS_S3_BUCKET: opg-backoffice-reports-local
       ASYNC_S3_BUCKET: opg-backoffice-async-uploads-local
       OPG_NOTIFY_API_KEY: test
+      OPG_SUPERVISION_SYSTEM_USER_ID: 1
     healthcheck:
       test: wget -O /dev/null -S 'http://localhost:8080/health-check' 2>&1 | grep 'HTTP/1.1 200 OK' || exit 1
       interval: 15s

@@ -14,7 +14,7 @@ type SubmitPaymentMethodHandler struct {
 }
 
 func (h *SubmitPaymentMethodHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
-	ctx := getContext(r)
+	clientID := h.getClientID(r)
 
 	var (
 		paymentMethod = r.PostFormValue("paymentMethod")
@@ -23,7 +23,7 @@ func (h *SubmitPaymentMethodHandler) render(v AppVars, w http.ResponseWriter, r 
 	err := h.Client().SubmitPaymentMethod(ctx, ctx.ClientId, paymentMethod)
 
 	if err == nil {
-		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices?success=payment-method", v.EnvironmentVars.Prefix, ctx.ClientId))
+		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices?success=payment-method", v.EnvironmentVars.Prefix, clientID))
 	} else {
 		var (
 			valErr apierror.ValidationError

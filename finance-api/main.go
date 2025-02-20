@@ -9,6 +9,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/cmd/api"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/filestorage"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
@@ -20,6 +21,7 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -45,26 +47,28 @@ type Envs struct {
 	awsBaseUrl         string
 	eventBusName       string
 	port               string
+	jwtSecret          string
+	systemUserID       int
 }
 
 func parseEnvs() (*Envs, error) {
 	envs := map[string]string{
-		"AWS_REGION":            os.Getenv("AWS_REGION"),
-		"AWS_IAM_ROLE":          os.Getenv("AWS_IAM_ROLE"),
-		"AWS_S3_ENDPOINT":       os.Getenv("AWS_S3_ENDPOINT"),
-		"S3_ENCRYPTION_KEY":     os.Getenv("S3_ENCRYPTION_KEY"),
-		"OPG_NOTIFY_API_KEY":    os.Getenv("OPG_NOTIFY_API_KEY"),
-		"ASYNC_S3_BUCKET":       os.Getenv("ASYNC_S3_BUCKET"),
-		"FINANCE_HUB_LIVE_DATE": os.Getenv("FINANCE_HUB_LIVE_DATE"),
-		"REPORTS_S3_BUCKET":     os.Getenv("REPORTS_S3_BUCKET"),
-		"SIRIUS_PUBLIC_URL":     os.Getenv("SIRIUS_PUBLIC_URL"),
-		"FINANCE_ADMIN_PREFIX":  os.Getenv("FINANCE_ADMIN_PREFIX"),
-		"POSTGRES_CONN":         os.Getenv("POSTGRES_CONN"),
-		"POSTGRES_USER":         os.Getenv("POSTGRES_USER"),
-		"POSTGRES_PASSWORD":     os.Getenv("POSTGRES_PASSWORD"),
-		"POSTGRES_DB":           os.Getenv("POSTGRES_DB"),
-		"EVENT_BUS_NAME":        os.Getenv("EVENT_BUS_NAME"),
-		"PORT":                  os.Getenv("PORT"),
+		"AWS_REGION":                     os.Getenv("AWS_REGION"),
+		"S3_ENCRYPTION_KEY":              os.Getenv("S3_ENCRYPTION_KEY"),
+		"JWT_SECRET":                     os.Getenv("JWT_SECRET"),
+		"OPG_NOTIFY_API_KEY":             os.Getenv("OPG_NOTIFY_API_KEY"),
+		"ASYNC_S3_BUCKET":                os.Getenv("ASYNC_S3_BUCKET"),
+		"FINANCE_HUB_LIVE_DATE":          os.Getenv("FINANCE_HUB_LIVE_DATE"),
+		"REPORTS_S3_BUCKET":              os.Getenv("REPORTS_S3_BUCKET"),
+		"SIRIUS_PUBLIC_URL":              os.Getenv("SIRIUS_PUBLIC_URL"),
+		"FINANCE_ADMIN_PREFIX":           os.Getenv("FINANCE_ADMIN_PREFIX"),
+		"POSTGRES_CONN":                  os.Getenv("POSTGRES_CONN"),
+		"POSTGRES_USER":                  os.Getenv("POSTGRES_USER"),
+		"POSTGRES_PASSWORD":              os.Getenv("POSTGRES_PASSWORD"),
+		"POSTGRES_DB":                    os.Getenv("POSTGRES_DB"),
+		"EVENT_BUS_NAME":                 os.Getenv("EVENT_BUS_NAME"),
+		"PORT":                           os.Getenv("PORT"),
+		"OPG_SUPERVISION_SYSTEM_USER_ID": os.Getenv("OPG_SUPERVISION_SYSTEM_USER_ID"),
 	}
 
 	var missing []error
@@ -78,11 +82,18 @@ func parseEnvs() (*Envs, error) {
 		return nil, errors.Join(missing...)
 	}
 
+	systemUserID, err := strconv.Atoi(os.Getenv("OPG_SUPERVISION_SYSTEM_USER_ID"))
+	if err != nil {
+		missing = append(missing, errors.New("OPG_SUPERVISION_SYSTEM_USER_ID must be an integer"))
+	}
+
 	return &Envs{
+		iamRole:            os.Getenv("AWS_IAM_ROLE"),    // used for testing
+		s3Endpoint:         os.Getenv("AWS_S3_ENDPOINT"), // used for testing
+		awsBaseUrl:         os.Getenv("AWS_BASE_URL"),    // used for testing
 		awsRegion:          envs["AWS_REGION"],
-		iamRole:            envs["AWS_IAM_ROLE"],
-		s3Endpoint:         envs["AWS_S3_ENDPOINT"],
 		s3EncryptionKey:    envs["S3_ENCRYPTION_KEY"],
+		jwtSecret:          envs["JWT_SECRET"],
 		notifyKey:          envs["OPG_NOTIFY_API_KEY"],
 		asyncBucket:        envs["ASYNC_S3_BUCKET"],
 		goLiveDate:         envs["FINANCE_HUB_LIVE_DATE"],
@@ -93,10 +104,10 @@ func parseEnvs() (*Envs, error) {
 		dbUser:             envs["POSTGRES_USER"],
 		dbPassword:         envs["POSTGRES_PASSWORD"],
 		dbName:             envs["POSTGRES_DB"],
-		awsBaseUrl:         os.Getenv("AWS_BASE_URL"), // can be empty
 		eventBusName:       envs["EVENT_BUS_NAME"],
-		webDir:             "web",
 		port:               envs["PORT"],
+		systemUserID:       systemUserID,
+		webDir:             "web",
 	}, nil
 }
 
@@ -151,7 +162,8 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		fileStorageClient,
 		notifyClient,
 		&service.Env{
-			AsyncBucket: envs.asyncBucket,
+			AsyncBucket:  envs.asyncBucket,
+			SystemUserID: envs.systemUserID,
 		},
 	)
 
@@ -184,6 +196,9 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		Service,
 		reportsClient,
 		fileStorageClient,
+		&auth.JWT{
+			Secret: envs.jwtSecret,
+		},
 		validator, &api.Envs{
 			ReportsBucket: envs.reportsBucket,
 			GoLiveDate:    goLiveDate,

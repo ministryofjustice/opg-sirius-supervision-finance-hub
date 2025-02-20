@@ -63,7 +63,8 @@ func TestAddWorkingDays(t *testing.T) {
 
 func TestCreatePendingInvoiceAdjustmentTask(t *testing.T) {
 	mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "")
+	mockJWT := mockJWTClient{}
+	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""})
 
 	dueDate := addWorkingDays(time.Now(), 20).Format("02/01/2006")
 
@@ -85,7 +86,7 @@ func TestCreatePendingInvoiceAdjustmentTask(t *testing.T) {
 		}, nil
 	}
 
-	err := client.CreatePendingInvoiceAdjustmentTask(getContext(nil), 2, 41, "4", "CREDIT_MEMO")
+	err := client.CreatePendingInvoiceAdjustmentTask(testContext(), 2, 41, "4", "CREDIT_MEMO")
 	assert.Equal(t, nil, err)
 }
 
@@ -95,9 +96,9 @@ func TestCreatePendingInvoiceAdjustmentTaskUnauthorised(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	err := client.CreatePendingInvoiceAdjustmentTask(getContext(nil), 2, 41, "4", "CREDIT_MEMO")
+	err := client.CreatePendingInvoiceAdjustmentTask(testContext(), 2, 41, "4", "CREDIT_MEMO")
 
 	assert.Equal(t, ErrUnauthorized.Error(), err.Error())
 }
@@ -108,9 +109,9 @@ func TestCreatePendingInvoiceAdjustmentTaskReturns500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	err := client.CreatePendingInvoiceAdjustmentTask(getContext(nil), 2, 41, "4", "CREDIT_MEMO")
+	err := client.CreatePendingInvoiceAdjustmentTask(testContext(), 2, 41, "4", "CREDIT_MEMO")
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/supervision-api/v1/tasks",
@@ -133,9 +134,9 @@ func TestCreatePendingInvoiceAdjustmentTaskReturnsValidationError(t *testing.T) 
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	err := client.CreatePendingInvoiceAdjustmentTask(getContext(nil), 2, 41, "4", "CREDIT_MEMO")
+	err := client.CreatePendingInvoiceAdjustmentTask(testContext(), 2, 41, "4", "CREDIT_MEMO")
 	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"Field": map[string]string{"Tag": "Message"}}}
 	assert.Equal(t, expectedError, err.(apierror.ValidationError))
 }

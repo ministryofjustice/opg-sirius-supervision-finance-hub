@@ -1,4 +1,4 @@
-FROM golang:1.23-alpine AS base
+FROM golang:1.23.6 AS base
 WORKDIR /app
 
 ENV CGO_ENABLED=0 GOOS=linux
