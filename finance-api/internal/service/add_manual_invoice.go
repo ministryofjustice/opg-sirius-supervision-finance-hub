@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"strconv"
@@ -40,7 +41,7 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 		return apierror.ValidationError{Errors: validationErrors}
 	}
 
-	ctx, cancelTx := context.WithCancel(ctx)
+	ctx, cancelTx := s.WithCancel(ctx)
 	defer cancelTx()
 
 	tx, err := s.BeginStoreTx(ctx)
@@ -64,8 +65,7 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 		Amount:     int32(data.Amount.Value),
 		Raiseddate: pgtype.Date{Time: data.RaisedDate.Value.Time, Valid: true},
 		Source:     pgtype.Text{String: "Created manually", Valid: true},
-		//TODO make sure we have correct createdby ID in ticket PFS-136
-		CreatedBy: pgtype.Int4{Int32: int32(1), Valid: true},
+		CreatedBy:  pgtype.Int4{Int32: int32(ctx.(auth.Context).User.ID), Valid: true},
 	}
 
 	var invoice store.Invoice
@@ -102,7 +102,7 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 			generalSupervisionFee = invoice.Amount
 		}
 		reduction := calculateFeeReduction(shared.ParseFeeReductionType(feeReduction.Type), invoice.Amount, invoice.Feetype, generalSupervisionFee)
-		ledger, allocations := generateLedgerEntries(addLedgerVars{
+		ledger, allocations := generateLedgerEntries(ctx, addLedgerVars{
 			amount:             reduction,
 			transactionType:    shared.ParseFeeReductionType(feeReduction.Type),
 			feeReductionId:     feeReduction.ID,

@@ -1,7 +1,9 @@
 package service
 
 import (
+	"context"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
@@ -77,7 +79,11 @@ func Test_generateLedgerEntries(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ledgers, allocations := generateLedgerEntries(tt.args)
+			ctx := auth.Context{
+				Context: context.Background(),
+				User:    &shared.User{ID: 1},
+			}
+			ledgers, allocations := generateLedgerEntries(ctx, tt.args)
 			assert.Equalf(t, tt.wantL, ledgers, "generateLedgerEntries(%v)", tt.args)
 			assert.Equalf(t, tt.wantLA, allocations, "generateLedgerEntries(%v)", tt.args)
 		})
