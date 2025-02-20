@@ -21,6 +21,7 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -47,25 +48,27 @@ type Envs struct {
 	eventBusName       string
 	port               string
 	jwtSecret          string
+	systemUserID       int
 }
 
 func parseEnvs() (*Envs, error) {
 	envs := map[string]string{
-		"AWS_REGION":            os.Getenv("AWS_REGION"),
-		"S3_ENCRYPTION_KEY":     os.Getenv("S3_ENCRYPTION_KEY"),
-		"JWT_SECRET":            os.Getenv("JWT_SECRET"),
-		"OPG_NOTIFY_API_KEY":    os.Getenv("OPG_NOTIFY_API_KEY"),
-		"ASYNC_S3_BUCKET":       os.Getenv("ASYNC_S3_BUCKET"),
-		"FINANCE_HUB_LIVE_DATE": os.Getenv("FINANCE_HUB_LIVE_DATE"),
-		"REPORTS_S3_BUCKET":     os.Getenv("REPORTS_S3_BUCKET"),
-		"SIRIUS_PUBLIC_URL":     os.Getenv("SIRIUS_PUBLIC_URL"),
-		"FINANCE_ADMIN_PREFIX":  os.Getenv("FINANCE_ADMIN_PREFIX"),
-		"POSTGRES_CONN":         os.Getenv("POSTGRES_CONN"),
-		"POSTGRES_USER":         os.Getenv("POSTGRES_USER"),
-		"POSTGRES_PASSWORD":     os.Getenv("POSTGRES_PASSWORD"),
-		"POSTGRES_DB":           os.Getenv("POSTGRES_DB"),
-		"EVENT_BUS_NAME":        os.Getenv("EVENT_BUS_NAME"),
-		"PORT":                  os.Getenv("PORT"),
+		"AWS_REGION":                     os.Getenv("AWS_REGION"),
+		"S3_ENCRYPTION_KEY":              os.Getenv("S3_ENCRYPTION_KEY"),
+		"JWT_SECRET":                     os.Getenv("JWT_SECRET"),
+		"OPG_NOTIFY_API_KEY":             os.Getenv("OPG_NOTIFY_API_KEY"),
+		"ASYNC_S3_BUCKET":                os.Getenv("ASYNC_S3_BUCKET"),
+		"FINANCE_HUB_LIVE_DATE":          os.Getenv("FINANCE_HUB_LIVE_DATE"),
+		"REPORTS_S3_BUCKET":              os.Getenv("REPORTS_S3_BUCKET"),
+		"SIRIUS_PUBLIC_URL":              os.Getenv("SIRIUS_PUBLIC_URL"),
+		"FINANCE_ADMIN_PREFIX":           os.Getenv("FINANCE_ADMIN_PREFIX"),
+		"POSTGRES_CONN":                  os.Getenv("POSTGRES_CONN"),
+		"POSTGRES_USER":                  os.Getenv("POSTGRES_USER"),
+		"POSTGRES_PASSWORD":              os.Getenv("POSTGRES_PASSWORD"),
+		"POSTGRES_DB":                    os.Getenv("POSTGRES_DB"),
+		"EVENT_BUS_NAME":                 os.Getenv("EVENT_BUS_NAME"),
+		"PORT":                           os.Getenv("PORT"),
+		"OPG_SUPERVISION_SYSTEM_USER_ID": os.Getenv("OPG_SUPERVISION_SYSTEM_USER_ID"),
 	}
 
 	var missing []error
@@ -77,6 +80,11 @@ func parseEnvs() (*Envs, error) {
 
 	if len(missing) > 0 {
 		return nil, errors.Join(missing...)
+	}
+
+	systemUserID, err := strconv.Atoi(os.Getenv("OPG_SUPERVISION_SYSTEM_USER_ID"))
+	if err != nil {
+		missing = append(missing, errors.New("OPG_SUPERVISION_SYSTEM_USER_ID must be an integer"))
 	}
 
 	return &Envs{
@@ -98,6 +106,7 @@ func parseEnvs() (*Envs, error) {
 		dbName:             envs["POSTGRES_DB"],
 		eventBusName:       envs["EVENT_BUS_NAME"],
 		port:               envs["PORT"],
+		systemUserID:       systemUserID,
 		webDir:             "web",
 	}, nil
 }
@@ -153,7 +162,8 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		fileStorageClient,
 		notifyClient,
 		&service.Env{
-			AsyncBucket: envs.asyncBucket,
+			AsyncBucket:  envs.asyncBucket,
+			SystemUserID: envs.systemUserID,
 		},
 	)
 
