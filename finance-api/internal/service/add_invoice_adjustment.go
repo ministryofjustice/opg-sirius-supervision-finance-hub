@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"log/slog"
@@ -38,8 +39,7 @@ func (s *Service) AddInvoiceAdjustment(ctx context.Context, clientId int, invoic
 		AdjustmentType: ledgerEntry.AdjustmentType.Key(),
 		Amount:         s.calculateAdjustmentAmount(ledgerEntry, balance, clientInfo.Credit),
 		Notes:          ledgerEntry.AdjustmentNotes,
-		//TODO make sure we have correct createdby ID in ticket PFS-136
-		CreatedBy: int32(1),
+		CreatedBy:      int32(ctx.(auth.Context).User.ID),
 	}
 	invoiceReference, err := s.store.CreatePendingInvoiceAdjustment(ctx, params)
 	if err != nil {
