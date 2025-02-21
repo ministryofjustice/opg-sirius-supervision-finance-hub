@@ -6,7 +6,7 @@ all:
 	$(MAKE) down
 
 
-.PHONY: cypress
+.PHONY: cypress zap
 
 test: go-lint gosec unit-test
 
@@ -79,3 +79,7 @@ start-and-seed:
 
 cypress: setup-directories clean start-and-seed
 	docker compose run cypress
+
+zap: #clean start-and-seed
+	docker compose up -d finance-hub
+	docker compose run --rm zap
