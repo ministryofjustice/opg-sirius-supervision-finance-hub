@@ -3,12 +3,14 @@ package server
 import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"net/http"
 )
 
 type AppVars struct {
 	Path            string
 	XSRFToken       string
+	User            *shared.User
 	Tabs            []Tab
 	EnvironmentVars Envs
 	Errors          apierror.ValidationErrors
@@ -52,6 +54,7 @@ func NewAppVars(r *http.Request, envVars Envs) AppVars {
 	vars := AppVars{
 		Path:            r.URL.Path,
 		XSRFToken:       ctx.(auth.Context).XSRFToken,
+		User:            ctx.(auth.Context).User,
 		EnvironmentVars: envVars,
 		Tabs:            tabs,
 	}
