@@ -188,3 +188,10 @@ services:
       interval: 10s
       timeout: 10s
       retries: 50
+
+  zap:
+    image: softwaresecurityproject/zap-stable
+    volumes:
+      - "./zap/:/zap/wrk/"
+      - "./zap/.cache:/home/zap/.ZAP"
+    command: bash -c "zap.sh -cmd -addonupdate -addoninstall pscanrules -addoninstall pscanrulesBeta -addoninstall pscanrulesAlpha -addoninstall ascanrules -addoninstall ascanrulesBeta -addoninstall ascanrulesAlpha; zap.sh -cmd -autorun /zap/wrk/zap.yaml"
