@@ -28,44 +28,46 @@ import (
 )
 
 type Envs struct {
-	webDir             string
-	siriusPublicURL    string
-	awsRegion          string
-	iamRole            string
-	s3Endpoint         string
-	s3EncryptionKey    string
-	notifyKey          string
-	asyncBucket        string
-	goLiveDate         string
-	reportsBucket      string
-	financeAdminPrefix string
-	dbConn             string
-	dbUser             string
-	dbPassword         string
-	dbName             string
-	awsBaseUrl         string
-	eventBusName       string
-	port               string
-	jwtSecret          string
+	webDir              string
+	siriusPublicURL     string
+	awsRegion           string
+	iamRole             string
+	s3Endpoint          string
+	s3EncryptionKey     string
+	notifyKey           string
+	asyncBucket         string
+	goLiveDate          string
+	reportsBucket       string
+	legacyReportsBucket string
+	financeAdminPrefix  string
+	dbConn              string
+	dbUser              string
+	dbPassword          string
+	dbName              string
+	awsBaseUrl          string
+	eventBusName        string
+	port                string
+	jwtSecret           string
 }
 
 func parseEnvs() (*Envs, error) {
 	envs := map[string]string{
-		"AWS_REGION":            os.Getenv("AWS_REGION"),
-		"S3_ENCRYPTION_KEY":     os.Getenv("S3_ENCRYPTION_KEY"),
-		"JWT_SECRET":            os.Getenv("JWT_SECRET"),
-		"OPG_NOTIFY_API_KEY":    os.Getenv("OPG_NOTIFY_API_KEY"),
-		"ASYNC_S3_BUCKET":       os.Getenv("ASYNC_S3_BUCKET"),
-		"FINANCE_HUB_LIVE_DATE": os.Getenv("FINANCE_HUB_LIVE_DATE"),
-		"REPORTS_S3_BUCKET":     os.Getenv("REPORTS_S3_BUCKET"),
-		"SIRIUS_PUBLIC_URL":     os.Getenv("SIRIUS_PUBLIC_URL"),
-		"FINANCE_ADMIN_PREFIX":  os.Getenv("FINANCE_ADMIN_PREFIX"),
-		"POSTGRES_CONN":         os.Getenv("POSTGRES_CONN"),
-		"POSTGRES_USER":         os.Getenv("POSTGRES_USER"),
-		"POSTGRES_PASSWORD":     os.Getenv("POSTGRES_PASSWORD"),
-		"POSTGRES_DB":           os.Getenv("POSTGRES_DB"),
-		"EVENT_BUS_NAME":        os.Getenv("EVENT_BUS_NAME"),
-		"PORT":                  os.Getenv("PORT"),
+		"AWS_REGION":               os.Getenv("AWS_REGION"),
+		"S3_ENCRYPTION_KEY":        os.Getenv("S3_ENCRYPTION_KEY"),
+		"JWT_SECRET":               os.Getenv("JWT_SECRET"),
+		"OPG_NOTIFY_API_KEY":       os.Getenv("OPG_NOTIFY_API_KEY"),
+		"ASYNC_S3_BUCKET":          os.Getenv("ASYNC_S3_BUCKET"),
+		"FINANCE_HUB_LIVE_DATE":    os.Getenv("FINANCE_HUB_LIVE_DATE"),
+		"REPORTS_S3_BUCKET":        os.Getenv("REPORTS_S3_BUCKET"),
+		"LEGACY_REPORTS_S3_BUCKET": os.Getenv("LEGACY_REPORTS_S3_BUCKET"),
+		"SIRIUS_PUBLIC_URL":        os.Getenv("SIRIUS_PUBLIC_URL"),
+		"FINANCE_ADMIN_PREFIX":     os.Getenv("FINANCE_ADMIN_PREFIX"),
+		"POSTGRES_CONN":            os.Getenv("POSTGRES_CONN"),
+		"POSTGRES_USER":            os.Getenv("POSTGRES_USER"),
+		"POSTGRES_PASSWORD":        os.Getenv("POSTGRES_PASSWORD"),
+		"POSTGRES_DB":              os.Getenv("POSTGRES_DB"),
+		"EVENT_BUS_NAME":           os.Getenv("EVENT_BUS_NAME"),
+		"PORT":                     os.Getenv("PORT"),
 	}
 
 	var missing []error
@@ -80,25 +82,26 @@ func parseEnvs() (*Envs, error) {
 	}
 
 	return &Envs{
-		iamRole:            os.Getenv("AWS_IAM_ROLE"),    // used for testing
-		s3Endpoint:         os.Getenv("AWS_S3_ENDPOINT"), // used for testing
-		awsBaseUrl:         os.Getenv("AWS_BASE_URL"),    // used for testing
-		awsRegion:          envs["AWS_REGION"],
-		s3EncryptionKey:    envs["S3_ENCRYPTION_KEY"],
-		jwtSecret:          envs["JWT_SECRET"],
-		notifyKey:          envs["OPG_NOTIFY_API_KEY"],
-		asyncBucket:        envs["ASYNC_S3_BUCKET"],
-		goLiveDate:         envs["FINANCE_HUB_LIVE_DATE"],
-		reportsBucket:      envs["REPORTS_S3_BUCKET"],
-		siriusPublicURL:    envs["SIRIUS_PUBLIC_URL"],
-		financeAdminPrefix: envs["FINANCE_ADMIN_PREFIX"],
-		dbConn:             envs["POSTGRES_CONN"],
-		dbUser:             envs["POSTGRES_USER"],
-		dbPassword:         envs["POSTGRES_PASSWORD"],
-		dbName:             envs["POSTGRES_DB"],
-		eventBusName:       envs["EVENT_BUS_NAME"],
-		port:               envs["PORT"],
-		webDir:             "web",
+		iamRole:             os.Getenv("AWS_IAM_ROLE"),    // used for testing
+		s3Endpoint:          os.Getenv("AWS_S3_ENDPOINT"), // used for testing
+		awsBaseUrl:          os.Getenv("AWS_BASE_URL"),    // used for testing
+		awsRegion:           envs["AWS_REGION"],
+		s3EncryptionKey:     envs["S3_ENCRYPTION_KEY"],
+		jwtSecret:           envs["JWT_SECRET"],
+		notifyKey:           envs["OPG_NOTIFY_API_KEY"],
+		asyncBucket:         envs["ASYNC_S3_BUCKET"],
+		goLiveDate:          envs["FINANCE_HUB_LIVE_DATE"],
+		reportsBucket:       envs["REPORTS_S3_BUCKET"],
+		legacyReportsBucket: envs["LEGACY_REPORTS_S3_BUCKET"],
+		siriusPublicURL:     envs["SIRIUS_PUBLIC_URL"],
+		financeAdminPrefix:  envs["FINANCE_ADMIN_PREFIX"],
+		dbConn:              envs["POSTGRES_CONN"],
+		dbUser:              envs["POSTGRES_USER"],
+		dbPassword:          envs["POSTGRES_PASSWORD"],
+		dbName:              envs["POSTGRES_DB"],
+		eventBusName:        envs["EVENT_BUS_NAME"],
+		port:                envs["PORT"],
+		webDir:              "web",
 	}, nil
 }
 
@@ -175,9 +178,10 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		fileStorageClient,
 		notifyClient,
 		&reports.Envs{
-			ReportsBucket:   envs.reportsBucket,
-			FinanceAdminURL: fmt.Sprintf("%s%s", envs.siriusPublicURL, envs.financeAdminPrefix),
-			GoLiveDate:      goLiveDate,
+			ReportsBucket:       envs.reportsBucket,
+			LegacyReportsBucket: envs.legacyReportsBucket,
+			FinanceAdminURL:     fmt.Sprintf("%s%s", envs.siriusPublicURL, envs.financeAdminPrefix),
+			GoLiveDate:          goLiveDate,
 		},
 	)
 	defer reportsClient.Close()
