@@ -135,7 +135,7 @@ func TestRequestReportJournalDate(t *testing.T) {
 			w := httptest.NewRecorder()
 
 			mock := &MockReports{}
-			server := NewServer(nil, mock, nil, nil, nil)
+			server := NewServer(nil, mock, nil, nil, nil, nil)
 			err := server.requestReport(w, r)
 
 			res := w.Result()
