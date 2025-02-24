@@ -29,7 +29,7 @@ type ApiClient interface {
 	AddManualInvoice(api.Context, int, string, *string, *string, *string, *string, *string, *string) error
 	GetBillingHistory(api.Context, int) ([]shared.BillingHistory, error)
 	GetUser(api.Context, int) (shared.Assignee, error)
-	SubmitDirectDebit(string, string, string, string) error
+	SubmitPaymentMethod(api.Context, int, string) error
 }
 
 type router interface {
@@ -42,8 +42,18 @@ type Template interface {
 	ExecuteTemplate(wr io.Writer, name string, data any) error
 }
 
-func New(logger *slog.Logger, client ApiClient, templates map[string]*template.Template, envVars EnvironmentVars) http.Handler {
-	wrap := wrapHandler(templates["error.gotmpl"], "main", envVars)
+type Envs struct {
+	Port            string
+	WebDir          string
+	SiriusURL       string
+	SiriusPublicURL string
+	Prefix          string
+	BackendURL      string
+	BillingTeamID   int
+}
+
+func New(logger *slog.Logger, client ApiClient, templates map[string]*template.Template, envs Envs) http.Handler {
+	wrap := wrapHandler(templates["error.gotmpl"], "main", envs)
 
 	mux := http.NewServeMux()
 
@@ -52,7 +62,7 @@ func New(logger *slog.Logger, client ApiClient, templates map[string]*template.T
 	mux.Handle("GET /clients/{clientId}/pending-invoice-adjustments", wrap(&PendingInvoiceAdjustmentsHandler{&route{client: client, tmpl: templates["pending-invoice-adjustments.gotmpl"], partial: "pending-invoice-adjustments"}}))
 	mux.Handle("GET /clients/{clientId}/invoices/{invoiceId}/adjustments", wrap(&AdjustInvoiceFormHandler{&route{client: client, tmpl: templates["adjust-invoice.gotmpl"], partial: "adjust-invoice"}}))
 	mux.Handle("GET /clients/{clientId}/fee-reductions/add", wrap(&UpdateFeeReductionHandler{&route{client: client, tmpl: templates["add-fee-reduction.gotmpl"], partial: "add-fee-reduction"}}))
-	mux.Handle("GET /clients/{clientId}/direct-debit/add", wrap(&UpdateDirectDebitHandler{&route{client: client, tmpl: templates["set-up-direct-debit.gotmpl"], partial: "set-up-direct-debit"}}))
+	mux.Handle("GET /clients/{clientId}/payment-method/add", wrap(&PaymentMethodHandler{&route{client: client, tmpl: templates["set-up-payment-method.gotmpl"], partial: "set-up-payment-method"}}))
 	mux.Handle("GET /clients/{clientId}/invoices/add", wrap(&UpdateManualInvoiceHandler{&route{client: client, tmpl: templates["add-manual-invoice.gotmpl"], partial: "add-manual-invoice"}}))
 	mux.Handle("GET /clients/{clientId}/billing-history", wrap(&BillingHistoryHandler{&route{client: client, tmpl: templates["billing-history.gotmpl"], partial: "billing-history"}}))
 	mux.Handle("GET /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", wrap(&CancelFeeReductionHandler{&route{client: client, tmpl: templates["cancel-fee-reduction.gotmpl"], partial: "cancel-fee-reduction"}}))
@@ -62,16 +72,16 @@ func New(logger *slog.Logger, client ApiClient, templates map[string]*template.T
 	mux.Handle("POST /clients/{clientId}/fee-reductions/add", wrap(&SubmitFeeReductionsHandler{&route{client: client, tmpl: templates["add-fee-reduction.gotmpl"], partial: "error-summary"}}))
 	mux.Handle("POST /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", wrap(&SubmitCancelFeeReductionsHandler{&route{client: client, tmpl: templates["cancel-fee-reduction.gotmpl"], partial: "error-summary"}}))
 	mux.Handle("POST /clients/{clientId}/pending-invoice-adjustments/{adjustmentId}/{adjustmentType}/{status}", wrap(&SubmitUpdatePendingInvoiceAdjustmentHandler{&route{client: client, tmpl: templates["pending-invoice-adjustments.gotmpl"], partial: "pending-invoice-adjustments"}}))
-	mux.Handle("POST /clients/{clientId}/direct-debit/add", wrap(&SubmitDirectDebitHandler{&route{client: client, tmpl: templates["set-up-direct-debit.gotmpl"], partial: "error-summary"}}))
+	mux.Handle("POST /clients/{clientId}/payment-method/add", wrap(&SubmitPaymentMethodHandler{&route{client: client, tmpl: templates["set-up-payment-method.gotmpl"], partial: "error-summary"}}))
 
 	mux.Handle("/health-check", healthCheck())
 
-	static := http.FileServer(http.Dir(envVars.WebDir + "/static"))
+	static := http.FileServer(http.Dir(envs.WebDir + "/static"))
 	mux.Handle("/assets/", static)
 	mux.Handle("/javascript/", static)
 	mux.Handle("/stylesheets/", static)
 
-	return otelhttp.NewHandler(http.StripPrefix(envVars.Prefix, telemetry.Middleware(logger)(securityheaders.Use(mux))), "supervision-finance-hub")
+	return otelhttp.NewHandler(http.StripPrefix(envs.Prefix, telemetry.Middleware(logger)(securityheaders.Use(mux))), "supervision-finance-hub")
 }
 
 func getContext(r *http.Request) api.Context {
