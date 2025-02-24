@@ -16,12 +16,13 @@ type PaymentMethodHandler struct {
 }
 
 func (h *PaymentMethodHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
-	ctx := getContext(r)
-	financeClient, err := h.Client().GetAccountInformation(ctx, ctx.ClientId)
+	ctx := r.Context()
+	clientID := getClientID(r)
+	financeClient, err := h.Client().GetAccountInformation(ctx, clientID)
 	if err != nil {
 		return err
 	}
 
-	data := &PaymentMethodVars{financeClient.PaymentMethod, strconv.Itoa(ctx.ClientId), v}
+	data := &PaymentMethodVars{financeClient.PaymentMethod, strconv.Itoa(clientID), v}
 	return h.execute(w, r, data)
 }

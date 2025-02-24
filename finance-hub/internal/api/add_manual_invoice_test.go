@@ -18,7 +18,8 @@ func pointer(val string) *string {
 func TestAddManualInvoice(t *testing.T) {
 	var nilString string
 	mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "")
+	mockJWT := mockJWTClient{}
+	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""})
 
 	json := `{
 			"id":                "1",
@@ -39,7 +40,7 @@ func TestAddManualInvoice(t *testing.T) {
 		}, nil
 	}
 
-	err := client.AddManualInvoice(getContext(nil), 1, "SO", pointer("300"), pointer("05/05/2024"), &nilString, pointer("04/04/2024"), pointer("31/03/2025"), pointer("GENERAL"))
+	err := client.AddManualInvoice(testContext(), 1, "SO", pointer("300"), pointer("05/05/2024"), &nilString, pointer("04/04/2024"), pointer("31/03/2025"), pointer("GENERAL"))
 	assert.Equal(t, nil, err)
 }
 
@@ -50,9 +51,9 @@ func TestAddManualInvoiceUnauthorised(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	err := client.AddManualInvoice(getContext(nil), 1, "SO", pointer("2025"), pointer("05/05/2024"), &nilString, pointer("04/04/2024"), pointer("31/03/2025"), pointer("GENERAL"))
+	err := client.AddManualInvoice(testContext(), 1, "SO", pointer("2025"), pointer("05/05/2024"), &nilString, pointer("04/04/2024"), pointer("31/03/2025"), pointer("GENERAL"))
 
 	assert.Equal(t, ErrUnauthorized.Error(), err.Error())
 }
@@ -64,9 +65,9 @@ func TestAddManualInvoiceReturns500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	err := client.AddManualInvoice(getContext(nil), 1, "SO", pointer("2025"), pointer("05/05/2024"), &nilString, pointer("04/04/2024"), pointer("31/03/2025"), pointer("GENERAL"))
+	err := client.AddManualInvoice(testContext(), 1, "SO", pointer("2025"), pointer("05/05/2024"), &nilString, pointer("04/04/2024"), pointer("31/03/2025"), pointer("GENERAL"))
 
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
@@ -78,7 +79,8 @@ func TestAddManualInvoiceReturns500Error(t *testing.T) {
 func TestAddManualInvoiceReturnsBadRequestError(t *testing.T) {
 	var nilString string
 	mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "")
+	mockJWT := mockJWTClient{}
+	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""})
 
 	json := `
 		{"reasons":["StartDate","EndDate"]}
@@ -93,7 +95,7 @@ func TestAddManualInvoiceReturnsBadRequestError(t *testing.T) {
 		}, nil
 	}
 
-	err := client.AddManualInvoice(getContext(nil), 1, "SO", pointer("2025"), pointer("05/05/2024"), &nilString, pointer("04/04/2024"), pointer("31/03/2025"), pointer("GENERAL"))
+	err := client.AddManualInvoice(testContext(), 1, "SO", pointer("2025"), pointer("05/05/2024"), &nilString, pointer("04/04/2024"), pointer("31/03/2025"), pointer("GENERAL"))
 
 	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"EndDate": map[string]string{"EndDate": "EndDate"}, "StartDate": map[string]string{"StartDate": "StartDate"}}}
 	assert.Equal(t, expectedError, err)
@@ -115,9 +117,9 @@ func TestAddManualInvoiceReturnsValidationError(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	err := client.AddManualInvoice(getContext(nil), 1, "SO", pointer("2025"), pointer("05/05/2024"), &nilString, pointer("04/04/2024"), pointer("31/03/2025"), pointer("GENERAL"))
+	err := client.AddManualInvoice(testContext(), 1, "SO", pointer("2025"), pointer("05/05/2024"), &nilString, pointer("04/04/2024"), pointer("31/03/2025"), pointer("GENERAL"))
 	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"DateReceived": map[string]string{"date-in-the-past": "This field DateReceived needs to be looked at date-in-the-past"}}}
 	assert.Equal(t, expectedError, err.(apierror.ValidationError))
 }
