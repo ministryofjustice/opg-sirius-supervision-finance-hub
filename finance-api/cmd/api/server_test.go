@@ -25,6 +25,12 @@ type mockService struct {
 	err                error
 }
 
+func (s *mockService) UpdatePaymentMethod(ctx context.Context, clientID int, paymentMethod shared.PaymentMethod) error {
+	s.expectedIds = []int{int(clientID)}
+	s.lastCalled = "UpdatePaymentMethod"
+	return s.err
+}
+
 func (s *mockService) ReapplyCredit(ctx context.Context, clientID int32) error {
 	s.expectedIds = []int{int(clientID)}
 	s.lastCalled = "ReapplyCredit"

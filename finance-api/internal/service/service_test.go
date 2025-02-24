@@ -4,7 +4,9 @@ import (
 	"context"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/testhelpers"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/suite"
 	"io"
 	"net/http"
@@ -19,7 +21,10 @@ type IntegrationSuite struct {
 }
 
 func (suite *IntegrationSuite) SetupSuite() {
-	suite.ctx = telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test"))
+	suite.ctx = auth.Context{
+		Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test")),
+		User:    &shared.User{ID: 1},
+	}
 	suite.cm = testhelpers.Init(suite.ctx, "supervision_finance")
 	suite.seeder = suite.cm.Seeder(suite.ctx, suite.T())
 }
