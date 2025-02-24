@@ -1,8 +1,10 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"strings"
@@ -17,7 +19,7 @@ type addLedgerVars struct {
 	outstandingBalance int32
 }
 
-func generateLedgerEntries(vars addLedgerVars) (store.CreateLedgerParams, []store.CreateLedgerAllocationParams) {
+func generateLedgerEntries(ctx context.Context, vars addLedgerVars) (store.CreateLedgerParams, []store.CreateLedgerAllocationParams) {
 	var total int32
 	allocations := []store.CreateLedgerAllocationParams{
 		{
@@ -47,8 +49,7 @@ func generateLedgerEntries(vars addLedgerVars) (store.CreateLedgerParams, []stor
 		Type:           transformEnumToLedgerType(vars.transactionType),
 		Status:         "CONFIRMED",
 		FeeReductionID: pgtype.Int4{Int32: vars.feeReductionId, Valid: vars.feeReductionId != 0},
-		//TODO make sure we have correct createdby ID in ticket PFS-136
-		CreatedBy: pgtype.Int4{Int32: 1, Valid: true},
+		CreatedBy:      pgtype.Int4{Int32: int32(ctx.(auth.Context).User.ID), Valid: true},
 	}
 
 	return ledger, allocations

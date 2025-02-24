@@ -11,7 +11,8 @@ import (
 
 func TestUpdatePaymentMethod(t *testing.T) {
 	mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "")
+	mockJWT := mockJWTClient{}
+	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""})
 	r := io.NopCloser(bytes.NewReader([]byte(nil)))
 
 	GetDoFunc = func(*http.Request) (*http.Response, error) {
@@ -21,7 +22,7 @@ func TestUpdatePaymentMethod(t *testing.T) {
 		}, nil
 	}
 
-	err := client.SubmitPaymentMethod(getContext(nil), 2, "DEMANDED")
+	err := client.SubmitPaymentMethod(testContext(), 2, "DEMANDED")
 	assert.Equal(t, nil, err)
 }
 
@@ -31,9 +32,9 @@ func TestUpdatePaymentMethodUnauthorised(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	err := client.SubmitPaymentMethod(getContext(nil), 1, "DEMANDED")
+	err := client.SubmitPaymentMethod(testContext(), 1, "DEMANDED")
 
 	assert.Equal(t, ErrUnauthorized.Error(), err.Error())
 }
@@ -44,9 +45,9 @@ func TestUpdatePaymentMethodReturns500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	err := client.SubmitPaymentMethod(getContext(nil), 1, "DEMANDED")
+	err := client.SubmitPaymentMethod(testContext(), 1, "DEMANDED")
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/clients/1/payment-method",

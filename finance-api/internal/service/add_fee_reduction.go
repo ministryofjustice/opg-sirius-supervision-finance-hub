@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"slices"
@@ -30,11 +31,10 @@ func (s *Service) AddFeeReduction(ctx context.Context, clientId int, data shared
 		Enddate:      calculateFeeReductionEndDate(data.StartYear, data.LengthOfAward),
 		Notes:        data.Notes,
 		Datereceived: pgtype.Date{Time: data.DateReceived.Time, Valid: true},
-		//TODO make sure we have correct createdby ID in ticket PFS-136
-		CreatedBy: pgtype.Int4{Int32: 1, Valid: true},
+		CreatedBy:    pgtype.Int4{Int32: int32(ctx.(auth.Context).User.ID), Valid: true},
 	}
 
-	ctx, cancelTx := context.WithCancel(ctx)
+	ctx, cancelTx := s.WithCancel(ctx)
 	defer cancelTx()
 
 	tx, err := s.BeginStoreTx(ctx)
@@ -54,7 +54,7 @@ func (s *Service) AddFeeReduction(ctx context.Context, clientId int, data shared
 
 	for _, invoice := range invoices {
 		amount := calculateFeeReduction(shared.ParseFeeReductionType(feeReduction.Type), invoice.Amount, invoice.Feetype, int32(invoice.GeneralSupervisionFee))
-		ledger, allocations := generateLedgerEntries(addLedgerVars{
+		ledger, allocations := generateLedgerEntries(ctx, addLedgerVars{
 			amount:             amount,
 			transactionType:    data.FeeType,
 			feeReductionId:     feeReduction.ID,

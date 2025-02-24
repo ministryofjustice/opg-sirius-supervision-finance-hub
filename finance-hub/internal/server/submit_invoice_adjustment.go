@@ -21,7 +21,9 @@ type InvoiceAdjustmentForm struct {
 }
 
 func (h *SubmitInvoiceAdjustmentHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
-	ctx := getContext(r)
+	ctx := r.Context()
+	clientID := getClientID(r)
+
 	var (
 		invoiceId, _   = strconv.Atoi(r.PathValue("invoiceId"))
 		adjustmentType = r.PostFormValue("adjustmentType")
@@ -29,10 +31,10 @@ func (h *SubmitInvoiceAdjustmentHandler) render(v AppVars, w http.ResponseWriter
 		amount         = r.PostFormValue("amount")
 	)
 
-	err := h.Client().AdjustInvoice(ctx, ctx.ClientId, v.EnvironmentVars.BillingTeamID, invoiceId, adjustmentType, notes, amount)
+	err := h.Client().AdjustInvoice(ctx, clientID, v.EnvironmentVars.BillingTeamID, invoiceId, adjustmentType, notes, amount)
 
 	if err == nil {
-		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices?success=invoice-adjustment[%s]", v.EnvironmentVars.Prefix, ctx.ClientId, adjustmentType))
+		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices?success=invoice-adjustment[%s]", v.EnvironmentVars.Prefix, clientID, adjustmentType))
 		return nil
 	}
 
