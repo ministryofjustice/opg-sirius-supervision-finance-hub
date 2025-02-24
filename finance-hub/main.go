@@ -7,6 +7,7 @@ import (
 	"github.com/ministryofjustice/opg-go-common/paginate"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/api"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/server"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"html/template"
@@ -29,6 +30,7 @@ type Envs struct {
 	backendURL      string
 	prefix          string
 	port            string
+	jwtSecret       string
 	billingTeamID   int
 }
 
@@ -40,6 +42,7 @@ func parseEnvs() (*Envs, error) {
 		"BACKEND_URL":                 os.Getenv("BACKEND_URL"),
 		"SUPERVISION_BILLING_TEAM_ID": os.Getenv("SUPERVISION_BILLING_TEAM_ID"),
 		"PORT":                        os.Getenv("PORT"),
+		"JWT_SECRET":                  os.Getenv("JWT_SECRET"),
 	}
 
 	var missing []error
@@ -63,6 +66,7 @@ func parseEnvs() (*Envs, error) {
 		siriusPublicURL: envs["SIRIUS_PUBLIC_URL"],
 		prefix:          envs["PREFIX"],
 		backendURL:      envs["BACKEND_URL"],
+		jwtSecret:       envs["JWT_SECRET"],
 		billingTeamID:   billingTeamId,
 		webDir:          "web",
 		port:            envs["PORT"],
@@ -94,10 +98,15 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		return err
 	}
 
-	client, err := api.NewApiClient(http.DefaultClient, envs.siriusURL, envs.backendURL)
-	if err != nil {
-		return err
-	}
+	client := api.NewClient(
+		http.DefaultClient,
+		&auth.JWT{
+			Secret: envs.jwtSecret,
+		},
+		api.Envs{
+			SiriusURL:  envs.siriusURL,
+			BackendURL: envs.backendURL,
+		})
 
 	templates := createTemplates(envs)
 
