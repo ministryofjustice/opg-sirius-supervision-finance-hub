@@ -5,7 +5,7 @@
             {{ if .SuccessMessage }}
                 {{ template "success-banner" . }}
             {{ end }}
-            {{ template "person-info" .FinanceClient }}
+            {{ template "person-info" . }}
             <div id="main-content">
                 {{ block "main-content" . }}{{ end }}
             </div>

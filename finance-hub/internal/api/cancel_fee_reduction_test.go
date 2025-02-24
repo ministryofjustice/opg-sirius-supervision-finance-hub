@@ -14,7 +14,8 @@ import (
 
 func TestCancelFeeReduction(t *testing.T) {
 	mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "")
+	mockJWT := mockJWTClient{}
+	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""})
 
 	json := `{
 			"notes": "Fee remission note for cancelling",
@@ -29,7 +30,7 @@ func TestCancelFeeReduction(t *testing.T) {
 		}, nil
 	}
 
-	err := client.CancelFeeReduction(getContext(nil), 1, 1, "Fee remission note for one award")
+	err := client.CancelFeeReduction(testContext(), 1, 1, "Fee remission note for one award")
 	assert.Equal(t, nil, err)
 }
 
@@ -39,9 +40,9 @@ func TestCancelFeeReductionUnauthorised(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	err := client.CancelFeeReduction(getContext(nil), 1, 1, "Fee remission note for one award")
+	err := client.CancelFeeReduction(testContext(), 1, 1, "Fee remission note for one award")
 
 	assert.Equal(t, ErrUnauthorized.Error(), err.Error())
 }
@@ -52,9 +53,9 @@ func TestCancelFeeReductionReturns500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	err := client.CancelFeeReduction(getContext(nil), 1, 1, "Fee remission note for one award")
+	err := client.CancelFeeReduction(testContext(), 1, 1, "Fee remission note for one award")
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/clients/1/fee-reductions/1/cancel",
@@ -77,9 +78,9 @@ func TestCancelFeeReductionReturnsValidationError(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	err := client.CancelFeeReduction(getContext(nil), 0, 0, "")
+	err := client.CancelFeeReduction(testContext(), 0, 0, "")
 	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"CancelFeeReductionNotes": map[string]string{"required": "This field CancelFeeReductionNotes needs to be looked at required"}}}
 	assert.Equal(t, expectedError, err.(apierror.ValidationError))
 }
