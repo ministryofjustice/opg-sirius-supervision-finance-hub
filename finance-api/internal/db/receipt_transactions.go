@@ -11,17 +11,17 @@ type ReceiptTransactions struct {
 const ReceiptTransactionsQuery = `WITH transaction_totals AS (SELECT tt.line_description                 AS line_description,
                                   TO_CHAR(l.bankdate, 'DD/MM/YYYY') AS transaction_date,
                                   tt.account_code                     AS account_code,
-                                  ((SUM(la.amount) / 100.0)::NUMERIC(10, 2))::VARCHAR(255)                  AS amount,
+                                  ((SUM(ABS(la.amount)) / 100.0)::NUMERIC(10, 2))::VARCHAR(255)                  AS amount,
 								  l.type AS ledger_type
                            FROM supervision_finance.ledger_allocation la
-                                    JOIN supervision_finance.ledger l ON l.id = la.ledger_id
-                                    JOIN supervision_finance.invoice i ON i.id = la.invoice_id
+                                    INNER JOIN supervision_finance.ledger l ON l.id = la.ledger_id
+                                    LEFT JOIN supervision_finance.invoice i ON i.id = la.invoice_id
                                     LEFT JOIN LATERAL (SELECT CASE WHEN i.feetype = 'AD' THEN 'AD' ELSE COALESCE(ifr.supervisionlevel, '') END AS supervision_level
                                                         FROM supervision_finance.invoice_fee_range ifr
                                                         WHERE ifr.invoice_id = i.id
                                                         ORDER BY id
                                                         LIMIT 1 ) sl ON TRUE
-                                    JOIN supervision_finance.transaction_type tt
+                                    INNER JOIN supervision_finance.transaction_type tt
                                          ON l.type = tt.ledger_type AND (CASE
                                                                              WHEN l.type = 'BACS TRANSFER'
                                                                                  THEN l.bankaccount

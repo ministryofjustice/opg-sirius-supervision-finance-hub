@@ -109,12 +109,12 @@ const NonReceiptTransactionsQuery = `WITH transaction_totals AS (
         tt.line_description AS line_description,
         TO_CHAR(l.created_at, 'DD/MM/YYYY') AS transaction_date,
         tt.account_code AS account_code,
-        ((SUM(la.amount) / 100.0)::NUMERIC(10, 2))::VARCHAR(255) AS amount,
+        ((SUM(ABS(la.amount)) / 100.0)::NUMERIC(10, 2))::VARCHAR(255) AS amount,
 		cc.cost_centre
     FROM
         supervision_finance.ledger_allocation la
-        JOIN supervision_finance.ledger l ON l.id = la.ledger_id
-        JOIN supervision_finance.invoice i ON i.id = la.invoice_id
+        INNER JOIN supervision_finance.ledger l ON l.id = la.ledger_id
+        LEFT JOIN supervision_finance.invoice i ON i.id = la.invoice_id
          LEFT JOIN LATERAL (
 			SELECT CASE WHEN i.feetype = 'AD' THEN 'AD' ELSE COALESCE(ifr.supervisionlevel, '') END AS supervision_level
 			FROM supervision_finance.invoice_fee_range ifr
@@ -125,7 +125,7 @@ const NonReceiptTransactionsQuery = `WITH transaction_totals AS (
 		LEFT JOIN LATERAL (
 			SELECT CASE WHEN i.feetype IN ('GA', 'GS', 'GT') THEN '10486000' ELSE '10482009' END AS cost_centre LIMIT 1
     ) cc ON TRUE
-        JOIN supervision_finance.transaction_type tt
+        INNER JOIN supervision_finance.transaction_type tt
                   ON l.type = tt.ledger_type AND sl.supervision_level = tt.supervision_level
     WHERE tt.is_receipt = false AND TO_CHAR(l.created_at, 'YYYY-MM-DD') = $1
     GROUP BY
