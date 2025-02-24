@@ -176,6 +176,7 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		notifyClient,
 		&reports.Envs{
 			ReportsBucket:   envs.reportsBucket,
+      LegacyReportsBucket: os.Getenv("LEGACY_REPORTS_S3_BUCKET"), // Todo - move to envs struct
 			FinanceAdminURL: fmt.Sprintf("%s%s", envs.siriusPublicURL, envs.financeAdminPrefix),
 			GoLiveDate:      goLiveDate,
 		},
