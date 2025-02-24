@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/api"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -41,7 +42,7 @@ func (m *mockHandler) render(app AppVars, w http.ResponseWriter, r *http.Request
 
 func Test_wrapHandler_successful_request(t *testing.T) {
 	w := httptest.NewRecorder()
-	ctx := telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("opg-sirius-supervision-finance-hub"))
+	ctx := auth.Context{Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("opg-sirius-supervision-finance-hub"))}
 	r, _ := http.NewRequestWithContext(ctx, http.MethodGet, "test-url/1", nil)
 
 	errorTemplate := &mockTemplate{}
@@ -79,7 +80,7 @@ func Test_wrapHandler_status_error_handling(t *testing.T) {
 	for i, test := range tests {
 		t.Run("Scenario "+strconv.Itoa(i), func(t *testing.T) {
 			w := httptest.NewRecorder()
-			ctx := telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("opg-sirius-supervision-finance-hub"))
+			ctx := auth.Context{Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("opg-sirius-supervision-finance-hub"))}
 			r, _ := http.NewRequestWithContext(ctx, http.MethodGet, "test-url/1", nil)
 
 			errorTemplate := &mockTemplate{error: errors.New("some template error")}

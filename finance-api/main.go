@@ -9,6 +9,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/cmd/api"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/filestorage"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
@@ -45,14 +46,14 @@ type Envs struct {
 	awsBaseUrl         string
 	eventBusName       string
 	port               string
+	jwtSecret          string
 }
 
 func parseEnvs() (*Envs, error) {
 	envs := map[string]string{
 		"AWS_REGION":            os.Getenv("AWS_REGION"),
-		"AWS_IAM_ROLE":          os.Getenv("AWS_IAM_ROLE"),
-		"AWS_S3_ENDPOINT":       os.Getenv("AWS_S3_ENDPOINT"),
 		"S3_ENCRYPTION_KEY":     os.Getenv("S3_ENCRYPTION_KEY"),
+		"JWT_SECRET":            os.Getenv("JWT_SECRET"),
 		"OPG_NOTIFY_API_KEY":    os.Getenv("OPG_NOTIFY_API_KEY"),
 		"ASYNC_S3_BUCKET":       os.Getenv("ASYNC_S3_BUCKET"),
 		"FINANCE_HUB_LIVE_DATE": os.Getenv("FINANCE_HUB_LIVE_DATE"),
@@ -79,10 +80,12 @@ func parseEnvs() (*Envs, error) {
 	}
 
 	return &Envs{
+		iamRole:            os.Getenv("AWS_IAM_ROLE"),    // used for testing
+		s3Endpoint:         os.Getenv("AWS_S3_ENDPOINT"), // used for testing
+		awsBaseUrl:         os.Getenv("AWS_BASE_URL"),    // used for testing
 		awsRegion:          envs["AWS_REGION"],
-		iamRole:            envs["AWS_IAM_ROLE"],
-		s3Endpoint:         envs["AWS_S3_ENDPOINT"],
 		s3EncryptionKey:    envs["S3_ENCRYPTION_KEY"],
+		jwtSecret:          envs["JWT_SECRET"],
 		notifyKey:          envs["OPG_NOTIFY_API_KEY"],
 		asyncBucket:        envs["ASYNC_S3_BUCKET"],
 		goLiveDate:         envs["FINANCE_HUB_LIVE_DATE"],
@@ -93,10 +96,9 @@ func parseEnvs() (*Envs, error) {
 		dbUser:             envs["POSTGRES_USER"],
 		dbPassword:         envs["POSTGRES_PASSWORD"],
 		dbName:             envs["POSTGRES_DB"],
-		awsBaseUrl:         os.Getenv("AWS_BASE_URL"), // can be empty
 		eventBusName:       envs["EVENT_BUS_NAME"],
-		webDir:             "web",
 		port:               envs["PORT"],
+		webDir:             "web",
 	}, nil
 }
 
@@ -184,6 +186,9 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		Service,
 		reportsClient,
 		fileStorageClient,
+		&auth.JWT{
+			Secret: envs.jwtSecret,
+		},
 		validator, &api.Envs{
 			ReportsBucket: envs.reportsBucket,
 			GoLiveDate:    goLiveDate,
