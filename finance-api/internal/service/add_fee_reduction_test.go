@@ -81,7 +81,7 @@ func (suite *IntegrationSuite) TestService_AddFeeReduction() {
 	assert.Equal(suite.T(), "2024-03-31", feeReduction.endDate.Format("2006-01-02"))
 	assert.Equal(suite.T(), params.Notes, feeReduction.notes)
 	assert.Equal(suite.T(), "2024-01-01", feeReduction.dateReceived.Format("2006-01-02"))
-	assert.Equal(suite.T(), 1, feeReduction.createdBy)
+	assert.Equal(suite.T(), 10, feeReduction.createdBy)
 	assert.NotEqual(suite.T(), feeReduction.createdDate, "0001-01-01")
 
 	assert.Equal(suite.T(), 5000, remissionLedger.amount)

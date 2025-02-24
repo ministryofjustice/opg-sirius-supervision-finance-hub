@@ -37,51 +37,28 @@ func (suite *IntegrationSuite) TestService_AddManualInvoice() {
 	s, params := addManualInvoiceSetup(seeder)
 
 	err := s.AddManualInvoice(ctx, 24, params)
-	rows := seeder.QueryRow(ctx, "SELECT * FROM supervision_finance.invoice WHERE id = 1")
+	rows := seeder.QueryRow(ctx, "SELECT feetype, amount, startdate, enddate, created_by FROM supervision_finance.invoice WHERE id = 1")
 
 	var (
-		id                int
-		personId          int
-		financeClientId   int
-		feeType           string
-		reference         string
-		startDate         time.Time
-		endDate           time.Time
-		amount            int
-		supervisionLevel  string
-		confirmedDate     time.Time
-		batchNumber       int
-		raisedDate        time.Time
-		source            string
-		scheduledFn14Date time.Time
-		cachedDebtAmount  int
-		createdDate       time.Time
-		createdById       int
+		feeType     string
+		amount      int
+		startDate   time.Time
+		endDate     time.Time
+		createdById int
 	)
 
 	_ = rows.Scan(
-		&id,
-		&personId,
-		&financeClientId,
 		&feeType,
-		&reference,
+		&amount,
 		&startDate,
 		&endDate,
-		&amount,
-		&supervisionLevel,
-		&confirmedDate,
-		&batchNumber,
-		&raisedDate,
-		&source,
-		&scheduledFn14Date,
-		&cachedDebtAmount,
-		&createdDate,
 		&createdById)
 
 	assert.Equal(suite.T(), shared.InvoiceTypeS2.Key(), feeType)
 	assert.Equal(suite.T(), 50000, amount)
 	assert.Equal(suite.T(), "2024-04-12", startDate.Format("2006-01-02"))
 	assert.Equal(suite.T(), "2025-03-31", endDate.Format("2006-01-02"))
+	assert.Equal(suite.T(), 10, createdById)
 
 	if err == nil {
 		return
