@@ -15,6 +15,7 @@ type AppVars struct {
 	EnvironmentVars Envs
 	Errors          apierror.ValidationErrors
 	Error           string
+	Code            int
 }
 
 type Tab struct {
