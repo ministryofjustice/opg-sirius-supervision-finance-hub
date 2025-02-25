@@ -3,9 +3,11 @@ package db
 import (
 	"context"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/service"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/testhelpers"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/suite"
 	"testing"
 )
@@ -19,12 +21,19 @@ type IntegrationSuite struct {
 
 type mockDispatch struct{}
 
+func (m *mockDispatch) PaymentMethodChanged(ctx context.Context, event event.PaymentMethod) error {
+	return nil
+}
+
 func (m *mockDispatch) CreditOnAccount(ctx context.Context, event event.CreditOnAccount) error {
 	return nil
 }
 
 func (suite *IntegrationSuite) SetupSuite() {
-	suite.ctx = telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test"))
+	suite.ctx = auth.Context{
+		Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test")),
+		User:    &shared.User{ID: 1},
+	}
 	suite.cm = testhelpers.Init(suite.ctx, "public,supervision_finance")
 	seeder := suite.cm.Seeder(suite.ctx, suite.T())
 	serv := service.NewService(seeder.Conn, &mockDispatch{}, nil, nil, nil)
