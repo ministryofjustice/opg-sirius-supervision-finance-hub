@@ -8,7 +8,7 @@ module.exports = (req, res, next) => {
             .userID;
 
         if (!userID) {
-            userID = "1"; // default test user
+            userID = "2"; // default test user
         }
 
         req.url = `/users/${userID}`;
