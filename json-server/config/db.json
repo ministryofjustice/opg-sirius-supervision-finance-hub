@@ -2,20 +2,33 @@
   "users": [
     {
       "id": 1,
-      "displayName": "Super User",
+      "displayName": "Colin Case",
       "roles": [
-        "Case Manager",
-        "Manager",
-        "Finance Reporting"
+        "Case Manager"
       ]
     },
     {
-      "id": 65,
+      "id": 2,
       "displayName": "Ian Admin",
       "roles": [
-        "Case Manager",
-        "Manager",
-        "Finance Reporting"
+        "Finance User",
+        "Finance Manager",
+        "Finance Reporting",
+        "Corporate Finance"
+      ]
+    },
+    {
+      "id": 3,
+      "displayName": "Usain Userman",
+      "roles": [
+        "Finance User"
+      ]
+    },
+    {
+      "id": 4,
+      "displayName": "Mandy Manager",
+      "roles": [
+        "Finance Manager"
       ]
     },
     {
@@ -85,6 +98,12 @@
       "id": 10,
       "firstname": "Billy",
       "surname": "Bank",
+      "caseRecNumber": "12345678"
+    },
+    {
+      "id": 11,
+      "firstname": "Percival",
+      "surname": "Permissions",
       "caseRecNumber": "12345678"
     },
     {

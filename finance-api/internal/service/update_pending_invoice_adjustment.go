@@ -3,12 +3,13 @@ package service
 import (
 	"context"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
 func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId int, adjustmentId int, status shared.AdjustmentStatus) error {
-	ctx, cancelTx := context.WithCancel(ctx)
+	ctx, cancelTx := s.WithCancel(ctx)
 	defer cancelTx()
 
 	tx, err := s.BeginStoreTx(ctx)
@@ -19,7 +20,7 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId i
 	decisionParams := store.SetAdjustmentDecisionParams{
 		ID:        int32(adjustmentId),
 		Status:    status.Key(),
-		UpdatedBy: pgtype.Int4{Int32: int32(1), Valid: true},
+		UpdatedBy: pgtype.Int4{Int32: int32(ctx.(auth.Context).User.ID), Valid: true},
 	}
 
 	adjustment, err := tx.SetAdjustmentDecision(ctx, decisionParams)
@@ -28,7 +29,7 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId i
 	}
 
 	if status == shared.AdjustmentStatusApproved {
-		ledger, allocations := generateLedgerEntries(addLedgerVars{
+		ledger, allocations := generateLedgerEntries(ctx, addLedgerVars{
 			amount:             adjustment.Amount,
 			transactionType:    shared.ParseAdjustmentType(adjustment.AdjustmentType),
 			clientId:           int32(clientId),
