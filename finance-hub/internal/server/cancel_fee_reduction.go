@@ -15,7 +15,6 @@ type CancelFeeReductionHandler struct {
 }
 
 func (h *CancelFeeReductionHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
-
 	data := CancelFeeReduction{r.PathValue("clientId"), r.PathValue("feeReductionId"), v}
 
 	return h.execute(w, r, data)
