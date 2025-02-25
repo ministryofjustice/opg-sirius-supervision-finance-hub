@@ -21,7 +21,11 @@ func TestRoute_htmxRequest(t *testing.T) {
 	template := &mockTemplate{}
 
 	w := httptest.NewRecorder()
-	r, _ := http.NewRequest(http.MethodGet, "", nil)
+	ctx := auth.Context{
+		User:    &shared.User{ID: 123, Roles: []string{"Right Role"}},
+		Context: context.Background(),
+	}
+	r, _ := http.NewRequestWithContext(ctx, http.MethodGet, "", nil)
 	r.Header.Add("HX-Request", "true")
 
 	data := mockRouteData{
@@ -29,7 +33,7 @@ func TestRoute_htmxRequest(t *testing.T) {
 		AppVars: AppVars{Path: "/path"},
 	}
 
-	sut := route{client: client, tmpl: template, partial: "test"}
+	sut := route{client: client, tmpl: template, partial: "test", restrictedTo: "Right Role"}
 
 	err := sut.execute(w, r, data)
 
@@ -46,7 +50,7 @@ func TestRoute_fullPage(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	ctx := auth.Context{
-		User:    &shared.User{ID: 123},
+		User:    &shared.User{ID: 123, Roles: []string{"Right Role"}},
 		Context: context.Background(),
 	}
 	r, _ := http.NewRequestWithContext(ctx, http.MethodGet, "", nil)
@@ -64,7 +68,8 @@ func TestRoute_fullPage(t *testing.T) {
 		PaymentMethod:      "DEMANDED",
 	}
 	client.CurrentUserDetails = shared.User{
-		ID: 123,
+		ID:    123,
+		Roles: []string{"Right Role"},
 	}
 
 	fetchedData := HeaderData{
@@ -88,7 +93,7 @@ func TestRoute_fullPage(t *testing.T) {
 		HeaderData: fetchedData,
 	}
 
-	sut := route{client: client, tmpl: template, partial: "test"}
+	sut := route{client: client, tmpl: template, partial: "test", restrictedTo: "Right Role"}
 
 	err := sut.execute(w, r, data.Data)
 
@@ -120,6 +125,32 @@ func TestRoute_error(t *testing.T) {
 	}
 
 	sut := route{client: client, tmpl: template, partial: "test"}
+
+	err := sut.execute(w, r, data.Data)
+
+	assert.NotNil(t, err)
+	assert.Equal(t, "it broke", err.Error())
+}
+
+func TestRoute_restricted(t *testing.T) {
+	client := mockApiClient{}
+	template := &mockTemplate{}
+
+	w := httptest.NewRecorder()
+	ctx := auth.Context{
+		User:    &shared.User{ID: 1, Roles: []string{"Wrong Role"}},
+		Context: context.Background(),
+	}
+	r, _ := http.NewRequestWithContext(ctx, http.MethodGet, "", nil)
+
+	data := PageData{
+		Data: mockRouteData{
+			stuff:   "abc",
+			AppVars: AppVars{Path: "/path/"},
+		},
+	}
+
+	sut := route{client: client, tmpl: template, partial: "test", restrictedTo: "Right Role"}
 
 	err := sut.execute(w, r, data.Data)
 
