@@ -32,9 +32,10 @@ type PageData struct {
 }
 
 type route struct {
-	client  ApiClient
-	tmpl    Template
-	partial string
+	client       ApiClient
+	tmpl         Template
+	partial      string
+	restrictedTo string
 }
 
 func (r route) Client() ApiClient {
@@ -57,7 +58,7 @@ func (r route) execute(w http.ResponseWriter, req *http.Request, data any) error
 		}
 
 		data.User = ctx.User
-		
+
 		clientID := getClientID(req)
 		var person shared.Person
 		var accountInfo shared.AccountInformation

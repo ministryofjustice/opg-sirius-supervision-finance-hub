@@ -71,22 +71,41 @@ func New(logger *slog.Logger, client *api.Client, templates map[string]*template
 		mux.Handle(pattern, telemetry.Middleware(logger)(authenticator.Authenticate(errors(h))))
 	}
 
-	handleMux("GET /clients/{clientId}/invoices", &InvoicesHandler{&route{client: client, tmpl: templates["invoices.gotmpl"], partial: "invoices"}})
-	handleMux("GET /clients/{clientId}/fee-reductions", &FeeReductionsHandler{&route{client: client, tmpl: templates["fee-reductions.gotmpl"], partial: "fee-reductions"}})
-	handleMux("GET /clients/{clientId}/pending-invoice-adjustments", &PendingInvoiceAdjustmentsHandler{&route{client: client, tmpl: templates["pending-invoice-adjustments.gotmpl"], partial: "pending-invoice-adjustments"}})
-	handleMux("GET /clients/{clientId}/invoices/{invoiceId}/adjustments", &AdjustInvoiceFormHandler{&route{client: client, tmpl: templates["adjust-invoice.gotmpl"], partial: "adjust-invoice"}})
-	handleMux("GET /clients/{clientId}/fee-reductions/add", &UpdateFeeReductionHandler{&route{client: client, tmpl: templates["add-fee-reduction.gotmpl"], partial: "add-fee-reduction"}})
-	handleMux("GET /clients/{clientId}/payment-method/add", &PaymentMethodHandler{&route{client: client, tmpl: templates["set-up-payment-method.gotmpl"], partial: "set-up-payment-method"}})
-	handleMux("GET /clients/{clientId}/invoices/add", &UpdateManualInvoiceHandler{&route{client: client, tmpl: templates["add-manual-invoice.gotmpl"], partial: "add-manual-invoice"}})
-	handleMux("GET /clients/{clientId}/billing-history", &BillingHistoryHandler{&route{client: client, tmpl: templates["billing-history.gotmpl"], partial: "billing-history"}})
-	handleMux("GET /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", &CancelFeeReductionHandler{&route{client: client, tmpl: templates["cancel-fee-reduction.gotmpl"], partial: "cancel-fee-reduction"}})
+	// tabs
+	handleMux("GET /clients/{clientId}/invoices",
+		&InvoicesHandler{&route{client: client, tmpl: templates["invoices.gotmpl"], partial: "invoices"}})
+	handleMux("GET /clients/{clientId}/fee-reductions",
+		&FeeReductionsHandler{&route{client: client, tmpl: templates["fee-reductions.gotmpl"], partial: "fee-reductions"}})
+	handleMux("GET /clients/{clientId}/pending-invoice-adjustments",
+		&PendingInvoiceAdjustmentsHandler{&route{client: client, tmpl: templates["pending-invoice-adjustments.gotmpl"], partial: "pending-invoice-adjustments"}})
+	handleMux("GET /clients/{clientId}/billing-history",
+		&BillingHistoryHandler{&route{client: client, tmpl: templates["billing-history.gotmpl"], partial: "billing-history"}})
 
-	handleMux("POST /clients/{clientId}/invoices", &SubmitManualInvoiceHandler{&route{client: client, tmpl: templates["add-manual-invoice.gotmpl"], partial: "error-summary"}})
-	handleMux("POST /clients/{clientId}/invoices/{invoiceId}/adjustments", &SubmitInvoiceAdjustmentHandler{&route{client: client, tmpl: templates["adjust-invoice.gotmpl"], partial: "error-summary"}})
-	handleMux("POST /clients/{clientId}/fee-reductions/add", &SubmitFeeReductionsHandler{&route{client: client, tmpl: templates["add-fee-reduction.gotmpl"], partial: "error-summary"}})
-	handleMux("POST /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", &SubmitCancelFeeReductionsHandler{&route{client: client, tmpl: templates["cancel-fee-reduction.gotmpl"], partial: "error-summary"}})
-	handleMux("POST /clients/{clientId}/pending-invoice-adjustments/{adjustmentId}/{adjustmentType}/{status}", &SubmitUpdatePendingInvoiceAdjustmentHandler{&route{client: client, tmpl: templates["pending-invoice-adjustments.gotmpl"], partial: "pending-invoice-adjustments"}})
-	handleMux("POST /clients/{clientId}/payment-method/add", &SubmitPaymentMethodHandler{&route{client: client, tmpl: templates["set-up-direct-debit.gotmpl"], partial: "error-summary"}})
+	//forms
+	handleMux("GET /clients/{clientId}/invoices/{invoiceId}/adjustments",
+		&AdjustInvoiceFormHandler{&route{client: client, tmpl: templates["adjust-invoice.gotmpl"], partial: "adjust-invoice", restrictedTo: shared.RoleFinanceUser}})
+	handleMux("GET /clients/{clientId}/fee-reductions/add",
+		&UpdateFeeReductionHandler{&route{client: client, tmpl: templates["add-fee-reduction.gotmpl"], partial: "add-fee-reduction", restrictedTo: shared.RoleFinanceUser}})
+	handleMux("GET /clients/{clientId}/payment-method/add",
+		&PaymentMethodHandler{&route{client: client, tmpl: templates["set-up-payment-method.gotmpl"], partial: "set-up-payment-method", restrictedTo: shared.RoleFinanceUser}})
+	handleMux("GET /clients/{clientId}/invoices/add",
+		&UpdateManualInvoiceHandler{&route{client: client, tmpl: templates["add-manual-invoice.gotmpl"], partial: "add-manual-invoice", restrictedTo: shared.RoleFinanceManager}})
+	handleMux("GET /clients/{clientId}/fee-reductions/{feeReductionId}/cancel",
+		&CancelFeeReductionHandler{&route{client: client, tmpl: templates["cancel-fee-reduction.gotmpl"], partial: "cancel-fee-reduction", restrictedTo: shared.RoleFinanceManager}})
+
+	// submits
+	handleMux("POST /clients/{clientId}/invoices/{invoiceId}/adjustments",
+		&SubmitInvoiceAdjustmentHandler{&route{client: client, tmpl: templates["adjust-invoice.gotmpl"], partial: "error-summary", restrictedTo: shared.RoleFinanceUser}})
+	handleMux("POST /clients/{clientId}/fee-reductions/add",
+		&SubmitFeeReductionsHandler{&route{client: client, tmpl: templates["add-fee-reduction.gotmpl"], partial: "error-summary", restrictedTo: shared.RoleFinanceUser}})
+	handleMux("POST /clients/{clientId}/fee-reductions/{feeReductionId}/cancel",
+		&SubmitCancelFeeReductionsHandler{&route{client: client, tmpl: templates["cancel-fee-reduction.gotmpl"], partial: "error-summary", restrictedTo: shared.RoleFinanceUser}})
+	handleMux("POST /clients/{clientId}/payment-method/add",
+		&SubmitPaymentMethodHandler{&route{client: client, tmpl: templates["set-up-direct-debit.gotmpl"], partial: "error-summary", restrictedTo: shared.RoleFinanceUser}})
+	handleMux("POST /clients/{clientId}/invoices",
+		&SubmitManualInvoiceHandler{&route{client: client, tmpl: templates["add-manual-invoice.gotmpl"], partial: "error-summary", restrictedTo: shared.RoleFinanceManager}})
+	handleMux("POST /clients/{clientId}/pending-invoice-adjustments/{adjustmentId}/{adjustmentType}/{status}",
+		&SubmitUpdatePendingInvoiceAdjustmentHandler{&route{client: client, tmpl: templates["pending-invoice-adjustments.gotmpl"], partial: "pending-invoice-adjustments", restrictedTo: shared.RoleFinanceManager}})
 
 	mux.Handle("/health-check", healthCheck())
 
