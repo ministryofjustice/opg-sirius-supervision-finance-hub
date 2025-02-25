@@ -16,7 +16,7 @@ FROM finance_client fc WHERE client_id = $1
 RETURNING id;
 
 -- name: CreateLedgerForCourtRef :one
-INSERT INTO ledger (id, datetime, bankdate, finance_client_id, amount, notes, type, status, created_at, created_by, reference, method)
+INSERT INTO ledger (id, datetime, bankdate, finance_client_id, amount, notes, type, status, created_at, created_by, reference, method, pis_number)
 SELECT nextval('ledger_id_seq'),
        $2,
        $3,
@@ -28,7 +28,8 @@ SELECT nextval('ledger_id_seq'),
        now(),
        $8,
        gen_random_uuid(),
-       ''
+       '',
+       $9
 FROM finance_client fc WHERE court_ref = $1
 RETURNING id;
 
