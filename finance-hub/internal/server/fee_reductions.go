@@ -32,14 +32,15 @@ type FeeReductionsHandler struct {
 }
 
 func (h *FeeReductionsHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
-	ctx := getContext(r)
+	ctx := r.Context()
+	clientID := getClientID(r)
 
-	feeReductions, err := h.Client().GetFeeReductions(ctx, ctx.ClientId)
+	feeReductions, err := h.Client().GetFeeReductions(ctx, clientID)
 	if err != nil {
 		return err
 	}
 
-	data := &FeeReductionsTab{h.transform(feeReductions), strconv.Itoa(ctx.ClientId), v}
+	data := &FeeReductionsTab{h.transform(feeReductions), strconv.Itoa(clientID), v}
 	data.selectTab("fee-reductions")
 	return h.execute(w, r, data)
 }
