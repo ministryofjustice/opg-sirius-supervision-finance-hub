@@ -106,7 +106,7 @@ func getPaymentDetails(record []string, uploadType string, uploadDate shared.Dat
 func (s *Service) processPayments(ctx context.Context, records [][]string, uploadType string, uploadDate shared.Date) (map[int]string, error) {
 	failedLines := make(map[int]string)
 
-	ctx, cancelTx := context.WithCancel(ctx)
+	ctx, cancelTx := s.WithCancel(ctx)
 	defer cancelTx()
 
 	tx, err := s.BeginStoreTx(ctx)
@@ -157,13 +157,12 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 		return nil
 	}
 
-	// TODO: Rollback if no allocation can be made?
 	ledgerId, err := tx.CreateLedgerForCourtRef(ctx, store.CreateLedgerForCourtRefParams{
 		CourtRef:  pgtype.Text{String: details.CourtRef, Valid: true},
 		Amount:    details.Amount,
 		Type:      details.LedgerType,
 		Status:    "CONFIRMED",
-		CreatedBy: pgtype.Int4{Int32: 1, Valid: true},
+		CreatedBy: pgtype.Int4{Int32: int32(s.env.SystemUserID), Valid: true},
 		Bankdate:  pgtype.Date{Time: details.BankDate, Valid: true},
 		Datetime:  pgtype.Timestamp{Time: details.UploadDate, Valid: true},
 	})
