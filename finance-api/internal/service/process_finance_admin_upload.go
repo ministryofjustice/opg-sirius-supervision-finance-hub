@@ -46,8 +46,6 @@ func getLedgerType(uploadType string) (string, error) {
 		return shared.TransactionTypeSupervisionBACSPayment.Key(), nil
 	case "PAYMENTS_OPG_BACS":
 		return shared.TransactionTypeOPGBACSPayment.Key(), nil
-	case "SOP_UNALLOCATED":
-		return shared.TransactionTypeSOPUnallocatedPayment.Key(), nil
 	}
 	return "", fmt.Errorf("unknown upload type")
 }
