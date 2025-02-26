@@ -31,7 +31,7 @@ func (suite *IntegrationSuite) TestService_GetAccountInformation() {
 	Store := store.New(seeder)
 	tests := []struct {
 		name    string
-		id      int
+		id      int32
 		want    *shared.AccountInformation
 		wantErr bool
 	}{

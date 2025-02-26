@@ -35,7 +35,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 
 	tests := []struct {
 		name    string
-		id      int
+		id      int32
 		want    []shared.BillingHistory
 		wantErr bool
 	}{
@@ -507,7 +507,7 @@ func Test_processLedgerAllocations(t *testing.T) {
 	tests := []struct {
 		name        string
 		allocations []store.GetLedgerAllocationsForClientRow
-		clientID    int
+		clientID    int32
 		want        []historyHolder
 	}{
 		{

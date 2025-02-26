@@ -40,7 +40,7 @@ func (suite *IntegrationSuite) TestService_GetPermittedAdjustments() {
 	Store := store.New(seeder.Conn)
 	tests := []struct {
 		name    string
-		id      int
+		id      int32
 		want    []shared.AdjustmentType
 		wantErr bool
 	}{

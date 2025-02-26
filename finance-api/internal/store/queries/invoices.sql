@@ -95,7 +95,7 @@ WHERE i.id = $1;
 -- name: GetInvoiceBalancesForFeeReductionRange :many
 SELECT i.id,
        i.amount,
-       COALESCE(general_fee.amount, 0)               general_supervision_fee,
+       COALESCE(general_fee.amount, 0)::INT          general_supervision_fee,
        i.amount - COALESCE(transactions.received, 0) outstanding,
        i.feetype
 FROM invoice i
