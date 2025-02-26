@@ -19,7 +19,6 @@ const (
 	TransactionTypeSupervisionBACSPayment
 	TransactionTypeOPGBACSPayment
 	TransactionTypeDirectDebitPayment
-	TransactionTypeSOPUnallocatedPayment
 )
 
 var TransactionTypeMap = map[string]TransactionType{
@@ -36,7 +35,6 @@ var TransactionTypeMap = map[string]TransactionType{
 	"SUPERVISION BACS PAYMENT": TransactionTypeSupervisionBACSPayment,
 	"OPG BACS PAYMENT":         TransactionTypeOPGBACSPayment,
 	"DIRECT DEBIT PAYMENT":     TransactionTypeDirectDebitPayment,
-	"SOP UNALLOCATED":          TransactionTypeSOPUnallocatedPayment,
 }
 
 func (t TransactionType) String() string {
@@ -67,8 +65,6 @@ func (t TransactionType) String() string {
 		return "BACS payment (Main account)"
 	case TransactionTypeDirectDebitPayment:
 		return "Direct Debit payment"
-	case TransactionTypeSOPUnallocatedPayment:
-		return "SOP Unallocated"
 	default:
 		return ""
 	}
@@ -102,8 +98,6 @@ func (t TransactionType) Key() string {
 		return "OPG BACS PAYMENT"
 	case TransactionTypeDirectDebitPayment:
 		return "DIRECT DEBIT PAYMENT"
-	case TransactionTypeSOPUnallocatedPayment:
-		return "SOP UNALLOCATED"
 	default:
 		return ""
 	}

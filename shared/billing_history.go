@@ -40,8 +40,6 @@ func (b *BillingHistory) UnmarshalJSON(data []byte) (err error) {
 		b.Event = new(InvoiceAdjustmentPending)
 	case EventTypePaymentProcessed:
 		b.Event = new(PaymentProcessed)
-	case EventTypeSOPUnallocatedProcessed:
-		b.Event = new(SOPUnallocatedProcessed)
 	case EventTypeReappliedCredit:
 		b.Event = new(ReappliedCredit)
 	default:
@@ -126,10 +124,6 @@ type PaymentProcessed struct {
 	TransactionEvent
 }
 
-type SOPUnallocatedProcessed struct {
-	TransactionEvent
-}
-
 type ReappliedCredit struct {
 	TransactionEvent
 }
@@ -178,8 +172,6 @@ func (b BillingEventType) String() string {
 		return "INVOICE_ADJUSTMENT_PENDING"
 	case EventTypePaymentProcessed:
 		return "PAYMENT_PROCESSED"
-	case EventTypeSOPUnallocatedProcessed:
-		return "SOP_UNALLOCATED_PROCESSED"
 	case EventTypeReappliedCredit:
 		return "REAPPLIED_CREDIT"
 	default:

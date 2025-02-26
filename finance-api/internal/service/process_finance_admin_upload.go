@@ -46,8 +46,6 @@ func getLedgerType(uploadType string) (string, error) {
 		return shared.TransactionTypeSupervisionBACSPayment.Key(), nil
 	case "PAYMENTS_OPG_BACS":
 		return shared.TransactionTypeOPGBACSPayment.Key(), nil
-	case "SOP_UNALLOCATED":
-		return shared.TransactionTypeSOPUnallocatedPayment.Key(), nil
 	}
 	return "", fmt.Errorf("unknown upload type")
 }
@@ -98,20 +96,6 @@ func getPaymentDetails(record []string, uploadType string, uploadDate shared.Dat
 		bankDate, err = time.Parse("02/01/2006", record[4])
 		if err != nil {
 			(*failedLines)[index] = "DATE_PARSE_ERROR"
-			return shared.PaymentDetails{}
-		}
-	case "SOP_UNALLOCATED":
-		courtRef = record[0]
-
-		amount, err = parseAmount(record[1])
-		if err != nil {
-			(*failedLines)[index] = "AMOUNT_PARSE_ERROR"
-			return shared.PaymentDetails{}
-		}
-
-		bankDate, err = time.Parse("2006-01-02 15:04:05", "2025-03-31 00:00:00")
-		if err != nil {
-			(*failedLines)[index] = "DATE_TIME_PARSE_ERROR"
 			return shared.PaymentDetails{}
 		}
 	}
