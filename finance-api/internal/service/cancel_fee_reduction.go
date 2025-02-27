@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
@@ -15,19 +14,14 @@ func (s *Service) CancelFeeReduction(ctx context.Context, id int32, cancelledFee
 		cancellationReason pgtype.Text
 	)
 
-	e := store.ToInt4(&cancelledBy, ctx.(auth.Context).User.ID)
-	e = cancellationReason.Scan(cancelledFeeReduction.CancellationReason)
-	if e != nil {
-		return e
-	}
+	_ = store.ToInt4(&cancelledBy, ctx.(auth.Context).User.ID)
+	_ = cancellationReason.Scan(cancelledFeeReduction.CancellationReason)
 
-	x, err := s.store.CancelFeeReduction(ctx, store.CancelFeeReductionParams{
+	_, err := s.store.CancelFeeReduction(ctx, store.CancelFeeReductionParams{
 		ID:                 id,
 		CancelledBy:        cancelledBy,
 		CancellationReason: cancellationReason,
 	})
-
-	fmt.Sprint(x)
 
 	if err != nil {
 		return err
