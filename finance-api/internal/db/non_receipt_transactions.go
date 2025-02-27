@@ -116,7 +116,7 @@ const NonReceiptTransactionsQuery = `WITH transaction_totals AS (
         INNER JOIN supervision_finance.ledger l ON l.id = la.ledger_id
         LEFT JOIN supervision_finance.invoice i ON i.id = la.invoice_id
          LEFT JOIN LATERAL (
-			SELECT CASE WHEN i.feetype = 'AD' THEN 'AD' ELSE COALESCE(ifr.supervisionlevel, '') END AS supervision_level
+			SELECT CASE WHEN i.feetype IN ('AD', 'GA', 'GS', 'GT') THEN i.feetype ELSE COALESCE(ifr.supervisionlevel, '') END AS supervision_level
 			FROM supervision_finance.invoice_fee_range ifr
 			WHERE ifr.invoice_id = i.id
 			ORDER BY id DESC
