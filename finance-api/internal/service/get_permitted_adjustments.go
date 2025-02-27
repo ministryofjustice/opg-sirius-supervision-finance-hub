@@ -5,8 +5,8 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
-func (s *Service) GetPermittedAdjustments(ctx context.Context, invoiceId int) ([]shared.AdjustmentType, error) {
-	balance, err := s.store.GetInvoiceBalanceDetails(ctx, int32(invoiceId))
+func (s *Service) GetPermittedAdjustments(ctx context.Context, invoiceId int32) ([]shared.AdjustmentType, error) {
+	balance, err := s.store.GetInvoiceBalanceDetails(ctx, invoiceId)
 	if err != nil {
 		return nil, err
 	}

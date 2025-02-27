@@ -22,7 +22,7 @@ func (suite *IntegrationSuite) TestService_GetFeeReductions() {
 
 	tests := []struct {
 		name    string
-		id      int
+		id      int32
 		want    *shared.FeeReductions
 		wantErr bool
 	}{
