@@ -7,30 +7,21 @@ import (
 )
 
 func ToInt4(dest *pgtype.Int4, i any) error {
-	switch i.(type) {
+	switch i := i.(type) {
 	case int:
-		v := i.(int)
-		if v < math.MinInt32 || v > math.MaxInt32 {
+		if i < math.MinInt32 || i > math.MaxInt32 {
 			return fmt.Errorf("cannot scan %T", i)
 		}
-		dest.Int32 = int32(v)
+		dest.Int32 = int32(i)
 		dest.Valid = true
 	case int32:
-		v := i.(int32)
-		if v < 0 {
+		if i < 0 {
 			return fmt.Errorf("cannot scan %T", i)
 		}
-		dest.Int32 = v
+		dest.Int32 = i
 		dest.Valid = true
 	default:
 		return dest.Scan(i)
 	}
 	return nil
-}
-
-func toInt32(i int) (int32, error) {
-	if i < math.MinInt32 || i > math.MaxInt32 {
-		return 0, fmt.Errorf("cannot scan %T", i)
-	}
-	return int32(i), nil
 }
