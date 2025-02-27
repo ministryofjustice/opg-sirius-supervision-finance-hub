@@ -205,8 +205,9 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		})
 
 	s := &http.Server{
-		Addr:    ":" + envs.port,
-		Handler: server.SetupRoutes(logger),
+		Addr:              ":" + envs.port,
+		Handler:           server.SetupRoutes(logger),
+		ReadHeaderTimeout: 10 * time.Second,
 	}
 
 	go func() {

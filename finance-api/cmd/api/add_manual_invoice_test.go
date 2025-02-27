@@ -23,7 +23,7 @@ func TestServer_addManualInvoice(t *testing.T) {
 
 	manualInvoiceInfo := &shared.AddManualInvoice{
 		InvoiceType:      shared.InvoiceTypeS2,
-		Amount:           shared.Nillable[int]{Value: 32000, Valid: true},
+		Amount:           shared.Nillable[int32]{Value: 32000, Valid: true},
 		RaisedDate:       shared.Nillable[shared.Date]{Value: shared.Date{Time: endDateToTime}, Valid: true},
 		StartDate:        shared.Nillable[shared.Date]{Value: shared.Date{Time: startDateToTime}, Valid: true},
 		EndDate:          shared.Nillable[shared.Date]{Value: shared.Date{Time: endDateToTime}, Valid: true},
@@ -54,7 +54,7 @@ func TestServer_addManualInvoiceNoValidationErrorsForNilFields(t *testing.T) {
 	var b bytes.Buffer
 	manualInvoiceInfo := &shared.AddManualInvoice{
 		InvoiceType:      shared.InvoiceTypeAD,
-		Amount:           shared.Nillable[int]{},
+		Amount:           shared.Nillable[int32]{},
 		RaisedDate:       shared.Nillable[shared.Date]{},
 		StartDate:        shared.Nillable[shared.Date]{},
 		EndDate:          shared.Nillable[shared.Date]{},
@@ -85,7 +85,7 @@ func TestServer_addManualInvoiceValidationErrors(t *testing.T) {
 
 	manualInvoiceInfo := &shared.AddManualInvoice{
 		InvoiceType:      shared.InvoiceTypeUnknown,
-		Amount:           shared.Nillable[int]{Valid: true},
+		Amount:           shared.Nillable[int32]{Valid: true},
 		RaisedDate:       shared.Nillable[shared.Date]{Valid: true},
 		StartDate:        shared.Nillable[shared.Date]{Valid: true},
 		EndDate:          shared.Nillable[shared.Date]{Valid: true},
@@ -133,7 +133,7 @@ func TestServer_addManualInvoiceValidationErrorsForAmountTooHigh(t *testing.T) {
 
 	manualInvoiceInfo := &shared.AddManualInvoice{
 		InvoiceType:      shared.InvoiceTypeS2,
-		Amount:           shared.Nillable[int]{Value: 320000, Valid: true},
+		Amount:           shared.Nillable[int32]{Value: 320000, Valid: true},
 		RaisedDate:       shared.Nillable[shared.Date]{Value: shared.Date{Time: endDateToTime}, Valid: true},
 		StartDate:        shared.Nillable[shared.Date]{Value: shared.Date{Time: startDateToTime}, Valid: true},
 		EndDate:          shared.Nillable[shared.Date]{Value: shared.Date{Time: endDateToTime}, Valid: true},
@@ -166,7 +166,7 @@ func TestServer_addManualInvoiceDateErrors(t *testing.T) {
 
 	manualInvoiceInfo := &shared.AddManualInvoice{
 		InvoiceType:      shared.InvoiceTypeS2,
-		Amount:           shared.Nillable[int]{Value: 320000, Valid: true},
+		Amount:           shared.Nillable[int32]{Value: 320000, Valid: true},
 		RaisedDate:       shared.Nillable[shared.Date]{Value: shared.Date{Time: endDateToTime}, Valid: true},
 		StartDate:        shared.Nillable[shared.Date]{Value: shared.Date{Time: startDateToTime}, Valid: true},
 		EndDate:          shared.Nillable[shared.Date]{Value: shared.Date{Time: endDateToTime}, Valid: true},
@@ -198,7 +198,7 @@ func TestServer_addManualInvoice422Error(t *testing.T) {
 
 	manualInvoiceInfo := &shared.AddManualInvoice{
 		InvoiceType:      shared.InvoiceTypeS2,
-		Amount:           shared.Nillable[int]{Value: 32000, Valid: true},
+		Amount:           shared.Nillable[int32]{Value: 32000, Valid: true},
 		RaisedDate:       shared.Nillable[shared.Date]{Value: shared.Date{Time: endDateToTime}, Valid: true},
 		StartDate:        shared.Nillable[shared.Date]{Value: shared.Date{Time: startDateToTime}, Valid: true},
 		EndDate:          shared.Nillable[shared.Date]{Value: shared.Date{Time: endDateToTime}, Valid: true},

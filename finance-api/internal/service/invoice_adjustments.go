@@ -5,10 +5,10 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
-func (s *Service) GetInvoiceAdjustments(ctx context.Context, clientId int) (*shared.InvoiceAdjustments, error) {
+func (s *Service) GetInvoiceAdjustments(ctx context.Context, clientId int32) (*shared.InvoiceAdjustments, error) {
 	var adjustments shared.InvoiceAdjustments
 
-	data, err := s.store.GetInvoiceAdjustments(ctx, int32(clientId))
+	data, err := s.store.GetInvoiceAdjustments(ctx, clientId)
 	if err != nil {
 		return nil, err
 	}
