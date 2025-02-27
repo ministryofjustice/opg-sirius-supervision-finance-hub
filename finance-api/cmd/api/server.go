@@ -6,30 +6,32 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/ministryofjustice/opg-go-common/securityheaders"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"time"
 )
 
 type Service interface {
-	GetAccountInformation(ctx context.Context, id int) (*shared.AccountInformation, error)
-	GetInvoices(ctx context.Context, clientId int) (*shared.Invoices, error)
-	GetPermittedAdjustments(ctx context.Context, invoiceId int) ([]shared.AdjustmentType, error)
-	GetFeeReductions(ctx context.Context, invoiceId int) (*shared.FeeReductions, error)
-	AddInvoiceAdjustment(ctx context.Context, clientId int, invoiceId int, ledgerEntry *shared.AddInvoiceAdjustmentRequest) (*shared.InvoiceReference, error)
-	GetInvoiceAdjustments(ctx context.Context, clientId int) (*shared.InvoiceAdjustments, error)
-	AddFeeReduction(ctx context.Context, clientId int, data shared.AddFeeReduction) error
-	CancelFeeReduction(ctx context.Context, id int, cancelledFeeReduction shared.CancelFeeReduction) error
-	UpdatePendingInvoiceAdjustment(ctx context.Context, clientId int, adjustmentId int, status shared.AdjustmentStatus) error
-	AddManualInvoice(ctx context.Context, clientId int, invoice shared.AddManualInvoice) error
-	GetBillingHistory(ctx context.Context, id int) ([]shared.BillingHistory, error)
+	GetAccountInformation(ctx context.Context, id int32) (*shared.AccountInformation, error)
+	GetInvoices(ctx context.Context, clientId int32) (*shared.Invoices, error)
+	GetPermittedAdjustments(ctx context.Context, invoiceId int32) ([]shared.AdjustmentType, error)
+	GetFeeReductions(ctx context.Context, invoiceId int32) (*shared.FeeReductions, error)
+	AddInvoiceAdjustment(ctx context.Context, clientId int32, invoiceId int32, ledgerEntry *shared.AddInvoiceAdjustmentRequest) (*shared.InvoiceReference, error)
+	GetInvoiceAdjustments(ctx context.Context, clientId int32) (*shared.InvoiceAdjustments, error)
+	AddFeeReduction(ctx context.Context, clientId int32, data shared.AddFeeReduction) error
+	CancelFeeReduction(ctx context.Context, id int32, cancelledFeeReduction shared.CancelFeeReduction) error
+	UpdatePendingInvoiceAdjustment(ctx context.Context, clientId int32, adjustmentId int32, status shared.AdjustmentStatus) error
+	AddManualInvoice(ctx context.Context, clientId int32, invoice shared.AddManualInvoice) error
+	GetBillingHistory(ctx context.Context, id int32) ([]shared.BillingHistory, error)
 	ReapplyCredit(ctx context.Context, clientID int32) error
-	UpdateClient(ctx context.Context, clientID int, courtRef string) error
+	UpdateClient(ctx context.Context, clientID int32, courtRef string) error
 	ProcessFinanceAdminUpload(ctx context.Context, detail shared.FinanceAdminUploadEvent) error
-	UpdatePaymentMethod(ctx context.Context, clientID int, paymentMethod shared.PaymentMethod) error
+	UpdatePaymentMethod(ctx context.Context, clientID int32, paymentMethod shared.PaymentMethod) error
 }
 
 type FileStorage interface {
@@ -122,4 +124,15 @@ func (s *Server) requestLogger(h http.Handler) http.HandlerFunc {
 		}
 		h.ServeHTTP(w, r)
 	}
+}
+
+func (s *Server) getPathID(r *http.Request, key string) (int32, error) {
+	id, err := strconv.ParseInt(r.PathValue(key), 10, 32)
+	if err != nil {
+		return 0, apierror.BadRequestError(key, "Unable to parse value to int", err)
+	}
+	if id < 1 {
+		return 0, apierror.BadRequestError(key, "Invalid ID", nil)
+	}
+	return int32(id), nil
 }

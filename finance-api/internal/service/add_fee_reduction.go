@@ -12,9 +12,9 @@ import (
 	"time"
 )
 
-func (s *Service) AddFeeReduction(ctx context.Context, clientId int, data shared.AddFeeReduction) error {
+func (s *Service) AddFeeReduction(ctx context.Context, clientId int32, data shared.AddFeeReduction) error {
 	overlapParams := store.CountOverlappingFeeReductionParams{
-		ClientID:   int32(clientId),
+		ClientID:   clientId,
 		Overlaps:   calculateFeeReductionStartDate(data.StartYear),
 		Overlaps_2: calculateFeeReductionEndDate(data.StartYear, data.LengthOfAward),
 	}
@@ -24,14 +24,21 @@ func (s *Service) AddFeeReduction(ctx context.Context, clientId int, data shared
 		return apierror.BadRequest{Reason: "overlap"}
 	}
 
+	var (
+		dateReceived pgtype.Date
+		createdBy    pgtype.Int4
+	)
+	_ = dateReceived.Scan(data.DateReceived.Time)
+	_ = store.ToInt4(&createdBy, ctx.(auth.Context).User.ID)
+
 	feeReductionParams := store.AddFeeReductionParams{
-		ClientID:     int32(clientId),
+		ClientID:     clientId,
 		Type:         data.FeeType.Key(),
 		Startdate:    calculateFeeReductionStartDate(data.StartYear),
 		Enddate:      calculateFeeReductionEndDate(data.StartYear, data.LengthOfAward),
 		Notes:        data.Notes,
-		Datereceived: pgtype.Date{Time: data.DateReceived.Time, Valid: true},
-		CreatedBy:    pgtype.Int4{Int32: int32(ctx.(auth.Context).User.ID), Valid: true},
+		Datereceived: dateReceived,
+		CreatedBy:    createdBy,
 	}
 
 	ctx, cancelTx := s.WithCancel(ctx)
@@ -53,22 +60,25 @@ func (s *Service) AddFeeReduction(ctx context.Context, clientId int, data shared
 	}
 
 	for _, invoice := range invoices {
-		amount := calculateFeeReduction(shared.ParseFeeReductionType(feeReduction.Type), invoice.Amount, invoice.Feetype, int32(invoice.GeneralSupervisionFee))
+		amount := calculateFeeReduction(shared.ParseFeeReductionType(feeReduction.Type), invoice.Amount, invoice.Feetype, invoice.GeneralSupervisionFee)
 		ledger, allocations := generateLedgerEntries(ctx, addLedgerVars{
 			amount:             amount,
 			transactionType:    data.FeeType,
 			feeReductionId:     feeReduction.ID,
-			clientId:           int32(clientId),
+			clientId:           clientId,
 			invoiceId:          invoice.ID,
 			outstandingBalance: invoice.Outstanding,
 		})
-		ledgerId, err := tx.CreateLedger(ctx, ledger)
+		id, err := tx.CreateLedger(ctx, ledger)
 		if err != nil {
 			return err
 		}
 
+		var ledgerID pgtype.Int4
+		_ = store.ToInt4(&ledgerID, id)
+
 		for _, allocation := range allocations {
-			allocation.LedgerID = pgtype.Int4{Int32: ledgerId, Valid: true}
+			allocation.LedgerID = ledgerID
 			err = tx.CreateLedgerAllocation(ctx, allocation)
 			if err != nil {
 				return err
@@ -81,7 +91,7 @@ func (s *Service) AddFeeReduction(ctx context.Context, clientId int, data shared
 		return err
 	}
 
-	return s.ReapplyCredit(ctx, int32(clientId))
+	return s.ReapplyCredit(ctx, clientId)
 }
 
 func calculateFeeReduction(feeReductionType shared.FeeReductionType, invoiceTotal int32, invoiceFeeType string, generalSupervisionFee int32) int32 {
@@ -97,19 +107,16 @@ func calculateFeeReduction(feeReductionType shared.FeeReductionType, invoiceTota
 	return generalSupervisionFee / 2
 }
 
-func calculateFeeReductionEndDate(startYear string, lengthOfAward int) pgtype.Date {
+func calculateFeeReductionEndDate(startYear string, lengthOfAward int) (endDate pgtype.Date) {
 	startYearTransformed, _ := strconv.Atoi(startYear)
-
-	endDate := startYearTransformed + lengthOfAward
-	financeYearEnd := "-03-31"
-	feeReductionEndDateString := strconv.Itoa(endDate) + financeYearEnd
-	feeReductionEndDate, _ := time.Parse("2006-01-02", feeReductionEndDateString)
-	return pgtype.Date{Time: feeReductionEndDate, Valid: true}
+	endDateString := startYearTransformed + lengthOfAward
+	feeReductionEndDate, _ := time.Parse("2006-01-02", strconv.Itoa(endDateString)+"-03-31")
+	_ = endDate.Scan(feeReductionEndDate)
+	return endDate
 }
 
-func calculateFeeReductionStartDate(startYear string) pgtype.Date {
-	financeYearStart := "-04-01"
-	feeReductionStartDateString := startYear + financeYearStart
-	feeReductionStartDate, _ := time.Parse("2006-01-02", feeReductionStartDateString)
-	return pgtype.Date{Time: feeReductionStartDate, Valid: true}
+func calculateFeeReductionStartDate(startYear string) (startDate pgtype.Date) {
+	feeReductionStartDate, _ := time.Parse("2006-01-02", startYear+"-04-01")
+	_ = startDate.Scan(feeReductionStartDate)
+	return startDate
 }

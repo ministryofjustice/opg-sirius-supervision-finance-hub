@@ -28,8 +28,8 @@ func (suite *IntegrationSuite) TestService_AddInvoiceAdjustment() {
 
 	testCases := []struct {
 		name      string
-		invoiceId int
-		clientId  int
+		invoiceId int32
+		clientId  int32
 		data      *shared.AddInvoiceAdjustmentRequest
 		err       error
 	}{

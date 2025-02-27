@@ -25,10 +25,10 @@ func (s *Server) authenticate(h http.Handler) http.HandlerFunc {
 		}
 
 		claims := token.Claims.(*auth.Claims)
-		userID, _ := strconv.Atoi(claims.ID)
+		userID, _ := strconv.ParseInt(claims.ID, 10, 32)
 
 		ctx.User = &shared.User{
-			ID:    userID,
+			ID:    int32(userID),
 			Roles: claims.Roles,
 		}
 

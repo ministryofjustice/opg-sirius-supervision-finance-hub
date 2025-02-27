@@ -122,7 +122,7 @@ func (q *Queries) GetInvoiceBalanceDetails(ctx context.Context, id int32) (GetIn
 const getInvoiceBalancesForFeeReductionRange = `-- name: GetInvoiceBalancesForFeeReductionRange :many
 SELECT i.id,
        i.amount,
-       COALESCE(general_fee.amount, 0)               general_supervision_fee,
+       COALESCE(general_fee.amount, 0)::INT          general_supervision_fee,
        i.amount - COALESCE(transactions.received, 0) outstanding,
        i.feetype
 FROM invoice i
@@ -148,7 +148,7 @@ WHERE i.raiseddate >= (fr.datereceived - INTERVAL '6 months')
 type GetInvoiceBalancesForFeeReductionRangeRow struct {
 	ID                    int32
 	Amount                int32
-	GeneralSupervisionFee int64
+	GeneralSupervisionFee int32
 	Outstanding           int32
 	Feetype               string
 }

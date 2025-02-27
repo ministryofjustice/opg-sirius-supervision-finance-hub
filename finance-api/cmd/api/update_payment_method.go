@@ -4,15 +4,12 @@ import (
 	"encoding/json"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"net/http"
-	"strconv"
 )
 
 func (s *Server) updatePaymentMethod(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 
 	var body shared.UpdatePaymentMethod
-
-	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
 
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		return err
@@ -24,7 +21,12 @@ func (s *Server) updatePaymentMethod(w http.ResponseWriter, r *http.Request) err
 		return validationError
 	}
 
-	err := s.service.UpdatePaymentMethod(ctx, clientId, body.PaymentMethod)
+	clientId, err := s.getPathID(r, "clientId")
+	if err != nil {
+		return err
+	}
+
+	err = s.service.UpdatePaymentMethod(ctx, clientId, body.PaymentMethod)
 
 	if err != nil {
 		return err

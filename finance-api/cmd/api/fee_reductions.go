@@ -3,13 +3,16 @@ package api
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 )
 
 func (s *Server) getFeeReductions(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 
-	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
+	clientId, err := s.getPathID(r, "clientId")
+	if err != nil {
+		return err
+	}
+
 	accountInfo, err := s.service.GetFeeReductions(ctx, clientId)
 	if err != nil {
 		return err

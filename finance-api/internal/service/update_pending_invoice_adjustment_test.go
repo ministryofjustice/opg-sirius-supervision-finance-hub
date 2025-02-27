@@ -41,14 +41,14 @@ func (suite *IntegrationSuite) TestService_UpdatePendingInvoiceAdjustment() {
 	s := NewService(seeder.Conn, dispatch, nil, nil, nil)
 
 	type args struct {
-		clientId     int
-		adjustmentId int
+		clientId     int32
+		adjustmentId int32
 		status       shared.AdjustmentStatus
 	}
 	tests := []struct {
 		name                       string
 		args                       args
-		invoiceId                  int
+		invoiceId                  int32
 		expectedAllocationStatuses []string
 	}{
 		{
