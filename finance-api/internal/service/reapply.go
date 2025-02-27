@@ -7,12 +7,20 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"log/slog"
 )
 
 func (s *Service) ReapplyCredit(ctx context.Context, clientID int32) error {
+	var userID int
+	if authCtx, ok := ctx.(auth.Context); ok {
+		userID = authCtx.User.ID
+	} else {
+		userID = s.env.SystemUserID
+	}
+
 	creditPosition, err := s.store.GetCreditBalanceAndOldestOpenInvoice(ctx, clientID)
 
 	switch {
@@ -37,13 +45,12 @@ func (s *Service) ReapplyCredit(ctx context.Context, clientID int32) error {
 	}
 
 	ledger := store.CreateLedgerParams{
-		ClientID: clientID,
-		Amount:   reapplyAmount,
-		Notes:    pgtype.Text{String: "Excess credit applied to invoice", Valid: true},
-		Type:     "CREDIT REAPPLY",
-		Status:   "CONFIRMED",
-		//TODO when adding this in PFS-136, the id with need to be a system user
-		CreatedBy: pgtype.Int4{Int32: 1, Valid: true},
+		ClientID:  clientID,
+		Amount:    reapplyAmount,
+		Notes:     pgtype.Text{String: "Excess credit applied to invoice", Valid: true},
+		Type:      "CREDIT REAPPLY",
+		Status:    "CONFIRMED",
+		CreatedBy: pgtype.Int4{Int32: int32(userID), Valid: true},
 	}
 
 	ledgerId, err := s.store.CreateLedger(ctx, ledger)
