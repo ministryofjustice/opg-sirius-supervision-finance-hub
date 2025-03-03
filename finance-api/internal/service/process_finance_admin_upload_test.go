@@ -75,7 +75,7 @@ func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
 					Error      string `json:"error"`
 					UploadType string `json:"upload_type"`
 				}{
-					"Unable to download report",
+					"unable to download report",
 					"",
 				},
 			},

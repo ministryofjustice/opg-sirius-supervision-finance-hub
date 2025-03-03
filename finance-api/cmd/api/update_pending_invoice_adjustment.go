@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"net/http"
-	"strconv"
 )
 
 func (s *Server) updatePendingInvoiceAdjustment(w http.ResponseWriter, r *http.Request) error {
@@ -12,8 +11,15 @@ func (s *Server) updatePendingInvoiceAdjustment(w http.ResponseWriter, r *http.R
 
 	var body shared.UpdateInvoiceAdjustment
 
-	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
-	adjustmentId, _ := strconv.Atoi(r.PathValue("adjustmentId"))
+	clientId, err := s.getPathID(r, "clientId")
+	if err != nil {
+		return err
+	}
+
+	adjustmentId, err := s.getPathID(r, "adjustmentId")
+	if err != nil {
+		return err
+	}
 
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		return err
@@ -25,7 +31,7 @@ func (s *Server) updatePendingInvoiceAdjustment(w http.ResponseWriter, r *http.R
 		return validationError
 	}
 
-	err := s.service.UpdatePendingInvoiceAdjustment(ctx, clientId, adjustmentId, body.Status)
+	err = s.service.UpdatePendingInvoiceAdjustment(ctx, clientId, adjustmentId, body.Status)
 
 	if err != nil {
 		return err

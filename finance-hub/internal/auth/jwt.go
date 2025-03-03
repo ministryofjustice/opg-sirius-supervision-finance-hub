@@ -26,10 +26,10 @@ func (j *JWT) CreateJWT(ctx context.Context) string {
 	claims := &Claims{
 		Roles: user.Roles,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ID:        strconv.Itoa(user.ID),
+			ID:        strconv.Itoa(int(user.ID)),
 			Issuer:    "urn:opg:payments-hub",
 			Audience:  jwt.ClaimStrings{"urn:opg:payments-api"},
-			Subject:   "urn:opg:sirius:users:" + strconv.Itoa(user.ID),
+			Subject:   "urn:opg:sirius:users:" + strconv.Itoa(int(user.ID)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			ExpiresAt: jwt.NewNumericDate(exp),
 		},

@@ -6,13 +6,16 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"net/http"
-	"strconv"
 )
 
 func (s *Server) getAccountInformation(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 
-	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
+	clientId, err := s.getPathID(r, "clientId")
+	if err != nil {
+		return err
+	}
+
 	accountInfo, err := s.service.GetAccountInformation(ctx, clientId)
 
 	if errors.Is(err, pgx.ErrNoRows) {
