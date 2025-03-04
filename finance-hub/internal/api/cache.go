@@ -48,6 +48,6 @@ func (c Caches) getAndSetPlaceholder(id int) *shared.User {
 
 func (c Caches) updateUsers(users []shared.User) {
 	for _, user := range users {
-		_ = c.users.Add(strconv.Itoa(user.ID), &user, defaultExpiration)
+		_ = c.users.Add(strconv.Itoa(int(user.ID)), &user, defaultExpiration)
 	}
 }

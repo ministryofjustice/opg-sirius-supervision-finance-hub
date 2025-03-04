@@ -11,19 +11,15 @@ import (
 	"log/slog"
 )
 
-func (s *Service) AddInvoiceAdjustment(ctx context.Context, clientId int, invoiceId int, ledgerEntry *shared.AddInvoiceAdjustmentRequest) (*shared.InvoiceReference, error) {
+func (s *Service) AddInvoiceAdjustment(ctx context.Context, clientId int32, invoiceId int32, ledgerEntry *shared.AddInvoiceAdjustmentRequest) (*shared.InvoiceReference, error) {
 	logger := telemetry.LoggerFromContext(ctx)
 
-	balance, err := s.store.GetInvoiceBalanceDetails(ctx, int32(invoiceId))
+	balance, err := s.store.GetInvoiceBalanceDetails(ctx, invoiceId)
 	if err != nil {
 		return nil, err
 	}
 
-	clientInfo, err := s.store.GetAccountInformation(ctx, int32(clientId))
-	if err != nil {
-		return nil, err
-	}
-
+	clientInfo, err := s.store.GetAccountInformation(ctx, clientId)
 	if err != nil {
 		return nil, err
 	}
@@ -34,12 +30,12 @@ func (s *Service) AddInvoiceAdjustment(ctx context.Context, clientId int, invoic
 	}
 
 	params := store.CreatePendingInvoiceAdjustmentParams{
-		ClientID:       int32(clientId),
-		InvoiceID:      int32(invoiceId),
+		ClientID:       clientId,
+		InvoiceID:      invoiceId,
 		AdjustmentType: ledgerEntry.AdjustmentType.Key(),
 		Amount:         s.calculateAdjustmentAmount(ledgerEntry, balance, clientInfo.Credit),
 		Notes:          ledgerEntry.AdjustmentNotes,
-		CreatedBy:      int32(ctx.(auth.Context).User.ID),
+		CreatedBy:      ctx.(auth.Context).User.ID,
 	}
 	invoiceReference, err := s.store.CreatePendingInvoiceAdjustment(ctx, params)
 	if err != nil {
@@ -53,7 +49,7 @@ func (s *Service) AddInvoiceAdjustment(ctx context.Context, clientId int, invoic
 func (s *Service) validateAdjustmentAmount(adjustment *shared.AddInvoiceAdjustmentRequest, balance store.GetInvoiceBalanceDetailsRow) error {
 	switch adjustment.AdjustmentType {
 	case shared.AdjustmentTypeCreditMemo:
-		if int32(adjustment.Amount)-balance.Outstanding > balance.Initial {
+		if adjustment.Amount-balance.Outstanding > balance.Initial {
 			return apierror.BadRequestError("Amount", fmt.Sprintf("Amount entered must be equal to or less than £%s", shared.IntToDecimalString(int(balance.Initial+balance.Outstanding))), nil)
 		}
 	case shared.AdjustmentTypeDebitMemo:
@@ -63,7 +59,7 @@ func (s *Service) validateAdjustmentAmount(adjustment *shared.AddInvoiceAdjustme
 		} else {
 			maxBalance = 32000
 		}
-		if int32(adjustment.Amount)+balance.Outstanding > maxBalance {
+		if adjustment.Amount+balance.Outstanding > maxBalance {
 			return apierror.BadRequestError("Amount", fmt.Sprintf("Amount entered must be equal to or less than £%s", shared.IntToDecimalString(int(maxBalance-balance.Outstanding))), nil)
 		}
 	case shared.AdjustmentTypeWriteOff:
@@ -85,13 +81,13 @@ func (s *Service) calculateAdjustmentAmount(adjustment *shared.AddInvoiceAdjustm
 	case shared.AdjustmentTypeWriteOff:
 		return balance.Outstanding
 	case shared.AdjustmentTypeDebitMemo:
-		return -int32(adjustment.Amount)
+		return -adjustment.Amount
 	case shared.AdjustmentTypeWriteOffReversal:
 		if balance.WriteOffAmount > customerCreditBalance {
 			return -customerCreditBalance
 		}
 		return -balance.WriteOffAmount
 	default:
-		return int32(adjustment.Amount)
+		return adjustment.Amount
 	}
 }

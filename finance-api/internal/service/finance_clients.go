@@ -8,8 +8,8 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
-func (s *Service) GetAccountInformation(ctx context.Context, id int) (*shared.AccountInformation, error) {
-	fc, err := s.store.GetAccountInformation(ctx, int32(id))
+func (s *Service) GetAccountInformation(ctx context.Context, id int32) (*shared.AccountInformation, error) {
+	fc, err := s.store.GetAccountInformation(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -21,22 +21,25 @@ func (s *Service) GetAccountInformation(ctx context.Context, id int) (*shared.Ac
 	}, nil
 }
 
-func (s *Service) UpdateClient(ctx context.Context, id int, courtRef string) error {
+func (s *Service) UpdateClient(ctx context.Context, id int32, courtRef string) error {
+	var cr pgtype.Text
+	_ = cr.Scan(courtRef)
+
 	return s.store.UpdateClient(ctx, store.UpdateClientParams{
-		CourtRef: pgtype.Text{String: courtRef, Valid: true},
-		ClientID: int32(id),
+		CourtRef: cr,
+		ClientID: id,
 	})
 }
 
-func (s *Service) UpdatePaymentMethod(ctx context.Context, id int, paymentMethod shared.PaymentMethod) error {
+func (s *Service) UpdatePaymentMethod(ctx context.Context, id int32, paymentMethod shared.PaymentMethod) error {
 	err := s.store.UpdatePaymentMethod(ctx, store.UpdatePaymentMethodParams{
 		PaymentMethod: paymentMethod.Key(),
-		ClientID:      int32(id),
+		ClientID:      id,
 	})
 
 	if err == nil {
 		return s.dispatch.PaymentMethodChanged(ctx, event.PaymentMethod{
-			ClientID:      id,
+			ClientID:      int(id),
 			PaymentMethod: paymentMethod,
 		})
 	}

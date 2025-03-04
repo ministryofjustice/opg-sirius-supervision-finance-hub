@@ -6,13 +6,16 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"net/http"
-	"strconv"
 )
 
 func (s *Server) getPermittedAdjustments(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 
-	invoiceId, _ := strconv.Atoi(r.PathValue("invoiceId"))
+	invoiceId, err := s.getPathID(r, "invoiceId")
+	if err != nil {
+		return err
+	}
+
 	types, err := s.service.GetPermittedAdjustments(ctx, invoiceId)
 
 	if errors.Is(err, pgx.ErrNoRows) {
