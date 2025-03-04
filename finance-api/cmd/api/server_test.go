@@ -25,7 +25,7 @@ type mockService struct {
 	err                error
 }
 
-func (s *mockService) UpdatePaymentMethod(ctx context.Context, clientID int, paymentMethod shared.PaymentMethod) error {
+func (s *mockService) UpdatePaymentMethod(ctx context.Context, clientID int32, paymentMethod shared.PaymentMethod) error {
 	s.expectedIds = []int{int(clientID)}
 	s.lastCalled = "UpdatePaymentMethod"
 	return s.err
@@ -37,69 +37,69 @@ func (s *mockService) ReapplyCredit(ctx context.Context, clientID int32) error {
 	return s.err
 }
 
-func (s *mockService) GetBillingHistory(ctx context.Context, id int) ([]shared.BillingHistory, error) {
-	s.expectedIds = []int{id}
+func (s *mockService) GetBillingHistory(ctx context.Context, id int32) ([]shared.BillingHistory, error) {
+	s.expectedIds = []int{int(id)}
 	s.lastCalled = "GetBillingHistory"
 	return s.billingHistory, s.err
 }
 
-func (s *mockService) AddManualInvoice(ctx context.Context, id int, invoice shared.AddManualInvoice) error {
-	s.expectedIds = []int{id}
+func (s *mockService) AddManualInvoice(ctx context.Context, id int32, invoice shared.AddManualInvoice) error {
+	s.expectedIds = []int{int(id)}
 	s.lastCalled = "AddManualInvoice"
 	return s.err
 }
 
-func (s *mockService) GetPermittedAdjustments(ctx context.Context, invoiceId int) ([]shared.AdjustmentType, error) {
-	s.expectedIds = []int{invoiceId}
+func (s *mockService) GetPermittedAdjustments(ctx context.Context, id int32) ([]shared.AdjustmentType, error) {
+	s.expectedIds = []int{int(id)}
 	s.lastCalled = "GetPermittedAdjustments"
 	return s.adjustmentTypes, s.err
 }
 
-func (s *mockService) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId int, adjustmentId int, status shared.AdjustmentStatus) error {
-	s.expectedIds = []int{adjustmentId}
+func (s *mockService) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId int32, adjustmentId int32, status shared.AdjustmentStatus) error {
+	s.expectedIds = []int{int(adjustmentId)}
 	s.lastCalled = "UpdatePendingInvoiceAdjustment"
 	return s.err
 }
 
-func (s *mockService) AddFeeReduction(ctx context.Context, id int, data shared.AddFeeReduction) error {
-	s.expectedIds = []int{id}
+func (s *mockService) AddFeeReduction(ctx context.Context, id int32, data shared.AddFeeReduction) error {
+	s.expectedIds = []int{int(id)}
 	s.lastCalled = "AddFeeReduction"
 	return s.err
 }
 
-func (s *mockService) CancelFeeReduction(ctx context.Context, id int, cancelledFeeReduction shared.CancelFeeReduction) error {
-	s.expectedIds = []int{id}
+func (s *mockService) CancelFeeReduction(ctx context.Context, id int32, cancelledFeeReduction shared.CancelFeeReduction) error {
+	s.expectedIds = []int{int(id)}
 	s.lastCalled = "CancelFeeReduction"
 	return s.err
 }
 
-func (s *mockService) GetAccountInformation(ctx context.Context, id int) (*shared.AccountInformation, error) {
-	s.expectedIds = []int{id}
+func (s *mockService) GetAccountInformation(ctx context.Context, id int32) (*shared.AccountInformation, error) {
+	s.expectedIds = []int{int(id)}
 	s.lastCalled = "GetAccountInformation"
 	return s.accountInfo, s.err
 }
 
-func (s *mockService) GetInvoices(ctx context.Context, id int) (*shared.Invoices, error) {
-	s.expectedIds = []int{id}
+func (s *mockService) GetInvoices(ctx context.Context, id int32) (*shared.Invoices, error) {
+	s.expectedIds = []int{int(id)}
 	s.lastCalled = "GetInvoices"
 	return s.invoices, s.err
 }
 
-func (s *mockService) GetFeeReductions(ctx context.Context, id int) (*shared.FeeReductions, error) {
-	s.expectedIds = []int{id}
+func (s *mockService) GetFeeReductions(ctx context.Context, id int32) (*shared.FeeReductions, error) {
+	s.expectedIds = []int{int(id)}
 	s.lastCalled = "GetFeeReductions"
 	return s.feeReductions, s.err
 }
 
-func (s *mockService) GetInvoiceAdjustments(ctx context.Context, id int) (*shared.InvoiceAdjustments, error) {
-	s.expectedIds = []int{id}
+func (s *mockService) GetInvoiceAdjustments(ctx context.Context, id int32) (*shared.InvoiceAdjustments, error) {
+	s.expectedIds = []int{int(id)}
 	s.lastCalled = "GetInvoiceAdjustments"
 	return s.invoiceAdjustments, s.err
 }
 
-func (s *mockService) AddInvoiceAdjustment(ctx context.Context, clientId int, invoiceId int, ledgerEntry *shared.AddInvoiceAdjustmentRequest) (*shared.InvoiceReference, error) {
+func (s *mockService) AddInvoiceAdjustment(ctx context.Context, clientId int32, invoiceId int32, ledgerEntry *shared.AddInvoiceAdjustmentRequest) (*shared.InvoiceReference, error) {
 	s.ledger = ledgerEntry
-	s.expectedIds = []int{clientId, invoiceId}
+	s.expectedIds = []int{int(clientId), int(invoiceId)}
 	s.lastCalled = "AddInvoiceAdjustment"
 	return s.invoiceReference, s.err
 }
@@ -109,7 +109,7 @@ func (s *mockService) ProcessFinanceAdminUpload(ctx context.Context, detail shar
 	return s.err
 }
 
-func (s *mockService) UpdateClient(ctx context.Context, clientId int, courtRef string) error {
+func (s *mockService) UpdateClient(ctx context.Context, clientId int32, courtRef string) error {
 	s.lastCalled = "UpdateClient"
 	return s.err
 }

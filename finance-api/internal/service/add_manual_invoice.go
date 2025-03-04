@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"strconv"
@@ -14,11 +15,11 @@ import (
 func processInvoiceData(data shared.AddManualInvoice) shared.AddManualInvoice {
 	switch data.InvoiceType {
 	case shared.InvoiceTypeAD:
-		data.Amount = shared.Nillable[int]{Value: 10000, Valid: true}
+		data.Amount = shared.Nillable[int32]{Value: 10000, Valid: true}
 		data.StartDate = data.RaisedDate
 		data.EndDate = data.RaisedDate
 	case shared.InvoiceTypeGA:
-		data.Amount = shared.Nillable[int]{Value: 20000, Valid: true}
+		data.Amount = shared.Nillable[int32]{Value: 20000, Valid: true}
 		data.StartDate = data.RaisedDate
 		data.EndDate = data.RaisedDate
 	case shared.InvoiceTypeS2, shared.InvoiceTypeB2:
@@ -32,7 +33,7 @@ func processInvoiceData(data shared.AddManualInvoice) shared.AddManualInvoice {
 	return data
 }
 
-func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data shared.AddManualInvoice) error {
+func (s *Service) AddManualInvoice(ctx context.Context, clientId int32, data shared.AddManualInvoice) error {
 	data = processInvoiceData(data)
 	validationErrors := s.validateManualInvoice(data)
 
@@ -40,7 +41,7 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 		return apierror.ValidationError{Errors: validationErrors}
 	}
 
-	ctx, cancelTx := context.WithCancel(ctx)
+	ctx, cancelTx := s.WithCancel(ctx)
 	defer cancelTx()
 
 	tx, err := s.BeginStoreTx(ctx)
@@ -55,17 +56,32 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 
 	invoiceRef := addLeadingZeros(counter)
 
+	var (
+		personID   pgtype.Int4
+		startDate  pgtype.Date
+		endDate    pgtype.Date
+		raisedDate pgtype.Date
+		source     pgtype.Text
+		createdBy  pgtype.Int4
+	)
+
+	_ = store.ToInt4(&personID, clientId)
+	_ = startDate.Scan(data.StartDate.Value.Time)
+	_ = endDate.Scan(data.EndDate.Value.Time)
+	_ = raisedDate.Scan(data.RaisedDate.Value.Time)
+	_ = source.Scan("Created manually")
+	_ = store.ToInt4(&createdBy, ctx.(auth.Context).User.ID)
+
 	invoiceParams := store.AddInvoiceParams{
-		PersonID:   pgtype.Int4{Int32: int32(clientId), Valid: true},
+		PersonID:   personID,
 		Feetype:    data.InvoiceType.Key(),
 		Reference:  data.InvoiceType.Key() + invoiceRef + "/" + strconv.Itoa(data.StartDate.Value.Time.Year()%100),
-		Startdate:  pgtype.Date{Time: data.StartDate.Value.Time, Valid: true},
-		Enddate:    pgtype.Date{Time: data.EndDate.Value.Time, Valid: true},
-		Amount:     int32(data.Amount.Value),
-		Raiseddate: pgtype.Date{Time: data.RaisedDate.Value.Time, Valid: true},
-		Source:     pgtype.Text{String: "Created manually", Valid: true},
-		//TODO make sure we have correct createdby ID in ticket PFS-136
-		CreatedBy: pgtype.Int4{Int32: int32(1), Valid: true},
+		Startdate:  startDate,
+		Enddate:    endDate,
+		Amount:     data.Amount.Value,
+		Raiseddate: raisedDate,
+		Source:     source,
+		CreatedBy:  createdBy,
 	}
 
 	var invoice store.Invoice
@@ -74,12 +90,22 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 		return err
 	}
 
+	var (
+		invoiceID pgtype.Int4
+		fromDate  pgtype.Date
+		toDate    pgtype.Date
+	)
+
+	_ = store.ToInt4(&invoiceID, invoice.ID)
+	_ = fromDate.Scan(data.StartDate.Value.Time)
+	_ = toDate.Scan(data.EndDate.Value.Time)
+
 	if data.SupervisionLevel.Valid {
 		addInvoiceRangeQueryArgs := store.AddInvoiceRangeParams{
-			InvoiceID:        pgtype.Int4{Int32: invoice.ID, Valid: true},
+			InvoiceID:        invoiceID,
 			Supervisionlevel: strings.ToUpper(data.SupervisionLevel.Value),
-			Fromdate:         pgtype.Date{Time: data.StartDate.Value.Time, Valid: true},
-			Todate:           pgtype.Date{Time: data.EndDate.Value.Time, Valid: true},
+			Fromdate:         fromDate,
+			Todate:           toDate,
 			Amount:           invoice.Amount,
 		}
 
@@ -90,7 +116,7 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 	}
 
 	reductionForDateParams := store.GetFeeReductionForDateParams{
-		ClientID:     int32(clientId),
+		ClientID:     clientId,
 		Datereceived: invoice.Raiseddate,
 	}
 
@@ -102,21 +128,24 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 			generalSupervisionFee = invoice.Amount
 		}
 		reduction := calculateFeeReduction(shared.ParseFeeReductionType(feeReduction.Type), invoice.Amount, invoice.Feetype, generalSupervisionFee)
-		ledger, allocations := generateLedgerEntries(addLedgerVars{
+		ledger, allocations := generateLedgerEntries(ctx, addLedgerVars{
 			amount:             reduction,
 			transactionType:    shared.ParseFeeReductionType(feeReduction.Type),
 			feeReductionId:     feeReduction.ID,
-			clientId:           int32(clientId),
+			clientId:           clientId,
 			invoiceId:          invoice.ID,
 			outstandingBalance: invoice.Amount,
 		})
-		ledgerId, err := tx.CreateLedger(ctx, ledger)
+		id, err := tx.CreateLedger(ctx, ledger)
 		if err != nil {
 			return err
 		}
 
+		var ledgerID pgtype.Int4
+		_ = store.ToInt4(&ledgerID, id)
+
 		for _, allocation := range allocations {
-			allocation.LedgerID = pgtype.Int4{Int32: ledgerId, Valid: true}
+			allocation.LedgerID = ledgerID
 			err = tx.CreateLedgerAllocation(ctx, allocation)
 			if err != nil {
 				return err
@@ -129,7 +158,7 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 		return commitErr
 	}
 
-	return s.ReapplyCredit(ctx, int32(clientId))
+	return s.ReapplyCredit(ctx, clientId)
 }
 
 func (s *Service) validateManualInvoice(data shared.AddManualInvoice) apierror.ValidationErrors {

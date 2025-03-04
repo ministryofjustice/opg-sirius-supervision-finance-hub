@@ -33,7 +33,7 @@ func (suite *IntegrationSuite) TestService_GetInvoices() {
 	date, _ := time.Parse("2006-01-02", dateString)
 	tests := []struct {
 		name    string
-		id      int
+		id      int32
 		want    *shared.Invoices
 		wantErr bool
 	}{
