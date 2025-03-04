@@ -23,6 +23,9 @@
     {{ if eq .Event.Type.String "REAPPLIED_CREDIT" }}
         {{ template "reapplied-credit-event" . }}
     {{ end }}
+    {{ if eq .Event.Type.String "SOP_UNALLOCATED_PROCESSED" }}
+        {{ template "payment-processed-event" . }}
+    {{ end }}
     {{ if eq .Event.Type.String "UNKNOWN" }}
         {{ template "unknown-event" . }}
     {{ end }}
