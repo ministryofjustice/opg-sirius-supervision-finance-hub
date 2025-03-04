@@ -27,10 +27,10 @@ func TransformNillableString(stringPointer *string) Nillable[string] {
 	return transformedNillable
 }
 
-func TransformNillableInt(stringPointer *string) Nillable[int] {
-	var transformedNillableInt Nillable[int]
+func TransformNillableInt(stringPointer *string) Nillable[int32] {
+	var transformedNillableInt Nillable[int32]
 	if stringPointer != nil {
-		transformedNillableInt = Nillable[int]{
+		transformedNillableInt = Nillable[int32]{
 			Value: DecimalStringToInt(*stringPointer),
 			Valid: true,
 		}

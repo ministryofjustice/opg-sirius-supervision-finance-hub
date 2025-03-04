@@ -15,29 +15,29 @@ type historyHolder struct {
 	creditAdjustment  int
 }
 
-func (s *Service) GetBillingHistory(ctx context.Context, clientID int) ([]shared.BillingHistory, error) {
-	invoices, err := s.store.GetGeneratedInvoices(ctx, int32(clientID))
+func (s *Service) GetBillingHistory(ctx context.Context, clientID int32) ([]shared.BillingHistory, error) {
+	invoices, err := s.store.GetGeneratedInvoices(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
 
 	history := invoiceEvents(invoices, clientID)
 
-	pendingAdjustments, err := s.store.GetPendingInvoiceAdjustments(ctx, int32(clientID))
+	pendingAdjustments, err := s.store.GetPendingInvoiceAdjustments(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
 
 	history = append(history, processPendingAdjustments(pendingAdjustments, clientID)...)
 
-	feEvents, err := s.store.GetFeeReductionEvents(ctx, int32(clientID))
+	feEvents, err := s.store.GetFeeReductionEvents(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
 
 	history = append(history, processFeeReductionEvents(feEvents)...)
 
-	allocations, err := s.store.GetLedgerAllocationsForClient(ctx, int32(clientID))
+	allocations, err := s.store.GetLedgerAllocationsForClient(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func (s *Service) GetBillingHistory(ctx context.Context, clientID int) ([]shared
 	return computeBillingHistory(history), nil
 }
 
-func processPendingAdjustments(adjustments []store.GetPendingInvoiceAdjustmentsRow, clientID int) []historyHolder {
+func processPendingAdjustments(adjustments []store.GetPendingInvoiceAdjustmentsRow, clientID int32) []historyHolder {
 	var history []historyHolder
 	for _, adjustment := range adjustments {
 		bh := shared.BillingHistory{
@@ -60,7 +60,7 @@ func processPendingAdjustments(adjustments []store.GetPendingInvoiceAdjustmentsR
 			},
 			AdjustmentType: shared.ParseAdjustmentType(adjustment.AdjustmentType),
 			Notes:          adjustment.Notes,
-			ClientId:       clientID,
+			ClientId:       int(clientID),
 			PaymentBreakdown: shared.PaymentBreakdown{
 				InvoiceReference: shared.InvoiceEvent{
 					ID:        int(adjustment.InvoiceID),
@@ -79,14 +79,14 @@ func processPendingAdjustments(adjustments []store.GetPendingInvoiceAdjustmentsR
 	return history
 }
 
-func invoiceEvents(invoices []store.GetGeneratedInvoicesRow, clientID int) []historyHolder {
+func invoiceEvents(invoices []store.GetGeneratedInvoicesRow, clientID int32) []historyHolder {
 	var history []historyHolder
 	for _, inv := range invoices {
 		bh := shared.BillingHistory{
 			User: int(inv.CreatedBy.Int32),
 			Date: shared.Date{Time: inv.CreatedAt.Time},
 			Event: shared.InvoiceGenerated{
-				ClientId: clientID,
+				ClientId: int(clientID),
 				BaseBillingEvent: shared.BaseBillingEvent{
 					Type: shared.EventTypeInvoiceGenerated,
 				},
@@ -152,7 +152,7 @@ func processFeeReductionEvents(feEvents []store.GetFeeReductionEventsRow) []hist
 
 // processLedgerAllocations takes an array of allocations and groups them by ledger, which defines a single billing event.
 // A ledger is always for a single transaction type but may have multiple allocations associated with it.
-func processLedgerAllocations(allocations []store.GetLedgerAllocationsForClientRow, clientID int) []historyHolder {
+func processLedgerAllocations(allocations []store.GetLedgerAllocationsForClientRow, clientID int32) []historyHolder {
 	historyByLedger := make(map[int32]*historyHolder)
 
 	for _, allocation := range allocations {
@@ -176,7 +176,7 @@ func processLedgerAllocations(allocations []store.GetLedgerAllocationsForClientR
 			lh.billingHistory.Event = event
 		} else {
 			event = shared.TransactionEvent{
-				ClientId:        clientID,
+				ClientId:        int(clientID),
 				TransactionType: shared.ParseTransactionType(allocation.Type),
 				Breakdown: []shared.PaymentBreakdown{
 					{

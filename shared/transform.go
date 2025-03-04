@@ -15,7 +15,7 @@ func IntToDecimalString(i int) string {
 	return s
 }
 
-func DecimalStringToInt(s string) int {
-	i, _ := strconv.ParseFloat(s, 64)
-	return int(i * 100)
+func DecimalStringToInt(s string) int32 {
+	f, _ := strconv.ParseFloat(s, 64)
+	return int32(f * 100)
 }

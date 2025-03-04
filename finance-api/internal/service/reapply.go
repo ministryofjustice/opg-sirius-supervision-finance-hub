@@ -14,11 +14,11 @@ import (
 )
 
 func (s *Service) ReapplyCredit(ctx context.Context, clientID int32) error {
-	var userID int
+	var userID pgtype.Int4
 	if authCtx, ok := ctx.(auth.Context); ok {
-		userID = authCtx.User.ID
+		_ = store.ToInt4(&userID, authCtx.User.ID)
 	} else {
-		userID = s.env.SystemUserID
+		_ = store.ToInt4(&userID, s.env.SystemUserID)
 	}
 
 	creditPosition, err := s.store.GetCreditBalanceAndOldestOpenInvoice(ctx, clientID)
@@ -44,23 +44,29 @@ func (s *Service) ReapplyCredit(ctx context.Context, clientID int32) error {
 		Status:    "REAPPLIED",
 	}
 
+	var notes pgtype.Text
+	_ = notes.Scan("Excess credit applied to invoice")
+
 	ledger := store.CreateLedgerParams{
 		ClientID:  clientID,
 		Amount:    reapplyAmount,
-		Notes:     pgtype.Text{String: "Excess credit applied to invoice", Valid: true},
+		Notes:     notes,
 		Type:      "CREDIT REAPPLY",
 		Status:    "CONFIRMED",
-		CreatedBy: pgtype.Int4{Int32: int32(userID), Valid: true},
+		CreatedBy: userID,
 	}
 
-	ledgerId, err := s.store.CreateLedger(ctx, ledger)
+	id, err := s.store.CreateLedger(ctx, ledger)
 	if err != nil {
 		logger := telemetry.LoggerFromContext(ctx)
 		logger.Error(fmt.Sprintf("Error in reapply for client %d", clientID), slog.String("err", err.Error()))
 		return err
 	}
 
-	allocation.LedgerID = pgtype.Int4{Int32: ledgerId, Valid: true}
+	var ledgerID pgtype.Int4
+	_ = store.ToInt4(&ledgerID, id)
+	allocation.LedgerID = ledgerID
+
 	err = s.store.CreateLedgerAllocation(ctx, allocation)
 	if err != nil {
 		return err

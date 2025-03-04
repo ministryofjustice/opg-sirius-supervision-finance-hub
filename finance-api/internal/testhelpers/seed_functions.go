@@ -7,8 +7,8 @@ import (
 	"time"
 )
 
-func (s *Seeder) CreateClient(ctx context.Context, firstName string, surname string, courtRef string, sopNumber string) int {
-	var clientId int
+func (s *Seeder) CreateClient(ctx context.Context, firstName string, surname string, courtRef string, sopNumber string) int32 {
+	var clientId int32
 	err := s.Conn.QueryRow(ctx, "INSERT INTO public.persons VALUES (NEXTVAL('public.persons_id_seq'), $1, $2, $3) RETURNING id", firstName, surname, courtRef).Scan(&clientId)
 	assert.NoError(s.t, err, "failed to add Person: %v", err)
 	_, err = s.Conn.Exec(ctx, "INSERT INTO supervision_finance.finance_client VALUES ($1, $1, $2, 'DEMANDED', NULL, $3) RETURNING id", clientId, sopNumber, courtRef)
@@ -16,8 +16,8 @@ func (s *Seeder) CreateClient(ctx context.Context, firstName string, surname str
 	return clientId
 }
 
-func (s *Seeder) CreateDeputy(ctx context.Context, clientId int, firstName string, surname string, deputyType string) int {
-	var deputyId int
+func (s *Seeder) CreateDeputy(ctx context.Context, clientId int32, firstName string, surname string, deputyType string) int32 {
+	var deputyId int32
 	err := s.Conn.QueryRow(ctx, "INSERT INTO public.persons VALUES (NEXTVAL('public.persons_id_seq'), $1, $2, NULL, $3, $4) RETURNING id", firstName, surname, clientId, deputyType).Scan(&deputyId)
 	assert.NoError(s.t, err, "failed to add Deputy: %v", err)
 	_, err = s.Conn.Exec(ctx, "UPDATE public.persons SET feepayer_id = $1 WHERE id = $2", deputyId, clientId)
@@ -25,7 +25,7 @@ func (s *Seeder) CreateDeputy(ctx context.Context, clientId int, firstName strin
 	return deputyId
 }
 
-func (s *Seeder) CreateOrder(ctx context.Context, clientId int, status string) {
+func (s *Seeder) CreateOrder(ctx context.Context, clientId int32, status string) {
 	_, err := s.Conn.Exec(ctx, "INSERT INTO public.cases VALUES (NEXTVAL('public.cases_id_seq'), $1, $2)", clientId, status)
 	assert.NoError(s.t, err, "failed to add order: %v", err)
 }
@@ -35,7 +35,7 @@ func (s *Seeder) CreateTestAssignee(ctx context.Context) {
 	assert.NoError(s.t, err, "failed to create test assignee: %v", err)
 }
 
-func (s *Seeder) CreateInvoice(ctx context.Context, clientID int, invoiceType shared.InvoiceType, amount *string, raisedDate *string, startDate *string, endDate *string, supervisionLevel *string, createdDate *string) (int, string) {
+func (s *Seeder) CreateInvoice(ctx context.Context, clientID int32, invoiceType shared.InvoiceType, amount *string, raisedDate *string, startDate *string, endDate *string, supervisionLevel *string, createdDate *string) (int32, string) {
 	invoice := shared.AddManualInvoice{
 		InvoiceType:      invoiceType,
 		Amount:           shared.TransformNillableInt(amount),
@@ -48,7 +48,7 @@ func (s *Seeder) CreateInvoice(ctx context.Context, clientID int, invoiceType sh
 	err := s.Service.AddManualInvoice(ctx, clientID, invoice)
 	assert.NoError(s.t, err, "failed to add invoice: %v", err)
 
-	var id int
+	var id int32
 	var reference string
 	err = s.Conn.QueryRow(ctx, "SELECT id, reference FROM supervision_finance.invoice ORDER BY id DESC LIMIT 1").Scan(&id, &reference)
 	assert.NoError(s.t, err, "failed find created invoice: %v", err)
@@ -67,7 +67,7 @@ func (s *Seeder) CreateInvoice(ctx context.Context, clientID int, invoiceType sh
 	return id, reference
 }
 
-func (s *Seeder) CreatePendingAdjustment(ctx context.Context, clientID int, invoiceId int, adjustmentType shared.AdjustmentType, amount int, notes string) {
+func (s *Seeder) CreatePendingAdjustment(ctx context.Context, clientID int32, invoiceId int32, adjustmentType shared.AdjustmentType, amount int32, notes string) {
 	adjustment := shared.AddInvoiceAdjustmentRequest{
 		AdjustmentType:  adjustmentType,
 		AdjustmentNotes: notes,
@@ -78,7 +78,7 @@ func (s *Seeder) CreatePendingAdjustment(ctx context.Context, clientID int, invo
 	assert.NoError(s.t, err, "failed to add adjustment: %v", err)
 }
 
-func (s *Seeder) CreateAdjustment(ctx context.Context, clientID int, invoiceId int, adjustmentType shared.AdjustmentType, amount int, notes string, approvedDate *time.Time) {
+func (s *Seeder) CreateAdjustment(ctx context.Context, clientID int32, invoiceId int32, adjustmentType shared.AdjustmentType, amount int32, notes string, approvedDate *time.Time) {
 	adjustment := shared.AddInvoiceAdjustmentRequest{
 		AdjustmentType:  adjustmentType,
 		AdjustmentNotes: notes,
@@ -88,7 +88,7 @@ func (s *Seeder) CreateAdjustment(ctx context.Context, clientID int, invoiceId i
 	_, err := s.Service.AddInvoiceAdjustment(ctx, clientID, invoiceId, &adjustment)
 	assert.NoError(s.t, err, "failed to add adjustment: %v", err)
 
-	var id int
+	var id int32
 	err = s.Conn.QueryRow(ctx, "SELECT id FROM supervision_finance.invoice_adjustment ORDER BY id DESC LIMIT 1").Scan(&id)
 	assert.NoError(s.t, err, "failed find created adjustment: %v", err)
 
@@ -104,12 +104,12 @@ func (s *Seeder) CreateAdjustment(ctx context.Context, clientID int, invoiceId i
 	}
 }
 
-func (s *Seeder) ApproveAdjustment(ctx context.Context, clientID int, adjustmentId int) {
+func (s *Seeder) ApproveAdjustment(ctx context.Context, clientID int32, adjustmentId int32) {
 	err := s.Service.UpdatePendingInvoiceAdjustment(ctx, clientID, adjustmentId, shared.AdjustmentStatusApproved)
 	assert.NoError(s.t, err, "failed to approve adjustment: %v", err)
 }
 
-func (s *Seeder) CreateFeeReduction(ctx context.Context, clientId int, feeType shared.FeeReductionType, startYear string, length int, notes string, createdAt time.Time) {
+func (s *Seeder) CreateFeeReduction(ctx context.Context, clientId int32, feeType shared.FeeReductionType, startYear string, length int, notes string, createdAt time.Time) {
 	received := shared.NewDate(startYear + "-01-01")
 	reduction := shared.AddFeeReduction{
 		FeeType:       feeType,
@@ -133,9 +133,9 @@ func (s *Seeder) CreateFeeReduction(ctx context.Context, clientId int, feeType s
 	assert.NoError(s.t, err, "failed to update ledger allocation dates for reduction: %v", err)
 }
 
-func (s *Seeder) CreatePayment(ctx context.Context, amount int, bankDate time.Time, courtRef string, ledgerType shared.TransactionType, uploadDate time.Time) {
+func (s *Seeder) CreatePayment(ctx context.Context, amount int32, bankDate time.Time, courtRef string, ledgerType shared.TransactionType, uploadDate time.Time) {
 	payment := shared.PaymentDetails{
-		Amount:     int32(amount),
+		Amount:     amount,
 		BankDate:   bankDate,
 		CourtRef:   courtRef,
 		LedgerType: ledgerType.Key(),
@@ -162,7 +162,7 @@ type FeeRange struct {
 	Amount           int
 }
 
-func (s *Seeder) AddFeeRanges(ctx context.Context, invoiceId int, ranges []FeeRange) {
+func (s *Seeder) AddFeeRanges(ctx context.Context, invoiceId int32, ranges []FeeRange) {
 	for _, r := range ranges {
 
 		_, err := s.Conn.Exec(ctx,
