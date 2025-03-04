@@ -98,6 +98,20 @@ func getPaymentDetails(record []string, uploadType string, uploadDate shared.Dat
 			(*failedLines)[index] = "DATE_PARSE_ERROR"
 			return shared.PaymentDetails{}
 		}
+	case "SOP_UNALLOCATED":
+		courtRef = record[0]
+
+		amount, err = parseAmount(record[1])
+		if err != nil {
+			(*failedLines)[index] = "AMOUNT_PARSE_ERROR"
+			return shared.PaymentDetails{}
+		}
+
+		bankDate, err = time.Parse("2006-01-02 15:04:05", "2025-03-31 00:00:00")
+		if err != nil {
+			(*failedLines)[index] = "DATE_TIME_PARSE_ERROR"
+			return shared.PaymentDetails{}
+		}
 	}
 
 	return shared.PaymentDetails{Amount: amount, BankDate: bankDate, CourtRef: courtRef, LedgerType: ledgerType, UploadDate: uploadDate.Time}
