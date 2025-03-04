@@ -43,7 +43,7 @@ func TestDecimalStringToInt(t *testing.T) {
 	tests := []struct {
 		name string
 		arg  string
-		want int
+		want int32
 	}{
 		{
 			"converts two decimal places to string",

@@ -3,12 +3,13 @@ package service
 import (
 	"context"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
-func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId int, adjustmentId int, status shared.AdjustmentStatus) error {
-	ctx, cancelTx := context.WithCancel(ctx)
+func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId int32, adjustmentId int32, status shared.AdjustmentStatus) error {
+	ctx, cancelTx := s.WithCancel(ctx)
 	defer cancelTx()
 
 	tx, err := s.BeginStoreTx(ctx)
@@ -16,10 +17,13 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId i
 		return err
 	}
 
+	var updatedBy pgtype.Int4
+	_ = store.ToInt4(&updatedBy, ctx.(auth.Context).User.ID)
+
 	decisionParams := store.SetAdjustmentDecisionParams{
-		ID:        int32(adjustmentId),
+		ID:        adjustmentId,
 		Status:    status.Key(),
-		UpdatedBy: pgtype.Int4{Int32: int32(1), Valid: true},
+		UpdatedBy: updatedBy,
 	}
 
 	adjustment, err := tx.SetAdjustmentDecision(ctx, decisionParams)
@@ -28,15 +32,15 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId i
 	}
 
 	if status == shared.AdjustmentStatusApproved {
-		ledger, allocations := generateLedgerEntries(addLedgerVars{
+		ledger, allocations := generateLedgerEntries(ctx, addLedgerVars{
 			amount:             adjustment.Amount,
 			transactionType:    shared.ParseAdjustmentType(adjustment.AdjustmentType),
-			clientId:           int32(clientId),
+			clientId:           clientId,
 			invoiceId:          adjustment.InvoiceID,
 			outstandingBalance: adjustment.Outstanding,
 		})
 
-		ledgerId, err := tx.CreateLedgerForAdjustment(ctx, store.CreateLedgerForAdjustmentParams{
+		id, err := tx.CreateLedgerForAdjustment(ctx, store.CreateLedgerForAdjustmentParams{
 			ClientID:       ledger.ClientID,
 			Amount:         ledger.Amount,
 			Notes:          ledger.Notes,
@@ -44,14 +48,17 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId i
 			Status:         ledger.Status,
 			FeeReductionID: ledger.FeeReductionID,
 			CreatedBy:      ledger.CreatedBy,
-			ID:             int32(adjustmentId),
+			ID:             adjustmentId,
 		})
 		if err != nil {
 			return err
 		}
 
+		var ledgerID pgtype.Int4
+		_ = store.ToInt4(&ledgerID, id)
+
 		for _, allocation := range allocations {
-			allocation.LedgerID = pgtype.Int4{Int32: ledgerId, Valid: true}
+			allocation.LedgerID = ledgerID
 			err = tx.CreateLedgerAllocation(ctx, allocation)
 			if err != nil {
 				return err
@@ -65,7 +72,7 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId i
 	}
 
 	if status == shared.AdjustmentStatusApproved {
-		return s.ReapplyCredit(ctx, int32(clientId))
+		return s.ReapplyCredit(ctx, clientId)
 	}
 	return nil
 }
