@@ -139,6 +139,7 @@ const (
 	EventTypeInvoiceAdjustmentApplied
 	EventTypePaymentProcessed
 	EventTypeInvoiceAdjustmentPending
+	EventTypeSOPUnallocatedProcessed
 	EventTypeReappliedCredit
 )
 
@@ -151,6 +152,7 @@ var eventTypeMap = map[string]BillingEventType{
 	"INVOICE_ADJUSTMENT_APPLIED": EventTypeInvoiceAdjustmentApplied,
 	"INVOICE_ADJUSTMENT_PENDING": EventTypeInvoiceAdjustmentPending,
 	"PAYMENT_PROCESSED":          EventTypePaymentProcessed,
+	"SOP_UNALLOCATED_PROCESSED":  EventTypeSOPUnallocatedProcessed,
 	"REAPPLIED_CREDIT":           EventTypeReappliedCredit,
 }
 
