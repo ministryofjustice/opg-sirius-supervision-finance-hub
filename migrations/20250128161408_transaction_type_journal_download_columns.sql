@@ -40,9 +40,9 @@ INSERT INTO transaction_type_update VALUES
 (30, 'Min Manual debit', false),
 (31, 'Min Write-off', false),
 (32, 'Min Write-off reversal', false),
-(33, 'Guardianship assess invoice', false),
-(34, 'Guardianship supervision invoice', false),
-(35, 'Guardianship termination invoice', false),
+(33, 'GA invoice', false),
+(34, 'GS invoice', false),
+(35, 'GT invoice', false),
 (36, 'Unapply (money from invoice)', false),
 (37, 'Overpayment', false),
 (38, 'Cheque Refund', false),
@@ -61,6 +61,8 @@ UPDATE transaction_type
 SET line_description = line_description_update, is_receipt = is_receipt_update
 FROM transaction_type_update
 WHERE transaction_type_id = id;
+
+UPDATE transaction_type SET supervision_level = fee_type WHERE supervision_level = '' AND fee_type IN ('GA', 'GS', 'GT');
 
 -- +goose Down
 

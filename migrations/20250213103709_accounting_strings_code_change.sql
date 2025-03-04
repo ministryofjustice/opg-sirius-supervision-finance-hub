@@ -11,6 +11,13 @@ SET account_code = CASE
     END
 WHERE fee_type IN ('MCR', 'MDR');
 
+UPDATE transaction_type SET account_code = CASE
+    WHEN supervision_level = 'GENERAL' THEN 5356202102
+    WHEN supervision_level = 'MINIMAL' THEN 5356202104
+    ELSE account_code
+    END
+WHERE fee_type = 'WOR';
+
 INSERT INTO transaction_type (fee_type, supervision_level, ledger_type, account_code, description, line_description, is_receipt)
 VALUES
     ('ZR', 'GA', 'CREDIT REMISSION', 4481102107, 'Remission Credit', 'GA fee reduction', false),
