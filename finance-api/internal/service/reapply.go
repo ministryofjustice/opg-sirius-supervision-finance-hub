@@ -15,11 +15,7 @@ import (
 
 func (s *Service) ReapplyCredit(ctx context.Context, clientID int32) error {
 	var userID pgtype.Int4
-	if authCtx, ok := ctx.(auth.Context); ok {
-		_ = store.ToInt4(&userID, authCtx.User.ID)
-	} else {
-		_ = store.ToInt4(&userID, s.env.SystemUserID)
-	}
+	_ = store.ToInt4(&userID, ctx.(auth.Context).User.ID)
 
 	creditPosition, err := s.store.GetCreditBalanceAndOldestOpenInvoice(ctx, clientID)
 
