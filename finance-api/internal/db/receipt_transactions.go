@@ -8,29 +8,18 @@ type ReceiptTransactions struct {
 	Date *shared.Date
 }
 
-const ReceiptTransactionsQuery = `WITH transaction_totals AS (SELECT tt.line_description                 AS line_description,
-                                  TO_CHAR(l.bankdate, 'DD/MM/YYYY') AS transaction_date,
-                                  tt.account_code                     AS account_code,
-                                  ((SUM(ABS(la.amount)) / 100.0)::NUMERIC(10, 2))::VARCHAR(255)                  AS amount,
-								  l.type AS ledger_type
-                           FROM supervision_finance.ledger_allocation la
-                                    INNER JOIN supervision_finance.ledger l ON l.id = la.ledger_id
-                                    LEFT JOIN supervision_finance.invoice i ON i.id = la.invoice_id
-                                    LEFT JOIN LATERAL (
-										SELECT CASE WHEN i.feetype = 'AD' THEN 'AD' ELSE COALESCE(ifr.supervisionlevel, '') END AS supervision_level
-                                                        FROM supervision_finance.invoice_fee_range ifr
-                                                        WHERE ifr.invoice_id = i.id
-                                                        ORDER BY id
-                                                        LIMIT 1 ) sl ON TRUE
-                                    INNER JOIN supervision_finance.transaction_type tt
-                                         ON l.type = tt.ledger_type AND (CASE
-                                                                             WHEN l.type = 'BACS TRANSFER'
-                                                                                 THEN l.bankaccount
-                                                                             ELSE COALESCE(sl.supervision_level, '') END
-                                                                            ) = tt.supervision_level
-                           WHERE tt.is_receipt = true AND TO_CHAR(l.created_at, 'YYYY-MM-DD') = $1
-                           GROUP BY tt.line_description, TO_CHAR(l.bankdate, 'DD/MM/YYYY'), tt.account_code, l.type)
-, partitioned_data AS (SELECT *,
+const ReceiptTransactionsQuery = `WITH transaction_totals AS (SELECT tt.line_description AS line_description,
+	CASE WHEN l.type = 'CREDIT REAPPLY' THEN TO_CHAR(l.datetime, 'DD/MM/YYYY') ELSE TO_CHAR(l.bankdate, 'DD/MM/YYYY') END AS transaction_date, 
+	tt.account_code AS account_code,
+	((SUM(ABS(la.amount)) / 100.0)::NUMERIC(10, 2))::VARCHAR(255) AS amount,
+	l.type AS ledger_type
+	FROM supervision_finance.ledger_allocation la 
+	JOIN supervision_finance.ledger l ON l.id = la.ledger_id 
+	JOIN supervision_finance.transaction_type tt ON l.type = tt.ledger_type 
+	WHERE TO_CHAR(l.created_at, 'YYYY-MM-DD') = $1
+	AND tt.is_receipt = true 
+	GROUP BY tt.line_description, l.bankdate, TO_CHAR(l.datetime, 'DD/MM/YYYY'), tt.account_code, l.type)
+	, partitioned_data AS (SELECT *,
                                 ROW_NUMBER() OVER (PARTITION BY account_code ORDER BY account_code) AS row_num
                          FROM transaction_totals CROSS JOIN (select 1 as n union all select 2) n)
 SELECT '0470'                                              AS "Entity",

@@ -47,15 +47,15 @@ INSERT INTO transaction_type_update VALUES
 (37, 'Overpayment', false),
 (38, 'Cheque Refund', false),
 (39, 'BACS Refund', false),
-(40, 'Direct Debit Payment', true),
-(41, 'Online Card Payment', true),
-(42, 'MOTO (Phone) Card Payment', true),
-(43, 'BACS Payment', true),
-(44, 'BACS Payment', true),
-(45, 'Cheque Payment', true),
+(40, 'Direct debit', true),
+(41, 'Online card', true),
+(42, 'MOTO card', true),
+(43, 'Supervision BACS', true),
+(44, 'OPG BACS', true),
+(45, 'Cheque payment', true),
 (46, 'Reapply/Reallocate (money to invoice)', true),
 (47, 'BACS Payment', true),
-(48, 'Online Card Payment', true);
+(48, 'Online card', true);
 
 UPDATE transaction_type
 SET line_description = line_description_update, is_receipt = is_receipt_update
