@@ -89,22 +89,43 @@ ORDER BY
         WHEN line_description LIKE 'Min SE invoice%' THEN 9
         WHEN line_description LIKE 'Gen SO invoice%' THEN 10
         WHEN line_description LIKE 'Min SO invoice%' THEN 11
-        WHEN line_description LIKE 'AD Rem/Exem%' THEN 12
-        WHEN line_description LIKE 'Gen Rem/Exem%' THEN 13
-        WHEN line_description LIKE 'Min Rem/Exem%' THEN 14
-        WHEN line_description LIKE 'AD Manual credit%' THEN 15
-        WHEN line_description LIKE 'Gen Manual credit%' THEN 16
-        WHEN line_description LIKE 'Min Manual credit%' THEN 17
-        WHEN line_description LIKE 'AD Manual debit%' THEN 18
-        WHEN line_description LIKE 'Gen Manual debit%' THEN 19
-        WHEN line_description LIKE 'Min Manual debit%' THEN 20
-        WHEN line_description LIKE 'AD Write-off%' THEN 21
-        WHEN line_description LIKE 'Gen Write-off%' THEN 22
-        WHEN line_description LIKE 'Min Write-off%' THEN 23
-        WHEN line_description LIKE 'AD Write-off reversal%' THEN 24
-        WHEN line_description LIKE 'Gen Write-off reversal%' THEN 25
-        WHEN line_description LIKE 'Min Write-off reversal%' THEN 26
-        ELSE 27
+		WHEN line_description LIKE 'GA invoice%' THEN 12
+		WHEN line_description LIKE 'GS invoice%' THEN 13
+		WHEN line_description LIKE 'GT invoice%' THEN 14
+        WHEN line_description LIKE 'AD Rem/Exem%' THEN 15
+        WHEN line_description LIKE 'Gen Rem/Exem%' THEN 16
+        WHEN line_description LIKE 'Min Rem/Exem%' THEN 17
+		WHEN line_description LIKE 'GA fee reduction%' AND account_code = 4481102107 THEN 18
+		WHEN line_description LIKE 'GS fee reduction%' AND account_code = 4481102107 THEN 19
+		WHEN line_description LIKE 'GT fee reduction%' AND account_code = 4481102107 THEN 20
+		WHEN line_description LIKE 'GA fee reduction%' AND account_code = 4481102108 THEN 21
+		WHEN line_description LIKE 'GS fee reduction%' AND account_code = 4481102108 THEN 22
+		WHEN line_description LIKE 'GT fee reduction%' AND account_code = 4481102108 THEN 23
+        WHEN line_description LIKE 'AD Manual credit%' THEN 24
+        WHEN line_description LIKE 'Gen Manual credit%' THEN 25
+        WHEN line_description LIKE 'Min Manual credit%' THEN 26
+        WHEN line_description LIKE 'GA Manual credit%' THEN 27
+        WHEN line_description LIKE 'GS Manual credit%' THEN 28
+        WHEN line_description LIKE 'GT Manual credit%' THEN 29
+        WHEN line_description LIKE 'AD Manual debit%' THEN 30
+        WHEN line_description LIKE 'Gen Manual debit%' THEN 31
+        WHEN line_description LIKE 'Min Manual debit%' THEN 32
+        WHEN line_description LIKE 'GA Manual debit%' THEN 33
+        WHEN line_description LIKE 'GS Manual debit%' THEN 34
+        WHEN line_description LIKE 'GT Manual debit%' THEN 35
+        WHEN line_description LIKE 'AD Write-off%' AND line_description NOT LIKE 'AD Write-off reversal%' THEN 36
+        WHEN line_description LIKE 'Gen Write-off%' AND line_description NOT LIKE 'Gen Write-off reversal%' THEN 37
+        WHEN line_description LIKE 'Min Write-off%' AND line_description NOT LIKE 'Min Write-off reversal%' THEN 38
+        WHEN line_description LIKE 'GA Write-off%' AND line_description NOT LIKE 'GA Write-off reversal%' THEN 39
+        WHEN line_description LIKE 'GS Write-off%' AND line_description NOT LIKE 'GS Write-off reversal%' THEN 40
+        WHEN line_description LIKE 'GT Write-off%' AND line_description NOT LIKE 'GT Write-off reversal%' THEN 41
+        WHEN line_description LIKE 'AD Write-off reversal%' THEN 42
+        WHEN line_description LIKE 'Gen Write-off reversal%' THEN 43
+        WHEN line_description LIKE 'Min Write-off reversal%' THEN 44
+        WHEN line_description LIKE 'GA Write-off reversal%' THEN 45
+        WHEN line_description LIKE 'GS Write-off reversal%' THEN 46
+        WHEN line_description LIKE 'GT Write-off reversal%' THEN 47
+        ELSE 48
         END;`
 
 func (n *NonReceiptTransactions) GetHeaders() []string {
