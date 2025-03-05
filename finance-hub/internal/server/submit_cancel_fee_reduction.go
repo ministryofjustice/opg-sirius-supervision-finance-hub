@@ -36,7 +36,7 @@ func (h *SubmitCancelFeeReductionsHandler) render(v AppVars, w http.ResponseWrit
 			w.WriteHeader(http.StatusUnprocessableEntity)
 			err = h.execute(w, r, data)
 		} else if errors.As(err, &stErr) {
-			data := AppVars{Error: stErr.Error()}
+			data := AppVars{Error: stErr.Error(), Code: stErr.Code}
 			w.WriteHeader(stErr.Code)
 			err = h.execute(w, r, data)
 		}
