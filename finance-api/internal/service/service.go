@@ -31,8 +31,7 @@ type NotifyClient interface {
 }
 
 type Env struct {
-	AsyncBucket  string
-	SystemUserID int
+	AsyncBucket string
 }
 
 type Service struct {

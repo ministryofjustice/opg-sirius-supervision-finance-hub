@@ -9,12 +9,18 @@ import (
 	"strings"
 )
 
-func (s *Server) authenticate(h http.Handler) http.HandlerFunc {
+func (s *Server) authenticateAPI(h http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := auth.Context{Context: r.Context()}
 		logger := telemetry.LoggerFromContext(ctx)
 
 		authHeader := r.Header.Get("Authorization")
+		if authHeader == "" {
+			logger.Error("Unable to authorise user token: ", "err", "missing bearer token")
+			http.Error(w, "missing bearer token", http.StatusUnauthorized)
+			return
+		}
+
 		requestToken := strings.Split(authHeader, "Bearer ")[1]
 		token, err := s.JWT.Verify(requestToken)
 
@@ -30,6 +36,34 @@ func (s *Server) authenticate(h http.Handler) http.HandlerFunc {
 		ctx.User = &shared.User{
 			ID:    int32(userID),
 			Roles: claims.Roles,
+		}
+
+		h.ServeHTTP(w, r.WithContext(ctx))
+	}
+}
+
+func (s *Server) authenticateEvent(h http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := auth.Context{Context: r.Context()}
+		logger := telemetry.LoggerFromContext(ctx)
+
+		authHeader := r.Header.Get("Authorization")
+
+		if authHeader == "" {
+			logger.Error("Unable to authorise event: ", "err", "missing bearer token")
+			http.Error(w, "missing bearer token", http.StatusUnauthorized)
+			return
+		}
+
+		apiKey := strings.Split(authHeader, "Bearer ")[1]
+		if apiKey != s.envs.EventBridgeAPIKey {
+			logger.Error("Unable to authorise event: ", "err", "invalid bearer token")
+			http.Error(w, "invalid bearer token", http.StatusUnauthorized)
+			return
+		}
+
+		ctx.User = &shared.User{
+			ID: s.envs.SystemUserID,
 		}
 
 		h.ServeHTTP(w, r.WithContext(ctx))
