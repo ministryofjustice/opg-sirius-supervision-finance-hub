@@ -13,8 +13,9 @@ const NonReceiptTransactionsQuery = `WITH transaction_totals AS (
         tt.line_description AS line_description,
         TO_CHAR(l.created_at, 'DD/MM/YYYY') AS transaction_date,
         tt.account_code AS account_code,
-        ((SUM(la.amount) / 100.0)::NUMERIC(10, 2))::VARCHAR(255) AS amount,
-                cc.cost_centre
+        (ABS(SUM(la.amount) / 100.0)::NUMERIC(10, 2))::VARCHAR(255) AS amount,
+		cc.cost_centre,
+		CASE WHEN tt.fee_type IN ('MCR','ZR','ZE','ZH','WO') THEN true ELSE false END AS is_credit
     FROM
         supervision_finance.ledger_allocation la
         JOIN supervision_finance.ledger l ON l.id = la.ledger_id
@@ -33,12 +34,12 @@ const NonReceiptTransactionsQuery = `WITH transaction_totals AS (
                   ON (l.type = tt.ledger_type OR i.feetype = tt.fee_type) AND sl.supervision_level = tt.supervision_level
     WHERE tt.is_receipt = false AND TO_CHAR(l.created_at, 'YYYY-MM-DD') = $1
     GROUP BY
-        tt.line_description, TO_CHAR(l.created_at, 'DD/MM/YYYY'), tt.account_code, cc.cost_centre
+        tt.line_description, TO_CHAR(l.created_at, 'DD/MM/YYYY'), tt.account_code, cc.cost_centre, tt.fee_type
 ),
 partitioned_data AS (
     SELECT
         *,
-        ROW_NUMBER() OVER (PARTITION BY account_code ORDER BY account_code) AS row_num
+        ROW_NUMBER() OVER (PARTITION BY line_description ORDER BY line_description) AS row_num
     FROM
         transaction_totals 
 	CROSS JOIN (select 1 as n union all select 2) n
@@ -46,13 +47,13 @@ partitioned_data AS (
 SELECT
     '0470' AS "Entity",
     CASE
-        WHEN n % 2 = 1 THEN
+        WHEN row_num % 2 = 1 THEN
             cost_centre
         ELSE
             '99999999'
         END AS "Cost Centre",
     CASE
-        WHEN n % 2 = 1 THEN
+        WHEN row_num % 2 = 1 THEN
             account_code
         ELSE
             '1816100000'
@@ -62,16 +63,16 @@ SELECT
     '0000' AS "Intercompany",
     '00000000' AS "Spare",
     CASE
-        WHEN n % 2 = 1 THEN
-            amount
-        ELSE
+        WHEN row_num % 2 = 1 AND is_credit = false OR row_num % 2 = 0 AND is_credit THEN
             ''
+        ELSE
+            amount
         END AS "Debit",
     CASE
-        WHEN n % 2 = 1 THEN
-            ''
-        ELSE
+        WHEN row_num % 2 = 1 AND is_credit = false OR row_num % 2 = 0 AND is_credit THEN
             amount
+        ELSE
+            ''
         END AS "Credit",
     line_description || ' [' || transaction_date || ']' AS "Line description"
 FROM
@@ -126,7 +127,8 @@ ORDER BY
         WHEN line_description LIKE 'GS Write-off reversal%' THEN 46
         WHEN line_description LIKE 'GT Write-off reversal%' THEN 47
         ELSE 48
-        END;`
+        END, n;
+`
 
 func (n *NonReceiptTransactions) GetHeaders() []string {
 	return []string{
