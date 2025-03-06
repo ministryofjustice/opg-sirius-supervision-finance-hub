@@ -3,11 +3,13 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"log/slog"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -22,6 +24,19 @@ func (s *Server) requestReport(w http.ResponseWriter, r *http.Request) error {
 	err := s.validateReportRequest(reportRequest)
 	if err != nil {
 		return err
+	}
+
+	if reportRequest.ReportType == shared.ReportsTypeJournal {
+		goLiveDate := shared.NewDate(os.Getenv("FINANCE_HUB_LIVE_DATE"))
+		if !reportRequest.TransactionDate.Before(shared.NewDate(time.Now().Format("2006-01-02"))) ||
+			reportRequest.TransactionDate.Before(goLiveDate) {
+			return apierror.ValidationError{Errors: apierror.ValidationErrors{
+				"Date": {
+					"Date": fmt.Sprintf("Date must be before today and after %s", os.Getenv("FINANCE_HUB_LIVE_DATE")),
+				},
+			},
+			}
+		}
 	}
 
 	go func(logger *slog.Logger) {
