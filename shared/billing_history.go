@@ -40,6 +40,8 @@ func (b *BillingHistory) UnmarshalJSON(data []byte) (err error) {
 		b.Event = new(InvoiceAdjustmentPending)
 	case EventTypePaymentProcessed:
 		b.Event = new(PaymentProcessed)
+	case EventTypeSOPUnallocatedProcessed:
+		b.Event = new(SOPUnallocatedProcessed)
 	case EventTypeReappliedCredit:
 		b.Event = new(ReappliedCredit)
 	default:
