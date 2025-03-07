@@ -48,7 +48,8 @@ type Envs struct {
 	eventBusName       string
 	port               string
 	jwtSecret          string
-	systemUserID       int
+	systemUserID       int32
+	eventBridgeAPIKey  string
 }
 
 func parseEnvs() (*Envs, error) {
@@ -69,6 +70,7 @@ func parseEnvs() (*Envs, error) {
 		"EVENT_BUS_NAME":                 os.Getenv("EVENT_BUS_NAME"),
 		"PORT":                           os.Getenv("PORT"),
 		"OPG_SUPERVISION_SYSTEM_USER_ID": os.Getenv("OPG_SUPERVISION_SYSTEM_USER_ID"),
+		"EVENT_BRIDGE_API_KEY":           os.Getenv("EVENT_BRIDGE_API_KEY"),
 	}
 
 	var missing []error
@@ -78,7 +80,7 @@ func parseEnvs() (*Envs, error) {
 		}
 	}
 
-	systemUserID, err := strconv.Atoi(os.Getenv("OPG_SUPERVISION_SYSTEM_USER_ID"))
+	systemUserID, err := strconv.ParseInt(os.Getenv("OPG_SUPERVISION_SYSTEM_USER_ID"), 10, 32)
 	if err != nil {
 		missing = append(missing, errors.New("OPG_SUPERVISION_SYSTEM_USER_ID must be an integer"))
 	}
@@ -106,8 +108,9 @@ func parseEnvs() (*Envs, error) {
 		dbName:             envs["POSTGRES_DB"],
 		eventBusName:       envs["EVENT_BUS_NAME"],
 		port:               envs["PORT"],
-		systemUserID:       systemUserID,
+		systemUserID:       int32(systemUserID),
 		webDir:             "web",
+		eventBridgeAPIKey:  envs["EVENT_BRIDGE_API_KEY"],
 	}, nil
 }
 
@@ -162,8 +165,7 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		fileStorageClient,
 		notifyClient,
 		&service.Env{
-			AsyncBucket:  envs.asyncBucket,
-			SystemUserID: envs.systemUserID,
+			AsyncBucket: envs.asyncBucket,
 		},
 	)
 
@@ -200,8 +202,10 @@ func run(ctx context.Context, logger *slog.Logger) error {
 			Secret: envs.jwtSecret,
 		},
 		validator, &api.Envs{
-			ReportsBucket: envs.reportsBucket,
-			GoLiveDate:    goLiveDate,
+			ReportsBucket:     envs.reportsBucket,
+			GoLiveDate:        goLiveDate,
+			SystemUserID:      envs.systemUserID,
+			EventBridgeAPIKey: envs.eventBridgeAPIKey,
 		})
 
 	s := &http.Server{
