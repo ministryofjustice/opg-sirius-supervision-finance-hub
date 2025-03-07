@@ -68,7 +68,7 @@ func New(logger *slog.Logger, client *api.Client, templates map[string]*template
 
 	handleMux := func(pattern string, h HtmxHandler) {
 		errors := wrapHandler(templates["error.gotmpl"], "main", envs)
-		mux.Handle(pattern, telemetry.Middleware(logger)(authenticator.Authenticate(errors(h))))
+		mux.Handle(pattern, authenticator.Authenticate(auth.XsrfCheck(errors(h))))
 	}
 
 	handleMux("GET /clients/{clientId}/invoices", &InvoicesHandler{&route{client: client, tmpl: templates["invoices.gotmpl"], partial: "invoices"}})
