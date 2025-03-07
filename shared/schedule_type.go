@@ -55,6 +55,8 @@ const (
 	ScheduleTypeGAWriteOffReversals
 	ScheduleTypeGSWriteOffReversals
 	ScheduleTypeGTWriteOffReversals
+	ScheduleTypeUnappliedPayments
+	ScheduleTypeReappliedPayments
 )
 
 var scheduleTypeMap = map[string]ScheduleType{
@@ -107,6 +109,8 @@ var scheduleTypeMap = map[string]ScheduleType{
 	"GAWriteOffReversals":      ScheduleTypeGAWriteOffReversals,
 	"GSWriteOffReversals":      ScheduleTypeGSWriteOffReversals,
 	"GTWriteOffReversals":      ScheduleTypeGTWriteOffReversals,
+	"UnappliedPayments":        ScheduleTypeUnappliedPayments,
+	"ReappliedPayments":        ScheduleTypeReappliedPayments,
 }
 
 func (s ScheduleType) String() string {
@@ -213,6 +217,10 @@ func (s ScheduleType) Translation() string {
 		return "GS Write-off Reversals"
 	case ScheduleTypeGTWriteOffReversals:
 		return "GT Write-off Reversals"
+	case ScheduleTypeUnappliedPayments:
+		return "Unapplied payments"
+	case ScheduleTypeReappliedPayments:
+		return "Reapplied payments"
 	default:
 		return ""
 	}
@@ -318,6 +326,10 @@ func (s ScheduleType) Key() string {
 		return "GSWriteOffReversals"
 	case ScheduleTypeGTWriteOffReversals:
 		return "GTWriteOffReversals"
+	case ScheduleTypeUnappliedPayments:
+		return "UnappliedPayments"
+	case ScheduleTypeReappliedPayments:
+		return "ReappliedPayments"
 	default:
 		return ""
 	}

@@ -197,6 +197,19 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			},
 			expectedFilename: "schedule_MinimalManualDebits_10:10:2024.csv",
 		},
+		{
+			name: "Unapplied payments",
+			reportRequest: shared.ReportRequest{
+				ReportType:      shared.ReportsTypeSchedule,
+				ScheduleType:    toPtr(shared.ScheduleTypeUnappliedPayments),
+				TransactionDate: &fromDate,
+			},
+			expectedQuery: &db.UnapplyReapplySchedule{
+				Date:         &fromDate,
+				ScheduleType: toPtr(shared.ScheduleTypeUnappliedPayments),
+			},
+			expectedFilename: "schedule_UnappliedPayments_10:10:2024.csv",
+		},
 	}
 
 	for _, tt := range tests {
