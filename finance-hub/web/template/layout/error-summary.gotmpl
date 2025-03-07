@@ -32,7 +32,15 @@
                     There is a problem
                 </h2>
                 <div class="govuk-error-summary__body">
-                    {{ .Error }}
+                    {{ if .Code }}
+                        {{ if eq .Code 403 }}
+                            You do not have permission to perform this action. Please speak with your administrator.
+                        {{ else }}
+                            {{ .Error }}
+                        {{ end }}
+                    {{ else }}
+                        {{ .Error }}
+                    {{ end }}
                 </div>
             </div>
         {{ end }}
