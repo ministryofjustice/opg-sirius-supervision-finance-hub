@@ -57,8 +57,10 @@ type Server struct {
 }
 
 type Envs struct {
-	ReportsBucket string
-	GoLiveDate    time.Time
+	ReportsBucket     string
+	GoLiveDate        time.Time
+	EventBridgeAPIKey string
+	SystemUserID      int32
 }
 
 func NewServer(service Service, reports Reports, fileStorage FileStorage, jwtClient JWTClient, validator *validation.Validate, envs *Envs) *Server {
@@ -80,7 +82,7 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 	authFunc := func(pattern string, h handlerFunc) {
 		// Configure the "http.route" for the HTTP instrumentation.
 		handler := otelhttp.WithRouteTag(pattern, h)
-		mux.Handle(pattern, s.authenticate(handler))
+		mux.Handle(pattern, s.authenticateAPI(handler))
 	}
 	authFunc("GET /clients/{clientId}", s.getAccountInformation)
 	authFunc("GET /clients/{clientId}/invoices", s.getInvoices)
@@ -104,7 +106,7 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 	// unauthenticated as request is coming from EventBridge
 	eventFunc := func(pattern string, h handlerFunc) {
 		handler := otelhttp.WithRouteTag(pattern, h)
-		mux.Handle(pattern, handler)
+		mux.Handle(pattern, s.authenticateEvent(handler))
 	}
 	eventFunc("POST /events", s.handleEvents)
 

@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
@@ -170,8 +171,8 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 
 	_ = courtRef.Scan(details.CourtRef)
 	_ = bankDate.Scan(details.BankDate)
-	_ = store.ToInt4(&createdBy, s.env.SystemUserID)
 	_ = uploadDate.Scan(details.UploadDate)
+	_ = store.ToInt4(&createdBy, ctx.(auth.Context).User.ID)
 
 	ledgerId, _ := s.store.GetLedgerForPayment(ctx, store.GetLedgerForPaymentParams{
 		CourtRef: courtRef,
