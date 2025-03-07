@@ -77,51 +77,50 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 
 	// authFunc is a replacement for mux.HandleFunc
 	// which enriches the handler's HTTP instrumentation with the pattern as the http.route.
-	authFunc := func(pattern string, h handlerFunc) {
+	authFunc := func(pattern string, role string, h handlerFunc) {
 		// Configure the "http.route" for the HTTP instrumentation.
 		handler := otelhttp.WithRouteTag(pattern, h)
-		mux.Handle(pattern, s.authenticate(handler))
+		mux.Handle(pattern, s.requestLogger(s.authenticate(s.authorise(role)(handler))))
 	}
-	authFunc("GET /clients/{clientId}", s.getAccountInformation)
-	authFunc("GET /clients/{clientId}/invoices", s.getInvoices)
-	authFunc("GET /clients/{clientId}/invoices/{invoiceId}/permitted-adjustments", s.getPermittedAdjustments)
-	authFunc("GET /clients/{clientId}/fee-reductions", s.getFeeReductions)
-	authFunc("GET /clients/{clientId}/invoice-adjustments", s.getInvoiceAdjustments)
-	authFunc("GET /clients/{clientId}/billing-history", s.getBillingHistory)
 
-	authFunc("POST /clients/{clientId}/invoices", s.addManualInvoice)
-	authFunc("POST /clients/{clientId}/invoices/{invoiceId}/invoice-adjustments", s.AddInvoiceAdjustment)
-	authFunc("PUT /clients/{clientId}/invoice-adjustments/{adjustmentId}", s.updatePendingInvoiceAdjustment)
-	authFunc("POST /clients/{clientId}/fee-reductions", s.addFeeReduction)
-	authFunc("PUT /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", s.cancelFeeReduction)
-	authFunc("PUT /clients/{clientId}/payment-method", s.updatePaymentMethod)
+	authFunc("GET /clients/{clientId}", shared.RoleAny, s.getAccountInformation)
+	authFunc("GET /clients/{clientId}/invoices", shared.RoleAny, s.getInvoices)
+	authFunc("GET /clients/{clientId}/invoices/{invoiceId}/permitted-adjustments", shared.RoleAny, s.getPermittedAdjustments)
+	authFunc("GET /clients/{clientId}/fee-reductions", shared.RoleAny, s.getFeeReductions)
+	authFunc("GET /clients/{clientId}/invoice-adjustments", shared.RoleAny, s.getInvoiceAdjustments)
+	authFunc("GET /clients/{clientId}/billing-history", shared.RoleAny, s.getBillingHistory)
 
-	authFunc("GET /download", s.download)
-	authFunc("HEAD /download", s.checkDownload)
+	authFunc("POST /clients/{clientId}/invoices", shared.RoleFinanceManager, s.addManualInvoice)
+	authFunc("POST /clients/{clientId}/invoices/{invoiceId}/invoice-adjustments", shared.RoleFinanceUser, s.AddInvoiceAdjustment)
+	authFunc("PUT /clients/{clientId}/invoice-adjustments/{adjustmentId}", shared.RoleFinanceManager, s.updatePendingInvoiceAdjustment)
+	authFunc("POST /clients/{clientId}/fee-reductions", shared.RoleFinanceUser, s.addFeeReduction)
+	authFunc("PUT /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", shared.RoleFinanceUser, s.cancelFeeReduction)
+	authFunc("PUT /clients/{clientId}/payment-method", shared.RoleFinanceUser, s.updatePaymentMethod)
 
-	authFunc("POST /reports", s.requestReport)
+	authFunc("GET /download", shared.RoleFinanceReporting, s.download)
+	authFunc("HEAD /download", shared.RoleFinanceReporting, s.checkDownload)
+
+	authFunc("POST /reports", shared.RoleFinanceReporting, s.requestReport)
 
 	// unauthenticated as request is coming from EventBridge
 	eventFunc := func(pattern string, h handlerFunc) {
 		handler := otelhttp.WithRouteTag(pattern, h)
-		mux.Handle(pattern, handler)
+		mux.Handle(pattern, s.requestLogger(handler))
 	}
 	eventFunc("POST /events", s.handleEvents)
 
 	mux.Handle("/health-check", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 
-	return otelhttp.NewHandler(telemetry.Middleware(logger)(securityheaders.Use(s.requestLogger(mux))), "supervision-finance-api")
+	return otelhttp.NewHandler(telemetry.Middleware(logger)(securityheaders.Use(mux)), "supervision-finance-api")
 }
 
 func (s *Server) requestLogger(h http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/health-check" {
-			telemetry.LoggerFromContext(r.Context()).Info(
-				"API Request",
-				"method", r.Method,
-				"uri", r.URL.RequestURI(),
-			)
-		}
+		telemetry.LoggerFromContext(r.Context()).Info(
+			"API Request",
+			"method", r.Method,
+			"uri", r.URL.RequestURI(),
+		)
 		h.ServeHTTP(w, r)
 	}
 }

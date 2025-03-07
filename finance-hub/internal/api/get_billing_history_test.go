@@ -20,7 +20,7 @@ func TestGetBillingHistoryCanReturn200(t *testing.T) {
 	[
 	   {
 		  "clientId": 456,
-		  "user": 65,
+		  "user": 2,
 		  "date": "2099-11-04T15:04:05+00:00",
 		  "event": {
 			"client_id": 1,
@@ -54,7 +54,7 @@ func TestGetBillingHistoryCanReturn200(t *testing.T) {
 
 	expectedResponse := []shared.BillingHistory{
 		{
-			User: 65,
+			User: 2,
 			Date: shared.Date{Time: time.Date(2099, time.November, 4, 15, 4, 5, 0, time.UTC)},
 			Event: &shared.InvoiceAdjustmentPending{
 				AdjustmentType: shared.AdjustmentTypeWriteOff,

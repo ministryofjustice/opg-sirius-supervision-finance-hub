@@ -35,3 +35,18 @@ func (s *Server) authenticate(h http.Handler) http.HandlerFunc {
 		h.ServeHTTP(w, r.WithContext(ctx))
 	}
 }
+
+func (s *Server) authorise(role string) func(http.Handler) http.HandlerFunc {
+	return func(h http.Handler) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context().(auth.Context)
+
+			if !ctx.User.HasRole(role) {
+				http.Error(w, "Forbidden", http.StatusForbidden)
+				return
+			}
+
+			h.ServeHTTP(w, r)
+		}
+	}
+}

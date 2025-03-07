@@ -55,7 +55,7 @@ func TestGetUser_cacheRefresh(t *testing.T) {
 				   "suspended":false
 				},
 				{
-				   "id":65,
+				   "id":2,
 				   "name":"case",
 				   "phoneNumber":"12345678",
 				   "user":[{

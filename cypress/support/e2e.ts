@@ -6,6 +6,7 @@ declare global {
     namespace Cypress {
         interface Chainable {
             checkAccessibility(): Chainable<JQuery<HTMLElement>>
+            setUser(id: string): Chainable<JQuery<HTMLElement>>
         }
     }
 }
@@ -37,4 +38,8 @@ Cypress.Commands.add("checkAccessibility", () => {
         ],
     })
     cy.checkA11y(null, null, terminalLog);
+});
+
+Cypress.Commands.add("setUser", (id: string) => {
+    cy.setCookie("x-test-user-id", id);
 });

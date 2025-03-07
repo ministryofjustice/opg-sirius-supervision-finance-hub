@@ -30,7 +30,7 @@ func (h *SubmitUpdatePendingInvoiceAdjustmentHandler) render(v AppVars, w http.R
 			stErr api.StatusError
 		)
 		if errors.As(err, &stErr) {
-			data := AppVars{Error: stErr.Error()}
+			data := AppVars{Error: stErr.Error(), Code: stErr.Code}
 			w.WriteHeader(stErr.Code)
 			err = h.execute(w, r, data)
 		}

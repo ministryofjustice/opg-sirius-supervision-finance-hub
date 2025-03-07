@@ -1,82 +1,89 @@
 {{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.InvoicesTab*/ -}}
 {{ define "invoices-list" }}
-  <header>
-    <h1 class="govuk-heading-l  govuk-!-margin-bottom-0  govuk-!-margin-top-0">Invoices</h1>
-    <div style="float: right;">
-      <div class="moj-button-menu">
-          <a
-            class="govuk-button moj-button-menu__item govuk-button--secondary"
-            role="button"
-            draggable="false"
-            data-module="govuk-button"
-            hx-get="{{ prefix (printf "/clients/%s/invoices/add" .ClientId) }}"
-            hx-target="#main-content"
-            hx-push-url="{{ prefix  (printf "/clients/%s/invoices/add" .ClientId) }}">
-            Add manual invoice
-          </a>
-      </div>
-    </div>
-  </header>
+    <header>
+        <h1 class="govuk-heading-l  govuk-!-margin-bottom-0  govuk-!-margin-top-0">Invoices</h1>
+        <div style="float: right;">
+            {{ if .User.IsFinanceManager }}
+                <div class="moj-button-menu">
+                    <a
+                            class="govuk-button moj-button-menu__item govuk-button--secondary"
+                            role="button"
+                            draggable="false"
+                            data-module="govuk-button"
+                            hx-get="{{ prefix (printf "/clients/%s/invoices/add" .ClientId) }}"
+                            hx-target="#main-content"
+                            hx-push-url="{{ prefix  (printf "/clients/%s/invoices/add" .ClientId) }}">
+                        Add manual invoice
+                    </a>
+                </div>
+            {{ end }}
+        </div>
+    </header>
     <div class="govuk-grid-row">
-      <div class="govuk-grid-column-full ">
-        {{ $length := len .Invoices }}
-        {{ if eq $length 0 }}
-          <div data-cy="no-invoices" class="govuk-!-text-align-centre govuk-heading-m">There are no invoices</div>
-        {{ else }}
-        <table id="invoices" class="govuk-table">
-          <thead class="govuk-table__head">
-          <tr class="govuk-table__row">
-            <th scope="col" data-cy="invoice" class="govuk-table__header">Invoice</th>
-            <th scope="col" data-cy="status" class="govuk-table__header">Status</th>
-            <th scope="col" data-cy="amount" class="govuk-table__header">Amount</th>
-            <th scope="col" data-cy="raised" class="govuk-table__header">Raised</th>
-            <th scope="col" data-cy="received" class="govuk-table__header">Received</th>
-            <th scope="col" data-cy="outstanding-balance" class="govuk-table__header">Outstanding Balance</th>
-          </tr>
-          </thead>
-          <tbody class="govuk-table__body">
-          {{  range .Invoices }}
-            <tr class="govuk-table__row">
-              <td class="govuk-table__cell" >
-                <details class="govuk-details summary" id="invoice-{{.Id}}">
-                  <summary class="govuk-details__summary">
+        <div class="govuk-grid-column-full ">
+            {{ $user := .User }}
+            {{ $length := len .Invoices }}
+            {{ if eq $length 0 }}
+                <div data-cy="no-invoices" class="govuk-!-text-align-centre govuk-heading-m">There are no invoices</div>
+            {{ else }}
+                <table id="invoices" class="govuk-table">
+                    <thead class="govuk-table__head">
+                    <tr class="govuk-table__row">
+                        <th scope="col" data-cy="invoice" class="govuk-table__header">Invoice</th>
+                        <th scope="col" data-cy="status" class="govuk-table__header">Status</th>
+                        <th scope="col" data-cy="amount" class="govuk-table__header">Amount</th>
+                        <th scope="col" data-cy="raised" class="govuk-table__header">Raised</th>
+                        <th scope="col" data-cy="received" class="govuk-table__header">Received</th>
+                        <th scope="col" data-cy="outstanding-balance" class="govuk-table__header">Outstanding Balance
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody class="govuk-table__body">
+                    {{  range .Invoices }}
+                        <tr class="govuk-table__row">
+                            <td class="govuk-table__cell">
+                                <details class="govuk-details summary" id="invoice-{{.Id}}">
+                                    <summary class="govuk-details__summary">
                     <span class="govuk-details__summary-text" data-cy="ref">
                       {{- .Ref -}}
                     </span>
-                  </summary>
-                </details>
-              </td>
-              <td class="govuk-table__cell" data-cy="invoice-status">{{ .Status }}</td>
-              <td class="govuk-table__cell" data-cy="invoice-amount">£{{ .Amount }}</td>
-              <td class="govuk-table__cell" data-cy="invoice-raised-date">{{ .RaisedDate }}</td>
-              <td class="govuk-table__cell" data-cy="invoice-received">£{{ .Received }}</td>
-              <td class="govuk-table__cell" data-cy="invoice-outstanding-balance">£{{ .OutstandingBalance }}</td>
-              <td class="govuk-table__cell">
-                <div class="moj-button-menu">
-                    <a
-                      class="govuk-button moj-button-menu__item govuk-button--secondary"
-                      role="button"
-                      draggable="false"
-                      data-module="govuk-button"
-                      hx-get="{{ prefix (printf "/clients/%d/invoices/%d/adjustments" .ClientId .Id) }}"
-                      hx-target="#main-content"
-                      hx-push-url="{{ prefix (printf "/clients/%d/invoices/%d/adjustments" .ClientId .Id) }}">
-                      Adjust invoice
-                    </a>
-                </div>
-              </td>
-            </tr>
+                                    </summary>
+                                </details>
+                            </td>
+                            <td class="govuk-table__cell" data-cy="invoice-status">{{ .Status }}</td>
+                            <td class="govuk-table__cell" data-cy="invoice-amount">£{{ .Amount }}</td>
+                            <td class="govuk-table__cell" data-cy="invoice-raised-date">{{ .RaisedDate }}</td>
+                            <td class="govuk-table__cell" data-cy="invoice-received">£{{ .Received }}</td>
+                            <td class="govuk-table__cell" data-cy="invoice-outstanding-balance">
+                                £{{ .OutstandingBalance }}</td>
+                            <td class="govuk-table__cell">
+                                {{ if $user.IsFinanceUser }}
+                                    <div class="moj-button-menu">
+                                        <a
+                                                class="govuk-button moj-button-menu__item govuk-button--secondary"
+                                                role="button"
+                                                draggable="false"
+                                                data-module="govuk-button"
+                                                hx-get="{{ prefix (printf "/clients/%d/invoices/%d/adjustments" .ClientId .Id) }}"
+                                                hx-target="#main-content"
+                                                hx-push-url="{{ prefix (printf "/clients/%d/invoices/%d/adjustments" .ClientId .Id) }}">
+                                            Adjust invoice
+                                        </a>
+                                    </div>
+                                {{ end }}
+                            </td>
+                        </tr>
 
-            <tr class="hide" id="invoice-{{.Id}}-reveal">
-              <td class="govuk-table__cell" colspan="4">
-                {{ template "invoice-ledger-allocations" .Ledgers }}
-                {{ template "supervision-levels" .SupervisionLevels }}
-              </td>
-            </tr>
-          {{ end }}
-          </tbody>
-        </table>
-        {{ end }}
-      </div>
+                        <tr class="hide" id="invoice-{{.Id}}-reveal">
+                            <td class="govuk-table__cell" colspan="4">
+                                {{ template "invoice-ledger-allocations" .Ledgers }}
+                                {{ template "supervision-levels" .SupervisionLevels }}
+                            </td>
+                        </tr>
+                    {{ end }}
+                    </tbody>
+                </table>
+            {{ end }}
+        </div>
     </div>
 {{ end }}

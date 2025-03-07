@@ -1,4 +1,3 @@
 {
-    "/supervision-api/v1/*": "/$1",
-    "/users/current": "/users/65"
+    "/supervision-api/v1/*": "/$1"
 }

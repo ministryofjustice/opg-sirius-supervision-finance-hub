@@ -4,7 +4,7 @@
     "license": "MIT",
     "scripts": {
         "serve": "concurrently --kill-others \"npm run start:server\" \"npm run watch:update\"",
-        "start:server": "json-server -H 0.0.0.0 --watch config/db.json -m config/read-only.js -r config/routes.json",
+        "start:server": "json-server -H 0.0.0.0 --watch config/db.json -m config/read-only.js -m config/switch-user.js -r config/routes.json",
         "watch:update": "onchange 'config/*.js' -- touch config/routes.json"
     },
     "author": "",
