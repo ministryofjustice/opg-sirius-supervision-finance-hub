@@ -135,11 +135,11 @@ func (s *Seeder) CreateFeeReduction(ctx context.Context, clientId int32, feeType
 
 func (s *Seeder) CreatePayment(ctx context.Context, amount int32, bankDate time.Time, courtRef string, ledgerType shared.TransactionType, uploadDate time.Time) {
 	payment := shared.PaymentDetails{
-		Amount:     amount,
-		BankDate:   bankDate,
-		CourtRef:   courtRef,
-		LedgerType: ledgerType.Key(),
-		UploadDate: uploadDate,
+		Amount:       amount,
+		BankDate:     bankDate,
+		CourtRef:     courtRef,
+		LedgerType:   ledgerType.Key(),
+		ReceivedDate: uploadDate,
 	}
 
 	tx, err := s.Service.BeginStoreTx(ctx)
