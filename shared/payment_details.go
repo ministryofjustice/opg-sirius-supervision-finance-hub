@@ -8,4 +8,5 @@ type PaymentDetails struct {
 	CourtRef     string
 	LedgerType   string
 	ReceivedDate time.Time
+	PisNumber    Nillable[int]
 }

@@ -128,7 +128,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 	tests := []struct {
 		name                      string
 		records                   [][]string
-		bankDate              shared.Date
+		bankDate                  shared.Date
 		pisNumber                 int
 		expectedClientId          int
 		expectedLedgerAllocations []createdLedgerAllocation
@@ -145,7 +145,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					"100",
 				},
 			},
-			bankDate:     shared.NewDate("2024-01-01"),
+			bankDate:         shared.NewDate("2024-01-01"),
 			pisNumber:        12,
 			expectedClientId: 1,
 			expectedLedgerAllocations: []createdLedgerAllocation{
@@ -172,7 +172,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					"250.1",
 				},
 			},
-			bankDate:     shared.NewDate("2024-01-01"),
+			bankDate:         shared.NewDate("2024-01-01"),
 			pisNumber:        150,
 			expectedClientId: 2,
 			expectedLedgerAllocations: []createdLedgerAllocation{
@@ -229,7 +229,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
 			var failedLines map[int]string
-			failedLines, err := s.processPayments(context.Background(), tt.records, "PAYMENTS_MOTO_CARD", tt.bankDate, shared.Nillable[int]{Value: tt.pisNumber, Valid: true})
+			failedLines, err := s.processPayments(suite.ctx, tt.records, "PAYMENTS_MOTO_CARD", tt.bankDate, shared.Nillable[int]{Value: tt.pisNumber, Valid: true})
 			assert.Equal(t, tt.want, err)
 			assert.Equal(t, tt.expectedFailedLines, failedLines)
 
@@ -317,11 +317,11 @@ func Test_getPaymentDetails(t *testing.T) {
 			ledgerType: "Payments Moto Card",
 			index:      0,
 			expectedPaymentDetails: shared.PaymentDetails{
-				Amount:     32000,
-				BankDate:   time.Date(2025, time.January, 2, 12, 4, 32, 0, time.UTC),
-				CourtRef:   "12345678",
-				LedgerType: "Payments Moto Card",
-				UploadDate: time.Date(2025, time.January, 1, 0, 0, 0, 0, time.UTC),
+				Amount:       32000,
+				ReceivedDate: time.Date(2025, time.January, 2, 12, 4, 32, 0, time.UTC),
+				CourtRef:     "12345678",
+				LedgerType:   "Payments Moto Card",
+				BankDate:     time.Date(2025, time.January, 1, 0, 0, 0, 0, time.UTC),
 			},
 		},
 		{
@@ -331,11 +331,11 @@ func Test_getPaymentDetails(t *testing.T) {
 			ledgerType: "Payments Supervision BACS",
 			index:      0,
 			expectedPaymentDetails: shared.PaymentDetails{
-				Amount:     2050,
-				BankDate:   time.Date(2024, time.June, 1, 0, 0, 0, 0, time.UTC),
-				CourtRef:   "87654321",
-				LedgerType: "Payments Supervision BACS",
-				UploadDate: time.Date(2025, time.January, 1, 0, 0, 0, 0, time.UTC),
+				Amount:       2050,
+				ReceivedDate: time.Date(2024, time.June, 1, 0, 0, 0, 0, time.UTC),
+				CourtRef:     "87654321",
+				LedgerType:   "Payments Supervision BACS",
+				BankDate:     time.Date(2025, time.January, 1, 0, 0, 0, 0, time.UTC),
 			},
 		},
 		{
@@ -345,11 +345,11 @@ func Test_getPaymentDetails(t *testing.T) {
 			ledgerType: "Payments Supervision Cheque",
 			index:      0,
 			expectedPaymentDetails: shared.PaymentDetails{
-				Amount:     54102,
-				BankDate:   time.Date(2024, time.October, 31, 0, 0, 0, 0, time.UTC),
-				CourtRef:   "23145746",
-				LedgerType: "Payments Supervision Cheque",
-				UploadDate: time.Date(2025, time.January, 1, 0, 0, 0, 0, time.UTC),
+				Amount:       54102,
+				ReceivedDate: time.Date(2024, time.October, 31, 0, 0, 0, 0, time.UTC),
+				CourtRef:     "23145746",
+				LedgerType:   "Payments Supervision Cheque",
+				BankDate:     time.Date(2025, time.January, 1, 0, 0, 0, 0, time.UTC),
 			},
 		},
 		{
@@ -387,7 +387,7 @@ func Test_getPaymentDetails(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			paymentDetails := getPaymentDetails(tt.record, tt.uploadType, shared.NewDate("01/01/2025"), tt.ledgerType, tt.index, &tt.failedLines)
+			paymentDetails := getPaymentDetails(tt.record, tt.uploadType, shared.NewDate("01/01/2025"), tt.ledgerType, tt.index, &tt.failedLines, shared.Nillable[int]{Valid: false})
 			assert.Equal(t, tt.expectedPaymentDetails, paymentDetails)
 			assert.Equal(t, tt.expectedFailedLines, tt.failedLines)
 		})

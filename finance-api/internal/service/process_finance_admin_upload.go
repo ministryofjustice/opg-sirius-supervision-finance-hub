@@ -73,7 +73,7 @@ func parseAmount(amount string) (int32, error) {
 	return int32(intAmount), err
 }
 
-func getPaymentDetails(record []string, uploadType string, bankDate shared.Date, ledgerType string, index int, failedLines *map[int]string) shared.PaymentDetails {
+func getPaymentDetails(record []string, uploadType string, bankDate shared.Date, ledgerType string, index int, failedLines *map[int]string, pisNumber shared.Nillable[int]) shared.PaymentDetails {
 	var courtRef string
 	var receivedDate time.Time
 	var amount int32
@@ -112,19 +112,29 @@ func getPaymentDetails(record []string, uploadType string, bankDate shared.Date,
 		courtRef = record[0]
 
 		amount, err = parseAmount(record[2])
-	case "SOP_UNALLOCATED":
-		courtRef = record[0]
-
-		amount, err = parseAmount(record[1])
-
 		if err != nil {
 			(*failedLines)[index] = "AMOUNT_PARSE_ERROR"
 			return shared.PaymentDetails{}
 		}
 
-		bankDate, err = time.Parse("02/01/2006", record[4])
+		receivedDate, err = time.Parse("02/01/2006", record[4])
 		if err != nil {
 			(*failedLines)[index] = "DATE_PARSE_ERROR"
+			return shared.PaymentDetails{}
+		}
+	case "SOP_UNALLOCATED":
+		courtRef = record[0]
+
+		amount, err = parseAmount(record[1])
+		if err != nil {
+			(*failedLines)[index] = "AMOUNT_PARSE_ERROR"
+			return shared.PaymentDetails{}
+		}
+
+		bankDate.Time, err = time.Parse("02/01/2006", record[4])
+		if err != nil {
+			(*failedLines)[index] = "DATE_PARSE_ERROR"
+		}
 		receivedDate, err = time.Parse("2006-01-02 15:04:05", "2025-03-31 00:00:00")
 		if err != nil {
 			(*failedLines)[index] = "DATE_TIME_PARSE_ERROR"
@@ -132,7 +142,7 @@ func getPaymentDetails(record []string, uploadType string, bankDate shared.Date,
 		}
 	}
 
-	return shared.PaymentDetails{Amount: amount, BankDate: bankDate.Time, CourtRef: courtRef, LedgerType: ledgerType, ReceivedDate: receivedDate}
+	return shared.PaymentDetails{Amount: amount, BankDate: bankDate.Time, CourtRef: courtRef, LedgerType: ledgerType, ReceivedDate: receivedDate, PisNumber: pisNumber}
 }
 
 func (s *Service) processPayments(ctx context.Context, records [][]string, uploadType string, bankDate shared.Date, pisNumber shared.Nillable[int]) (map[int]string, error) {
@@ -153,10 +163,10 @@ func (s *Service) processPayments(ctx context.Context, records [][]string, uploa
 
 	for index, record := range records {
 		if index != 0 && record[0] != "" {
-			details := getPaymentDetails(record, uploadType, bankDate, ledgerType, index, &failedLines)
+			details := getPaymentDetails(record, uploadType, bankDate, ledgerType, index, &failedLines, pisNumber)
 
 			if details != (shared.PaymentDetails{}) {
-				err := s.ProcessPaymentsUploadLine(ctx, tx, details, index, &failedLines, pisNumber)
+				err := s.ProcessPaymentsUploadLine(ctx, tx, details, index, &failedLines)
 				if err != nil {
 					return nil, err
 				}
@@ -172,7 +182,7 @@ func (s *Service) processPayments(ctx context.Context, records [][]string, uploa
 	return failedLines, nil
 }
 
-func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, details shared.PaymentDetails, index int, failedLines *map[int]string, pisNumber shared.Nillable[int]) error {
+func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, details shared.PaymentDetails, index int, failedLines *map[int]string) error {
 	if details.Amount == 0 {
 		return nil
 	}
@@ -181,15 +191,18 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 		courtRef   pgtype.Text
 		bankDate   pgtype.Date
 		createdBy  pgtype.Int4
+		pisNumber  pgtype.Int4
 		uploadDate pgtype.Timestamp
-    pisNumber  pgtype.Int4
 	)
 
 	_ = courtRef.Scan(details.CourtRef)
 	_ = bankDate.Scan(details.BankDate)
 	_ = store.ToInt4(&createdBy, s.env.SystemUserID)
 	_ = uploadDate.Scan(details.ReceivedDate)
-  _ = pisNumber.Scan(pisNumber)
+
+	if details.PisNumber.Valid {
+		_ = store.ToInt4(&pisNumber, details.PisNumber.Value)
+	}
 
 	ledgerId, _ := s.store.GetLedgerForPayment(ctx, store.GetLedgerForPaymentParams{
 		CourtRef: courtRef,
