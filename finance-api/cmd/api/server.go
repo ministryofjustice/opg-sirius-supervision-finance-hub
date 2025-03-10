@@ -6,30 +6,32 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/ministryofjustice/opg-go-common/securityheaders"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"time"
 )
 
 type Service interface {
-	GetAccountInformation(ctx context.Context, id int) (*shared.AccountInformation, error)
-	GetInvoices(ctx context.Context, clientId int) (*shared.Invoices, error)
-	GetPermittedAdjustments(ctx context.Context, invoiceId int) ([]shared.AdjustmentType, error)
-	GetFeeReductions(ctx context.Context, invoiceId int) (*shared.FeeReductions, error)
-	AddInvoiceAdjustment(ctx context.Context, clientId int, invoiceId int, ledgerEntry *shared.AddInvoiceAdjustmentRequest) (*shared.InvoiceReference, error)
-	GetInvoiceAdjustments(ctx context.Context, clientId int) (*shared.InvoiceAdjustments, error)
-	AddFeeReduction(ctx context.Context, clientId int, data shared.AddFeeReduction) error
-	CancelFeeReduction(ctx context.Context, id int, cancelledFeeReduction shared.CancelFeeReduction) error
-	UpdatePendingInvoiceAdjustment(ctx context.Context, clientId int, adjustmentId int, status shared.AdjustmentStatus) error
-	AddManualInvoice(ctx context.Context, clientId int, invoice shared.AddManualInvoice) error
-	GetBillingHistory(ctx context.Context, id int) ([]shared.BillingHistory, error)
+	GetAccountInformation(ctx context.Context, id int32) (*shared.AccountInformation, error)
+	GetInvoices(ctx context.Context, clientId int32) (*shared.Invoices, error)
+	GetPermittedAdjustments(ctx context.Context, invoiceId int32) ([]shared.AdjustmentType, error)
+	GetFeeReductions(ctx context.Context, invoiceId int32) (*shared.FeeReductions, error)
+	AddInvoiceAdjustment(ctx context.Context, clientId int32, invoiceId int32, ledgerEntry *shared.AddInvoiceAdjustmentRequest) (*shared.InvoiceReference, error)
+	GetInvoiceAdjustments(ctx context.Context, clientId int32) (*shared.InvoiceAdjustments, error)
+	AddFeeReduction(ctx context.Context, clientId int32, data shared.AddFeeReduction) error
+	CancelFeeReduction(ctx context.Context, id int32, cancelledFeeReduction shared.CancelFeeReduction) error
+	UpdatePendingInvoiceAdjustment(ctx context.Context, clientId int32, adjustmentId int32, status shared.AdjustmentStatus) error
+	AddManualInvoice(ctx context.Context, clientId int32, invoice shared.AddManualInvoice) error
+	GetBillingHistory(ctx context.Context, id int32) ([]shared.BillingHistory, error)
 	ReapplyCredit(ctx context.Context, clientID int32) error
-	UpdateClient(ctx context.Context, clientID int, courtRef string) error
+	UpdateClient(ctx context.Context, clientID int32, courtRef string) error
 	ProcessFinanceAdminUpload(ctx context.Context, detail shared.FinanceAdminUploadEvent) error
-	UpdatePaymentMethod(ctx context.Context, clientID int, paymentMethod shared.PaymentMethod) error
+	UpdatePaymentMethod(ctx context.Context, clientID int32, paymentMethod shared.PaymentMethod) error
 }
 
 type FileStorage interface {
@@ -75,51 +77,61 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 
 	// authFunc is a replacement for mux.HandleFunc
 	// which enriches the handler's HTTP instrumentation with the pattern as the http.route.
-	authFunc := func(pattern string, h handlerFunc) {
+	authFunc := func(pattern string, role string, h handlerFunc) {
 		// Configure the "http.route" for the HTTP instrumentation.
 		handler := otelhttp.WithRouteTag(pattern, h)
-		mux.Handle(pattern, s.authenticate(handler))
+		mux.Handle(pattern, s.requestLogger(s.authenticate(s.authorise(role)(handler))))
 	}
-	authFunc("GET /clients/{clientId}", s.getAccountInformation)
-	authFunc("GET /clients/{clientId}/invoices", s.getInvoices)
-	authFunc("GET /clients/{clientId}/invoices/{invoiceId}/permitted-adjustments", s.getPermittedAdjustments)
-	authFunc("GET /clients/{clientId}/fee-reductions", s.getFeeReductions)
-	authFunc("GET /clients/{clientId}/invoice-adjustments", s.getInvoiceAdjustments)
-	authFunc("GET /clients/{clientId}/billing-history", s.getBillingHistory)
 
-	authFunc("POST /clients/{clientId}/invoices", s.addManualInvoice)
-	authFunc("POST /clients/{clientId}/invoices/{invoiceId}/invoice-adjustments", s.AddInvoiceAdjustment)
-	authFunc("PUT /clients/{clientId}/invoice-adjustments/{adjustmentId}", s.updatePendingInvoiceAdjustment)
-	authFunc("POST /clients/{clientId}/fee-reductions", s.addFeeReduction)
-	authFunc("PUT /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", s.cancelFeeReduction)
-	authFunc("PUT /clients/{clientId}/payment-method", s.updatePaymentMethod)
+	authFunc("GET /clients/{clientId}", shared.RoleAny, s.getAccountInformation)
+	authFunc("GET /clients/{clientId}/invoices", shared.RoleAny, s.getInvoices)
+	authFunc("GET /clients/{clientId}/invoices/{invoiceId}/permitted-adjustments", shared.RoleAny, s.getPermittedAdjustments)
+	authFunc("GET /clients/{clientId}/fee-reductions", shared.RoleAny, s.getFeeReductions)
+	authFunc("GET /clients/{clientId}/invoice-adjustments", shared.RoleAny, s.getInvoiceAdjustments)
+	authFunc("GET /clients/{clientId}/billing-history", shared.RoleAny, s.getBillingHistory)
 
-	authFunc("GET /download", s.download)
-	authFunc("HEAD /download", s.checkDownload)
+	authFunc("POST /clients/{clientId}/invoices", shared.RoleFinanceManager, s.addManualInvoice)
+	authFunc("POST /clients/{clientId}/invoices/{invoiceId}/invoice-adjustments", shared.RoleFinanceUser, s.AddInvoiceAdjustment)
+	authFunc("PUT /clients/{clientId}/invoice-adjustments/{adjustmentId}", shared.RoleFinanceManager, s.updatePendingInvoiceAdjustment)
+	authFunc("POST /clients/{clientId}/fee-reductions", shared.RoleFinanceUser, s.addFeeReduction)
+	authFunc("PUT /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", shared.RoleFinanceUser, s.cancelFeeReduction)
+	authFunc("PUT /clients/{clientId}/payment-method", shared.RoleFinanceUser, s.updatePaymentMethod)
 
-	authFunc("POST /reports", s.requestReport)
+	authFunc("GET /download", shared.RoleFinanceReporting, s.download)
+	authFunc("HEAD /download", shared.RoleFinanceReporting, s.checkDownload)
+
+	authFunc("POST /reports", shared.RoleFinanceReporting, s.requestReport)
 
 	// unauthenticated as request is coming from EventBridge
 	eventFunc := func(pattern string, h handlerFunc) {
 		handler := otelhttp.WithRouteTag(pattern, h)
-		mux.Handle(pattern, handler)
+		mux.Handle(pattern, s.requestLogger(handler))
 	}
 	eventFunc("POST /events", s.handleEvents)
 
 	mux.Handle("/health-check", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 
-	return otelhttp.NewHandler(telemetry.Middleware(logger)(securityheaders.Use(s.requestLogger(mux))), "supervision-finance-api")
+	return otelhttp.NewHandler(telemetry.Middleware(logger)(securityheaders.Use(mux)), "supervision-finance-api")
 }
 
 func (s *Server) requestLogger(h http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/health-check" {
-			telemetry.LoggerFromContext(r.Context()).Info(
-				"API Request",
-				"method", r.Method,
-				"uri", r.URL.RequestURI(),
-			)
-		}
+		telemetry.LoggerFromContext(r.Context()).Info(
+			"API Request",
+			"method", r.Method,
+			"uri", r.URL.RequestURI(),
+		)
 		h.ServeHTTP(w, r)
 	}
+}
+
+func (s *Server) getPathID(r *http.Request, key string) (int32, error) {
+	id, err := strconv.ParseInt(r.PathValue(key), 10, 32)
+	if err != nil {
+		return 0, apierror.BadRequestError(key, "Unable to parse value to int", err)
+	}
+	if id < 1 {
+		return 0, apierror.BadRequestError(key, "Invalid ID", nil)
+	}
+	return int32(id), nil
 }

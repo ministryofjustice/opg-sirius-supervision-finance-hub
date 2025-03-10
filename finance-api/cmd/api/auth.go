@@ -25,13 +25,28 @@ func (s *Server) authenticate(h http.Handler) http.HandlerFunc {
 		}
 
 		claims := token.Claims.(*auth.Claims)
-		userID, _ := strconv.Atoi(claims.ID)
+		userID, _ := strconv.ParseInt(claims.ID, 10, 32)
 
 		ctx.User = &shared.User{
-			ID:    userID,
+			ID:    int32(userID),
 			Roles: claims.Roles,
 		}
 
 		h.ServeHTTP(w, r.WithContext(ctx))
+	}
+}
+
+func (s *Server) authorise(role string) func(http.Handler) http.HandlerFunc {
+	return func(h http.Handler) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context().(auth.Context)
+
+			if !ctx.User.HasRole(role) {
+				http.Error(w, "Forbidden", http.StatusForbidden)
+				return
+			}
+
+			h.ServeHTTP(w, r)
+		}
 	}
 }

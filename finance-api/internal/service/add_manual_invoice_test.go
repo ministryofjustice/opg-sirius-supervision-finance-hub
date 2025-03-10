@@ -14,7 +14,7 @@ import (
 func addManualInvoiceSetup(seeder *testhelpers.Seeder) (*Service, shared.AddManualInvoice) {
 	params := shared.AddManualInvoice{
 		InvoiceType:      shared.InvoiceTypeS2,
-		Amount:           shared.Nillable[int]{Value: 50000, Valid: true},
+		Amount:           shared.Nillable[int32]{Value: 50000, Valid: true},
 		RaisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
 		StartDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2024-04-12"), Valid: true},
 		EndDate:          shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
@@ -37,51 +37,28 @@ func (suite *IntegrationSuite) TestService_AddManualInvoice() {
 	s, params := addManualInvoiceSetup(seeder)
 
 	err := s.AddManualInvoice(ctx, 24, params)
-	rows := seeder.QueryRow(ctx, "SELECT * FROM supervision_finance.invoice WHERE id = 1")
+	rows := seeder.QueryRow(ctx, "SELECT feetype, amount, startdate, enddate, created_by FROM supervision_finance.invoice WHERE id = 1")
 
 	var (
-		id                int
-		personId          int
-		financeClientId   int
-		feeType           string
-		reference         string
-		startDate         time.Time
-		endDate           time.Time
-		amount            int
-		supervisionLevel  string
-		confirmedDate     time.Time
-		batchNumber       int
-		raisedDate        time.Time
-		source            string
-		scheduledFn14Date time.Time
-		cachedDebtAmount  int
-		createdDate       time.Time
-		createdById       int
+		feeType     string
+		amount      int
+		startDate   time.Time
+		endDate     time.Time
+		createdById int
 	)
 
 	_ = rows.Scan(
-		&id,
-		&personId,
-		&financeClientId,
 		&feeType,
-		&reference,
+		&amount,
 		&startDate,
 		&endDate,
-		&amount,
-		&supervisionLevel,
-		&confirmedDate,
-		&batchNumber,
-		&raisedDate,
-		&source,
-		&scheduledFn14Date,
-		&cachedDebtAmount,
-		&createdDate,
 		&createdById)
 
 	assert.Equal(suite.T(), shared.InvoiceTypeS2.Key(), feeType)
 	assert.Equal(suite.T(), 50000, amount)
 	assert.Equal(suite.T(), "2024-04-12", startDate.Format("2006-01-02"))
 	assert.Equal(suite.T(), "2025-03-31", endDate.Format("2006-01-02"))
+	assert.Equal(suite.T(), 10, createdById)
 
 	if err == nil {
 		return
@@ -308,7 +285,7 @@ func Test_invoiceData(t *testing.T) {
 	tests := []struct {
 		name             string
 		args             shared.AddManualInvoice
-		amount           shared.Nillable[int]
+		amount           shared.Nillable[int32]
 		startDate        shared.Nillable[shared.Date]
 		raisedDate       shared.Nillable[shared.Date]
 		endDate          shared.Nillable[shared.Date]
@@ -318,13 +295,13 @@ func Test_invoiceData(t *testing.T) {
 			name: "AD invoice returns correct values",
 			args: shared.AddManualInvoice{
 				InvoiceType:      shared.InvoiceTypeAD,
-				Amount:           shared.Nillable[int]{},
+				Amount:           shared.Nillable[int32]{},
 				StartDate:        shared.Nillable[shared.Date]{},
 				RaisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2023-04-01"), Valid: true},
 				EndDate:          shared.Nillable[shared.Date]{},
 				SupervisionLevel: shared.Nillable[string]{},
 			},
-			amount:           shared.Nillable[int]{Value: 10000, Valid: true},
+			amount:           shared.Nillable[int32]{Value: 10000, Valid: true},
 			startDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2023-04-01"), Valid: true},
 			raisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2023-04-01"), Valid: true},
 			endDate:          shared.Nillable[shared.Date]{Value: shared.NewDate("2023-04-01"), Valid: true},
@@ -334,13 +311,13 @@ func Test_invoiceData(t *testing.T) {
 			name: "GA invoice returns correct values",
 			args: shared.AddManualInvoice{
 				InvoiceType:      shared.InvoiceTypeGA,
-				Amount:           shared.Nillable[int]{},
+				Amount:           shared.Nillable[int32]{},
 				StartDate:        shared.Nillable[shared.Date]{},
 				RaisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2023-04-01"), Valid: true},
 				EndDate:          shared.Nillable[shared.Date]{},
 				SupervisionLevel: shared.Nillable[string]{},
 			},
-			amount:           shared.Nillable[int]{Value: 20000, Valid: true},
+			amount:           shared.Nillable[int32]{Value: 20000, Valid: true},
 			startDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2023-04-01"), Valid: true},
 			raisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2023-04-01"), Valid: true},
 			endDate:          shared.Nillable[shared.Date]{Value: shared.NewDate("2023-04-01"), Valid: true},
@@ -350,13 +327,13 @@ func Test_invoiceData(t *testing.T) {
 			name: "B2 invoice returns correct values",
 			args: shared.AddManualInvoice{
 				InvoiceType:      shared.InvoiceTypeB2,
-				Amount:           shared.Nillable[int]{Value: 10000, Valid: true},
+				Amount:           shared.Nillable[int32]{Value: 10000, Valid: true},
 				StartDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2033-04-01"), Valid: true},
 				RaisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
 				EndDate:          shared.Nillable[shared.Date]{},
 				SupervisionLevel: shared.Nillable[string]{},
 			},
-			amount:           shared.Nillable[int]{Value: 10000, Valid: true},
+			amount:           shared.Nillable[int32]{Value: 10000, Valid: true},
 			startDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2033-04-01"), Valid: true},
 			raisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
 			endDate:          shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
@@ -366,13 +343,13 @@ func Test_invoiceData(t *testing.T) {
 			name: "B3 invoice returns correct values",
 			args: shared.AddManualInvoice{
 				InvoiceType:      shared.InvoiceTypeB3,
-				Amount:           shared.Nillable[int]{Value: 10000, Valid: true},
+				Amount:           shared.Nillable[int32]{Value: 10000, Valid: true},
 				StartDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2033-04-01"), Valid: true},
 				RaisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
 				EndDate:          shared.Nillable[shared.Date]{},
 				SupervisionLevel: shared.Nillable[string]{Value: "MINIMAL", Valid: true},
 			},
-			amount:           shared.Nillable[int]{Value: 10000, Valid: true},
+			amount:           shared.Nillable[int32]{Value: 10000, Valid: true},
 			startDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2033-04-01"), Valid: true},
 			raisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
 			endDate:          shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
@@ -382,13 +359,13 @@ func Test_invoiceData(t *testing.T) {
 			name: "S2 invoice returns correct values",
 			args: shared.AddManualInvoice{
 				InvoiceType:      shared.InvoiceTypeS2,
-				Amount:           shared.Nillable[int]{Value: 10000, Valid: true},
+				Amount:           shared.Nillable[int32]{Value: 10000, Valid: true},
 				StartDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2033-04-01"), Valid: true},
 				RaisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
 				EndDate:          shared.Nillable[shared.Date]{},
 				SupervisionLevel: shared.Nillable[string]{},
 			},
-			amount:           shared.Nillable[int]{Value: 10000, Valid: true},
+			amount:           shared.Nillable[int32]{Value: 10000, Valid: true},
 			startDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2033-04-01"), Valid: true},
 			raisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
 			endDate:          shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
@@ -398,13 +375,13 @@ func Test_invoiceData(t *testing.T) {
 			name: "S3 invoice returns correct values",
 			args: shared.AddManualInvoice{
 				InvoiceType:      shared.InvoiceTypeS3,
-				Amount:           shared.Nillable[int]{Value: 10000, Valid: true},
+				Amount:           shared.Nillable[int32]{Value: 10000, Valid: true},
 				StartDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2033-04-01"), Valid: true},
 				RaisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
 				EndDate:          shared.Nillable[shared.Date]{},
 				SupervisionLevel: shared.Nillable[string]{Value: "MINIMAL", Valid: true},
 			},
-			amount:           shared.Nillable[int]{Value: 10000, Valid: true},
+			amount:           shared.Nillable[int32]{Value: 10000, Valid: true},
 			startDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2033-04-01"), Valid: true},
 			raisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
 			endDate:          shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
@@ -414,13 +391,13 @@ func Test_invoiceData(t *testing.T) {
 			name: "No year will return correct values",
 			args: shared.AddManualInvoice{
 				InvoiceType:      shared.InvoiceTypeS3,
-				Amount:           shared.Nillable[int]{Value: 10000, Valid: true},
+				Amount:           shared.Nillable[int32]{Value: 10000, Valid: true},
 				StartDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2033-04-01"), Valid: true},
 				RaisedDate:       shared.Nillable[shared.Date]{},
 				EndDate:          shared.Nillable[shared.Date]{},
 				SupervisionLevel: shared.Nillable[string]{},
 			},
-			amount:           shared.Nillable[int]{Value: 10000, Valid: true},
+			amount:           shared.Nillable[int32]{Value: 10000, Valid: true},
 			startDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2033-04-01"), Valid: true},
 			raisedDate:       shared.Nillable[shared.Date]{},
 			endDate:          shared.Nillable[shared.Date]{},

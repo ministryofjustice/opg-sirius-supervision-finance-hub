@@ -7,12 +7,20 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"log/slog"
 )
 
 func (s *Service) ReapplyCredit(ctx context.Context, clientID int32) error {
+	var userID pgtype.Int4
+	if authCtx, ok := ctx.(auth.Context); ok {
+		_ = store.ToInt4(&userID, authCtx.User.ID)
+	} else {
+		_ = store.ToInt4(&userID, s.env.SystemUserID)
+	}
+
 	creditPosition, err := s.store.GetCreditBalanceAndOldestOpenInvoice(ctx, clientID)
 
 	switch {
@@ -36,24 +44,29 @@ func (s *Service) ReapplyCredit(ctx context.Context, clientID int32) error {
 		Status:    "REAPPLIED",
 	}
 
+	var notes pgtype.Text
+	_ = notes.Scan("Excess credit applied to invoice")
+
 	ledger := store.CreateLedgerParams{
-		ClientID: clientID,
-		Amount:   reapplyAmount,
-		Notes:    pgtype.Text{String: "Excess credit applied to invoice", Valid: true},
-		Type:     "CREDIT REAPPLY",
-		Status:   "CONFIRMED",
-		//TODO when adding this in PFS-136, the id with need to be a system user
-		CreatedBy: pgtype.Int4{Int32: 1, Valid: true},
+		ClientID:  clientID,
+		Amount:    reapplyAmount,
+		Notes:     notes,
+		Type:      "CREDIT REAPPLY",
+		Status:    "CONFIRMED",
+		CreatedBy: userID,
 	}
 
-	ledgerId, err := s.store.CreateLedger(ctx, ledger)
+	id, err := s.store.CreateLedger(ctx, ledger)
 	if err != nil {
 		logger := telemetry.LoggerFromContext(ctx)
 		logger.Error(fmt.Sprintf("Error in reapply for client %d", clientID), slog.String("err", err.Error()))
 		return err
 	}
 
-	allocation.LedgerID = pgtype.Int4{Int32: ledgerId, Valid: true}
+	var ledgerID pgtype.Int4
+	_ = store.ToInt4(&ledgerID, id)
+	allocation.LedgerID = ledgerID
+
 	err = s.store.CreateLedgerAllocation(ctx, allocation)
 	if err != nil {
 		return err

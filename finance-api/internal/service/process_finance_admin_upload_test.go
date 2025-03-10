@@ -42,7 +42,7 @@ func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
 	fileStorage.file = io.NopCloser(strings.NewReader("test"))
 	notifyClient := &mockNotify{}
 
-	s := NewService(seeder.Conn, nil, fileStorage, notifyClient, nil)
+	s := NewService(seeder.Conn, nil, fileStorage, notifyClient, &Env{SystemUserID: 99})
 
 	tests := []struct {
 		name            string
@@ -76,7 +76,7 @@ func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
 					Error      string `json:"error"`
 					UploadType string `json:"upload_type"`
 				}{
-					"Unable to download report",
+					"unable to download report",
 					"",
 				},
 			},
@@ -99,7 +99,7 @@ func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
 			emailAddress := "test@email.com"
 			fileStorage.err = tt.fileStorageErr
 
-			err := s.ProcessFinanceAdminUpload(context.Background(), shared.FinanceAdminUploadEvent{
+			err := s.ProcessFinanceAdminUpload(suite.ctx, shared.FinanceAdminUploadEvent{
 				EmailAddress: emailAddress, Filename: filename, UploadType: tt.uploadType,
 			})
 			assert.Nil(t, err)
@@ -123,12 +123,12 @@ func (suite *IntegrationSuite) Test_processPayments() {
 	)
 
 	dispatch := &mockDispatch{}
-	s := NewService(seeder.Conn, dispatch, nil, nil, nil)
+	s := NewService(seeder.Conn, dispatch, nil, nil, &Env{SystemUserID: 99})
 
 	tests := []struct {
 		name                      string
 		records                   [][]string
-		uploadedDate              shared.Date
+		bankDate              shared.Date
 		pisNumber                 int
 		expectedClientId          int
 		expectedLedgerAllocations []createdLedgerAllocation
@@ -141,11 +141,11 @@ func (suite *IntegrationSuite) Test_processPayments() {
 				{"Ordercode", "BankDate", "Amount"},
 				{
 					"1234-1",
-					"2024-01-17 10:15:39",
+					"2024-01-01 10:15:39",
 					"100",
 				},
 			},
-			uploadedDate:     shared.NewDate("2024-01-01"),
+			bankDate:     shared.NewDate("2024-01-01"),
 			pisNumber:        12,
 			expectedClientId: 1,
 			expectedLedgerAllocations: []createdLedgerAllocation{
@@ -153,7 +153,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					10000,
 					"MOTO CARD PAYMENT",
 					"CONFIRMED",
-					time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+					time.Date(2024, 1, 1, 10, 15, 39, 0, time.UTC),
 					10000,
 					"ALLOCATED",
 					1,
@@ -168,11 +168,11 @@ func (suite *IntegrationSuite) Test_processPayments() {
 				{"Ordercode", "BankDate", "Amount"},
 				{
 					"12345",
-					"2024-01-17 15:30:27",
+					"2024-01-01 15:30:27",
 					"250.1",
 				},
 			},
-			uploadedDate:     shared.NewDate("2024-01-01"),
+			bankDate:     shared.NewDate("2024-01-01"),
 			pisNumber:        150,
 			expectedClientId: 2,
 			expectedLedgerAllocations: []createdLedgerAllocation{
@@ -180,7 +180,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					25010,
 					"MOTO CARD PAYMENT",
 					"CONFIRMED",
-					time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+					time.Date(2024, 1, 1, 15, 30, 27, 0, time.UTC),
 					10000,
 					"ALLOCATED",
 					2,
@@ -190,7 +190,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					25010,
 					"MOTO CARD PAYMENT",
 					"CONFIRMED",
-					time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+					time.Date(2024, 1, 1, 15, 30, 27, 0, time.UTC),
 					-15010,
 					"UNAPPLIED",
 					0,
@@ -205,18 +205,18 @@ func (suite *IntegrationSuite) Test_processPayments() {
 				{"Ordercode", "BankDate", "Amount"},
 				{
 					"123456",
-					"2024-01-17 15:30:27",
+					"2024-01-01 15:30:27",
 					"50",
 				},
 			},
-			uploadedDate:     shared.NewDate("2024-01-01"),
+			bankDate:         shared.NewDate("2024-01-17"),
 			expectedClientId: 3,
 			expectedLedgerAllocations: []createdLedgerAllocation{
 				{
 					5000,
 					"MOTO CARD PAYMENT",
 					"CONFIRMED",
-					time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+					time.Date(2024, 1, 1, 15, 30, 27, 0, time.UTC),
 					5000,
 					"ALLOCATED",
 					3,
@@ -229,7 +229,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
 			var failedLines map[int]string
-			failedLines, err := s.processPayments(context.Background(), tt.records, "PAYMENTS_MOTO_CARD", tt.uploadedDate, shared.Nillable[int]{Value: tt.pisNumber, Valid: true})
+			failedLines, err := s.processPayments(context.Background(), tt.records, "PAYMENTS_MOTO_CARD", tt.bankDate, shared.Nillable[int]{Value: tt.pisNumber, Valid: true})
 			assert.Equal(t, tt.want, err)
 			assert.Equal(t, tt.expectedFailedLines, failedLines)
 

@@ -21,14 +21,14 @@ func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, detail shared.F
 	file, err := s.fileStorage.GetFile(ctx, os.Getenv("ASYNC_S3_BUCKET"), detail.Filename)
 
 	if err != nil {
-		payload := createUploadNotifyPayload(detail, fmt.Errorf("Unable to download report"), map[int]string{})
+		payload := createUploadNotifyPayload(detail, fmt.Errorf("unable to download report"), map[int]string{})
 		return s.notify.Send(ctx, payload)
 	}
 
 	csvReader := csv.NewReader(file)
 	records, err := csvReader.ReadAll()
 	if err != nil {
-		payload := createUploadNotifyPayload(detail, fmt.Errorf("Unable to read report"), map[int]string{})
+		payload := createUploadNotifyPayload(detail, fmt.Errorf("unable to read report"), map[int]string{})
 		return s.notify.Send(ctx, payload)
 	}
 
@@ -54,6 +54,8 @@ func getLedgerType(uploadType string) (string, error) {
 		return shared.TransactionTypeOPGBACSPayment.Key(), nil
 	case "PAYMENTS_SUPERVISION_CHEQUE":
 		return shared.TransactionTypeSupervisionChequePayment.Key(), nil
+	case "SOP_UNALLOCATED":
+		return shared.TransactionTypeSOPUnallocatedPayment.Key(), nil
 	}
 	return "", fmt.Errorf("unknown upload type")
 }
@@ -67,13 +69,13 @@ func parseAmount(amount string) (int32, error) {
 		amount = amount + "00"
 	}
 
-	intAmount, err := strconv.Atoi(strings.Replace(amount, ".", "", 1))
+	intAmount, err := strconv.ParseInt(strings.Replace(amount, ".", "", 1), 10, 32)
 	return int32(intAmount), err
 }
 
-func getPaymentDetails(record []string, uploadType string, uploadDate shared.Date, ledgerType string, index int, failedLines *map[int]string) shared.PaymentDetails {
+func getPaymentDetails(record []string, uploadType string, bankDate shared.Date, ledgerType string, index int, failedLines *map[int]string) shared.PaymentDetails {
 	var courtRef string
-	var bankDate time.Time
+	var receivedDate time.Time
 	var amount int32
 	var err error
 
@@ -87,7 +89,7 @@ func getPaymentDetails(record []string, uploadType string, uploadDate shared.Dat
 			return shared.PaymentDetails{}
 		}
 
-		bankDate, err = time.Parse("2006-01-02 15:04:05", record[1])
+		receivedDate, err = time.Parse("2006-01-02 15:04:05", record[1])
 		if err != nil {
 			(*failedLines)[index] = "DATE_TIME_PARSE_ERROR"
 			return shared.PaymentDetails{}
@@ -101,7 +103,7 @@ func getPaymentDetails(record []string, uploadType string, uploadDate shared.Dat
 			return shared.PaymentDetails{}
 		}
 
-		bankDate, err = time.Parse("02/01/2006", record[4])
+		receivedDate, err = time.Parse("02/01/2006", record[4])
 		if err != nil {
 			(*failedLines)[index] = "DATE_PARSE_ERROR"
 			return shared.PaymentDetails{}
@@ -110,6 +112,11 @@ func getPaymentDetails(record []string, uploadType string, uploadDate shared.Dat
 		courtRef = record[0]
 
 		amount, err = parseAmount(record[2])
+	case "SOP_UNALLOCATED":
+		courtRef = record[0]
+
+		amount, err = parseAmount(record[1])
+
 		if err != nil {
 			(*failedLines)[index] = "AMOUNT_PARSE_ERROR"
 			return shared.PaymentDetails{}
@@ -118,17 +125,20 @@ func getPaymentDetails(record []string, uploadType string, uploadDate shared.Dat
 		bankDate, err = time.Parse("02/01/2006", record[4])
 		if err != nil {
 			(*failedLines)[index] = "DATE_PARSE_ERROR"
+		receivedDate, err = time.Parse("2006-01-02 15:04:05", "2025-03-31 00:00:00")
+		if err != nil {
+			(*failedLines)[index] = "DATE_TIME_PARSE_ERROR"
 			return shared.PaymentDetails{}
 		}
 	}
 
-	return shared.PaymentDetails{Amount: amount, BankDate: bankDate, CourtRef: courtRef, LedgerType: ledgerType, UploadDate: uploadDate.Time}
+	return shared.PaymentDetails{Amount: amount, BankDate: bankDate.Time, CourtRef: courtRef, LedgerType: ledgerType, ReceivedDate: receivedDate}
 }
 
-func (s *Service) processPayments(ctx context.Context, records [][]string, uploadType string, uploadDate shared.Date, pisNumber shared.Nillable[int]) (map[int]string, error) {
+func (s *Service) processPayments(ctx context.Context, records [][]string, uploadType string, bankDate shared.Date, pisNumber shared.Nillable[int]) (map[int]string, error) {
 	failedLines := make(map[int]string)
 
-	ctx, cancelTx := context.WithCancel(ctx)
+	ctx, cancelTx := s.WithCancel(ctx)
 	defer cancelTx()
 
 	tx, err := s.BeginStoreTx(ctx)
@@ -143,7 +153,7 @@ func (s *Service) processPayments(ctx context.Context, records [][]string, uploa
 
 	for index, record := range records {
 		if index != 0 && record[0] != "" {
-			details := getPaymentDetails(record, uploadType, uploadDate, ledgerType, index, &failedLines)
+			details := getPaymentDetails(record, uploadType, bankDate, ledgerType, index, &failedLines)
 
 			if details != (shared.PaymentDetails{}) {
 				err := s.ProcessPaymentsUploadLine(ctx, tx, details, index, &failedLines, pisNumber)
@@ -167,11 +177,25 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 		return nil
 	}
 
+	var (
+		courtRef   pgtype.Text
+		bankDate   pgtype.Date
+		createdBy  pgtype.Int4
+		uploadDate pgtype.Timestamp
+    pisNumber  pgtype.Int4
+	)
+
+	_ = courtRef.Scan(details.CourtRef)
+	_ = bankDate.Scan(details.BankDate)
+	_ = store.ToInt4(&createdBy, s.env.SystemUserID)
+	_ = uploadDate.Scan(details.ReceivedDate)
+  _ = pisNumber.Scan(pisNumber)
+
 	ledgerId, _ := s.store.GetLedgerForPayment(ctx, store.GetLedgerForPaymentParams{
-		CourtRef: pgtype.Text{String: details.CourtRef, Valid: true},
+		CourtRef: courtRef,
 		Amount:   details.Amount,
 		Type:     details.LedgerType,
-		Bankdate: pgtype.Date{Time: details.BankDate, Valid: true},
+		Bankdate: bankDate,
 	})
 
 	if ledgerId != 0 {
@@ -179,16 +203,15 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 		return nil
 	}
 
-	// TODO: Rollback if no allocation can be made?
 	ledgerId, err := tx.CreateLedgerForCourtRef(ctx, store.CreateLedgerForCourtRefParams{
-		CourtRef:  pgtype.Text{String: details.CourtRef, Valid: true},
+		CourtRef:  courtRef,
 		Amount:    details.Amount,
 		Type:      details.LedgerType,
 		Status:    "CONFIRMED",
-		CreatedBy: pgtype.Int4{Int32: 1, Valid: true},
-		Bankdate:  pgtype.Date{Time: details.BankDate, Valid: true},
-		Datetime:  pgtype.Timestamp{Time: details.UploadDate, Valid: true},
-		PisNumber: pgtype.Int4{Int32: int32(pisNumber.Value), Valid: pisNumber.Valid},
+		CreatedBy: createdBy,
+		Bankdate:  bankDate,
+		Datetime:  uploadDate,
+		PisNumber: pisNumber,
 	})
 
 	if err != nil {
@@ -196,7 +219,7 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 		return nil
 	}
 
-	invoices, err := tx.GetInvoicesForCourtRef(ctx, pgtype.Text{String: details.CourtRef, Valid: true})
+	invoices, err := tx.GetInvoicesForCourtRef(ctx, courtRef)
 
 	if err != nil {
 		return err
@@ -204,17 +227,23 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 
 	remaining := details.Amount
 
+	var ledgerID pgtype.Int4
+	_ = store.ToInt4(&ledgerID, ledgerId)
+
 	for _, invoice := range invoices {
 		allocationAmount := invoice.Outstanding
 		if allocationAmount > remaining {
 			allocationAmount = remaining
 		}
 
+		var invoiceID pgtype.Int4
+		_ = store.ToInt4(&invoiceID, invoice.ID)
+
 		err = tx.CreateLedgerAllocation(ctx, store.CreateLedgerAllocationParams{
-			InvoiceID: pgtype.Int4{Int32: invoice.ID, Valid: true},
+			InvoiceID: invoiceID,
 			Amount:    allocationAmount,
 			Status:    "ALLOCATED",
-			LedgerID:  pgtype.Int4{Int32: ledgerId, Valid: true},
+			LedgerID:  ledgerID,
 		})
 		if err != nil {
 			return err
@@ -230,7 +259,7 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 		err = tx.CreateLedgerAllocation(ctx, store.CreateLedgerAllocationParams{
 			Amount:   -remaining,
 			Status:   "UNAPPLIED",
-			LedgerID: pgtype.Int4{Int32: ledgerId, Valid: true},
+			LedgerID: ledgerID,
 		})
 
 		if err != nil {

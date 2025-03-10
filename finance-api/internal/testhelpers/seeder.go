@@ -12,10 +12,10 @@ import (
 )
 
 type Service interface {
-	AddManualInvoice(ctx context.Context, clientID int, invoice shared.AddManualInvoice) error
-	AddInvoiceAdjustment(ctx context.Context, clientID int, invoiceId int, adjustment *shared.AddInvoiceAdjustmentRequest) (*shared.InvoiceReference, error)
-	UpdatePendingInvoiceAdjustment(ctx context.Context, clientID int, adjustmentId int, status shared.AdjustmentStatus) error
-	AddFeeReduction(ctx context.Context, clientId int, reduction shared.AddFeeReduction) error
+	AddManualInvoice(ctx context.Context, clientID int32, invoice shared.AddManualInvoice) error
+	AddInvoiceAdjustment(ctx context.Context, clientID int32, invoiceId int32, adjustment *shared.AddInvoiceAdjustmentRequest) (*shared.InvoiceReference, error)
+	UpdatePendingInvoiceAdjustment(ctx context.Context, clientID int32, adjustmentId int32, status shared.AdjustmentStatus) error
+	AddFeeReduction(ctx context.Context, clientId int32, reduction shared.AddFeeReduction) error
 	ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, details shared.PaymentDetails, index int, failedLines *map[int]string, pisNumber shared.Nillable[int]) error
 	BeginStoreTx(ctx context.Context) (*store.Tx, error)
 }

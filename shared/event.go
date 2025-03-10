@@ -61,11 +61,11 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 }
 
 type DebtPositionChangedEvent struct {
-	ClientID int `json:"clientId"`
+	ClientID int32 `json:"clientId"`
 }
 
 type ClientCreatedEvent struct {
-	ClientID int    `json:"clientId"`
+	ClientID int32  `json:"clientId"`
 	CourtRef string `json:"courtRef"`
 }
 
