@@ -24,6 +24,7 @@
         {{ else }}
             {{ $clientId := .ClientId }}
             {{ $user := .User }}
+            {{ $xsrfToken := .AppVars.XSRFToken }}
             {{ range .PendingInvoiceAdjustments }}
                 <tbody class="govuk-table__body">
                 <tr>
@@ -36,15 +37,16 @@
                     <td class="govuk-table__cell">
                         {{ if $user.IsFinanceManager }}
                             {{ if eq .Status "Pending"}}
-                                <div class="moj-button-menu">
-                                    <form method="post" action="{{ prefix (printf "/clients/%s/pending-invoice-adjustments/%s/%s/approved" $clientId .Id .AdjustmentType) }}">
-                                        <input type="hidden" name="xsrfToken" value="{{ .AppVars.XSRFToken }}"/>
+                                <div class="form-button-menu">
+                                    <form method="post" hx-post="{{ prefix (printf "/clients/%s/pending-invoice-adjustments/%s/%s/approved" $clientId .Id .AdjustmentType) }}">
+                                        <input type="hidden" name="xsrfToken" value="{{ $xsrfToken }}"/>
                                         <button class="govuk-button moj-button-menu__item govuk-button--secondary" type="submit">
                                             Approve
                                         </button>
                                     </form>
-                                    <form method="post" action="{{ prefix (printf "/clients/%s/pending-invoice-adjustments/%s/%s/rejected" $clientId .Id .AdjustmentType) }}">
-                                        <input type="hidden" name="xsrfToken" value="{{ .AppVars.XSRFToken }}"/>
+
+                                    <form method="post" hx-post="{{ prefix (printf "/clients/%s/pending-invoice-adjustments/%s/%s/rejected" $clientId .Id .AdjustmentType) }}">
+                                        <input type="hidden" name="xsrfToken" value="{{ $xsrfToken }}"/>
                                         <button class="govuk-button moj-button-menu__item govuk-button--secondary" type="submit">
                                             Reject
                                         </button>
