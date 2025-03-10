@@ -12,6 +12,7 @@ SET account_code = CASE
 WHERE fee_type IN ('MCR', 'MDR');
 
 UPDATE transaction_type SET account_code = CASE
+    WHEN supervision_level = 'AD' THEN 5356202100
     WHEN supervision_level = 'GENERAL' THEN 5356202102
     WHEN supervision_level = 'MINIMAL' THEN 5356202104
     ELSE account_code
@@ -20,15 +21,15 @@ WHERE fee_type = 'WOR';
 
 INSERT INTO transaction_type (fee_type, supervision_level, ledger_type, account_code, description, line_description, is_receipt)
 VALUES
-    ('ZR', 'GA', 'CREDIT REMISSION', 4481102107, 'Remission Credit', 'GA fee reduction', false),
-    ('ZR', 'GS', 'CREDIT REMISSION', 4481102107, 'Remission Credit', 'GS fee reduction', false),
-    ('ZR', 'GT', 'CREDIT REMISSION', 4481102107, 'Remission Credit', 'GT fee reduction', false),
-    ('ZH', 'GA', 'CREDIT HARDSHIP', 4481102107, 'Hardship Credit', 'GA fee reduction', false),
-    ('ZH', 'GS', 'CREDIT HARDSHIP', 4481102107, 'Hardship Credit', 'GS fee reduction', false),
-    ('ZH', 'GT', 'CREDIT HARDSHIP', 4481102107, 'Hardship Credit', 'GT fee reduction', false),
-    ('ZE', 'GA', 'CREDIT EXEMPTION', 4481102108, 'Exemption Credit', 'GA fee reduction', false),
-    ('ZE', 'GS', 'CREDIT EXEMPTION', 4481102108, 'Exemption Credit', 'GS fee reduction', false),
-    ('ZE', 'GT', 'CREDIT EXEMPTION', 4481102108, 'Exemption Credit', 'GT fee reduction', false),
+    ('ZR', 'GA', 'CREDIT REMISSION', 4481102107, 'Remission Credit', 'GA remissions & hardships', false),
+    ('ZR', 'GS', 'CREDIT REMISSION', 4481102107, 'Remission Credit', 'GS remissions & hardships', false),
+    ('ZR', 'GT', 'CREDIT REMISSION', 4481102107, 'Remission Credit', 'GT remissions & hardships', false),
+    ('ZH', 'GA', 'CREDIT HARDSHIP', 4481102107, 'Hardship Credit', 'GA remissions & hardships', false),
+    ('ZH', 'GS', 'CREDIT HARDSHIP', 4481102107, 'Hardship Credit', 'GS remissions & hardships', false),
+    ('ZH', 'GT', 'CREDIT HARDSHIP', 4481102107, 'Hardship Credit', 'GT remissions & hardships', false),
+    ('ZE', 'GA', 'CREDIT EXEMPTION', 4481102108, 'Exemption Credit', 'GA exemptions', false),
+    ('ZE', 'GS', 'CREDIT EXEMPTION', 4481102108, 'Exemption Credit', 'GS exemptions', false),
+    ('ZE', 'GT', 'CREDIT EXEMPTION', 4481102108, 'Exemption Credit', 'GT exemptions', false),
     ('MCR', 'GA', 'CREDIT MEMO', 4481102107, 'Manual Credit', 'GA Manual credit', false),
     ('MCR', 'GS', 'CREDIT MEMO', 4481102107, 'Manual Credit', 'GS Manual credit', false),
     ('MCR', 'GT', 'CREDIT MEMO', 4481102107, 'Manual Credit', 'GT Manual credit', false),

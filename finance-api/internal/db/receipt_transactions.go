@@ -18,6 +18,7 @@ const ReceiptTransactionsQuery = `WITH transaction_totals AS (SELECT tt.line_des
 	JOIN supervision_finance.transaction_type tt ON l.type = tt.ledger_type 
 	WHERE TO_CHAR(l.created_at, 'YYYY-MM-DD') = $1
 	AND tt.is_receipt = true 
+	AND l.type != 'CREDIT REAPPLY'
 	GROUP BY tt.line_description, TO_CHAR(l.bankdate, 'DD/MM/YYYY'), tt.account_code, l.type)
 	, partitioned_data AS (SELECT *,
                                 ROW_NUMBER() OVER (PARTITION BY account_code ORDER BY account_code) AS row_num
