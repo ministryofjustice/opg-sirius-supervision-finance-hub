@@ -100,12 +100,12 @@ ORDER BY
         WHEN line_description LIKE 'AD Rem/Exem%' THEN 15
         WHEN line_description LIKE 'Gen Rem/Exem%' THEN 16
         WHEN line_description LIKE 'Min Rem/Exem%' THEN 17
-		WHEN line_description LIKE 'GA fee reduction%' AND account_code = 4481102107 THEN 18
-		WHEN line_description LIKE 'GS fee reduction%' AND account_code = 4481102107 THEN 19
-		WHEN line_description LIKE 'GT fee reduction%' AND account_code = 4481102107 THEN 20
-		WHEN line_description LIKE 'GA fee reduction%' AND account_code = 4481102108 THEN 21
-		WHEN line_description LIKE 'GS fee reduction%' AND account_code = 4481102108 THEN 22
-		WHEN line_description LIKE 'GT fee reduction%' AND account_code = 4481102108 THEN 23
+		WHEN line_description LIKE 'GA remissions & hardships%' THEN 18
+		WHEN line_description LIKE 'GS remissions & hardships%' THEN 19
+		WHEN line_description LIKE 'GT remissions & hardships%' THEN 20
+		WHEN line_description LIKE 'GA exemptions%' THEN 21
+		WHEN line_description LIKE 'GS exemptions%' THEN 22
+		WHEN line_description LIKE 'GT exemptions%' THEN 23
         WHEN line_description LIKE 'AD Manual credit%' THEN 24
         WHEN line_description LIKE 'Gen Manual credit%' THEN 25
         WHEN line_description LIKE 'Min Manual credit%' THEN 26
