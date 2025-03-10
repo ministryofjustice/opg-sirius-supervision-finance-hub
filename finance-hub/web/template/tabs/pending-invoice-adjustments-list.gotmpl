@@ -37,24 +37,18 @@
                         {{ if $user.IsFinanceManager }}
                             {{ if eq .Status "Pending"}}
                                 <div class="moj-button-menu">
-                                    <a
-                                            class="govuk-button moj-button-menu__item govuk-button--secondary"
-                                            role="button"
-                                            draggable="false"
-                                            data-module="govuk-button"
-                                            hx-post="{{ prefix (printf "/clients/%s/pending-invoice-adjustments/%s/%s/approved" $clientId .Id .AdjustmentType) }}"
-                                    >
-                                        Approve
-                                    </a>
-                                    <a
-                                            class="govuk-button moj-button-menu__item govuk-button--secondary"
-                                            role="button"
-                                            draggable="false"
-                                            data-module="govuk-button"
-                                            hx-post="{{ prefix (printf "/clients/%s/pending-invoice-adjustments/%s/%s/rejected" $clientId .Id .AdjustmentType) }}"
-                                    >
-                                        Reject
-                                    </a>
+                                    <form method="post" action="{{ prefix (printf "/clients/%s/pending-invoice-adjustments/%s/%s/approved" $clientId .Id .AdjustmentType) }}">
+                                        <input type="hidden" name="xsrfToken" value="{{ .AppVars.XSRFToken }}"/>
+                                        <button class="govuk-button moj-button-menu__item govuk-button--secondary" type="submit">
+                                            Approve
+                                        </button>
+                                    </form>
+                                    <form method="post" action="{{ prefix (printf "/clients/%s/pending-invoice-adjustments/%s/%s/rejected" $clientId .Id .AdjustmentType) }}">
+                                        <input type="hidden" name="xsrfToken" value="{{ .AppVars.XSRFToken }}"/>
+                                        <button class="govuk-button moj-button-menu__item govuk-button--secondary" type="submit">
+                                            Reject
+                                        </button>
+                                    </form>
                                 </div>
                             {{ end }}
                         {{ end}}
