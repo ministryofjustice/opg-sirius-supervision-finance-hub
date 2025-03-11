@@ -11,34 +11,35 @@ type NonReceiptTransactions struct {
 const NonReceiptTransactionsQuery = `WITH transaction_totals AS (
    SELECT
         tt.line_description AS line_description,
-        TO_CHAR(l.created_at, 'DD/MM/YYYY') AS transaction_date,
+        l.created_at::DATE AS transaction_date,
         tt.account_code AS account_code,
         (ABS(SUM(la.amount) / 100.0)::NUMERIC(10, 2))::VARCHAR(255) AS amount,
-		cc.cost_centre,
+		account.cost_centre,
 		CASE WHEN tt.fee_type IN ('MCR','ZR','ZE','ZH','WO') THEN true ELSE false END AS is_credit
     FROM
         supervision_finance.ledger_allocation la
         JOIN supervision_finance.ledger l ON l.id = la.ledger_id
         JOIN supervision_finance.invoice i ON i.id = la.invoice_id
-         LEFT JOIN LATERAL (
-                        SELECT CASE WHEN i.feetype IN  ('AD', 'GA', 'GT', 'GS') THEN i.feetype ELSE (SELECT COALESCE(ifr.supervisionlevel, '')
-                        FROM supervision_finance.invoice_fee_range ifr
-                        WHERE ifr.invoice_id = i.id
-                        ORDER BY id DESC
-                        LIMIT 1) END AS supervision_level
-                ) sl ON TRUE
-                LEFT JOIN LATERAL (
-                        SELECT CASE WHEN i.feetype IN ('GA', 'GS', 'GT') THEN '10486000' ELSE '10482009' END AS cost_centre LIMIT 1
-    ) cc ON TRUE
+		LEFT JOIN LATERAL (
+			SELECT COALESCE(ifr.supervisionlevel, '') AS supervision_level
+			FROM supervision_finance.invoice_fee_range ifr
+			WHERE ifr.invoice_id = i.id
+			ORDER BY id DESC
+			LIMIT 1
+		) sl ON TRUE
         JOIN supervision_finance.transaction_type tt
-                  ON l.type = tt.ledger_type AND sl.supervision_level = tt.supervision_level
-    WHERE tt.is_receipt = false AND TO_CHAR(l.created_at, 'YYYY-MM-DD') = $1
+	  		ON l.type = tt.ledger_type AND sl.supervision_level = tt.supervision_level
+		LEFT JOIN account ON tt.account_code = account.code
+    WHERE tt.is_receipt = false AND l.created_at::DATE = $1
     GROUP BY
-        tt.line_description, TO_CHAR(l.created_at, 'DD/MM/YYYY'), tt.account_code, cc.cost_centre, tt.fee_type
+        tt.line_description, l.created_at::DATE, tt.account_code, account.cost_centre, tt.fee_type
 	UNION
-	SELECT tt.line_description AS line_description, TO_CHAR(i.created_at, 'DD/MM/YYYY') AS transaction_date, tt.account_code AS account_code, (ABS(SUM(i.amount) / 100.0)::NUMERIC(10, 2))::VARCHAR(255) AS amount, cc.cost_centre AS cost_centre, false AS is_credit 
-	FROM supervision_finance.invoice i LEFT JOIN LATERAL (SELECT CASE WHEN i.feetype IN ('GA', 'GS', 'GT') THEN '10486000' ELSE '10482009' END AS cost_centre LIMIT 1) cc ON TRUE LEFT JOIN LATERAL (SELECT CASE WHEN i.feetype IN ('AD', 'GA', 'GT', 'GS') THEN i.feetype ELSE (SELECT COALESCE(ifr.supervisionlevel, '') FROM supervision_finance.invoice_fee_range ifr WHERE ifr.invoice_id = i.id ORDER BY id DESC LIMIT 1) END AS supervision_level) sl ON TRUE LEFT JOIN supervision_finance.transaction_type tt ON i.feetype = tt.fee_type AND sl.supervision_level = tt.supervision_level 
-	WHERE TO_CHAR(i.created_at, 'YYYY-MM-DD') = $1 GROUP BY tt.line_description, TO_CHAR(i.created_at, 'DD/MM/YYYY'), tt.account_code, cc.cost_centre
+	SELECT tt.line_description AS line_description, i.created_at::DATE AS transaction_date, tt.account_code AS account_code, (ABS(SUM(i.amount) / 100.0)::NUMERIC(10, 2))::VARCHAR(255) AS amount, account.cost_centre AS cost_centre, false AS is_credit 
+	FROM supervision_finance.invoice i
+	LEFT JOIN LATERAL (SELECT CASE WHEN i.feetype IN ('AD', 'GA', 'GT', 'GS') THEN i.feetype ELSE (SELECT COALESCE(ifr.supervisionlevel, '') FROM supervision_finance.invoice_fee_range ifr WHERE ifr.invoice_id = i.id ORDER BY id DESC LIMIT 1) END AS supervision_level) sl ON TRUE 
+	LEFT JOIN supervision_finance.transaction_type tt ON i.feetype = tt.fee_type AND sl.supervision_level = tt.supervision_level 
+	LEFT JOIN account ON tt.account_code = account.code
+	WHERE i.created_at::DATE = $1 GROUP BY tt.line_description, i.created_at::DATE, tt.account_code, account.cost_centre
 ),
 partitioned_data AS (
     SELECT
@@ -49,7 +50,7 @@ partitioned_data AS (
 	CROSS JOIN (select 1 as n union all select 2) n
 )
 SELECT
-    '0470' AS "Entity",
+    '="0470"' AS "Entity",
     CASE
         WHEN n % 2 = 1 THEN
             cost_centre
@@ -62,10 +63,10 @@ SELECT
         ELSE
             '1816100000'
         END AS "Account",
-    '0000000' AS "Objective",
-    '00000000' AS "Analysis",
-    '0000' AS "Intercompany",
-    '00000000' AS "Spare",
+    '="0000000"' AS "Objective",
+    '="00000000"' AS "Analysis",
+    '="0000"' AS "Intercompany",
+    '="00000000"' AS "Spare",
     CASE
         WHEN n % 2 = 1 AND is_credit = false OR n % 2 = 0 AND is_credit THEN
             ''
@@ -78,7 +79,7 @@ SELECT
         ELSE
             ''
         END AS "Credit",
-    line_description || ' [' || transaction_date || ']' AS "Line description"
+    line_description || ' [' || TO_CHAR(transaction_date, 'DD/MM/YYYY') || ']' AS "Line description"
 FROM
     partitioned_data
 ORDER BY
