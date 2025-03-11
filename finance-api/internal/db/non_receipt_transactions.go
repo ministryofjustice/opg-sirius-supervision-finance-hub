@@ -60,7 +60,7 @@ SELECT
         WHEN n % 2 = 1 THEN
             account_code
         ELSE
-            '1816100000'
+            '1816102003'
         END AS "Account",
     '0000000' AS "Objective",
     '00000000' AS "Analysis",

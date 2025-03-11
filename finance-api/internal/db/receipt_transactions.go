@@ -29,7 +29,7 @@ SELECT '0470'                                              AS "Entity",
           WHEN row_num % 2 = 1 THEN
               CASE WHEN ledger_type = 'SUPERVISION BACS PAYMENT' THEN '1841102088' ELSE '1841102050' END
           ELSE
-              '1816100000'
+              '1816102003'
           END                                             AS "Account",
       '0000000'                                           AS "Objective",
       '00000000'                                          AS "Analysis",
