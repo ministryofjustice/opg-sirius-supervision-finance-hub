@@ -14,7 +14,7 @@ const AgedDebtQuery = `WITH outstanding_invoices AS (SELECT i.id,
                                      i.finance_client_id,
                                      i.feetype,
                                      CASE 
-                                         WHEN i.feetype = 'AD' THEN 'AD'
+                                         WHEN i.feetype IN ('AD', 'GA', 'GS', 'GT') THEN i.feetype
                                     	 ELSE COALESCE(sl.supervision_level, '')    
 									 END AS supervision_level,
                                      i.reference,
