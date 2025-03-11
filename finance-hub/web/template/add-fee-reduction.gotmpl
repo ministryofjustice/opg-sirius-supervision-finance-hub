@@ -17,7 +17,8 @@
                         class="govuk-grid-column-one-third"
                         method="post"
                         hx-post="{{ prefix (printf "/clients/%s/fee-reductions/add" .ClientId) }}"
-                        hx-target="#error-summary">
+                        hx-target="#error-summary"
+                        hx-disabled-elt="find button">
                         <input type="hidden" name="xsrfToken" value="{{ .AppVars.XSRFToken }}"/>
 
                         <div id="f-FeeType" class="govuk-form-group">
