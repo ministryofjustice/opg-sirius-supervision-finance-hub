@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/testhelpers"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
@@ -52,50 +53,50 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 
 	results := mapByHeader(rows)
 	assert.NotEmpty(suite.T(), results)
-	//
-	//// AD Remissions & Exemptions
-	//assert.Equal(suite.T(), "0470", results[0]["Entity"], "Entity - AD Remissions & Exemptions")
-	//assert.Equal(suite.T(), "10482009", results[0]["Cost Centre"], "Cost Centre - AD Remissions & Exemptions")
-	//assert.Equal(suite.T(), "4481102114", results[0]["Account"], "Account - AD Remissions & Exemptions")
-	//assert.Equal(suite.T(), "0000000", results[0]["Objective"], "Objective - AD Remissions & Exemptions")
-	//assert.Equal(suite.T(), "00000000", results[0]["Analysis"], "Analysis - AD Remissions & Exemptions")
-	//assert.Equal(suite.T(), "0000", results[0]["Intercompany"], "Intercompany - AD Remissions & Exemptions")
-	//assert.Equal(suite.T(), "00000000", results[0]["Spare"], "Spare - AD Remissions & Exemptions")
-	//assert.Equal(suite.T(), "100.00", results[0]["Debit"], "Debit - AD Remissions & Exemptions")
-	//assert.Equal(suite.T(), "", results[0]["Credit"], "Credit - AD Remissions & Exemptions")
-	//assert.Equal(suite.T(), fmt.Sprintf("AD Rem/Exem [%s]", yesterday.Date().Format("02/01/2006")), results[0]["Line description"], "Line description - AD Remissions & Exemptions")
-	//
-	//// AD Remissions & Exemptions -- reverse
-	//assert.Equal(suite.T(), "0470", results[1]["Entity"], "Entity - AD Remissions & Exemptions 2")
-	//assert.Equal(suite.T(), "99999999", results[1]["Cost Centre"], "Cost Centre - AD Remissions & Exemptions 2")
-	//assert.Equal(suite.T(), "1816100000", results[1]["Account"], "Account - AD Remissions & Exemptions 2")
-	//assert.Equal(suite.T(), "0000000", results[1]["Objective"], "Objective - AD Remissions & Exemptions 2")
-	//assert.Equal(suite.T(), "00000000", results[1]["Analysis"], "Analysis - AD Remissions & Exemptions 2")
-	//assert.Equal(suite.T(), "0000", results[1]["Intercompany"], "Intercompany - AD Remissions & Exemptions 2")
-	//assert.Equal(suite.T(), "00000000", results[1]["Spare"], "Spare - AD Remissions & Exemptions 2")
-	//assert.Equal(suite.T(), "", results[1]["Debit"], "Debit - AD Remissions & Exemptions 2")
-	//assert.Equal(suite.T(), "100.00", results[1]["Credit"], "Credit - AD Remissions & Exemptions 2")
-	//assert.Equal(suite.T(), fmt.Sprintf("AD Rem/Exem [%s]", yesterday.Date().Format("02/01/2006")), results[1]["Line description"], "Line description - AD Remissions & Exemptions 2")
-	//
-	//assert.Equal(suite.T(), "0470", results[2]["Entity"], "Entity - S2 Remissions & Exemptions")
-	//assert.Equal(suite.T(), "10482009", results[2]["Cost Centre"], "Cost Centre - S2 Remissions & Exemptions")
-	//assert.Equal(suite.T(), "4481102115", results[2]["Account"], "Account - S2 Remissions & Exemptions")
-	//assert.Equal(suite.T(), "0000000", results[2]["Objective"], "Objective - S2 Remissions & Exemptions")
-	//assert.Equal(suite.T(), "00000000", results[2]["Analysis"], "Analysis - S2 Remissions & Exemptions")
-	//assert.Equal(suite.T(), "0000", results[2]["Intercompany"], "Intercompany - S2 Remissions & Exemptions")
-	//assert.Equal(suite.T(), "00000000", results[2]["Spare"], "Spare - S2 Remissions & Exemptions")
-	//assert.Equal(suite.T(), "320.00", results[2]["Debit"], "Debit - S2 Remissions & Exemptions")
-	//assert.Equal(suite.T(), "", results[2]["Credit"], "Credit - S2 Remissions & Exemptions")
-	//assert.Equal(suite.T(), fmt.Sprintf("Gen Rem/Exem [%s]", yesterday.Date().Format("02/01/2006")), results[2]["Line description"], "Line description - S2 Remissions & Exemptions")
-	//
-	//assert.Equal(suite.T(), "0470", results[3]["Entity"], "Entity - S2 Remissions & Exemptions 2")
-	//assert.Equal(suite.T(), "99999999", results[3]["Cost Centre"], "Cost Centre - S2 Remissions & Exemptions 2")
-	//assert.Equal(suite.T(), "1816100000", results[3]["Account"], "Account - S2 Remissions & Exemptions 2")
-	//assert.Equal(suite.T(), "0000000", results[3]["Objective"], "Objective - S2 Remissions & Exemptions 2")
-	//assert.Equal(suite.T(), "00000000", results[3]["Analysis"], "Analysis - S2 Remissions & Exemptions 2")
-	//assert.Equal(suite.T(), "0000", results[3]["Intercompany"], "Intercompany - S2 Remissions & Exemptions 2")
-	//assert.Equal(suite.T(), "00000000", results[3]["Spare"], "Spare - S2 Remissions & Exemptions 2")
-	//assert.Equal(suite.T(), "", results[3]["Debit"], "Debit - S2 Remissions & Exemptions 2")
-	//assert.Equal(suite.T(), "320.00", results[3]["Credit"], "Credit - S2 Remissions & Exemptions 2")
-	//assert.Equal(suite.T(), fmt.Sprintf("Gen Rem/Exem [%s]", yesterday.Date().Format("02/01/2006")), results[3]["Line description"], "Line description - S2 Remissions & Exemptions 2")
+
+	// AD Remissions & Exemptions
+	assert.Equal(suite.T(), "0470", results[0]["Entity"], "Entity - AD Remissions & Exemptions")
+	assert.Equal(suite.T(), "10482009", results[0]["Cost Centre"], "Cost Centre - AD Remissions & Exemptions")
+	assert.Equal(suite.T(), "4481102114", results[0]["Account"], "Account - AD Remissions & Exemptions")
+	assert.Equal(suite.T(), "0000000", results[0]["Objective"], "Objective - AD Remissions & Exemptions")
+	assert.Equal(suite.T(), "00000000", results[0]["Analysis"], "Analysis - AD Remissions & Exemptions")
+	assert.Equal(suite.T(), "0000", results[0]["Intercompany"], "Intercompany - AD Remissions & Exemptions")
+	assert.Equal(suite.T(), "00000000", results[0]["Spare"], "Spare - AD Remissions & Exemptions")
+	assert.Equal(suite.T(), "100.00", results[0]["Debit"], "Debit - AD Remissions & Exemptions")
+	assert.Equal(suite.T(), "", results[0]["Credit"], "Credit - AD Remissions & Exemptions")
+	assert.Equal(suite.T(), fmt.Sprintf("AD Rem/Exem [%s]", yesterday.Date().Format("02/01/2006")), results[0]["Line description"], "Line description - AD Remissions & Exemptions")
+
+	// AD Remissions & Exemptions -- reverse
+	assert.Equal(suite.T(), "0470", results[1]["Entity"], "Entity - AD Remissions & Exemptions 2")
+	assert.Equal(suite.T(), "99999999", results[1]["Cost Centre"], "Cost Centre - AD Remissions & Exemptions 2")
+	assert.Equal(suite.T(), "1816100000", results[1]["Account"], "Account - AD Remissions & Exemptions 2")
+	assert.Equal(suite.T(), "0000000", results[1]["Objective"], "Objective - AD Remissions & Exemptions 2")
+	assert.Equal(suite.T(), "00000000", results[1]["Analysis"], "Analysis - AD Remissions & Exemptions 2")
+	assert.Equal(suite.T(), "0000", results[1]["Intercompany"], "Intercompany - AD Remissions & Exemptions 2")
+	assert.Equal(suite.T(), "00000000", results[1]["Spare"], "Spare - AD Remissions & Exemptions 2")
+	assert.Equal(suite.T(), "", results[1]["Debit"], "Debit - AD Remissions & Exemptions 2")
+	assert.Equal(suite.T(), "100.00", results[1]["Credit"], "Credit - AD Remissions & Exemptions 2")
+	assert.Equal(suite.T(), fmt.Sprintf("AD Rem/Exem [%s]", yesterday.Date().Format("02/01/2006")), results[1]["Line description"], "Line description - AD Remissions & Exemptions 2")
+
+	assert.Equal(suite.T(), "0470", results[2]["Entity"], "Entity - S2 Remissions & Exemptions")
+	assert.Equal(suite.T(), "10482009", results[2]["Cost Centre"], "Cost Centre - S2 Remissions & Exemptions")
+	assert.Equal(suite.T(), "4481102115", results[2]["Account"], "Account - S2 Remissions & Exemptions")
+	assert.Equal(suite.T(), "0000000", results[2]["Objective"], "Objective - S2 Remissions & Exemptions")
+	assert.Equal(suite.T(), "00000000", results[2]["Analysis"], "Analysis - S2 Remissions & Exemptions")
+	assert.Equal(suite.T(), "0000", results[2]["Intercompany"], "Intercompany - S2 Remissions & Exemptions")
+	assert.Equal(suite.T(), "00000000", results[2]["Spare"], "Spare - S2 Remissions & Exemptions")
+	assert.Equal(suite.T(), "320.00", results[2]["Debit"], "Debit - S2 Remissions & Exemptions")
+	assert.Equal(suite.T(), "", results[2]["Credit"], "Credit - S2 Remissions & Exemptions")
+	assert.Equal(suite.T(), fmt.Sprintf("Gen Rem/Exem [%s]", yesterday.Date().Format("02/01/2006")), results[2]["Line description"], "Line description - S2 Remissions & Exemptions")
+
+	assert.Equal(suite.T(), "0470", results[3]["Entity"], "Entity - S2 Remissions & Exemptions 2")
+	assert.Equal(suite.T(), "99999999", results[3]["Cost Centre"], "Cost Centre - S2 Remissions & Exemptions 2")
+	assert.Equal(suite.T(), "1816100000", results[3]["Account"], "Account - S2 Remissions & Exemptions 2")
+	assert.Equal(suite.T(), "0000000", results[3]["Objective"], "Objective - S2 Remissions & Exemptions 2")
+	assert.Equal(suite.T(), "00000000", results[3]["Analysis"], "Analysis - S2 Remissions & Exemptions 2")
+	assert.Equal(suite.T(), "0000", results[3]["Intercompany"], "Intercompany - S2 Remissions & Exemptions 2")
+	assert.Equal(suite.T(), "00000000", results[3]["Spare"], "Spare - S2 Remissions & Exemptions 2")
+	assert.Equal(suite.T(), "", results[3]["Debit"], "Debit - S2 Remissions & Exemptions 2")
+	assert.Equal(suite.T(), "320.00", results[3]["Credit"], "Credit - S2 Remissions & Exemptions 2")
+	assert.Equal(suite.T(), fmt.Sprintf("Gen Rem/Exem [%s]", yesterday.Date().Format("02/01/2006")), results[3]["Line description"], "Line description - S2 Remissions & Exemptions 2")
 }

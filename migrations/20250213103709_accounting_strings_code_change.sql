@@ -43,10 +43,6 @@ VALUES
     ('WOR', 'GS', 'WRITE OFF REVERSAL', 4481102107, 'Write-off reversal', 'GS Write-off reversal', false),
     ('WOR', 'GT', 'WRITE OFF REVERSAL', 4481102107, 'Write-off reversal', 'GT Write-off reversal', false);
 
-ALTER TABLE transaction_type DROP CONSTRAINT transaction_type_account_code_fkey;
-UPDATE transaction_type SET account_code = 1816102003 WHERE account_code = 1816100000;
-UPDATE account SET code = 1816102003 WHERE code = 1816100000;
-ALTER TABLE transaction_type ADD CONSTRAINT transaction_type_account_code_fkey FOREIGN KEY (account_code) REFERENCES account (code);
 -- +goose Down
 
 UPDATE transaction_type

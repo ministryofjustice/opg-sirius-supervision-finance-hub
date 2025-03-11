@@ -49,7 +49,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 
 	assert.Equal(suite.T(), "0470", results[1]["Entity"], "Entity - BACS Payments 2")
 	assert.Equal(suite.T(), "99999999", results[1]["Cost Centre"], "Cost Centre - BACS Payments 2")
-	assert.Equal(suite.T(), "1816102003", results[1]["Account"], "Account - BACS Payments 2")
+	assert.Equal(suite.T(), "1816100000", results[1]["Account"], "Account - BACS Payments 2")
 	assert.Equal(suite.T(), "0000000", results[1]["Objective"], "Objective - BACS Payments 2")
 	assert.Equal(suite.T(), "00000000", results[1]["Analysis"], "Analysis - BACS Payments 2")
 	assert.Equal(suite.T(), "0000", results[1]["Intercompany"], "Intercompany - BACS Payments 2")
@@ -73,7 +73,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	// Moto Payments -- reverse
 	assert.Equal(suite.T(), "0470", results[3]["Entity"], "Entity - MOTO Payments 2")
 	assert.Equal(suite.T(), "99999999", results[3]["Cost Centre"], "Cost Centre - MOTO Payments 2")
-	assert.Equal(suite.T(), "1816102003", results[3]["Account"], "Account - MOTO Payments 2")
+	assert.Equal(suite.T(), "1816100000", results[3]["Account"], "Account - MOTO Payments 2")
 	assert.Equal(suite.T(), "0000000", results[3]["Objective"], "Objective - MOTO Payments 2")
 	assert.Equal(suite.T(), "00000000", results[3]["Analysis"], "Analysis - MOTO Payments 2")
 	assert.Equal(suite.T(), "0000", results[3]["Intercompany"], "Intercompany - MOTO Payments 2")
