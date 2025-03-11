@@ -25,10 +25,11 @@ describe("Pending Invoice Adjustments", () => {
             .next().contains("Pending");
 
         cy.get("@row")
-            .find(".moj-button-menu")
-            .first().contains("Approve")
-            .next().contains("Reject")
-            .click();
+            .find(".form-button-menu")
+            .within(() => {
+                cy.get("button").contains("Approve");
+                cy.get("button").contains("Reject").click();
+            });
 
         cy.url().should("include", "/pending-invoice-adjustments?success=rejected-invoice-adjustment[CREDIT]");
 
