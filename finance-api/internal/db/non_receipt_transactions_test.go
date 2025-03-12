@@ -20,8 +20,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234")
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
 
-	invoice1Id, _ := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, yesterday.StringPtr())
-	suite.seeder.AddFeeRanges(ctx, invoice1Id, []testhelpers.FeeRange{{SupervisionLevel: "AD", FromDate: oneYearAgo.Date(), ToDate: today.Date()}})
+	_, _ = suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, yesterday.StringPtr())
 	invoice2Id, _ := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeS3, valToPtr("320.00"), threeMonthsAgo.StringPtr(), nil, nil, valToPtr("MINIMAL"), yesterday.StringPtr())
 	suite.seeder.AddFeeRanges(ctx, invoice2Id, []testhelpers.FeeRange{{SupervisionLevel: "MINIMAL", FromDate: oneYearAgo.Date(), ToDate: today.Date()}})
 
@@ -31,12 +30,10 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 	client2ID := suite.seeder.CreateClient(ctx, "Barry", "Test", "87654321", "4321")
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
 
-	invoice5Id, _ := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, yesterday.StringPtr())
-	suite.seeder.AddFeeRanges(ctx, invoice5Id, []testhelpers.FeeRange{{SupervisionLevel: "AD", FromDate: oneYearAgo.Date(), ToDate: today.Date()}})
+	_, _ = suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, yesterday.StringPtr())
 	invoice6Id, _ := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, valToPtr("300.00"), threeMonthsAgo.StringPtr(), nil, nil, valToPtr("GENERAL"), yesterday.StringPtr())
 	suite.seeder.AddFeeRanges(ctx, invoice6Id, []testhelpers.FeeRange{{SupervisionLevel: "GENERAL", FromDate: oneYearAgo.Date(), ToDate: today.Date()}})
-	invoice7Id, _ := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeGA, nil, threeMonthsAgo.StringPtr(), nil, nil, nil, yesterday.StringPtr())
-	suite.seeder.AddFeeRanges(ctx, invoice7Id, []testhelpers.FeeRange{{SupervisionLevel: "GA", FromDate: oneYearAgo.Date(), ToDate: today.Date()}})
+	_, _ = suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeGA, nil, threeMonthsAgo.StringPtr(), nil, nil, nil, yesterday.StringPtr())
 
 	suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeHardship, "2024", 4, "Test", yesterday.Date())
 

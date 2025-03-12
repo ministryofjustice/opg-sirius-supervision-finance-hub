@@ -61,25 +61,26 @@ WITH transaction_type_order AS (
 		WHEN id = 69 THEN 47
 		ELSE 48
 		END AS index
-	FROM transaction_type WHERE is_receipt = false
+	FROM supervision_finance.transaction_type WHERE is_receipt = false
 ),
 transactions AS (
    	SELECT
 		l.created_at::DATE AS created_at,
 		l.type AS ledger_type,
-		null AS fee_type,
+		i.feetype AS fee_type,
 		la.amount AS amount,
-		la.invoice_id AS invoice_id
+		i.id AS invoice_id
 	FROM
         supervision_finance.ledger_allocation la
-        LEFT JOIN ledger l ON l.id = la.ledger_id
+        LEFT JOIN supervision_finance.ledger l ON l.id = la.ledger_id
+		LEFT JOIN supervision_finance.invoice i ON i.id = la.invoice_id
 	WHERE l.created_at::DATE = $1
 	UNION
 	SELECT
 		i.created_at::DATE AS created_at,
 		null AS ledger_type,
 		i.feetype AS fee_type,
-		i.amount AS amount,
+		-i.amount AS amount,
 		i.id AS invoice_id
 	FROM supervision_finance.invoice i
 	WHERE i.created_at::DATE = $1
@@ -91,30 +92,30 @@ transaction_totals AS (
 		tt.account_code,
 		ABS(SUM(t.amount) / 100.0)::NUMERIC(10,2)::VARCHAR(255) AS amount,
 		account.cost_centre,
-		tt.is_credit,
+		CASE WHEN SUM(t.amount) >= 0 THEN true ELSE false END AS is_credit,
 		tt.index,
 		n
 	FROM transactions t
 	LEFT JOIN LATERAL (
-		SELECT COALESCE(ifr.supervisionlevel, '') AS supervision_level
-		FROM invoice_fee_range ifr
-		WHERE ifr.invoice_id = t.invoice_id
-		ORDER BY id DESC
-		LIMIT 1
+		SELECT CASE WHEN t.fee_type IN ('AD', 'GA', 'GS', 'GT') THEN t.fee_type ELSE (
+			SELECT COALESCE(ifr.supervisionlevel, '')
+			FROM supervision_finance.invoice_fee_range ifr
+			WHERE ifr.invoice_id = t.invoice_id
+			ORDER BY id DESC
+			LIMIT 1) END AS supervision_level
 	) sl ON TRUE
 	LEFT JOIN LATERAL (
 		SELECT 
-			tto.index, fee_type, account_code, line_description, 
-			CASE WHEN fee_type IN ('MCR', 'ZR', 'ZE', 'ZH', 'WO') THEN true ELSE false END AS is_credit
-		FROM transaction_type tt
+			tto.index, fee_type, account_code, line_description 
+		FROM supervision_finance.transaction_type tt
 		LEFT JOIN transaction_type_order tto ON tt.id = tto.id
-		WHERE (tt.ledger_type = t.ledger_type OR tt.fee_type = t.fee_type) 
+		WHERE (tt.ledger_type = t.ledger_type OR (t.ledger_type IS NULL AND tt.fee_type = t.fee_type)) 
 		AND is_receipt = false
 		AND sl.supervision_level = tt.supervision_level
 	) tt ON TRUE
-	LEFT JOIN account ON tt.account_code = account.code
+	LEFT JOIN supervision_finance.account ON tt.account_code = account.code
 	CROSS JOIN (select 1 as n union all select 2) n
-	GROUP BY tt.line_description, t.created_at, tt.account_code, account.cost_centre, tt.is_credit, tt.index, n 
+	GROUP BY tt.line_description, t.created_at, tt.account_code, account.cost_centre, tt.index, n 
 )
 SELECT
     '="0470"' AS "Entity",
