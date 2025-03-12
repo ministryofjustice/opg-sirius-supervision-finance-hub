@@ -28,47 +28,48 @@ const ReceiptTransactionsQuery = `WITH transaction_totals AS
 		 	FROM transaction_totals 
 			CROSS JOIN (select 1 AS n union all select 2) n
 	)
-	SELECT '="0470"'                                              AS "Entity",
-		  '99999999'                                       AS "Cost Centre",
-		  CASE
-			  WHEN row_num % 2 = 1 THEN
-				  CASE WHEN ledger_type = 'SUPERVISION BACS PAYMENT' THEN '1841102088' ELSE '1841102050' END
-			  ELSE
-				  '1816100000'
-			  END                                             AS "Account",
-		  '="0000000"'                                           AS "Objective",
-		  '="00000000"'                                          AS "Analysis",
-		  '="0000"'                                              AS "Intercompany",
-		  CASE
-			  WHEN row_num % 2 = 1 THEN
-				  '="000000"'
-			  ELSE
-				  '="00000"'
-			  END                                          AS "Spare",
-		  CASE
-			  WHEN row_num % 2 = 1 THEN
-				  amount
-			  ELSE
-				  ''
-			  END                                             AS "Debit",
-		  CASE
-			  WHEN row_num % 2 = 1 THEN
-				  ''
-			  ELSE
-				  amount
-			  END                                             AS "Credit",
-		  line_description || ' [' || TO_CHAR(transaction_date, 'DD/MM/YYYY') || ']' AS "Line description"
+	SELECT 	
+		'="0470"'                                              		AS "Entity",
+	  	'99999999'                                       			AS "Cost Centre",
+		CASE WHEN row_num % 2 = 1 THEN
+			CASE WHEN ledger_type = 'SUPERVISION BACS PAYMENT' THEN
+				'1841102088' 
+			ELSE 
+				'1841102050' 
+			END
+		ELSE
+	  		'1816100000'
+	  	END                                             			AS "Account",
+		'="0000000"'                                           		AS "Objective",
+		'="00000000"'                                          		AS "Analysis",
+		'="0000"'                                              		AS "Intercompany",
+  		CASE WHEN row_num % 2 = 1 THEN
+	  		'="000000"'
+		ELSE
+	  		'="00000"'
+	END                                          					AS "Spare",
+	  	CASE WHEN row_num % 2 = 1 THEN
+	  		amount
+	  	ELSE
+	  		''
+	  	END                                             			AS "Debit",
+	  	CASE WHEN row_num % 2 = 1 THEN
+	  		''
+	  	ELSE
+	  		amount
+	  	END                                             			AS "Credit",
+		line_description || ' [' || TO_CHAR(transaction_date, 'DD/MM/YYYY') || ']' AS "Line description"
 	FROM partitioned_data 
 	ORDER BY CASE
-				WHEN line_description LIKE 'MOTO card%' THEN 1
-				WHEN line_description LIKE 'Online card%' THEN 2
-				WHEN line_description LIKE 'OPG BACS%' THEN 3
-				WHEN line_description LIKE 'Supervision BACS%' THEN 4
-				WHEN line_description LIKE 'Direct debit%' THEN 5
-				WHEN line_description LIKE 'Cheque payment%' THEN 6
-				WHEN line_description LIKE 'Bounced cheque%' THEN 7
-				ELSE 8
-				END, n;`
+		WHEN line_description LIKE 'MOTO card%' THEN 1
+		WHEN line_description LIKE 'Online card%' THEN 2
+		WHEN line_description LIKE 'OPG BACS%' THEN 3
+		WHEN line_description LIKE 'Supervision BACS%' THEN 4
+		WHEN line_description LIKE 'Direct debit%' THEN 5
+		WHEN line_description LIKE 'Cheque payment%' THEN 6
+		WHEN line_description LIKE 'Bounced cheque%' THEN 7
+		ELSE 8
+		END, n;`
 
 func (r *ReceiptTransactions) GetHeaders() []string {
 	return []string{

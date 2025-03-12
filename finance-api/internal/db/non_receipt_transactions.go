@@ -8,46 +8,56 @@ type NonReceiptTransactions struct {
 	Date *shared.Date
 }
 
-const NonReceiptTransactionsQuery = `WITH transaction_totals AS (
-   SELECT
-        tt.line_description AS line_description,
-        l.created_at::DATE AS transaction_date,
-        tt.account_code AS account_code,
-        (ABS(SUM(la.amount) / 100.0)::NUMERIC(10, 2))::VARCHAR(255) AS amount,
-		account.cost_centre,
-		CASE WHEN tt.fee_type IN ('MCR','ZR','ZE','ZH','WO') THEN true ELSE false END AS is_credit
-    FROM
+const NonReceiptTransactionsQuery = `
+WITH transactions AS (
+   	SELECT
+		l.created_at::DATE AS created_at,
+		l.type AS ledger_type,
+		null AS fee_type,
+		la.amount AS amount,
+		la.invoice_id AS invoice_id
+	FROM
         supervision_finance.ledger_allocation la
-        JOIN supervision_finance.ledger l ON l.id = la.ledger_id
-        JOIN supervision_finance.invoice i ON i.id = la.invoice_id
-		LEFT JOIN LATERAL (
-			SELECT COALESCE(ifr.supervisionlevel, '') AS supervision_level
-			FROM supervision_finance.invoice_fee_range ifr
-			WHERE ifr.invoice_id = i.id
-			ORDER BY id DESC
-			LIMIT 1
-		) sl ON TRUE
-        JOIN supervision_finance.transaction_type tt
-	  		ON l.type = tt.ledger_type AND sl.supervision_level = tt.supervision_level
-		LEFT JOIN account ON tt.account_code = account.code
-    WHERE tt.is_receipt = false AND l.created_at::DATE = $1
-    GROUP BY
-        tt.line_description, l.created_at::DATE, tt.account_code, account.cost_centre, tt.fee_type
+        LEFT JOIN ledger l ON l.id = la.ledger_id
+	WHERE l.created_at::DATE = $1
 	UNION
-	SELECT tt.line_description AS line_description, i.created_at::DATE AS transaction_date, tt.account_code AS account_code, (ABS(SUM(i.amount) / 100.0)::NUMERIC(10, 2))::VARCHAR(255) AS amount, account.cost_centre AS cost_centre, false AS is_credit 
+	SELECT
+		i.created_at::DATE AS created_at,
+		null AS ledger_type,
+		i.feetype AS fee_type,
+		i.amount AS amount,
+		i.id AS invoice_id
 	FROM supervision_finance.invoice i
-	LEFT JOIN LATERAL (SELECT CASE WHEN i.feetype IN ('AD', 'GA', 'GT', 'GS') THEN i.feetype ELSE (SELECT COALESCE(ifr.supervisionlevel, '') FROM supervision_finance.invoice_fee_range ifr WHERE ifr.invoice_id = i.id ORDER BY id DESC LIMIT 1) END AS supervision_level) sl ON TRUE 
-	LEFT JOIN supervision_finance.transaction_type tt ON i.feetype = tt.fee_type AND sl.supervision_level = tt.supervision_level 
-	LEFT JOIN account ON tt.account_code = account.code
-	WHERE i.created_at::DATE = $1 GROUP BY tt.line_description, i.created_at::DATE, tt.account_code, account.cost_centre
+	WHERE i.created_at::DATE = $1
 ),
-partitioned_data AS (
-    SELECT
-        *,
-        ROW_NUMBER() OVER (PARTITION BY line_description ORDER BY line_description) AS row_num
-    FROM
-        transaction_totals 
+transaction_totals AS (
+	SELECT
+		tt.line_description,
+		t.created_at AS transaction_date,
+		tt.account_code,
+		ABS(SUM(t.amount) / 100.0)::NUMERIC(10,2)::VARCHAR(255) AS amount,
+		account.cost_centre,
+		tt.is_credit,
+		n
+	FROM transactions t
+	LEFT JOIN LATERAL (
+		SELECT COALESCE(ifr.supervisionlevel, '') AS supervision_level
+		FROM invoice_fee_range ifr
+		WHERE ifr.invoice_id = t.invoice_id
+		ORDER BY id DESC
+		LIMIT 1
+	) sl ON TRUE
+	LEFT JOIN LATERAL (
+		SELECT fee_type, account_code, line_description, is_receipt, CASE WHEN fee_type IN ('MCR', 'ZR', 'ZE', 'ZH', 'WO') THEN true ELSE false END AS is_credit
+		FROM transaction_type tt
+		WHERE (tt.ledger_type = t.ledger_type OR tt.fee_type = t.fee_type)
+		AND sl.supervision_level = tt.supervision_level
+		ORDER BY id DESC
+	) tt ON TRUE
+	LEFT JOIN account ON tt.account_code = account.code
 	CROSS JOIN (select 1 as n union all select 2) n
+	WHERE tt.is_receipt = false
+	GROUP BY tt.line_description, t.created_at, tt.account_code, account.cost_centre, tt.is_credit, n
 )
 SELECT
     '="0470"' AS "Entity",
@@ -81,7 +91,7 @@ SELECT
         END AS "Credit",
     line_description || ' [' || TO_CHAR(transaction_date, 'DD/MM/YYYY') || ']' AS "Line description"
 FROM
-    partitioned_data
+    transaction_totals
 ORDER BY
     CASE
         WHEN line_description LIKE 'AD invoice%' THEN 1
