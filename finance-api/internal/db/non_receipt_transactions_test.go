@@ -16,7 +16,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 	threeMonthsAgo := suite.seeder.Today().Sub(0, 3, 0)
 	oneYearAgo := suite.seeder.Today().Sub(1, 0, 0)
 
-	// one client with one AD invoice, one minimal S3 invoice, a GS invoice, a GT invoice and an exemption
+	// one client with one AD invoice, one minimal S3 invoice and an exemption
 	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234")
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
 
@@ -26,7 +26,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 
 	suite.seeder.CreateFeeReduction(ctx, client1ID, shared.FeeReductionTypeExemption, "2024", 2, "Test", yesterday.Date())
 
-	// one client with one AD invoice, one general S2 invoice, a GA invoice and a remission
+	// one client with one AD invoice, a GA invoice and a remission
 	client2ID := suite.seeder.CreateClient(ctx, "Barry", "Test", "87654321", "4321")
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
 
