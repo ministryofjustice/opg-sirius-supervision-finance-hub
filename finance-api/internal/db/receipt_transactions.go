@@ -12,14 +12,15 @@ const ReceiptTransactionsQuery = `
 WITH transaction_type_order AS (
 	SELECT 
 		id,
-		CASE WHEN id = 42 THEN 1
-		WHEN id IN (41, 48) THEN 2
-		WHEN id = 44 THEN 3
-		WHEN id = 43 THEN 4
-		WHEN id = 40 THEN 5
-		WHEN id = 45 THEN 6
-		ELSE 7
-		END AS index
+		CASE 
+			WHEN line_description LIKE 'MOTO card%' THEN 1
+			WHEN line_description LIKE 'Online card%' THEN 2
+			WHEN line_description LIKE 'OPG BACS%' THEN 3
+			WHEN line_description LIKE 'Supervision BACS%' THEN 4
+			WHEN line_description LIKE 'Direct debit%' THEN 5
+			WHEN line_description LIKE 'Cheque payment%' THEN 6
+			ELSE 7
+			END AS index
 	FROM transaction_type WHERE is_receipt = true
 ),
 transaction_totals AS (

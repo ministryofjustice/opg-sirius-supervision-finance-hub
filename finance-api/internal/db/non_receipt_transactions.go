@@ -12,60 +12,61 @@ const NonReceiptTransactionsQuery = `
 WITH transaction_type_order AS (
 	SELECT 
 		id, 
-		CASE WHEN id = 1 THEN 1 
-		WHEN id = 2 THEN 2
-		WHEN id = 3 THEN 3
-		WHEN id = 4 THEN 4
-		WHEN id = 5 THEN 5
-		WHEN id = 6 THEN 6
-		WHEN id = 7 THEN 7
-		WHEN id = 8 THEN 8
-		WHEN id = 9 THEN 9
-		WHEN id = 1 THEN 10
-		WHEN id = 11 THEN 11
-		WHEN id = 33 THEN 12
-		WHEN id = 34 THEN 13
-		WHEN id = 35 THEN 14
-		WHEN id IN (12, 13, 14) THEN 15
-		WHEN id IN (19, 20, 21) THEN 16
-		WHEN id IN (26, 27, 28) THEN 17
-		WHEN id IN (49, 52) THEN 18
-		WHEN id IN (50, 53) THEN 19
-		WHEN id IN (51, 54) THEN 20
-		WHEN id = 55 THEN 21
-		WHEN id = 56 THEN 22
-		WHEN id = 57 THEN 23
-		WHEN id = 15 THEN 24
-		WHEN id = 22 THEN 25
-		WHEN id = 29 THEN 26
-		WHEN id = 58 THEN 27
-		WHEN id = 59 THEN 28
-		WHEN id = 60 THEN 29
-		WHEN id = 16 THEN 30
-		WHEN id = 23 THEN 31
-		WHEN id = 30 THEN 32
-		WHEN id = 61 THEN 33
-		WHEN id = 62 THEN 34
-		WHEN id = 63 THEN 35
-		WHEN id = 17 THEN 36
-		WHEN id = 24 THEN 37
-		WHEN id = 31 THEN 38
-		WHEN id = 64 THEN 39
-		WHEN id = 65 THEN 40
-		WHEN id = 66 THEN 41
-		WHEN id = 18 THEN 42
-		WHEN id = 25 THEN 43
-		WHEN id = 32 THEN 44
-		WHEN id = 67 THEN 45
-		WHEN id = 68 THEN 46
-		WHEN id = 69 THEN 47
-		ELSE 48
-		END AS index
+		CASE
+			WHEN line_description LIKE 'AD invoice%' THEN 1
+			WHEN line_description LIKE 'S2 invoice%' THEN 2
+			WHEN line_description LIKE 'S3 invoice%' THEN 3
+			WHEN line_description LIKE 'B2 invoice%' THEN 4
+			WHEN line_description LIKE 'B3 invoice%' THEN 5
+			WHEN line_description LIKE 'Gen SF invoice%' THEN 6
+			WHEN line_description LIKE 'Min SF invoice%' THEN 7
+			WHEN line_description LIKE 'Gen SE invoice%' THEN 8
+			WHEN line_description LIKE 'Min SE invoice%' THEN 9
+			WHEN line_description LIKE 'Gen SO invoice%' THEN 10
+			WHEN line_description LIKE 'Min SO invoice%' THEN 11
+			WHEN line_description LIKE 'GA invoice%' THEN 12
+			WHEN line_description LIKE 'GS invoice%' THEN 13
+			WHEN line_description LIKE 'GT invoice%' THEN 14
+			WHEN line_description LIKE 'AD Rem/Exem%' THEN 15
+			WHEN line_description LIKE 'Gen Rem/Exem%' THEN 16
+			WHEN line_description LIKE 'Min Rem/Exem%' THEN 17
+			WHEN line_description LIKE 'GA remissions & hardships%' THEN 18
+			WHEN line_description LIKE 'GS remissions & hardships%' THEN 19
+			WHEN line_description LIKE 'GT remissions & hardships%' THEN 20
+			WHEN line_description LIKE 'GA exemptions%' THEN 21
+			WHEN line_description LIKE 'GS exemptions%' THEN 22
+			WHEN line_description LIKE 'GT exemptions%' THEN 23
+			WHEN line_description LIKE 'AD Manual credit%' THEN 24
+			WHEN line_description LIKE 'Gen Manual credit%' THEN 25
+			WHEN line_description LIKE 'Min Manual credit%' THEN 26
+			WHEN line_description LIKE 'GA Manual credit%' THEN 27
+			WHEN line_description LIKE 'GS Manual credit%' THEN 28
+			WHEN line_description LIKE 'GT Manual credit%' THEN 29
+			WHEN line_description LIKE 'AD Manual debit%' THEN 30
+			WHEN line_description LIKE 'Gen Manual debit%' THEN 31
+			WHEN line_description LIKE 'Min Manual debit%' THEN 32
+			WHEN line_description LIKE 'GA Manual debit%' THEN 33
+			WHEN line_description LIKE 'GS Manual debit%' THEN 34
+			WHEN line_description LIKE 'GT Manual debit%' THEN 35
+			WHEN line_description LIKE 'AD Write-off%' AND line_description NOT LIKE 'AD Write-off reversal%' THEN 36
+			WHEN line_description LIKE 'Gen Write-off%' AND line_description NOT LIKE 'Gen Write-off reversal%' THEN 37
+			WHEN line_description LIKE 'Min Write-off%' AND line_description NOT LIKE 'Min Write-off reversal%' THEN 38
+			WHEN line_description LIKE 'GA Write-off%' AND line_description NOT LIKE 'GA Write-off reversal%' THEN 39
+			WHEN line_description LIKE 'GS Write-off%' AND line_description NOT LIKE 'GS Write-off reversal%' THEN 40
+			WHEN line_description LIKE 'GT Write-off%' AND line_description NOT LIKE 'GT Write-off reversal%' THEN 41
+			WHEN line_description LIKE 'AD Write-off reversal%' THEN 42
+			WHEN line_description LIKE 'Gen Write-off reversal%' THEN 43
+			WHEN line_description LIKE 'Min Write-off reversal%' THEN 44
+			WHEN line_description LIKE 'GA Write-off reversal%' THEN 45
+			WHEN line_description LIKE 'GS Write-off reversal%' THEN 46
+			WHEN line_description LIKE 'GT Write-off reversal%' THEN 47
+			ELSE 48
+			END AS index
 	FROM supervision_finance.transaction_type WHERE is_receipt = false
 ),
 transactions AS (
    	SELECT
-		l.created_at::DATE AS created_at,
+		$1 AS created_at,
 		l.type AS ledger_type,
 		i.feetype AS fee_type,
 		la.amount AS amount,
@@ -77,7 +78,7 @@ transactions AS (
 	WHERE l.created_at::DATE = $1
 	UNION
 	SELECT
-		i.created_at::DATE AS created_at,
+		$1 AS created_at,
 		null AS ledger_type,
 		i.feetype AS fee_type,
 		-i.amount AS amount,
@@ -92,7 +93,7 @@ transaction_totals AS (
 		tt.account_code,
 		ABS(SUM(t.amount) / 100.0)::NUMERIC(10,2)::VARCHAR(255) AS amount,
 		account.cost_centre,
-		CASE WHEN SUM(t.amount) >= 0 THEN true ELSE false END AS is_credit,
+		SUM(t.amount) >= 0 AS is_credit,
 		tt.index,
 		n
 	FROM transactions t
@@ -105,12 +106,10 @@ transaction_totals AS (
 			LIMIT 1) END AS supervision_level
 	) sl ON TRUE
 	LEFT JOIN LATERAL (
-		SELECT 
-			tto.index, fee_type, account_code, line_description 
+		SELECT tto.index, fee_type, account_code, line_description 
 		FROM supervision_finance.transaction_type tt
-		LEFT JOIN transaction_type_order tto ON tt.id = tto.id
+		INNER JOIN transaction_type_order tto ON tt.id = tto.id
 		WHERE (tt.ledger_type = t.ledger_type OR (t.ledger_type IS NULL AND tt.fee_type = t.fee_type)) 
-		AND is_receipt = false
 		AND sl.supervision_level = tt.supervision_level
 	) tt ON TRUE
 	LEFT JOIN supervision_finance.account ON tt.account_code = account.code
