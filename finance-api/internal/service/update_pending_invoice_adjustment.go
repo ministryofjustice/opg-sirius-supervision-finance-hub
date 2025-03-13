@@ -40,7 +40,7 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId i
 			outstandingBalance: adjustment.Outstanding,
 		})
 
-		id, err := tx.CreateLedgerForAdjustment(ctx, store.CreateLedgerForAdjustmentParams{
+		ledgerID, err := tx.CreateLedgerForAdjustment(ctx, store.CreateLedgerForAdjustmentParams{
 			ClientID:       ledger.ClientID,
 			Amount:         ledger.Amount,
 			Notes:          ledger.Notes,
@@ -53,9 +53,6 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId i
 		if err != nil {
 			return err
 		}
-
-		var ledgerID pgtype.Int4
-		_ = store.ToInt4(&ledgerID, id)
 
 		for _, allocation := range allocations {
 			allocation.LedgerID = ledgerID
