@@ -138,6 +138,26 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			expectedFilename: "UnappliedReceipts_01:01:2024.csv",
 		},
 		{
+			name: "NonReceiptTransactions",
+			reportRequest: shared.ReportRequest{
+				ReportType:      shared.ReportsTypeJournal,
+				JournalType:     toPtr(shared.JournalTypeNonReceiptTransactions),
+				TransactionDate: &toDate,
+			},
+			expectedQuery:    &db.NonReceiptTransactions{Date: &toDate},
+			expectedFilename: "NonReceiptTransactions_01:01:2024.csv",
+		},
+		{
+			name: "ReceiptTransactions",
+			reportRequest: shared.ReportRequest{
+				ReportType:      shared.ReportsTypeJournal,
+				JournalType:     toPtr(shared.JournalTypeReceiptTransactions),
+				TransactionDate: &toDate,
+			},
+			expectedQuery:    &db.ReceiptTransactions{Date: &toDate},
+			expectedFilename: "ReceiptTransactions_01:01:2024.csv",
+		},
+		{
 			name: "Unknown",
 			reportRequest: shared.ReportRequest{
 				ReportType:             shared.ReportsTypeAccountsReceivable,
@@ -249,6 +269,16 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				assert.Nil(t, err)
 			case *db.Receipts:
 				actual, ok := mockDb.query.(*db.Receipts)
+				assert.True(t, ok)
+				assert.Equal(t, expected, actual)
+				assert.Nil(t, err)
+			case *db.NonReceiptTransactions:
+				actual, ok := mockDb.query.(*db.NonReceiptTransactions)
+				assert.True(t, ok)
+				assert.Equal(t, expected, actual)
+				assert.Nil(t, err)
+			case *db.ReceiptTransactions:
+				actual, ok := mockDb.query.(*db.ReceiptTransactions)
 				assert.True(t, ok)
 				assert.Equal(t, expected, actual)
 				assert.Nil(t, err)
