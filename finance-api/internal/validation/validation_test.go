@@ -43,14 +43,14 @@ func TestValidate_ValidateStruct(t *testing.T) {
 			expected: 0,
 		},
 		{
-			name:     "BankDate is not in the past",
+			name:     "Date is not in the past",
 			args:     dateTest{DateReceived: shared.Date{Time: dateInFuture}},
 			expected: 1,
 			key:      "DateReceived",
 			want:     "date-in-the-past",
 		},
 		{
-			name:     "BankDate is in the past or today",
+			name:     "Date is in the past or today",
 			args:     dateTest{DateReceived: shared.Date{Time: time.Now()}},
 			expected: 0,
 		},
