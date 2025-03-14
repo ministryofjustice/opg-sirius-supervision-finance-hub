@@ -1,4 +1,7 @@
-# Temp ignore Vulns in Goose Package until this month's release
+# Temp ignore Vulns in Goose Std Lib Package until this month's release
 CVE-2024-45336
 CVE-2024-45341
 CVE-2025-22866
+
+# Temp Ignore Goose x/net Vuln
+CVE-2025-22870
