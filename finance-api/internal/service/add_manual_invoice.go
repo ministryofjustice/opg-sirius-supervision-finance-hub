@@ -136,13 +136,10 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int32, data sha
 			invoiceId:          invoice.ID,
 			outstandingBalance: invoice.Amount,
 		})
-		id, err := tx.CreateLedger(ctx, ledger)
+		ledgerID, err := tx.CreateLedger(ctx, ledger)
 		if err != nil {
 			return err
 		}
-
-		var ledgerID pgtype.Int4
-		_ = store.ToInt4(&ledgerID, id)
 
 		for _, allocation := range allocations {
 			allocation.LedgerID = ledgerID
@@ -166,25 +163,25 @@ func (s *Service) validateManualInvoice(data shared.AddManualInvoice) apierror.V
 
 	if data.InvoiceType.RequiresDateValidation() {
 		if !data.RaisedDate.Value.Time.Before(time.Now()) {
-			validationErrors["RaisedDate"] = map[string]string{"RaisedDate": "Raised BankDate not in the past"}
+			validationErrors["RaisedDate"] = map[string]string{"RaisedDate": "Raised date not in the past"}
 		}
 	}
 
 	if data.InvoiceType.RequiresSameFinancialYearValidation() {
 		isSameFinancialYear := validateSameFinancialYear(data.StartDate.Value, data.EndDate.Value)
 		if !isSameFinancialYear {
-			validationErrors["StartDate"] = map[string]string{"StartDate": "Start BankDate and end BankDate must be in same financial year"}
+			validationErrors["StartDate"] = map[string]string{"StartDate": "Start date and end date must be in same financial year"}
 		}
 	}
 
 	isStartDateValid := validateStartDate(data.StartDate.Value, data.EndDate.Value)
 	if !isStartDateValid {
-		validationErrors["StartDate"] = map[string]string{"StartDate": "Start BankDate must be before end BankDate"}
+		validationErrors["StartDate"] = map[string]string{"StartDate": "Start date must be before end date"}
 	}
 
 	isEndDateValid := validateEndDate(data.StartDate.Value, data.EndDate.Value)
 	if !isEndDateValid {
-		validationErrors["EndDate"] = map[string]string{"EndDate": "End BankDate must be after start BankDate"}
+		validationErrors["EndDate"] = map[string]string{"EndDate": "End date must be after start date"}
 	}
 
 	return validationErrors
