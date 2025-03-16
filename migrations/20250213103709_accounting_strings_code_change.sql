@@ -1,23 +1,18 @@
 -- +goose Up
 UPDATE transaction_type
 SET account_code = CASE
-                       WHEN fee_type = 'MCR' AND supervision_level = 'AD' THEN 4481102093
-                       WHEN fee_type = 'MCR' AND supervision_level = 'GENERAL' THEN 4481102094
-                       WHEN fee_type = 'MCR' AND supervision_level = 'MINIMAL' THEN 4481102099
-                       WHEN fee_type = 'MDR' AND supervision_level = 'AD' THEN 4481102093
-                       WHEN fee_type = 'MDR' AND supervision_level = 'GENERAL' THEN 4481102094
-                       WHEN fee_type = 'MDR' AND supervision_level = 'MINIMAL' THEN 4481102099
-                       ELSE account_code
+        WHEN fee_type = 'MCR' AND supervision_level = 'AD' THEN 4481102093
+        WHEN fee_type = 'MCR' AND supervision_level = 'GENERAL' THEN 4481102094
+        WHEN fee_type = 'MCR' AND supervision_level = 'MINIMAL' THEN 4481102099
+        WHEN fee_type = 'MDR' AND supervision_level = 'AD' THEN 4481102093
+        WHEN fee_type = 'MDR' AND supervision_level = 'GENERAL' THEN 4481102094
+        WHEN fee_type = 'MDR' AND supervision_level = 'MINIMAL' THEN 4481102099
+        WHEN fee_type = 'WOR' AND supervision_level = 'AD' THEN 5356202100
+        WHEN fee_type = 'WOR' AND supervision_level = 'GENERAL' THEN 5356202102
+        WHEN fee_type = 'WOR' AND supervision_level = 'MINIMAL' THEN 5356202104
+        ELSE account_code
     END
-WHERE fee_type IN ('MCR', 'MDR');
-
-UPDATE transaction_type SET account_code = CASE
-    WHEN supervision_level = 'AD' THEN 5356202100
-    WHEN supervision_level = 'GENERAL' THEN 5356202102
-    WHEN supervision_level = 'MINIMAL' THEN 5356202104
-    ELSE account_code
-    END
-WHERE fee_type = 'WOR';
+WHERE fee_type IN ('MCR', 'MDR', 'WOR');
 
 INSERT INTO transaction_type (fee_type, supervision_level, ledger_type, account_code, description, line_description, is_receipt)
 VALUES
@@ -47,15 +42,17 @@ VALUES
 
 UPDATE transaction_type
 SET account_code = CASE
-                       WHEN fee_type = 'MCR' AND supervision_level = 'AD' THEN 4481102114
-                       WHEN fee_type = 'MCR' AND supervision_level = 'GENERAL' THEN 4481102115
-                       WHEN fee_type = 'MCR' AND supervision_level = 'MINIMAL' THEN 4481102120
-                       WHEN fee_type = 'MDR' AND supervision_level = 'AD' THEN 4481102114
-                       WHEN fee_type = 'MDR' AND supervision_level = 'GENERAL' THEN 4481102115
-                       WHEN fee_type = 'MDR' AND supervision_level = 'MINIMAL' THEN 4481102120
-                       ELSE account_code
+        WHEN fee_type = 'MCR' AND supervision_level = 'AD' THEN 4481102114
+        WHEN fee_type = 'MCR' AND supervision_level = 'GENERAL' THEN 4481102115
+        WHEN fee_type = 'MCR' AND supervision_level = 'MINIMAL' THEN 4481102120
+        WHEN fee_type = 'MDR' AND supervision_level = 'AD' THEN 4481102114
+        WHEN fee_type = 'MDR' AND supervision_level = 'GENERAL' THEN 4481102115
+        WHEN fee_type = 'MDR' AND supervision_level = 'MINIMAL' THEN 4481102120
+        WHEN fee_type = 'WOR' AND supervision_level = 'AD' THEN 1816900000
+        WHEN fee_type = 'WOR' AND supervision_level = 'GENERAL' THEN 1816900000
+        WHEN fee_type = 'WOR' AND supervision_level = 'MINIMAL' THEN 1816900000
+        ELSE account_code
     END
-WHERE fee_type IN ('MCR', 'MDR');
-
+WHERE fee_type IN ('MCR', 'MDR', 'WOR');
 
 DELETE FROM transaction_type WHERE supervision_level IN ('GA', 'GS', 'GT') AND fee_type IN ('ZR', 'ZH', 'ZE', 'MCR', 'MDR', 'WO', 'WOR');

@@ -27,35 +27,36 @@ transaction_totals AS (
 	SELECT 
 		tt.line_description AS line_description,
 		l.bankdate AS transaction_date, 
-		tt.account_code AS account_code,
+		ac.account_code,
 		((SUM(ABS(la.amount)) / 100.0)::NUMERIC(10, 2))::VARCHAR(255) AS amount,
-		l.type AS ledger_type,
 		n,
 		tt.index
 	FROM supervision_finance.ledger_allocation la 
-	LEFT JOIN supervision_finance.ledger l ON l.id = la.ledger_id 
-	LEFT JOIN LATERAL (
-		SELECT tto.index, fee_type, account_code, line_description
+	INNER JOIN supervision_finance.ledger l ON l.id = la.ledger_id 
+	INNER JOIN LATERAL (
+		SELECT tto.index, fee_type, line_description
 		FROM transaction_type tt
-		LEFT JOIN transaction_type_order tto ON tt.id = tto.id
+		INNER JOIN transaction_type_order tto ON tt.id = tto.id
 		WHERE tt.ledger_type = l.type
-		AND is_receipt = true
-		AND l.type != 'CREDIT REAPPLY'
 	) tt ON TRUE
+	INNER JOIN LATERAL (
+		SELECT code AS account_code
+		FROM account
+		WHERE account_code_description LIKE CASE
+			WHEN l.type = 'SUPERVISION BACS PAYMENT' THEN '%OPG SUPERVISION BACS%'
+			ELSE '%RBS PUBLIC GUARDIAN%' END
+	) ac ON TRUE
 	CROSS JOIN (select 1 AS n union all select 2) n
 	WHERE l.created_at::DATE = $1
-	GROUP BY tt.line_description, l.bankdate, tt.account_code, l.type, n, tt.index
+	GROUP BY tt.line_description, l.bankdate, l.type, n, tt.index, ac.account_code
 )
 SELECT 	
 	'="0470"'                                              		AS "Entity",
 	'99999999'                                       			AS "Cost Centre",
 	CASE WHEN n % 2 = 1 
-		THEN CASE WHEN ledger_type = 'SUPERVISION BACS PAYMENT' 
-			THEN '1841102088' 
-			ELSE '1841102050' 
-			END
+		THEN account_code
 		ELSE '1816100000'
-		END                                             			AS "Account",
+		END                                             		AS "Account",
 	'="0000000"'                                           		AS "Objective",
 	'="00000000"'                                          		AS "Analysis",
 	'="0000"'                                              		AS "Intercompany",

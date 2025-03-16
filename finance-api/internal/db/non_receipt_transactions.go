@@ -73,8 +73,8 @@ transactions AS (
 		i.id AS invoice_id
 	FROM
         supervision_finance.ledger_allocation la
-        LEFT JOIN supervision_finance.ledger l ON l.id = la.ledger_id
-		LEFT JOIN supervision_finance.invoice i ON i.id = la.invoice_id
+        INNER JOIN supervision_finance.ledger l ON l.id = la.ledger_id
+		INNER JOIN supervision_finance.invoice i ON i.id = la.invoice_id
 	WHERE l.created_at::DATE = $1
 	UNION
 	SELECT
@@ -97,7 +97,7 @@ transaction_totals AS (
 		tt.index,
 		n
 	FROM transactions t
-	LEFT JOIN LATERAL (
+	INNER JOIN LATERAL (
 		SELECT CASE WHEN t.fee_type IN ('AD', 'GA', 'GS', 'GT') THEN t.fee_type ELSE (
 			SELECT COALESCE(ifr.supervisionlevel, '')
 			FROM supervision_finance.invoice_fee_range ifr
@@ -105,14 +105,14 @@ transaction_totals AS (
 			ORDER BY id DESC
 			LIMIT 1) END AS supervision_level
 	) sl ON TRUE
-	LEFT JOIN LATERAL (
+	INNER JOIN LATERAL (
 		SELECT tto.index, fee_type, account_code, line_description 
 		FROM supervision_finance.transaction_type tt
 		INNER JOIN transaction_type_order tto ON tt.id = tto.id
 		WHERE (tt.ledger_type = t.ledger_type OR (t.ledger_type IS NULL AND tt.fee_type = t.fee_type)) 
 		AND sl.supervision_level = tt.supervision_level
 	) tt ON TRUE
-	LEFT JOIN supervision_finance.account ON tt.account_code = account.code
+	INNER JOIN supervision_finance.account ON tt.account_code = account.code
 	CROSS JOIN (select 1 as n union all select 2) n
 	GROUP BY tt.line_description, t.created_at, tt.account_code, account.cost_centre, tt.index, n 
 )
