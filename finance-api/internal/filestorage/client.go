@@ -85,15 +85,10 @@ func (c *Client) PutFile(ctx context.Context, bucketName string, fileName string
 }
 
 func (c *Client) FileExists(ctx context.Context, bucketName string, filename string, versionID string) bool {
-	var awsVersionId *string
-
-	if versionID != "" {
-		awsVersionId = aws.String(versionID)
-	}
 	_, err := c.s3.HeadObject(ctx, &s3.HeadObjectInput{
 		Bucket:    aws.String(bucketName),
 		Key:       aws.String(filename),
-		VersionId: awsVersionId,
+		VersionId: aws.String(versionID),
 	})
 	return err == nil
 }
