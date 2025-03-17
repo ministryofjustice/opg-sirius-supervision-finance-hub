@@ -138,6 +138,14 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			expectedFilename: "UnappliedReceipts_01:01:2024.csv",
 		},
 		{
+			name: "Fee Accrual",
+			reportRequest: shared.ReportRequest{
+				ReportType:             shared.ReportsTypeAccountsReceivable,
+				AccountsReceivableType: toPtr(shared.AccountsReceivableTypeFeeAccrual),
+			},
+			expectedQuery: nil,
+    },
+    {
 			name: "NonReceiptTransactions",
 			reportRequest: shared.ReportRequest{
 				ReportType:      shared.ReportsTypeJournal,
@@ -313,6 +321,7 @@ func TestCreateDownloadNotifyPayload(t *testing.T) {
 	downloadRequest := shared.DownloadRequest{
 		Key:       "test.csv",
 		VersionId: "1",
+		Bucket:    "test",
 	}
 	uid, _ := downloadRequest.Encode()
 	requestedDate, _ := time.Parse("2006-01-02 15:04:05", "2024-01-01 13:37:00")
