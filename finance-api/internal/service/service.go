@@ -5,6 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
@@ -65,4 +66,9 @@ func (s *Service) BeginStoreTx(ctx context.Context) (*store.Tx, error) {
 	}
 
 	return store.NewTx(tx), nil
+}
+
+func (*Service) WithCancel(ctx context.Context) (context.Context, context.CancelFunc) {
+	cancelCtx, cancelTx := context.WithCancel(ctx)
+	return ctx.(auth.Context).WithContext(cancelCtx), cancelTx
 }

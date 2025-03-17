@@ -52,6 +52,8 @@ services:
       LEGACY_REPORTS_S3_BUCKET: opg-backoffice-legacy-reports-local
       ASYNC_S3_BUCKET: opg-backoffice-async-uploads-local
       OPG_NOTIFY_API_KEY: test
+      OPG_SUPERVISION_SYSTEM_USER_ID: 1
+      EVENT_BRIDGE_API_KEY: test
     healthcheck:
       test: wget -O /dev/null -S 'http://localhost:8080/health-check' 2>&1 | grep 'HTTP/1.1 200 OK' || exit 1
       interval: 15s

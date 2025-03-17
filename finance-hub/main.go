@@ -121,6 +121,7 @@ func run(ctx context.Context, logger *slog.Logger) error {
 			BackendURL:      envs.backendURL,
 			BillingTeamID:   envs.billingTeamID,
 		}),
+		ReadHeaderTimeout: 10 * time.Second,
 	}
 
 	go func() {
@@ -176,7 +177,7 @@ func createTemplates(envVars *Envs) map[string]*template.Template {
 		},
 	}
 
-	templateDirPath := envVars.webDir + "/template"
+	templateDirPath := filepath.Clean(envVars.webDir + "/template")
 	templateDir, _ := os.Open(templateDirPath)
 	templateDirs, _ := templateDir.Readdir(0)
 	_ = templateDir.Close()

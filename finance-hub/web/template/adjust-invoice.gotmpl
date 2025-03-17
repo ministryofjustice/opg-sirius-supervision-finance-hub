@@ -19,7 +19,8 @@
                         class="govuk-grid-column-one-third"
                         method="post"
                         hx-post="{{ prefix (printf "/clients/%s/invoices/%s/adjustments" .ClientId .InvoiceId) }}"
-                        hx-target="#error-summary">
+                        hx-target="#error-summary"
+                        hx-disabled-elt="find button">
                         <input
                                 type="hidden"
                                 name="xsrfToken"

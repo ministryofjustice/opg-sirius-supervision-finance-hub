@@ -95,6 +95,18 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 		default:
 			return fmt.Errorf("unimplemented accounts receivable query: %s", reportRequest.AccountsReceivableType.Key())
 		}
+
+	case shared.ReportsTypeJournal:
+		filename = fmt.Sprintf("%s_%s.csv", reportRequest.JournalType.Key(), reportRequest.TransactionDate.Time.Format("02:01:2006"))
+		reportName = reportRequest.JournalType.Translation()
+		switch *reportRequest.JournalType {
+		case shared.JournalTypeNonReceiptTransactions:
+			query = &db.NonReceiptTransactions{Date: reportRequest.TransactionDate}
+		case shared.JournalTypeReceiptTransactions:
+			query = &db.ReceiptTransactions{Date: reportRequest.TransactionDate}
+		default:
+			return fmt.Errorf("unimplemented journal query: %s", reportRequest.JournalType.Key())
+		}
 	case shared.ReportsTypeSchedule:
 		filename = fmt.Sprintf("schedule_%s_%s.csv", reportRequest.ScheduleType.Key(), reportRequest.TransactionDate.Time.Format("02:01:2006"))
 		reportName = reportRequest.ScheduleType.Translation()
@@ -157,6 +169,12 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 			shared.ScheduleTypeGSWriteOffReversals,
 			shared.ScheduleTypeGTWriteOffReversals:
 			query = &db.AdjustmentsSchedule{
+				Date:         reportRequest.TransactionDate,
+				ScheduleType: reportRequest.ScheduleType,
+			}
+		case shared.ScheduleTypeUnappliedPayments,
+			shared.ScheduleTypeReappliedPayments:
+			query = &db.UnapplyReapplySchedule{
 				Date:         reportRequest.TransactionDate,
 				ScheduleType: reportRequest.ScheduleType,
 			}

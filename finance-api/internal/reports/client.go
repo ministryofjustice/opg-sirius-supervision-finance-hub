@@ -8,6 +8,7 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"io"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -61,7 +62,7 @@ func (c *Client) generate(ctx context.Context, filename string, query db.ReportQ
 }
 
 func createCsv(filename string, items [][]string) (*os.File, error) {
-	file, err := os.Create(filename)
+	file, err := os.Create(filepath.Clean(filename))
 	if err != nil {
 		return nil, err
 	}

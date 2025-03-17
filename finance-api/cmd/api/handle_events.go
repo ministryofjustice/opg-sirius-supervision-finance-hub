@@ -5,12 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"net/http"
 )
 
 func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
-	ctx := r.Context()
+	ctx := auth.Context{Context: r.Context()}
 
 	var event shared.Event
 	defer r.Body.Close()
@@ -21,7 +22,7 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
 
 	if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeDebtPositionChanged {
 		if detail, ok := event.Detail.(shared.DebtPositionChangedEvent); ok {
-			err := s.service.ReapplyCredit(ctx, int32(detail.ClientID))
+			err := s.service.ReapplyCredit(ctx, detail.ClientID)
 			if err != nil {
 				return err
 			}

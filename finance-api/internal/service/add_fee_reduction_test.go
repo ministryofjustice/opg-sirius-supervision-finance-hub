@@ -40,15 +40,16 @@ func (suite *IntegrationSuite) TestService_AddFeeReduction() {
 	err := s.AddFeeReduction(ctx, 22, params)
 
 	feeReductionRow := seeder.QueryRow(ctx, "SELECT id, finance_client_id, type, startdate, enddate, notes, datereceived, created_by, created_at FROM supervision_finance.fee_reduction WHERE id = 1")
-	remissionLedgerRow := seeder.QueryRow(ctx, "SELECT l.amount, l.notes, l.type FROM ledger_allocation la LEFT JOIN ledger l ON l.id = la.ledger_id WHERE invoice_id = 22")
+	remissionLedgerRow := seeder.QueryRow(ctx, "SELECT l.amount, l.notes, l.type, i.cacheddebtamount FROM supervision_finance.ledger_allocation la JOIN supervision_finance.ledger l ON l.id = la.ledger_id JOIN supervision_finance.invoice i ON la.invoice_id = i.id WHERE invoice_id = 22")
 
 	var remissionLedger struct {
-		amount     int
-		notes      string
-		ledgerType string
+		amount           int
+		notes            string
+		ledgerType       string
+		cachedDebtAmount int
 	}
 
-	_ = remissionLedgerRow.Scan(&remissionLedger.amount, &remissionLedger.notes, &remissionLedger.ledgerType)
+	_ = remissionLedgerRow.Scan(&remissionLedger.amount, &remissionLedger.notes, &remissionLedger.ledgerType, &remissionLedger.cachedDebtAmount)
 
 	var feeReduction struct {
 		id            int
@@ -81,12 +82,13 @@ func (suite *IntegrationSuite) TestService_AddFeeReduction() {
 	assert.Equal(suite.T(), "2024-03-31", feeReduction.endDate.Format("2006-01-02"))
 	assert.Equal(suite.T(), params.Notes, feeReduction.notes)
 	assert.Equal(suite.T(), "2024-01-01", feeReduction.dateReceived.Format("2006-01-02"))
-	assert.Equal(suite.T(), 1, feeReduction.createdBy)
+	assert.Equal(suite.T(), 10, feeReduction.createdBy)
 	assert.NotEqual(suite.T(), feeReduction.createdDate, "0001-01-01")
 
 	assert.Equal(suite.T(), 5000, remissionLedger.amount)
 	assert.Equal(suite.T(), "Credit due to approved remission", remissionLedger.notes)
 	assert.Equal(suite.T(), "CREDIT REMISSION", remissionLedger.ledgerType)
+	assert.Equal(suite.T(), 5000, remissionLedger.cachedDebtAmount)
 
 	if err == nil {
 		return

@@ -23,7 +23,7 @@ type IntegrationSuite struct {
 func (suite *IntegrationSuite) SetupSuite() {
 	suite.ctx = auth.Context{
 		Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test")),
-		User:    &shared.User{ID: 1},
+		User:    &shared.User{ID: 10},
 	}
 	suite.cm = testhelpers.Init(suite.ctx, "supervision_finance")
 	suite.seeder = suite.cm.Seeder(suite.ctx, suite.T())

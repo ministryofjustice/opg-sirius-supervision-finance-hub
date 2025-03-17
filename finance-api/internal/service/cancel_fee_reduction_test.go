@@ -36,7 +36,7 @@ func (suite *IntegrationSuite) TestService_CancelFeeReduction() {
 	_ = rows.Scan(&deleted, &cancelledAt, &cancelledBy, &cancellationReason)
 
 	assert.Equal(suite.T(), true, deleted)
-	assert.Equal(suite.T(), 1, cancelledBy)
+	assert.Equal(suite.T(), 10, cancelledBy)
 	assert.NotNil(suite.T(), cancelledAt)
 	assert.Equal(suite.T(), "Reason for cancellation", cancellationReason)
 

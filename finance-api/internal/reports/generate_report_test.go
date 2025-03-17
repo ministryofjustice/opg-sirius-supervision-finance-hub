@@ -144,6 +144,26 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				AccountsReceivableType: toPtr(shared.AccountsReceivableTypeFeeAccrual),
 			},
 			expectedQuery: nil,
+    },
+    {
+			name: "NonReceiptTransactions",
+			reportRequest: shared.ReportRequest{
+				ReportType:      shared.ReportsTypeJournal,
+				JournalType:     toPtr(shared.JournalTypeNonReceiptTransactions),
+				TransactionDate: &toDate,
+			},
+			expectedQuery:    &db.NonReceiptTransactions{Date: &toDate},
+			expectedFilename: "NonReceiptTransactions_01:01:2024.csv",
+		},
+		{
+			name: "ReceiptTransactions",
+			reportRequest: shared.ReportRequest{
+				ReportType:      shared.ReportsTypeJournal,
+				JournalType:     toPtr(shared.JournalTypeReceiptTransactions),
+				TransactionDate: &toDate,
+			},
+			expectedQuery:    &db.ReceiptTransactions{Date: &toDate},
+			expectedFilename: "ReceiptTransactions_01:01:2024.csv",
 		},
 		{
 			name: "Unknown",
@@ -205,6 +225,19 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			},
 			expectedFilename: "schedule_MinimalManualDebits_10:10:2024.csv",
 		},
+		{
+			name: "Unapplied payments",
+			reportRequest: shared.ReportRequest{
+				ReportType:      shared.ReportsTypeSchedule,
+				ScheduleType:    toPtr(shared.ScheduleTypeUnappliedPayments),
+				TransactionDate: &fromDate,
+			},
+			expectedQuery: &db.UnapplyReapplySchedule{
+				Date:         &fromDate,
+				ScheduleType: toPtr(shared.ScheduleTypeUnappliedPayments),
+			},
+			expectedFilename: "schedule_UnappliedPayments_10:10:2024.csv",
+		},
 	}
 
 	for _, tt := range tests {
@@ -244,6 +277,16 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				assert.Nil(t, err)
 			case *db.Receipts:
 				actual, ok := mockDb.query.(*db.Receipts)
+				assert.True(t, ok)
+				assert.Equal(t, expected, actual)
+				assert.Nil(t, err)
+			case *db.NonReceiptTransactions:
+				actual, ok := mockDb.query.(*db.NonReceiptTransactions)
+				assert.True(t, ok)
+				assert.Equal(t, expected, actual)
+				assert.Nil(t, err)
+			case *db.ReceiptTransactions:
+				actual, ok := mockDb.query.(*db.ReceiptTransactions)
 				assert.True(t, ok)
 				assert.Equal(t, expected, actual)
 				assert.Nil(t, err)

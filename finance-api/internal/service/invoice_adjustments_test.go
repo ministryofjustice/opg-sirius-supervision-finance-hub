@@ -30,7 +30,7 @@ func (suite *IntegrationSuite) TestService_GetInvoiceAdjustments() {
 
 	tests := []struct {
 		name    string
-		id      int
+		id      int32
 		want    *shared.InvoiceAdjustments
 		wantErr bool
 	}{

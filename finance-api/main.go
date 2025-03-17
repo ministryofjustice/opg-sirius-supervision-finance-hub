@@ -21,6 +21,7 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -38,7 +39,7 @@ type Envs struct {
 	asyncBucket         string
 	goLiveDate          string
 	reportsBucket       string
-	legacyReportsBucket string
+  legacyReportsBucket string
 	financeAdminPrefix  string
 	dbConn              string
 	dbUser              string
@@ -52,22 +53,24 @@ type Envs struct {
 
 func parseEnvs() (*Envs, error) {
 	envs := map[string]string{
-		"AWS_REGION":               os.Getenv("AWS_REGION"),
-		"S3_ENCRYPTION_KEY":        os.Getenv("S3_ENCRYPTION_KEY"),
-		"JWT_SECRET":               os.Getenv("JWT_SECRET"),
-		"OPG_NOTIFY_API_KEY":       os.Getenv("OPG_NOTIFY_API_KEY"),
-		"ASYNC_S3_BUCKET":          os.Getenv("ASYNC_S3_BUCKET"),
-		"FINANCE_HUB_LIVE_DATE":    os.Getenv("FINANCE_HUB_LIVE_DATE"),
-		"REPORTS_S3_BUCKET":        os.Getenv("REPORTS_S3_BUCKET"),
-		"LEGACY_REPORTS_S3_BUCKET": os.Getenv("LEGACY_REPORTS_S3_BUCKET"),
-		"SIRIUS_PUBLIC_URL":        os.Getenv("SIRIUS_PUBLIC_URL"),
-		"FINANCE_ADMIN_PREFIX":     os.Getenv("FINANCE_ADMIN_PREFIX"),
-		"POSTGRES_CONN":            os.Getenv("POSTGRES_CONN"),
-		"POSTGRES_USER":            os.Getenv("POSTGRES_USER"),
-		"POSTGRES_PASSWORD":        os.Getenv("POSTGRES_PASSWORD"),
-		"POSTGRES_DB":              os.Getenv("POSTGRES_DB"),
-		"EVENT_BUS_NAME":           os.Getenv("EVENT_BUS_NAME"),
-		"PORT":                     os.Getenv("PORT"),
+		"AWS_REGION":                     os.Getenv("AWS_REGION"),
+		"S3_ENCRYPTION_KEY":              os.Getenv("S3_ENCRYPTION_KEY"),
+		"JWT_SECRET":                     os.Getenv("JWT_SECRET"),
+		"OPG_NOTIFY_API_KEY":             os.Getenv("OPG_NOTIFY_API_KEY"),
+		"ASYNC_S3_BUCKET":                os.Getenv("ASYNC_S3_BUCKET"),
+		"FINANCE_HUB_LIVE_DATE":          os.Getenv("FINANCE_HUB_LIVE_DATE"),
+		"REPORTS_S3_BUCKET":              os.Getenv("REPORTS_S3_BUCKET"),
+    "LEGACY_REPORTS_S3_BUCKET":       os.Getenv("LEGACY_REPORTS_S3_BUCKET"),
+		"SIRIUS_PUBLIC_URL":              os.Getenv("SIRIUS_PUBLIC_URL"),
+		"FINANCE_ADMIN_PREFIX":           os.Getenv("FINANCE_ADMIN_PREFIX"),
+		"POSTGRES_CONN":                  os.Getenv("POSTGRES_CONN"),
+		"POSTGRES_USER":                  os.Getenv("POSTGRES_USER"),
+		"POSTGRES_PASSWORD":              os.Getenv("POSTGRES_PASSWORD"),
+		"POSTGRES_DB":                    os.Getenv("POSTGRES_DB"),
+		"EVENT_BUS_NAME":                 os.Getenv("EVENT_BUS_NAME"),
+		"PORT":                           os.Getenv("PORT"),
+		"OPG_SUPERVISION_SYSTEM_USER_ID": os.Getenv("OPG_SUPERVISION_SYSTEM_USER_ID"),
+		"EVENT_BRIDGE_API_KEY":           os.Getenv("EVENT_BRIDGE_API_KEY"),
 	}
 
 	var missing []error
@@ -75,6 +78,11 @@ func parseEnvs() (*Envs, error) {
 		if v == "" {
 			missing = append(missing, errors.New("missing environment variable: "+k))
 		}
+	}
+
+	systemUserID, err := strconv.ParseInt(os.Getenv("OPG_SUPERVISION_SYSTEM_USER_ID"), 10, 32)
+	if err != nil {
+		missing = append(missing, errors.New("OPG_SUPERVISION_SYSTEM_USER_ID must be an integer"))
 	}
 
 	if len(missing) > 0 {
@@ -92,7 +100,7 @@ func parseEnvs() (*Envs, error) {
 		asyncBucket:         envs["ASYNC_S3_BUCKET"],
 		goLiveDate:          envs["FINANCE_HUB_LIVE_DATE"],
 		reportsBucket:       envs["REPORTS_S3_BUCKET"],
-		legacyReportsBucket: envs["LEGACY_REPORTS_S3_BUCKET"],
+    legacyReportsBucket: envs["LEGACY_REPORTS_S3_BUCKET"],
 		siriusPublicURL:     envs["SIRIUS_PUBLIC_URL"],
 		financeAdminPrefix:  envs["FINANCE_ADMIN_PREFIX"],
 		dbConn:              envs["POSTGRES_CONN"],
@@ -101,7 +109,9 @@ func parseEnvs() (*Envs, error) {
 		dbName:              envs["POSTGRES_DB"],
 		eventBusName:        envs["EVENT_BUS_NAME"],
 		port:                envs["PORT"],
+		systemUserID:        int32(systemUserID),
 		webDir:              "web",
+		eventBridgeAPIKey:   envs["EVENT_BRIDGE_API_KEY"],
 	}, nil
 }
 
@@ -194,13 +204,16 @@ func run(ctx context.Context, logger *slog.Logger) error {
 			Secret: envs.jwtSecret,
 		},
 		validator, &api.Envs{
-			ReportsBucket: envs.reportsBucket,
-			GoLiveDate:    goLiveDate,
+			ReportsBucket:     envs.reportsBucket,
+			GoLiveDate:        goLiveDate,
+			SystemUserID:      envs.systemUserID,
+			EventBridgeAPIKey: envs.eventBridgeAPIKey,
 		})
 
 	s := &http.Server{
-		Addr:    ":" + envs.port,
-		Handler: server.SetupRoutes(logger),
+		Addr:              ":" + envs.port,
+		Handler:           server.SetupRoutes(logger),
+		ReadHeaderTimeout: 10 * time.Second,
 	}
 
 	go func() {
