@@ -66,7 +66,6 @@ WITH transaction_type_order AS (
 ),
 transactions AS (
    	SELECT
-		$1 AS created_at,
 		l.type AS ledger_type,
 		i.feetype AS fee_type,
 		la.amount AS amount,
@@ -78,7 +77,6 @@ transactions AS (
 	WHERE l.created_at::DATE = $1
 	UNION
 	SELECT
-		$1 AS created_at,
 		null AS ledger_type,
 		i.feetype AS fee_type,
 		-i.amount AS amount,
@@ -89,7 +87,6 @@ transactions AS (
 transaction_totals AS (
 	SELECT
 		tt.line_description,
-		t.created_at AS transaction_date,
 		tt.account_code,
 		ABS(SUM(t.amount) / 100.0)::NUMERIC(10,2)::VARCHAR(255) AS amount,
 		account.cost_centre,
@@ -114,7 +111,7 @@ transaction_totals AS (
 	) tt ON TRUE
 	INNER JOIN supervision_finance.account ON tt.account_code = account.code
 	CROSS JOIN (select 1 as n union all select 2) n
-	GROUP BY tt.line_description, t.created_at, tt.account_code, account.cost_centre, tt.index, n 
+	GROUP BY tt.line_description, tt.account_code, account.cost_centre, tt.index, n 
 )
 SELECT
     '="0470"' AS "Entity",
@@ -138,7 +135,7 @@ SELECT
 		THEN amount
         ELSE ''
         END AS "Credit",
-    line_description || ' [' || TO_CHAR(transaction_date, 'DD/MM/YYYY') || ']' AS "Line description"
+    line_description || ' [' || TO_CHAR($1, 'DD/MM/YYYY') || ']' AS "Line description"
 FROM transaction_totals
 ORDER BY index, n;`
 

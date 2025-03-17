@@ -324,5 +324,4 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 	assert.Equal(suite.T(), "2.00", results[23]["Debit"], "Debit - Manual credit Credit")
 	assert.Equal(suite.T(), "", results[23]["Credit"], "Credit - Manual credit Credit")
 	assert.Equal(suite.T(), fmt.Sprintf("Gen Manual credit [%s]", yesterday.Date().Format("02/01/2006")), results[23]["Line description"], "Line description - Manual credit Credit")
-
 }

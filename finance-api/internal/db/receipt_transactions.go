@@ -27,7 +27,10 @@ transaction_totals AS (
 	SELECT 
 		tt.line_description AS line_description,
 		l.bankdate AS transaction_date, 
-		ac.account_code,
+		CASE 
+			WHEN l.type = 'SUPERVISION BACS PAYMENT' 
+			THEN '1841102088' 
+			ELSE '1841102050' END AS account_code,
 		((SUM(ABS(la.amount)) / 100.0)::NUMERIC(10, 2))::VARCHAR(255) AS amount,
 		n,
 		tt.index
@@ -39,16 +42,9 @@ transaction_totals AS (
 		INNER JOIN transaction_type_order tto ON tt.id = tto.id
 		WHERE tt.ledger_type = l.type
 	) tt ON TRUE
-	INNER JOIN LATERAL (
-		SELECT code AS account_code
-		FROM account
-		WHERE account_code_description LIKE CASE
-			WHEN l.type = 'SUPERVISION BACS PAYMENT' THEN '%OPG SUPERVISION BACS%'
-			ELSE '%RBS PUBLIC GUARDIAN%' END
-	) ac ON TRUE
 	CROSS JOIN (select 1 AS n union all select 2) n
 	WHERE l.created_at::DATE = $1
-	GROUP BY tt.line_description, l.bankdate, l.type, n, tt.index, ac.account_code
+	GROUP BY tt.line_description, l.bankdate, l.type, n, tt.index
 )
 SELECT 	
 	'="0470"'                                              		AS "Entity",
