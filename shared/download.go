@@ -8,6 +8,7 @@ import (
 type DownloadRequest struct {
 	Key       string
 	VersionId string
+	Bucket    string
 }
 
 func (d *DownloadRequest) Encode() (string, error) {
