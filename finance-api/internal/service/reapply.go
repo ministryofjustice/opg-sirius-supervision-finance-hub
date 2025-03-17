@@ -15,11 +15,7 @@ import (
 
 func (s *Service) ReapplyCredit(ctx context.Context, clientID int32) error {
 	var userID pgtype.Int4
-	if authCtx, ok := ctx.(auth.Context); ok {
-		_ = store.ToInt4(&userID, authCtx.User.ID)
-	} else {
-		_ = store.ToInt4(&userID, s.env.SystemUserID)
-	}
+	_ = store.ToInt4(&userID, ctx.(auth.Context).User.ID)
 
 	creditPosition, err := s.store.GetCreditBalanceAndOldestOpenInvoice(ctx, clientID)
 
@@ -56,15 +52,13 @@ func (s *Service) ReapplyCredit(ctx context.Context, clientID int32) error {
 		CreatedBy: userID,
 	}
 
-	id, err := s.store.CreateLedger(ctx, ledger)
+	ledgerID, err := s.store.CreateLedger(ctx, ledger)
 	if err != nil {
 		logger := telemetry.LoggerFromContext(ctx)
 		logger.Error(fmt.Sprintf("Error in reapply for client %d", clientID), slog.String("err", err.Error()))
 		return err
 	}
 
-	var ledgerID pgtype.Int4
-	_ = store.ToInt4(&ledgerID, id)
 	allocation.LedgerID = ledgerID
 
 	err = s.store.CreateLedgerAllocation(ctx, allocation)

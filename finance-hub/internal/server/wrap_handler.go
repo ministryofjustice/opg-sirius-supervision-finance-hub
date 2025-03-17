@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/api"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
 	"log/slog"
 	"net/http"
 	"time"
@@ -36,16 +37,18 @@ func wrapHandler(errTmpl Template, errPartial string, envVars Envs) func(next Ha
 	return func(next Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
+			ctx := r.Context().(auth.Context)
 
 			vars := NewAppVars(r, envVars)
 			err := next.render(vars, w, r)
 
-			logger := telemetry.LoggerFromContext(r.Context())
+			logger := telemetry.LoggerFromContext(ctx)
 
 			logger.Info(
 				"Page Request",
 				"duration", time.Since(start),
 				"hx-request", r.Header.Get("HX-Request") == "true",
+				"user-id", ctx.User.ID,
 			)
 
 			if err != nil {
