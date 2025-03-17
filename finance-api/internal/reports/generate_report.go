@@ -24,7 +24,7 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 	if err != nil {
 		logger.Error("unable to send message to notify", "error", err)
 	}
-	return
+	//return
 	//}
 	//
 	//versionId, err := c.uploadReport(ctx, filename, file)
@@ -95,7 +95,7 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 		case shared.JournalTypeReceiptTransactions:
 			query = &db.ReceiptTransactions{Date: reportRequest.TransactionDate}
 		default:
-			return fmt.Errorf("unimplemented journal query: %s", reportRequest.JournalType.Key())
+			return "", reportName, nil, fmt.Errorf("unimplemented journal query: %s", reportRequest.JournalType.Key())
 		}
 	case shared.ReportsTypeSchedule:
 		filename = fmt.Sprintf("schedule_%s_%s.csv", reportRequest.ScheduleType.Key(), reportRequest.TransactionDate.Time.Format("02:01:2006"))
@@ -184,14 +184,14 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 	return filename, reportName, file, nil
 }
 
-func (c *Client) uploadReport(ctx context.Context, filename string, file *os.File) (*string, error) {
-	versionId, err := c.fileStorage.PutFile(ctx, c.envs.ReportsBucket, filename, file)
-	if err != nil {
-		return nil, err
-	}
-
-	return versionId, nil
-}
+//func (c *Client) uploadReport(ctx context.Context, filename string, file *os.File) (*string, error) {
+//	versionId, err := c.fileStorage.PutFile(ctx, c.envs.ReportsBucket, filename, file)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	return versionId, nil
+//}
 
 type reportRequestedNotifyPersonalisation struct {
 	FileLink          string `json:"file_link"`
