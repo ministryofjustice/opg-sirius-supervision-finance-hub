@@ -41,7 +41,7 @@ type FileStorage interface {
 }
 
 type Reports interface {
-	GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) error
+	GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time)
 }
 
 type JWTClient interface {
