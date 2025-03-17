@@ -69,13 +69,10 @@ func (s *Service) AddFeeReduction(ctx context.Context, clientId int32, data shar
 			invoiceId:          invoice.ID,
 			outstandingBalance: invoice.Outstanding,
 		})
-		id, err := tx.CreateLedger(ctx, ledger)
+		ledgerID, err := tx.CreateLedger(ctx, ledger)
 		if err != nil {
 			return err
 		}
-
-		var ledgerID pgtype.Int4
-		_ = store.ToInt4(&ledgerID, id)
 
 		for _, allocation := range allocations {
 			allocation.LedgerID = ledgerID
