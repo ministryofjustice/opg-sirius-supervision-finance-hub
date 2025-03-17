@@ -39,7 +39,7 @@ type Envs struct {
 	asyncBucket         string
 	goLiveDate          string
 	reportsBucket       string
-  legacyReportsBucket string
+	legacyReportsBucket string
 	financeAdminPrefix  string
 	dbConn              string
 	dbUser              string
@@ -49,6 +49,8 @@ type Envs struct {
 	eventBusName        string
 	port                string
 	jwtSecret           string
+	systemUserID        int32
+	eventBridgeAPIKey   string
 }
 
 func parseEnvs() (*Envs, error) {
@@ -60,7 +62,7 @@ func parseEnvs() (*Envs, error) {
 		"ASYNC_S3_BUCKET":                os.Getenv("ASYNC_S3_BUCKET"),
 		"FINANCE_HUB_LIVE_DATE":          os.Getenv("FINANCE_HUB_LIVE_DATE"),
 		"REPORTS_S3_BUCKET":              os.Getenv("REPORTS_S3_BUCKET"),
-    "LEGACY_REPORTS_S3_BUCKET":       os.Getenv("LEGACY_REPORTS_S3_BUCKET"),
+		"LEGACY_REPORTS_S3_BUCKET":       os.Getenv("LEGACY_REPORTS_S3_BUCKET"),
 		"SIRIUS_PUBLIC_URL":              os.Getenv("SIRIUS_PUBLIC_URL"),
 		"FINANCE_ADMIN_PREFIX":           os.Getenv("FINANCE_ADMIN_PREFIX"),
 		"POSTGRES_CONN":                  os.Getenv("POSTGRES_CONN"),
@@ -100,7 +102,7 @@ func parseEnvs() (*Envs, error) {
 		asyncBucket:         envs["ASYNC_S3_BUCKET"],
 		goLiveDate:          envs["FINANCE_HUB_LIVE_DATE"],
 		reportsBucket:       envs["REPORTS_S3_BUCKET"],
-    legacyReportsBucket: envs["LEGACY_REPORTS_S3_BUCKET"],
+		legacyReportsBucket: envs["LEGACY_REPORTS_S3_BUCKET"],
 		siriusPublicURL:     envs["SIRIUS_PUBLIC_URL"],
 		financeAdminPrefix:  envs["FINANCE_ADMIN_PREFIX"],
 		dbConn:              envs["POSTGRES_CONN"],

@@ -56,33 +56,14 @@ func TestGetFile(t *testing.T) {
 		mock           *mockS3Client
 		bucket         string
 		filename       string
-		versionId      string
 		expectedInput  *s3.GetObjectInput
 		expectedOutput *s3.GetObjectOutput
 		expectedError  error
 	}{
 		{
-			name:      "success with version ID",
-			bucket:    "bucket-a",
-			filename:  "filename-b",
-			versionId: "12",
-			mock: &mockS3Client{
-				getObjectOutput: &s3.GetObjectOutput{},
-				getObjectError:  nil,
-			},
-			expectedInput: &s3.GetObjectInput{
-				Bucket:    aws.String("bucket-a"),
-				Key:       aws.String("filename-b"),
-				VersionId: aws.String("12"),
-			},
-			expectedOutput: &s3.GetObjectOutput{},
-			expectedError:  nil,
-		},
-		{
-			name:      "success with no version ID",
-			bucket:    "bucket-a",
-			filename:  "filename-b",
-			versionId: "",
+			name:     "success",
+			bucket:   "bucket-a",
+			filename: "filename-b",
 			mock: &mockS3Client{
 				getObjectOutput: &s3.GetObjectOutput{},
 				getObjectError:  nil,
@@ -111,7 +92,61 @@ func TestGetFile(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			client := &Client{s3: tt.mock}
-			got, err := client.GetFile(context.Background(), tt.bucket, tt.filename, tt.versionId)
+			got, err := client.GetFile(context.Background(), tt.bucket, tt.filename)
+			assert.Equal(t, tt.expectedInput, tt.mock.getObjectInput)
+			assert.Equal(t, tt.expectedOutput, got)
+			assert.Equal(t, tt.expectedError, err)
+		})
+	}
+}
+
+func TestGetFileByVersion(t *testing.T) {
+	tests := []struct {
+		name           string
+		mock           *mockS3Client
+		bucket         string
+		filename       string
+		versionId      string
+		expectedInput  *s3.GetObjectInput
+		expectedOutput *s3.GetObjectOutput
+		expectedError  error
+	}{
+		{
+			name:      "success",
+			bucket:    "bucket-a",
+			filename:  "filename-b",
+			versionId: "12",
+			mock: &mockS3Client{
+				getObjectOutput: &s3.GetObjectOutput{},
+				getObjectError:  nil,
+			},
+			expectedInput: &s3.GetObjectInput{
+				Bucket:    aws.String("bucket-a"),
+				Key:       aws.String("filename-b"),
+				VersionId: aws.String("12"),
+			},
+			expectedOutput: &s3.GetObjectOutput{},
+			expectedError:  nil,
+		},
+		{
+			name: "fail",
+			mock: &mockS3Client{
+				getObjectOutput: nil,
+				getObjectError:  errors.New("error"),
+			},
+			expectedInput: &s3.GetObjectInput{
+				Bucket:    aws.String(""),
+				Key:       aws.String(""),
+				VersionId: aws.String(""),
+			},
+			expectedError: fmt.Errorf("error"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := &Client{s3: tt.mock}
+			got, err := client.GetFileByVersion(context.Background(), tt.bucket, tt.filename, tt.versionId)
 			assert.Equal(t, tt.expectedInput, tt.mock.getObjectInput)
 			assert.Equal(t, tt.expectedOutput, got)
 			assert.Equal(t, tt.expectedError, err)

@@ -64,7 +64,14 @@ type mockFileStorage struct {
 	err  error
 }
 
-func (m *mockFileStorage) GetFile(ctx context.Context, bucketName string, fileName string, versionID string) (*s3.GetObjectOutput, error) {
+func (m *mockFileStorage) GetFile(ctx context.Context, bucketName string, fileName string) (*s3.GetObjectOutput, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return m.file, nil
+}
+
+func (m *mockFileStorage) GetFileByVersion(ctx context.Context, bucketName string, fileName string, versionID string) (*s3.GetObjectOutput, error) {
 	if m.err != nil {
 		return nil, m.err
 	}

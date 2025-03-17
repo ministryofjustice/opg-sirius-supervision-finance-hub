@@ -36,7 +36,8 @@ type Service interface {
 }
 
 type FileStorage interface {
-	GetFile(ctx context.Context, bucketName string, filename string, versionID string) (*s3.GetObjectOutput, error)
+	GetFile(ctx context.Context, bucketName string, filename string) (*s3.GetObjectOutput, error)
+	GetFileByVersion(ctx context.Context, bucketName string, filename string, versionID string) (*s3.GetObjectOutput, error)
 	FileExists(ctx context.Context, bucketName string, filename string, versionID string) bool
 }
 

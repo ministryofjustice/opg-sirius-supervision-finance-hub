@@ -53,17 +53,18 @@ func NewClient(ctx context.Context, region string, iamRole string, endpoint stri
 	}, nil
 }
 
-func (c *Client) GetFile(ctx context.Context, bucketName string, filename string, versionID string) (*s3.GetObjectOutput, error) {
-	var awsVersionId *string
+func (c *Client) GetFile(ctx context.Context, bucketName string, filename string) (*s3.GetObjectOutput, error) {
+	return c.s3.GetObject(ctx, &s3.GetObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(filename),
+	})
+}
 
-	if versionID != "" {
-		awsVersionId = aws.String(versionID)
-	}
-
+func (c *Client) GetFileByVersion(ctx context.Context, bucketName string, filename string, versionID string) (*s3.GetObjectOutput, error) {
 	return c.s3.GetObject(ctx, &s3.GetObjectInput{
 		Bucket:    aws.String(bucketName),
 		Key:       aws.String(filename),
-		VersionId: awsVersionId,
+		VersionId: aws.String(versionID),
 	})
 }
 
