@@ -96,7 +96,7 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 		case shared.JournalTypeReceiptTransactions:
 			query = &db.ReceiptTransactions{Date: reportRequest.TransactionDate}
 		default:
-			return fmt.Errorf("unimplemented journal query: %s", reportRequest.JournalType.Key())
+			return "", reportName, nil, fmt.Errorf("unimplemented journal query: %s", reportRequest.JournalType.Key())
 		}
 	case shared.ReportsTypeSchedule:
 		filename = fmt.Sprintf("schedule_%s_%s.csv", reportRequest.ScheduleType.Key(), reportRequest.TransactionDate.Time.Format("02:01:2006"))

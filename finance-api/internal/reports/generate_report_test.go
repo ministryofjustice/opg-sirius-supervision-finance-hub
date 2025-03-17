@@ -153,6 +153,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			},
 			expectedQuery:    &db.NonReceiptTransactions{Date: &toDate},
 			expectedFilename: "NonReceiptTransactions_01:01:2024.csv",
+			expectedTemplate: reportRequestedTemplateId,
 		},
 		{
 			name: "ReceiptTransactions",
@@ -163,6 +164,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			},
 			expectedQuery:    &db.ReceiptTransactions{Date: &toDate},
 			expectedFilename: "ReceiptTransactions_01:01:2024.csv",
+			expectedTemplate: reportRequestedTemplateId,
 		},
 		{
 			name: "Unknown",
@@ -288,12 +290,12 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				actual, ok := mockDb.query.(*db.Receipts)
 				assert.True(t, ok)
 				assert.Equal(t, expected, actual)
-				assert.Nil(t, err)
+				assert.Equal(t, tt.expectedTemplate, mockNotify.payload.TemplateId)
 			case *db.NonReceiptTransactions:
 				actual, ok := mockDb.query.(*db.NonReceiptTransactions)
 				assert.True(t, ok)
 				assert.Equal(t, expected, actual)
-				assert.Nil(t, err)
+				assert.Equal(t, tt.expectedTemplate, mockNotify.payload.TemplateId)
 			case *db.ReceiptTransactions:
 				actual, ok := mockDb.query.(*db.ReceiptTransactions)
 				assert.True(t, ok)
