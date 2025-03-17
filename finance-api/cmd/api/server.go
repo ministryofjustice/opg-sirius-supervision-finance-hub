@@ -7,6 +7,7 @@ import (
 	"github.com/ministryofjustice/opg-go-common/securityheaders"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -57,8 +58,10 @@ type Server struct {
 }
 
 type Envs struct {
-	ReportsBucket string
-	GoLiveDate    time.Time
+	ReportsBucket     string
+	GoLiveDate        time.Time
+	EventBridgeAPIKey string
+	SystemUserID      int32
 }
 
 func NewServer(service Service, reports Reports, fileStorage FileStorage, jwtClient JWTClient, validator *validation.Validate, envs *Envs) *Server {
@@ -80,7 +83,7 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 	authFunc := func(pattern string, role string, h handlerFunc) {
 		// Configure the "http.route" for the HTTP instrumentation.
 		handler := otelhttp.WithRouteTag(pattern, h)
-		mux.Handle(pattern, s.requestLogger(s.authenticate(s.authorise(role)(handler))))
+		mux.Handle(pattern, s.authenticateAPI(s.requestLogger(s.authorise(role)(handler))))
 	}
 
 	authFunc("GET /clients/{clientId}", shared.RoleAny, s.getAccountInformation)
@@ -105,7 +108,7 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 	// unauthenticated as request is coming from EventBridge
 	eventFunc := func(pattern string, h handlerFunc) {
 		handler := otelhttp.WithRouteTag(pattern, h)
-		mux.Handle(pattern, s.requestLogger(handler))
+		mux.Handle(pattern, s.authenticateEvent(s.requestLogger(handler)))
 	}
 	eventFunc("POST /events", s.handleEvents)
 
@@ -116,10 +119,12 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 
 func (s *Server) requestLogger(h http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		telemetry.LoggerFromContext(r.Context()).Info(
+		ctx := r.Context().(auth.Context)
+		telemetry.LoggerFromContext(ctx).Info(
 			"API Request",
 			"method", r.Method,
 			"uri", r.URL.RequestURI(),
+			"user-id", ctx.User.ID,
 		)
 		h.ServeHTTP(w, r)
 	}

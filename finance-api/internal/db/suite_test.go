@@ -36,7 +36,7 @@ func (suite *IntegrationSuite) SetupSuite() {
 	}
 	suite.cm = testhelpers.Init(suite.ctx, "public,supervision_finance")
 	seeder := suite.cm.Seeder(suite.ctx, suite.T())
-	serv := service.NewService(seeder.Conn, &mockDispatch{}, nil, nil, &service.Env{SystemUserID: 99})
+	serv := service.NewService(seeder.Conn, &mockDispatch{}, nil, nil, nil)
 	suite.seeder = seeder.WithService(serv)
 }
 
