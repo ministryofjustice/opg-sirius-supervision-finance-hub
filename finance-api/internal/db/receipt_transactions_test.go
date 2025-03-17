@@ -13,7 +13,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	yesterday := suite.seeder.Today().Sub(0, 0, 1)
 	twoMonthsAgo := suite.seeder.Today().Sub(0, 2, 0)
 
-	// one client with an invoice with a MOTO card payment, supervision BACS payment and an AD invoice with an exemption
+	// one client with an invoice with a MOTO card payment, supervision BACS payment and an AD invoice with an exemption. This also creates an unapply
 	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234")
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
 	_, _ = suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, nil)

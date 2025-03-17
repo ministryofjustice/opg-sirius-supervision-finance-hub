@@ -16,7 +16,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 	threeMonthsAgo := suite.seeder.Today().Sub(0, 3, 0)
 	oneYearAgo := suite.seeder.Today().Sub(1, 0, 0)
 
-	// one client with one AD invoice, one minimal S3 invoice, a GS invoice, an exemption and a moto card payment
+	// one client with one AD invoice, one minimal S3 invoice, a GS invoice, an exemption and a moto card payment. This also creates an unapply
 	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234")
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
 
@@ -40,12 +40,13 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 	suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeHardship, "2024", 4, "Test", yesterday.Date())
 	suite.seeder.CreatePayment(ctx, 1000, yesterday.Date(), "87654321", shared.TransactionTypeDirectDebitPayment, yesterday.Date())
 
-	// one client with an SE invoice, a credit memo, and a direct debit payment
+	// one client with an SE invoice, a credit memo, a direct debit payment and a reapply
 	client3ID := suite.seeder.CreateClient(ctx, "Bill", "Wilson", "12344321", "9876")
 	invoice9ID, _ := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeSE, valToPtr("120"), threeMonthsAgo.StringPtr(), nil, nil, valToPtr("GENERAL"), yesterday.StringPtr())
 
 	suite.seeder.CreateAdjustment(ctx, client3ID, invoice9ID, shared.AdjustmentTypeCreditMemo, -200, "", yesterday.DatePtr())
 	suite.seeder.CreatePayment(ctx, 1000, yesterday.Date(), "12344321", shared.TransactionTypeDirectDebitPayment, yesterday.Date())
+	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "12344321", shared.TransactionTypeReapply, yesterday.Date())
 
 	c := Client{suite.seeder.Conn}
 
