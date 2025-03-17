@@ -18,29 +18,28 @@ const (
 
 func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) {
 	logger := telemetry.LoggerFromContext(ctx)
-	filename, reportName, file, err := c.generateReport(ctx, reportRequest, requestedDate)
-	if err == nil {
-		logger.Error("failed to generate report", "error", err)
-		err = c.sendFailureNotification(ctx, reportRequest.Email, requestedDate, reportName)
-		if err != nil {
-			logger.Error("unable to send message to notify", "error", err)
-		}
-		return
-	}
-
-	versionId, err := c.uploadReport(ctx, filename, file)
-	if err != nil {
-		logger.Error("failed to generate report", "error", err)
-		err = c.sendFailureNotification(ctx, reportRequest.Email, requestedDate, reportName)
-		if err != nil {
-			logger.Error("unable to send message to notify", "error", err)
-		}
-	}
-
-	err = c.sendSuccessNotification(ctx, reportRequest.Email, filename, versionId, requestedDate, reportName)
+	_, reportName, _, err := c.generateReport(ctx, reportRequest, requestedDate)
+	logger.Error("failed to generate report", "error", err)
+	err = c.sendFailureNotification(ctx, reportRequest.Email, requestedDate, reportName)
 	if err != nil {
 		logger.Error("unable to send message to notify", "error", err)
 	}
+	return
+	//}
+	//
+	//versionId, err := c.uploadReport(ctx, filename, file)
+	//if err != nil {
+	//	logger.Error("failed to generate report", "error", err)
+	//	err = c.sendFailureNotification(ctx, reportRequest.Email, requestedDate, reportName)
+	//	if err != nil {
+	//		logger.Error("unable to send message to notify", "error", err)
+	//	}
+	//}
+	//
+	//err = c.sendSuccessNotification(ctx, reportRequest.Email, filename, versionId, requestedDate, reportName)
+	//if err != nil {
+	//	logger.Error("unable to send message to notify", "error", err)
+	//}
 }
 
 func (c *Client) generateReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) (filename string, reportName string, file *os.File, err error) {
