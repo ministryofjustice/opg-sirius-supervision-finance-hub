@@ -3,8 +3,8 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"net/http"
 	"os"
@@ -38,7 +38,12 @@ func (s *Server) requestReport(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	go func() {
-		s.reports.GenerateAndUploadReport(r.Context(), reportRequest, time.Now())
+		// copy context to prevent request cancellation from affecting the report generation
+		ctx := auth.Context{
+			Context: r.Context(),
+			User:    r.Context().(auth.Context).User,
+		}
+		s.reports.GenerateAndUploadReport(ctx, reportRequest, time.Now())
 	}()
 
 	w.Header().Set("Content-Type", "application/json")
