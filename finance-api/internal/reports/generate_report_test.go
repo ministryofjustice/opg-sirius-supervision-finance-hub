@@ -2,7 +2,7 @@ package reports
 
 import (
 	"context"
-	"fmt"
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/db"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
@@ -64,7 +64,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 		reportRequest    shared.ReportRequest
 		expectedQuery    db.ReportQuery
 		expectedFilename string
-		expectedErr      error
+		expectedTemplate string
 	}{
 		{
 			name: "Aged Debt",
@@ -76,6 +76,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			},
 			expectedQuery:    &db.AgedDebt{FromDate: &fromDate, ToDate: &toDate},
 			expectedFilename: "AgedDebt_01:01:2024.csv",
+			expectedTemplate: reportRequestedTemplateId,
 		},
 		{
 			name: "Aged Debt By Customer",
@@ -85,6 +86,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			},
 			expectedQuery:    &db.AgedDebtByCustomer{},
 			expectedFilename: "AgedDebtByCustomer_01:01:2024.csv",
+			expectedTemplate: reportRequestedTemplateId,
 		},
 		{
 			name: "Paid Invoices",
@@ -96,6 +98,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			},
 			expectedQuery:    &db.PaidInvoices{FromDate: &fromDate, ToDate: &toDate},
 			expectedFilename: "ARPaidInvoice_01:01:2024.csv",
+			expectedTemplate: reportRequestedTemplateId,
 		},
 		{
 			name: "Invoice Adjustments",
@@ -107,6 +110,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			},
 			expectedQuery:    &db.InvoiceAdjustments{FromDate: &fromDate, ToDate: &toDate},
 			expectedFilename: "InvoiceAdjustments_01:01:2024.csv",
+			expectedTemplate: reportRequestedTemplateId,
 		},
 		{
 			name: "Bad Debt Write Off",
@@ -116,6 +120,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			},
 			expectedQuery:    &db.BadDebtWriteOff{},
 			expectedFilename: "BadDebtWriteOff_01:01:2024.csv",
+			expectedTemplate: reportRequestedTemplateId,
 		},
 		{
 			name: "Receipts",
@@ -127,6 +132,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			},
 			expectedQuery:    &db.Receipts{FromDate: &fromDate, ToDate: &toDate},
 			expectedFilename: "TotalReceipts_01:01:2024.csv",
+			expectedTemplate: reportRequestedTemplateId,
 		},
 		{
 			name: "Customer Credit",
@@ -136,6 +142,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			},
 			expectedQuery:    &db.CustomerCredit{},
 			expectedFilename: "UnappliedReceipts_01:01:2024.csv",
+			expectedTemplate: reportRequestedTemplateId,
 		},
 		{
 			name: "NonReceiptTransactions",
@@ -146,6 +153,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			},
 			expectedQuery:    &db.NonReceiptTransactions{Date: &toDate},
 			expectedFilename: "NonReceiptTransactions_01:01:2024.csv",
+			expectedTemplate: reportRequestedTemplateId,
 		},
 		{
 			name: "ReceiptTransactions",
@@ -156,6 +164,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			},
 			expectedQuery:    &db.ReceiptTransactions{Date: &toDate},
 			expectedFilename: "ReceiptTransactions_01:01:2024.csv",
+			expectedTemplate: reportRequestedTemplateId,
 		},
 		{
 			name: "Unknown",
@@ -163,7 +172,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				ReportType:             shared.ReportsTypeAccountsReceivable,
 				AccountsReceivableType: toPtr(shared.AccountsReceivableTypeUnknown),
 			},
-			expectedErr: fmt.Errorf("unimplemented accounts receivable query: %s", shared.AccountsReceivableTypeUnknown.Key()),
+			expectedTemplate: reportFailedTemplateId,
 		},
 		{
 			name: "Online card payment schedule",
@@ -177,6 +186,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				ScheduleType: toPtr(shared.ScheduleTypeOnlineCardPayments),
 			},
 			expectedFilename: "schedule_OnlineCardPayments_01:01:2024.csv",
+			expectedTemplate: reportRequestedTemplateId,
 		},
 		{
 			name: "SE Invoice schedule",
@@ -190,6 +200,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				ScheduleType: toPtr(shared.ScheduleTypeSEFeeInvoicesGeneral),
 			},
 			expectedFilename: "schedule_SEFeeInvoicesGeneral_01:01:2024.csv",
+			expectedTemplate: reportRequestedTemplateId,
 		},
 		{
 			name: "AD Fee Reduction adjustments schedule",
@@ -203,6 +214,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				ScheduleType: toPtr(shared.ScheduleTypeADFeeReductions),
 			},
 			expectedFilename: "schedule_ADFeeReductions_01:01:2024.csv",
+			expectedTemplate: reportRequestedTemplateId,
 		},
 		{
 			name: "Minimal debit adjustments schedule",
@@ -216,6 +228,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				ScheduleType: toPtr(shared.ScheduleTypeMinimalManualDebits),
 			},
 			expectedFilename: "schedule_MinimalManualDebits_10:10:2024.csv",
+			expectedTemplate: reportRequestedTemplateId,
 		},
 		{
 			name: "Unapplied payments",
@@ -229,6 +242,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				ScheduleType: toPtr(shared.ScheduleTypeUnappliedPayments),
 			},
 			expectedFilename: "schedule_UnappliedPayments_10:10:2024.csv",
+			expectedTemplate: reportRequestedTemplateId,
 		},
 	}
 
@@ -241,64 +255,79 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			client := NewClient(nil, &mockFileStorage, &mockNotify, &Envs{ReportsBucket: "test"})
 			client.db = &mockDb
 
-			ctx := context.Background()
+			ctx := telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test"))
 			timeNow, _ := time.Parse("2006-01-02", "2024-01-01")
 
-			err := client.GenerateAndUploadReport(ctx, tt.reportRequest, timeNow)
+			client.GenerateAndUploadReport(ctx, tt.reportRequest, timeNow)
 
 			switch expected := tt.expectedQuery.(type) {
 			case *db.AgedDebt:
 				actual, ok := mockDb.query.(*db.AgedDebt)
 				assert.True(t, ok)
 				assert.Equal(t, expected, actual)
-				assert.Nil(t, err)
+				assert.Equal(t, tt.expectedTemplate, mockNotify.payload.TemplateId)
 			case *db.AgedDebtByCustomer:
 				actual, ok := mockDb.query.(*db.AgedDebtByCustomer)
 				assert.True(t, ok)
 				assert.Equal(t, expected, actual)
-				assert.Nil(t, err)
+				assert.Equal(t, tt.expectedTemplate, mockNotify.payload.TemplateId)
 			case *db.PaidInvoices:
 				actual, ok := mockDb.query.(*db.PaidInvoices)
 				assert.True(t, ok)
 				assert.Equal(t, expected, actual)
-				assert.Nil(t, err)
+				assert.Equal(t, tt.expectedTemplate, mockNotify.payload.TemplateId)
+			case *db.InvoiceAdjustments:
+				actual, ok := mockDb.query.(*db.InvoiceAdjustments)
+				assert.True(t, ok)
+				assert.Equal(t, expected, actual)
+				assert.Equal(t, tt.expectedTemplate, mockNotify.payload.TemplateId)
 			case *db.BadDebtWriteOff:
 				actual, ok := mockDb.query.(*db.BadDebtWriteOff)
 				assert.True(t, ok)
 				assert.Equal(t, expected, actual)
-				assert.Nil(t, err)
+				assert.Equal(t, tt.expectedTemplate, mockNotify.payload.TemplateId)
 			case *db.Receipts:
 				actual, ok := mockDb.query.(*db.Receipts)
 				assert.True(t, ok)
 				assert.Equal(t, expected, actual)
-				assert.Nil(t, err)
+				assert.Equal(t, tt.expectedTemplate, mockNotify.payload.TemplateId)
 			case *db.NonReceiptTransactions:
 				actual, ok := mockDb.query.(*db.NonReceiptTransactions)
 				assert.True(t, ok)
 				assert.Equal(t, expected, actual)
-				assert.Nil(t, err)
+				assert.Equal(t, tt.expectedTemplate, mockNotify.payload.TemplateId)
 			case *db.ReceiptTransactions:
 				actual, ok := mockDb.query.(*db.ReceiptTransactions)
 				assert.True(t, ok)
 				assert.Equal(t, expected, actual)
-				assert.Nil(t, err)
+				assert.Equal(t, tt.expectedTemplate, mockNotify.payload.TemplateId)
 			case *db.CustomerCredit:
 				actual, ok := mockDb.query.(*db.CustomerCredit)
 				assert.True(t, ok)
 				assert.Equal(t, expected, actual)
-				assert.Nil(t, err)
+				assert.Equal(t, tt.expectedTemplate, mockNotify.payload.TemplateId)
 			case *db.PaymentsSchedule:
 				actual, ok := mockDb.query.(*db.PaymentsSchedule)
 				assert.True(t, ok)
 				assert.Equal(t, expected, actual)
-				assert.Nil(t, err)
+				assert.Equal(t, tt.expectedTemplate, mockNotify.payload.TemplateId)
+			case *db.InvoicesSchedule:
+				actual, ok := mockDb.query.(*db.InvoicesSchedule)
+				assert.True(t, ok)
+				assert.Equal(t, expected, actual)
+				assert.Equal(t, tt.expectedTemplate, mockNotify.payload.TemplateId)
 			case *db.AdjustmentsSchedule:
 				actual, ok := mockDb.query.(*db.AdjustmentsSchedule)
 				assert.True(t, ok)
 				assert.Equal(t, expected, actual)
-				assert.Nil(t, err)
+				assert.Equal(t, tt.expectedTemplate, mockNotify.payload.TemplateId)
+			case *db.UnapplyReapplySchedule:
+				actual, ok := mockDb.query.(*db.UnapplyReapplySchedule)
+				assert.True(t, ok)
+				assert.Equal(t, expected, actual)
+				assert.Equal(t, tt.expectedTemplate, mockNotify.payload.TemplateId)
 			default:
-				assert.Equal(t, tt.expectedErr, err)
+				assert.Equal(t, tt.expectedTemplate, mockNotify.payload.TemplateId)
 			}
 
 			assert.Equal(t, tt.expectedFilename, mockFileStorage.filename)
@@ -306,34 +335,54 @@ func TestGenerateAndUploadReport(t *testing.T) {
 		})
 	}
 }
+func TestSendSuccessNotification(t *testing.T) {
+	mockNotify := MockNotify{}
+	client := &Client{notify: &mockNotify, envs: &Envs{FinanceAdminURL: "http://example.com"}}
 
-func TestCreateDownloadNotifyPayload(t *testing.T) {
-	emailAddress := "test@email.com"
-	reportName := "test report"
-	downloadRequest := shared.DownloadRequest{
-		Key:       "test.csv",
-		VersionId: "1",
-	}
-	uid, _ := downloadRequest.Encode()
-	requestedDate, _ := time.Parse("2006-01-02 15:04:05", "2024-01-01 13:37:00")
+	ctx := context.Background()
+	emailAddress := "test@example.com"
+	filename := "test_report.csv"
+	versionId := "12345"
+	requestedDate, _ := time.Parse("2006-01-02", "2024-01-01")
+	reportName := "Test Report"
 
-	want := notify.Payload{
+	err := client.sendSuccessNotification(ctx, emailAddress, filename, &versionId, requestedDate, reportName)
+	assert.Nil(t, err)
+
+	expectedPayload := notify.Payload{
 		EmailAddress: emailAddress,
 		TemplateId:   reportRequestedTemplateId,
 		Personalisation: reportRequestedNotifyPersonalisation{
-			FileLink:          fmt.Sprintf("www.sirius.com/finance/download?uid=%s", uid),
+			FileLink:          "http://example.com/download?uid=eyJLZXkiOiJ0ZXN0X3JlcG9ydC5jc3YiLCJWZXJzaW9uSWQiOiIxMjM0NSJ9",
 			ReportName:        reportName,
 			RequestedDate:     "2024-01-01",
-			RequestedDateTime: "2024-01-01 13:37:00",
+			RequestedDateTime: "2024-01-01 00:00:00",
 		},
 	}
 
-	client := NewClient(nil, nil, nil, &Envs{
-		ReportsBucket:   "test",
-		FinanceAdminURL: "www.sirius.com/finance",
-	})
-	payload, err := client.createDownloadNotifyPayload(emailAddress, downloadRequest.Key, &downloadRequest.VersionId, requestedDate, reportName)
+	assert.Equal(t, expectedPayload, mockNotify.payload)
+}
+func TestSendFailureNotification(t *testing.T) {
+	mockNotify := MockNotify{}
+	client := &Client{notify: &mockNotify}
 
-	assert.Equal(t, want, payload)
+	ctx := context.Background()
+	emailAddress := "test@example.com"
+	requestedDate, _ := time.Parse("2006-01-02", "2024-01-01")
+	reportName := "Test Report"
+
+	err := client.sendFailureNotification(ctx, emailAddress, requestedDate, reportName)
 	assert.Nil(t, err)
+
+	expectedPayload := notify.Payload{
+		EmailAddress: emailAddress,
+		TemplateId:   reportFailedTemplateId,
+		Personalisation: reportFailedNotifyPersonalisation{
+			ReportName:        reportName,
+			RequestedDate:     "2024-01-01",
+			RequestedDateTime: "2024-01-01 00:00:00",
+		},
+	}
+
+	assert.Equal(t, expectedPayload, mockNotify.payload)
 }
