@@ -16,12 +16,55 @@ const (
 	reportFailedTemplateId    = "31c40127-b5b6-4d23-aaab-050d90639d83"
 )
 
+func (c *Client) createDownloadFeeAccrualNotifyPayload(emailAddress string, requestedDate time.Time) (notify.Payload, error) {
+	filename := "Fee_Accrual.csv"
+
+	downloadRequest := shared.DownloadRequest{
+		Key:    filename,
+		Bucket: c.envs.LegacyReportsBucket,
+	}
+
+	uid, err := downloadRequest.Encode()
+	if err != nil {
+		return notify.Payload{}, err
+	}
+
+	downloadLink := fmt.Sprintf("%s/download?uid=%s", c.envs.FinanceAdminURL, uid)
+
+	payload := notify.Payload{
+		EmailAddress: emailAddress,
+		TemplateId:   reportRequestedTemplateId,
+		Personalisation: reportRequestedNotifyPersonalisation{
+			downloadLink,
+			"Fee Accrual",
+			requestedDate.Format("2006-01-02"),
+			requestedDate.Format("2006-01-02 15:04:05"),
+		},
+	}
+
+	return payload, nil
+}
+
 func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) {
 	logger := telemetry.LoggerFromContext(ctx)
 	filename, reportName, file, err := c.generateReport(ctx, reportRequest, requestedDate)
 	if err != nil {
 		logger.Error("failed to generate report", "error", err)
 		err = c.sendFailureNotification(ctx, reportRequest.Email, requestedDate, reportName)
+		if err != nil {
+			logger.Error("unable to send message to notify", "error", err)
+		}
+		return
+	}
+
+	if reportRequest.ReportType == shared.ReportsTypeAccountsReceivable &&
+		*reportRequest.AccountsReceivableType == shared.AccountsReceivableTypeFeeAccrual {
+		payload, err := c.createDownloadFeeAccrualNotifyPayload(reportRequest.Email, requestedDate)
+		if err != nil {
+			logger.Error("failed to generate notify payload", "error", err)
+		}
+
+		err = c.notify.Send(ctx, payload)
 		if err != nil {
 			logger.Error("unable to send message to notify", "error", err)
 		}
@@ -83,6 +126,8 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 			}
 		case shared.AccountsReceivableTypeUnappliedReceipts:
 			query = &db.CustomerCredit{}
+		case shared.AccountsReceivableTypeFeeAccrual:
+			return filename, reportName, nil, nil
 		default:
 			return "", reportName, nil, fmt.Errorf("unimplemented accounts receivable query: %s", reportRequest.AccountsReceivableType.Key())
 		}
@@ -209,6 +254,7 @@ func (c *Client) sendSuccessNotification(ctx context.Context, emailAddress, file
 	downloadRequest := shared.DownloadRequest{
 		Key:       filename,
 		VersionId: *versionId,
+		Bucket:    c.envs.ReportsBucket,
 	}
 
 	uid, err := downloadRequest.Encode()
