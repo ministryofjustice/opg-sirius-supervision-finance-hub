@@ -127,7 +127,7 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 		case shared.AccountsReceivableTypeUnappliedReceipts:
 			query = &db.CustomerCredit{}
 		case shared.AccountsReceivableTypeFeeAccrual:
-			query = nil
+			return filename, reportName, nil, nil
 		default:
 			return "", reportName, nil, fmt.Errorf("unimplemented accounts receivable query: %s", reportRequest.AccountsReceivableType.Key())
 		}
