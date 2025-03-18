@@ -114,9 +114,8 @@ func (s *mockService) UpdateClient(ctx context.Context, clientId int32, courtRef
 	return s.err
 }
 
-func (s *mockService) GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) error {
+func (s *mockService) GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) {
 	s.lastCalled = "GenerateAndUploadReport"
-	return s.err
 }
 
 type MockFileStorage struct {
@@ -153,11 +152,9 @@ func (m *MockFileStorage) FileExists(ctx context.Context, bucketName string, fil
 type MockReports struct {
 	requestedReport *shared.ReportRequest
 	requestedDate   time.Time
-	err             error
 }
 
-func (m *MockReports) GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) error {
+func (m *MockReports) GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) {
 	m.requestedReport = &reportRequest
 	m.requestedDate = requestedDate
-	return m.err
 }

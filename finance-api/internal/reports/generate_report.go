@@ -3,13 +3,18 @@ package reports
 import (
 	"context"
 	"fmt"
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/db"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"os"
 	"time"
 )
 
-const reportRequestedTemplateId = "bade69e4-0eb1-4896-a709-bd8f8371a629"
+const (
+	reportRequestedTemplateId = "bade69e4-0eb1-4896-a709-bd8f8371a629"
+	reportFailedTemplateId    = "31c40127-b5b6-4d23-aaab-050d90639d83"
+)
 
 func (c *Client) createDownloadFeeAccrualNotifyPayload(emailAddress string, requestedDate time.Time) (notify.Payload, error) {
 	filename := "Fee_Accrual.csv"
@@ -48,6 +53,45 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 		reportName string
 	)
 
+func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) {
+	logger := telemetry.LoggerFromContext(ctx)
+	filename, reportName, file, err := c.generateReport(ctx, reportRequest, requestedDate)
+	if err != nil {
+		logger.Error("failed to generate report", "error", err)
+		err = c.sendFailureNotification(ctx, reportRequest.Email, requestedDate, reportName)
+		if err != nil {
+			logger.Error("unable to send message to notify", "error", err)
+		}
+		return
+	}
+  
+  if reportRequest.AccountsReceivableType == shared.AccountsReceivableTypeFeeAccrual {
+      payload, err := c.createDownloadFeeAccrualNotifyPayload(reportRequest.Email, requestedDate)
+			if err != nil {
+				return err
+			}
+
+			return c.notify.Send(ctx, payload)
+  }
+
+	versionId, err := c.uploadReport(ctx, filename, file)
+	if err != nil {
+		logger.Error("failed to generate report", "error", err)
+		err = c.sendFailureNotification(ctx, reportRequest.Email, requestedDate, reportName)
+		if err != nil {
+			logger.Error("unable to send message to notify", "error", err)
+		}
+	}
+
+	err = c.sendSuccessNotification(ctx, reportRequest.Email, filename, versionId, requestedDate, reportName)
+	if err != nil {
+		logger.Error("unable to send message to notify", "error", err)
+	}
+}
+
+func (c *Client) generateReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) (filename string, reportName string, file *os.File, err error) {
+	var query db.ReportQuery
+
 	switch reportRequest.ReportType {
 	case shared.ReportsTypeAccountsReceivable:
 		filename = fmt.Sprintf("%s_%s.csv", reportRequest.AccountsReceivableType.Key(), requestedDate.Format("02:01:2006"))
@@ -85,15 +129,9 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 			}
 		case shared.AccountsReceivableTypeUnappliedReceipts:
 			query = &db.CustomerCredit{}
-		case shared.AccountsReceivableTypeFeeAccrual:
-			payload, err := c.createDownloadFeeAccrualNotifyPayload(reportRequest.Email, requestedDate)
-			if err != nil {
-				return err
-			}
-
-			return c.notify.Send(ctx, payload)
+    case shared.AccountsReceivableTypeFeeAccrual:
 		default:
-			return fmt.Errorf("unimplemented accounts receivable query: %s", reportRequest.AccountsReceivableType.Key())
+			return "", reportName, nil, fmt.Errorf("unimplemented accounts receivable query: %s", reportRequest.AccountsReceivableType.Key())
 		}
 
 	case shared.ReportsTypeJournal:
@@ -105,7 +143,7 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 		case shared.JournalTypeReceiptTransactions:
 			query = &db.ReceiptTransactions{Date: reportRequest.TransactionDate}
 		default:
-			return fmt.Errorf("unimplemented journal query: %s", reportRequest.JournalType.Key())
+			return "", reportName, nil, fmt.Errorf("unimplemented journal query: %s", reportRequest.JournalType.Key())
 		}
 	case shared.ReportsTypeSchedule:
 		filename = fmt.Sprintf("schedule_%s_%s.csv", reportRequest.ScheduleType.Key(), reportRequest.TransactionDate.Time.Format("02:01:2006"))
@@ -179,41 +217,28 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 				ScheduleType: reportRequest.ScheduleType,
 			}
 		default:
-			return fmt.Errorf("unimplemented schedule query: %s", reportRequest.ScheduleType.Key())
+			return "", reportName, nil, fmt.Errorf("unimplemented schedule query: %s", reportRequest.ScheduleType.Key())
 		}
 	default:
-		return fmt.Errorf("unknown query")
+		return "", "unknown query", nil, fmt.Errorf("unknown query")
 	}
 
-	file, err := c.generate(ctx, filename, query)
+	file, err = c.generate(ctx, filename, query)
 	if err != nil {
-		return err
+		return filename, reportName, nil, err
 	}
-
 	defer file.Close()
 
-	versionId, err := c.fileStorage.PutFile(
-		ctx,
-		c.envs.ReportsBucket,
-		filename,
-		file,
-	)
+	return filename, reportName, file, nil
+}
 
+func (c *Client) uploadReport(ctx context.Context, filename string, file *os.File) (*string, error) {
+	versionId, err := c.fileStorage.PutFile(ctx, c.envs.ReportsBucket, filename, file)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	payload, err := c.createDownloadNotifyPayload(reportRequest.Email, filename, versionId, requestedDate, reportName)
-	if err != nil {
-		return err
-	}
-
-	err = c.notify.Send(ctx, payload)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return versionId, nil
 }
 
 type reportRequestedNotifyPersonalisation struct {
@@ -223,9 +248,9 @@ type reportRequestedNotifyPersonalisation struct {
 	RequestedDateTime string `json:"requested_date_time"`
 }
 
-func (c *Client) createDownloadNotifyPayload(emailAddress string, filename string, versionId *string, requestedDate time.Time, reportName string) (notify.Payload, error) {
+func (c *Client) sendSuccessNotification(ctx context.Context, emailAddress, filename string, versionId *string, requestedDate time.Time, reportName string) error {
 	if versionId == nil {
-		return notify.Payload{}, fmt.Errorf("s3 version ID not found")
+		return fmt.Errorf("s3 version ID not found")
 	}
 
 	downloadRequest := shared.DownloadRequest{
@@ -236,7 +261,7 @@ func (c *Client) createDownloadNotifyPayload(emailAddress string, filename strin
 
 	uid, err := downloadRequest.Encode()
 	if err != nil {
-		return notify.Payload{}, err
+		return err
 	}
 
 	downloadLink := fmt.Sprintf("%s/download?uid=%s", c.envs.FinanceAdminURL, uid)
@@ -252,5 +277,25 @@ func (c *Client) createDownloadNotifyPayload(emailAddress string, filename strin
 		},
 	}
 
-	return payload, nil
+	return c.notify.Send(ctx, payload)
+}
+
+type reportFailedNotifyPersonalisation struct {
+	ReportName        string `json:"report_name"`
+	RequestedDate     string `json:"requested_date"`
+	RequestedDateTime string `json:"requested_date_time"`
+}
+
+func (c *Client) sendFailureNotification(ctx context.Context, emailAddress string, requestedDate time.Time, reportName string) error {
+	payload := notify.Payload{
+		EmailAddress: emailAddress,
+		TemplateId:   reportFailedTemplateId,
+		Personalisation: reportFailedNotifyPersonalisation{
+			reportName,
+			requestedDate.Format("2006-01-02"),
+			requestedDate.Format("2006-01-02 15:04:05"),
+		},
+	}
+
+	return c.notify.Send(ctx, payload)
 }
