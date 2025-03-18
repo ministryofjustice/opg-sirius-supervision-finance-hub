@@ -25,7 +25,7 @@ func (s *Server) download(w http.ResponseWriter, r *http.Request) error {
 
 	var result *s3.GetObjectOutput
 
-	if downloadRequest.Key == "FeeAccrual.csv" {
+	if downloadRequest.Key == "Fee_Accrual.csv" {
 		result, err = s.fileStorage.GetFile(ctx, downloadRequest.Bucket, downloadRequest.Key)
 	} else {
 		result, err = s.fileStorage.GetFileByVersion(ctx, downloadRequest.Bucket, downloadRequest.Key, downloadRequest.VersionId)
