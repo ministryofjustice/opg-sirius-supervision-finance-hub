@@ -145,7 +145,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					"100",
 				},
 			},
-			bankDate:         shared.NewDate("2024-01-01"),
+			bankDate:         shared.NewDate("2024-01-17"),
 			pisNumber:        12,
 			expectedClientId: 1,
 			expectedLedgerAllocations: []createdLedgerAllocation{
@@ -172,7 +172,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					"250.1",
 				},
 			},
-			bankDate:         shared.NewDate("2024-01-01"),
+			bankDate:         shared.NewDate("2024-01-17"),
 			pisNumber:        150,
 			expectedClientId: 2,
 			expectedLedgerAllocations: []createdLedgerAllocation{

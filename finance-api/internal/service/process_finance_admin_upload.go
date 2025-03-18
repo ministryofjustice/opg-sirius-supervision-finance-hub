@@ -132,10 +132,6 @@ func getPaymentDetails(record []string, uploadType string, bankDate shared.Date,
 			return shared.PaymentDetails{}
 		}
 
-		bankDate.Time, err = time.Parse("02/01/2006", record[4])
-		if err != nil {
-			(*failedLines)[index] = "DATE_PARSE_ERROR"
-		}
 		receivedDate, err = time.Parse("2006-01-02 15:04:05", "2025-03-31 00:00:00")
 		if err != nil {
 			(*failedLines)[index] = "DATE_TIME_PARSE_ERROR"
