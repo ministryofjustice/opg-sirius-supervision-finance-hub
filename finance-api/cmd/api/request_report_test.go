@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -18,7 +19,10 @@ import (
 func TestRequestReport(t *testing.T) {
 	var b bytes.Buffer
 
-	ctx := telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("test"))
+	ctx := auth.Context{
+		Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test")),
+		User:    &shared.User{ID: 1},
+	}
 	subType := shared.AccountsReceivableTypeAgedDebt
 
 	downloadForm := &shared.ReportRequest{
@@ -49,7 +53,10 @@ func TestRequestReport(t *testing.T) {
 func TestRequestReportNoEmail(t *testing.T) {
 	var b bytes.Buffer
 
-	ctx := telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("test"))
+	ctx := auth.Context{
+		Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test")),
+		User:    &shared.User{ID: 1},
+	}
 	subType := shared.AccountsReceivableTypeAgedDebt
 
 	downloadForm := &shared.ReportRequest{
@@ -83,7 +90,10 @@ func TestRequestReportJournalDate(t *testing.T) {
 	os.Setenv("FINANCE_HUB_LIVE_DATE", "2024-01-01")
 	var b bytes.Buffer
 
-	ctx := telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("test"))
+	ctx := auth.Context{
+		Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test")),
+		User:    &shared.User{ID: 1},
+	}
 
 	tests := []struct {
 		name string
