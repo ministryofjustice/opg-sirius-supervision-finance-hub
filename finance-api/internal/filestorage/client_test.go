@@ -203,7 +203,7 @@ func TestFileExists(t *testing.T) {
 		want          bool
 	}{
 		{
-			name:      "success",
+			name:      "success with version ID",
 			bucket:    "bucket-a",
 			filename:  "filename-b",
 			versionId: "version-c",
@@ -220,15 +220,30 @@ func TestFileExists(t *testing.T) {
 			want: true,
 		},
 		{
+			name:      "success without version ID",
+			bucket:    "bucket-a",
+			filename:  "filename-b",
+			versionId: "",
+			mock: &mockS3Client{
+				headObjectInput:  &s3.HeadObjectInput{},
+				headObjectOutput: &s3.HeadObjectOutput{},
+				headObjectError:  nil,
+			},
+			expectedInput: &s3.HeadObjectInput{
+				Bucket: aws.String("bucket-a"),
+				Key:    aws.String("filename-b"),
+			},
+			want: true,
+		},
+		{
 			name: "fail",
 			mock: &mockS3Client{
 				headObjectOutput: nil,
 				headObjectError:  errors.New("error"),
 			},
 			expectedInput: &s3.HeadObjectInput{
-				Bucket:    aws.String(""),
-				Key:       aws.String(""),
-				VersionId: aws.String(""),
+				Bucket: aws.String(""),
+				Key:    aws.String(""),
 			},
 			want: false,
 		},

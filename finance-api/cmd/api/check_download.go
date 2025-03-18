@@ -17,6 +17,7 @@ func (s *Server) checkDownload(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	exists := s.fileStorage.FileExists(ctx, downloadRequest.Bucket, downloadRequest.Key, downloadRequest.VersionId)
+
 	if !exists {
 		return apierror.NotFound{}
 	}
