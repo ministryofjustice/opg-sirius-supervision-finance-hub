@@ -45,14 +45,6 @@ func (c *Client) createDownloadFeeAccrualNotifyPayload(emailAddress string, requ
 	return payload, nil
 }
 
-func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) error {
-	var (
-		query      db.ReportQuery
-		err        error
-		filename   string
-		reportName string
-	)
-
 func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) {
 	logger := telemetry.LoggerFromContext(ctx)
 	filename, reportName, file, err := c.generateReport(ctx, reportRequest, requestedDate)
@@ -64,15 +56,20 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 		}
 		return
 	}
-  
-  if reportRequest.AccountsReceivableType == shared.AccountsReceivableTypeFeeAccrual {
-      payload, err := c.createDownloadFeeAccrualNotifyPayload(reportRequest.Email, requestedDate)
-			if err != nil {
-				return err
-			}
 
-			return c.notify.Send(ctx, payload)
-  }
+	if reportRequest.ReportType == shared.ReportsTypeAccountsReceivable &&
+		*reportRequest.AccountsReceivableType == shared.AccountsReceivableTypeFeeAccrual {
+		payload, err := c.createDownloadFeeAccrualNotifyPayload(reportRequest.Email, requestedDate)
+		if err != nil {
+			logger.Error("failed to generate notify payload", "error", err)
+		}
+
+		err = c.notify.Send(ctx, payload)
+		if err != nil {
+			logger.Error("unable to send message to notify", "error", err)
+		}
+		return
+	}
 
 	versionId, err := c.uploadReport(ctx, filename, file)
 	if err != nil {
@@ -129,7 +126,8 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 			}
 		case shared.AccountsReceivableTypeUnappliedReceipts:
 			query = &db.CustomerCredit{}
-    case shared.AccountsReceivableTypeFeeAccrual:
+		case shared.AccountsReceivableTypeFeeAccrual:
+			query = nil
 		default:
 			return "", reportName, nil, fmt.Errorf("unimplemented accounts receivable query: %s", reportRequest.AccountsReceivableType.Key())
 		}
