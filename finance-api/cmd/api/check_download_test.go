@@ -14,7 +14,6 @@ func TestCheckDownload(t *testing.T) {
 
 	mockS3 := MockFileStorage{}
 	mockS3.exists = true
-
 	server := NewServer(nil, nil, &mockS3, nil, nil, &Envs{ReportsBucket: "test"})
 	err := server.checkDownload(w, req)
 
@@ -28,6 +27,7 @@ func TestCheckDownload_noMatch(t *testing.T) {
 
 	mockS3 := MockFileStorage{}
 	mockS3.exists = false
+
 
 	server := NewServer(nil, nil, &mockS3, nil, nil, &Envs{ReportsBucket: "test"})
 	err := server.checkDownload(w, req)
