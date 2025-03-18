@@ -145,6 +145,15 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			expectedTemplate: reportRequestedTemplateId,
 		},
 		{
+			name: "Fee Accrual",
+			reportRequest: shared.ReportRequest{
+				ReportType:             shared.ReportsTypeAccountsReceivable,
+				AccountsReceivableType: toPtr(shared.AccountsReceivableTypeFeeAccrual),
+			},
+			expectedQuery:    nil,
+			expectedTemplate: reportRequestedTemplateId,
+		},
+		{
 			name: "NonReceiptTransactions",
 			reportRequest: shared.ReportRequest{
 				ReportType:      shared.ReportsTypeJournal,
@@ -353,7 +362,7 @@ func TestSendSuccessNotification(t *testing.T) {
 		EmailAddress: emailAddress,
 		TemplateId:   reportRequestedTemplateId,
 		Personalisation: reportRequestedNotifyPersonalisation{
-			FileLink:          "http://example.com/download?uid=eyJLZXkiOiJ0ZXN0X3JlcG9ydC5jc3YiLCJWZXJzaW9uSWQiOiIxMjM0NSJ9",
+			FileLink:          "http://example.com/download?uid=eyJLZXkiOiJ0ZXN0X3JlcG9ydC5jc3YiLCJWZXJzaW9uSWQiOiIxMjM0NSIsIkJ1Y2tldCI6IiJ9",
 			ReportName:        reportName,
 			RequestedDate:     "2024-01-01",
 			RequestedDateTime: "2024-01-01 00:00:00",
@@ -362,6 +371,7 @@ func TestSendSuccessNotification(t *testing.T) {
 
 	assert.Equal(t, expectedPayload, mockNotify.payload)
 }
+
 func TestSendFailureNotification(t *testing.T) {
 	mockNotify := MockNotify{}
 	client := &Client{notify: &mockNotify}
