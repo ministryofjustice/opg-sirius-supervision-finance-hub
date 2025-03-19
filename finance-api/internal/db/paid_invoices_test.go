@@ -211,7 +211,7 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	assert.Equal(suite.T(), "BC"+c6i1Ref, results[5]["Txn number"], "Txn number - client 6 - payment")
 	assert.Equal(suite.T(), "BACS Payment", results[5]["Txn description"], "Txn description - client 6 - payment")
 	assert.Equal(suite.T(), "200.00", results[5]["Original amount"], "Original amount - client 6 - payment")
-	assert.Equal(suite.T(), "2025-03-18", results[5]["Received date"], "Received date - client 6 - payment")
+	assert.Equal(suite.T(), today.String(), results[5]["Received date"], "Received date - client 6 - payment")
 	assert.Contains(suite.T(), results[5]["Sirius upload date"], today.String(), "Sirius upload date - client 6 - payment")
 	assert.Equal(suite.T(), "100.00", results[5]["Cash amount"], "Cash amount - client 6 - payment")
 	assert.Equal(suite.T(), "0", results[5]["Credit amount"], "Credit amount - client 6 - payment")
