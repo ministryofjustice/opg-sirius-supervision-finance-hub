@@ -145,6 +145,10 @@ func (s *Seeder) CreatePayment(ctx context.Context, amount int32, bankDate time.
 	tx, err := s.Service.BeginStoreTx(ctx)
 	assert.NoError(s.t, err, "failed to begin transaction: %v", err)
 
+	var latestLedgerId int
+	err = s.Conn.QueryRow(ctx, "SELECT COALESCE(MAX(id), 0) FROM supervision_finance.ledger").Scan(&latestLedgerId)
+	assert.NoError(s.t, err, "failed to find latest ledger id: %v", err)
+
 	failedLines := make(map[int]string)
 
 	err = s.Service.ProcessPaymentsUploadLine(ctx, tx, payment, 0, &failedLines)
@@ -153,6 +157,18 @@ func (s *Seeder) CreatePayment(ctx context.Context, amount int32, bankDate time.
 
 	err = tx.Commit(ctx)
 	assert.NoError(s.t, err, "failed to commit payment: %v", err)
+
+	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger SET datetime = $1, created_at = $1 WHERE id > $2", uploadDate, latestLedgerId)
+	assert.NoError(s.t, err, "failed to update ledger dates for payment: %v", err)
+
+	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger_allocation SET datetime = $1 WHERE ledger_id > $2", uploadDate, latestLedgerId)
+	assert.NoError(s.t, err, "failed to update ledger allocation dates for payment: %v", err)
+
+	var newMaxLedger int
+	err = s.Conn.QueryRow(ctx, "SELECT COALESCE(MAX(id), 0) FROM supervision_finance.ledger").Scan(&newMaxLedger)
+	assert.NoError(s.t, err, "failed to find latest ledger id: %v", err)
+
+	assert.Greater(s.t, newMaxLedger, latestLedgerId, "no ledgers created")
 }
 
 type FeeRange struct {
