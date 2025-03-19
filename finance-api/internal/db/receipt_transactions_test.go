@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
+	"strconv"
 )
 
 func (suite *IntegrationSuite) Test_receipt_transactions() {
@@ -21,7 +22,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "12345678", shared.TransactionTypeMotoCardPayment, yesterday.Date())
 	suite.seeder.CreatePayment(ctx, 2550, yesterday.Date(), "12345678", shared.TransactionTypeSupervisionBACSPayment, yesterday.Date())
 
-	suite.seeder.CreateFeeReduction(ctx, client1ID, shared.FeeReductionTypeExemption, "2024", 4, "", yesterday.Date())
+	suite.seeder.CreateFeeReduction(ctx, client1ID, shared.FeeReductionTypeExemption, strconv.Itoa(yesterday.Date().Year()-1), 4, "", yesterday.Date())
 
 	// one client with an invoice with a MOTO card payment, an OPG BACS payment and an S2 invoice with an approved credit memo
 	client2ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "87654321", "4321")
