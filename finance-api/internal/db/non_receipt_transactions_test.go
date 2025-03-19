@@ -5,6 +5,7 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/testhelpers"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
+	"strconv"
 )
 
 func (suite *IntegrationSuite) Test_non_receipt_transactions() {
@@ -25,7 +26,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 	suite.seeder.AddFeeRanges(ctx, invoice2ID, []testhelpers.FeeRange{{SupervisionLevel: "MINIMAL", FromDate: oneYearAgo.Date(), ToDate: today.Date()}})
 	_, _ = suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeGS, valToPtr("350.00"), threeMonthsAgo.StringPtr(), nil, nil, valToPtr("GENERAL"), yesterday.StringPtr())
 
-	suite.seeder.CreateFeeReduction(ctx, client1ID, shared.FeeReductionTypeExemption, "2024", 2, "Test", yesterday.Date())
+	suite.seeder.CreateFeeReduction(ctx, client1ID, shared.FeeReductionTypeExemption, strconv.Itoa(yesterday.Date().Year()-1), 2, "Test", yesterday.Date())
 	suite.seeder.CreatePayment(ctx, 1200, yesterday.Date(), "12345678", shared.TransactionTypeMotoCardPayment, yesterday.Date())
 
 	// one client with one AD invoice, an S2 invoice, a GA invoice, a hardship and a direct debit payment
@@ -37,7 +38,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 	suite.seeder.AddFeeRanges(ctx, invoice7ID, []testhelpers.FeeRange{{SupervisionLevel: "GENERAL", FromDate: oneYearAgo.Date(), ToDate: today.Date()}})
 	_, _ = suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeGA, nil, threeMonthsAgo.StringPtr(), nil, nil, nil, yesterday.StringPtr())
 
-	suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeHardship, "2024", 4, "Test", yesterday.Date())
+	suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeHardship, strconv.Itoa(yesterday.Date().Year()-1), 4, "Test", yesterday.Date())
 	suite.seeder.CreatePayment(ctx, 1000, yesterday.Date(), "87654321", shared.TransactionTypeDirectDebitPayment, yesterday.Date())
 
 	// one client with an SE invoice, a credit memo, a direct debit payment and a reapply
