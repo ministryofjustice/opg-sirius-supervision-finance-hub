@@ -28,7 +28,7 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 		return
 	}
 
-	versionId, err := c.uploadReport(ctx, filename, file)
+	versionId, err := c.fileStorage.PutFile(ctx, c.envs.ReportsBucket, filename, file)
 	if err != nil {
 		logger.Error("failed to generate report", "error", err)
 		err = c.sendFailureNotification(ctx, reportRequest.Email, requestedDate, reportName)
@@ -180,7 +180,6 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 	if err != nil {
 		return filename, reportName, nil, err
 	}
-	defer file.Close()
 
 	return filename, reportName, file, nil
 }
