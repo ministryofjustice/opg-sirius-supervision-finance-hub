@@ -184,15 +184,6 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 	return filename, reportName, file, nil
 }
 
-func (c *Client) uploadReport(ctx context.Context, filename string, file *os.File) (*string, error) {
-	versionId, err := c.fileStorage.PutFile(ctx, c.envs.ReportsBucket, filename, file)
-	if err != nil {
-		return nil, err
-	}
-
-	return versionId, nil
-}
-
 type reportRequestedNotifyPersonalisation struct {
 	FileLink          string `json:"file_link"`
 	ReportName        string `json:"report_name"`
