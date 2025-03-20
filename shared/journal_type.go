@@ -10,9 +10,9 @@ const (
 )
 
 var journalTypeMap = map[string]JournalType{
-	"ReceiptTransactions":    JournalTypeReceiptTransactions,
-	"NonReceiptTransactions": JournalTypeNonReceiptTransactions,
-	"UnappliedTransactions":  JournalTypeUnappliedTransactions,
+	"ReceiptTransactions":         JournalTypeReceiptTransactions,
+	"NonReceiptTransactions":      JournalTypeNonReceiptTransactions,
+	"RefundUnappliedTransactions": JournalTypeUnappliedTransactions,
 }
 
 type JournalType int
@@ -41,7 +41,7 @@ func (j JournalType) Key() string {
 	case JournalTypeNonReceiptTransactions:
 		return "NonReceiptTransactions"
 	case JournalTypeUnappliedTransactions:
-		return "UnappliedTransactions"
+		return "RefundUnappliedTransactions"
 	default:
 		return ""
 	}
