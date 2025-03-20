@@ -36,8 +36,10 @@ type Service interface {
 }
 
 type FileStorage interface {
-	GetFileByVersion(ctx context.Context, bucketName string, filename string, versionID string) (*s3.GetObjectOutput, error)
-	FileExists(ctx context.Context, bucketName string, filename string, versionID string) bool
+	GetFile(ctx context.Context, bucketName string, filename string) (*s3.GetObjectOutput, error)
+	GetFileWithVersion(ctx context.Context, bucketName string, filename string, versionID string) (*s3.GetObjectOutput, error)
+	FileExists(ctx context.Context, bucketName string, filename string) bool
+	FileExistsWithVersion(ctx context.Context, bucketName string, filename string, versionID string) bool
 }
 
 type Reports interface {
@@ -58,10 +60,11 @@ type Server struct {
 }
 
 type Envs struct {
-	ReportsBucket     string
-	GoLiveDate        time.Time
-	EventBridgeAPIKey string
-	SystemUserID      int32
+	ReportsBucket       string
+	LegacyReportsBucket string
+	GoLiveDate          time.Time
+	EventBridgeAPIKey   string
+	SystemUserID        int32
 }
 
 func NewServer(service Service, reports Reports, fileStorage FileStorage, jwtClient JWTClient, validator *validation.Validate, envs *Envs) *Server {
