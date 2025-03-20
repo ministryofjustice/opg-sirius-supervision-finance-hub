@@ -3,6 +3,7 @@ package api
 import (
 	"errors"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/smithy-go"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
@@ -22,7 +23,14 @@ func (s *Server) download(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	result, err := s.fileStorage.GetFileByVersion(ctx, s.envs.ReportsBucket, downloadRequest.Key, downloadRequest.VersionId)
+	var result *s3.GetObjectOutput
+
+	if downloadRequest.Key == "Fee_Accrual.csv" {
+		result, err = s.fileStorage.GetFile(ctx, downloadRequest.Bucket, downloadRequest.Key)
+	} else {
+		result, err = s.fileStorage.GetFileWithVersion(ctx, downloadRequest.Bucket, downloadRequest.Key, downloadRequest.VersionId)
+	}
+
 	if err != nil {
 		var apiErr smithy.APIError
 		if errors.As(err, &apiErr) {
