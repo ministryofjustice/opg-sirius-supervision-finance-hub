@@ -60,7 +60,7 @@ func (c *Client) GetFile(ctx context.Context, bucketName string, filename string
 	})
 }
 
-func (c *Client) GetFileByVersion(ctx context.Context, bucketName string, filename string, versionID string) (*s3.GetObjectOutput, error) {
+func (c *Client) GetFileWithVersion(ctx context.Context, bucketName string, filename string, versionID string) (*s3.GetObjectOutput, error) {
 	return c.s3.GetObject(ctx, &s3.GetObjectInput{
 		Bucket:    aws.String(bucketName),
 		Key:       aws.String(filename),
@@ -84,16 +84,19 @@ func (c *Client) PutFile(ctx context.Context, bucketName string, fileName string
 	return output.VersionId, err
 }
 
-func (c *Client) FileExists(ctx context.Context, bucketName string, filename string, versionID string) bool {
-	var versionIDPointer *string
-	if versionID != "" {
-		versionIDPointer = &versionID
-	}
+func (c *Client) FileExists(ctx context.Context, bucketName string, filename string) bool {
+	_, err := c.s3.HeadObject(ctx, &s3.HeadObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(filename),
+	})
+	return err == nil
+}
 
+func (c *Client) FileExistsWithVersion(ctx context.Context, bucketName string, filename string, versionID string) bool {
 	_, err := c.s3.HeadObject(ctx, &s3.HeadObjectInput{
 		Bucket:    aws.String(bucketName),
 		Key:       aws.String(filename),
-		VersionId: versionIDPointer,
+		VersionId: aws.String(versionID),
 	})
 	return err == nil
 }

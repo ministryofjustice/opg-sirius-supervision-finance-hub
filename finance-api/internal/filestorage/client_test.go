@@ -100,7 +100,7 @@ func TestGetFile(t *testing.T) {
 	}
 }
 
-func TestGetFileByVersion(t *testing.T) {
+func TestGetFileWithVersion(t *testing.T) {
 	tests := []struct {
 		name           string
 		mock           *mockS3Client
@@ -146,7 +146,7 @@ func TestGetFileByVersion(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			client := &Client{s3: tt.mock}
-			got, err := client.GetFileByVersion(context.Background(), tt.bucket, tt.filename, tt.versionId)
+			got, err := client.GetFileWithVersion(context.Background(), tt.bucket, tt.filename, tt.versionId)
 			assert.Equal(t, tt.expectedInput, tt.mock.getObjectInput)
 			assert.Equal(t, tt.expectedOutput, got)
 			assert.Equal(t, tt.expectedError, err)
@@ -197,33 +197,14 @@ func TestFileExists(t *testing.T) {
 		name          string
 		bucket        string
 		filename      string
-		versionId     string
 		mock          *mockS3Client
 		expectedInput *s3.HeadObjectInput
 		want          bool
 	}{
 		{
-			name:      "success with version ID",
-			bucket:    "bucket-a",
-			filename:  "filename-b",
-			versionId: "version-c",
-			mock: &mockS3Client{
-				headObjectInput:  &s3.HeadObjectInput{},
-				headObjectOutput: &s3.HeadObjectOutput{},
-				headObjectError:  nil,
-			},
-			expectedInput: &s3.HeadObjectInput{
-				Bucket:    aws.String("bucket-a"),
-				Key:       aws.String("filename-b"),
-				VersionId: aws.String("version-c"),
-			},
-			want: true,
-		},
-		{
-			name:      "success without version ID",
-			bucket:    "bucket-a",
-			filename:  "filename-b",
-			versionId: "",
+			name:     "success",
+			bucket:   "bucket-a",
+			filename: "filename-b",
 			mock: &mockS3Client{
 				headObjectInput:  &s3.HeadObjectInput{},
 				headObjectOutput: &s3.HeadObjectOutput{},
@@ -252,7 +233,59 @@ func TestFileExists(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			client := &Client{s3: tt.mock}
-			got := client.FileExists(context.Background(), tt.bucket, tt.filename, tt.versionId)
+			got := client.FileExists(context.Background(), tt.bucket, tt.filename)
+			assert.Equal(t, tt.expectedInput, tt.mock.headObjectInput)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestFileExistsWithVersion(t *testing.T) {
+	tests := []struct {
+		name          string
+		bucket        string
+		filename      string
+		versionId     string
+		mock          *mockS3Client
+		expectedInput *s3.HeadObjectInput
+		want          bool
+	}{
+		{
+			name:      "success",
+			bucket:    "bucket-a",
+			filename:  "filename-b",
+			versionId: "version-c",
+			mock: &mockS3Client{
+				headObjectInput:  &s3.HeadObjectInput{},
+				headObjectOutput: &s3.HeadObjectOutput{},
+				headObjectError:  nil,
+			},
+			expectedInput: &s3.HeadObjectInput{
+				Bucket:    aws.String("bucket-a"),
+				Key:       aws.String("filename-b"),
+				VersionId: aws.String("version-c"),
+			},
+			want: true,
+		},
+		{
+			name: "fail",
+			mock: &mockS3Client{
+				headObjectOutput: nil,
+				headObjectError:  errors.New("error"),
+			},
+			expectedInput: &s3.HeadObjectInput{
+				Bucket:    aws.String(""),
+				Key:       aws.String(""),
+				VersionId: aws.String(""),
+			},
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := &Client{s3: tt.mock}
+			got := client.FileExistsWithVersion(context.Background(), tt.bucket, tt.filename, tt.versionId)
 			assert.Equal(t, tt.expectedInput, tt.mock.headObjectInput)
 			assert.Equal(t, tt.want, got)
 		})
