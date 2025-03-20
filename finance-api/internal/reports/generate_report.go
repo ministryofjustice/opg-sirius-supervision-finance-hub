@@ -31,7 +31,7 @@ func (c *Client) createDownloadFeeAccrualNotifyPayload(emailAddress string, requ
 		TemplateId:   reportRequestedTemplateId,
 		Personalisation: reportRequestedNotifyPersonalisation{
 			downloadLink,
-			shared.AccountsReceivableTypeFeeAccrual.String(),
+			shared.AccountsReceivableTypeFeeAccrual.Translation(),
 			requestedDate.Format("2006-01-02"),
 			requestedDate.Format("2006-01-02 15:04:05"),
 		},
