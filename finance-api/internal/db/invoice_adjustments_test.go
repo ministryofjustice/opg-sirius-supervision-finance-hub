@@ -26,7 +26,7 @@ func (suite *IntegrationSuite) Test_invoice_adjustments() {
 	// one client with one order and a remission:
 	client2ID := suite.seeder.CreateClient(ctx, "Barry", "Giggle", "87654321", "4321")
 	suite.seeder.CreateOrder(ctx, client2ID, "ACTIVE")
-	_, client2Invoice2Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeGA, nil, today.StringPtr(), nil, nil, nil, nil)
+	_, client2Invoice2Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, valToPtr("320.00"), today.StringPtr(), nil, nil, nil, nil)
 	suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeRemission, strconv.Itoa(today.Date().Year()-1), 4, "Test remission", time.Now())
 
 	// one client with a guardianship a remission:
@@ -88,21 +88,21 @@ func (suite *IntegrationSuite) Test_invoice_adjustments() {
 	assert.Equal(suite.T(), "Test exemption", results[1]["Reason for adjustment"], "Reason for adjustment - client 3")
 
 	// client 2
-	assert.Equal(suite.T(), "Barry Giggle", results[1]["Customer Name"], "Customer Name - client 2")
-	assert.Equal(suite.T(), "87654321", results[1]["Customer number"], "Customer number - client 2")
-	assert.Equal(suite.T(), "4321", results[1]["SOP number"], "SOP number - client 2")
-	assert.Equal(suite.T(), "=\"0470\"", results[1]["Entity"], "Entity - client 2")
-	assert.Equal(suite.T(), "10482009", results[1]["Revenue cost centre"], "Cost centre - client 2")
-	assert.Equal(suite.T(), "Supervision Investigations", results[1]["Revenue cost centre description"], "Cost centre description - client 2")
-	assert.Equal(suite.T(), "4481102120", results[1]["Revenue account code"], "Account code - client 2")
-	assert.Equal(suite.T(), "INC - RECEIPT OF FEES AND CHARGES - Rem Annual Admin Fee 3", results[1]["Revenue account descriptions"], "Account code description - client 2")
-	assert.Equal(suite.T(), fmt.Sprintf("ZR%s", client2Invoice2Ref), results[1]["Txn number and type"], "Txn number - client 2")
-	assert.Equal(suite.T(), "Remission Credit", results[1]["Txn description"], "Txn description - client 2")
-	assert.Equal(suite.T(), "3 year", results[1]["Remission/exemption term"], "Remission/Exemption award term - client 2")
-	assert.Equal(suite.T(), formattedFinancialYear, results[1]["Financial Year"], "Financial Year - client 2")
-	assert.Equal(suite.T(), time.Now().Format("2006-01-02"), results[1]["Approved date"], "Approved date - client 2")
-	assert.Equal(suite.T(), "100.00", results[1]["Adjustment amount"], "Adjustment amount - client 2")
-	assert.Equal(suite.T(), "Test remission", results[1]["Reason for adjustment"], "Reason for adjustment - client 2")
+	assert.Equal(suite.T(), "Barry Giggle", results[2]["Customer Name"], "Customer Name - client 2")
+	assert.Equal(suite.T(), "87654321", results[2]["Customer number"], "Customer number - client 2")
+	assert.Equal(suite.T(), "4321", results[2]["SOP number"], "SOP number - client 2")
+	assert.Equal(suite.T(), "=\"0470\"", results[2]["Entity"], "Entity - client 2")
+	assert.Equal(suite.T(), "10482009", results[2]["Revenue cost centre"], "Cost centre - client 2")
+	assert.Equal(suite.T(), "Supervision Investigations", results[2]["Revenue cost centre description"], "Cost centre description - client 2")
+	assert.Equal(suite.T(), "4481102115", results[2]["Revenue account code"], "Account code - client 2")
+	assert.Equal(suite.T(), "INC - RECEIPT OF FEES AND CHARGES - Rem Sup Fee 1", results[2]["Revenue account descriptions"], "Account code description - client 2")
+	assert.Equal(suite.T(), fmt.Sprintf("ZR%s", client2Invoice2Ref), results[2]["Txn number and type"], "Txn number - client 2")
+	assert.Equal(suite.T(), "Remission Credit", results[2]["Txn description"], "Txn description - client 2")
+	assert.Equal(suite.T(), "3 year", results[2]["Remission/exemption term"], "Remission/Exemption award term - client 2")
+	assert.Equal(suite.T(), formattedFinancialYear, results[2]["Financial Year"], "Financial Year - client 2")
+	assert.Equal(suite.T(), time.Now().Format("2006-01-02"), results[2]["Approved date"], "Approved date - client 2")
+	assert.Equal(suite.T(), "160.00", results[2]["Adjustment amount"], "Adjustment amount - client 2")
+	assert.Equal(suite.T(), "Test remission", results[2]["Reason for adjustment"], "Reason for adjustment - client 2")
 }
 
 func Test_invoiceAdjustments_getParams(t *testing.T) {

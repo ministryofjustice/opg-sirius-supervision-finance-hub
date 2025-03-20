@@ -63,7 +63,7 @@ transaction_rows AS (
     SELECT
         '="0470"' AS entity,
         '99999999' AS cost_centre,
-        '1816100000' AS account_code,
+        '1816102003' AS account_code,
         '="0000000"' AS objective,
         '="00000000"' AS analysis,
         '="0000"' AS intercompany,
