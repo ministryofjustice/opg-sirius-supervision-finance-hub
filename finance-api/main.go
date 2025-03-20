@@ -190,10 +190,9 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		fileStorageClient,
 		notifyClient,
 		&reports.Envs{
-			ReportsBucket:       envs.reportsBucket,
-			LegacyReportsBucket: envs.legacyReportsBucket,
-			FinanceAdminURL:     fmt.Sprintf("%s%s", envs.siriusPublicURL, envs.financeAdminPrefix),
-			GoLiveDate:          goLiveDate,
+			ReportsBucket:   envs.reportsBucket,
+			FinanceAdminURL: fmt.Sprintf("%s%s", envs.siriusPublicURL, envs.financeAdminPrefix),
+			GoLiveDate:      goLiveDate,
 		},
 	)
 	defer reportsClient.Close()
@@ -206,10 +205,11 @@ func run(ctx context.Context, logger *slog.Logger) error {
 			Secret: envs.jwtSecret,
 		},
 		validator, &api.Envs{
-			ReportsBucket:     envs.reportsBucket,
-			GoLiveDate:        goLiveDate,
-			SystemUserID:      envs.systemUserID,
-			EventBridgeAPIKey: envs.eventBridgeAPIKey,
+			ReportsBucket:       envs.reportsBucket,
+			LegacyReportsBucket: envs.legacyReportsBucket,
+			GoLiveDate:          goLiveDate,
+			SystemUserID:        envs.systemUserID,
+			EventBridgeAPIKey:   envs.eventBridgeAPIKey,
 		})
 
 	s := &http.Server{

@@ -47,5 +47,5 @@ func TestDownloadRequest_Encode(t *testing.T) {
 		VersionId: "testvprAxsYtLVsb5P9H_qHeNUiU9MBnPNcz",
 	}
 	got, _ := d.Encode()
-	assert.Equalf(t, "eyJLZXkiOiJ0ZXN0LmNzdiIsIlZlcnNpb25JZCI6InRlc3R2cHJBeHNZdExWc2I1UDlIX3FIZU5VaVU5TUJuUE5jeiIsIkJ1Y2tldCI6IiJ9", got, "Encode()")
+	assert.Equalf(t, "eyJLZXkiOiJ0ZXN0LmNzdiIsIlZlcnNpb25JZCI6InRlc3R2cHJBeHNZdExWc2I1UDlIX3FIZU5VaVU5TUJuUE5jeiJ9", got, "Encode()")
 }

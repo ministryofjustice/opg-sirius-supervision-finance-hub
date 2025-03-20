@@ -19,9 +19,9 @@ func (s *Server) checkDownload(w http.ResponseWriter, r *http.Request) error {
 	var exists bool
 
 	if downloadRequest.Key == "Fee_Accrual.csv" {
-		exists = s.fileStorage.FileExists(ctx, downloadRequest.Bucket, downloadRequest.Key)
+		exists = s.fileStorage.FileExists(ctx, s.envs.LegacyReportsBucket, downloadRequest.Key)
 	} else {
-		exists = s.fileStorage.FileExistsWithVersion(ctx, downloadRequest.Bucket, downloadRequest.Key, downloadRequest.VersionId)
+		exists = s.fileStorage.FileExistsWithVersion(ctx, s.envs.ReportsBucket, downloadRequest.Key, downloadRequest.VersionId)
 	}
 
 	if !exists {

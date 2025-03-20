@@ -17,12 +17,7 @@ const (
 )
 
 func (c *Client) createDownloadFeeAccrualNotifyPayload(emailAddress string, requestedDate time.Time) (notify.Payload, error) {
-	filename := "Fee_Accrual.csv"
-
-	downloadRequest := shared.DownloadRequest{
-		Key:    filename,
-		Bucket: c.envs.LegacyReportsBucket,
-	}
+	downloadRequest := shared.DownloadRequest{Key: "Fee_Accrual.csv"}
 
 	uid, err := downloadRequest.Encode()
 	if err != nil {
@@ -36,7 +31,7 @@ func (c *Client) createDownloadFeeAccrualNotifyPayload(emailAddress string, requ
 		TemplateId:   reportRequestedTemplateId,
 		Personalisation: reportRequestedNotifyPersonalisation{
 			downloadLink,
-			"Fee Accrual",
+			shared.AccountsReceivableTypeFeeAccrual.String(),
 			requestedDate.Format("2006-01-02"),
 			requestedDate.Format("2006-01-02 15:04:05"),
 		},
@@ -245,7 +240,6 @@ func (c *Client) sendSuccessNotification(ctx context.Context, emailAddress, file
 	downloadRequest := shared.DownloadRequest{
 		Key:       filename,
 		VersionId: *versionId,
-		Bucket:    c.envs.ReportsBucket,
 	}
 
 	uid, err := downloadRequest.Encode()
