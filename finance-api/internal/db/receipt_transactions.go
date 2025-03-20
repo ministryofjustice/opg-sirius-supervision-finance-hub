@@ -21,7 +21,7 @@ WITH transaction_type_order AS (
 			WHEN line_description LIKE 'Cheque payment%' THEN 6
 			ELSE 7
 			END AS index
-	FROM transaction_type WHERE is_receipt = true
+	FROM supervision_finance.transaction_type WHERE is_receipt = true
 ),
 transaction_totals AS (
 	SELECT 
@@ -32,19 +32,42 @@ transaction_totals AS (
 			THEN '1841102088' 
 			ELSE '1841102050' END AS account_code,
 		((SUM(ABS(la.amount)) / 100.0)::NUMERIC(10, 2))::VARCHAR(255) AS amount,
+		null AS pis_number,
 		n,
 		tt.index
 	FROM supervision_finance.ledger_allocation la 
 	INNER JOIN supervision_finance.ledger l ON l.id = la.ledger_id 
 	INNER JOIN LATERAL (
 		SELECT tto.index, fee_type, line_description
-		FROM transaction_type tt
+		FROM supervision_finance.transaction_type tt
 		INNER JOIN transaction_type_order tto ON tt.id = tto.id
-		WHERE tt.ledger_type = l.type
+		WHERE tt.ledger_type = l.type AND is_receipt = true
 	) tt ON TRUE
 	CROSS JOIN (select 1 AS n union all select 2) n
 	WHERE l.created_at::DATE = $1
+	AND l.type != 'SUPERVISION CHEQUE PAYMENT'
 	GROUP BY tt.line_description, l.bankdate, l.type, n, tt.index
+	UNION
+		SELECT 
+		tt.line_description AS line_description,
+		l.bankdate AS transaction_date, 
+		'1841102050' AS account_code,
+		((SUM(ABS(la.amount)) / 100.0)::NUMERIC(10, 2))::VARCHAR(255) AS amount,
+		l.pis_number,
+		n,
+		tt.index
+	FROM supervision_finance.ledger_allocation la 
+	INNER JOIN supervision_finance.ledger l ON l.id = la.ledger_id 
+	INNER JOIN LATERAL (
+		SELECT tto.index, fee_type, line_description
+		FROM supervision_finance.transaction_type tt
+		INNER JOIN transaction_type_order tto ON tt.id = tto.id
+		WHERE tt.ledger_type = l.type AND is_receipt = true
+	) tt ON TRUE
+	CROSS JOIN (select 1 AS n union all select 2) n
+	WHERE l.created_at::DATE = $1
+	AND l.type = 'SUPERVISION CHEQUE PAYMENT'
+	GROUP BY tt.line_description, l.bankdate, l.type, l.pis_number, n, tt.index
 )
 SELECT 	
 	'="0470"'                                              		AS "Entity",
@@ -70,7 +93,7 @@ SELECT
 		END                                             			AS "Credit",
 	line_description || ' [' || TO_CHAR(transaction_date, 'DD/MM/YYYY') || ']' AS "Line description"
 FROM transaction_totals 
-ORDER BY index, n;`
+ORDER BY index, pis_number, n;`
 
 func (r *ReceiptTransactions) GetHeaders() []string {
 	return []string{

@@ -133,13 +133,17 @@ func (s *Seeder) CreateFeeReduction(ctx context.Context, clientId int32, feeType
 	assert.NoError(s.t, err, "failed to update ledger allocation dates for reduction: %v", err)
 }
 
-func (s *Seeder) CreatePayment(ctx context.Context, amount int32, bankDate time.Time, courtRef string, ledgerType shared.TransactionType, uploadDate time.Time) {
+func (s *Seeder) CreatePayment(ctx context.Context, amount int32, bankDate time.Time, courtRef string, ledgerType shared.TransactionType, pisNumber *int, uploadDate time.Time) {
 	payment := shared.PaymentDetails{
 		Amount:       amount,
 		BankDate:     bankDate,
 		CourtRef:     courtRef,
 		LedgerType:   ledgerType.Key(),
 		ReceivedDate: uploadDate,
+	}
+
+	if pisNumber != nil {
+		payment.PisNumber = shared.Nillable[int]{Value: *pisNumber, Valid: true}
 	}
 
 	tx, err := s.Service.BeginStoreTx(ctx)

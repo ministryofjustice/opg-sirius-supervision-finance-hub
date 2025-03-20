@@ -18,29 +18,40 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
 	_, _ = suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
 
-	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "12345678", shared.TransactionTypeMotoCardPayment, yesterday.Date())
-	suite.seeder.CreatePayment(ctx, 2550, yesterday.Date(), "12345678", shared.TransactionTypeSupervisionBACSPayment, yesterday.Date())
+	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "12345678", shared.TransactionTypeMotoCardPayment, nil, yesterday.Date())
+	suite.seeder.CreatePayment(ctx, 2550, yesterday.Date(), "12345678", shared.TransactionTypeSupervisionBACSPayment, nil, yesterday.Date())
 
 	suite.seeder.CreateFeeReduction(ctx, client1ID, shared.FeeReductionTypeExemption, "2024", 4, "", yesterday.Date())
 
-	// one client with an invoice with a MOTO card payment, an OPG BACS payment and an S2 invoice with an approved credit memo
-	client2ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "87654321", "4321")
+	// one client with an S2 invoice with a MOTO card payment, an OPG BACS payment and an S2 invoice with an approved credit memo
+	client2ID := suite.seeder.CreateClient(ctx, "Stewart", "Test", "87654321", "4321")
 	suite.seeder.CreateOrder(ctx, client2ID, "ACTIVE")
 	invoice2ID, _ := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
 
-	suite.seeder.CreatePayment(ctx, 120, yesterday.Date(), "87654321", shared.TransactionTypeOPGBACSPayment, yesterday.Date())
-	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "87654321", shared.TransactionTypeMotoCardPayment, yesterday.Date())
+	suite.seeder.CreatePayment(ctx, 120, yesterday.Date(), "87654321", shared.TransactionTypeOPGBACSPayment, nil, yesterday.Date())
+	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "87654321", shared.TransactionTypeMotoCardPayment, nil, yesterday.Date())
 
 	suite.seeder.CreateAdjustment(ctx, client2ID, invoice2ID, shared.AdjustmentTypeCreditMemo, -2500, "", yesterday.DatePtr())
 
 	// one client with GA invoice, direct debit payment, online card payment and reapply
-	client3ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12348765", "2314")
+	client3ID := suite.seeder.CreateClient(ctx, "Barry", "Test", "12348765", "2314")
 	suite.seeder.CreateOrder(ctx, client2ID, "ACTIVE")
 	_, _ = suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeGA, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
 
-	suite.seeder.CreatePayment(ctx, 4020, yesterday.Date(), "12348765", shared.TransactionTypeDirectDebitPayment, yesterday.Date())
-	suite.seeder.CreatePayment(ctx, 1700, yesterday.Date(), "12348765", shared.TransactionTypeOnlineCardPayment, yesterday.Date())
-	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "12348765", shared.TransactionTypeReapply, yesterday.Date())
+	suite.seeder.CreatePayment(ctx, 4020, yesterday.Date(), "12348765", shared.TransactionTypeDirectDebitPayment, nil, yesterday.Date())
+	suite.seeder.CreatePayment(ctx, 1700, yesterday.Date(), "12348765", shared.TransactionTypeOnlineCardPayment, nil, yesterday.Date())
+	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "12348765", shared.TransactionTypeReapply, nil, yesterday.Date())
+
+	// one client with a GS invoice, two cheques payments for the same PIS number and one cheque payment for another PIS number
+	client4ID := suite.seeder.CreateClient(ctx, "Gilgamesh", "Test", "12398785", "9999")
+	suite.seeder.CreateOrder(ctx, client4ID, "ACTIVE")
+	_, _ = suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeGS, nil, yesterday.StringPtr(), nil, nil, nil, nil)
+
+	pisNumber1 := 100023
+	pisNumber2 := 100024
+	suite.seeder.CreatePayment(ctx, 4020, yesterday.Date(), "12398785", shared.TransactionTypeSupervisionChequePayment, &pisNumber1, yesterday.Date())
+	suite.seeder.CreatePayment(ctx, 1700, yesterday.Date(), "12398785", shared.TransactionTypeSupervisionChequePayment, &pisNumber1, yesterday.Date())
+	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "12398785", shared.TransactionTypeSupervisionChequePayment, &pisNumber2, yesterday.Date())
 
 	c := Client{suite.seeder.Conn}
 
@@ -51,7 +62,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	})
 
 	assert.NoError(suite.T(), err)
-	assert.Equal(suite.T(), 11, len(rows))
+	assert.Equal(suite.T(), 15, len(rows))
 
 	results := mapByHeader(rows)
 	assert.NotEmpty(suite.T(), results)
@@ -166,4 +177,47 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	assert.Equal(suite.T(), "40.20", results[9]["Credit"], "Credit - Direct Debit Credit")
 	assert.Equal(suite.T(), fmt.Sprintf("Direct debit [%s]", yesterday.Date().Format("02/01/2006")), results[9]["Line description"], "Line description - Direct Debit Credit")
 
+	assert.Equal(suite.T(), "=\"0470\"", results[10]["Entity"], "Entity - Cheques 1 & 2 Debit")
+	assert.Equal(suite.T(), "99999999", results[10]["Cost Centre"], "Cost Centre - Cheques 1 & 2 Debit")
+	assert.Equal(suite.T(), "1841102050", results[10]["Account"], "Account - Cheques 1 & 2 Debit")
+	assert.Equal(suite.T(), "=\"0000000\"", results[10]["Objective"], "Objective - Cheques 1 & 2 Debit")
+	assert.Equal(suite.T(), "=\"00000000\"", results[10]["Analysis"], "Analysis - Cheques 1 & 2 Debit")
+	assert.Equal(suite.T(), "=\"0000\"", results[10]["Intercompany"], "Intercompany - Cheques 1 & 2 Debit")
+	assert.Equal(suite.T(), "=\"000000\"", results[10]["Spare"], "Spare - Cheques 1 & 2 Debit")
+	assert.Equal(suite.T(), "57.20", results[10]["Debit"], "Debit - Cheques 1 & 2 Debit")
+	assert.Equal(suite.T(), "", results[10]["Credit"], "Credit - Cheques 1 & 2 Debit")
+	assert.Equal(suite.T(), fmt.Sprintf("Cheque payment [%s]", yesterday.Date().Format("02/01/2006")), results[10]["Line description"], "Line description - Cheques 1 & 2 Debit")
+
+	assert.Equal(suite.T(), "=\"0470\"", results[11]["Entity"], "Entity - Cheques 1 & 2 Credit")
+	assert.Equal(suite.T(), "99999999", results[11]["Cost Centre"], "Cost Centre - Cheques 1 & 2 Credit")
+	assert.Equal(suite.T(), "1816100000", results[11]["Account"], "Account - Cheques 1 & 2 Credit")
+	assert.Equal(suite.T(), "=\"0000000\"", results[11]["Objective"], "Objective - Cheques 1 & 2 Credit")
+	assert.Equal(suite.T(), "=\"00000000\"", results[11]["Analysis"], "Analysis - Cheques 1 & 2 Credit")
+	assert.Equal(suite.T(), "=\"0000\"", results[11]["Intercompany"], "Intercompany - Cheques 1 & 2 Credit")
+	assert.Equal(suite.T(), "=\"00000\"", results[11]["Spare"], "Spare - Cheques 1 & 2 Credit")
+	assert.Equal(suite.T(), "", results[11]["Debit"], "Debit - Cheques 1 & 2 Credit")
+	assert.Equal(suite.T(), "57.20", results[11]["Credit"], "Credit - Cheques 1 & 2 Credit")
+	assert.Equal(suite.T(), fmt.Sprintf("Cheque payment [%s]", yesterday.Date().Format("02/01/2006")), results[11]["Line description"], "Line description - Cheques 1 & 2 Credit")
+
+	assert.Equal(suite.T(), "=\"0470\"", results[12]["Entity"], "Entity - Cheques 3 Debit")
+	assert.Equal(suite.T(), "99999999", results[12]["Cost Centre"], "Cost Centre - Cheques 3 Debit")
+	assert.Equal(suite.T(), "1841102050", results[12]["Account"], "Account - Cheques 3 Debit")
+	assert.Equal(suite.T(), "=\"0000000\"", results[12]["Objective"], "Objective - Cheques 3 Debit")
+	assert.Equal(suite.T(), "=\"00000000\"", results[12]["Analysis"], "Analysis - Cheques 3 Debit")
+	assert.Equal(suite.T(), "=\"0000\"", results[12]["Intercompany"], "Intercompany - Cheques 3 Debit")
+	assert.Equal(suite.T(), "=\"000000\"", results[12]["Spare"], "Spare - Cheques 3 Debit")
+	assert.Equal(suite.T(), "15.00", results[12]["Debit"], "Debit - Cheques 3 Debit")
+	assert.Equal(suite.T(), "", results[12]["Credit"], "Credit - Cheques 3 Debit")
+	assert.Equal(suite.T(), fmt.Sprintf("Cheque payment [%s]", yesterday.Date().Format("02/01/2006")), results[12]["Line description"], "Line description - Cheques 3 Debit")
+
+	assert.Equal(suite.T(), "=\"0470\"", results[13]["Entity"], "Entity - Cheques 3 Credit")
+	assert.Equal(suite.T(), "99999999", results[13]["Cost Centre"], "Cost Centre - Cheques 3 Credit")
+	assert.Equal(suite.T(), "1816100000", results[13]["Account"], "Account - Cheques 3 Credit")
+	assert.Equal(suite.T(), "=\"0000000\"", results[13]["Objective"], "Objective - Cheques 3 Credit")
+	assert.Equal(suite.T(), "=\"00000000\"", results[13]["Analysis"], "Analysis - Cheques 3 Credit")
+	assert.Equal(suite.T(), "=\"0000\"", results[13]["Intercompany"], "Intercompany - Cheques 3 Credit")
+	assert.Equal(suite.T(), "=\"00000\"", results[13]["Spare"], "Spare - Cheques 3 Credit")
+	assert.Equal(suite.T(), "", results[13]["Debit"], "Debit - Cheques 3 Credit")
+	assert.Equal(suite.T(), "15.00", results[13]["Credit"], "Credit - Cheques 3 Credit")
+	assert.Equal(suite.T(), fmt.Sprintf("Cheque payment [%s]", yesterday.Date().Format("02/01/2006")), results[13]["Line description"], "Line description - Cheques 3 Credit")
 }
