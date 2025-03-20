@@ -21,7 +21,7 @@ WITH transaction_type_order AS (
 			WHEN line_description LIKE 'Cheque payment%' THEN 6
 			ELSE 7
 			END AS index
-	FROM transaction_type WHERE is_receipt = true
+	FROM transaction_type WHERE is_receipt = TRUE
 ),
 transaction_totals AS (
 	SELECT 
@@ -42,7 +42,7 @@ transaction_totals AS (
 		INNER JOIN transaction_type_order tto ON tt.id = tto.id
 		WHERE tt.ledger_type = l.type
 	) tt ON TRUE
-	CROSS JOIN (select 1 AS n union all select 2) n
+	CROSS JOIN (SELECT 1 AS n UNION ALL SELECT 2) n
 	WHERE l.created_at::DATE = $1
 	GROUP BY tt.line_description, l.bankdate, l.type, n, tt.index
 )
@@ -51,7 +51,7 @@ SELECT
 	'99999999'                                       			AS "Cost Centre",
 	CASE WHEN n % 2 = 1 
 		THEN account_code
-		ELSE '1816100000'
+		ELSE '1816102003'
 		END                                             		AS "Account",
 	'="0000000"'                                           		AS "Objective",
 	'="00000000"'                                          		AS "Analysis",
