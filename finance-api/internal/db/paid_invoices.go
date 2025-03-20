@@ -42,7 +42,7 @@ SELECT CONCAT(p.firstname, ' ', p.surname)                                      
            WHEN l.type IN (
                            'BACS TRANSFER', 'CARD PAYMENT',
                            'DIRECT DEBIT PAYMENT', 'ONLINE CARD PAYMENT', 'MOTO CARD PAYMENT',
-                           'SUPERVISION BACS PAYMENT', 'OPG BACS PAYMENT', 'CHEQUE PAYMENT'
+                           'SUPERVISION BACS PAYMENT', 'OPG BACS PAYMENT', 'SUPERVISION CHEQUE PAYMENT'
                )
                THEN ((la.amount / 100.0)::NUMERIC(10, 2))::VARCHAR(255)
            ELSE '0' END                                                                                          AS "Cash amount",
@@ -78,7 +78,7 @@ FROM paid_invoices pa
 				ELSE l.type
 			END = tt.ledger_type
 		AND 
-			CASE WHEN l.type IN ('BACS TRANSFER', 'CARD PAYMENT', 'DIRECT DEBIT PAYMENT', 'ONLINE CARD PAYMENT', 'MOTO CARD PAYMENT', 'SUPERVISION BACS PAYMENT', 'OPG BACS PAYMENT', 'CHEQUE PAYMENT') 
+			CASE WHEN l.type IN ('BACS TRANSFER', 'CARD PAYMENT', 'DIRECT DEBIT PAYMENT', 'ONLINE CARD PAYMENT', 'MOTO CARD PAYMENT', 'SUPERVISION BACS PAYMENT', 'OPG BACS PAYMENT', 'SUPERVISION CHEQUE PAYMENT') 
 					THEN '' 
 				ELSE CASE WHEN i.feetype = 'AD' THEN 'AD' ELSE sl.supervision_level END 
 			END = tt.supervision_level
