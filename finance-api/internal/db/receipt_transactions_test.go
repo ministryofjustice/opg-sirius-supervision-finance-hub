@@ -69,7 +69,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 
 	assert.Equal(suite.T(), "=\"0470\"", results[1]["Entity"], "Entity - MOTO card Payments Credit")
 	assert.Equal(suite.T(), "99999999", results[1]["Cost Centre"], "Cost Centre - MOTO card Payments Credit")
-	assert.Equal(suite.T(), "1816100000", results[1]["Account"], "Account - MOTO card Payments Credit")
+	assert.Equal(suite.T(), "1816102003", results[1]["Account"], "Account - MOTO card Payments Credit")
 	assert.Equal(suite.T(), "=\"0000000\"", results[1]["Objective"], "Objective - MOTO card Payments Credit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[1]["Analysis"], "Analysis - MOTO card Payments Credit")
 	assert.Equal(suite.T(), "=\"0000\"", results[1]["Intercompany"], "Intercompany - MOTO card Payments Credit")
@@ -91,7 +91,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 
 	assert.Equal(suite.T(), "=\"0470\"", results[3]["Entity"], "Entity - Online card Payments Credit")
 	assert.Equal(suite.T(), "99999999", results[3]["Cost Centre"], "Cost Centre - Online card Payments Credit")
-	assert.Equal(suite.T(), "1816100000", results[3]["Account"], "Account - Online card Payments Credit")
+	assert.Equal(suite.T(), "1816102003", results[3]["Account"], "Account - Online card Payments Credit")
 	assert.Equal(suite.T(), "=\"0000000\"", results[3]["Objective"], "Objective - Online card Payments Credit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[3]["Analysis"], "Analysis - Online card Payments Credit")
 	assert.Equal(suite.T(), "=\"0000\"", results[3]["Intercompany"], "Intercompany - Online card Payments Credit")
@@ -113,7 +113,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 
 	assert.Equal(suite.T(), "=\"0470\"", results[5]["Entity"], "Entity - OPG BACS Payments Credit")
 	assert.Equal(suite.T(), "99999999", results[5]["Cost Centre"], "Cost Centre - OPG BACS Payments Credit")
-	assert.Equal(suite.T(), "1816100000", results[5]["Account"], "Account - OPG BACS Payments Credit")
+	assert.Equal(suite.T(), "1816102003", results[5]["Account"], "Account - OPG BACS Payments Credit")
 	assert.Equal(suite.T(), "=\"0000000\"", results[5]["Objective"], "Objective - OPG BACS Payments Credit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[5]["Analysis"], "Analysis - OPG BACS Payments Credit")
 	assert.Equal(suite.T(), "=\"0000\"", results[5]["Intercompany"], "Intercompany - OPG BACS Payments Credit")
@@ -135,7 +135,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 
 	assert.Equal(suite.T(), "=\"0470\"", results[7]["Entity"], "Entity - OPG BACS Payments Credit")
 	assert.Equal(suite.T(), "99999999", results[7]["Cost Centre"], "Cost Centre - OPG BACS Payments Credit")
-	assert.Equal(suite.T(), "1816100000", results[7]["Account"], "Account - OPG BACS Payments Credit")
+	assert.Equal(suite.T(), "1816102003", results[7]["Account"], "Account - OPG BACS Payments Credit")
 	assert.Equal(suite.T(), "=\"0000000\"", results[7]["Objective"], "Objective - OPG BACS Payments Credit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[7]["Analysis"], "Analysis - OPG BACS Payments Credit")
 	assert.Equal(suite.T(), "=\"0000\"", results[7]["Intercompany"], "Intercompany - OPG BACS Payments Credit")
@@ -157,7 +157,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 
 	assert.Equal(suite.T(), "=\"0470\"", results[9]["Entity"], "Entity - Direct Debit Credit")
 	assert.Equal(suite.T(), "99999999", results[9]["Cost Centre"], "Cost Centre - Direct Debit Credit")
-	assert.Equal(suite.T(), "1816100000", results[9]["Account"], "Account - Direct Debit Credit")
+	assert.Equal(suite.T(), "1816102003", results[9]["Account"], "Account - Direct Debit Credit")
 	assert.Equal(suite.T(), "=\"0000000\"", results[9]["Objective"], "Objective - Direct Debit Credit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[9]["Analysis"], "Analysis - Direct Debit Credit")
 	assert.Equal(suite.T(), "=\"0000\"", results[9]["Intercompany"], "Intercompany - Direct Debit Credit")

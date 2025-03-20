@@ -75,7 +75,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 
 	assert.Equal(suite.T(), "=\"0470\"", results[1]["Entity"], "Entity - AD invoice Debit")
 	assert.Equal(suite.T(), "99999999", results[1]["Cost Centre"], "Cost Centre - AD invoice Debit")
-	assert.Equal(suite.T(), "1816100000", results[1]["Account"], "Account - AD invoice Debit")
+	assert.Equal(suite.T(), "1816102003", results[1]["Account"], "Account - AD invoice Debit")
 	assert.Equal(suite.T(), "=\"0000000\"", results[1]["Objective"], "Objective - AD invoice Debit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[1]["Analysis"], "Analysis - AD invoice Debit")
 	assert.Equal(suite.T(), "=\"0000\"", results[1]["Intercompany"], "Intercompany - AD invoice Debit")
@@ -97,7 +97,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 
 	assert.Equal(suite.T(), "=\"0470\"", results[3]["Entity"], "Entity - S2 invoice Debit")
 	assert.Equal(suite.T(), "99999999", results[3]["Cost Centre"], "Cost Centre - S2 invoice Debit")
-	assert.Equal(suite.T(), "1816100000", results[3]["Account"], "Account - S2 invoice Debit")
+	assert.Equal(suite.T(), "1816102003", results[3]["Account"], "Account - S2 invoice Debit")
 	assert.Equal(suite.T(), "=\"0000000\"", results[3]["Objective"], "Objective - S2 invoice Debit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[3]["Analysis"], "Analysis - S2 invoice Debit")
 	assert.Equal(suite.T(), "=\"0000\"", results[3]["Intercompany"], "Intercompany - S2 invoice Debit")
@@ -119,7 +119,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 
 	assert.Equal(suite.T(), "=\"0470\"", results[5]["Entity"], "Entity - S3 invoice Debit")
 	assert.Equal(suite.T(), "99999999", results[5]["Cost Centre"], "Cost Centre - S3 invoice Debit")
-	assert.Equal(suite.T(), "1816100000", results[5]["Account"], "Account - S3 invoice Debit")
+	assert.Equal(suite.T(), "1816102003", results[5]["Account"], "Account - S3 invoice Debit")
 	assert.Equal(suite.T(), "=\"0000000\"", results[5]["Objective"], "Objective - S3 invoice Debit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[5]["Analysis"], "Analysis - S3 invoice Debit")
 	assert.Equal(suite.T(), "=\"0000\"", results[5]["Intercompany"], "Intercompany - S3 invoice Debit")
@@ -141,7 +141,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 
 	assert.Equal(suite.T(), "=\"0470\"", results[7]["Entity"], "Entity - Gen SE invoice Debit")
 	assert.Equal(suite.T(), "99999999", results[7]["Cost Centre"], "Cost Centre - Gen SE invoice Debit")
-	assert.Equal(suite.T(), "1816100000", results[7]["Account"], "Account - Gen SE invoice Debit")
+	assert.Equal(suite.T(), "1816102003", results[7]["Account"], "Account - Gen SE invoice Debit")
 	assert.Equal(suite.T(), "=\"0000000\"", results[7]["Objective"], "Objective - Gen SE invoice Debit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[7]["Analysis"], "Analysis - Gen SE invoice Debit")
 	assert.Equal(suite.T(), "=\"0000\"", results[7]["Intercompany"], "Intercompany - Gen SE invoice Debit")
@@ -163,7 +163,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 
 	assert.Equal(suite.T(), "=\"0470\"", results[9]["Entity"], "Entity - GA invoice Debit")
 	assert.Equal(suite.T(), "99999999", results[9]["Cost Centre"], "Cost Centre - GA invoice Debit")
-	assert.Equal(suite.T(), "1816100000", results[9]["Account"], "Account - GA invoice Debit")
+	assert.Equal(suite.T(), "1816102003", results[9]["Account"], "Account - GA invoice Debit")
 	assert.Equal(suite.T(), "=\"0000000\"", results[9]["Objective"], "Objective - GA invoice Debit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[9]["Analysis"], "Analysis - GA invoice Debit")
 	assert.Equal(suite.T(), "=\"0000\"", results[9]["Intercompany"], "Intercompany - GA invoice Debit")
@@ -185,7 +185,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 
 	assert.Equal(suite.T(), "=\"0470\"", results[11]["Entity"], "Entity - GS invoice Credit")
 	assert.Equal(suite.T(), "99999999", results[11]["Cost Centre"], "Cost Centre - GS invoice Credit")
-	assert.Equal(suite.T(), "1816100000", results[11]["Account"], "Account - GS invoice Credit")
+	assert.Equal(suite.T(), "1816102003", results[11]["Account"], "Account - GS invoice Credit")
 	assert.Equal(suite.T(), "=\"0000000\"", results[11]["Objective"], "Objective - GS invoice Credit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[11]["Analysis"], "Analysis - GS invoice Credit")
 	assert.Equal(suite.T(), "=\"0000\"", results[11]["Intercompany"], "Intercompany - GS invoice Credit")
@@ -207,7 +207,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 
 	assert.Equal(suite.T(), "=\"0470\"", results[13]["Entity"], "Entity - AD Remissions & Exemptions Credit")
 	assert.Equal(suite.T(), "99999999", results[13]["Cost Centre"], "Cost Centre - AD Remissions & Exemptions Credit")
-	assert.Equal(suite.T(), "1816100000", results[13]["Account"], "Account - AD Remissions & Exemptions Credit")
+	assert.Equal(suite.T(), "1816102003", results[13]["Account"], "Account - AD Remissions & Exemptions Credit")
 	assert.Equal(suite.T(), "=\"0000000\"", results[13]["Objective"], "Objective - AD Remissions & Exemptions Credit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[13]["Analysis"], "Analysis - AD Remissions & Exemptions Credit")
 	assert.Equal(suite.T(), "=\"0000\"", results[13]["Intercompany"], "Intercompany - AD Remissions & Exemptions Credit")
@@ -229,7 +229,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 
 	assert.Equal(suite.T(), "=\"0470\"", results[15]["Entity"], "Entity - General Remissions & Exemptions Credit")
 	assert.Equal(suite.T(), "99999999", results[15]["Cost Centre"], "Cost Centre - General Remissions & Exemptions Credit")
-	assert.Equal(suite.T(), "1816100000", results[15]["Account"], "Account - General Remissions & Exemptions Credit")
+	assert.Equal(suite.T(), "1816102003", results[15]["Account"], "Account - General Remissions & Exemptions Credit")
 	assert.Equal(suite.T(), "=\"0000000\"", results[15]["Objective"], "Objective - General Remissions & Exemptions Credit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[15]["Analysis"], "Analysis - General Remissions & Exemptions Credit")
 	assert.Equal(suite.T(), "=\"0000\"", results[15]["Intercompany"], "Intercompany - General Remissions & Exemptions Credit")
@@ -251,7 +251,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 
 	assert.Equal(suite.T(), "=\"0470\"", results[17]["Entity"], "Entity - Minimal Remissions & Exemptions Credit")
 	assert.Equal(suite.T(), "99999999", results[17]["Cost Centre"], "Cost Centre - Minimal Remissions & Exemptions Credit")
-	assert.Equal(suite.T(), "1816100000", results[17]["Account"], "Account - Minimal Remissions & Exemptions Credit")
+	assert.Equal(suite.T(), "1816102003", results[17]["Account"], "Account - Minimal Remissions & Exemptions Credit")
 	assert.Equal(suite.T(), "=\"0000000\"", results[17]["Objective"], "Objective - Minimal Remissions & Exemptions Credit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[17]["Analysis"], "Analysis - Minimal Remissions & Exemptions Credit")
 	assert.Equal(suite.T(), "=\"0000\"", results[17]["Intercompany"], "Intercompany - Minimal Remissions & Exemptions Credit")
@@ -273,7 +273,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 
 	assert.Equal(suite.T(), "=\"0470\"", results[19]["Entity"], "Entity - GA Remissions & Hardships Credit")
 	assert.Equal(suite.T(), "99999999", results[19]["Cost Centre"], "Cost Centre - GA Remissions & Hardships Credit")
-	assert.Equal(suite.T(), "1816100000", results[19]["Account"], "Account - GA Remissions & Hardships Credit")
+	assert.Equal(suite.T(), "1816102003", results[19]["Account"], "Account - GA Remissions & Hardships Credit")
 	assert.Equal(suite.T(), "=\"0000000\"", results[19]["Objective"], "Objective - GA Remissions & Hardships Credit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[19]["Analysis"], "Analysis - GA Remissions & Hardships Credit")
 	assert.Equal(suite.T(), "=\"0000\"", results[19]["Intercompany"], "Intercompany - GA Remissions & Hardships Credit")
@@ -295,7 +295,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 
 	assert.Equal(suite.T(), "=\"0470\"", results[21]["Entity"], "Entity - GS exemptions Credit")
 	assert.Equal(suite.T(), "99999999", results[21]["Cost Centre"], "Cost Centre - GS exemptions Credit")
-	assert.Equal(suite.T(), "1816100000", results[21]["Account"], "Account - GS exemptions Credit")
+	assert.Equal(suite.T(), "1816102003", results[21]["Account"], "Account - GS exemptions Credit")
 	assert.Equal(suite.T(), "=\"0000000\"", results[21]["Objective"], "Objective - GS exemptions Credit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[21]["Analysis"], "Analysis - GS exemptions Credit")
 	assert.Equal(suite.T(), "=\"0000\"", results[21]["Intercompany"], "Intercompany - GS exemptions Credit")
@@ -317,7 +317,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 
 	assert.Equal(suite.T(), "=\"0470\"", results[23]["Entity"], "Entity - Manual credit Credit")
 	assert.Equal(suite.T(), "99999999", results[23]["Cost Centre"], "Cost Centre - Manual credit Credit")
-	assert.Equal(suite.T(), "1816100000", results[23]["Account"], "Account - Manual credit Credit")
+	assert.Equal(suite.T(), "1816102003", results[23]["Account"], "Account - Manual credit Credit")
 	assert.Equal(suite.T(), "=\"0000000\"", results[23]["Objective"], "Objective - Manual credit Credit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[23]["Analysis"], "Analysis - Manual credit Credit")
 	assert.Equal(suite.T(), "=\"0000\"", results[23]["Intercompany"], "Intercompany - Manual credit Credit")
