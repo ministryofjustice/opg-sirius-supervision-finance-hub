@@ -167,6 +167,17 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			expectedTemplate: reportRequestedTemplateId,
 		},
 		{
+			name: "UnappliedTransactions",
+			reportRequest: shared.ReportRequest{
+				ReportType:      shared.ReportsTypeJournal,
+				JournalType:     toPtr(shared.JournalTypeUnappliedTransactions),
+				TransactionDate: &toDate,
+			},
+			expectedQuery:    &db.UnappliedTransactions{Date: &toDate},
+			expectedFilename: "RefundUnappliedTransactions_01:01:2024.csv",
+			expectedTemplate: reportRequestedTemplateId,
+		},
+		{
 			name: "Unknown",
 			reportRequest: shared.ReportRequest{
 				ReportType:             shared.ReportsTypeAccountsReceivable,
@@ -298,6 +309,11 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				assert.Equal(t, tt.expectedTemplate, mockNotify.payload.TemplateId)
 			case *db.ReceiptTransactions:
 				actual, ok := mockDb.query.(*db.ReceiptTransactions)
+				assert.True(t, ok)
+				assert.Equal(t, expected, actual)
+				assert.Equal(t, tt.expectedTemplate, mockNotify.payload.TemplateId)
+			case *db.UnappliedTransactions:
+				actual, ok := mockDb.query.(*db.UnappliedTransactions)
 				assert.True(t, ok)
 				assert.Equal(t, expected, actual)
 				assert.Equal(t, tt.expectedTemplate, mockNotify.payload.TemplateId)
