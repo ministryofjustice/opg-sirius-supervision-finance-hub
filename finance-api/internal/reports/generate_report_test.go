@@ -174,7 +174,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				TransactionDate: &toDate,
 			},
 			expectedQuery:    &db.UnappliedTransactions{Date: &toDate},
-			expectedFilename: "UnappliedTransactions_01:01:2024.csv",
+			expectedFilename: "RefundUnappliedTransactions_01:01:2024.csv",
 			expectedTemplate: reportRequestedTemplateId,
 		},
 		{
