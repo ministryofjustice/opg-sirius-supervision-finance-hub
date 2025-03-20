@@ -29,7 +29,7 @@ transaction_totals AS (
             WHEN l.type = 'SUPERVISION BACS PAYMENT' THEN '1841102088'
             ELSE '1841102050'
         END AS account_code,
-        SUM(ABS(l.amount)) AS debit_amount,
+        SUM(ABS(la.amount)) AS debit_amount,
         SUM(CASE WHEN la.status != 'UNAPPLIED' THEN ABS(la.amount) ELSE 0 END) AS credit_amount,
         SUM(CASE WHEN la.status = 'UNAPPLIED' THEN ABS(la.amount) ELSE 0 END) AS unapply_amount,
         tt.index
