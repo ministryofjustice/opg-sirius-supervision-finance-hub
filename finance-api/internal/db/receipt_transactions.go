@@ -10,39 +10,59 @@ type ReceiptTransactions struct {
 
 const ReceiptTransactionsQuery = `
 WITH transaction_type_order AS (
-    SELECT
-        id,
-        CASE
-            WHEN line_description LIKE 'MOTO card%' THEN 1
-            WHEN line_description LIKE 'Online card%' THEN 2
-            WHEN line_description LIKE 'OPG BACS%' THEN 3
-            WHEN line_description LIKE 'Supervision BACS%' THEN 4
-            WHEN line_description LIKE 'Direct debit%' THEN 5
-            WHEN line_description LIKE 'Cheque payment%' THEN 6
-        END AS index
-    FROM transaction_type WHERE is_receipt = TRUE
+	SELECT 
+		id,
+		CASE 
+			WHEN line_description LIKE 'MOTO card%' THEN 1
+			WHEN line_description LIKE 'Online card%' THEN 2
+			WHEN line_description LIKE 'OPG BACS%' THEN 3
+			WHEN line_description LIKE 'Supervision BACS%' THEN 4
+			WHEN line_description LIKE 'Direct debit%' THEN 5
+			WHEN line_description LIKE 'Cheque payment%' THEN 6
+			END AS index
+	FROM transaction_type WHERE is_receipt = true
 ),
 transaction_totals AS (
-    SELECT
-        tt.line_description || ' [' || TO_CHAR(l.bankdate, 'DD/MM/YYYY') || ']' AS line_description,
-        CASE
-            WHEN l.type = 'SUPERVISION BACS PAYMENT' THEN '1841102088'
-            ELSE '1841102050'
-        END AS account_code,
-        SUM(ABS(la.amount)) AS debit_amount,
-        SUM(CASE WHEN la.status != 'UNAPPLIED' THEN ABS(la.amount) ELSE 0 END) AS credit_amount,
+	SELECT 
+		tt.line_description || ' [' || TO_CHAR(l.bankdate, 'DD/MM/YYYY') || ']' AS line_description,
+        CASE 
+			WHEN l.type = 'SUPERVISION BACS PAYMENT' THEN '1841102088' 
+			ELSE '1841102050' 
+		END AS account_code,
+		SUM(ABS(la.amount)) AS debit_amount,
+		SUM(CASE WHEN la.status != 'UNAPPLIED' THEN ABS(la.amount) ELSE 0 END) AS credit_amount,
         SUM(CASE WHEN la.status = 'UNAPPLIED' THEN ABS(la.amount) ELSE 0 END) AS unapply_amount,
-        tt.index
-    FROM supervision_finance.ledger_allocation la
-    INNER JOIN supervision_finance.ledger l ON l.id = la.ledger_id
-    INNER JOIN LATERAL (
-        SELECT tto.index, fee_type, line_description
-        FROM transaction_type tt
-        INNER JOIN transaction_type_order tto ON tt.id = tto.id
-        WHERE tt.ledger_type = l.type AND tto.index IS NOT NULL
-    ) tt ON TRUE
-    WHERE l.created_at::DATE = $1
-    GROUP BY tt.line_description, l.bankdate, l.type, tt.index
+		null AS pis_number,
+		tt.index
+	FROM supervision_finance.ledger_allocation la 
+	INNER JOIN supervision_finance.ledger l ON l.id = la.ledger_id 
+	INNER JOIN LATERAL (
+		SELECT tto.index, fee_type, line_description
+		FROM transaction_type tt
+		INNER JOIN transaction_type_order tto ON tt.id = tto.id
+		WHERE tt.ledger_type = l.type AND tto.index IS NOT NULL
+	) tt ON TRUE
+	WHERE l.created_at::DATE = $1 AND l.type != 'SUPERVISION CHEQUE PAYMENT'
+	GROUP BY tt.line_description, l.bankdate, l.type, tt.index
+	UNION
+	SELECT
+		tt.line_description || ' [' || TO_CHAR(l.bankdate, 'DD/MM/YYYY') || ']' AS line_description,
+        '1841102050' AS account_code,
+		SUM(ABS(la.amount)) AS debit_amount,
+		SUM(CASE WHEN la.status != 'UNAPPLIED' THEN ABS(la.amount) ELSE 0 END) AS credit_amount,
+        SUM(CASE WHEN la.status = 'UNAPPLIED' THEN ABS(la.amount) ELSE 0 END) AS unapply_amount,
+		l.pis_number,
+		tt.index
+	FROM supervision_finance.ledger_allocation la 
+	INNER JOIN supervision_finance.ledger l ON l.id = la.ledger_id 
+	INNER JOIN LATERAL (
+		SELECT tto.index, fee_type, line_description
+		FROM transaction_type tt
+		INNER JOIN transaction_type_order tto ON tt.id = tto.id
+		WHERE tt.ledger_type = l.type AND tto.index IS NOT NULL
+	) tt ON TRUE
+	WHERE l.created_at::DATE = $1 AND l.type = 'SUPERVISION CHEQUE PAYMENT'
+	GROUP BY tt.line_description, l.bankdate, l.type, l.pis_number, tt.index
 ),
 transaction_rows AS (
     SELECT
@@ -57,6 +77,7 @@ transaction_rows AS (
         '' AS credit,
         line_description,
         index,
+		pis_number,
         1 AS n
     FROM transaction_totals
     UNION ALL
@@ -72,6 +93,7 @@ transaction_rows AS (
         (credit_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS credit,
         line_description,
         index,
+		pis_number,
         2 AS n
     FROM transaction_totals
     UNION ALL
@@ -87,6 +109,7 @@ transaction_rows AS (
         (unapply_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS credit,
         line_description,
         index,
+		pis_number,
         3 AS n
     FROM transaction_totals
     WHERE unapply_amount > 0
@@ -103,7 +126,7 @@ SELECT
     credit AS "Credit",
     line_description AS "Line description"
 FROM transaction_rows
-ORDER BY index, n;`
+ORDER BY index, pis_number, n;`
 
 func (r *ReceiptTransactions) GetHeaders() []string {
 	return []string{
