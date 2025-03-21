@@ -19,80 +19,113 @@ WITH transaction_type_order AS (
 			WHEN line_description LIKE 'Supervision BACS%' THEN 4
 			WHEN line_description LIKE 'Direct debit%' THEN 5
 			WHEN line_description LIKE 'Cheque payment%' THEN 6
-			ELSE 7
 			END AS index
-	FROM supervision_finance.transaction_type WHERE is_receipt = true
+	FROM transaction_type WHERE is_receipt = true
 ),
 transaction_totals AS (
 	SELECT 
-		tt.line_description AS line_description,
-		l.bankdate AS transaction_date, 
-		CASE 
-			WHEN l.type = 'SUPERVISION BACS PAYMENT' 
-			THEN '1841102088' 
-			ELSE '1841102050' END AS account_code,
-		((SUM(ABS(la.amount)) / 100.0)::NUMERIC(10, 2))::VARCHAR(255) AS amount,
+		tt.line_description || ' [' || TO_CHAR(l.bankdate, 'DD/MM/YYYY') || ']' AS line_description,
+        CASE 
+			WHEN l.type = 'SUPERVISION BACS PAYMENT' THEN '1841102088' 
+			ELSE '1841102050' 
+		END AS account_code,
+		SUM(ABS(la.amount)) AS debit_amount,
+		SUM(CASE WHEN la.status != 'UNAPPLIED' THEN ABS(la.amount) ELSE 0 END) AS credit_amount,
+        SUM(CASE WHEN la.status = 'UNAPPLIED' THEN ABS(la.amount) ELSE 0 END) AS unapply_amount,
 		null AS pis_number,
-		n,
 		tt.index
 	FROM supervision_finance.ledger_allocation la 
 	INNER JOIN supervision_finance.ledger l ON l.id = la.ledger_id 
 	INNER JOIN LATERAL (
 		SELECT tto.index, fee_type, line_description
-		FROM supervision_finance.transaction_type tt
+		FROM transaction_type tt
 		INNER JOIN transaction_type_order tto ON tt.id = tto.id
-		WHERE tt.ledger_type = l.type AND is_receipt = true
+		WHERE tt.ledger_type = l.type AND tto.index IS NOT NULL
 	) tt ON TRUE
-	CROSS JOIN (select 1 AS n union all select 2) n
-	WHERE l.created_at::DATE = $1
-	AND l.type != 'SUPERVISION CHEQUE PAYMENT'
-	GROUP BY tt.line_description, l.bankdate, l.type, n, tt.index
+	WHERE l.created_at::DATE = $1 AND l.type != 'SUPERVISION CHEQUE PAYMENT'
+	GROUP BY tt.line_description, l.bankdate, l.type, tt.index
 	UNION
-		SELECT 
-		tt.line_description AS line_description,
-		l.bankdate AS transaction_date, 
-		'1841102050' AS account_code,
-		((SUM(ABS(la.amount)) / 100.0)::NUMERIC(10, 2))::VARCHAR(255) AS amount,
+	SELECT
+		tt.line_description || ' [' || TO_CHAR(l.bankdate, 'DD/MM/YYYY') || ']' AS line_description,
+        '1841102050' AS account_code,
+		SUM(ABS(la.amount)) AS debit_amount,
+		SUM(CASE WHEN la.status != 'UNAPPLIED' THEN ABS(la.amount) ELSE 0 END) AS credit_amount,
+        SUM(CASE WHEN la.status = 'UNAPPLIED' THEN ABS(la.amount) ELSE 0 END) AS unapply_amount,
 		l.pis_number,
-		n,
 		tt.index
 	FROM supervision_finance.ledger_allocation la 
 	INNER JOIN supervision_finance.ledger l ON l.id = la.ledger_id 
 	INNER JOIN LATERAL (
 		SELECT tto.index, fee_type, line_description
-		FROM supervision_finance.transaction_type tt
+		FROM transaction_type tt
 		INNER JOIN transaction_type_order tto ON tt.id = tto.id
-		WHERE tt.ledger_type = l.type AND is_receipt = true
+		WHERE tt.ledger_type = l.type AND tto.index IS NOT NULL
 	) tt ON TRUE
-	CROSS JOIN (select 1 AS n union all select 2) n
-	WHERE l.created_at::DATE = $1
-	AND l.type = 'SUPERVISION CHEQUE PAYMENT'
-	GROUP BY tt.line_description, l.bankdate, l.type, l.pis_number, n, tt.index
+	WHERE l.created_at::DATE = $1 AND l.type = 'SUPERVISION CHEQUE PAYMENT'
+	GROUP BY tt.line_description, l.bankdate, l.type, l.pis_number, tt.index
+),
+transaction_rows AS (
+    SELECT
+        '="0470"' AS entity,
+        '99999999' AS cost_centre,
+        account_code,
+        '="0000000"' AS objective,
+        '="00000000"' AS analysis,
+        '="0000"' AS intercompany,
+        '="000000"' AS spare,
+        (debit_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS debit,
+        '' AS credit,
+        line_description,
+        index,
+		pis_number,
+        1 AS n
+    FROM transaction_totals
+    UNION ALL
+    SELECT
+        '="0470"' AS entity,
+        '99999999' AS cost_centre,
+        '1816100000' AS account_code,
+        '="0000000"' AS objective,
+        '="00000000"' AS analysis,
+        '="0000"' AS intercompany,
+        '="00000"' AS spare,
+        '' AS debit,
+        (credit_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS credit,
+        line_description,
+        index,
+		pis_number,
+        2 AS n
+    FROM transaction_totals
+    UNION ALL
+    SELECT
+        '="0470"' AS entity,
+        '' AS cost_centre,
+        '' AS account_code,
+        '' AS objective,
+        '' AS analysis,
+        '' AS intercompany,
+        '' AS spare,
+        '' AS debit,
+        (unapply_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS credit,
+        line_description,
+        index,
+		pis_number,
+        3 AS n
+    FROM transaction_totals
+    WHERE unapply_amount > 0
 )
-SELECT 	
-	'="0470"'                                              		AS "Entity",
-	'99999999'                                       			AS "Cost Centre",
-	CASE WHEN n % 2 = 1 
-		THEN account_code
-		ELSE '1816100000'
-		END                                             		AS "Account",
-	'="0000000"'                                           		AS "Objective",
-	'="00000000"'                                          		AS "Analysis",
-	'="0000"'                                              		AS "Intercompany",
-	CASE WHEN n % 2 = 1 
-		THEN '="000000"'
-		ELSE '="00000"'
-		END                                          					AS "Spare",
-	CASE WHEN n % 2 = 1 
-		THEN amount
-		ELSE ''
-		END                                             			AS "Debit",
-	CASE WHEN n % 2 = 1 
-		THEN ''
-		ELSE amount
-		END                                             			AS "Credit",
-	line_description || ' [' || TO_CHAR(transaction_date, 'DD/MM/YYYY') || ']' AS "Line description"
-FROM transaction_totals 
+SELECT
+    entity AS "Entity",
+    cost_centre AS "Cost Centre",
+    account_code AS "Account",
+    objective AS "Objective",
+    analysis AS "Analysis",
+    intercompany AS "Intercompany",
+    spare AS "Spare",
+    debit AS "Debit",
+    credit AS "Credit",
+    line_description AS "Line description"
+FROM transaction_rows
 ORDER BY index, pis_number, n;`
 
 func (r *ReceiptTransactions) GetHeaders() []string {
