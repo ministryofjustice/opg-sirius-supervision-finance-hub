@@ -128,7 +128,11 @@ type MockFileStorage struct {
 	exists         bool
 }
 
-func (m *MockFileStorage) GetFileByVersion(ctx context.Context, bucketName string, fileName string, versionId string) (*s3.GetObjectOutput, error) {
+func (m *MockFileStorage) GetFile(ctx context.Context, bucketName string, fileName string) (*s3.GetObjectOutput, error) {
+	return m.outgoingObject, m.err
+}
+
+func (m *MockFileStorage) GetFileWithVersion(ctx context.Context, bucketName string, fileName string, versionID string) (*s3.GetObjectOutput, error) {
 	return m.outgoingObject, m.err
 }
 
@@ -140,8 +144,11 @@ func (m *MockFileStorage) PutFile(ctx context.Context, bucketName string, fileNa
 	return &m.versionId, nil
 }
 
-// add a FileExists method to the MockFileStorage struct
-func (m *MockFileStorage) FileExists(ctx context.Context, bucketName string, filename string, versionID string) bool {
+func (m *MockFileStorage) FileExists(ctx context.Context, bucketName string, filename string) bool {
+	return m.exists
+}
+
+func (m *MockFileStorage) FileExistsWithVersion(ctx context.Context, bucketName string, filename string, versionID string) bool {
 	return m.exists
 }
 
