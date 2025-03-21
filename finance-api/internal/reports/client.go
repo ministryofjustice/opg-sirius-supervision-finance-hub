@@ -26,10 +26,9 @@ type notifyClient interface {
 }
 
 type Envs struct {
-	ReportsBucket       string
-	LegacyReportsBucket string
-	FinanceAdminURL     string
-	GoLiveDate          time.Time
+	ReportsBucket   string
+	FinanceAdminURL string
+	GoLiveDate      time.Time
 }
 
 type Client struct {

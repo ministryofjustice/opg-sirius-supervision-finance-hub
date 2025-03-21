@@ -29,28 +29,27 @@ import (
 )
 
 type Envs struct {
-	webDir              string
-	siriusPublicURL     string
-	awsRegion           string
-	iamRole             string
-	s3Endpoint          string
-	s3EncryptionKey     string
-	notifyKey           string
-	asyncBucket         string
-	goLiveDate          string
-	reportsBucket       string
-	legacyReportsBucket string
-	financeAdminPrefix  string
-	dbConn              string
-	dbUser              string
-	dbPassword          string
-	dbName              string
-	awsBaseUrl          string
-	eventBusName        string
-	port                string
-	jwtSecret           string
-	systemUserID        int32
-	eventBridgeAPIKey   string
+	webDir             string
+	siriusPublicURL    string
+	awsRegion          string
+	iamRole            string
+	s3Endpoint         string
+	s3EncryptionKey    string
+	notifyKey          string
+	asyncBucket        string
+	goLiveDate         string
+	reportsBucket      string
+	financeAdminPrefix string
+	dbConn             string
+	dbUser             string
+	dbPassword         string
+	dbName             string
+	awsBaseUrl         string
+	eventBusName       string
+	port               string
+	jwtSecret          string
+	systemUserID       int32
+	eventBridgeAPIKey  string
 }
 
 func parseEnvs() (*Envs, error) {
@@ -62,7 +61,6 @@ func parseEnvs() (*Envs, error) {
 		"ASYNC_S3_BUCKET":                os.Getenv("ASYNC_S3_BUCKET"),
 		"FINANCE_HUB_LIVE_DATE":          os.Getenv("FINANCE_HUB_LIVE_DATE"),
 		"REPORTS_S3_BUCKET":              os.Getenv("REPORTS_S3_BUCKET"),
-		"LEGACY_REPORTS_S3_BUCKET":       os.Getenv("LEGACY_REPORTS_S3_BUCKET"),
 		"SIRIUS_PUBLIC_URL":              os.Getenv("SIRIUS_PUBLIC_URL"),
 		"FINANCE_ADMIN_PREFIX":           os.Getenv("FINANCE_ADMIN_PREFIX"),
 		"POSTGRES_CONN":                  os.Getenv("POSTGRES_CONN"),
@@ -92,28 +90,27 @@ func parseEnvs() (*Envs, error) {
 	}
 
 	return &Envs{
-		iamRole:             os.Getenv("AWS_IAM_ROLE"),    // used for testing
-		s3Endpoint:          os.Getenv("AWS_S3_ENDPOINT"), // used for testing
-		awsBaseUrl:          os.Getenv("AWS_BASE_URL"),    // used for testing
-		awsRegion:           envs["AWS_REGION"],
-		s3EncryptionKey:     envs["S3_ENCRYPTION_KEY"],
-		jwtSecret:           envs["JWT_SECRET"],
-		notifyKey:           envs["OPG_NOTIFY_API_KEY"],
-		asyncBucket:         envs["ASYNC_S3_BUCKET"],
-		goLiveDate:          envs["FINANCE_HUB_LIVE_DATE"],
-		reportsBucket:       envs["REPORTS_S3_BUCKET"],
-		legacyReportsBucket: envs["LEGACY_REPORTS_S3_BUCKET"],
-		siriusPublicURL:     envs["SIRIUS_PUBLIC_URL"],
-		financeAdminPrefix:  envs["FINANCE_ADMIN_PREFIX"],
-		dbConn:              envs["POSTGRES_CONN"],
-		dbUser:              envs["POSTGRES_USER"],
-		dbPassword:          envs["POSTGRES_PASSWORD"],
-		dbName:              envs["POSTGRES_DB"],
-		eventBusName:        envs["EVENT_BUS_NAME"],
-		port:                envs["PORT"],
-		systemUserID:        int32(systemUserID),
-		webDir:              "web",
-		eventBridgeAPIKey:   envs["EVENT_BRIDGE_API_KEY"],
+		iamRole:            os.Getenv("AWS_IAM_ROLE"),    // used for testing
+		s3Endpoint:         os.Getenv("AWS_S3_ENDPOINT"), // used for testing
+		awsBaseUrl:         os.Getenv("AWS_BASE_URL"),    // used for testing
+		awsRegion:          envs["AWS_REGION"],
+		s3EncryptionKey:    envs["S3_ENCRYPTION_KEY"],
+		jwtSecret:          envs["JWT_SECRET"],
+		notifyKey:          envs["OPG_NOTIFY_API_KEY"],
+		asyncBucket:        envs["ASYNC_S3_BUCKET"],
+		goLiveDate:         envs["FINANCE_HUB_LIVE_DATE"],
+		reportsBucket:      envs["REPORTS_S3_BUCKET"],
+		siriusPublicURL:    envs["SIRIUS_PUBLIC_URL"],
+		financeAdminPrefix: envs["FINANCE_ADMIN_PREFIX"],
+		dbConn:             envs["POSTGRES_CONN"],
+		dbUser:             envs["POSTGRES_USER"],
+		dbPassword:         envs["POSTGRES_PASSWORD"],
+		dbName:             envs["POSTGRES_DB"],
+		eventBusName:       envs["EVENT_BUS_NAME"],
+		port:               envs["PORT"],
+		systemUserID:       int32(systemUserID),
+		webDir:             "web",
+		eventBridgeAPIKey:  envs["EVENT_BRIDGE_API_KEY"],
 	}, nil
 }
 
@@ -205,11 +202,10 @@ func run(ctx context.Context, logger *slog.Logger) error {
 			Secret: envs.jwtSecret,
 		},
 		validator, &api.Envs{
-			ReportsBucket:       envs.reportsBucket,
-			LegacyReportsBucket: envs.legacyReportsBucket,
-			GoLiveDate:          goLiveDate,
-			SystemUserID:        envs.systemUserID,
-			EventBridgeAPIKey:   envs.eventBridgeAPIKey,
+			ReportsBucket:     envs.reportsBucket,
+			GoLiveDate:        goLiveDate,
+			SystemUserID:      envs.systemUserID,
+			EventBridgeAPIKey: envs.eventBridgeAPIKey,
 		})
 
 	s := &http.Server{

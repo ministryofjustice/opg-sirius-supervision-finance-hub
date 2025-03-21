@@ -60,11 +60,10 @@ type Server struct {
 }
 
 type Envs struct {
-	ReportsBucket       string
-	LegacyReportsBucket string
-	GoLiveDate          time.Time
-	EventBridgeAPIKey   string
-	SystemUserID        int32
+	ReportsBucket     string
+	GoLiveDate        time.Time
+	EventBridgeAPIKey string
+	SystemUserID      int32
 }
 
 func NewServer(service Service, reports Reports, fileStorage FileStorage, jwtClient JWTClient, validator *validation.Validate, envs *Envs) *Server {
