@@ -25,13 +25,12 @@ WITH transaction_type_order AS (
 transaction_totals AS (
 	SELECT 
 		tt.line_description || ' [' || TO_CHAR(l.bankdate, 'DD/MM/YYYY') || ']' AS line_description,
-        CASE 
-			WHEN l.type = 'SUPERVISION BACS PAYMENT' THEN '1841102088' 
-			ELSE '1841102050' 
-		END AS account_code,
+        CASE WHEN l.type = 'SUPERVISION BACS PAYMENT' THEN '1841102088' ELSE '1841102050' END AS debit_account_code,
+		'1816100000' AS credit_account_code,
 		SUM(ABS(la.amount)) AS debit_amount,
 		SUM(CASE WHEN la.status != 'UNAPPLIED' THEN ABS(la.amount) ELSE 0 END) AS credit_amount,
         SUM(CASE WHEN la.status = 'UNAPPLIED' THEN ABS(la.amount) ELSE 0 END) AS unapply_amount,
+		l.type AS ledger_type,
 		null AS pis_number,
 		tt.index
 	FROM supervision_finance.ledger_allocation la 
@@ -46,11 +45,13 @@ transaction_totals AS (
 	GROUP BY tt.line_description, l.bankdate, l.type, tt.index
 	UNION
 	SELECT
-		tt.line_description || ' [' || TO_CHAR(l.bankdate, 'DD/MM/YYYY') || ']' AS line_description,
-        '1841102050' AS account_code,
+		tt.line_description || ' [' || l.pis_number || ']' AS line_description,
+        '1841102050' AS debit_account_code,
+		'1816102003' AS credit_account_code,
 		SUM(ABS(la.amount)) AS debit_amount,
 		SUM(CASE WHEN la.status != 'UNAPPLIED' THEN ABS(la.amount) ELSE 0 END) AS credit_amount,
         SUM(CASE WHEN la.status = 'UNAPPLIED' THEN ABS(la.amount) ELSE 0 END) AS unapply_amount,
+		l.type AS ledger_type,
 		l.pis_number,
 		tt.index
 	FROM supervision_finance.ledger_allocation la 
@@ -68,7 +69,7 @@ transaction_rows AS (
     SELECT
         '="0470"' AS entity,
         '99999999' AS cost_centre,
-        account_code,
+        debit_account_code AS account_code,
         '="0000000"' AS objective,
         '="00000000"' AS analysis,
         '="0000"' AS intercompany,
@@ -84,7 +85,7 @@ transaction_rows AS (
     SELECT
         '="0470"' AS entity,
         '99999999' AS cost_centre,
-        '1816100000' AS account_code,
+		credit_account_code AS account_code,
         '="0000000"' AS objective,
         '="00000000"' AS analysis,
         '="0000"' AS intercompany,
