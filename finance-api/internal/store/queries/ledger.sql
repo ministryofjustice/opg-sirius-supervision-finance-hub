@@ -18,24 +18,37 @@ RETURNING id;
 -- name: CreateLedgerForCourtRef :one
 INSERT INTO ledger (id, datetime, bankdate, finance_client_id, amount, notes, type, status, created_at, created_by, reference, method, pis_number)
 SELECT nextval('ledger_id_seq'),
-       $2,
-       $3,
+       @received_date,
+       @bank_date,
        fc.id,
-       $4,
-       $5,
-       $6,
-       $7,
+       @amount,
+       @notes,
+       @type,
+       @status,
        now(),
-       $8,
+       @created_by,
        gen_random_uuid(),
        '',
-       $9
-FROM finance_client fc WHERE court_ref = $1
+       @pisnumber
+FROM finance_client fc WHERE court_ref = @court_ref
 RETURNING id;
 
 -- name: GetLedgerForPayment :one
 SELECT l.id
 FROM ledger l
-LEFT JOIN finance_client fc ON fc.id = l.finance_client_id
+JOIN finance_client fc ON fc.id = l.finance_client_id
 WHERE l.amount = $1 AND l.status = 'CONFIRMED' AND l.bankdate = $2 AND l.type = $3 AND fc.court_ref = $4
 LIMIT 1;
+
+-- name: CheckDuplicateLedger :one
+SELECT EXISTS (
+    SELECT 1
+    FROM ledger l
+    JOIN finance_client fc ON fc.id = l.finance_client_id
+    WHERE l.amount = @amount
+      AND l.status = 'CONFIRMED'
+      AND l.bankdate = @bank_date
+      AND l.datetime::DATE = (@received_date::TIMESTAMP)::DATE
+      AND l.type = @type
+      AND fc.court_ref = @court_ref
+);
