@@ -13,6 +13,7 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 
 	today := suite.seeder.Today()
 	yesterday := suite.seeder.Today().Sub(0, 0, 1)
+	oneWeekAgo := suite.seeder.Today().Sub(0, 0, 7)
 	twoMonthsAgo := suite.seeder.Today().Sub(0, 2, 0)
 	twoYearsAgo := suite.seeder.Today().Sub(2, 0, 0)
 	fourYearsAgo := suite.seeder.Today().Sub(4, 0, 0)
@@ -76,6 +77,17 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	_, c7i1Ref := suite.seeder.CreateInvoice(ctx, client7ID, shared.InvoiceTypeGS, valToPtr("200.00"), today.StringPtr(), today.StringPtr(), today.StringPtr(), nil, nil)
 	suite.seeder.CreateFeeReduction(ctx, client7ID, shared.FeeReductionTypeExemption, strconv.Itoa(today.Date().Year()-1), 2, "Edith's exemption", today.Date())
 
+	// misapplied payments
+	// first client will not show in report as the payment has been reversed (and the invoice is not paid)
+	client6ref := "33333333"
+	client6ID := suite.seeder.CreateClient(ctx, "Ernie", "Error", client6ref, "2222")
+	_, _ = suite.seeder.CreateInvoice(ctx, client6ID, shared.InvoiceTypeAD, nil, oneWeekAgo.StringPtr(), nil, nil, nil, oneWeekAgo.StringPtr())
+	suite.seeder.CreatePayment(ctx, 15000, oneWeekAgo.Date(), client6ref, shared.TransactionTypeOnlineCardPayment, oneWeekAgo.Date())
+	client7ref := "44444444"
+	client7ID := suite.seeder.CreateClient(ctx, "Colette", "Correct", client7ref, "3333")
+	_, c7i1Ref := suite.seeder.CreateInvoice(ctx, client7ID, shared.InvoiceTypeSO, valToPtr("90.00"), oneWeekAgo.StringPtr(), nil, nil, nil, oneWeekAgo.StringPtr())
+	suite.seeder.ReversePayment(ctx, client6ref, client7ref, "150.00", oneWeekAgo.String(), oneWeekAgo.String(), shared.TransactionTypeOnlineCardPayment)
+
 	c := Client{suite.seeder.Conn}
 
 	from := shared.NewDate(fourYearsAgo.String())
@@ -87,7 +99,7 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	})
 
 	assert.NoError(suite.T(), err)
-	assert.Equal(suite.T(), 8, len(rows))
+	assert.Equal(suite.T(), 9, len(rows))
 
 	results := mapByHeader(rows)
 	assert.NotEmpty(suite.T(), results)
@@ -134,6 +146,7 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	assert.Equal(suite.T(), "0", results[1]["Adjustment amount"], "Adjustment amount - client 4")
 	assert.Equal(suite.T(), "", results[1]["Memo line description"], "Memo line description - client 4")
 
+
 	// client 7 - remission
 	assert.Equal(suite.T(), "Edith Exemption", results[2]["Customer name"], "Customer Name - client 7 - exemption")
 	assert.Equal(suite.T(), "77777777", results[2]["Customer number"], "Customer number - client 7 - exemption")
@@ -154,6 +167,27 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	assert.Equal(suite.T(), "200.00", results[2]["Credit amount"], "Credit amount - client 7 - exemption")
 	assert.Equal(suite.T(), "0", results[2]["Adjustment amount"], "Adjustment amount - client 7 - exemption")
 	assert.Equal(suite.T(), "Edith's exemption", results[2]["Memo line description"], "Memo line description - client 7 - exemption")
+
+	// misapplied payment
+	assert.Equal(suite.T(), "Colette Correct", results[2]["Customer name"], "Customer Name - client 7")
+	assert.Equal(suite.T(), client7ref, results[2]["Customer number"], "Customer number - client 7")
+	assert.Equal(suite.T(), "3333", results[2]["SOP number"], "SOP number - client 7")
+	assert.Equal(suite.T(), "=\"0470\"", results[2]["Entity"], "Entity - client 7")
+	assert.Equal(suite.T(), "99999999", results[2]["Cost centre"], "Cost centre - client 7")
+	assert.Equal(suite.T(), "BALANCE SHEET", results[2]["Cost centre description"], "Cost centre description - client 7")
+	assert.Equal(suite.T(), "1816100000", results[2]["Account code"], "Account code - client 7")
+	assert.Equal(suite.T(), "CA - TRADE RECEIVABLES", results[2]["Account code description"], "Account code description - client 7")
+	assert.Equal(suite.T(), "SO", results[2]["Invoice type"], "Invoice type - client 7")
+	assert.Equal(suite.T(), c7i1Ref, results[2]["Invoice number"], "Invoice number - client 7")
+	assert.Equal(suite.T(), "OC"+c7i1Ref, results[2]["Txn number"], "Txn number - client 7")
+	assert.Equal(suite.T(), "Online Card Payment", results[2]["Txn description"], "Txn description - client 7")
+	assert.Equal(suite.T(), "90.00", results[2]["Original amount"], "Original amount - client 7")
+	assert.Equal(suite.T(), oneWeekAgo.String(), results[2]["Received date"], "Received date - client 7")
+	assert.Contains(suite.T(), results[2]["Sirius upload date"], oneWeekAgo.String(), "Sirius upload date - client 7")
+	assert.Equal(suite.T(), "90.00", results[2]["Cash amount"], "Cash amount - client 7")
+	assert.Equal(suite.T(), "0", results[2]["Credit amount"], "Credit amount - client 7")
+	assert.Equal(suite.T(), "0", results[2]["Adjustment amount"], "Adjustment amount - client 7")
+	assert.Equal(suite.T(), "", results[2]["Memo line description"], "Memo line description - client 7")
 
 	// client 5
 	assert.Equal(suite.T(), "Owen OPG", results[3]["Customer name"], "Customer Name - client 5")
