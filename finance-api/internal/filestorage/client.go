@@ -58,6 +58,13 @@ func (c *Client) GetFile(ctx context.Context, bucketName string, filename string
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(filename),
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	defer output.Body.Close()
+
+	return output.Body, nil
 }
 
 func (c *Client) GetFileWithVersion(ctx context.Context, bucketName string, filename string, versionID string) (*s3.GetObjectOutput, error) {
