@@ -4,14 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 type mockS3Client struct {
+	headObjectInput  *s3.HeadObjectInput
 	headObjectOutput *s3.HeadObjectOutput
 	headObjectError  error
+	getObjectInput   *s3.GetObjectInput
 	getObjectOutput  *s3.GetObjectOutput
 	getObjectError   error
 	putObjectOutput  *s3.PutObjectOutput
@@ -19,6 +22,7 @@ type mockS3Client struct {
 }
 
 func (m *mockS3Client) HeadObject(ctx context.Context, params *s3.HeadObjectInput, optFns ...func(*s3.Options)) (*s3.HeadObjectOutput, error) {
+	m.headObjectInput = params
 	return m.headObjectOutput, m.headObjectError
 }
 
@@ -27,6 +31,7 @@ func (m *mockS3Client) PutObject(ctx context.Context, params *s3.PutObjectInput,
 }
 
 func (m *mockS3Client) GetObject(ctx context.Context, params *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error) {
+	m.getObjectInput = params
 	return m.getObjectOutput, m.getObjectError
 }
 
@@ -47,19 +52,28 @@ func TestNewClient(t *testing.T) {
 
 func TestGetFile(t *testing.T) {
 	tests := []struct {
-		name    string
-		mock    *mockS3Client
-		want    *s3.GetObjectOutput
-		wantErr error
+		name           string
+		mock           *mockS3Client
+		bucket         string
+		filename       string
+		expectedInput  *s3.GetObjectInput
+		expectedOutput *s3.GetObjectOutput
+		expectedError  error
 	}{
 		{
-			name: "success",
+			name:     "success",
+			bucket:   "bucket-a",
+			filename: "filename-b",
 			mock: &mockS3Client{
 				getObjectOutput: &s3.GetObjectOutput{},
 				getObjectError:  nil,
 			},
-			want:    &s3.GetObjectOutput{},
-			wantErr: nil,
+			expectedInput: &s3.GetObjectInput{
+				Bucket: aws.String("bucket-a"),
+				Key:    aws.String("filename-b"),
+			},
+			expectedOutput: &s3.GetObjectOutput{},
+			expectedError:  nil,
 		},
 		{
 			name: "fail",
@@ -67,17 +81,75 @@ func TestGetFile(t *testing.T) {
 				getObjectOutput: nil,
 				getObjectError:  errors.New("error"),
 			},
-			want:    nil,
-			wantErr: fmt.Errorf("error"),
+			expectedInput: &s3.GetObjectInput{
+				Bucket: aws.String(""),
+				Key:    aws.String(""),
+			},
+			expectedError: fmt.Errorf("error"),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			client := &Client{s3: tt.mock}
-			got, err := client.GetFileByVersion(context.Background(), "bucket", "filename", "versionID")
-			assert.Equal(t, tt.want, got)
-			assert.Equal(t, tt.wantErr, err)
+			got, err := client.GetFile(context.Background(), tt.bucket, tt.filename)
+			assert.Equal(t, tt.expectedInput, tt.mock.getObjectInput)
+			assert.Equal(t, tt.expectedOutput, got)
+			assert.Equal(t, tt.expectedError, err)
+		})
+	}
+}
+
+func TestGetFileWithVersion(t *testing.T) {
+	tests := []struct {
+		name           string
+		mock           *mockS3Client
+		bucket         string
+		filename       string
+		versionId      string
+		expectedInput  *s3.GetObjectInput
+		expectedOutput *s3.GetObjectOutput
+		expectedError  error
+	}{
+		{
+			name:      "success",
+			bucket:    "bucket-a",
+			filename:  "filename-b",
+			versionId: "12",
+			mock: &mockS3Client{
+				getObjectOutput: &s3.GetObjectOutput{},
+				getObjectError:  nil,
+			},
+			expectedInput: &s3.GetObjectInput{
+				Bucket:    aws.String("bucket-a"),
+				Key:       aws.String("filename-b"),
+				VersionId: aws.String("12"),
+			},
+			expectedOutput: &s3.GetObjectOutput{},
+			expectedError:  nil,
+		},
+		{
+			name: "fail",
+			mock: &mockS3Client{
+				getObjectOutput: nil,
+				getObjectError:  errors.New("error"),
+			},
+			expectedInput: &s3.GetObjectInput{
+				Bucket:    aws.String(""),
+				Key:       aws.String(""),
+				VersionId: aws.String(""),
+			},
+			expectedError: fmt.Errorf("error"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := &Client{s3: tt.mock}
+			got, err := client.GetFileWithVersion(context.Background(), tt.bucket, tt.filename, tt.versionId)
+			assert.Equal(t, tt.expectedInput, tt.mock.getObjectInput)
+			assert.Equal(t, tt.expectedOutput, got)
+			assert.Equal(t, tt.expectedError, err)
 		})
 	}
 }
@@ -122,15 +194,25 @@ func TestPutFile(t *testing.T) {
 
 func TestFileExists(t *testing.T) {
 	tests := []struct {
-		name string
-		mock *mockS3Client
-		want bool
+		name          string
+		bucket        string
+		filename      string
+		mock          *mockS3Client
+		expectedInput *s3.HeadObjectInput
+		want          bool
 	}{
 		{
-			name: "success",
+			name:     "success",
+			bucket:   "bucket-a",
+			filename: "filename-b",
 			mock: &mockS3Client{
+				headObjectInput:  &s3.HeadObjectInput{},
 				headObjectOutput: &s3.HeadObjectOutput{},
 				headObjectError:  nil,
+			},
+			expectedInput: &s3.HeadObjectInput{
+				Bucket: aws.String("bucket-a"),
+				Key:    aws.String("filename-b"),
 			},
 			want: true,
 		},
@@ -140,6 +222,10 @@ func TestFileExists(t *testing.T) {
 				headObjectOutput: nil,
 				headObjectError:  errors.New("error"),
 			},
+			expectedInput: &s3.HeadObjectInput{
+				Bucket: aws.String(""),
+				Key:    aws.String(""),
+			},
 			want: false,
 		},
 	}
@@ -147,7 +233,60 @@ func TestFileExists(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			client := &Client{s3: tt.mock}
-			got := client.FileExists(context.Background(), "bucket", "filename", "versionID")
+			got := client.FileExists(context.Background(), tt.bucket, tt.filename)
+			assert.Equal(t, tt.expectedInput, tt.mock.headObjectInput)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestFileExistsWithVersion(t *testing.T) {
+	tests := []struct {
+		name          string
+		bucket        string
+		filename      string
+		versionId     string
+		mock          *mockS3Client
+		expectedInput *s3.HeadObjectInput
+		want          bool
+	}{
+		{
+			name:      "success",
+			bucket:    "bucket-a",
+			filename:  "filename-b",
+			versionId: "version-c",
+			mock: &mockS3Client{
+				headObjectInput:  &s3.HeadObjectInput{},
+				headObjectOutput: &s3.HeadObjectOutput{},
+				headObjectError:  nil,
+			},
+			expectedInput: &s3.HeadObjectInput{
+				Bucket:    aws.String("bucket-a"),
+				Key:       aws.String("filename-b"),
+				VersionId: aws.String("version-c"),
+			},
+			want: true,
+		},
+		{
+			name: "fail",
+			mock: &mockS3Client{
+				headObjectOutput: nil,
+				headObjectError:  errors.New("error"),
+			},
+			expectedInput: &s3.HeadObjectInput{
+				Bucket:    aws.String(""),
+				Key:       aws.String(""),
+				VersionId: aws.String(""),
+			},
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := &Client{s3: tt.mock}
+			got := client.FileExistsWithVersion(context.Background(), tt.bucket, tt.filename, tt.versionId)
+			assert.Equal(t, tt.expectedInput, tt.mock.headObjectInput)
 			assert.Equal(t, tt.want, got)
 		})
 	}
