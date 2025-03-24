@@ -2,6 +2,8 @@ package api
 
 import (
 	"context"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"io"
 	"time"
@@ -117,37 +119,61 @@ func (s *mockService) GenerateAndUploadReport(ctx context.Context, reportRequest
 	s.lastCalled = "GenerateAndUploadReport"
 }
 
-type MockFileStorage struct {
+func (s *mockService) ProcessPayments(ctx context.Context, records [][]string, uploadType shared.ReportUploadType, bankDate shared.Date) (map[int]string, error) {
+	s.lastCalled = "ProcessPayments"
+	return nil, s.err
+}
+
+func (s *mockService) ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType) (map[int]string, error) {
+	s.lastCalled = "ProcessPaymentReversals"
+	return nil, s.err
+}
+
+type mockFileStorage struct {
 	versionId  string
 	bucketname string
 	filename   string
-	file       io.Reader
+	file           io.ReadCloser
+	outgoingObject *s3.GetObjectOutput
 	err        error
 	exists     bool
 }
 
-func (m *MockFileStorage) GetFile(ctx context.Context, bucketName string, fileName string) (io.ReadCloser, error) {
-	return io.NopCloser(m.file), m.err
+func (m *mockFileStorage) GetFile(ctx context.Context, bucketName string, fileName string) (io.ReadCloser, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return m.file, nil
 }
 
-func (m *MockFileStorage) GetFileWithVersion(ctx context.Context, bucketName string, fileName string, versionID string) (io.ReadCloser, error) {
-	return io.NopCloser(m.file), m.err
+func (m *mockFileStorage) GetFileByVersion(ctx context.Context, bucketName string, fileName string, versionId string) (*s3.GetObjectOutput, error) {
+	return m.outgoingObject, m.err
 }
 
-func (m *MockFileStorage) PutFile(ctx context.Context, bucketName string, fileName string, file io.Reader) (*string, error) {
+func (m *mockFileStorage) PutFile(ctx context.Context, bucketName string, fileName string, file io.Reader) (*string, error) {
 	m.bucketname = bucketName
 	m.filename = fileName
-	m.file = file
 
 	return &m.versionId, nil
 }
 
-func (m *MockFileStorage) FileExists(ctx context.Context, bucketName string, filename string) bool {
+// add a FileExists method to the mockFileStorage struct
+func (m *mockFileStorage) FileExists(ctx context.Context, bucketName string, filename string) bool {
 	return m.exists
 }
 
-func (m *MockFileStorage) FileExistsWithVersion(ctx context.Context, bucketName string, filename string, versionID string) bool {
+func (m *mockFileStorage) FileExistsWithVersion(ctx context.Context, bucketName string, filename string, versionID string) bool {
 	return m.exists
+}
+
+type mockNotify struct {
+	payload notify.Payload
+	err     error
+}
+
+func (n *mockNotify) Send(ctx context.Context, payload notify.Payload) error {
+	n.payload = payload
+	return n.err
 }
 
 type MockReports struct {

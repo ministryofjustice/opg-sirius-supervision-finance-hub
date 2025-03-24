@@ -2,12 +2,11 @@ package service
 
 import (
 	"context"
-	"fmt"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
+	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"strconv"
-	"strings"
 	"testing"
 	"time"
 )
@@ -23,90 +22,6 @@ type createdLedgerAllocation struct {
 	pisNumber        int
 }
 
-type mockNotify struct {
-	payload notify.Payload
-	err     error
-}
-
-func (n *mockNotify) Send(ctx context.Context, payload notify.Payload) error {
-	n.payload = payload
-	return n.err
-}
-
-func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
-	ctx := suite.ctx
-	seeder := suite.cm.Seeder(ctx, suite.T())
-
-	fileStorage := &mockFileStorage{}
-	fileStorage.file = strings.NewReader("test")
-	notifyClient := &mockNotify{}
-
-	s := NewService(seeder.Conn, nil, fileStorage, notifyClient, nil)
-
-	tests := []struct {
-		name            string
-		uploadType      string
-		fileStorageErr  error
-		expectedPayload notify.Payload
-	}{
-		{
-			name:       "Unknown report",
-			uploadType: "test",
-			expectedPayload: notify.Payload{
-				EmailAddress: "test@email.com",
-				TemplateId:   notify.ProcessingErrorTemplateId,
-				Personalisation: struct {
-					Error      string `json:"error"`
-					UploadType string `json:"upload_type"`
-				}{
-					"unknown upload type",
-					"",
-				},
-			},
-		},
-		{
-			name:           "S3 error",
-			uploadType:     "test",
-			fileStorageErr: fmt.Errorf("test"),
-			expectedPayload: notify.Payload{
-				EmailAddress: "test@email.com",
-				TemplateId:   notify.ProcessingErrorTemplateId,
-				Personalisation: struct {
-					Error      string `json:"error"`
-					UploadType string `json:"upload_type"`
-				}{
-					"unable to download report",
-					"",
-				},
-			},
-		},
-		{
-			name:       "Known report",
-			uploadType: "PAYMENTS_MOTO_CARD",
-			expectedPayload: notify.Payload{
-				EmailAddress: "test@email.com",
-				TemplateId:   notify.ProcessingSuccessTemplateId,
-				Personalisation: struct {
-					UploadType string `json:"upload_type"`
-				}{"Payments - MOTO card"},
-			},
-		},
-	}
-	for _, tt := range tests {
-		suite.T().Run(tt.name, func(t *testing.T) {
-			filename := "test.csv"
-			emailAddress := "test@email.com"
-			fileStorage.err = tt.fileStorageErr
-
-			err := s.ProcessFinanceAdminUpload(suite.ctx, shared.FinanceAdminUploadEvent{
-				EmailAddress: emailAddress, Filename: filename, UploadType: tt.uploadType,
-			})
-			assert.Nil(t, err)
-			assert.Equal(t, tt.expectedPayload, notifyClient.payload)
-		})
-	}
-}
-
 func (suite *IntegrationSuite) Test_processPayments() {
 	ctx := suite.ctx
 	seeder := suite.cm.Seeder(ctx, suite.T())
@@ -115,10 +30,16 @@ func (suite *IntegrationSuite) Test_processPayments() {
 		"INSERT INTO finance_client VALUES (1, 1, 'invoice-1', 'DEMANDED', NULL, '1234');",
 		"INSERT INTO finance_client VALUES (2, 2, 'invoice-2', 'DEMANDED', NULL, '12345');",
 		"INSERT INTO finance_client VALUES (3, 3, 'invoice-3', 'DEMANDED', NULL, '123456');",
+		"INSERT INTO finance_client VALUES (4, 4, 'invoice-4', 'DEMANDED', NULL, '1234567');",
 		"INSERT INTO invoice VALUES (1, 1, 1, 'AD', 'AD11223/19', '2023-04-01', '2025-03-31', 15000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 		"INSERT INTO invoice VALUES (2, 2, 2, 'AD', 'AD11224/19', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 		"INSERT INTO invoice VALUES (3, 3, 3, 'AD', 'AD11225/19', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 		"INSERT INTO invoice VALUES (4, 3, 3, 'AD', 'AD11226/19', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
+		"INSERT INTO invoice VALUES (5, 4, 4, 'AD', 'AD11227/19', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
+		"INSERT INTO ledger VALUES (1, 'ref', '2024-01-01 15:30:27', '', 10000, 'payment', 'MOTO CARD PAYMENT', 'CONFIRMED', 4, NULL, NULL, NULL, '2024-01-01', NULL, NULL, NULL, NULL, '2020-05-05', 1);",
+		"INSERT INTO ledger_allocation VALUES (1, 1, 5, '2024-01-01 15:30:27', 10000, 'ALLOCATED', NULL, '', '2024-01-01', NULL);",
+		"ALTER SEQUENCE ledger_id_seq RESTART WITH 2;",
+		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 2;",
 	)
 
 	dispatch := &mockDispatch{}
@@ -131,12 +52,13 @@ func (suite *IntegrationSuite) Test_processPayments() {
 		pisNumber                 int
 		expectedClientId          int
 		expectedLedgerAllocations []createdLedgerAllocation
+		expectedFailedLines       map[int]string
 		want                      error
 	}{
 		{
 			name: "Underpayment",
 			records: [][]string{
-				{"Ordercode", "BankDate", "Amount"},
+				{"Ordercode", "Date", "Amount"},
 				{
 					"1234-1",
 					"01/01/2024",
@@ -158,11 +80,12 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					12,
 				},
 			},
+			expectedFailedLines: map[int]string{},
 		},
 		{
 			name: "Overpayment",
 			records: [][]string{
-				{"Ordercode", "BankDate", "Amount"},
+				{"Ordercode", "Date", "Amount"},
 				{
 					"12345",
 					"01/01/2024",
@@ -194,11 +117,12 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					0,
 				},
 			},
+			expectedFailedLines: map[int]string{},
 		},
 		{
 			name: "Underpayment with multiple invoices",
 			records: [][]string{
-				{"Ordercode", "BankDate", "Amount"},
+				{"Ordercode", "Date", "Amount"},
 				{
 					"123456",
 					"01/01/2024",
@@ -219,22 +143,40 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					0,
 				},
 			},
+			expectedFailedLines: map[int]string{},
+		},
+		{
+			name: "failure cases",
+			records: [][]string{
+				{"Ordercode", "Date", "Amount"},
+				{"1234567890", "01/01/2024", "50"}, // client not found
+				{"1234567", "01/01/2024", "100"},   // duplicate
+			},
+			bankDate:         shared.NewDate("2024-01-01"),
+			expectedClientId: 3,
+			expectedFailedLines: map[int]string{
+				1: "CLIENT_NOT_FOUND",
+				2: "DUPLICATE_PAYMENT",
+			},
 		},
 	}
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
+			var currentLedgerId int
+			_ = seeder.QueryRow(suite.ctx, `SELECT currval('ledger_id_seq')`).Scan(&currentLedgerId)
+
 			var failedLines map[int]string
-			failedLines, err := s.processPayments(suite.ctx, tt.records, "PAYMENTS_MOTO_CARD", tt.bankDate, shared.Nillable[int]{Value: tt.pisNumber, Valid: true})
+			failedLines, err := s.ProcessPayments(suite.ctx, tt.records, shared.ReportTypeUploadPaymentsMOTOCard, tt.bankDate, shared.Nillable[int]{Value: tt.pisNumber, Valid: true})
 			assert.Equal(t, tt.want, err)
-			assert.Equal(t, map[int]string{}, failedLines)
+			assert.Equal(t, tt.expectedFailedLines, failedLines)
 
 			var createdLedgerAllocations []createdLedgerAllocation
 
 			rows, _ := seeder.Query(suite.ctx,
 				`SELECT l.amount, l.type, l.status, l.datetime, la.amount, la.status, la.invoice_id, l.pis_number
 						FROM ledger l
-						LEFT JOIN ledger_allocation la ON l.id = la.ledger_id
-					WHERE l.finance_client_id = $1`, tt.expectedClientId)
+						JOIN ledger_allocation la ON l.id = la.ledger_id
+					WHERE l.finance_client_id = $1 AND l.id > $2`, tt.expectedClientId, currentLedgerId)
 
 			for rows.Next() {
 				var r createdLedgerAllocation
