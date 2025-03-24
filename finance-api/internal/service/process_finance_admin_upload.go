@@ -24,7 +24,7 @@ func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, detail shared.F
 		return s.notify.Send(ctx, payload)
 	}
 
-	csvReader := csv.NewReader(file.Body)
+	csvReader := csv.NewReader(file)
 	records, err := csvReader.ReadAll()
 	if err != nil {
 		payload := createUploadNotifyPayload(detail, fmt.Errorf("unable to read report"), map[int]string{})

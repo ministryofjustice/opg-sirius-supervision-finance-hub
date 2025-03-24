@@ -7,6 +7,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/stretchr/testify/assert"
+	"io"
+	"strings"
 	"testing"
 )
 
@@ -57,7 +59,7 @@ func TestGetFile(t *testing.T) {
 		bucket         string
 		filename       string
 		expectedInput  *s3.GetObjectInput
-		expectedOutput *s3.GetObjectOutput
+		expectedOutput io.ReadCloser
 		expectedError  error
 	}{
 		{
@@ -65,14 +67,14 @@ func TestGetFile(t *testing.T) {
 			bucket:   "bucket-a",
 			filename: "filename-b",
 			mock: &mockS3Client{
-				getObjectOutput: &s3.GetObjectOutput{},
+				getObjectOutput: &s3.GetObjectOutput{Body: io.NopCloser(strings.NewReader("test"))},
 				getObjectError:  nil,
 			},
 			expectedInput: &s3.GetObjectInput{
 				Bucket: aws.String("bucket-a"),
 				Key:    aws.String("filename-b"),
 			},
-			expectedOutput: &s3.GetObjectOutput{},
+			expectedOutput: io.NopCloser(strings.NewReader("test")),
 			expectedError:  nil,
 		},
 		{
@@ -108,7 +110,7 @@ func TestGetFileWithVersion(t *testing.T) {
 		filename       string
 		versionId      string
 		expectedInput  *s3.GetObjectInput
-		expectedOutput *s3.GetObjectOutput
+		expectedOutput io.ReadCloser
 		expectedError  error
 	}{
 		{
@@ -117,7 +119,7 @@ func TestGetFileWithVersion(t *testing.T) {
 			filename:  "filename-b",
 			versionId: "12",
 			mock: &mockS3Client{
-				getObjectOutput: &s3.GetObjectOutput{},
+				getObjectOutput: &s3.GetObjectOutput{Body: io.NopCloser(strings.NewReader("test"))},
 				getObjectError:  nil,
 			},
 			expectedInput: &s3.GetObjectInput{
@@ -125,7 +127,7 @@ func TestGetFileWithVersion(t *testing.T) {
 				Key:       aws.String("filename-b"),
 				VersionId: aws.String("12"),
 			},
-			expectedOutput: &s3.GetObjectOutput{},
+			expectedOutput: io.NopCloser(strings.NewReader("test")),
 			expectedError:  nil,
 		},
 		{

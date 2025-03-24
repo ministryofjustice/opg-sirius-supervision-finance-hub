@@ -53,26 +53,31 @@ func NewClient(ctx context.Context, region string, iamRole string, endpoint stri
 	}, nil
 }
 
-func (c *Client) GetFile(ctx context.Context, bucketName string, filename string) (*s3.GetObjectOutput, error) {
-	return c.s3.GetObject(ctx, &s3.GetObjectInput{
+func (c *Client) GetFile(ctx context.Context, bucketName string, filename string) (io.ReadCloser, error) {
+	output, err := c.s3.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(filename),
 	})
 	if err != nil {
 		return nil, err
 	}
-
 	defer output.Body.Close()
 
-	return output.Body, nil
+	return output.Body, err
 }
 
-func (c *Client) GetFileWithVersion(ctx context.Context, bucketName string, filename string, versionID string) (*s3.GetObjectOutput, error) {
-	return c.s3.GetObject(ctx, &s3.GetObjectInput{
+func (c *Client) GetFileWithVersion(ctx context.Context, bucketName string, filename string, versionID string) (io.ReadCloser, error) {
+	output, err := c.s3.GetObject(ctx, &s3.GetObjectInput{
 		Bucket:    aws.String(bucketName),
 		Key:       aws.String(filename),
 		VersionId: aws.String(versionID),
 	})
+	if err != nil {
+		return nil, err
+	}
+	defer output.Body.Close()
+
+	return output.Body, err
 }
 
 func (c *Client) PutFile(ctx context.Context, bucketName string, fileName string, file io.Reader) (*string, error) {

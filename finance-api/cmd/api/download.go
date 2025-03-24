@@ -3,7 +3,6 @@ package api
 import (
 	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/smithy-go"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
@@ -23,7 +22,7 @@ func (s *Server) download(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	var result *s3.GetObjectOutput
+	var result io.ReadCloser
 
 	if downloadRequest.Key == "Fee_Accrual.csv" {
 		result, err = s.fileStorage.GetFile(ctx, s.envs.ReportsBucket, downloadRequest.Key)
@@ -41,13 +40,12 @@ func (s *Server) download(w http.ResponseWriter, r *http.Request) error {
 		logger.Error("failed to get object from S3", "err", err)
 		return fmt.Errorf("failed to get object from S3: %w", err)
 	}
-	defer result.Body.Close()
 
 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", downloadRequest.Key))
-	w.Header().Set("Content-Type", *result.ContentType)
+	w.Header().Set("Content-Type", "text/csv") // Can this be deleted?
 
 	// Stream the S3 object to the response writer using io.Copy
-	_, err = io.Copy(w, result.Body)
+	_, err = io.Copy(w, result)
 
 	return err
 }

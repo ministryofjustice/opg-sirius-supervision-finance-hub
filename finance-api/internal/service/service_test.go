@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/testhelpers"
@@ -60,22 +59,22 @@ func SetUpTest() *MockClient {
 }
 
 type mockFileStorage struct {
-	file *s3.GetObjectOutput
+	file io.Reader
 	err  error
 }
 
-func (m *mockFileStorage) GetFile(ctx context.Context, bucketName string, fileName string) (*s3.GetObjectOutput, error) {
+func (m *mockFileStorage) GetFile(ctx context.Context, bucketName string, fileName string) (io.ReadCloser, error) {
 	if m.err != nil {
 		return nil, m.err
 	}
-	return m.file, nil
+	return io.NopCloser(m.file), nil
 }
 
-func (m *mockFileStorage) GetFileWithVersion(ctx context.Context, bucketName string, fileName string, versionID string) (*s3.GetObjectOutput, error) {
+func (m *mockFileStorage) GetFileWithVersion(ctx context.Context, bucketName string, fileName string, versionID string) (io.ReadCloser, error) {
 	if m.err != nil {
 		return nil, m.err
 	}
-	return m.file, nil
+	return io.NopCloser(m.file), nil
 }
 
 func (m *mockFileStorage) PutFile(ctx context.Context, bucketName string, fileName string, file io.Reader) (*string, error) {
