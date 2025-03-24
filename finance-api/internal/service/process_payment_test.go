@@ -1,14 +1,9 @@
 package service
 
 import (
-	"context"
-	"fmt"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"io"
 	"strconv"
-	"strings"
 	"testing"
 	"time"
 )
@@ -21,90 +16,6 @@ type createdLedgerAllocation struct {
 	allocationAmount int
 	allocationStatus string
 	invoiceId        int
-}
-
-type mockNotify struct {
-	payload notify.Payload
-	err     error
-}
-
-func (n *mockNotify) Send(ctx context.Context, payload notify.Payload) error {
-	n.payload = payload
-	return n.err
-}
-
-func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
-	ctx := suite.ctx
-	seeder := suite.cm.Seeder(ctx, suite.T())
-
-	fileStorage := &mockFileStorage{}
-	fileStorage.file = io.NopCloser(strings.NewReader("test"))
-	notifyClient := &mockNotify{}
-
-	s := NewService(seeder.Conn, nil, fileStorage, notifyClient, nil)
-
-	tests := []struct {
-		name            string
-		uploadType      string
-		fileStorageErr  error
-		expectedPayload notify.Payload
-	}{
-		{
-			name:       "Unknown report",
-			uploadType: "test",
-			expectedPayload: notify.Payload{
-				EmailAddress: "test@email.com",
-				TemplateId:   notify.ProcessingErrorTemplateId,
-				Personalisation: struct {
-					Error      string `json:"error"`
-					UploadType string `json:"upload_type"`
-				}{
-					"unknown upload type",
-					"",
-				},
-			},
-		},
-		{
-			name:           "S3 error",
-			uploadType:     "test",
-			fileStorageErr: fmt.Errorf("test"),
-			expectedPayload: notify.Payload{
-				EmailAddress: "test@email.com",
-				TemplateId:   notify.ProcessingErrorTemplateId,
-				Personalisation: struct {
-					Error      string `json:"error"`
-					UploadType string `json:"upload_type"`
-				}{
-					"unable to download report",
-					"",
-				},
-			},
-		},
-		{
-			name:       "Known report",
-			uploadType: "PAYMENTS_MOTO_CARD",
-			expectedPayload: notify.Payload{
-				EmailAddress: "test@email.com",
-				TemplateId:   notify.ProcessingSuccessTemplateId,
-				Personalisation: struct {
-					UploadType string `json:"upload_type"`
-				}{"Payments - MOTO card"},
-			},
-		},
-	}
-	for _, tt := range tests {
-		suite.T().Run(tt.name, func(t *testing.T) {
-			filename := "test.csv"
-			emailAddress := "test@email.com"
-			fileStorage.err = tt.fileStorageErr
-
-			err := s.ProcessFinanceAdminUpload(suite.ctx, shared.FinanceAdminUploadEvent{
-				EmailAddress: emailAddress, Filename: filename, UploadType: tt.uploadType,
-			})
-			assert.Nil(t, err)
-			assert.Equal(t, tt.expectedPayload, notifyClient.payload)
-		})
-	}
 }
 
 func (suite *IntegrationSuite) Test_processPayments() {
@@ -221,7 +132,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
 			var failedLines map[int]string
-			failedLines, err := s.processPayments(suite.ctx, tt.records, "PAYMENTS_MOTO_CARD", tt.bankDate)
+			failedLines, err := s.ProcessPayments(suite.ctx, tt.records, shared.ReportTypeUploadPaymentsMOTOCard, tt.bankDate)
 			assert.Equal(t, tt.want, err)
 			assert.Equal(t, tt.expectedFailedLines, failedLines)
 
@@ -287,41 +198,6 @@ func Test_parseAmount(t *testing.T) {
 			} else {
 				assert.Nil(t, err)
 			}
-		})
-	}
-}
-
-func Test_formatFailedLines(t *testing.T) {
-	tests := []struct {
-		name        string
-		failedLines map[int]string
-		want        []string
-	}{
-		{
-			name:        "Empty",
-			failedLines: map[int]string{},
-			want:        []string(nil),
-		},
-		{
-			name: "Unsorted lines",
-			failedLines: map[int]string{
-				5: "DATE_PARSE_ERROR",
-				3: "CLIENT_NOT_FOUND",
-				8: "DUPLICATE_PAYMENT",
-				1: "DUPLICATE_PAYMENT",
-			},
-			want: []string{
-				"Line 1: Duplicate payment line",
-				"Line 3: Could not find a client with this court reference",
-				"Line 5: Unable to parse date - please use the format DD/MM/YYYY",
-				"Line 8: Duplicate payment line",
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			formattedLines := formatFailedLines(tt.failedLines)
-			assert.Equal(t, tt.want, formattedLines)
 		})
 	}
 }

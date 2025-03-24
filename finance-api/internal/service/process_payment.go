@@ -2,125 +2,17 @@ package service
 
 import (
 	"context"
-	"encoding/csv"
 	"fmt"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"os"
-	"slices"
 	"strconv"
 	"strings"
 	"time"
 )
 
-func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, detail shared.FinanceAdminUploadEvent) error {
-	file, err := s.fileStorage.GetFile(ctx, os.Getenv("ASYNC_S3_BUCKET"), detail.Filename)
-
-	if err != nil {
-		payload := createUploadNotifyPayload(detail, fmt.Errorf("unable to download report"), map[int]string{})
-		return s.notify.Send(ctx, payload)
-	}
-
-	csvReader := csv.NewReader(file)
-	records, err := csvReader.ReadAll()
-	if err != nil {
-		payload := createUploadNotifyPayload(detail, fmt.Errorf("unable to read report"), map[int]string{})
-		return s.notify.Send(ctx, payload)
-	}
-
-	failedLines, err := s.processPayments(ctx, records, detail.UploadType, detail.UploadDate)
-	payload := createUploadNotifyPayload(detail, err, failedLines)
-
-	return s.notify.Send(ctx, payload)
-}
-
-func getLedgerType(uploadType string) (string, error) {
-	switch uploadType {
-	case "PAYMENTS_MOTO_CARD":
-		return shared.TransactionTypeMotoCardPayment.Key(), nil
-	case "PAYMENTS_ONLINE_CARD":
-		return shared.TransactionTypeOnlineCardPayment.Key(), nil
-	case "PAYMENTS_SUPERVISION_BACS":
-		return shared.TransactionTypeSupervisionBACSPayment.Key(), nil
-	case "PAYMENTS_OPG_BACS":
-		return shared.TransactionTypeOPGBACSPayment.Key(), nil
-	case "SOP_UNALLOCATED":
-		return shared.TransactionTypeSOPUnallocatedPayment.Key(), nil
-	}
-	return "", fmt.Errorf("unknown upload type")
-}
-
-func parseAmount(amount string) (int32, error) {
-	index := strings.Index(amount, ".")
-
-	if index != -1 && len(amount)-index == 2 {
-		amount = amount + "0"
-	} else if index == -1 {
-		amount = amount + "00"
-	}
-
-	intAmount, err := strconv.ParseInt(strings.Replace(amount, ".", "", 1), 10, 32)
-	return int32(intAmount), err
-}
-
-func getPaymentDetails(record []string, uploadType string, bankDate shared.Date, ledgerType string, index int, failedLines *map[int]string) shared.PaymentDetails {
-	var courtRef string
-	var receivedDate time.Time
-	var amount int32
-	var err error
-
-	switch uploadType {
-	case "PAYMENTS_MOTO_CARD", "PAYMENTS_ONLINE_CARD":
-		courtRef = strings.SplitN(record[0], "-", -1)[0]
-
-		amount, err = parseAmount(record[2])
-		if err != nil {
-			(*failedLines)[index] = "AMOUNT_PARSE_ERROR"
-			return shared.PaymentDetails{}
-		}
-
-		receivedDate, err = time.Parse("2006-01-02 15:04:05", record[1])
-		if err != nil {
-			(*failedLines)[index] = "DATE_TIME_PARSE_ERROR"
-			return shared.PaymentDetails{}
-		}
-	case "PAYMENTS_SUPERVISION_BACS", "PAYMENTS_OPG_BACS":
-		courtRef = record[10]
-
-		amount, err = parseAmount(record[6])
-		if err != nil {
-			(*failedLines)[index] = "AMOUNT_PARSE_ERROR"
-			return shared.PaymentDetails{}
-		}
-
-		receivedDate, err = time.Parse("02/01/2006", record[4])
-		if err != nil {
-			(*failedLines)[index] = "DATE_PARSE_ERROR"
-			return shared.PaymentDetails{}
-		}
-	case "SOP_UNALLOCATED":
-		courtRef = record[0]
-
-		amount, err = parseAmount(record[1])
-		if err != nil {
-			(*failedLines)[index] = "AMOUNT_PARSE_ERROR"
-			return shared.PaymentDetails{}
-		}
-
-		receivedDate, err = time.Parse("2006-01-02 15:04:05", "2025-03-31 00:00:00")
-		if err != nil {
-			(*failedLines)[index] = "DATE_TIME_PARSE_ERROR"
-			return shared.PaymentDetails{}
-		}
-	}
-
-	return shared.PaymentDetails{Amount: amount, BankDate: bankDate.Time, CourtRef: courtRef, LedgerType: ledgerType, ReceivedDate: receivedDate}
-}
-
-func (s *Service) processPayments(ctx context.Context, records [][]string, uploadType string, bankDate shared.Date) (map[int]string, error) {
+func (s *Service) ProcessPayments(ctx context.Context, records [][]string, uploadType shared.ReportUploadType, bankDate shared.Date) (map[int]string, error) {
 	failedLines := make(map[int]string)
 
 	ctx, cancelTx := s.WithCancel(ctx)
@@ -155,6 +47,89 @@ func (s *Service) processPayments(ctx context.Context, records [][]string, uploa
 	}
 
 	return failedLines, nil
+}
+
+func getLedgerType(uploadType shared.ReportUploadType) (string, error) {
+	switch uploadType {
+	case shared.ReportTypeUploadPaymentsMOTOCard:
+		return shared.TransactionTypeMotoCardPayment.Key(), nil
+	case shared.ReportTypeUploadPaymentsOnlineCard:
+		return shared.TransactionTypeOnlineCardPayment.Key(), nil
+	case shared.ReportTypeUploadPaymentsSupervisionBACS:
+		return shared.TransactionTypeSupervisionBACSPayment.Key(), nil
+	case shared.ReportTypeUploadPaymentsOPGBACS:
+		return shared.TransactionTypeOPGBACSPayment.Key(), nil
+	case shared.ReportTypeUploadSOPUnallocated:
+		return shared.TransactionTypeSOPUnallocatedPayment.Key(), nil
+	}
+	return "", fmt.Errorf("unknown upload type")
+}
+
+func parseAmount(amount string) (int32, error) {
+	index := strings.Index(amount, ".")
+
+	if index != -1 && len(amount)-index == 2 {
+		amount = amount + "0"
+	} else if index == -1 {
+		amount = amount + "00"
+	}
+
+	intAmount, err := strconv.ParseInt(strings.Replace(amount, ".", "", 1), 10, 32)
+	return int32(intAmount), err
+}
+
+func getPaymentDetails(record []string, uploadType shared.ReportUploadType, bankDate shared.Date, ledgerType string, index int, failedLines *map[int]string) shared.PaymentDetails {
+	var courtRef string
+	var receivedDate time.Time
+	var amount int32
+	var err error
+
+	switch uploadType {
+	case shared.ReportTypeUploadPaymentsMOTOCard, shared.ReportTypeUploadPaymentsOnlineCard:
+		courtRef = strings.SplitN(record[0], "-", -1)[0]
+
+		amount, err = parseAmount(record[2])
+		if err != nil {
+			(*failedLines)[index] = "AMOUNT_PARSE_ERROR"
+			return shared.PaymentDetails{}
+		}
+
+		receivedDate, err = time.Parse("2006-01-02 15:04:05", record[1])
+		if err != nil {
+			(*failedLines)[index] = "DATE_TIME_PARSE_ERROR"
+			return shared.PaymentDetails{}
+		}
+	case shared.ReportTypeUploadPaymentsSupervisionBACS, shared.ReportTypeUploadPaymentsOPGBACS:
+		courtRef = record[10]
+
+		amount, err = parseAmount(record[6])
+		if err != nil {
+			(*failedLines)[index] = "AMOUNT_PARSE_ERROR"
+			return shared.PaymentDetails{}
+		}
+
+		receivedDate, err = time.Parse("02/01/2006", record[4])
+		if err != nil {
+			(*failedLines)[index] = "DATE_PARSE_ERROR"
+			return shared.PaymentDetails{}
+		}
+	case shared.ReportTypeUploadSOPUnallocated:
+		courtRef = record[0]
+
+		amount, err = parseAmount(record[1])
+		if err != nil {
+			(*failedLines)[index] = "AMOUNT_PARSE_ERROR"
+			return shared.PaymentDetails{}
+		}
+
+		receivedDate, err = time.Parse("2006-01-02 15:04:05", "2025-03-31 00:00:00")
+		if err != nil {
+			(*failedLines)[index] = "DATE_TIME_PARSE_ERROR"
+			return shared.PaymentDetails{}
+		}
+	}
+
+	return shared.PaymentDetails{Amount: amount, BankDate: bankDate.Time, CourtRef: courtRef, LedgerType: ledgerType, ReceivedDate: receivedDate}
 }
 
 func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, details shared.PaymentDetails, index int, failedLines *map[int]string) error {
@@ -247,78 +222,4 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 	}
 
 	return nil
-}
-
-func createUploadNotifyPayload(detail shared.FinanceAdminUploadEvent, err error, failedLines map[int]string) notify.Payload {
-	var payload notify.Payload
-
-	uploadType := shared.ParseReportUploadType(detail.UploadType)
-	if err != nil {
-		payload = notify.Payload{
-			EmailAddress: detail.EmailAddress,
-			TemplateId:   notify.ProcessingErrorTemplateId,
-			Personalisation: struct {
-				Error      string `json:"error"`
-				UploadType string `json:"upload_type"`
-			}{
-				Error:      err.Error(),
-				UploadType: uploadType.Translation(),
-			},
-		}
-	} else if len(failedLines) != 0 {
-		payload = notify.Payload{
-			EmailAddress: detail.EmailAddress,
-			TemplateId:   notify.ProcessingFailedTemplateId,
-			Personalisation: struct {
-				FailedLines []string `json:"failed_lines"`
-				UploadType  string   `json:"upload_type"`
-			}{
-				FailedLines: formatFailedLines(failedLines),
-				UploadType:  uploadType.Translation(),
-			},
-		}
-	} else {
-		payload = notify.Payload{
-			EmailAddress: detail.EmailAddress,
-			TemplateId:   notify.ProcessingSuccessTemplateId,
-			Personalisation: struct {
-				UploadType string `json:"upload_type"`
-			}{uploadType.Translation()},
-		}
-	}
-
-	return payload
-}
-
-func formatFailedLines(failedLines map[int]string) []string {
-	var errorMessage string
-	var formattedLines []string
-	var keys []int
-	for i := range failedLines {
-		keys = append(keys, i)
-	}
-
-	slices.Sort(keys)
-
-	for _, key := range keys {
-		failedLine := failedLines[key]
-		errorMessage = ""
-
-		switch failedLine {
-		case "DATE_PARSE_ERROR":
-			errorMessage = "Unable to parse date - please use the format DD/MM/YYYY"
-		case "DATE_TIME_PARSE_ERROR":
-			errorMessage = "Unable to parse date - please use the format YYYY-MM-DD HH:MM:SS"
-		case "AMOUNT_PARSE_ERROR":
-			errorMessage = "Unable to parse amount - please use the format 320.00"
-		case "DUPLICATE_PAYMENT":
-			errorMessage = "Duplicate payment line"
-		case "CLIENT_NOT_FOUND":
-			errorMessage = "Could not find a client with this court reference"
-		}
-
-		formattedLines = append(formattedLines, fmt.Sprintf("Line %d: %s", key, errorMessage))
-	}
-
-	return formattedLines
 }
