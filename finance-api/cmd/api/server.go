@@ -8,9 +8,11 @@ import (
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"io"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -31,13 +33,15 @@ type Service interface {
 	GetBillingHistory(ctx context.Context, id int32) ([]shared.BillingHistory, error)
 	ReapplyCredit(ctx context.Context, clientID int32) error
 	UpdateClient(ctx context.Context, clientID int32, courtRef string) error
-	ProcessFinanceAdminUpload(ctx context.Context, detail shared.FinanceAdminUploadEvent) error
 	UpdatePaymentMethod(ctx context.Context, clientID int32, paymentMethod shared.PaymentMethod) error
+	ProcessPayments(ctx context.Context, records [][]string, uploadType shared.ReportUploadType, date shared.Date) (map[int]string, error)
+	ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType) (map[int]string, error)
 }
 
 type FileStorage interface {
 	GetFileByVersion(ctx context.Context, bucketName string, filename string, versionID string) (*s3.GetObjectOutput, error)
 	FileExists(ctx context.Context, bucketName string, filename string, versionID string) bool
+	GetFile(ctx context.Context, bucketName string, fileName string) (io.ReadCloser, error)
 }
 
 type Reports interface {
@@ -48,10 +52,15 @@ type JWTClient interface {
 	Verify(requestToken string) (*jwt.Token, error)
 }
 
+type NotifyClient interface {
+	Send(ctx context.Context, payload notify.Payload) error
+}
+
 type Server struct {
 	service     Service
 	reports     Reports
 	fileStorage FileStorage
+	notify      NotifyClient
 	JWT         JWTClient
 	validator   *validation.Validate
 	envs        *Envs
@@ -64,11 +73,12 @@ type Envs struct {
 	SystemUserID      int32
 }
 
-func NewServer(service Service, reports Reports, fileStorage FileStorage, jwtClient JWTClient, validator *validation.Validate, envs *Envs) *Server {
+func NewServer(service Service, reports Reports, fileStorage FileStorage, notify NotifyClient, jwtClient JWTClient, validator *validation.Validate, envs *Envs) *Server {
 	return &Server{
 		service:     service,
 		reports:     reports,
 		fileStorage: fileStorage,
+		notify:      notify,
 		JWT:         jwtClient,
 		validator:   validator,
 		envs:        envs,

@@ -35,7 +35,7 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
 		}
 	} else if event.Source == shared.EventSourceFinanceAdmin && event.DetailType == shared.DetailTypeFinanceAdminUpload {
 		if detail, ok := event.Detail.(shared.FinanceAdminUploadEvent); ok {
-			err := s.service.ProcessFinanceAdminUpload(ctx, detail)
+			err := s.processUpload(ctx, detail)
 			if err != nil {
 				return err
 			}

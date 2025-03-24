@@ -7,7 +7,6 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/testhelpers"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/suite"
-	"io"
 	"net/http"
 	"testing"
 )
@@ -51,32 +50,4 @@ var (
 
 func (m *MockClient) Do(req *http.Request) (*http.Response, error) {
 	return GetDoFunc(req)
-}
-
-func SetUpTest() *MockClient {
-	mockClient := &MockClient{}
-	return mockClient
-}
-
-type mockFileStorage struct {
-	file io.ReadCloser
-	err  error
-}
-
-func (m *mockFileStorage) GetFile(ctx context.Context, bucketName string, fileName string) (io.ReadCloser, error) {
-	if m.err != nil {
-		return nil, m.err
-	}
-	return m.file, nil
-}
-
-func (m *mockFileStorage) PutFile(ctx context.Context, bucketName string, fileName string, file io.Reader) (*string, error) {
-	if m.err != nil {
-		return nil, m.err
-	}
-	return nil, nil
-}
-
-func Ptr[T any](val T) *T {
-	return &val
 }

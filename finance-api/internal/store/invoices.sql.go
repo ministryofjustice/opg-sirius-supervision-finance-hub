@@ -251,8 +251,8 @@ func (q *Queries) GetInvoices(ctx context.Context, clientID int32) ([]GetInvoice
 	return items, nil
 }
 
-const getInvoicesForCourtRef = `-- name: GetInvoicesForCourtRef :many
-SELECT i.id, (i.amount - COALESCE(transactions.received, 0)::INT) outstanding
+const getInvoicesForReversalByCourtRef = `-- name: GetInvoicesForReversalByCourtRef :many
+SELECT i.id, i.amount, (COALESCE(transactions.received, 0)::INT) AS received
 FROM invoice i
          JOIN finance_client fc ON fc.id = i.finance_client_id
          LEFT JOIN LATERAL (
@@ -264,25 +264,26 @@ FROM invoice i
     ) transactions ON TRUE
 WHERE fc.court_ref = $1
 GROUP BY i.id, i.amount, transactions.received, i.raiseddate
-HAVING (i.amount - COALESCE(SUM(transactions.received), 0)::INT) > 0
-ORDER BY i.raiseddate
+HAVING COALESCE(SUM(transactions.received), 0)::INT > 0
+ORDER BY i.raiseddate DESC
 `
 
-type GetInvoicesForCourtRefRow struct {
-	ID          int32
-	Outstanding int32
+type GetInvoicesForReversalByCourtRefRow struct {
+	ID       int32
+	Amount   int32
+	Received int32
 }
 
-func (q *Queries) GetInvoicesForCourtRef(ctx context.Context, courtRef pgtype.Text) ([]GetInvoicesForCourtRefRow, error) {
-	rows, err := q.db.Query(ctx, getInvoicesForCourtRef, courtRef)
+func (q *Queries) GetInvoicesForReversalByCourtRef(ctx context.Context, courtRef pgtype.Text) ([]GetInvoicesForReversalByCourtRefRow, error) {
+	rows, err := q.db.Query(ctx, getInvoicesForReversalByCourtRef, courtRef)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetInvoicesForCourtRefRow
+	var items []GetInvoicesForReversalByCourtRefRow
 	for rows.Next() {
-		var i GetInvoicesForCourtRefRow
-		if err := rows.Scan(&i.ID, &i.Outstanding); err != nil {
+		var i GetInvoicesForReversalByCourtRefRow
+		if err := rows.Scan(&i.ID, &i.Amount, &i.Received); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -391,6 +392,48 @@ func (q *Queries) GetSupervisionLevels(ctx context.Context, dollar_1 []int32) ([
 			&i.Todate,
 			&i.Amount,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getUnpaidInvoicesByCourtRef = `-- name: GetUnpaidInvoicesByCourtRef :many
+SELECT i.id, (i.amount - COALESCE(transactions.received, 0)::INT) AS outstanding
+FROM invoice i
+         JOIN finance_client fc ON fc.id = i.finance_client_id
+         LEFT JOIN LATERAL (
+    SELECT SUM(la.amount) AS received
+    FROM ledger_allocation la
+             JOIN ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
+    WHERE la.status NOT IN ('PENDING', 'UNALLOCATED')
+      AND la.invoice_id = i.id
+    ) transactions ON TRUE
+WHERE fc.court_ref = $1
+GROUP BY i.id, i.amount, transactions.received, i.raiseddate
+HAVING (i.amount - COALESCE(SUM(transactions.received), 0)::INT) > 0
+ORDER BY i.raiseddate
+`
+
+type GetUnpaidInvoicesByCourtRefRow struct {
+	ID          int32
+	Outstanding int32
+}
+
+func (q *Queries) GetUnpaidInvoicesByCourtRef(ctx context.Context, courtRef pgtype.Text) ([]GetUnpaidInvoicesByCourtRefRow, error) {
+	rows, err := q.db.Query(ctx, getUnpaidInvoicesByCourtRef, courtRef)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUnpaidInvoicesByCourtRefRow
+	for rows.Next() {
+		var i GetUnpaidInvoicesByCourtRefRow
+		if err := rows.Scan(&i.ID, &i.Outstanding); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

@@ -32,3 +32,6 @@ UPDATE finance_client SET court_ref = $1 WHERE client_id = $2;
 
 -- name: UpdatePaymentMethod :exec
 UPDATE finance_client SET payment_method = $1 WHERE client_id = $2;
+
+-- name: CheckClientExistsByCourtRef :one
+SELECT EXISTS (SELECT 1 FROM finance_client WHERE court_ref = $1);

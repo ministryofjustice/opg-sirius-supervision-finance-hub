@@ -70,8 +70,8 @@ type ClientCreatedEvent struct {
 }
 
 type FinanceAdminUploadEvent struct {
-	EmailAddress string `json:"emailAddress"`
-	Filename     string `json:"filename"`
-	UploadType   string `json:"uploadType"`
-	UploadDate   Date   `json:"uploadDate"`
+	EmailAddress string           `json:"emailAddress"`
+	Filename     string           `json:"filename"`
+	UploadType   ReportUploadType `json:"uploadType"`
+	UploadDate   Date             `json:"uploadDate"`
 }

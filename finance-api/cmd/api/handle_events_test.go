@@ -7,8 +7,10 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -35,10 +37,10 @@ func TestServer_handleEvents(t *testing.T) {
 			event: shared.Event{
 				Source:     "opg.supervision.finance.admin",
 				DetailType: "finance-admin-upload",
-				Detail:     shared.FinanceAdminUploadEvent{Filename: "file.csv", EmailAddress: "hello@test.com"},
+				Detail:     shared.FinanceAdminUploadEvent{Filename: "file.csv", EmailAddress: "hello@test.com", UploadType: shared.ReportTypeUploadPaymentsMOTOCard},
 			},
 			expectedErr:     nil,
-			expectedHandler: "ProcessFinanceAdminUpload",
+			expectedHandler: "ProcessPayments",
 		},
 		{
 			name: "client created event",
@@ -63,7 +65,10 @@ func TestServer_handleEvents(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			mock := &mockService{}
-			server := NewServer(mock, nil, nil, nil, nil, nil)
+			fileStorage := &mockFileStorage{}
+			fileStorage.file = io.NopCloser(strings.NewReader("test"))
+			notifyClient := &mockNotify{}
+			server := NewServer(mock, nil, fileStorage, notifyClient, nil, nil, nil)
 
 			var body bytes.Buffer
 			_ = json.NewEncoder(&body).Encode(test.event)
