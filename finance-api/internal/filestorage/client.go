@@ -53,26 +53,31 @@ func NewClient(ctx context.Context, region string, iamRole string, endpoint stri
 	}, nil
 }
 
-func (c *Client) GetFile(ctx context.Context, bucketName string, fileName string) (io.ReadCloser, error) {
+func (c *Client) GetFile(ctx context.Context, bucketName string, filename string) (io.ReadCloser, error) {
 	output, err := c.s3.GetObject(ctx, &s3.GetObjectInput{
-		Key:    &fileName,
-		Bucket: &bucketName,
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(filename),
 	})
 	if err != nil {
 		return nil, err
 	}
-
 	defer output.Body.Close()
 
-	return output.Body, nil
+	return output.Body, err
 }
 
-func (c *Client) GetFileByVersion(ctx context.Context, bucketName string, filename string, versionID string) (*s3.GetObjectOutput, error) {
-	return c.s3.GetObject(ctx, &s3.GetObjectInput{
+func (c *Client) GetFileWithVersion(ctx context.Context, bucketName string, filename string, versionID string) (io.ReadCloser, error) {
+	output, err := c.s3.GetObject(ctx, &s3.GetObjectInput{
 		Bucket:    aws.String(bucketName),
 		Key:       aws.String(filename),
 		VersionId: aws.String(versionID),
 	})
+	if err != nil {
+		return nil, err
+	}
+	defer output.Body.Close()
+
+	return output.Body, err
 }
 
 func (c *Client) PutFile(ctx context.Context, bucketName string, fileName string, file io.Reader) (*string, error) {
@@ -91,7 +96,15 @@ func (c *Client) PutFile(ctx context.Context, bucketName string, fileName string
 	return output.VersionId, err
 }
 
-func (c *Client) FileExists(ctx context.Context, bucketName string, filename string, versionID string) bool {
+func (c *Client) FileExists(ctx context.Context, bucketName string, filename string) bool {
+	_, err := c.s3.HeadObject(ctx, &s3.HeadObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(filename),
+	})
+	return err == nil
+}
+
+func (c *Client) FileExistsWithVersion(ctx context.Context, bucketName string, filename string, versionID string) bool {
 	_, err := c.s3.HeadObject(ctx, &s3.HeadObjectInput{
 		Bucket:    aws.String(bucketName),
 		Key:       aws.String(filename),

@@ -22,7 +22,14 @@ func (s *Server) download(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	result, err := s.fileStorage.GetFileByVersion(ctx, s.envs.ReportsBucket, downloadRequest.Key, downloadRequest.VersionId)
+	var result io.ReadCloser
+
+	if downloadRequest.Key == "Fee_Accrual.csv" {
+		result, err = s.fileStorage.GetFile(ctx, s.envs.ReportsBucket, downloadRequest.Key)
+	} else {
+		result, err = s.fileStorage.GetFileWithVersion(ctx, s.envs.ReportsBucket, downloadRequest.Key, downloadRequest.VersionId)
+	}
+
 	if err != nil {
 		var apiErr smithy.APIError
 		if errors.As(err, &apiErr) {
@@ -33,13 +40,12 @@ func (s *Server) download(w http.ResponseWriter, r *http.Request) error {
 		logger.Error("failed to get object from S3", "err", err)
 		return fmt.Errorf("failed to get object from S3: %w", err)
 	}
-	defer result.Body.Close()
 
 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", downloadRequest.Key))
-	w.Header().Set("Content-Type", *result.ContentType)
+	w.Header().Set("Content-Type", "text/csv") // Can this be deleted?
 
 	// Stream the S3 object to the response writer using io.Copy
-	_, err = io.Copy(w, result.Body)
+	_, err = io.Copy(w, result)
 
 	return err
 }
