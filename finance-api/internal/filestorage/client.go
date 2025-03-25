@@ -61,9 +61,6 @@ func (c *Client) GetFile(ctx context.Context, bucketName string, fileName string
 	if err != nil {
 		return nil, err
 	}
-
-	defer output.Body.Close()
-
 	return output.Body, nil
 }
 
