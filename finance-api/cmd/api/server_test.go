@@ -124,6 +124,11 @@ func (s *mockService) ProcessPayments(ctx context.Context, records [][]string, u
 	return nil, s.err
 }
 
+func (s *mockService) ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType) (map[int]string, error) {
+	s.lastCalled = "ProcessPaymentReversals"
+	return nil, s.err
+}
+
 type mockFileStorage struct {
 	versionId      string
 	bucketname     string

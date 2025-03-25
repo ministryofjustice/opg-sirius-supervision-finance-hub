@@ -5,7 +5,7 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
-func (s *Service) ProcessPaymentReversalUpload(ctx context.Context, event shared.FinanceAdminUploadEvent) error {
+func (s *Service) ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType) (map[int]string, error) {
 	// extract payments from the file
 	// match payments and validate:
 	//   - payment exists
@@ -20,5 +20,5 @@ func (s *Service) ProcessPaymentReversalUpload(ctx context.Context, event shared
 	//		- create ledger for correct client
 	//		- create allocation for correct client
 	//		- run reapply
-	return nil
+	return nil, nil
 }

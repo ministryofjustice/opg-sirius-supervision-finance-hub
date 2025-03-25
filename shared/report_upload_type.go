@@ -64,7 +64,7 @@ func (i ReportUploadType) Translation() string {
 	case ReportTypeUploadSOPUnallocated:
 		return "SOP Unallocated"
 	case ReportTypeUploadMisappliedPayments:
-		return "Misapplied payments"
+		return "Payment Reversals - Misapplied payments"
 	default:
 		return ""
 	}
@@ -132,7 +132,7 @@ func (i ReportUploadType) Filename(date string) (string, error) {
 	case ReportTypeUploadSOPUnallocated:
 		return fmt.Sprintf("sopunallocated_%s.csv", parsedDate.Format("02012006")), nil
 	case ReportTypeUploadMisappliedPayments:
-		return "SupervisionMisappliedPayments.csv", nil
+		return "misappliedpayments.csv", nil
 	default:
 		return "", nil
 	}

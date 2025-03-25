@@ -31,7 +31,8 @@ func (s *Server) processUpload(ctx context.Context, event shared.FinanceAdminUpl
 		failedLines, err := s.service.ProcessPayments(ctx, records, event.UploadType, event.UploadDate)
 		payload = createUploadNotifyPayload(event, err, failedLines)
 	} else if event.UploadType.IsReversal() {
-
+		failedLines, err := s.service.ProcessPaymentReversals(ctx, records, event.UploadType)
+		payload = createUploadNotifyPayload(event, err, failedLines)
 	} else {
 		payload = createUploadNotifyPayload(event, fmt.Errorf("invalid upload type"), map[int]string{})
 	}
