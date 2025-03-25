@@ -19,24 +19,26 @@ const (
 	TransactionTypeSupervisionBACSPayment
 	TransactionTypeOPGBACSPayment
 	TransactionTypeDirectDebitPayment
+	TransactionTypeSupervisionChequePayment
 	TransactionTypeSOPUnallocatedPayment
 )
 
 var TransactionTypeMap = map[string]TransactionType{
-	"CREDIT WRITE OFF":         TransactionTypeWriteOff,
-	"CREDIT MEMO":              TransactionTypeCreditMemo,
-	"DEBIT MEMO":               TransactionTypeDebitMemo,
-	"WRITE OFF REVERSAL":       TransactionTypeWriteOffReversal,
-	"EXEMPTION":                TransactionTypeExemption,
-	"HARDSHIP":                 TransactionTypeHardship,
-	"REMISSION":                TransactionTypeRemission,
-	"CREDIT REAPPLY":           TransactionTypeReapply,
-	"MOTO CARD PAYMENT":        TransactionTypeMotoCardPayment,
-	"ONLINE CARD PAYMENT":      TransactionTypeOnlineCardPayment,
-	"SUPERVISION BACS PAYMENT": TransactionTypeSupervisionBACSPayment,
-	"OPG BACS PAYMENT":         TransactionTypeOPGBACSPayment,
-	"DIRECT DEBIT PAYMENT":     TransactionTypeDirectDebitPayment,
-	"SOP UNALLOCATED":          TransactionTypeSOPUnallocatedPayment,
+	"CREDIT WRITE OFF":           TransactionTypeWriteOff,
+	"CREDIT MEMO":                TransactionTypeCreditMemo,
+	"DEBIT MEMO":                 TransactionTypeDebitMemo,
+	"WRITE OFF REVERSAL":         TransactionTypeWriteOffReversal,
+	"EXEMPTION":                  TransactionTypeExemption,
+	"HARDSHIP":                   TransactionTypeHardship,
+	"REMISSION":                  TransactionTypeRemission,
+	"CREDIT REAPPLY":             TransactionTypeReapply,
+	"MOTO CARD PAYMENT":          TransactionTypeMotoCardPayment,
+	"ONLINE CARD PAYMENT":        TransactionTypeOnlineCardPayment,
+	"SUPERVISION BACS PAYMENT":   TransactionTypeSupervisionBACSPayment,
+	"OPG BACS PAYMENT":           TransactionTypeOPGBACSPayment,
+	"DIRECT DEBIT PAYMENT":       TransactionTypeDirectDebitPayment,
+	"SUPERVISION CHEQUE PAYMENT": TransactionTypeSupervisionChequePayment,
+	"SOP UNALLOCATED":            TransactionTypeSOPUnallocatedPayment,
 }
 
 func (t TransactionType) String() string {
@@ -67,6 +69,8 @@ func (t TransactionType) String() string {
 		return "BACS payment (Main account)"
 	case TransactionTypeDirectDebitPayment:
 		return "Direct Debit payment"
+	case TransactionTypeSupervisionChequePayment:
+		return "Cheque payment"
 	case TransactionTypeSOPUnallocatedPayment:
 		return "SOP Unallocated"
 	default:
@@ -102,6 +106,8 @@ func (t TransactionType) Key() string {
 		return "OPG BACS PAYMENT"
 	case TransactionTypeDirectDebitPayment:
 		return "DIRECT DEBIT PAYMENT"
+	case TransactionTypeSupervisionChequePayment:
+		return "SUPERVISION CHEQUE PAYMENT"
 	case TransactionTypeSOPUnallocatedPayment:
 		return "SOP UNALLOCATED"
 	default:
