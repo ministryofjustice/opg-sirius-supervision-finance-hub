@@ -61,9 +61,8 @@ func (c *Client) GetFile(ctx context.Context, bucketName string, filename string
 	if err != nil {
 		return nil, err
 	}
-	defer output.Body.Close()
 
-	return output.Body, err
+	return output.Body, nil
 }
 
 func (c *Client) GetFileWithVersion(ctx context.Context, bucketName string, filename string, versionID string) (io.ReadCloser, error) {
@@ -75,9 +74,8 @@ func (c *Client) GetFileWithVersion(ctx context.Context, bucketName string, file
 	if err != nil {
 		return nil, err
 	}
-	defer output.Body.Close()
 
-	return output.Body, err
+	return output.Body, nil
 }
 
 func (c *Client) PutFile(ctx context.Context, bucketName string, fileName string, file io.Reader) (*string, error) {
