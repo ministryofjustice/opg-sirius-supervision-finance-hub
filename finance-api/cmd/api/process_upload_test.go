@@ -27,10 +27,11 @@ func Test_processFinanceAdminUpload(t *testing.T) {
 	server := NewServer(service, nil, fileStorage, notifyClient, nil, nil, nil)
 
 	tests := []struct {
-		name            string
-		uploadType      shared.ReportUploadType
-		fileStorageErr  error
-		expectedPayload notify.Payload
+		name                string
+		uploadType          shared.ReportUploadType
+		fileStorageErr      error
+		expectedPayload     notify.Payload
+		expectedServiceCall string
 	}{
 		{
 			name:       "Unknown report",
@@ -64,7 +65,7 @@ func Test_processFinanceAdminUpload(t *testing.T) {
 			},
 		},
 		{
-			name:       "Known report",
+			name:       "Known payment upload",
 			uploadType: shared.ReportTypeUploadPaymentsMOTOCard,
 			expectedPayload: notify.Payload{
 				EmailAddress: "test@email.com",
@@ -73,6 +74,19 @@ func Test_processFinanceAdminUpload(t *testing.T) {
 					UploadType string `json:"upload_type"`
 				}{"Payments - MOTO card"},
 			},
+			expectedServiceCall: "ProcessPayments",
+		},
+		{
+			name:       "Known reversal upload",
+			uploadType: shared.ReportTypeUploadMisappliedPayments,
+			expectedPayload: notify.Payload{
+				EmailAddress: "test@email.com",
+				TemplateId:   notify.ProcessingSuccessTemplateId,
+				Personalisation: struct {
+					UploadType string `json:"upload_type"`
+				}{"Payment Reversals - Misapplied payments"},
+			},
+			expectedServiceCall: "ProcessReversals",
 		},
 	}
 	for _, tt := range tests {

@@ -35,6 +35,6 @@ RETURNING id;
 -- name: GetLedgerForPayment :one
 SELECT l.id
 FROM ledger l
-LEFT JOIN finance_client fc ON fc.id = l.finance_client_id
+JOIN finance_client fc ON fc.id = l.finance_client_id
 WHERE l.amount = $1 AND l.status = 'CONFIRMED' AND l.bankdate = $2 AND l.type = $3 AND fc.court_ref = $4
 LIMIT 1;
