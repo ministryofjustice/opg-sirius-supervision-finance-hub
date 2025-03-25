@@ -59,7 +59,7 @@ func SetUpTest() *MockClient {
 }
 
 type mockFileStorage struct {
-	file io.ReadCloser
+	file io.Reader
 	err  error
 }
 
@@ -67,7 +67,14 @@ func (m *mockFileStorage) GetFile(ctx context.Context, bucketName string, fileNa
 	if m.err != nil {
 		return nil, m.err
 	}
-	return m.file, nil
+	return io.NopCloser(m.file), nil
+}
+
+func (m *mockFileStorage) GetFileWithVersion(ctx context.Context, bucketName string, fileName string, versionID string) (io.ReadCloser, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return io.NopCloser(m.file), nil
 }
 
 func (m *mockFileStorage) PutFile(ctx context.Context, bucketName string, fileName string, file io.Reader) (*string, error) {
