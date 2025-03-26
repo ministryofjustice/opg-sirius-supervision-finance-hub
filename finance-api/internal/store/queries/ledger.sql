@@ -38,3 +38,16 @@ FROM ledger l
 JOIN finance_client fc ON fc.id = l.finance_client_id
 WHERE l.amount = $1 AND l.status = 'CONFIRMED' AND l.bankdate = $2 AND l.type = $3 AND fc.court_ref = $4
 LIMIT 1;
+
+-- name: CheckDuplicateLedger :one
+SELECT EXISTS (
+    SELECT 1
+    FROM ledger l
+    JOIN finance_client fc ON fc.id = l.finance_client_id
+    WHERE l.amount = @amount
+      AND l.status = 'CONFIRMED'
+      AND l.bankdate = @bank_date
+      AND l.datetime::DATE = @received_date::TIMESTAMP
+      AND l.type = @type
+      AND fc.court_ref = @court_ref
+);

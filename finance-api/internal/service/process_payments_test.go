@@ -152,8 +152,8 @@ func (suite *IntegrationSuite) Test_processPayments() {
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
 			var currentLedgerId int
-
 			_ = seeder.QueryRow(suite.ctx, `SELECT currval('ledger_id_seq')`).Scan(&currentLedgerId)
+
 			var failedLines map[int]string
 			failedLines, err := s.ProcessPayments(suite.ctx, tt.records, shared.ReportTypeUploadPaymentsMOTOCard, tt.bankDate)
 			assert.Equal(t, tt.want, err)
