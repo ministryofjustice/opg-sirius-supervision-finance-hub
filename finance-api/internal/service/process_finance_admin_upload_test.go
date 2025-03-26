@@ -6,7 +6,6 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"io"
 	"strconv"
 	"strings"
 	"testing"
@@ -38,7 +37,7 @@ func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
 	seeder := suite.cm.Seeder(ctx, suite.T())
 
 	fileStorage := &mockFileStorage{}
-	fileStorage.file = io.NopCloser(strings.NewReader("test"))
+	fileStorage.file = strings.NewReader("test")
 	notifyClient := &mockNotify{}
 
 	s := NewService(seeder.Conn, nil, fileStorage, notifyClient, nil)
