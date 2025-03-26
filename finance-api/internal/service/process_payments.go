@@ -149,14 +149,15 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 	_ = uploadDate.Scan(details.ReceivedDate)
 	_ = store.ToInt4(&createdBy, ctx.(auth.Context).User.ID)
 
-	ledgerID, _ := s.store.GetLedgerForPayment(ctx, store.GetLedgerForPaymentParams{
-		CourtRef: courtRef,
-		Amount:   details.Amount,
-		Type:     details.LedgerType,
-		Bankdate: bankDate,
+	exists, _ := s.store.CheckDuplicateLedger(ctx, store.CheckDuplicateLedgerParams{
+		CourtRef:     courtRef,
+		Amount:       details.Amount,
+		Type:         details.LedgerType,
+		BankDate:     bankDate,
+		ReceivedDate: uploadDate,
 	})
 
-	if ledgerID != 0 {
+	if exists {
 		(*failedLines)[index] = "DUPLICATE_PAYMENT"
 		return nil
 	}
