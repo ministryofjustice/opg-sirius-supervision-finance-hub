@@ -17,6 +17,7 @@ type Service interface {
 	UpdatePendingInvoiceAdjustment(ctx context.Context, clientID int32, adjustmentId int32, status shared.AdjustmentStatus) error
 	AddFeeReduction(ctx context.Context, clientId int32, reduction shared.AddFeeReduction) error
 	ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, details shared.PaymentDetails) error
+	ProcessReversalUploadLine(ctx context.Context, tx *store.Tx, details shared.ReversalDetails) error
 	BeginStoreTx(ctx context.Context) (*store.Tx, error)
 }
 
