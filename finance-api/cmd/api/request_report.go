@@ -41,8 +41,12 @@ func (s *Server) requestReport(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	go func(logger *slog.Logger) {
+		// context cancels after 2 minutes to prevent the request from hanging
+		tctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+		defer cancel()
+		
 		ctx := telemetry.ContextWithLogger(auth.Context{
-			Context: context.Background(),
+			Context: tctx,
 			User:    r.Context().(auth.Context).User,
 		}, logger)
 		s.reports.GenerateAndUploadReport(ctx, reportRequest, time.Now())
