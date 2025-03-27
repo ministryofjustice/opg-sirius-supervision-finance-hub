@@ -47,7 +47,7 @@ SELECT EXISTS (
     WHERE l.amount = @amount
       AND l.status = 'CONFIRMED'
       AND l.bankdate = @bank_date
-      AND l.datetime::DATE = @received_date::TIMESTAMP
+      AND l.datetime::DATE = (@received_date::TIMESTAMP)::DATE
       AND l.type = @type
       AND fc.court_ref = @court_ref
 );
