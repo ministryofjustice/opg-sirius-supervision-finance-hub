@@ -28,7 +28,11 @@ func (s *Service) ProcessPayments(ctx context.Context, records [][]string, uploa
 			details := getPaymentDetails(ctx, record, uploadType, bankDate, index, &failedLines)
 
 			if details != (shared.PaymentDetails{}) {
-				err := s.ProcessPaymentsUploadLine(ctx, tx, details, index, &failedLines)
+				if !s.validatePaymentLine(ctx, details, index, &failedLines) {
+					continue
+				}
+
+				err := s.ProcessPaymentsUploadLine(ctx, tx, details)
 				if err != nil {
 					return nil, err
 				}
@@ -144,11 +148,7 @@ func getPaymentDetails(ctx context.Context, record []string, uploadType shared.R
 	return shared.PaymentDetails{Amount: amount, BankDate: bankDate, CourtRef: courtRef, LedgerType: paymentType, ReceivedDate: receivedDate, CreatedBy: createdBy}
 }
 
-func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, details shared.PaymentDetails, index int, failedLines *map[int]string) error {
-	if details.Amount == 0 {
-		return nil
-	}
-
+func (s *Service) validatePaymentLine(ctx context.Context, details shared.PaymentDetails, index int, failedLines *map[int]string) bool {
 	exists, _ := s.store.CheckDuplicateLedger(ctx, store.CheckDuplicateLedgerParams{
 		CourtRef:     details.CourtRef,
 		Amount:       details.Amount,
@@ -159,10 +159,25 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 
 	if exists {
 		(*failedLines)[index] = "DUPLICATE_PAYMENT"
+		return false
+	}
+
+	exists, _ = s.store.CheckClientExistsByCourtRef(ctx, details.CourtRef)
+
+	if !exists {
+		(*failedLines)[index] = "CLIENT_NOT_FOUND"
+		return false
+	}
+
+	return true
+}
+
+func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, details shared.PaymentDetails) error {
+	if details.Amount == 0 {
 		return nil
 	}
 
-	ledgerID, err := tx.CreateLedgerForCourtRef(ctx, store.CreateLedgerForCourtRefParams{
+	params := store.CreateLedgerForCourtRefParams{
 		CourtRef:     details.CourtRef,
 		Amount:       details.Amount,
 		Type:         details.LedgerType.Key(),
@@ -170,11 +185,11 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 		CreatedBy:    details.CreatedBy,
 		BankDate:     details.BankDate,
 		ReceivedDate: details.ReceivedDate,
-	})
+	}
+	ledgerID, err := tx.CreateLedgerForCourtRef(ctx, params)
 
 	if err != nil {
-		(*failedLines)[index] = "CLIENT_NOT_FOUND"
-		return nil
+		return err
 	}
 
 	invoices, err := tx.GetUnpaidInvoicesByCourtRef(ctx, details.CourtRef)

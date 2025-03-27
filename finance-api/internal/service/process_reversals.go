@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"errors"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
@@ -42,7 +41,7 @@ func (s *Service) ProcessPaymentReversals(ctx context.Context, records [][]strin
 					continue
 				}
 
-				err = s.processReversalUploadLine(ctx, tx, details, index, &failedLines)
+				err = s.processReversalUploadLine(ctx, tx, details)
 				if err != nil {
 					return nil, err
 				}
@@ -55,7 +54,7 @@ func (s *Service) ProcessPaymentReversals(ctx context.Context, records [][]strin
 						LedgerType:   details.paymentType,
 						ReceivedDate: details.receivedDate,
 						CreatedBy:    details.createdBy,
-					}, index, &failedLines)
+					})
 					if err != nil {
 						return nil, err
 					}
@@ -155,7 +154,7 @@ func (s *Service) validateReversalLine(ctx context.Context, details reversalDeta
 	return true
 }
 
-func (s *Service) processReversalUploadLine(ctx context.Context, tx *store.Tx, details reversalDetail, index int, failedLines *map[int]string) error {
+func (s *Service) processReversalUploadLine(ctx context.Context, tx *store.Tx, details reversalDetail) error {
 	ledgerID, err := tx.CreateLedgerForCourtRef(ctx, store.CreateLedgerForCourtRefParams{
 		CourtRef:     details.erroredCourtRef,
 		Amount:       -details.amount,
@@ -167,8 +166,7 @@ func (s *Service) processReversalUploadLine(ctx context.Context, tx *store.Tx, d
 	})
 
 	if err != nil {
-		(*failedLines)[index] = "CLIENT_NOT_FOUND"
-		return nil
+		return err
 	}
 
 	invoices, err := tx.GetInvoicesForReversalByCourtRef(ctx, details.erroredCourtRef)
@@ -205,7 +203,14 @@ func (s *Service) processReversalUploadLine(ctx context.Context, tx *store.Tx, d
 	}
 
 	if remaining != 0 {
-		return errors.New("payment reversal unable to allocate full amount")
+		err = tx.CreateLedgerAllocation(ctx, store.CreateLedgerAllocationParams{
+			Amount:   remaining,
+			Status:   "UNAPPLIED",
+			LedgerID: ledgerID,
+		})
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
