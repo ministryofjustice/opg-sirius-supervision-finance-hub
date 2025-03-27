@@ -1,6 +1,9 @@
 package service
 
 import (
+	"context"
+	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"strconv"
@@ -243,11 +246,18 @@ func Test_getPaymentDetails(t *testing.T) {
 			ledgerType: "MOTO_CARD_PAYMENT",
 			index:      1,
 			expected: shared.PaymentDetails{
-				CourtRef:     "1234",
-				ReceivedDate: time.Date(2024, 1, 1, 10, 15, 39, 0, time.UTC),
-				Amount:       10000,
-				BankDate:     time.Date(2024, 1, 17, 0, 0, 0, 0, time.UTC),
-				LedgerType:   "MOTO_CARD_PAYMENT",
+				CourtRef: pgtype.Text{String: "1234", Valid: true},
+				ReceivedDate: pgtype.Timestamp{
+					Time:  time.Date(2024, 1, 1, 10, 15, 39, 0, time.UTC),
+					Valid: true,
+				},
+				Amount: 10000,
+				BankDate: pgtype.Date{
+					Time:  time.Date(2024, 1, 17, 0, 0, 0, 0, time.UTC),
+					Valid: true,
+				},
+				LedgerType: shared.TransactionTypeMotoCardPayment,
+				CreatedBy:  pgtype.Int4{Int32: 1, Valid: true},
 			},
 			expectedErr: map[int]string{},
 		},
@@ -259,11 +269,18 @@ func Test_getPaymentDetails(t *testing.T) {
 			ledgerType: "SUPERVISION_BACS_PAYMENT",
 			index:      1,
 			expected: shared.PaymentDetails{
-				CourtRef:     "1234",
-				ReceivedDate: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
-				Amount:       20000,
-				BankDate:     time.Date(2024, 1, 17, 0, 0, 0, 0, time.UTC),
-				LedgerType:   "SUPERVISION_BACS_PAYMENT",
+				CourtRef: pgtype.Text{String: "1234", Valid: true},
+				ReceivedDate: pgtype.Timestamp{
+					Time:  time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+					Valid: true,
+				},
+				Amount: 20000,
+				BankDate: pgtype.Date{
+					Time:  time.Date(2024, 1, 17, 0, 0, 0, 0, time.UTC),
+					Valid: true,
+				},
+				LedgerType: shared.TransactionTypeSupervisionBACSPayment,
+				CreatedBy:  pgtype.Int4{Int32: 1, Valid: true},
 			},
 			expectedErr: map[int]string{},
 		},
@@ -296,7 +313,11 @@ func Test_getPaymentDetails(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			failedLines := make(map[int]string)
-			result := getPaymentDetails(tt.record, tt.uploadType, tt.bankDate, tt.ledgerType, tt.index, &failedLines)
+			ctx := auth.Context{
+				Context: context.Background(),
+				User:    &shared.User{ID: 1},
+			}
+			result := getPaymentDetails(ctx, tt.record, tt.uploadType, tt.bankDate, tt.index, &failedLines)
 			assert.Equal(t, tt.expected, result)
 			assert.Equal(t, tt.expectedErr, failedLines)
 		})

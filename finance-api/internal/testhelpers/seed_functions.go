@@ -2,6 +2,8 @@ package testhelpers
 
 import (
 	"context"
+	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"time"
@@ -135,11 +137,24 @@ func (s *Seeder) CreateFeeReduction(ctx context.Context, clientId int32, feeType
 
 func (s *Seeder) CreatePayment(ctx context.Context, amount int32, bankDate time.Time, courtRef string, ledgerType shared.TransactionType, uploadDate time.Time) {
 	payment := shared.PaymentDetails{
-		Amount:       amount,
-		BankDate:     bankDate,
-		CourtRef:     courtRef,
-		LedgerType:   ledgerType.Key(),
-		ReceivedDate: uploadDate,
+		Amount: amount,
+		BankDate: pgtype.Date{
+			Time:  bankDate,
+			Valid: true,
+		},
+		CourtRef: pgtype.Text{
+			String: courtRef,
+			Valid:  true,
+		},
+		LedgerType: ledgerType,
+		ReceivedDate: pgtype.Timestamp{
+			Time:  uploadDate,
+			Valid: true,
+		},
+		CreatedBy: pgtype.Int4{
+			Int32: ctx.(auth.Context).User.ID,
+			Valid: true,
+		},
 	}
 
 	tx, err := s.Service.BeginStoreTx(ctx)

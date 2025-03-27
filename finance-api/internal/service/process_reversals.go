@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
@@ -10,7 +11,7 @@ import (
 )
 
 type reversalDetail struct {
-	paymentType     string
+	paymentType     shared.TransactionType
 	erroredCourtRef pgtype.Text
 	correctCourtRef pgtype.Text
 	bankDate        pgtype.Date
@@ -41,13 +42,24 @@ func (s *Service) ProcessPaymentReversals(ctx context.Context, records [][]strin
 					continue
 				}
 
-				err := s.processReversalUploadLine(ctx, tx, details, index, &failedLines)
+				err = s.processReversalUploadLine(ctx, tx, details, index, &failedLines)
 				if err != nil {
 					return nil, err
 				}
-				// if misapplied payment, run again for correct client
-				// need to ensure reversal took place and no failed lines added
-				// add note in the ledger for billing history?
+
+				if uploadType == shared.ReportTypeUploadMisappliedPayments {
+					err = s.ProcessPaymentsUploadLine(ctx, tx, shared.PaymentDetails{
+						Amount:       details.amount,
+						BankDate:     details.bankDate,
+						CourtRef:     details.correctCourtRef,
+						LedgerType:   details.paymentType,
+						ReceivedDate: details.receivedDate,
+						CreatedBy:    details.createdBy,
+					}, index, &failedLines)
+					if err != nil {
+						return nil, err
+					}
+				}
 			}
 		}
 	}
@@ -62,7 +74,7 @@ func (s *Service) ProcessPaymentReversals(ctx context.Context, records [][]strin
 
 func getReversalLines(ctx context.Context, record []string, uploadType shared.ReportUploadType, index int, failedLines *map[int]string) reversalDetail {
 	var (
-		paymentType     string
+		paymentType     shared.TransactionType
 		erroredCourtRef pgtype.Text
 		correctCourtRef pgtype.Text
 		bankDate        pgtype.Date
@@ -73,7 +85,12 @@ func getReversalLines(ctx context.Context, record []string, uploadType shared.Re
 
 	switch uploadType {
 	case shared.ReportTypeUploadMisappliedPayments:
-		paymentType = record[0]
+		paymentType = shared.ParseTransactionType(record[0])
+		if paymentType == shared.TransactionTypeUnknown {
+			(*failedLines)[index] = "PAYMENT_TYPE_PARSE_ERROR"
+			return reversalDetail{}
+		}
+
 		_ = erroredCourtRef.Scan(record[1])
 		_ = correctCourtRef.Scan(record[2])
 
@@ -117,7 +134,7 @@ func (s *Service) validateReversalLine(ctx context.Context, details reversalDeta
 	params := store.CheckDuplicateLedgerParams{
 		CourtRef:     details.erroredCourtRef,
 		Amount:       details.amount,
-		Type:         details.paymentType,
+		Type:         details.paymentType.Key(),
 		BankDate:     details.bankDate,
 		ReceivedDate: details.receivedDate,
 	}
@@ -139,32 +156,69 @@ func (s *Service) validateReversalLine(ctx context.Context, details reversalDeta
 }
 
 func (s *Service) processReversalUploadLine(ctx context.Context, tx *store.Tx, details reversalDetail, index int, failedLines *map[int]string) error {
-	// match payments and validate:
-	//   - payment exists
 	var (
 		erroredCourtRef pgtype.Text
 		correctCourtRef pgtype.Text
 		bankDate        pgtype.Date
 		receivedDate    pgtype.Timestamp
-		createdBy       pgtype.Int4
 	)
 
 	_ = erroredCourtRef.Scan(details.erroredCourtRef)
 	_ = correctCourtRef.Scan(details.correctCourtRef)
 	_ = bankDate.Scan(details.bankDate)
 	_ = receivedDate.Scan(details.receivedDate)
-	_ = store.ToInt4(&createdBy, ctx.(auth.Context).User.ID)
 
-	//   - matched by date or PIS if cheque
-	//   - if misapplied, new client exists
-	// for each payment:
-	//   - create ledger
-	//   - create the reversed allocation
-	//   - update the payment with the reversed allocation
-	//   - run reapply
-	//   - if misapplied:
-	//		- create ledger for correct client
-	//		- create allocation for correct client
-	//		- run reapply
+	ledgerID, err := tx.CreateLedgerForCourtRef(ctx, store.CreateLedgerForCourtRefParams{
+		CourtRef:     erroredCourtRef,
+		Amount:       details.amount,
+		Type:         details.paymentType.Key(),
+		Status:       "CONFIRMED",
+		CreatedBy:    details.createdBy,
+		BankDate:     bankDate,
+		ReceivedDate: receivedDate,
+	})
+
+	if err != nil {
+		(*failedLines)[index] = "CLIENT_NOT_FOUND"
+		return nil
+	}
+
+	invoices, err := tx.GetInvoicesForReversalByCourtRef(ctx, erroredCourtRef)
+
+	if err != nil {
+		return err
+	}
+
+	remaining := details.amount
+
+	for _, invoice := range invoices {
+		allocationAmount := invoice.Received
+		if allocationAmount > remaining {
+			allocationAmount = remaining
+		}
+
+		var invoiceID pgtype.Int4
+		_ = store.ToInt4(&invoiceID, invoice.ID)
+
+		err = tx.CreateLedgerAllocation(ctx, store.CreateLedgerAllocationParams{
+			InvoiceID: invoiceID,
+			Amount:    -allocationAmount,
+			Status:    "ALLOCATED",
+			LedgerID:  ledgerID,
+		})
+		if err != nil {
+			return err
+		}
+
+		remaining -= allocationAmount
+		if remaining == 0 {
+			break
+		}
+	}
+
+	if remaining != 0 {
+		return errors.New("payment reversal unable to allocate full amount")
+	}
+
 	return nil
 }

@@ -23,14 +23,9 @@ func (s *Service) ProcessPayments(ctx context.Context, records [][]string, uploa
 		return nil, err
 	}
 
-	ledgerType, err := getLedgerType(uploadType)
-	if err != nil {
-		return nil, err
-	}
-
 	for index, record := range records {
 		if index != 0 && record[0] != "" {
-			details := getPaymentDetails(record, uploadType, bankDate, ledgerType, index, &failedLines)
+			details := getPaymentDetails(ctx, record, uploadType, bankDate, index, &failedLines)
 
 			if details != (shared.PaymentDetails{}) {
 				err := s.ProcessPaymentsUploadLine(ctx, tx, details, index, &failedLines)
@@ -49,20 +44,20 @@ func (s *Service) ProcessPayments(ctx context.Context, records [][]string, uploa
 	return failedLines, nil
 }
 
-func getLedgerType(uploadType shared.ReportUploadType) (string, error) {
+func getLedgerType(uploadType shared.ReportUploadType) (shared.TransactionType, error) {
 	switch uploadType {
 	case shared.ReportTypeUploadPaymentsMOTOCard:
-		return shared.TransactionTypeMotoCardPayment.Key(), nil
+		return shared.TransactionTypeMotoCardPayment, nil
 	case shared.ReportTypeUploadPaymentsOnlineCard:
-		return shared.TransactionTypeOnlineCardPayment.Key(), nil
+		return shared.TransactionTypeOnlineCardPayment, nil
 	case shared.ReportTypeUploadPaymentsSupervisionBACS:
-		return shared.TransactionTypeSupervisionBACSPayment.Key(), nil
+		return shared.TransactionTypeSupervisionBACSPayment, nil
 	case shared.ReportTypeUploadPaymentsOPGBACS:
-		return shared.TransactionTypeOPGBACSPayment.Key(), nil
+		return shared.TransactionTypeOPGBACSPayment, nil
 	case shared.ReportTypeUploadSOPUnallocated:
-		return shared.TransactionTypeSOPUnallocatedPayment.Key(), nil
+		return shared.TransactionTypeSOPUnallocatedPayment, nil
 	}
-	return "", fmt.Errorf("unknown upload type")
+	return shared.TransactionTypeUnknown, fmt.Errorf("unknown upload type")
 }
 
 func parseAmount(amount string) (int32, error) {
@@ -78,15 +73,29 @@ func parseAmount(amount string) (int32, error) {
 	return int32(intAmount), err
 }
 
-func getPaymentDetails(record []string, uploadType shared.ReportUploadType, bankDate shared.Date, ledgerType string, index int, failedLines *map[int]string) shared.PaymentDetails {
-	var courtRef string
-	var receivedDate time.Time
-	var amount int32
-	var err error
+func getPaymentDetails(ctx context.Context, record []string, uploadType shared.ReportUploadType, formDate shared.Date, index int, failedLines *map[int]string) shared.PaymentDetails {
+	var (
+		paymentType  shared.TransactionType
+		courtRef     pgtype.Text
+		bankDate     pgtype.Date
+		receivedDate pgtype.Timestamp
+		createdBy    pgtype.Int4
+		amount       int32
+		err          error
+	)
+
+	_ = bankDate.Scan(formDate.Time)
+	_ = store.ToInt4(&createdBy, ctx.(auth.Context).User.ID)
+
+	paymentType, err = getLedgerType(uploadType)
+	if err != nil {
+		(*failedLines)[index] = "PAYMENT_TYPE_PARSE_ERROR"
+		return shared.PaymentDetails{}
+	}
 
 	switch uploadType {
 	case shared.ReportTypeUploadPaymentsMOTOCard, shared.ReportTypeUploadPaymentsOnlineCard:
-		courtRef = strings.SplitN(record[0], "-", -1)[0]
+		_ = courtRef.Scan(strings.SplitN(record[0], "-", -1)[0])
 
 		amount, err = parseAmount(record[2])
 		if err != nil {
@@ -94,13 +103,14 @@ func getPaymentDetails(record []string, uploadType shared.ReportUploadType, bank
 			return shared.PaymentDetails{}
 		}
 
-		receivedDate, err = time.Parse("2006-01-02 15:04:05", record[1])
+		rd, err := time.Parse("2006-01-02 15:04:05", record[1])
 		if err != nil {
 			(*failedLines)[index] = "DATE_TIME_PARSE_ERROR"
 			return shared.PaymentDetails{}
 		}
+		_ = receivedDate.Scan(rd)
 	case shared.ReportTypeUploadPaymentsSupervisionBACS, shared.ReportTypeUploadPaymentsOPGBACS:
-		courtRef = record[10]
+		_ = courtRef.Scan(record[10])
 
 		amount, err = parseAmount(record[6])
 		if err != nil {
@@ -108,13 +118,14 @@ func getPaymentDetails(record []string, uploadType shared.ReportUploadType, bank
 			return shared.PaymentDetails{}
 		}
 
-		receivedDate, err = time.Parse("02/01/2006", record[4])
+		rd, err := time.Parse("02/01/2006", record[4])
 		if err != nil {
 			(*failedLines)[index] = "DATE_PARSE_ERROR"
 			return shared.PaymentDetails{}
 		}
+		_ = receivedDate.Scan(rd)
 	case shared.ReportTypeUploadSOPUnallocated:
-		courtRef = record[0]
+		_ = courtRef.Scan(record[0])
 
 		amount, err = parseAmount(record[1])
 		if err != nil {
@@ -122,14 +133,15 @@ func getPaymentDetails(record []string, uploadType shared.ReportUploadType, bank
 			return shared.PaymentDetails{}
 		}
 
-		receivedDate, err = time.Parse("2006-01-02 15:04:05", "2025-03-31 00:00:00")
+		rd, err := time.Parse("2006-01-02 15:04:05", "2025-03-31 00:00:00")
 		if err != nil {
 			(*failedLines)[index] = "DATE_TIME_PARSE_ERROR"
 			return shared.PaymentDetails{}
 		}
+		_ = receivedDate.Scan(rd)
 	}
 
-	return shared.PaymentDetails{Amount: amount, BankDate: bankDate.Time, CourtRef: courtRef, LedgerType: ledgerType, ReceivedDate: receivedDate}
+	return shared.PaymentDetails{Amount: amount, BankDate: bankDate, CourtRef: courtRef, LedgerType: paymentType, ReceivedDate: receivedDate, CreatedBy: createdBy}
 }
 
 func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, details shared.PaymentDetails, index int, failedLines *map[int]string) error {
@@ -137,24 +149,12 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 		return nil
 	}
 
-	var (
-		courtRef   pgtype.Text
-		bankDate   pgtype.Date
-		createdBy  pgtype.Int4
-		uploadDate pgtype.Timestamp
-	)
-
-	_ = courtRef.Scan(details.CourtRef)
-	_ = bankDate.Scan(details.BankDate)
-	_ = uploadDate.Scan(details.ReceivedDate)
-	_ = store.ToInt4(&createdBy, ctx.(auth.Context).User.ID)
-
 	exists, _ := s.store.CheckDuplicateLedger(ctx, store.CheckDuplicateLedgerParams{
-		CourtRef:     courtRef,
+		CourtRef:     details.CourtRef,
 		Amount:       details.Amount,
-		Type:         details.LedgerType,
-		BankDate:     bankDate,
-		ReceivedDate: uploadDate,
+		Type:         details.LedgerType.Key(),
+		BankDate:     details.BankDate,
+		ReceivedDate: details.ReceivedDate,
 	})
 
 	if exists {
@@ -163,13 +163,13 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 	}
 
 	ledgerID, err := tx.CreateLedgerForCourtRef(ctx, store.CreateLedgerForCourtRefParams{
-		CourtRef:  courtRef,
-		Amount:    details.Amount,
-		Type:      details.LedgerType,
-		Status:    "CONFIRMED",
-		CreatedBy: createdBy,
-		Bankdate:  bankDate,
-		Datetime:  uploadDate,
+		CourtRef:     details.CourtRef,
+		Amount:       details.Amount,
+		Type:         details.LedgerType.Key(),
+		Status:       "CONFIRMED",
+		CreatedBy:    details.CreatedBy,
+		BankDate:     details.BankDate,
+		ReceivedDate: details.ReceivedDate,
 	})
 
 	if err != nil {
@@ -177,7 +177,7 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 		return nil
 	}
 
-	invoices, err := tx.GetInvoicesForCourtRef(ctx, courtRef)
+	invoices, err := tx.GetUnpaidInvoicesByCourtRef(ctx, details.CourtRef)
 
 	if err != nil {
 		return err
