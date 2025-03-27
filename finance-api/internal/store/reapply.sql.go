@@ -38,7 +38,7 @@ SELECT tc.credit,
        ou.outstanding
 FROM total_credit tc
          LEFT JOIN oldest_unpaid ou ON tc.finance_client_id = ou.finance_client_id
-` // #nosec G101 -- False Positive
+`
 
 type GetCreditBalanceAndOldestOpenInvoiceRow struct {
 	Credit      int32
