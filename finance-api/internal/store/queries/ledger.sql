@@ -18,18 +18,18 @@ RETURNING id;
 -- name: CreateLedgerForCourtRef :one
 INSERT INTO ledger (id, datetime, bankdate, finance_client_id, amount, notes, type, status, created_at, created_by, reference, method)
 SELECT nextval('ledger_id_seq'),
-       $2,
-       $3,
+       @received_date,
+       @bank_date,
        fc.id,
-       $4,
-       $5,
-       $6,
-       $7,
+       @amount,
+       @notes,
+       @type,
+       @status,
        now(),
-       $8,
+       @created_by,
        gen_random_uuid(),
        ''
-FROM finance_client fc WHERE court_ref = $1
+FROM finance_client fc WHERE court_ref = @court_ref
 RETURNING id;
 
 -- name: GetLedgerForPayment :one

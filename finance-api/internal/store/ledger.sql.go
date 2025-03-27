@@ -92,42 +92,42 @@ func (q *Queries) CreateLedger(ctx context.Context, arg CreateLedgerParams) (int
 const createLedgerForCourtRef = `-- name: CreateLedgerForCourtRef :one
 INSERT INTO ledger (id, datetime, bankdate, finance_client_id, amount, notes, type, status, created_at, created_by, reference, method)
 SELECT nextval('ledger_id_seq'),
+       $1,
        $2,
-       $3,
        fc.id,
+       $3,
        $4,
        $5,
        $6,
-       $7,
        now(),
-       $8,
+       $7,
        gen_random_uuid(),
        ''
-FROM finance_client fc WHERE court_ref = $1
+FROM finance_client fc WHERE court_ref = $8
 RETURNING id
 `
 
 type CreateLedgerForCourtRefParams struct {
-	CourtRef  pgtype.Text
-	Datetime  pgtype.Timestamp
-	Bankdate  pgtype.Date
-	Amount    int32
-	Notes     pgtype.Text
-	Type      string
-	Status    string
-	CreatedBy pgtype.Int4
+	ReceivedDate pgtype.Timestamp
+	BankDate     pgtype.Date
+	Amount       int32
+	Notes        pgtype.Text
+	Type         string
+	Status       string
+	CreatedBy    pgtype.Int4
+	CourtRef     pgtype.Text
 }
 
 func (q *Queries) CreateLedgerForCourtRef(ctx context.Context, arg CreateLedgerForCourtRefParams) (int32, error) {
 	row := q.db.QueryRow(ctx, createLedgerForCourtRef,
-		arg.CourtRef,
-		arg.Datetime,
-		arg.Bankdate,
+		arg.ReceivedDate,
+		arg.BankDate,
 		arg.Amount,
 		arg.Notes,
 		arg.Type,
 		arg.Status,
 		arg.CreatedBy,
+		arg.CourtRef,
 	)
 	var id int32
 	err := row.Scan(&id)
