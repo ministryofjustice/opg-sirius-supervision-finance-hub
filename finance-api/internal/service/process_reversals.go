@@ -156,26 +156,14 @@ func (s *Service) validateReversalLine(ctx context.Context, details reversalDeta
 }
 
 func (s *Service) processReversalUploadLine(ctx context.Context, tx *store.Tx, details reversalDetail, index int, failedLines *map[int]string) error {
-	var (
-		erroredCourtRef pgtype.Text
-		correctCourtRef pgtype.Text
-		bankDate        pgtype.Date
-		receivedDate    pgtype.Timestamp
-	)
-
-	_ = erroredCourtRef.Scan(details.erroredCourtRef)
-	_ = correctCourtRef.Scan(details.correctCourtRef)
-	_ = bankDate.Scan(details.bankDate)
-	_ = receivedDate.Scan(details.receivedDate)
-
 	ledgerID, err := tx.CreateLedgerForCourtRef(ctx, store.CreateLedgerForCourtRefParams{
-		CourtRef:     erroredCourtRef,
-		Amount:       details.amount,
+		CourtRef:     details.erroredCourtRef,
+		Amount:       -details.amount,
 		Type:         details.paymentType.Key(),
 		Status:       "CONFIRMED",
 		CreatedBy:    details.createdBy,
-		BankDate:     bankDate,
-		ReceivedDate: receivedDate,
+		BankDate:     details.bankDate,
+		ReceivedDate: details.receivedDate,
 	})
 
 	if err != nil {
@@ -183,7 +171,7 @@ func (s *Service) processReversalUploadLine(ctx context.Context, tx *store.Tx, d
 		return nil
 	}
 
-	invoices, err := tx.GetInvoicesForReversalByCourtRef(ctx, erroredCourtRef)
+	invoices, err := tx.GetInvoicesForReversalByCourtRef(ctx, details.erroredCourtRef)
 
 	if err != nil {
 		return err

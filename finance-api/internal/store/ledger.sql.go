@@ -19,7 +19,7 @@ SELECT EXISTS (
     WHERE l.amount = $1
       AND l.status = 'CONFIRMED'
       AND l.bankdate = $2
-      AND l.datetime::DATE = $3::TIMESTAMP
+      AND l.datetime::DATE = ($3::TIMESTAMP)::DATE
       AND l.type = $4
       AND fc.court_ref = $5
 )
