@@ -12,3 +12,13 @@ type PaymentDetails struct {
 	ReceivedDate pgtype.Timestamp
 	CreatedBy    pgtype.Int4
 }
+
+type ReversalDetails struct {
+	PaymentType     TransactionType
+	ErroredCourtRef pgtype.Text
+	CorrectCourtRef pgtype.Text
+	BankDate        pgtype.Date
+	ReceivedDate    pgtype.Timestamp
+	Amount          int32
+	CreatedBy       pgtype.Int4
+}
