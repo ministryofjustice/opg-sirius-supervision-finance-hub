@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
@@ -17,9 +18,12 @@ import (
 )
 
 func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, detail shared.FinanceAdminUploadEvent) error {
-	file, err := s.fileStorage.GetFile(ctx, os.Getenv("ASYNC_S3_BUCKET"), detail.Filename)
+	file, err := s.fileStorage.GetFile(ctx, os.Getenv("ASYNC_S3_BUCKE"), detail.Filename)
+	logger := telemetry.LoggerFromContext(ctx)
+	logger.Info("processing file " + detail.Filename)
 
 	if err != nil {
+		logger.Error("unable to download report", "error", err)
 		payload := createUploadNotifyPayload(detail, fmt.Errorf("unable to download report"), map[int]string{})
 		return s.notify.Send(ctx, payload)
 	}
@@ -27,6 +31,7 @@ func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, detail shared.F
 	csvReader := csv.NewReader(file)
 	records, err := csvReader.ReadAll()
 	if err != nil {
+		logger.Error("unable to read report", "error", err)
 		payload := createUploadNotifyPayload(detail, fmt.Errorf("unable to read report"), map[int]string{})
 		return s.notify.Send(ctx, payload)
 	}
