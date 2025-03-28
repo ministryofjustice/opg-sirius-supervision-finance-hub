@@ -183,44 +183,18 @@ func (s *Seeder) CreatePayment(ctx context.Context, amount int32, bankDate time.
 	assert.Greater(s.t, newMaxLedger, latestLedgerId, "no ledgers created")
 }
 
-func (s *Seeder) ReversePayment(ctx context.Context, erroredCourtRef string, correctCourtRef string, amount int32, bankDate time.Time, receivedDate time.Time, ledgerType shared.TransactionType) {
-	payment := shared.ReversalDetails{
-		Amount: amount,
-		BankDate: pgtype.Date{
-			Time:  bankDate,
-			Valid: true,
-		},
-		ErroredCourtRef: pgtype.Text{
-			String: erroredCourtRef,
-			Valid:  true,
-		},
-		CorrectCourtRef: pgtype.Text{
-			String: correctCourtRef,
-			Valid:  true,
-		},
-		ReceivedDate: pgtype.Timestamp{
-			Time:  receivedDate,
-			Valid: true,
-		},
-		PaymentType: ledgerType,
-		CreatedBy: pgtype.Int4{
-			Int32: ctx.(auth.Context).User.ID,
-			Valid: true,
-		},
-	}
-
-	tx, err := s.Service.BeginStoreTx(ctx)
-	assert.NoError(s.t, err, "failed to begin transaction: %v", err)
-
+func (s *Seeder) ReversePayment(ctx context.Context, erroredCourtRef string, correctCourtRef string, amount string, bankDate string, receivedDate string, ledgerType shared.TransactionType) {
 	var latestLedgerId int
-	err = s.Conn.QueryRow(ctx, "SELECT COALESCE(MAX(id), 0) FROM supervision_finance.ledger").Scan(&latestLedgerId)
+	err := s.Conn.QueryRow(ctx, "SELECT COALESCE(MAX(id), 0) FROM supervision_finance.ledger").Scan(&latestLedgerId)
 	assert.NoError(s.t, err, "failed to find latest ledger id: %v", err)
 
-	err = s.Service.ProcessReversalUploadLine(ctx, tx, payment)
-	assert.NoError(s.t, err, "payment not processed: %v", err)
-
-	err = tx.Commit(ctx)
-	assert.NoError(s.t, err, "failed to commit payment: %v", err)
+	records := [][]string{
+		{"Payment type", "Current (errored) court reference", "New (correct) court reference", "Bank date", "Received date", "Amount", "PIS number (cheque only)"},
+		{ledgerType.Key(), erroredCourtRef, correctCourtRef, bankDate, receivedDate, amount, ""},
+	}
+	failedLines, err := s.Service.ProcessPaymentReversals(ctx, records, shared.ReportTypeUploadMisappliedPayments)
+	assert.Empty(s.t, failedLines, "failed to process reversals")
+	assert.NoError(s.t, err, "failed to process reversals: %v", err)
 
 	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger SET datetime = $1, created_at = $1 WHERE id > $2", receivedDate, latestLedgerId)
 	assert.NoError(s.t, err, "failed to update ledger dates for payment: %v", err)
