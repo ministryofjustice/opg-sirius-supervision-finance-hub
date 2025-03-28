@@ -39,7 +39,7 @@ func (h *BillingHistoryHandler) render(v AppVars, w http.ResponseWriter, r *http
 }
 
 func (h *BillingHistoryHandler) transform(ctx context.Context, in []shared.BillingHistory) []BillingHistory {
-	logger := telemetry.LoggerFromContext(ctx)
+	logger := s.Logger(ctx)
 
 	var out []BillingHistory
 
