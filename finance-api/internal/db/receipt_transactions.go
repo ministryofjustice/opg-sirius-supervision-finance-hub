@@ -22,15 +22,29 @@ WITH transaction_type_order AS (
         END AS index
     FROM transaction_type WHERE is_receipt = TRUE
 ),
-transaction_totals AS (
+ledger_totals AS (
+    SELECT
+        SUM(l.amount) AS debit_amount,
+        tt.index
+    FROM supervision_finance.ledger l
+    INNER JOIN LATERAL (
+        SELECT tto.index, fee_type, line_description
+        FROM transaction_type tt
+        INNER JOIN transaction_type_order tto ON tt.id = tto.id
+        WHERE tt.ledger_type = l.type AND tto.index IS NOT NULL
+    ) tt ON TRUE
+    WHERE l.created_at::DATE = $1
+    GROUP BY tt.line_description, l.bankdate, l.type, tt.index
+),
+allocation_totals AS (
     SELECT
         tt.line_description || ' [' || TO_CHAR(l.bankdate, 'DD/MM/YYYY') || ']' AS line_description,
         CASE
             WHEN l.type = 'SUPERVISION BACS PAYMENT' THEN '1841102088'
             ELSE '1841102050'
         END AS account_code,
-        SUM(CASE WHEN (la.status = 'ALLOCATED' AND la.amount < 0) OR (la.status = 'UNAPPLIED' AND la.amount > 0) THEN 0 ELSE ABS(la.amount) END) AS debit_amount, -- exclude reversed payments
-        SUM(CASE WHEN la.status != 'UNAPPLIED' AND la.amount > 0 THEN la.amount ELSE 0 END) AS credit_amount,
+        SUM(l.amount) AS debit_amount,
+        SUM(CASE WHEN la.status != 'UNAPPLIED' THEN la.amount ELSE 0 END) AS credit_amount,
         SUM(CASE WHEN la.status = 'UNAPPLIED' AND la.amount < 0 THEN ABS(la.amount) ELSE 0 END) AS overpayment_amount,
         SUM(CASE WHEN la.status != 'UNAPPLIED' AND la.amount < 0 THEN ABS(la.amount) ELSE 0 END) AS reversed_amount,        
         tt.index
@@ -54,12 +68,13 @@ transaction_rows AS (
         '="00000000"' AS analysis,
         '="0000"' AS intercompany,
         '="000000"' AS spare,
-        (debit_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS debit,
-        CASE WHEN reversed_amount > 0 THEN (reversed_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) ELSE '' END AS credit,
-        line_description,
-        index,
+        (lt.debit_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS debit,
+        CASE WHEN at.reversed_amount > 0 THEN (at.reversed_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) ELSE '' END AS credit,
+        at.line_description,
+        at.index,
         1 AS n
-    FROM transaction_totals
+    FROM allocation_totals at
+    JOIN ledger_totals lt ON at.index = lt.index
     UNION ALL
     SELECT
         '="0470"' AS entity,
@@ -74,7 +89,7 @@ transaction_rows AS (
         line_description,
         index,
         2 AS n
-    FROM transaction_totals
+    FROM allocation_totals
     UNION ALL
     SELECT
         '="0470"' AS entity,
@@ -89,7 +104,7 @@ transaction_rows AS (
         line_description,
         index,
         3 AS n
-    FROM transaction_totals
+    FROM allocation_totals
     WHERE overpayment_amount > 0
 )
 SELECT
