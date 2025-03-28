@@ -29,9 +29,10 @@ transaction_totals AS (
             WHEN l.type = 'SUPERVISION BACS PAYMENT' THEN '1841102088'
             ELSE '1841102050'
         END AS account_code,
-        SUM(ABS(la.amount)) AS debit_amount,
-        SUM(CASE WHEN la.status != 'UNAPPLIED' THEN ABS(la.amount) ELSE 0 END) AS credit_amount,
-        SUM(CASE WHEN la.status = 'UNAPPLIED' THEN ABS(la.amount) ELSE 0 END) AS unapply_amount,
+        SUM(CASE WHEN (la.status = 'ALLOCATED' AND la.amount < 0) OR (la.status = 'UNAPPLIED' AND la.amount > 0) THEN 0 ELSE ABS(la.amount) END) AS debit_amount, -- exclude reversed payments
+        SUM(CASE WHEN la.status != 'UNAPPLIED' AND la.amount > 0 THEN la.amount ELSE 0 END) AS credit_amount,
+        SUM(CASE WHEN la.status = 'UNAPPLIED' AND la.amount < 0 THEN ABS(la.amount) ELSE 0 END) AS overpayment_amount,
+        SUM(CASE WHEN la.status != 'UNAPPLIED' AND la.amount < 0 THEN ABS(la.amount) ELSE 0 END) AS reversed_amount,        
         tt.index
     FROM supervision_finance.ledger_allocation la
     INNER JOIN supervision_finance.ledger l ON l.id = la.ledger_id
@@ -54,7 +55,7 @@ transaction_rows AS (
         '="0000"' AS intercompany,
         '="000000"' AS spare,
         (debit_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS debit,
-        '' AS credit,
+        CASE WHEN reversed_amount > 0 THEN (reversed_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) ELSE '' END AS credit,
         line_description,
         index,
         1 AS n
@@ -68,7 +69,7 @@ transaction_rows AS (
         '="00000000"' AS analysis,
         '="0000"' AS intercompany,
         '="00000"' AS spare,
-        '' AS debit,
+        CASE WHEN reversed_amount > 0 THEN (reversed_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) ELSE '' END AS debit,
         (credit_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS credit,
         line_description,
         index,
@@ -84,12 +85,12 @@ transaction_rows AS (
         '' AS intercompany,
         '' AS spare,
         '' AS debit,
-        (unapply_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS credit,
+        (overpayment_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS credit,
         line_description,
         index,
         3 AS n
     FROM transaction_totals
-    WHERE unapply_amount > 0
+    WHERE overpayment_amount > 0
 )
 SELECT
     entity AS "Entity",
