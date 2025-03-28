@@ -130,7 +130,7 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 func (s *Server) requestLogger(h http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context().(auth.Context)
-		telemetry.LoggerFromContext(ctx).Info(
+		s.Logger(ctx).Info(
 			"API Request",
 			"method", r.Method,
 			"uri", r.URL.RequestURI(),
@@ -149,4 +149,8 @@ func (s *Server) getPathID(r *http.Request, key string) (int32, error) {
 		return 0, apierror.BadRequestError(key, "Invalid ID", nil)
 	}
 	return int32(id), nil
+}
+
+func (s *Server) Logger(ctx context.Context) *slog.Logger {
+	return telemetry.LoggerFromContext(ctx)
 }

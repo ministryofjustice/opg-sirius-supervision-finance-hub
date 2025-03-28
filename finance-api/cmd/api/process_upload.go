@@ -11,11 +11,15 @@ import (
 )
 
 func (s *Server) processUpload(ctx context.Context, event shared.FinanceAdminUploadEvent) error {
+	logger := s.Logger(ctx)
+
+	logger.Info(fmt.Sprintf("processing %s upload", event.UploadType))
 	file, err := s.fileStorage.GetFile(ctx, os.Getenv("ASYNC_S3_BUCKET"), event.Filename)
 
 	var payload notify.Payload
 
 	if err != nil {
+		logger.Error("unable to fetch report from file storage", "err", err)
 		payload = createUploadNotifyPayload(event, fmt.Errorf("unable to download report"), map[int]string{})
 		return s.notify.Send(ctx, payload)
 	}
@@ -23,17 +27,25 @@ func (s *Server) processUpload(ctx context.Context, event shared.FinanceAdminUpl
 	csvReader := csv.NewReader(file)
 	records, err := csvReader.ReadAll()
 	if err != nil {
+		logger.Error("unable to read report as CSV", "err", err)
 		payload = createUploadNotifyPayload(event, fmt.Errorf("unable to read report"), map[int]string{})
 		return s.notify.Send(ctx, payload)
 	}
 
 	if event.UploadType.IsPayment() {
 		failedLines, err := s.service.ProcessPayments(ctx, records, event.UploadType, event.UploadDate)
+		if err != nil {
+			logger.Error("unable to process payments", "err", err)
+		}
 		payload = createUploadNotifyPayload(event, err, failedLines)
 	} else if event.UploadType.IsReversal() {
 		failedLines, err := s.service.ProcessPaymentReversals(ctx, records, event.UploadType)
+		if err != nil {
+			logger.Error("unable to process payment reversals", "err", err)
+		}
 		payload = createUploadNotifyPayload(event, err, failedLines)
 	} else {
+		logger.Error("invalid upload type", "type", event.UploadType)
 		payload = createUploadNotifyPayload(event, fmt.Errorf("invalid upload type"), map[int]string{})
 	}
 

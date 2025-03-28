@@ -13,7 +13,7 @@ import (
 
 func (s *Server) download(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
-	logger := telemetry.LoggerFromContext(ctx)
+	logger := s.Logger(ctx)
 	uid := r.URL.Query().Get("uid")
 
 	var downloadRequest shared.DownloadRequest
