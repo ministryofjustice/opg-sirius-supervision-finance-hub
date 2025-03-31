@@ -34,7 +34,8 @@ COPY . .
 
 WORKDIR /app/finance-api
 
-RUN go build -a -installsuffix cgo -o /go/bin/finance-api
+RUN mkdir -m 777 -p /tmp/finance-api
+RUN go build -a -installsuffix cgo -o /tmp/finance-api/finance-api
 
 FROM base AS healthcheck-build
 WORKDIR /app
@@ -49,12 +50,13 @@ FROM scratch
 
 COPY --from=base /etc/passwd /etc/passwd
 COPY --from=base /etc/group /etc/group
+COPY --from=base /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-COPY --from=app-build /go/bin/finance-api finance-api
+COPY --from=app-build /tmp/finance-api finance-api
 COPY --from=healthcheck-build /go/bin/healthcheck healthcheck
 
 USER app-user:app-user
 
 HEALTHCHECK --interval=5s --timeout=5s --start-period=5s --retries=5 CMD [ "/healthcheck" ]
 
-ENTRYPOINT ["./finance-api"]
+ENTRYPOINT ["./finance-api/finance-api"]
