@@ -119,5 +119,14 @@
     "dueDate": "17/07/2024",
     "assigneeId": 41,
     "description": "Pending credit write off added to S203532/24 requires manager approval"
+  },
+  "notify": {
+    "email_address": "test@example.com",
+    "template_id": "31c40127-b5b6-4d23-aaab-050d90639d83",
+    "personalisation": {
+      "report_name": "Aged Debt",
+      "requested_date": "2025-03-31",
+      "requested_date_time": "2025-03-31 14:27:27"
+    }
   }
 }
