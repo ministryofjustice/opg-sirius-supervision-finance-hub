@@ -20,8 +20,8 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
 	_, _ = suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, twoMonthsAgo.StringPtr())
 
-	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "11111111", shared.TransactionTypeMotoCardPayment, nil, yesterday.Date())
-	suite.seeder.CreatePayment(ctx, 2550, yesterday.Date(), "11111111", shared.TransactionTypeSupervisionBACSPayment, nil, yesterday.Date())
+	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "11111111", shared.TransactionTypeMotoCardPayment, yesterday.Date())
+	suite.seeder.CreatePayment(ctx, 2550, yesterday.Date(), "11111111", shared.TransactionTypeSupervisionBACSPayment, yesterday.Date())
 
 	suite.seeder.CreateFeeReduction(ctx, client1ID, shared.FeeReductionTypeExemption, "2024", 4, "", yesterday.Date())
 
@@ -30,8 +30,8 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	suite.seeder.CreateOrder(ctx, client2ID, "ACTIVE")
 	invoice2ID, _ := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, &general, twoMonthsAgo.StringPtr(), nil, nil, nil, twoMonthsAgo.StringPtr())
 
-	suite.seeder.CreatePayment(ctx, 120, yesterday.Date(), "22222222", shared.TransactionTypeOPGBACSPayment, nil, yesterday.Date())
-	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "22222222", shared.TransactionTypeMotoCardPayment, nil, yesterday.Date())
+	suite.seeder.CreatePayment(ctx, 120, yesterday.Date(), "22222222", shared.TransactionTypeOPGBACSPayment, yesterday.Date())
+	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "22222222", shared.TransactionTypeMotoCardPayment, yesterday.Date())
 
 	suite.seeder.CreateAdjustment(ctx, client2ID, invoice2ID, shared.AdjustmentTypeCreditMemo, -2500, "", yesterday.DatePtr())
 
@@ -40,14 +40,14 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	suite.seeder.CreateOrder(ctx, client2ID, "ACTIVE")
 	_, _ = suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeGA, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, twoMonthsAgo.StringPtr())
 
-	suite.seeder.CreatePayment(ctx, 4020, yesterday.Date(), "33333333", shared.TransactionTypeDirectDebitPayment, nil, yesterday.Date())
-	suite.seeder.CreatePayment(ctx, 1700, yesterday.Date(), "33333333", shared.TransactionTypeOnlineCardPayment, nil, yesterday.Date())
+	suite.seeder.CreatePayment(ctx, 4020, yesterday.Date(), "33333333", shared.TransactionTypeDirectDebitPayment, yesterday.Date())
+	suite.seeder.CreatePayment(ctx, 1700, yesterday.Date(), "33333333", shared.TransactionTypeOnlineCardPayment, yesterday.Date())
 
 	// one client with two MOTO overpayments, one on a different date
 	client4ID := suite.seeder.CreateClient(ctx, "Olive", "Overpayment", "44444444", "2314")
 	_, _ = suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeS3, &minimal, yesterday.StringPtr(), nil, nil, nil, yesterday.StringPtr())
-	suite.seeder.CreatePayment(ctx, 10000, yesterday.Date(), "44444444", shared.TransactionTypeMotoCardPayment, nil, yesterday.Date())
-	suite.seeder.CreatePayment(ctx, 10000, today.Date(), "44444444", shared.TransactionTypeMotoCardPayment, nil, today.Date())
+	suite.seeder.CreatePayment(ctx, 10000, yesterday.Date(), "44444444", shared.TransactionTypeMotoCardPayment, yesterday.Date())
+	suite.seeder.CreatePayment(ctx, 10000, today.Date(), "44444444", shared.TransactionTypeMotoCardPayment, today.Date())
 
 	// one client with an S2 invoice, two cheques payments for the same PIS number and one cheque payment for another PIS number
 	client5ID := suite.seeder.CreateClient(ctx, "Gilgamesh", "Test", "12398785", "9999")
@@ -56,9 +56,9 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 
 	pisNumber1 := 100023
 	pisNumber2 := 100024
-	suite.seeder.CreatePayment(ctx, 4020, yesterday.Date(), "12398785", shared.TransactionTypeSupervisionChequePayment, &pisNumber1, yesterday.Date())
-	suite.seeder.CreatePayment(ctx, 1700, yesterday.Date(), "12398785", shared.TransactionTypeSupervisionChequePayment, &pisNumber1, yesterday.Date())
-	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "12398785", shared.TransactionTypeSupervisionChequePayment, &pisNumber2, yesterday.Date())
+	suite.seeder.CreateChequePayment(ctx, 4020, yesterday.Date(), "12398785", pisNumber1, yesterday.Date())
+	suite.seeder.CreateChequePayment(ctx, 1700, yesterday.Date(), "12398785", pisNumber1, yesterday.Date())
+	suite.seeder.CreateChequePayment(ctx, 1500, yesterday.Date(), "12398785", pisNumber2, yesterday.Date())
 
 	c := Client{suite.seeder.Conn}
 

@@ -22,7 +22,7 @@ func (suite *IntegrationSuite) Test_customer_credit() {
 	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234")
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
 	suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, yesterday.StringPtr(), nil, nil, nil, nil)
-	suite.seeder.CreatePayment(ctx, 22345, twoYearsAgo.Date(), "12345678", shared.TransactionTypeOPGBACSPayment, nil, today.Date())
+	suite.seeder.CreatePayment(ctx, 22345, twoYearsAgo.Date(), "12345678", shared.TransactionTypeOPGBACSPayment, today.Date())
 
 	// client 2 with:
 	// - Credit balance due to fee reduction
@@ -31,7 +31,7 @@ func (suite *IntegrationSuite) Test_customer_credit() {
 	client2ID := suite.seeder.CreateClient(ctx, "John", "Suite", "87654321", "4321")
 	suite.seeder.CreateOrder(ctx, client2ID, "ACTIVE")
 	suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeAD, nil, twoYearsAgo.StringPtr(), nil, nil, nil, nil)
-	suite.seeder.CreatePayment(ctx, 10000, twoYearsAgo.Date(), "87654321", shared.TransactionTypeOPGBACSPayment, nil, twoYearsAgo.Date())
+	suite.seeder.CreatePayment(ctx, 10000, twoYearsAgo.Date(), "87654321", shared.TransactionTypeOPGBACSPayment, twoYearsAgo.Date())
 	suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeExemption, strconv.Itoa(threeYearsAgo.Date().Year()), 2, "A reduction", threeYearsAgo.Date())
 	suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS3, &minimal, today.StringPtr(), today.StringPtr(), nil, nil, nil)
 
@@ -41,7 +41,7 @@ func (suite *IntegrationSuite) Test_customer_credit() {
 	client3ID := suite.seeder.CreateClient(ctx, "Billy", "Client", "23456789", "2345")
 	suite.seeder.CreateOrder(ctx, client3ID, "ACTIVE")
 	suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
-	suite.seeder.CreatePayment(ctx, 15000, yesterday.Date(), "23456789", shared.TransactionTypeOPGBACSPayment, nil, yesterday.Date())
+	suite.seeder.CreatePayment(ctx, 15000, yesterday.Date(), "23456789", shared.TransactionTypeOPGBACSPayment, yesterday.Date())
 	suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeAD, nil, today.StringPtr(), nil, nil, nil, nil)
 
 	c := Client{suite.seeder.Conn}
