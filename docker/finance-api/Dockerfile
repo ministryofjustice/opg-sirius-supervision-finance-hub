@@ -45,16 +45,24 @@ WORKDIR /app/healthcheck
 
 RUN go build -a -installsuffix cgo -o /go/bin/healthcheck
 
-FROM scratch 
+FROM alpine:3
+RUN apk --update --no-cache add \
+    ca-certificates \
+    tzdata
+
+# Patch vulnerabilities
+RUN apk upgrade --no-cache busybox libcrypto3 libssl3 musl musl-utils
 
 COPY --from=base /etc/passwd /etc/passwd
 COPY --from=base /etc/group /etc/group
 
-COPY --from=app-build /go/bin/finance-api finance-api
-COPY --from=healthcheck-build /go/bin/healthcheck healthcheck
+RUN mkdir /app &&\
+    chown -R app-user:app-user /app
+COPY --chown=app-user:app-user --chmod=755 --from=app-build /go/bin/finance-api /app/finance-api
+COPY --chown=app-user:app-user --chmod=755 --from=healthcheck-build /go/bin/healthcheck /app/healthcheck
 
 USER app-user:app-user
 
-HEALTHCHECK --interval=5s --timeout=5s --start-period=5s --retries=5 CMD [ "/healthcheck" ]
+HEALTHCHECK --interval=5s --timeout=5s --start-period=5s --retries=5 CMD [ "/app/healthcheck" ]
 
-ENTRYPOINT ["./finance-api"]
+ENTRYPOINT ["/app/finance-api"]

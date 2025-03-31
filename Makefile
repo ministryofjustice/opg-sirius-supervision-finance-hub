@@ -24,7 +24,8 @@ gosec: setup-directories
 unit-test: setup-directories
 	go run gotest.tools/gotestsum@latest --format testname  --junitfile test-results/unit-tests.xml -- ./... -coverprofile=test-results/test-coverage.txt
 
-build: build-api build-hub build-migrations
+build: 
+	docker compose build --parallel finance-api finance-hub finance-migration
 build-api:
 	docker compose build finance-api
 build-hub:
