@@ -50,6 +50,7 @@ type Envs struct {
 	jwtSecret          string
 	systemUserID       int32
 	eventBridgeAPIKey  string
+	notifyUrl          string
 }
 
 func parseEnvs() (*Envs, error) {
@@ -89,6 +90,11 @@ func parseEnvs() (*Envs, error) {
 		return nil, errors.Join(missing...)
 	}
 
+	notifyUrl := os.Getenv("NOTIFY_URL") // for testing purposes
+	if notifyUrl == "" {
+		notifyUrl = "https://api.notifications.service.gov.uk"
+	}
+
 	return &Envs{
 		iamRole:            os.Getenv("AWS_IAM_ROLE"),    // used for testing
 		s3Endpoint:         os.Getenv("AWS_S3_ENDPOINT"), // used for testing
@@ -111,6 +117,7 @@ func parseEnvs() (*Envs, error) {
 		systemUserID:       int32(systemUserID),
 		webDir:             "web",
 		eventBridgeAPIKey:  envs["EVENT_BRIDGE_API_KEY"],
+		notifyUrl:          notifyUrl,
 	}, nil
 }
 
@@ -157,7 +164,7 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		return err
 	}
 
-	notifyClient := notify.NewClient(envs.notifyKey)
+	notifyClient := notify.NewClient(envs.notifyKey, envs.notifyUrl)
 
 	Service := service.NewService(
 		dbPool,
