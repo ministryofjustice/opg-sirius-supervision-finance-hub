@@ -50,6 +50,17 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	suite.seeder.CreatePayment(ctx, 10000, yesterday.Date(), "44444444", shared.TransactionTypeMotoCardPayment, yesterday.Date())
 	suite.seeder.CreatePayment(ctx, 10000, today.Date(), "44444444", shared.TransactionTypeMotoCardPayment, today.Date())
 
+	// one client with an S2 invoice, two cheques payments for the same PIS number and one cheque payment for another PIS number
+	client5ID := suite.seeder.CreateClient(ctx, "Gilgamesh", "Test", "12398785", "9999")
+	suite.seeder.CreateOrder(ctx, client5ID, "ACTIVE")
+	_, _ = suite.seeder.CreateInvoice(ctx, client5ID, shared.InvoiceTypeS2, &general, twoMonthsAgo.StringPtr(), nil, nil, nil, twoMonthsAgo.StringPtr())
+
+	pisNumber1 := 100023
+	pisNumber2 := 100024
+	suite.seeder.CreateChequePayment(ctx, 4020, yesterday.Date(), "12398785", pisNumber1, yesterday.Date())
+	suite.seeder.CreateChequePayment(ctx, 1700, yesterday.Date(), "12398785", pisNumber1, yesterday.Date())
+	suite.seeder.CreateChequePayment(ctx, 1500, yesterday.Date(), "12398785", pisNumber2, yesterday.Date())
+
 	c := Client{suite.seeder.Conn}
 
 	rows, err := c.Run(ctx, &ReceiptTransactions{
@@ -57,7 +68,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	})
 
 	assert.NoError(suite.T(), err)
-	assert.Equal(suite.T(), 12, len(rows))
+	assert.Equal(suite.T(), 16, len(rows))
 
 	results := mapByHeader(rows)
 	assert.NotEmpty(suite.T(), results)
@@ -182,4 +193,49 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	assert.Equal(suite.T(), "", results[10]["Debit"], "Debit - Direct Debit Credit")
 	assert.Equal(suite.T(), "40.20", results[10]["Credit"], "Credit - Direct Debit Credit")
 	assert.Equal(suite.T(), fmt.Sprintf("Direct debit [%s]", yesterday.Date().Format("02/01/2006")), results[10]["Line description"], "Line description - Direct Debit Credit")
+
+	assert.Equal(suite.T(), "=\"0470\"", results[11]["Entity"], "Entity - Cheques 1 & 2 Debit")
+	assert.Equal(suite.T(), "99999999", results[11]["Cost Centre"], "Cost Centre - Cheques 1 & 2 Debit")
+	assert.Equal(suite.T(), "1841102050", results[11]["Account"], "Account - Cheques 1 & 2 Debit")
+	assert.Equal(suite.T(), "=\"0000000\"", results[11]["Objective"], "Objective - Cheques 1 & 2 Debit")
+	assert.Equal(suite.T(), "=\"00000000\"", results[11]["Analysis"], "Analysis - Cheques 1 & 2 Debit")
+	assert.Equal(suite.T(), "=\"0000\"", results[11]["Intercompany"], "Intercompany - Cheques 1 & 2 Debit")
+	assert.Equal(suite.T(), "=\"000000\"", results[11]["Spare"], "Spare - Cheques 1 & 2 Debit")
+	assert.Equal(suite.T(), "57.20", results[11]["Debit"], "Debit - Cheques 1 & 2 Debit")
+	assert.Equal(suite.T(), "", results[11]["Credit"], "Credit - Cheques 1 & 2 Debit")
+	assert.Equal(suite.T(), "Cheque payment [100023]", results[11]["Line description"], "Line description - Cheques 1 & 2 Credit")
+
+	assert.Equal(suite.T(), "=\"0470\"", results[12]["Entity"], "Entity - Cheques 1 & 2 Credit")
+	assert.Equal(suite.T(), "99999999", results[12]["Cost Centre"], "Cost Centre - Cheques 1 & 2 Credit")
+	assert.Equal(suite.T(), "1816102003", results[12]["Account"], "Account - Cheques 1 & 2 Credit")
+	assert.Equal(suite.T(), "=\"0000000\"", results[12]["Objective"], "Objective - Cheques 1 & 2 Credit")
+	assert.Equal(suite.T(), "=\"00000000\"", results[12]["Analysis"], "Analysis - Cheques 1 & 2 Credit")
+	assert.Equal(suite.T(), "=\"0000\"", results[12]["Intercompany"], "Intercompany - Cheques 1 & 2 Credit")
+	assert.Equal(suite.T(), "=\"00000\"", results[12]["Spare"], "Spare - Cheques 1 & 2 Credit")
+	assert.Equal(suite.T(), "", results[12]["Debit"], "Debit - Cheques 1 & 2 Credit")
+	assert.Equal(suite.T(), "57.20", results[12]["Credit"], "Credit - Cheques 1 & 2 Credit")
+	assert.Equal(suite.T(), "Cheque payment [100023]", results[12]["Line description"], "Line description - Cheques 1 & 2 Credit")
+
+	assert.Equal(suite.T(), "=\"0470\"", results[13]["Entity"], "Entity - Cheques 3 Debit")
+	assert.Equal(suite.T(), "99999999", results[13]["Cost Centre"], "Cost Centre - Cheques 3 Debit")
+	assert.Equal(suite.T(), "1841102050", results[13]["Account"], "Account - Cheques 3 Debit")
+	assert.Equal(suite.T(), "=\"0000000\"", results[13]["Objective"], "Objective - Cheques 3 Debit")
+	assert.Equal(suite.T(), "=\"00000000\"", results[13]["Analysis"], "Analysis - Cheques 3 Debit")
+	assert.Equal(suite.T(), "=\"0000\"", results[13]["Intercompany"], "Intercompany - Cheques 3 Debit")
+	assert.Equal(suite.T(), "=\"000000\"", results[13]["Spare"], "Spare - Cheques 3 Debit")
+	assert.Equal(suite.T(), "15.00", results[13]["Debit"], "Debit - Cheques 3 Debit")
+	assert.Equal(suite.T(), "", results[13]["Credit"], "Credit - Cheques 3 Debit")
+	assert.Equal(suite.T(), "Cheque payment [100024]", results[13]["Line description"], "Line description - Cheques 3 Debit")
+
+	assert.Equal(suite.T(), "=\"0470\"", results[14]["Entity"], "Entity - Cheques 3 Credit")
+	assert.Equal(suite.T(), "99999999", results[14]["Cost Centre"], "Cost Centre - Cheques 3 Credit")
+	assert.Equal(suite.T(), "1816102003", results[14]["Account"], "Account - Cheques 3 Credit")
+	assert.Equal(suite.T(), "=\"0000000\"", results[14]["Objective"], "Objective - Cheques 3 Credit")
+	assert.Equal(suite.T(), "=\"00000000\"", results[14]["Analysis"], "Analysis - Cheques 3 Credit")
+	assert.Equal(suite.T(), "=\"0000\"", results[14]["Intercompany"], "Intercompany - Cheques 3 Credit")
+	assert.Equal(suite.T(), "=\"00000\"", results[14]["Spare"], "Spare - Cheques 3 Credit")
+	assert.Equal(suite.T(), "", results[14]["Debit"], "Debit - Cheques 3 Credit")
+	assert.Equal(suite.T(), "15.00", results[14]["Credit"], "Credit - Cheques 3 Credit")
+	assert.Equal(suite.T(), "Cheque payment [100024]", results[14]["Line description"], "Line description - Cheques 3 Debit")
+
 }
