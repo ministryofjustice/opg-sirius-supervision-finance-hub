@@ -3,11 +3,14 @@ package service
 import (
 	"context"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"log/slog"
 )
 
 func (s *Service) GetPermittedAdjustments(ctx context.Context, invoiceId int32) ([]shared.AdjustmentType, error) {
 	balance, err := s.store.GetInvoiceBalanceDetails(ctx, invoiceId)
+
 	if err != nil {
+		s.Logger(ctx).Error("Error get invoice balance in get permitted adjustments", slog.String("err", err.Error()))
 		return nil, err
 	}
 
