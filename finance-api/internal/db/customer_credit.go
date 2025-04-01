@@ -12,7 +12,7 @@ const CustomerCreditQuery = `SELECT CONCAT(p.firstname, ' ', p.surname)   AS "Cu
 									 JOIN supervision_finance.ledger_allocation la ON l.id = la.ledger_id
 							WHERE la.status IN ('UNAPPLIED', 'REAPPLIED')
 							GROUP BY p.caserecnumber, CONCAT(p.firstname, ' ', p.surname), fc.sop_number
-							HAVING SUM(la.amount) < 0;` // #nosec G101 -- False Positive
+							HAVING SUM(la.amount) < 0;`
 
 func (c *CustomerCredit) GetHeaders() []string {
 	return []string{

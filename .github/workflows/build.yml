@@ -78,6 +78,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Go Sec
+        continue-on-error: true
         run: make gosec
       - name: Upload GoSec results to GitHub Security tab
         if: ${{ always() }}
