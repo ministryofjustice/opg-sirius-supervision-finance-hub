@@ -56,7 +56,7 @@ Cypress.Commands.add('generateJWT', (user) => {
             roles: user.roles,
             id: user.id,
         })
-        .setJti(user.id)
+        .setJti(`${user.id}`)
         .setProtectedHeader({ alg })
         .setIssuedAt()
         .setIssuer('urn:opg:payments-admin')
