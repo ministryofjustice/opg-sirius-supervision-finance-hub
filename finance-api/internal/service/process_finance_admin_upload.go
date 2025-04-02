@@ -9,6 +9,7 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"log/slog"
 	"os"
 	"slices"
 	"strconv"
@@ -18,8 +19,10 @@ import (
 
 func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, detail shared.FinanceAdminUploadEvent) error {
 	file, err := s.fileStorage.GetFile(ctx, os.Getenv("ASYNC_S3_BUCKET"), detail.Filename)
+	s.Logger(ctx).Info("processing file " + detail.Filename)
 
 	if err != nil {
+		s.Logger(ctx).Error("Error unable to download report", slog.String("err", err.Error()))
 		payload := createUploadNotifyPayload(detail, fmt.Errorf("unable to download report"), map[int]string{})
 		return s.notify.Send(ctx, payload)
 	}
@@ -27,6 +30,7 @@ func (s *Service) ProcessFinanceAdminUpload(ctx context.Context, detail shared.F
 	csvReader := csv.NewReader(file)
 	records, err := csvReader.ReadAll()
 	if err != nil {
+		s.Logger(ctx).Error("Error unable to read report", slog.String("err", err.Error()))
 		payload := createUploadNotifyPayload(detail, fmt.Errorf("unable to read report"), map[int]string{})
 		return s.notify.Send(ctx, payload)
 	}
