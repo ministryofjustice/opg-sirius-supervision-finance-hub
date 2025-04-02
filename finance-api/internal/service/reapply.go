@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
@@ -16,7 +15,6 @@ import (
 func (s *Service) ReapplyCredit(ctx context.Context, clientID int32) error {
 	var userID pgtype.Int4
 	_ = store.ToInt4(&userID, ctx.(auth.Context).User.ID)
-
 	creditPosition, err := s.store.GetCreditBalanceAndOldestOpenInvoice(ctx, clientID)
 
 	switch {
@@ -54,8 +52,7 @@ func (s *Service) ReapplyCredit(ctx context.Context, clientID int32) error {
 
 	ledgerID, err := s.store.CreateLedger(ctx, ledger)
 	if err != nil {
-		logger := telemetry.LoggerFromContext(ctx)
-		logger.Error(fmt.Sprintf("Error in reapply for client %d", clientID), slog.String("err", err.Error()))
+		s.Logger(ctx).Error(fmt.Sprintf("Error in reapply for client %d", clientID), slog.String("err", err.Error()))
 		return err
 	}
 
@@ -63,6 +60,7 @@ func (s *Service) ReapplyCredit(ctx context.Context, clientID int32) error {
 
 	err = s.store.CreateLedgerAllocation(ctx, allocation)
 	if err != nil {
+		s.Logger(ctx).Error(fmt.Sprintf("Error create ledger allocation for client %d", clientID), slog.String("err", err.Error()))
 		return err
 	}
 

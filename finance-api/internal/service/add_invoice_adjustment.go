@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
@@ -12,15 +11,15 @@ import (
 )
 
 func (s *Service) AddInvoiceAdjustment(ctx context.Context, clientId int32, invoiceId int32, ledgerEntry *shared.AddInvoiceAdjustmentRequest) (*shared.InvoiceReference, error) {
-	logger := telemetry.LoggerFromContext(ctx)
-
 	balance, err := s.store.GetInvoiceBalanceDetails(ctx, invoiceId)
 	if err != nil {
+		s.Logger(ctx).Error("Get invoice balance has an issue " + err.Error())
 		return nil, err
 	}
 
 	clientInfo, err := s.store.GetAccountInformation(ctx, clientId)
 	if err != nil {
+		s.Logger(ctx).Error("Get account information has an issue " + err.Error())
 		return nil, err
 	}
 
@@ -39,7 +38,7 @@ func (s *Service) AddInvoiceAdjustment(ctx context.Context, clientId int32, invo
 	}
 	invoiceReference, err := s.store.CreatePendingInvoiceAdjustment(ctx, params)
 	if err != nil {
-		logger.Error("Error creating pending invoice adjustment", slog.String("err", err.Error()))
+		s.Logger(ctx).Error("Error creating pending invoice adjustment", slog.String("err", err.Error()))
 		return nil, err
 	}
 
