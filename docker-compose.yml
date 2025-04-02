@@ -40,7 +40,6 @@ services:
       AWS_BASE_URL: http://localstack:4566
       AWS_ACCESS_KEY_ID: localstack
       AWS_SECRET_ACCESS_KEY: localstack
-      AWS_IAM_ROLE: arn:aws:iam::000000000000:role/role
       EVENT_BUS_NAME: local-main
       S3_ENCRYPTION_KEY: alias/aws/s3
       AWS_S3_ENDPOINT: http://localstack:4566
@@ -50,6 +49,7 @@ services:
       FINANCE_HUB_LIVE_DATE: 01/01/2024
       REPORTS_S3_BUCKET: opg-backoffice-reports-local
       ASYNC_S3_BUCKET: opg-backoffice-async-uploads-local
+      NOTIFY_URL: http://json-server:3000
       OPG_NOTIFY_API_KEY: test
       OPG_SUPERVISION_SYSTEM_USER_ID: 1
       EVENT_BRIDGE_API_KEY: test
@@ -180,7 +180,11 @@ services:
     command: "up"
 
   localstack:
-    image: localstack/localstack:4.1
+    image: localstack/localstack:4.0
+    volumes:
+      - "./scripts/localstack/init:/etc/localstack/init/ready.d"
+      - "./scripts/localstack/files:/scripts/files"
+      - "./scripts/localstack/wait:/scripts/wait"
     ports:
       - "4566:4566"
     environment:
