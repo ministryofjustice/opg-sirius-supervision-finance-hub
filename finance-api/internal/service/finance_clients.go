@@ -2,15 +2,19 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"log/slog"
 )
 
 func (s *Service) GetAccountInformation(ctx context.Context, id int32) (*shared.AccountInformation, error) {
 	fc, err := s.store.GetAccountInformation(ctx, id)
+
 	if err != nil {
+		s.Logger(ctx).Error(fmt.Sprintf("Error in getting account information for client %d", id), slog.String("err", err.Error()))
 		return nil, err
 	}
 
