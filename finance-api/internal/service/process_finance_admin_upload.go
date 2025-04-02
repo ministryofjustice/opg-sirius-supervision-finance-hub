@@ -73,7 +73,7 @@ func getPaymentDetails(record []string, uploadType string, bankDate shared.Date,
 	var err error
 
 	switch uploadType {
-	case "PAYMENTS_MOTO_CARD", "PAYMENTS_ONLINE_CARD":
+	case shared.ReportTypeUploadPaymentsMOTOCard.Key(), shared.ReportTypeUploadPaymentsOnlineCard.Key():
 		courtRef = strings.SplitN(record[0], "-", -1)[0]
 
 		amount, err = parseAmount(record[2])
@@ -84,10 +84,13 @@ func getPaymentDetails(record []string, uploadType string, bankDate shared.Date,
 
 		receivedDate, err = time.Parse("2006-01-02 15:04:05", record[1])
 		if err != nil {
-			(*failedLines)[index] = "DATE_TIME_PARSE_ERROR"
-			return shared.PaymentDetails{}
+			receivedDate, err = time.Parse("02-01-2006 15:04:05", record[1])
+			if err != nil {
+				(*failedLines)[index] = "DATE_TIME_PARSE_ERROR"
+				return shared.PaymentDetails{}
+			}
 		}
-	case "PAYMENTS_SUPERVISION_BACS", "PAYMENTS_OPG_BACS":
+	case shared.ReportTypeUploadPaymentsSupervisionBACS.Key(), shared.ReportTypeUploadPaymentsOPGBACS.Key():
 		courtRef = record[10]
 
 		amount, err = parseAmount(record[6])
@@ -110,11 +113,7 @@ func getPaymentDetails(record []string, uploadType string, bankDate shared.Date,
 			return shared.PaymentDetails{}
 		}
 
-		receivedDate, err = time.Parse("2006-01-02 15:04:05", "2025-03-31 00:00:00")
-		if err != nil {
-			(*failedLines)[index] = "DATE_TIME_PARSE_ERROR"
-			return shared.PaymentDetails{}
-		}
+		receivedDate = time.Date(2025, time.March, 31, 0, 0, 0, 0, time.UTC)
 	}
 
 	return shared.PaymentDetails{Amount: amount, BankDate: bankDate.Time, CourtRef: courtRef, LedgerType: ledgerType, ReceivedDate: receivedDate}
