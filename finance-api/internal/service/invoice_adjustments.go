@@ -3,13 +3,16 @@ package service
 import (
 	"context"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"log/slog"
 )
 
 func (s *Service) GetInvoiceAdjustments(ctx context.Context, clientId int32) (*shared.InvoiceAdjustments, error) {
 	var adjustments shared.InvoiceAdjustments
 
 	data, err := s.store.GetInvoiceAdjustments(ctx, clientId)
+
 	if err != nil {
+		s.Logger(ctx).Error("Error get invoice adjustments", slog.String("err", err.Error()))
 		return nil, err
 	}
 
