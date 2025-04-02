@@ -42,7 +42,6 @@ func (s *Server) download(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", downloadRequest.Key))
-	w.Header().Set("Content-Type", "text/csv") // Can this be deleted?
 
 	// Stream the S3 object to the response writer using io.Copy
 	_, err = io.Copy(w, result)
