@@ -72,52 +72,34 @@ func parseAmount(amount string) (int32, error) {
 
 func getPaymentDetails(record []string, uploadType string, bankDate shared.Date, ledgerType string, index int, failedLines *map[int]string) shared.PaymentDetails {
 	var courtRef string
-	var receivedDate time.Time
-	var amount int32
-	var err error
+	var amountString string
+	var receivedDateString string
 
 	switch uploadType {
 	case shared.ReportTypeUploadPaymentsMOTOCard.Key(), shared.ReportTypeUploadPaymentsOnlineCard.Key():
 		courtRef = strings.SplitN(record[0], "-", -1)[0]
-
-		amount, err = parseAmount(record[2])
-		if err != nil {
-			(*failedLines)[index] = "AMOUNT_PARSE_ERROR"
-			return shared.PaymentDetails{}
-		}
-
-		receivedDate, err = time.Parse("2006-01-02 15:04:05", record[1])
-		if err != nil {
-			receivedDate, err = time.Parse("02-01-2006 15:04:05", record[1])
-			if err != nil {
-				(*failedLines)[index] = "DATE_TIME_PARSE_ERROR"
-				return shared.PaymentDetails{}
-			}
-		}
+		amountString = record[2]
+		receivedDateString = record[1]
 	case shared.ReportTypeUploadPaymentsSupervisionBACS.Key(), shared.ReportTypeUploadPaymentsOPGBACS.Key():
 		courtRef = record[10]
-
-		amount, err = parseAmount(record[6])
-		if err != nil {
-			(*failedLines)[index] = "AMOUNT_PARSE_ERROR"
-			return shared.PaymentDetails{}
-		}
-
-		receivedDate, err = time.Parse("02/01/2006", record[4])
-		if err != nil {
-			(*failedLines)[index] = "DATE_PARSE_ERROR"
-			return shared.PaymentDetails{}
-		}
+		amountString = record[6]
+		receivedDateString = record[4]
 	case "SOP_UNALLOCATED":
 		courtRef = record[0]
+		amountString = record[1]
+		receivedDateString = "31/03/2025"
+	}
 
-		amount, err = parseAmount(record[1])
-		if err != nil {
-			(*failedLines)[index] = "AMOUNT_PARSE_ERROR"
-			return shared.PaymentDetails{}
-		}
+	amount, err := parseAmount(amountString)
+	if err != nil {
+		(*failedLines)[index] = "AMOUNT_PARSE_ERROR"
+		return shared.PaymentDetails{}
+	}
 
-		receivedDate = time.Date(2025, time.March, 31, 0, 0, 0, 0, time.UTC)
+	receivedDate, err := time.Parse("02/01/2006", receivedDateString)
+	if err != nil {
+		(*failedLines)[index] = "DATE_PARSE_ERROR"
+		return shared.PaymentDetails{}
 	}
 
 	return shared.PaymentDetails{Amount: amount, BankDate: bankDate.Time, CourtRef: courtRef, LedgerType: ledgerType, ReceivedDate: receivedDate}
