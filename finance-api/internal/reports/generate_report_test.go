@@ -145,6 +145,15 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			expectedTemplate: reportRequestedTemplateId,
 		},
 		{
+			name: "Fee Accrual",
+			reportRequest: shared.ReportRequest{
+				ReportType:             shared.ReportsTypeAccountsReceivable,
+				AccountsReceivableType: toPtr(shared.AccountsReceivableTypeFeeAccrual),
+			},
+			expectedQuery:    nil,
+			expectedTemplate: reportRequestedTemplateId,
+		},
+		{
 			name: "NonReceiptTransactions",
 			reportRequest: shared.ReportRequest{
 				ReportType:      shared.ReportsTypeJournal,
@@ -378,6 +387,7 @@ func TestSendSuccessNotification(t *testing.T) {
 
 	assert.Equal(t, expectedPayload, mockNotify.payload)
 }
+
 func TestSendFailureNotification(t *testing.T) {
 	mockNotify := MockNotify{}
 	client := &Client{notify: &mockNotify}
