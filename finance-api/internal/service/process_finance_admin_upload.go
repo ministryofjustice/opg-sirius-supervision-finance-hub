@@ -307,7 +307,7 @@ func formatFailedLines(failedLines map[int]string) []string {
 		case "DATE_PARSE_ERROR":
 			errorMessage = "Unable to parse date - please use the format DD/MM/YYYY"
 		case "DATE_TIME_PARSE_ERROR":
-			errorMessage = "Unable to parse date - please use the format YYYY-MM-DD HH:MM:SS"
+			errorMessage = "Unable to parse date - please use the format YYYY-MM-DD HH:MM:SS or DD-MM-YYYY HH:MM:SS"
 		case "AMOUNT_PARSE_ERROR":
 			errorMessage = "Unable to parse amount - please use the format 320.00"
 		case "DUPLICATE_PAYMENT":
