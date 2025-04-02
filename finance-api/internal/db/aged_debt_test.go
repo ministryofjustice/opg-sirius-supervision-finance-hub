@@ -55,7 +55,6 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	client3ID := suite.seeder.CreateClient(ctx, "Freddy", "Splitz", "11111111", "1111")
 	suite.seeder.CreateDeputy(ctx, client3ID, "Frank", "Deputy", "LAY")
 	suite.seeder.CreateOrder(ctx, client3ID, "ACTIVE")
-	suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeRemission, strconv.Itoa(twoYearsAgo.Date().Year()), 2, "A reduction", twoYearsAgo.Date())
 	c3i1ID, c3i1Ref := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeS2, &i3amount, oneYearAgo.StringPtr(), oneYearAgo.StringPtr(), nil, nil, nil)
 	suite.seeder.AddFeeRanges(ctx, c3i1ID, []testhelpers.FeeRange{
 		{FromDate: oneYearAgo.Date(), ToDate: oneYearAgo.Add(0, 6, 0).Date(), SupervisionLevel: "GENERAL", Amount: 16000},
