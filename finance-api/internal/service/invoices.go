@@ -130,20 +130,21 @@ func (s *Service) GetInvoices(ctx context.Context, clientId int32) (*shared.Invo
 	}
 
 	builder := newInvoiceBuilder(invoices)
-
 	ledgerAllocations, err := s.store.GetLedgerAllocations(ctx, builder.IDs())
+
 	if err != nil {
+		s.Logger(ctx).Error("Get ledger allocations in get invoices has an issue " + err.Error())
 		return nil, err
 	}
 
 	builder.addLedgerAllocations(ledgerAllocations)
-
 	supervisionLevels, err := s.store.GetSupervisionLevels(ctx, builder.IDs())
+
 	if err != nil {
+		s.Logger(ctx).Error("Get supervision levels in get invoices has an issue " + err.Error())
 		return nil, err
 	}
 
 	builder.addSupervisionLevels(supervisionLevels)
-
 	return builder.Build(), nil
 }

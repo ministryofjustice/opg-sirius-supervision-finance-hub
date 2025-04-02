@@ -2,11 +2,13 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"log/slog"
 	"slices"
 	"strconv"
 	"time"
@@ -51,11 +53,13 @@ func (s *Service) AddFeeReduction(ctx context.Context, clientId int32, data shar
 
 	feeReduction, err := tx.AddFeeReduction(ctx, feeReductionParams)
 	if err != nil {
+		s.Logger(ctx).Error("Add fee reduction has an issue " + err.Error())
 		return err
 	}
 
 	invoices, err := tx.GetInvoiceBalancesForFeeReductionRange(ctx, feeReduction.ID)
 	if err != nil {
+		s.Logger(ctx).Error("Get invoice balance for fee reduction has an issue " + err.Error())
 		return err
 	}
 
@@ -71,6 +75,7 @@ func (s *Service) AddFeeReduction(ctx context.Context, clientId int32, data shar
 		})
 		ledgerID, err := tx.CreateLedger(ctx, ledger)
 		if err != nil {
+			s.Logger(ctx).Error(fmt.Sprintf("Error in add fee reduction for ledger %d for client %d", ledgerID, clientId), slog.String("err", err.Error()))
 			return err
 		}
 
@@ -78,6 +83,7 @@ func (s *Service) AddFeeReduction(ctx context.Context, clientId int32, data shar
 			allocation.LedgerID = ledgerID
 			err = tx.CreateLedgerAllocation(ctx, allocation)
 			if err != nil {
+				s.Logger(ctx).Error(fmt.Sprintf("Error in add fee reduction for ledger allocation %d for client %d", ledgerID, clientId), slog.String("err", err.Error()))
 				return err
 			}
 		}

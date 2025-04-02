@@ -2,13 +2,17 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"log/slog"
 	"time"
 )
 
 func (s *Service) GetFeeReductions(ctx context.Context, id int32) (*shared.FeeReductions, error) {
 	feeReductionsRawData, err := s.store.GetFeeReductions(ctx, id)
+
 	if err != nil {
+		s.Logger(ctx).Error(fmt.Sprintf("Error in getting fee reductions for client:  %d", id), slog.String("err", err.Error()))
 		return nil, err
 	}
 
