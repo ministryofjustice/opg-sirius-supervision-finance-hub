@@ -2,10 +2,12 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"log/slog"
 )
 
 func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId int32, adjustmentId int32, status shared.AdjustmentStatus) error {
@@ -28,6 +30,8 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId i
 
 	adjustment, err := tx.SetAdjustmentDecision(ctx, decisionParams)
 	if err != nil {
+		s.Logger(ctx).Error(fmt.Sprintf("Set adjustment decision in updating pending invoice has an issue %s for client %d", err.Error(), clientId))
+
 		return err
 	}
 
@@ -51,6 +55,7 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId i
 			ID:             adjustmentId,
 		})
 		if err != nil {
+			s.Logger(ctx).Error(fmt.Sprintf("Error creating ledger for adjustment with id of %d for client %d", adjustmentId, clientId), slog.String("err", err.Error()))
 			return err
 		}
 
@@ -58,6 +63,7 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId i
 			allocation.LedgerID = ledgerID
 			err = tx.CreateLedgerAllocation(ctx, allocation)
 			if err != nil {
+				s.Logger(ctx).Error(fmt.Sprintf("Error creating ledger allocation with id of %d for client %d", allocation.LedgerID, clientId), slog.String("err", err.Error()))
 				return err
 			}
 		}
