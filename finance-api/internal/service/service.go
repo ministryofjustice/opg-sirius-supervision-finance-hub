@@ -4,11 +4,13 @@ import (
 	"context"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"io"
+	"log/slog"
 	"net/http"
 )
 
@@ -60,11 +62,17 @@ func NewService(conn *pgxpool.Pool, dispatch Dispatch, fileStorage FileStorage, 
 
 func (s *Service) BeginStoreTx(ctx context.Context) (*store.Tx, error) {
 	tx, err := s.tx.Begin(ctx)
+	logger := s.Logger(ctx)
 	if err != nil {
+		logger.Error("Could not begin a transaction", slog.String("err", err.Error()))
 		return nil, err
 	}
 
 	return store.NewTx(tx), nil
+}
+
+func (s *Service) Logger(ctx context.Context) *slog.Logger {
+	return telemetry.LoggerFromContext(ctx)
 }
 
 func (*Service) WithCancel(ctx context.Context) (context.Context, context.CancelFunc) {

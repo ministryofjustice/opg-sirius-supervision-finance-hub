@@ -2,11 +2,13 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"log/slog"
 	"strconv"
 	"strings"
 	"time"
@@ -36,7 +38,6 @@ func processInvoiceData(data shared.AddManualInvoice) shared.AddManualInvoice {
 func (s *Service) AddManualInvoice(ctx context.Context, clientId int32, data shared.AddManualInvoice) error {
 	data = processInvoiceData(data)
 	validationErrors := s.validateManualInvoice(data)
-
 	if len(validationErrors) != 0 {
 		return apierror.ValidationError{Errors: validationErrors}
 	}
@@ -51,6 +52,7 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int32, data sha
 
 	counter, err := tx.GetInvoiceCounter(ctx, strconv.Itoa(data.StartDate.Value.Time.Year())+"InvoiceNumber")
 	if err != nil {
+		s.Logger(ctx).Error("Get invoice counter has an issue " + err.Error())
 		return err
 	}
 
@@ -87,6 +89,7 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int32, data sha
 	var invoice store.Invoice
 	invoice, err = tx.AddInvoice(ctx, invoiceParams)
 	if err != nil {
+		s.Logger(ctx).Error("Add invoice has an issue " + err.Error() + fmt.Sprintf("for client %d", clientId))
 		return err
 	}
 
@@ -111,6 +114,7 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int32, data sha
 
 		err = tx.AddInvoiceRange(ctx, addInvoiceRangeQueryArgs)
 		if err != nil {
+			s.Logger(ctx).Error(fmt.Sprintf("Error in add invoice range for invoice %d for client %d", invoiceID.Int32, clientId), slog.String("err", err.Error()))
 			return err
 		}
 	}
@@ -138,6 +142,7 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int32, data sha
 		})
 		ledgerID, err := tx.CreateLedger(ctx, ledger)
 		if err != nil {
+			s.Logger(ctx).Error(fmt.Sprintf("Error in add fee reduction for ledger %d for client %d", ledgerID, clientId), slog.String("err", err.Error()))
 			return err
 		}
 
@@ -145,6 +150,7 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int32, data sha
 			allocation.LedgerID = ledgerID
 			err = tx.CreateLedgerAllocation(ctx, allocation)
 			if err != nil {
+				s.Logger(ctx).Error(fmt.Sprintf("Error in add fee reduction for ledger allocation %d for client %d", ledgerID, clientId), slog.String("err", err.Error()))
 				return err
 			}
 		}

@@ -2,8 +2,10 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"log/slog"
 	"math"
 	"slices"
 	"sort"
@@ -17,7 +19,9 @@ type historyHolder struct {
 
 func (s *Service) GetBillingHistory(ctx context.Context, clientID int32) ([]shared.BillingHistory, error) {
 	invoices, err := s.store.GetGeneratedInvoices(ctx, clientID)
+
 	if err != nil {
+		s.Logger(ctx).Error(fmt.Sprintf("Error in getting invoices in billing history for client %d", clientID), slog.String("err", err.Error()))
 		return nil, err
 	}
 
@@ -32,6 +36,7 @@ func (s *Service) GetBillingHistory(ctx context.Context, clientID int32) ([]shar
 
 	feEvents, err := s.store.GetFeeReductionEvents(ctx, clientID)
 	if err != nil {
+		s.Logger(ctx).Error(fmt.Sprintf("Error in getting fee reductions events in billing history for client %d", clientID), slog.String("err", err.Error()))
 		return nil, err
 	}
 
@@ -39,6 +44,7 @@ func (s *Service) GetBillingHistory(ctx context.Context, clientID int32) ([]shar
 
 	allocations, err := s.store.GetLedgerAllocationsForClient(ctx, clientID)
 	if err != nil {
+		s.Logger(ctx).Error(fmt.Sprintf("Error in getting ledger allocations in billing history for client %d", clientID), slog.String("err", err.Error()))
 		return nil, err
 	}
 
