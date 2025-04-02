@@ -38,6 +38,8 @@ func (c *Client) Run(ctx context.Context, query ReportQuery) ([][]string, error)
 		return nil, err
 	}
 
+	defer rows.Close()
+
 	stringRows, err := pgx.CollectRows[[]string](rows, rowToStringMap)
 	if err != nil {
 		return nil, err
