@@ -73,6 +73,9 @@ services:
     build:
       dockerfile: docker/cypress/Dockerfile
     command: [ "--headless", "-b", "electron" ]
+    environment:
+      - JSON_SERVER_URL=http://json-server:3000
+      - FINANCE_API_URL=http://finance-api:8080
     volumes:
       - ./cypress/screenshots:/root/cypress/screenshots:rw,delegated
       - ./cypress/logs:/root/cypress/logs:rw,delegated

@@ -4,8 +4,9 @@
  * running as part of the Cypress suite, we can use the same setup here (despite not being UI-driven tests).
  */
 describe('API Tests', () => {
-    const apiUrl = 'http://localhost:8181';
-    const notifyUrl = 'http://localhost:3000/v2/notifications/email';
+    const apiUrl = Cypress.env('FINANCE_API_URL') ?? 'http://localhost:8181';
+    const jsonServerUrl = Cypress.env('process.env.JSON_SERVER_URL') ?? 'http://localhost:3000';
+    const notifyUrl = `${jsonServerUrl}/v2/notifications/email`;
     const generateReportSuccessTemplateId = "bade69e4-0eb1-4896-a709-bd8f8371a629";
     const processingSuccessTemplateId = "8c85cf6c-695f-493a-a25f-77b4fb5f6a8e";
 
@@ -23,7 +24,7 @@ describe('API Tests', () => {
             response.body.forEach((item) => {
                 cy.request({
                     method: 'DELETE',
-                    url: `http://localhost:3000/clean/${item.id}`,
+                    url: `${jsonServerUrl}/clean/${item.id}`,
                 });
             });
         });
