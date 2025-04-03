@@ -132,7 +132,6 @@ func (suite *IntegrationSuite) Test_processPayments() {
 		pisNumber                 int
 		expectedClientId          int
 		expectedLedgerAllocations []createdLedgerAllocation
-		expectedFailedLines       map[int]string
 		want                      error
 	}{
 		{
@@ -141,7 +140,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 				{"Ordercode", "BankDate", "Amount"},
 				{
 					"1234-1",
-					"2024-01-01 10:15:39",
+					"01/01/2024",
 					"100",
 				},
 			},
@@ -153,14 +152,13 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					10000,
 					"MOTO CARD PAYMENT",
 					"CONFIRMED",
-					time.Date(2024, 1, 1, 10, 15, 39, 0, time.UTC),
+					time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 					10000,
 					"ALLOCATED",
 					1,
 					12,
 				},
 			},
-			expectedFailedLines: map[int]string{},
 		},
 		{
 			name: "Overpayment",
@@ -168,7 +166,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 				{"Ordercode", "BankDate", "Amount"},
 				{
 					"12345",
-					"2024-01-01 15:30:27",
+					"01/01/2024",
 					"250.1",
 				},
 			},
@@ -180,7 +178,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					25010,
 					"MOTO CARD PAYMENT",
 					"CONFIRMED",
-					time.Date(2024, 1, 1, 15, 30, 27, 0, time.UTC),
+					time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 					10000,
 					"ALLOCATED",
 					2,
@@ -190,14 +188,13 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					25010,
 					"MOTO CARD PAYMENT",
 					"CONFIRMED",
-					time.Date(2024, 1, 1, 15, 30, 27, 0, time.UTC),
+					time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 					-15010,
 					"UNAPPLIED",
 					0,
 					0,
 				},
 			},
-			expectedFailedLines: map[int]string{},
 		},
 		{
 			name: "Underpayment with multiple invoices",
@@ -205,7 +202,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 				{"Ordercode", "BankDate", "Amount"},
 				{
 					"123456",
-					"2024-01-01 15:30:27",
+					"01/01/2024",
 					"50",
 				},
 			},
@@ -216,14 +213,13 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					5000,
 					"MOTO CARD PAYMENT",
 					"CONFIRMED",
-					time.Date(2024, 1, 1, 15, 30, 27, 0, time.UTC),
+					time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 					5000,
 					"ALLOCATED",
 					3,
 					0,
 				},
 			},
-			expectedFailedLines: map[int]string{},
 		},
 	}
 	for _, tt := range tests {
@@ -231,7 +227,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 			var failedLines map[int]string
 			failedLines, err := s.processPayments(suite.ctx, tt.records, "PAYMENTS_MOTO_CARD", tt.bankDate, shared.Nillable[int]{Value: tt.pisNumber, Valid: true})
 			assert.Equal(t, tt.want, err)
-			assert.Equal(t, tt.expectedFailedLines, failedLines)
+			assert.Equal(t, map[int]string{}, failedLines)
 
 			var createdLedgerAllocations []createdLedgerAllocation
 
@@ -312,13 +308,13 @@ func Test_getPaymentDetails(t *testing.T) {
 	}{
 		{
 			name:       "Moto card",
-			record:     []string{"12345678", "2025-01-02 12:04:32", "320.00"},
+			record:     []string{"12345678", "02/01/2025", "320.00"},
 			uploadType: "PAYMENTS_MOTO_CARD",
 			ledgerType: "Payments Moto Card",
 			index:      0,
 			expectedPaymentDetails: shared.PaymentDetails{
 				Amount:       32000,
-				ReceivedDate: time.Date(2025, time.January, 2, 12, 4, 32, 0, time.UTC),
+				ReceivedDate: time.Date(2025, time.January, 2, 0, 0, 0, 0, time.UTC),
 				CourtRef:     "12345678",
 				LedgerType:   "Payments Moto Card",
 				BankDate:     time.Date(2025, time.January, 1, 0, 0, 0, 0, time.UTC),
@@ -361,14 +357,6 @@ func Test_getPaymentDetails(t *testing.T) {
 			expectedFailedLines: map[int]string{0: "AMOUNT_PARSE_ERROR"},
 		},
 		{
-			name:                "Date time parse error returns failed line",
-			record:              []string{"23145746", "yesterday", "200"},
-			uploadType:          "PAYMENTS_MOTO_CARD",
-			index:               0,
-			failedLines:         map[int]string{},
-			expectedFailedLines: map[int]string{0: "DATE_TIME_PARSE_ERROR"},
-		},
-		{
 			name:                "Date parse error returns failed line",
 			record:              []string{"23145746", "", "200", "", "yesterday"},
 			uploadType:          "PAYMENTS_SUPERVISION_CHEQUE",
@@ -382,7 +370,7 @@ func Test_getPaymentDetails(t *testing.T) {
 			uploadType:          "PAYMENTS_MOTO_CARD",
 			index:               1,
 			failedLines:         map[int]string{0: "AMOUNT_PARSE_ERROR"},
-			expectedFailedLines: map[int]string{0: "AMOUNT_PARSE_ERROR", 1: "DATE_TIME_PARSE_ERROR"},
+			expectedFailedLines: map[int]string{0: "AMOUNT_PARSE_ERROR", 1: "DATE_PARSE_ERROR"},
 		},
 	}
 	for _, tt := range tests {
