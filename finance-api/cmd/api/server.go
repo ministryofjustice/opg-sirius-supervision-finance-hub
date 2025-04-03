@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/ministryofjustice/opg-go-common/securityheaders"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
@@ -11,6 +10,7 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"io"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -36,8 +36,10 @@ type Service interface {
 }
 
 type FileStorage interface {
-	GetFileByVersion(ctx context.Context, bucketName string, filename string, versionID string) (*s3.GetObjectOutput, error)
-	FileExists(ctx context.Context, bucketName string, filename string, versionID string) bool
+	GetFile(ctx context.Context, bucketName string, filename string) (io.ReadCloser, error)
+	GetFileWithVersion(ctx context.Context, bucketName string, filename string, versionID string) (io.ReadCloser, error)
+	FileExists(ctx context.Context, bucketName string, filename string) bool
+	FileExistsWithVersion(ctx context.Context, bucketName string, filename string, versionID string) bool
 }
 
 type Reports interface {
