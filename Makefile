@@ -8,7 +8,7 @@ all:
 
 .PHONY: cypress zap
 
-test: go-lint gosec unit-test
+test: go-lint gosec unit-test test-migrations
 
 test-results:
 	mkdir -p -m 0777 test-results cypress/screenshots .trivy-cache .go-cache
@@ -71,11 +71,23 @@ sqlc-diff:
 sqlc-vet:
 	docker compose run --rm sqlc-vet
 
+migrate:
+	docker compose run --rm finance-migration
+
 start-and-seed:
 	docker compose up -d --wait sirius-db
-	docker compose run --rm --build finance-migration
+	$(MAKE) build-migrations
+	$(MAKE) migrate
 	docker compose exec sirius-db psql -U user -d finance -a -f ./seed_data.sql
 	docker compose up -d localstack json-server
+
+test-migrations:
+	docker compose pull finance-migration
+	docker compose up -d --wait sirius-db
+	$(MAKE) migrate
+	docker compose exec sirius-db psql -U user -d finance -a -f ./seed_data.sql
+	$(MAKE) build-migrations
+	$(MAKE) migrate
 
 cypress: setup-directories clean start-and-seed
 	docker compose run cypress
