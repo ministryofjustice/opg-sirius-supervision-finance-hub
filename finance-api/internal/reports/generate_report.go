@@ -45,10 +45,10 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 	filename, reportName, file, err := c.generateReport(ctx, reportRequest, requestedDate)
 
 	if err != nil {
-		logger.Error("failed to generate report", "error", err)
+		logger.Error("failed to generate report", "err", err)
 		err = c.sendFailureNotification(ctx, reportRequest.Email, requestedDate, reportName)
 		if err != nil {
-			logger.Error("unable to send message to notify", "error", err)
+			logger.Error("unable to send message to notify", "err", err)
 		}
 		return
 	}
@@ -57,28 +57,28 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 		*reportRequest.AccountsReceivableType == shared.AccountsReceivableTypeFeeAccrual {
 		payload, err := c.createDownloadFeeAccrualNotifyPayload(reportRequest.Email, requestedDate)
 		if err != nil {
-			logger.Error("failed to generate notify payload", "error", err)
+			logger.Error("failed to generate notify payload", "err", err)
 		}
 
 		err = c.notify.Send(ctx, payload)
 		if err != nil {
-			logger.Error("unable to send message to notify", "error", err)
+			logger.Error("unable to send message to notify", "err", err)
 		}
 		return
 	}
 
 	versionId, err := c.fileStorage.PutFile(ctx, c.envs.ReportsBucket, filename, file)
 	if err != nil {
-		logger.Error("failed to generate report", "error", err)
+		logger.Error("failed to generate report", "err", err)
 		err = c.sendFailureNotification(ctx, reportRequest.Email, requestedDate, reportName)
 		if err != nil {
-			logger.Error("unable to send message to notify", "error", err)
+			logger.Error("unable to send message to notify", "err", err)
 		}
 	}
 
 	err = c.sendSuccessNotification(ctx, reportRequest.Email, filename, versionId, requestedDate, reportName)
 	if err != nil {
-		logger.Error("unable to send message to notify", "error", err)
+		logger.Error("unable to send message to notify", "err", err)
 	}
 }
 
