@@ -17,7 +17,7 @@ const (
 )
 
 func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) {
-	logger := telemetry.LoggerFromContext(ctx)
+	logger := s.Logger(ctx)
 	filename, reportName, file, err := c.generateReport(ctx, reportRequest, requestedDate)
 	if err != nil {
 		logger.Error("failed to generate report", "error", err)
