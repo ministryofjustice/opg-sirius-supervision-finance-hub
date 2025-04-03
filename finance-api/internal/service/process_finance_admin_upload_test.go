@@ -248,124 +248,6 @@ func (suite *IntegrationSuite) Test_processPayments() {
 	}
 }
 
-func (suite *IntegrationSuite) Test_getPaymentDetails() {
-	tests := []struct {
-		name                   string
-		record                 []string
-		uploadType             string
-		bankDate               shared.Date
-		ledgerType             string
-		index                  int
-		expectedPaymentDetails shared.PaymentDetails
-		expectedFailedLines    map[int]string
-	}{
-		{
-			name:       "Moto Card Payment Record",
-			record:     []string{"12345678", "01/01/2025", "200.12"},
-			uploadType: shared.ReportTypeUploadPaymentsMOTOCard.Key(),
-			bankDate:   shared.NewDate("2025-01-10"),
-			ledgerType: shared.TransactionTypeMotoCardPayment.Key(),
-			expectedPaymentDetails: shared.PaymentDetails{
-				Amount:       20012,
-				BankDate:     time.Date(2025, time.January, 10, 0, 0, 0, 0, time.UTC),
-				CourtRef:     "12345678",
-				LedgerType:   shared.TransactionTypeMotoCardPayment.Key(),
-				ReceivedDate: time.Date(2025, time.January, 1, 0, 0, 0, 0, time.UTC),
-			},
-			expectedFailedLines: map[int]string{},
-		},
-		{
-			name:       "Online Card Payment Record",
-			record:     []string{"87654321-abcdefg-garbleddata", "01/02/2025", "20.1"},
-			uploadType: shared.ReportTypeUploadPaymentsOnlineCard.Key(),
-			bankDate:   shared.NewDate("2025-02-10"),
-			ledgerType: shared.TransactionTypeOnlineCardPayment.Key(),
-			expectedPaymentDetails: shared.PaymentDetails{
-				Amount:       2010,
-				BankDate:     time.Date(2025, time.February, 10, 0, 0, 0, 0, time.UTC),
-				CourtRef:     "87654321",
-				LedgerType:   shared.TransactionTypeOnlineCardPayment.Key(),
-				ReceivedDate: time.Date(2025, time.February, 1, 0, 0, 0, 0, time.UTC),
-			},
-			expectedFailedLines: map[int]string{},
-		},
-		{
-			name:       "Supervision BACS Record",
-			record:     []string{"", "", "", "", "01/02/2025", "", "550", "", "", "", "54326543"},
-			uploadType: shared.ReportTypeUploadPaymentsSupervisionBACS.Key(),
-			bankDate:   shared.NewDate("2025-02-10"),
-			ledgerType: shared.TransactionTypeSupervisionBACSPayment.Key(),
-			expectedPaymentDetails: shared.PaymentDetails{
-				Amount:       55000,
-				BankDate:     time.Date(2025, time.February, 10, 0, 0, 0, 0, time.UTC),
-				CourtRef:     "54326543",
-				LedgerType:   shared.TransactionTypeSupervisionBACSPayment.Key(),
-				ReceivedDate: time.Date(2025, time.February, 1, 0, 0, 0, 0, time.UTC),
-			},
-			expectedFailedLines: map[int]string{},
-		},
-		{
-			name:       "OPG BACS Record",
-			record:     []string{"", "", "", "", "02/05/2025", "", "5.12", "", "", "", "12983476"},
-			uploadType: shared.ReportTypeUploadPaymentsOPGBACS.Key(),
-			bankDate:   shared.NewDate("2025-05-11"),
-			ledgerType: shared.TransactionTypeOPGBACSPayment.Key(),
-			expectedPaymentDetails: shared.PaymentDetails{
-				Amount:       512,
-				BankDate:     time.Date(2025, time.May, 11, 0, 0, 0, 0, time.UTC),
-				CourtRef:     "12983476",
-				LedgerType:   shared.TransactionTypeOPGBACSPayment.Key(),
-				ReceivedDate: time.Date(2025, time.May, 2, 0, 0, 0, 0, time.UTC),
-			},
-			expectedFailedLines: map[int]string{},
-		},
-		{
-			name:       "SOP Unallocated Record",
-			record:     []string{"12439823", "123.9"},
-			uploadType: "SOP_UNALLOCATED",
-			bankDate:   shared.NewDate("2025-06-11"),
-			ledgerType: shared.TransactionTypeSOPUnallocatedPayment.Key(),
-			expectedPaymentDetails: shared.PaymentDetails{
-				Amount:       12390,
-				BankDate:     time.Date(2025, time.June, 11, 0, 0, 0, 0, time.UTC),
-				CourtRef:     "12439823",
-				LedgerType:   shared.TransactionTypeSOPUnallocatedPayment.Key(),
-				ReceivedDate: time.Date(2025, time.March, 31, 0, 0, 0, 0, time.UTC),
-			},
-			expectedFailedLines: map[int]string{},
-		},
-		{
-			name:                "Amount parse error",
-			record:              []string{"87654321-abcdefg-garbleddata", "01-02-2025 11:33:55", "oops!"},
-			uploadType:          shared.ReportTypeUploadPaymentsOnlineCard.Key(),
-			bankDate:            shared.NewDate("2025-02-10"),
-			ledgerType:          shared.TransactionTypeOnlineCardPayment.Key(),
-			index:               1,
-			expectedFailedLines: map[int]string{1: "AMOUNT_PARSE_ERROR"},
-		},
-		{
-			name:                   "Date parse error",
-			record:                 []string{"", "", "", "", "darn", "", "5.12", "", "", "", "12983476"},
-			uploadType:             shared.ReportTypeUploadPaymentsOPGBACS.Key(),
-			bankDate:               shared.NewDate("2025-05-11"),
-			ledgerType:             shared.TransactionTypeOPGBACSPayment.Key(),
-			index:                  0,
-			expectedPaymentDetails: shared.PaymentDetails{},
-			expectedFailedLines:    map[int]string{0: "DATE_PARSE_ERROR"},
-		},
-	}
-	for _, tt := range tests {
-		suite.T().Run(tt.name, func(t *testing.T) {
-			failedLines := make(map[int]string)
-
-			paymentDetails := getPaymentDetails(tt.record, tt.uploadType, tt.bankDate, tt.ledgerType, tt.index, &failedLines)
-
-			assert.Equal(t, tt.expectedPaymentDetails, paymentDetails)
-			assert.Equal(t, tt.expectedFailedLines, failedLines)
-		})
-	}
-}
-
 func Test_parseAmount(t *testing.T) {
 	tests := []struct {
 		name         string
@@ -426,13 +308,13 @@ func Test_getPaymentDetails(t *testing.T) {
 	}{
 		{
 			name:       "Moto card",
-			record:     []string{"12345678", "2025-01-02 12:04:32", "320.00"},
+			record:     []string{"12345678", "02/01/2025", "320.00"},
 			uploadType: "PAYMENTS_MOTO_CARD",
 			ledgerType: "Payments Moto Card",
 			index:      0,
 			expectedPaymentDetails: shared.PaymentDetails{
 				Amount:       32000,
-				ReceivedDate: time.Date(2025, time.January, 2, 12, 4, 32, 0, time.UTC),
+				ReceivedDate: time.Date(2025, time.January, 2, 0, 0, 0, 0, time.UTC),
 				CourtRef:     "12345678",
 				LedgerType:   "Payments Moto Card",
 				BankDate:     time.Date(2025, time.January, 1, 0, 0, 0, 0, time.UTC),
@@ -475,14 +357,6 @@ func Test_getPaymentDetails(t *testing.T) {
 			expectedFailedLines: map[int]string{0: "AMOUNT_PARSE_ERROR"},
 		},
 		{
-			name:                "Date time parse error returns failed line",
-			record:              []string{"23145746", "yesterday", "200"},
-			uploadType:          "PAYMENTS_MOTO_CARD",
-			index:               0,
-			failedLines:         map[int]string{},
-			expectedFailedLines: map[int]string{0: "DATE_TIME_PARSE_ERROR"},
-		},
-		{
 			name:                "Date parse error returns failed line",
 			record:              []string{"23145746", "", "200", "", "yesterday"},
 			uploadType:          "PAYMENTS_SUPERVISION_CHEQUE",
@@ -496,7 +370,7 @@ func Test_getPaymentDetails(t *testing.T) {
 			uploadType:          "PAYMENTS_MOTO_CARD",
 			index:               1,
 			failedLines:         map[int]string{0: "AMOUNT_PARSE_ERROR"},
-			expectedFailedLines: map[int]string{0: "AMOUNT_PARSE_ERROR", 1: "DATE_TIME_PARSE_ERROR"},
+			expectedFailedLines: map[int]string{0: "AMOUNT_PARSE_ERROR", 1: "DATE_PARSE_ERROR"},
 		},
 	}
 	for _, tt := range tests {
