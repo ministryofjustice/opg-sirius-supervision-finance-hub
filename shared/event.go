@@ -74,5 +74,5 @@ type FinanceAdminUploadEvent struct {
 	Filename     string           `json:"filename"`
 	UploadType   ReportUploadType `json:"uploadType"`
 	UploadDate   Date             `json:"uploadDate"`
-	PisNumber    int    `json:"pisNumber"`
+	PisNumber    int              `json:"pisNumber"`
 }

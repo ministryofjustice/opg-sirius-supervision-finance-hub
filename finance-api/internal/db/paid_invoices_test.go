@@ -50,7 +50,7 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	client4ID := suite.seeder.CreateClient(ctx, "Sally", "Supervision", client4ref, "1111")
 	suite.seeder.CreateOrder(ctx, client4ID, "ACTIVE")
 	_, c4i1Ref := suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeS3, &minimal, yesterday.StringPtr(), nil, nil, nil, nil)
-	suite.seeder.CreatePayment(ctx, 1000, yesterday.Date(), client4ref, shared.TransactionTypeSupervisionBACSPayment, yesterday.Date())
+	suite.seeder.CreatePayment(ctx, 1000, yesterday.Date(), client4ref, shared.TransactionTypeSupervisionBACSPayment, yesterday.Date(), 0)
 
 	// client with:
 	//one invoice paid with OPG BACS payment
@@ -58,14 +58,14 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	client5ID := suite.seeder.CreateClient(ctx, "Owen", "OPG", client5ref, "2222")
 	suite.seeder.CreateOrder(ctx, client5ID, "ACTIVE")
 	_, c5i1Ref := suite.seeder.CreateInvoice(ctx, client5ID, shared.InvoiceTypeS2, &general, today.StringPtr(), nil, nil, nil, nil)
-	suite.seeder.CreatePayment(ctx, 32000, today.Date(), client5ref, shared.TransactionTypeOPGBACSPayment, today.Date())
+	suite.seeder.CreatePayment(ctx, 32000, today.Date(), client5ref, shared.TransactionTypeOPGBACSPayment, today.Date(), 0)
 
 	// misapplied payments
 	// first client will not show in report as the payment has been reversed (and the invoice is not paid)
 	client6ref := "33333333"
 	client6ID := suite.seeder.CreateClient(ctx, "Ernie", "Error", client6ref, "2222")
 	_, _ = suite.seeder.CreateInvoice(ctx, client6ID, shared.InvoiceTypeAD, nil, oneWeekAgo.StringPtr(), nil, nil, nil, oneWeekAgo.StringPtr())
-	suite.seeder.CreatePayment(ctx, 15000, oneWeekAgo.Date(), client6ref, shared.TransactionTypeOnlineCardPayment, oneWeekAgo.Date())
+	suite.seeder.CreatePayment(ctx, 15000, oneWeekAgo.Date(), client6ref, shared.TransactionTypeOnlineCardPayment, oneWeekAgo.Date(), 0)
 	client7ref := "44444444"
 	client7ID := suite.seeder.CreateClient(ctx, "Colette", "Correct", client7ref, "3333")
 	_, c7i1Ref := suite.seeder.CreateInvoice(ctx, client7ID, shared.InvoiceTypeSO, valToPtr("90.00"), oneWeekAgo.StringPtr(), nil, nil, nil, oneWeekAgo.StringPtr())

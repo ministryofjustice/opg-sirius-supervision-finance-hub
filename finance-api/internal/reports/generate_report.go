@@ -41,7 +41,7 @@ func (c *Client) createDownloadFeeAccrualNotifyPayload(emailAddress string, requ
 }
 
 func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) {
-	logger := s.Logger(ctx)
+	logger := telemetry.LoggerFromContext(ctx)
 	filename, reportName, file, err := c.generateReport(ctx, reportRequest, requestedDate)
 
 	if err != nil {

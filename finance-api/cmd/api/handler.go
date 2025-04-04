@@ -16,7 +16,7 @@ func (f handlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		var valErr apierror.ValidationError
 		if !errors.As(err, &valErr) {
 			ctx := r.Context()
-			logger := s.Logger(ctx)
+			logger := telemetry.LoggerFromContext(ctx)
 			logger.Error("an api error occurred", slog.String("err", err.Error()))
 		}
 		writeError(w, err)

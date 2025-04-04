@@ -103,8 +103,8 @@ SELECT nextval('ledger_id_seq'),
        $7,
        gen_random_uuid(),
        '',
-       $9
-FROM finance_client fc WHERE court_ref = $8
+       $8
+FROM finance_client fc WHERE court_ref = $9
 RETURNING id
 `
 
@@ -116,8 +116,8 @@ type CreateLedgerForCourtRefParams struct {
 	Type         string
 	Status       string
 	CreatedBy    pgtype.Int4
+	PisNumber    pgtype.Int4
 	CourtRef     pgtype.Text
-	PisNumber pgtype.Int4
 }
 
 func (q *Queries) CreateLedgerForCourtRef(ctx context.Context, arg CreateLedgerForCourtRefParams) (int32, error) {
@@ -129,8 +129,8 @@ func (q *Queries) CreateLedgerForCourtRef(ctx context.Context, arg CreateLedgerF
 		arg.Type,
 		arg.Status,
 		arg.CreatedBy,
-		arg.CourtRef,
 		arg.PisNumber,
+		arg.CourtRef,
 	)
 	var id int32
 	err := row.Scan(&id)
