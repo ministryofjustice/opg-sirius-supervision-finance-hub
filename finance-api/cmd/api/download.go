@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/aws/smithy-go"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"io"

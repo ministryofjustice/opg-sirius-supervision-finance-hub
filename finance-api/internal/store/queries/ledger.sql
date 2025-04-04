@@ -29,7 +29,7 @@ SELECT nextval('ledger_id_seq'),
        @created_by,
        gen_random_uuid(),
        '',
-       @pisnumber
+       @pis_number
 FROM finance_client fc WHERE court_ref = @court_ref
 RETURNING id;
 

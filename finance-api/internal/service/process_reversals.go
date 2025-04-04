@@ -10,8 +10,6 @@ import (
 )
 
 func (s *Service) ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType) (map[int]string, error) {
-	// extract payments from the file
-
 	failedLines := make(map[int]string)
 
 	ctx, cancelTx := s.WithCancel(ctx)
@@ -69,6 +67,7 @@ func getReversalLines(ctx context.Context, record []string, uploadType shared.Re
 		bankDate        pgtype.Date
 		receivedDate    pgtype.Timestamp
 		createdBy       pgtype.Int4
+		pisNumber       pgtype.Int4
 		amount          int32
 	)
 
@@ -103,6 +102,8 @@ func getReversalLines(ctx context.Context, record []string, uploadType shared.Re
 			return shared.ReversalDetails{}
 		}
 
+		_ = pisNumber.Scan(record[6]) // will have no value for non-cheque payments
+
 	default:
 		(*failedLines)[index] = "UNKNOWN_UPLOAD_TYPE"
 	}
@@ -116,6 +117,7 @@ func getReversalLines(ctx context.Context, record []string, uploadType shared.Re
 		BankDate:        bankDate,
 		ReceivedDate:    receivedDate,
 		Amount:          amount,
+		PisNumber:       pisNumber,
 	}
 }
 

@@ -33,7 +33,7 @@ func (s *Server) processUpload(ctx context.Context, event shared.FinanceAdminUpl
 	}
 
 	if event.UploadType.IsPayment() {
-		failedLines, err := s.service.ProcessPayments(ctx, records, event.UploadType, event.UploadDate)
+		failedLines, err := s.service.ProcessPayments(ctx, records, event.UploadType, event.UploadDate, event.PisNumber)
 		if err != nil {
 			logger.Error("unable to process payments", "err", err)
 		}

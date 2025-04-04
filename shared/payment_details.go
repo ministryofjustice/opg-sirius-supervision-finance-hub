@@ -11,7 +11,7 @@ type PaymentDetails struct {
 	LedgerType   TransactionType
 	ReceivedDate pgtype.Timestamp
 	CreatedBy    pgtype.Int4
-	PisNumber    Nillable[int]
+	PisNumber    pgtype.Int4
 }
 
 type ReversalDetails struct {
@@ -22,4 +22,5 @@ type ReversalDetails struct {
 	ReceivedDate    pgtype.Timestamp
 	Amount          int32
 	CreatedBy       pgtype.Int4
+	PisNumber       pgtype.Int4
 }

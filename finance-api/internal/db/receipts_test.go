@@ -27,17 +27,17 @@ func (suite *IntegrationSuite) Test_receipts() {
 	// payment covers 2nd and 3rd invoices, with excess
 	clientID := suite.seeder.CreateClient(ctx, "Ian", "Test", courtRef1, "1234")
 	_, inv1Ref := suite.seeder.CreateInvoice(ctx, clientID, shared.InvoiceTypeGA, nil, twoYearsAgo.StringPtr(), nil, nil, nil, nil)
-	suite.seeder.CreatePayment(ctx, 20000, twoYearsAgo.Date(), courtRef1, shared.TransactionTypeOPGBACSPayment, twoYearsAgo.Date())
+	suite.seeder.CreatePayment(ctx, 20000, twoYearsAgo.Date(), courtRef1, shared.TransactionTypeOPGBACSPayment, twoYearsAgo.Date(), 0)
 	suite.seeder.CreateFeeReduction(ctx, clientID, shared.FeeReductionTypeRemission, strconv.Itoa(twoYearsAgo.Date().Year()-1), 2, "A reduction", twoYearsAgo.Date())
 
 	_, inv2Ref := suite.seeder.CreateInvoice(ctx, clientID, shared.InvoiceTypeS2, valToPtr("316.24"), twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
 	_, inv3Ref := suite.seeder.CreateInvoice(ctx, clientID, shared.InvoiceTypeSO, valToPtr("70.00"), twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
-	suite.seeder.CreatePayment(ctx, 30000, oneMonthAgo.Date(), courtRef1, shared.TransactionTypeMotoCardPayment, oneMonthAgo.Date())
+	suite.seeder.CreatePayment(ctx, 30000, oneMonthAgo.Date(), courtRef1, shared.TransactionTypeMotoCardPayment, oneMonthAgo.Date(), 0)
 
 	// misapplied payments with overpayment
 	client2ID := suite.seeder.CreateClient(ctx, "Ernie", "Error", courtRef2, "2222")
 	_, inv4Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeAD, nil, yesterday.StringPtr(), nil, nil, nil, yesterday.StringPtr())
-	suite.seeder.CreatePayment(ctx, 15000, yesterday.Date(), courtRef2, shared.TransactionTypeOnlineCardPayment, yesterday.Date())
+	suite.seeder.CreatePayment(ctx, 15000, yesterday.Date(), courtRef2, shared.TransactionTypeOnlineCardPayment, yesterday.Date(), 0)
 	client3ID := suite.seeder.CreateClient(ctx, "Colette", "Correct", courtRef3, "3333")
 	_, inv5Ref := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeSO, valToPtr("90.00"), yesterday.StringPtr(), nil, nil, nil, yesterday.StringPtr())
 	suite.seeder.ReversePayment(ctx, courtRef2, courtRef3, "150.00", yesterday.String(), yesterday.String(), shared.TransactionTypeOnlineCardPayment)
