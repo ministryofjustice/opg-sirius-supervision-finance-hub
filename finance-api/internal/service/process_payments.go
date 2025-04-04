@@ -114,7 +114,7 @@ func getPaymentDetails(ctx context.Context, record []string, uploadType shared.R
 
 		rd, err := time.Parse("02/01/2006", record[1])
 		if err != nil {
-			(*failedLines)[index] = "DATE_TIME_PARSE_ERROR"
+			(*failedLines)[index] = "DATE_PARSE_ERROR"
 			return shared.PaymentDetails{}
 		}
 		_ = receivedDate.Scan(rd)
@@ -144,7 +144,7 @@ func getPaymentDetails(ctx context.Context, record []string, uploadType shared.R
 
 		rd, err := time.Parse("02/01/2006", record[4])
 		if err != nil {
-			(*failedLines)[index] = "DATE_TIME_PARSE_ERROR"
+			(*failedLines)[index] = "DATE_PARSE_ERROR"
 			return shared.PaymentDetails{}
 		}
 		_ = receivedDate.Scan(rd)
