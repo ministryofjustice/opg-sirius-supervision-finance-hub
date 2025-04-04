@@ -119,7 +119,7 @@ func (s *mockService) GenerateAndUploadReport(ctx context.Context, reportRequest
 	s.lastCalled = "GenerateAndUploadReport"
 }
 
-func (s *mockService) ProcessPayments(ctx context.Context, records [][]string, uploadType shared.ReportUploadType, bankDate shared.Date) (map[int]string, error) {
+func (s *mockService) ProcessPayments(ctx context.Context, records [][]string, uploadType shared.ReportUploadType, bankDate shared.Date, pisNumber int) (map[int]string, error) {
 	s.lastCalled = "ProcessPayments"
 	return nil, s.err
 }
@@ -130,24 +130,21 @@ func (s *mockService) ProcessPaymentReversals(ctx context.Context, records [][]s
 }
 
 type mockFileStorage struct {
-	versionId  string
-	bucketname string
-	filename   string
-	file           io.ReadCloser
+	versionId      string
+	bucketname     string
+	filename       string
+	file           io.Reader
 	outgoingObject *s3.GetObjectOutput
-	err        error
-	exists     bool
+	err            error
+	exists         bool
 }
 
 func (m *mockFileStorage) GetFile(ctx context.Context, bucketName string, fileName string) (io.ReadCloser, error) {
-	if m.err != nil {
-		return nil, m.err
-	}
-	return m.file, nil
+	return io.NopCloser(m.file), m.err
 }
 
-func (m *mockFileStorage) GetFileByVersion(ctx context.Context, bucketName string, fileName string, versionId string) (*s3.GetObjectOutput, error) {
-	return m.outgoingObject, m.err
+func (m *mockFileStorage) GetFileWithVersion(ctx context.Context, bucketName string, fileName string, versionID string) (io.ReadCloser, error) {
+	return io.NopCloser(m.file), m.err
 }
 
 func (m *mockFileStorage) PutFile(ctx context.Context, bucketName string, fileName string, file io.Reader) (*string, error) {

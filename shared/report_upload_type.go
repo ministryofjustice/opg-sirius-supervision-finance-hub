@@ -43,7 +43,7 @@ var reportTypeUploadMap = map[string]ReportUploadType{
 	"DEBT_CHASE":                  ReportTypeUploadDebtChase,
 	"DEPUTY_SCHEDULE":             ReportTypeUploadDeputySchedule,
 	"DIRECT_DEBITS_COLLECTIONS":   ReportTypeUploadDirectDebitsCollections,
-	"MISAPPLIED_PAYMENTS":       ReportTypeUploadMisappliedPayments,
+	"MISAPPLIED_PAYMENTS":         ReportTypeUploadMisappliedPayments,
 }
 
 func (i ReportUploadType) String() string {

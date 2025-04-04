@@ -33,13 +33,13 @@ type Service interface {
 	ReapplyCredit(ctx context.Context, clientID int32) error
 	UpdateClient(ctx context.Context, clientID int32, courtRef string) error
 	UpdatePaymentMethod(ctx context.Context, clientID int32, paymentMethod shared.PaymentMethod) error
-	ProcessPayments(ctx context.Context, records [][]string, uploadType shared.ReportUploadType, date shared.Date) (map[int]string, error)
+	ProcessPayments(ctx context.Context, records [][]string, uploadType shared.ReportUploadType, bankDate shared.Date, pisNumber int) (map[int]string, error)
 	ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType) (map[int]string, error)
 }
 
 type FileStorage interface {
 	GetFile(ctx context.Context, bucketName string, filename string) (io.ReadCloser, error)
-	GetFileWithVersion(ctx context.Context, bucketName string, filename string, versionID string) (*s3.GetObjectOutput, error)
+	GetFileWithVersion(ctx context.Context, bucketName string, filename string, versionID string) (io.ReadCloser, error)
 	FileExists(ctx context.Context, bucketName string, filename string) bool
 	FileExistsWithVersion(ctx context.Context, bucketName string, filename string, versionID string) bool
 }
