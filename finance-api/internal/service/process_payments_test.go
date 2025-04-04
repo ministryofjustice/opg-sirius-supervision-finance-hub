@@ -69,7 +69,6 @@ func (suite *IntegrationSuite) Test_processPayments() {
 			},
 			paymentType:      shared.ReportTypeUploadPaymentsMOTOCard,
 			bankDate:         shared.NewDate("2024-01-17"),
-			pisNumber:        0,
 			expectedClientId: 1,
 			expectedLedgerAllocations: []createdLedgerAllocation{
 				{
@@ -181,7 +180,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 			var createdLedgerAllocations []createdLedgerAllocation
 
 			rows, _ := seeder.Query(suite.ctx,
-				`SELECT l.amount, l.type, l.status, l.datetime, la.amount, la.status, l.pis_number, la.invoice_id
+				`SELECT l.amount, l.type, l.status, l.datetime, la.amount, la.status, COALESCE(l.pis_number, 0), COALESCE(la.invoice_id, 0)
 						FROM ledger l
 						JOIN ledger_allocation la ON l.id = la.ledger_id
 					WHERE l.finance_client_id = $1 AND l.id > $2`, tt.expectedClientId, currentLedgerId)
@@ -312,13 +311,13 @@ func Test_getPaymentDetails(t *testing.T) {
 			pisNumber:  123,
 			index:      0,
 			expectedPaymentDetails: shared.PaymentDetails{
-				Amount: 2050,
+				Amount: 54102,
 				ReceivedDate: pgtype.Timestamp{
 					Time:             time.Date(2024, 10, 31, 0, 0, 0, 0, time.UTC),
 					InfinityModifier: 0,
 					Valid:            true,
 				},
-				CourtRef:   pgtype.Text{String: "87654321", Valid: true},
+				CourtRef:   pgtype.Text{String: "23145746", Valid: true},
 				LedgerType: shared.TransactionTypeSupervisionChequePayment,
 				BankDate: pgtype.Date{
 					Time:             time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -366,8 +365,7 @@ func Test_getPaymentDetails(t *testing.T) {
 				Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test")),
 				User:    &shared.User{ID: 10},
 			}
-			failedLines := make(map[int]string)
-			paymentDetails := getPaymentDetails(ctx, tt.record, tt.uploadType, shared.NewDate("01/01/2025"), tt.pisNumber, tt.index, &failedLines)
+			paymentDetails := getPaymentDetails(ctx, tt.record, tt.uploadType, shared.NewDate("01/01/2025"), tt.pisNumber, tt.index, &tt.failedLines)
 			assert.Equal(t, tt.expectedFailedLines, tt.failedLines)
 			assert.Equal(t, tt.expectedPaymentDetails, paymentDetails)
 		})
