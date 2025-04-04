@@ -66,9 +66,9 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 
 	pisNumber1 := 100023
 	pisNumber2 := 100024
-	suite.seeder.CreatePayment(ctx, 4020, yesterday.Date(), "12398785", shared.TransactionTypeSupervisionChequePayment, yesterday.Date(), pisNumber1)
-	suite.seeder.CreatePayment(ctx, 1700, yesterday.Date(), "12398785", shared.TransactionTypeSupervisionChequePayment, yesterday.Date(), pisNumber1)
-	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "12398785", shared.TransactionTypeSupervisionChequePayment, yesterday.Date(), pisNumber2)
+	suite.seeder.CreatePayment(ctx, 4020, yesterday.Date(), "77777777", shared.TransactionTypeSupervisionChequePayment, yesterday.Date(), pisNumber1)
+	suite.seeder.CreatePayment(ctx, 1700, yesterday.Date(), "77777777", shared.TransactionTypeSupervisionChequePayment, yesterday.Date(), pisNumber1)
+	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "77777777", shared.TransactionTypeSupervisionChequePayment, yesterday.Date(), pisNumber2)
 
 	c := Client{suite.seeder.Conn}
 
