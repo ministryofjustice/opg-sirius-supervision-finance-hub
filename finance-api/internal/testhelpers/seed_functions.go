@@ -135,7 +135,7 @@ func (s *Seeder) CreateFeeReduction(ctx context.Context, clientId int32, feeType
 	assert.NoError(s.t, err, "failed to update ledger allocation dates for reduction: %v", err)
 }
 
-func (s *Seeder) CreatePayment(ctx context.Context, amount int32, bankDate time.Time, courtRef string, ledgerType shared.TransactionType, uploadDate time.Time, pisNumber int) {
+func (s *Seeder) CreatePayment(ctx context.Context, amount int32, bankDate time.Time, courtRef string, ledgerType shared.TransactionType, uploadDate time.Time, pisNumber int32) {
 	payment := shared.PaymentDetails{
 		Amount: amount,
 		BankDate: pgtype.Date{
@@ -156,7 +156,7 @@ func (s *Seeder) CreatePayment(ctx context.Context, amount int32, bankDate time.
 			Valid: true,
 		},
 		PisNumber: pgtype.Int4{
-			Int32: int32(pisNumber),
+			Int32: pisNumber,
 			Valid: pisNumber > 0,
 		},
 	}

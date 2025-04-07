@@ -91,10 +91,7 @@ func getPaymentDetails(ctx context.Context, record []string, uploadType shared.R
 
 	_ = bankDate.Scan(formDate.Time)
 	_ = store.ToInt4(&createdBy, ctx.(auth.Context).User.ID)
-	pis = pgtype.Int4{
-		Int32: int32(pisNumber),
-		Valid: pisNumber > 0,
-	}
+	_ = store.ToInt4(&pis, pisNumber)
 
 	paymentType, err = getLedgerType(uploadType)
 	if err != nil {
@@ -160,6 +157,7 @@ func (s *Service) validatePaymentLine(ctx context.Context, details shared.Paymen
 		Type:         details.LedgerType.Key(),
 		BankDate:     details.BankDate,
 		ReceivedDate: details.ReceivedDate,
+		PisNumber:    details.PisNumber,
 	})
 
 	if exists {
