@@ -35,9 +35,9 @@ SELECT CONCAT(p.firstname, ' ', p.surname)                                      
            WHEN tt.fee_type IS NULL THEN 'Refer to SOP'
            ELSE CONCAT(tt.fee_type, i.reference) END                                                           AS "Txn number",
        COALESCE(tt.description, l.type)                                                                        AS "Txn description",
-       ((i.amount / 100.0)::NUMERIC(10, 2))::VARCHAR(255)                                                                      AS "Original amount",
-       COALESCE(TO_CHAR(l.bankdate, 'YYYY-MM-DD'), '')                                                                           AS "Received date",
-       TO_CHAR(l.datetime, 'YYYY-MM-DD')                                                                                             AS "Sirius upload date",
+       ((i.amount / 100.0)::NUMERIC(10, 2))::VARCHAR(255)                                                      AS "Original amount",
+       COALESCE(TO_CHAR(l.bankdate, 'YYYY-MM-DD'), '')                                                         AS "Received date",
+       TO_CHAR(l.datetime, 'YYYY-MM-DD')                                                                       AS "Sirius upload date",
        CASE
            WHEN l.type IN (
                            'BACS TRANSFER', 'CARD PAYMENT',
