@@ -64,8 +64,8 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	suite.seeder.CreateOrder(ctx, client7ID, "ACTIVE")
 	_, _ = suite.seeder.CreateInvoice(ctx, client7ID, shared.InvoiceTypeS2, &general, twoMonthsAgo.StringPtr(), nil, nil, nil, twoMonthsAgo.StringPtr())
 
-	pisNumber1 := 100023
-	pisNumber2 := 100024
+	pisNumber1 := int32(100023)
+	pisNumber2 := int32(100024)
 	suite.seeder.CreatePayment(ctx, 4020, yesterday.Date(), "77777777", shared.TransactionTypeSupervisionChequePayment, yesterday.Date(), pisNumber1)
 	suite.seeder.CreatePayment(ctx, 1700, yesterday.Date(), "77777777", shared.TransactionTypeSupervisionChequePayment, yesterday.Date(), pisNumber1)
 	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "77777777", shared.TransactionTypeSupervisionChequePayment, yesterday.Date(), pisNumber2)
