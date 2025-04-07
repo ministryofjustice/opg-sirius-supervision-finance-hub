@@ -92,7 +92,8 @@ FROM paid_invoices pa
          LEFT JOIN supervision_finance.account a ON tt.account_code = a.code
          LEFT JOIN supervision_finance.cost_centre cc ON cc.code = a.cost_centre
 WHERE la.status IN ('ALLOCATED', 'REAPPLIED')
-  AND l.type NOT IN ('CREDIT WRITE OFF', 'WRITE OFF REVERSAL');
+  AND l.type NOT IN ('CREDIT WRITE OFF', 'WRITE OFF REVERSAL')
+ORDER BY l.datetime;
 `
 
 func (p *PaidInvoices) GetHeaders() []string {
