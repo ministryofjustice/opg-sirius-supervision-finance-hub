@@ -201,7 +201,7 @@ func run(ctx context.Context, logger *slog.Logger) error {
 	)
 	defer reportsClient.Close()
 
-	server := api.NewServer(Service, reportsClient, fileStorageClient, nil, &auth.JWT{
+	server := api.NewServer(Service, reportsClient, fileStorageClient, notifyClient, &auth.JWT{
 		Secret: envs.jwtSecret,
 	}, validator, &api.Envs{
 		ReportsBucket:     envs.reportsBucket,
