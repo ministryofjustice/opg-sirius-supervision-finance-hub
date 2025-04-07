@@ -5,7 +5,7 @@
  */
 describe('API Tests', () => {
     const apiUrl = Cypress.env('FINANCE_API_URL') ?? 'http://localhost:8181';
-    const jsonServerUrl = Cypress.env('process.env.JSON_SERVER_URL') ?? 'http://localhost:3000';
+    const jsonServerUrl = Cypress.env('JSON_SERVER_URL') ?? 'http://localhost:3000';
     const notifyUrl = `${jsonServerUrl}/v2/notifications/email`;
     const generateReportSuccessTemplateId = "bade69e4-0eb1-4896-a709-bd8f8371a629";
     const processingSuccessTemplateId = "8c85cf6c-695f-493a-a25f-77b4fb5f6a8e";
@@ -40,7 +40,7 @@ describe('API Tests', () => {
                 Email: 'test@example.com'
             };
 
-            cy.generateJWT(user).then((token) => {
+            cy.task('generateJWT', user).then((token) => {
                 cy.request({
                     method: 'POST',
                     url: `${apiUrl}/reports`,
@@ -75,7 +75,7 @@ describe('API Tests', () => {
                 ToDate: '2023-12-31',
             };
 
-            cy.generateJWT(user).then((token) => {
+            cy.task('generateJWT', user).then((token) => {
                 cy.request({
                     method: 'POST',
                     url: `${apiUrl}/reports`,
