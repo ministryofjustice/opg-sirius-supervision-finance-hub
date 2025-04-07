@@ -128,6 +128,7 @@ func (s *Service) validateReversalLine(ctx context.Context, details shared.Rever
 		Type:         details.PaymentType.Key(),
 		BankDate:     details.BankDate,
 		ReceivedDate: details.ReceivedDate,
+		PisNumber:    details.PisNumber,
 	}
 	exists, _ := s.store.CheckDuplicateLedger(ctx, params)
 
@@ -155,6 +156,7 @@ func (s *Service) ProcessReversalUploadLine(ctx context.Context, tx *store.Tx, d
 		CreatedBy:    details.CreatedBy,
 		BankDate:     details.BankDate,
 		ReceivedDate: details.ReceivedDate,
+		PisNumber:    details.PisNumber,
 	})
 
 	if err != nil {

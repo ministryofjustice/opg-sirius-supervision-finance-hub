@@ -12,17 +12,16 @@ import (
 )
 
 const checkDuplicateLedger = `-- name: CheckDuplicateLedger :one
-SELECT EXISTS (
-    SELECT 1
-    FROM ledger l
-    JOIN finance_client fc ON fc.id = l.finance_client_id
-    WHERE l.amount = $1
-      AND l.status = 'CONFIRMED'
-      AND l.bankdate = $2
-      AND l.datetime::DATE = ($3::TIMESTAMP)::DATE
-      AND l.type = $4
-      AND fc.court_ref = $5
-)
+SELECT EXISTS (SELECT 1
+               FROM ledger l
+                        JOIN finance_client fc ON fc.id = l.finance_client_id
+               WHERE l.amount = $1
+                 AND l.status = 'CONFIRMED'
+                 AND l.bankdate = $2
+                 AND l.datetime::DATE = ($3::TIMESTAMP)::DATE
+                 AND l.type = $4
+                 AND fc.court_ref = $5
+                 AND COALESCE(l.pis_number, 0) = COALESCE($6, 0))
 `
 
 type CheckDuplicateLedgerParams struct {
@@ -31,6 +30,7 @@ type CheckDuplicateLedgerParams struct {
 	ReceivedDate pgtype.Timestamp
 	Type         string
 	CourtRef     pgtype.Text
+	PisNumber    pgtype.Int4
 }
 
 func (q *Queries) CheckDuplicateLedger(ctx context.Context, arg CheckDuplicateLedgerParams) (bool, error) {
@@ -40,6 +40,7 @@ func (q *Queries) CheckDuplicateLedger(ctx context.Context, arg CheckDuplicateLe
 		arg.ReceivedDate,
 		arg.Type,
 		arg.CourtRef,
+		arg.PisNumber,
 	)
 	var exists bool
 	err := row.Scan(&exists)
@@ -47,20 +48,22 @@ func (q *Queries) CheckDuplicateLedger(ctx context.Context, arg CheckDuplicateLe
 }
 
 const createLedger = `-- name: CreateLedger :one
-INSERT INTO ledger (id, datetime, finance_client_id, amount, notes, type, status, fee_reduction_id, created_at, created_by, reference, method)
-SELECT nextval('ledger_id_seq'),
-       now(),
+INSERT INTO ledger (id, datetime, finance_client_id, amount, notes, type, status, fee_reduction_id, created_at,
+                    created_by, reference, method)
+SELECT NEXTVAL('ledger_id_seq'),
+       NOW(),
        fc.id,
        $2,
        $3,
        $4,
        $5,
        $6,
-       now(),
+       NOW(),
        $7,
        gen_random_uuid(),
        ''
-FROM finance_client fc WHERE client_id = $1
+FROM finance_client fc
+WHERE client_id = $1
 RETURNING id
 `
 
@@ -90,8 +93,9 @@ func (q *Queries) CreateLedger(ctx context.Context, arg CreateLedgerParams) (int
 }
 
 const createLedgerForCourtRef = `-- name: CreateLedgerForCourtRef :one
-INSERT INTO ledger (id, datetime, bankdate, finance_client_id, amount, notes, type, status, created_at, created_by, reference, method, pis_number)
-SELECT nextval('ledger_id_seq'),
+INSERT INTO ledger (id, datetime, bankdate, finance_client_id, amount, notes, type, status, created_at, created_by,
+                    reference, method, pis_number)
+SELECT NEXTVAL('ledger_id_seq'),
        $1,
        $2,
        fc.id,
@@ -99,12 +103,13 @@ SELECT nextval('ledger_id_seq'),
        $4,
        $5,
        $6,
-       now(),
+       NOW(),
        $7,
        gen_random_uuid(),
        '',
        $8
-FROM finance_client fc WHERE court_ref = $9
+FROM finance_client fc
+WHERE court_ref = $9
 RETURNING id
 `
 
@@ -140,8 +145,12 @@ func (q *Queries) CreateLedgerForCourtRef(ctx context.Context, arg CreateLedgerF
 const getLedgerForPayment = `-- name: GetLedgerForPayment :one
 SELECT l.id
 FROM ledger l
-JOIN finance_client fc ON fc.id = l.finance_client_id
-WHERE l.amount = $1 AND l.status = 'CONFIRMED' AND l.bankdate = $2 AND l.type = $3 AND fc.court_ref = $4
+         JOIN finance_client fc ON fc.id = l.finance_client_id
+WHERE l.amount = $1
+  AND l.status = 'CONFIRMED'
+  AND l.bankdate = $2
+  AND l.type = $3
+  AND fc.court_ref = $4
 LIMIT 1
 `
 
