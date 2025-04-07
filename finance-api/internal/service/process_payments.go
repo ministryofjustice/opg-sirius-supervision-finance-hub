@@ -160,6 +160,7 @@ func (s *Service) validatePaymentLine(ctx context.Context, details shared.Paymen
 		Type:         details.LedgerType.Key(),
 		BankDate:     details.BankDate,
 		ReceivedDate: details.ReceivedDate,
+		PisNumber:    details.PisNumber,
 	})
 
 	if exists {
