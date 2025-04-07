@@ -1,4 +1,5 @@
-const { defineConfig } = require("cypress")
+const {defineConfig} = require("cypress");
+const { SignJWT } = require('jose');
 
 module.exports = defineConfig({
     fixturesFolder: false,
@@ -14,6 +15,25 @@ module.exports = defineConfig({
                     console.table(message);
 
                     return null
+                },
+                async generateJWT(user) {
+                    const secret = new TextEncoder().encode(
+                        'mysupersecrettestkeythatis128bits',
+                    )
+                    const alg = 'HS256'
+
+                    return await new SignJWT({
+                        roles: user.roles,
+                        id: user.id,
+                    })
+                        .setJti(`${user.id}`)
+                        .setProtectedHeader({alg})
+                        .setIssuedAt()
+                        .setIssuer('urn:opg:payments-admin')
+                        .setAudience('urn:opg:payments-api')
+                        .setExpirationTime('5s')
+                        .setSubject(`urn:opg:sirius:users:${user.id}`)
+                        .sign(secret);
                 },
                 failed: require("cypress-failed-log/src/failed")()
             });
