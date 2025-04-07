@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"io"
@@ -130,13 +129,12 @@ func (s *mockService) ProcessPaymentReversals(ctx context.Context, records [][]s
 }
 
 type mockFileStorage struct {
-	versionId      string
-	bucketname     string
-	filename       string
-	file           io.Reader
-	outgoingObject *s3.GetObjectOutput
-	err            error
-	exists         bool
+	versionId  string
+	bucketname string
+	filename   string
+	file       io.Reader
+	err        error
+	exists     bool
 }
 
 func (m *mockFileStorage) GetFile(ctx context.Context, bucketName string, fileName string) (io.ReadCloser, error) {
