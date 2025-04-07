@@ -16,7 +16,7 @@ describe('API Tests', () => {
     };
 
     // removes all notify emails from json-server to prevent them getting committed
-    afterEach(() => {
+    after(() => {
         cy.request({
             method: 'GET',
             url: notifyUrl
