@@ -20,8 +20,8 @@ FROM invoice i
 WHERE fc.client_id = $1
 ORDER BY i.raiseddate DESC;
 
--- name: GetInvoicesForCourtRef :many
-SELECT i.id, (i.amount - COALESCE(transactions.received, 0)::INT) outstanding
+-- name: GetUnpaidInvoicesByCourtRef :many
+SELECT i.id, (i.amount - COALESCE(transactions.received, 0)::INT) AS outstanding
 FROM invoice i
          JOIN finance_client fc ON fc.id = i.finance_client_id
          LEFT JOIN LATERAL (
@@ -35,6 +35,22 @@ WHERE fc.court_ref = $1
 GROUP BY i.id, i.amount, transactions.received, i.raiseddate
 HAVING (i.amount - COALESCE(SUM(transactions.received), 0)::INT) > 0
 ORDER BY i.raiseddate;
+
+-- name: GetInvoicesForReversalByCourtRef :many
+SELECT i.id, i.amount, (COALESCE(transactions.received, 0)::INT) AS received
+FROM invoice i
+         JOIN finance_client fc ON fc.id = i.finance_client_id
+         LEFT JOIN LATERAL (
+    SELECT SUM(la.amount) AS received
+    FROM ledger_allocation la
+             JOIN ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
+    WHERE la.status NOT IN ('PENDING', 'UNALLOCATED')
+      AND la.invoice_id = i.id
+    ) transactions ON TRUE
+WHERE fc.court_ref = $1
+GROUP BY i.id, i.amount, transactions.received, i.raiseddate
+HAVING COALESCE(SUM(transactions.received), 0)::INT > 0
+ORDER BY i.raiseddate DESC;
 
 -- name: GetLedgerAllocations :many
 WITH allocations AS (SELECT la.invoice_id,
