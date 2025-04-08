@@ -12,7 +12,6 @@ import (
 	"time"
 )
 
-const notifyUrl = "https://api.notifications.service.gov.uk"
 const emailEndpoint = "v2/notifications/email"
 const ProcessingErrorTemplateId = "872d88b3-076e-495c-bf81-a2be2d3d234c"
 const ProcessingFailedTemplateId = "a8f9ab79-1489-4639-9e6c-cad1f079ebcf"
@@ -34,17 +33,19 @@ type Payload struct {
 }
 
 type Client struct {
-	http     *http.Client
-	iss      string
-	jwtToken string
+	http      *http.Client
+	iss       string
+	jwtToken  string
+	notifyUrl string
 }
 
-func NewClient(apiKey string) *Client {
+func NewClient(apiKey string, notifyUrl string) *Client {
 	iss, jwtToken := parseNotifyApiKey(apiKey)
 	return &Client{
-		http:     http.DefaultClient,
-		iss:      iss,
-		jwtToken: jwtToken,
+		http:      http.DefaultClient,
+		iss:       iss,
+		jwtToken:  jwtToken,
+		notifyUrl: notifyUrl,
 	}
 }
 
@@ -71,7 +72,7 @@ func (c *Client) Send(ctx context.Context, payload Payload) error {
 		return err
 	}
 
-	r, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/%s", notifyUrl, emailEndpoint), &body)
+	r, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/%s", c.notifyUrl, emailEndpoint), &body)
 
 	if err != nil {
 		return err
