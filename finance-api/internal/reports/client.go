@@ -1,14 +1,13 @@
 package reports
 
 import (
+	"bytes"
 	"context"
 	"encoding/csv"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/db"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"io"
-	"os"
-	"path/filepath"
 	"time"
 )
 
@@ -18,7 +17,7 @@ type dbClient interface {
 }
 
 type fileStorageClient interface {
-	PutFile(ctx context.Context, bucketName string, fileName string, file io.Reader) (*string, error)
+	PutFile(ctx context.Context, bucketName string, fileName string, data io.Reader) (*string, error)
 }
 
 type notifyClient interface {
@@ -51,27 +50,22 @@ func NewClient(dbPool *pgxpool.Pool, fileStorage fileStorageClient, notify notif
 	}
 }
 
-func (c *Client) generate(ctx context.Context, filename string, query db.ReportQuery) (*os.File, error) {
+func (c *Client) generate(ctx context.Context, query db.ReportQuery) (*bytes.Buffer, error) {
 	rows, err := c.db.Run(ctx, query)
 	if err != nil {
 		return nil, err
 	}
 
-	return createCsv(filename, rows)
+	return createCsv(rows)
 }
 
-func createCsv(filename string, items [][]string) (*os.File, error) {
-	file, err := os.Create(filepath.Clean(filename))
-	if err != nil {
-		return nil, err
-	}
+func createCsv(items [][]string) (*bytes.Buffer, error) {
+	var buffer bytes.Buffer
 
-	defer file.Close()
-
-	writer := csv.NewWriter(file)
+	writer := csv.NewWriter(&buffer)
 
 	for _, item := range items {
-		err = writer.Write(item)
+		err := writer.Write(item)
 		if err != nil {
 			return nil, err
 		}
@@ -82,5 +76,5 @@ func createCsv(filename string, items [][]string) (*os.File, error) {
 		return nil, writer.Error()
 	}
 
-	return os.Open(filename)
+	return &buffer, nil
 }
