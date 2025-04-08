@@ -106,7 +106,7 @@ describe('API Tests', () => {
                      eventType: "PAYMENT_FILE",
                      filename: "feemoto_01042025normal.csv",
                      emailAddress: "test@example.com",
-                     uploadType: "PAYMENTS_MOTO_CARD",
+                     uploadType: "MISAPPLIED_PAYMENTS",
                      uploadDate: "2025-04-01",
                  }
              };
