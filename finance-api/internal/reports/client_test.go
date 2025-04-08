@@ -17,7 +17,7 @@ func TestCreateCsv(t *testing.T) {
 	writer.Flush()
 
 	items := [][]string{{"test", "hehe"}, {"123 Real Street", "Bingopolis"}}
-	_, err := createCsv("test2.csv", items)
+	_, err := createCsv(items)
 
 	wantBytes, _ := os.ReadFile("test.csv")
 	gotBytes, _ := os.ReadFile("test2.csv")
@@ -31,7 +31,7 @@ func TestCreateCsv(t *testing.T) {
 
 func TestCreateCsvNoItems(t *testing.T) {
 	items := [][]string{}
-	_, err := createCsv("test.csv", items)
+	_, err := createCsv(items)
 	gotBytes, _ := os.ReadFile("test.csv")
 
 	assert.Nil(t, err)

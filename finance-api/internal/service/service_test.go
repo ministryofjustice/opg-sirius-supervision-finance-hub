@@ -77,7 +77,7 @@ func (m *mockFileStorage) GetFileWithVersion(ctx context.Context, bucketName str
 	return io.NopCloser(m.file), nil
 }
 
-func (m *mockFileStorage) PutFile(ctx context.Context, bucketName string, fileName string, file io.Reader) (*string, error) {
+func (m *mockFileStorage) PutFile(ctx context.Context, bucketName string, fileName string, data io.Reader) (*string, error) {
 	if m.err != nil {
 		return nil, m.err
 	}
