@@ -33,15 +33,19 @@ func (s *Server) processUpload(ctx context.Context, event shared.FinanceAdminUpl
 	}
 
 	if event.UploadType.IsPayment() {
-		failedLines, err := s.service.ProcessPayments(ctx, records, event.UploadType, event.UploadDate, event.PisNumber)
-		if err != nil {
-			logger.Error("unable to process payments", "err", err)
+		failedLines, perr := s.service.ProcessPayments(ctx, records, event.UploadType, event.UploadDate, event.PisNumber)
+		if perr != nil {
+			logger.Error("unable to process payments due to error", "err", perr)
+		} else if len(failedLines) > 0 {
+			logger.Error(fmt.Sprintf("unable to process payments due to %d failed lines", len(failedLines)), "err", perr)
 		}
-		payload = createUploadNotifyPayload(event, err, failedLines)
+		payload = createUploadNotifyPayload(event, perr, failedLines)
 	} else if event.UploadType.IsReversal() {
-		failedLines, err := s.service.ProcessPaymentReversals(ctx, records, event.UploadType)
-		if err != nil {
-			logger.Error("unable to process payment reversals", "err", err)
+		failedLines, perr := s.service.ProcessPaymentReversals(ctx, records, event.UploadType)
+		if perr != nil {
+			logger.Error("unable to process payment reversals due to error", "err", perr)
+		} else if len(failedLines) > 0 {
+			logger.Error(fmt.Sprintf("unable to process payment reversals due to %d failed lines", len(failedLines)), "err", perr)
 		}
 		payload = createUploadNotifyPayload(event, err, failedLines)
 	} else {

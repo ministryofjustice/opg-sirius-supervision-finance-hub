@@ -74,7 +74,7 @@ func getReversalLines(ctx context.Context, record []string, uploadType shared.Re
 	switch uploadType {
 	case shared.ReportTypeUploadMisappliedPayments:
 		paymentType = shared.ParseTransactionType(record[0])
-		if paymentType == shared.TransactionTypeUnknown {
+		if !paymentType.Valid() {
 			(*failedLines)[index] = "PAYMENT_TYPE_PARSE_ERROR"
 			return shared.ReversalDetails{}
 		}
