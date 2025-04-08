@@ -23,7 +23,7 @@ func TestServer_updatePaymentMethod(t *testing.T) {
 	validator, _ := validation.New()
 
 	mock := &mockService{}
-	server := NewServer(mock, nil, nil, nil, validator, nil)
+	server := NewServer(mock, nil, nil, nil, nil, validator, nil)
 	_ = server.updatePaymentMethod(w, req)
 
 	res := w.Result()
@@ -46,7 +46,7 @@ func TestServer_updatePaymentMethod500Error(t *testing.T) {
 	validator, _ := validation.New()
 
 	mock := &mockService{err: errors.New("Something is wrong")}
-	server := NewServer(mock, nil, nil, nil, validator, nil)
+	server := NewServer(mock, nil, nil, nil, nil, validator, nil)
 	err := server.updatePaymentMethod(w, req)
 
 	assert.Error(t, err)

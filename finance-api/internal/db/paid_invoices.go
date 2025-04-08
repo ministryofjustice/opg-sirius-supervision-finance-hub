@@ -34,11 +34,11 @@ SELECT CONCAT(p.firstname, ' ', p.surname)                           AS "Custome
        i.reference                                                   AS "Invoice number",
        CASE
            WHEN tt.fee_type IS NULL THEN 'Refer to SOP'
-           ELSE CONCAT(tt.fee_type, i.reference) END                 AS "Txn number",
-       COALESCE(tt.description, l.type)                              AS "Txn description",
-       ((i.amount / 100.0)::NUMERIC(10, 2))::VARCHAR(255)            AS "Original amount",
-       COALESCE(TO_CHAR(l.bankdate, 'YYYY-MM-DD'), '')               AS "Received date",
-       TO_CHAR(l.datetime, 'YYYY-MM-DD')                             AS "Sirius upload date",
+           ELSE CONCAT(tt.fee_type, i.reference) END                                                           AS "Txn number",
+       COALESCE(tt.description, l.type)                                                                        AS "Txn description",
+       ((i.amount / 100.0)::NUMERIC(10, 2))::VARCHAR(255)                                                      AS "Original amount",
+       COALESCE(TO_CHAR(l.bankdate, 'YYYY-MM-DD'), '')                                                         AS "Received date",
+       TO_CHAR(l.datetime, 'YYYY-MM-DD')                                                                       AS "Sirius upload date",
        CASE
            WHEN l.type IN (
                            'BACS TRANSFER', 'CARD PAYMENT',
@@ -92,7 +92,8 @@ FROM paid_invoices pa
          LEFT JOIN supervision_finance.account a ON tt.account_code = a.code
          LEFT JOIN supervision_finance.cost_centre cc ON cc.code = a.cost_centre
 WHERE la.status IN ('ALLOCATED', 'REAPPLIED')
-  AND l.type NOT IN ('CREDIT WRITE OFF', 'WRITE OFF REVERSAL');
+  AND l.type NOT IN ('CREDIT WRITE OFF', 'WRITE OFF REVERSAL')
+ORDER BY l.datetime;
 `
 
 func (p *PaidInvoices) GetHeaders() []string {
