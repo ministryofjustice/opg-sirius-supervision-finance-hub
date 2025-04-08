@@ -156,6 +156,11 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 				Date:         reportRequest.TransactionDate,
 				ScheduleType: reportRequest.ScheduleType,
 			}
+		case shared.ScheduleTypeChequePayments:
+			query = &db.ChequePaymentsSchedule{
+				Date:      reportRequest.TransactionDate,
+				PisNumber: *reportRequest.PisNumber,
+			}
 		case shared.ScheduleTypeAdFeeInvoices,
 			shared.ScheduleTypeS2FeeInvoices,
 			shared.ScheduleTypeS3FeeInvoices,
