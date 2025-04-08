@@ -26,7 +26,7 @@ transaction_totals AS (
 	SELECT 
 		tt.line_description || ' [' || TO_CHAR(l.bankdate, 'DD/MM/YYYY') || ']' AS line_description,
         CASE WHEN l.type = 'SUPERVISION BACS PAYMENT' THEN '1841102088' ELSE '1841102050' END AS debit_account_code,
-		'1816100000' AS credit_account_code,
+		'1816102003' AS credit_account_code,
 		SUM(ABS(la.amount)) AS debit_amount,
 		SUM(CASE WHEN la.status != 'UNAPPLIED' THEN ABS(la.amount) ELSE 0 END) AS credit_amount,
         SUM(CASE WHEN la.status = 'UNAPPLIED' THEN ABS(la.amount) ELSE 0 END) AS unapply_amount,
