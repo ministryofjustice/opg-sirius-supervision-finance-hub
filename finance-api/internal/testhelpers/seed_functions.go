@@ -187,14 +187,14 @@ func (s *Seeder) CreatePayment(ctx context.Context, amount int32, bankDate time.
 	assert.Greater(s.t, newMaxLedger, latestLedgerId, "no ledgers created")
 }
 
-func (s *Seeder) ReversePayment(ctx context.Context, erroredCourtRef string, correctCourtRef string, amount string, bankDate string, receivedDate string, ledgerType shared.TransactionType) {
+func (s *Seeder) ReversePayment(ctx context.Context, erroredCourtRef string, correctCourtRef string, amount string, bankDate time.Time, receivedDate time.Time, ledgerType shared.TransactionType) {
 	var latestLedgerId int
 	err := s.Conn.QueryRow(ctx, "SELECT COALESCE(MAX(id), 0) FROM supervision_finance.ledger").Scan(&latestLedgerId)
 	assert.NoError(s.t, err, "failed to find latest ledger id: %v", err)
 
 	records := [][]string{
 		{"Payment type", "Current (errored) court reference", "New (correct) court reference", "Bank date", "Received date", "Amount", "PIS number (cheque only)"},
-		{ledgerType.Key(), erroredCourtRef, correctCourtRef, bankDate, receivedDate, amount, ""},
+		{ledgerType.Key(), erroredCourtRef, correctCourtRef, bankDate.Format("02/01/2006"), receivedDate.Format("02/01/2006"), amount, ""},
 	}
 	failedLines, err := s.Service.ProcessPaymentReversals(ctx, records, shared.ReportTypeUploadMisappliedPayments)
 	assert.Empty(s.t, failedLines, "failed to process reversals")
