@@ -108,7 +108,17 @@ func (s *Server) validateReportRequest(reportRequest shared.ReportRequest) error
 				"min-go-live": "This field Date needs to be looked at min-go-live",
 			}
 		}
+
+		if reportRequest.ScheduleType != nil && *reportRequest.ScheduleType == shared.ScheduleTypeChequePayments {
+			if reportRequest.PisNumber == nil {
+				validationErrors["PisNumber"] = map[string]string{
+					"required": "This field PisNumber needs to be looked at required",
+				}
+			}
+		}
 	}
+
+	fmt.Println(reportRequest)
 
 	if len(validationErrors) > 0 {
 		return apierror.ValidationError{Errors: validationErrors}
