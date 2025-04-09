@@ -3,7 +3,10 @@ package notify
 import (
 	"bytes"
 	"context"
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
@@ -89,7 +92,10 @@ func Test_SendEmailToNotify(t *testing.T) {
 				},
 			}
 			sut := Client{http: mockClient}
-			ctx := context.Background()
+			ctx := auth.Context{
+				Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test")),
+				User:    &shared.User{ID: 10},
+			}
 
 			err := sut.Send(ctx, Payload{
 				EmailAddress:    "test@email.com",
