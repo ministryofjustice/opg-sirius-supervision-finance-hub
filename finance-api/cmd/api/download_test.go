@@ -19,10 +19,10 @@ func TestServer_download(t *testing.T) {
 
 	fileContent := "col1,col2,col3\n1,a,Z\n"
 
-	mockS3 := MockFileStorage{}
+	mockS3 := mockFileStorage{}
 	mockS3.file = bytes.NewBufferString(fileContent)
 
-	server := NewServer(nil, nil, &mockS3, nil, nil, &Envs{ReportsBucket: "test"})
+	server := NewServer(nil, nil, &mockS3, nil, nil, nil, &Envs{ReportsBucket: "test"})
 	_ = server.download(w, r)
 
 	res := w.Result()
@@ -40,9 +40,9 @@ func TestServer_download_noMatch(t *testing.T) {
 	r = r.WithContext(ctx)
 	w := httptest.NewRecorder()
 
-	mockS3 := MockFileStorage{}
+	mockS3 := mockFileStorage{}
 	mockS3.err = &types.NoSuchKey{}
-	server := NewServer(nil, nil, &mockS3, nil, nil, &Envs{ReportsBucket: "test"})
+	server := NewServer(nil, nil, &mockS3, nil, nil, nil, &Envs{ReportsBucket: "test"})
 
 	err := server.download(w, r)
 
