@@ -1,12 +1,26 @@
 package shared
 
-import "time"
+import (
+	"github.com/jackc/pgx/v5/pgtype"
+)
 
 type PaymentDetails struct {
 	Amount       int32
-	BankDate     time.Time
-	CourtRef     string
-	LedgerType   string
-	ReceivedDate time.Time
-	PisNumber    Nillable[int]
+	BankDate     pgtype.Date
+	CourtRef     pgtype.Text
+	LedgerType   TransactionType
+	ReceivedDate pgtype.Timestamp
+	CreatedBy    pgtype.Int4
+	PisNumber    pgtype.Int4
+}
+
+type ReversalDetails struct {
+	PaymentType     TransactionType
+	ErroredCourtRef pgtype.Text
+	CorrectCourtRef pgtype.Text
+	BankDate        pgtype.Date
+	ReceivedDate    pgtype.Timestamp
+	Amount          int32
+	CreatedBy       pgtype.Int4
+	PisNumber       pgtype.Int4
 }
