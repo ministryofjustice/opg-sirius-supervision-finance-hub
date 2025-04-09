@@ -81,6 +81,12 @@ func formatFailedLines(failedLines map[int]string) []string {
 			errorMessage = "Duplicate payment line"
 		case "CLIENT_NOT_FOUND":
 			errorMessage = "Could not find a client with this court reference"
+		case "PAYMENT_TYPE_PARSE_ERROR":
+			errorMessage = "Unable to parse payment type"
+		case "UNKNOWN_UPLOAD_TYPE":
+			errorMessage = "Unknown upload type"
+		case "NO_MATCHED_PAYMENT":
+			errorMessage = "Unable to find a matched payment to reverse"
 		}
 
 		formattedLines = append(formattedLines, fmt.Sprintf("Line %d: %s", key, errorMessage))
