@@ -13,6 +13,7 @@ import (
 func (s *Server) processUpload(ctx context.Context, event shared.FinanceAdminUploadEvent) error {
 	logger := s.Logger(ctx)
 
+	logger.Debug("DEBUG CHECK")
 	logger.Info(fmt.Sprintf("processing %s upload", event.UploadType))
 	file, err := s.fileStorage.GetFile(ctx, os.Getenv("ASYNC_S3_BUCKET"), event.Filename)
 
@@ -37,7 +38,7 @@ func (s *Server) processUpload(ctx context.Context, event shared.FinanceAdminUpl
 		if perr != nil {
 			logger.Error("unable to process payments due to error", "err", perr)
 		} else if len(failedLines) > 0 {
-			logger.Error(fmt.Sprintf("unable to process payments due to %d failed lines", len(failedLines)), "err", perr)
+			logger.Error(fmt.Sprintf("unable to process payments due to %d failed lines", len(failedLines)))
 		}
 		payload = createUploadNotifyPayload(event, perr, failedLines)
 	} else if event.UploadType.IsReversal() {
@@ -45,7 +46,7 @@ func (s *Server) processUpload(ctx context.Context, event shared.FinanceAdminUpl
 		if perr != nil {
 			logger.Error("unable to process payment reversals due to error", "err", perr)
 		} else if len(failedLines) > 0 {
-			logger.Error(fmt.Sprintf("unable to process payment reversals due to %d failed lines", len(failedLines)), "err", perr)
+			logger.Error(fmt.Sprintf("unable to process payment reversals due to %d failed lines", len(failedLines)))
 		}
 		payload = createUploadNotifyPayload(event, err, failedLines)
 	} else {
@@ -53,6 +54,7 @@ func (s *Server) processUpload(ctx context.Context, event shared.FinanceAdminUpl
 		payload = createUploadNotifyPayload(event, fmt.Errorf("invalid upload type"), map[int]string{})
 	}
 
+	logger.Info("payload created", "templateId", payload.TemplateId)
 	return s.notify.Send(ctx, payload)
 }
 
