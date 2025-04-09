@@ -82,14 +82,14 @@ func getReversalLines(ctx context.Context, record []string, uploadType shared.Re
 		_ = erroredCourtRef.Scan(record[1])
 		_ = correctCourtRef.Scan(record[2])
 
-		bd, err := time.Parse("2006-01-02", record[3])
+		bd, err := time.Parse("02/01/2006", record[3])
 		if err != nil {
 			(*failedLines)[index] = "DATE_PARSE_ERROR"
 			return shared.ReversalDetails{}
 		}
 		_ = bankDate.Scan(bd)
 
-		rd, err := time.Parse("2006-01-02", record[4])
+		rd, err := time.Parse("02/01/2006", record[4])
 		if err != nil {
 			(*failedLines)[index] = "DATE_PARSE_ERROR"
 			return shared.ReversalDetails{}
