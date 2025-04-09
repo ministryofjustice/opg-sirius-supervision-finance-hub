@@ -29,8 +29,8 @@ func (suite *IntegrationSuite) Test_processReversals() {
 		"INSERT INTO finance_client VALUES (1, 1, 'test 1', 'DEMANDED', NULL, '1111');",
 		"INSERT INTO finance_client VALUES (2, 2, 'test 1 - replacement', 'DEMANDED', NULL, '2222');",
 		"INSERT INTO invoice VALUES (1, 1, 1, 'AD', 'test 1 paid', '2023-04-01', '2025-03-31', 15000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
-		"INSERT INTO ledger VALUES (1, 'client-1-reverse-me', '2024-01-02 15:32:10', '', 1000, 'payment 1', 'MOTO CARD PAYMENT', 'CONFIRMED', 1, NULL, NULL, NULL, '2024-01-01', NULL, NULL, NULL, NULL, '2020-05-05', 1);",
-		"INSERT INTO ledger_allocation VALUES (1, 1, 1, '2024-01-02 15:32:10', 1000, 'ALLOCATED', NULL, '', '2024-01-01', NULL);",
+		"INSERT INTO ledger VALUES (1, 'client-1-reverse-me', '02/01/2024 15:32:10', '', 1000, 'payment 1', 'MOTO CARD PAYMENT', 'CONFIRMED', 1, NULL, NULL, NULL, '01/01/2024', NULL, NULL, NULL, NULL, '2020-05-05', 1);",
+		"INSERT INTO ledger_allocation VALUES (1, 1, 1, '02/01/2024 15:32:10', 1000, 'ALLOCATED', NULL, '', '01/01/2024', NULL);",
 		"INSERT INTO invoice VALUES (2, 2, 2, 'AD', 'test 1 replacement unpaid', '2023-04-01', '2025-03-31', 15000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 
 		//test 2
@@ -74,13 +74,13 @@ func (suite *IntegrationSuite) Test_processReversals() {
 			name: "failure cases with eventual success",
 			records: [][]string{
 				{"Payment type", "Current (errored) court reference", "New (correct) court reference", "Bank date", "Received date", "Amount", "PIS number (cheque only)"},
-				{"MOTO CARD PAYMENT", "0000", "2222", "2024-01-01", "2024-01-02", "10.00", ""},   // current court reference not found
-				{"MOTO CARD PAYMENT", "1111", "0000", "2024-01-01", "2024-01-02", "10.00", ""},   // new court reference not found
-				{"ONLINE CARD PAYMENT", "1111", "2222", "2024-01-01", "2024-01-02", "10.00", ""}, // incorrect payment type
-				{"MOTO CARD PAYMENT", "1111", "2222", "2024-01-12", "2024-01-02", "10.00", ""},   // bank date does not match payment
-				{"MOTO CARD PAYMENT", "1111", "2222", "2024-01-01", "2024-01-12", "10.00", ""},   // received date does not match payment
-				{"MOTO CARD PAYMENT", "1111", "2222", "2024-01-01", "2024-01-02", "10.01", ""},   // amount does not match payment
-				{"MOTO CARD PAYMENT", "1111", "2222", "2024-01-01", "2024-01-02", "10.00", ""},   // successful match
+				{"MOTO CARD PAYMENT", "0000", "2222", "01/01/2024", "02/01/2024", "10.00", ""},   // current court reference not found
+				{"MOTO CARD PAYMENT", "1111", "0000", "01/01/2024", "02/01/2024", "10.00", ""},   // new court reference not found
+				{"ONLINE CARD PAYMENT", "1111", "2222", "01/01/2024", "02/01/2024", "10.00", ""}, // incorrect payment type
+				{"MOTO CARD PAYMENT", "1111", "2222", "12/01/2024", "02/01/2024", "10.00", ""},   // bank date does not match payment
+				{"MOTO CARD PAYMENT", "1111", "2222", "01/01/2024", "12/01/2024", "10.00", ""},   // received date does not match payment
+				{"MOTO CARD PAYMENT", "1111", "2222", "01/01/2024", "02/01/2024", "10.01", ""},   // amount does not match payment
+				{"MOTO CARD PAYMENT", "1111", "2222", "01/01/2024", "02/01/2024", "10.00", ""},   // successful match
 			},
 			allocations: []createdReversalAllocation{
 				{
@@ -119,7 +119,7 @@ func (suite *IntegrationSuite) Test_processReversals() {
 			name: "original payment over two invoices applied to client with overpayment",
 			records: [][]string{
 				{"Payment type", "Current (errored) court reference", "New (correct) court reference", "Bank date", "Received date", "Amount", "PIS number (cheque only)"},
-				{"ONLINE CARD PAYMENT", "3333", "4444", "2025-01-02", "2025-01-02", "150.00", ""},
+				{"ONLINE CARD PAYMENT", "3333", "4444", "02/01/2025", "02/01/2025", "150.00", ""},
 			},
 			allocations: []createdReversalAllocation{
 				{
@@ -162,7 +162,7 @@ func (suite *IntegrationSuite) Test_processReversals() {
 			name: "errored client in credit",
 			records: [][]string{
 				{"Payment type", "Current (errored) court reference", "New (correct) court reference", "Bank date", "Received date", "Amount", "PIS number (cheque only)"},
-				{"ONLINE CARD PAYMENT", "5555", "6666", "2025-01-02", "2025-01-02", "150.00", ""},
+				{"ONLINE CARD PAYMENT", "5555", "6666", "02/01/2025", "02/01/2025", "150.00", ""},
 			},
 			allocations: []createdReversalAllocation{
 				{
