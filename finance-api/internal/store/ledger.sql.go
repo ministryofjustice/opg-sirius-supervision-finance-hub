@@ -11,21 +11,59 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const checkDuplicateLedger = `-- name: CheckDuplicateLedger :one
+SELECT EXISTS (SELECT 1
+               FROM ledger l
+                        JOIN finance_client fc ON fc.id = l.finance_client_id
+               WHERE l.amount = $1
+                 AND l.status = 'CONFIRMED'
+                 AND l.bankdate = $2
+                 AND l.datetime::DATE = ($3::TIMESTAMP)::DATE
+                 AND l.type = $4
+                 AND fc.court_ref = $5
+                 AND COALESCE(l.pis_number, 0) = COALESCE($6, 0))
+`
+
+type CheckDuplicateLedgerParams struct {
+	Amount       int32
+	BankDate     pgtype.Date
+	ReceivedDate pgtype.Timestamp
+	Type         string
+	CourtRef     pgtype.Text
+	PisNumber    pgtype.Int4
+}
+
+func (q *Queries) CheckDuplicateLedger(ctx context.Context, arg CheckDuplicateLedgerParams) (bool, error) {
+	row := q.db.QueryRow(ctx, checkDuplicateLedger,
+		arg.Amount,
+		arg.BankDate,
+		arg.ReceivedDate,
+		arg.Type,
+		arg.CourtRef,
+		arg.PisNumber,
+	)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const createLedger = `-- name: CreateLedger :one
-INSERT INTO ledger (id, datetime, finance_client_id, amount, notes, type, status, fee_reduction_id, created_at, created_by, reference, method)
-SELECT nextval('ledger_id_seq'),
-       now(),
+INSERT INTO ledger (id, datetime, finance_client_id, amount, notes, type, status, fee_reduction_id, created_at,
+                    created_by, reference, method)
+SELECT NEXTVAL('ledger_id_seq'),
+       NOW(),
        fc.id,
        $2,
        $3,
        $4,
        $5,
        $6,
-       now(),
+       NOW(),
        $7,
        gen_random_uuid(),
        ''
-FROM finance_client fc WHERE client_id = $1
+FROM finance_client fc
+WHERE client_id = $1
 RETURNING id
 `
 
@@ -55,47 +93,49 @@ func (q *Queries) CreateLedger(ctx context.Context, arg CreateLedgerParams) (int
 }
 
 const createLedgerForCourtRef = `-- name: CreateLedgerForCourtRef :one
-INSERT INTO ledger (id, datetime, bankdate, finance_client_id, amount, notes, type, status, created_at, created_by, reference, method, pis_number)
-SELECT nextval('ledger_id_seq'),
+INSERT INTO ledger (id, datetime, bankdate, finance_client_id, amount, notes, type, status, created_at, created_by,
+                    reference, method, pis_number)
+SELECT NEXTVAL('ledger_id_seq'),
+       $1,
        $2,
-       $3,
        fc.id,
+       $3,
        $4,
        $5,
        $6,
+       NOW(),
        $7,
-       now(),
-       $8,
        gen_random_uuid(),
        '',
-       $9
-FROM finance_client fc WHERE court_ref = $1
+       $8
+FROM finance_client fc
+WHERE court_ref = $9
 RETURNING id
 `
 
 type CreateLedgerForCourtRefParams struct {
-	CourtRef  pgtype.Text
-	Datetime  pgtype.Timestamp
-	Bankdate  pgtype.Date
-	Amount    int32
-	Notes     pgtype.Text
-	Type      string
-	Status    string
-	CreatedBy pgtype.Int4
-	PisNumber pgtype.Int4
+	ReceivedDate pgtype.Timestamp
+	BankDate     pgtype.Date
+	Amount       int32
+	Notes        pgtype.Text
+	Type         string
+	Status       string
+	CreatedBy    pgtype.Int4
+	PisNumber    pgtype.Int4
+	CourtRef     pgtype.Text
 }
 
 func (q *Queries) CreateLedgerForCourtRef(ctx context.Context, arg CreateLedgerForCourtRefParams) (int32, error) {
 	row := q.db.QueryRow(ctx, createLedgerForCourtRef,
-		arg.CourtRef,
-		arg.Datetime,
-		arg.Bankdate,
+		arg.ReceivedDate,
+		arg.BankDate,
 		arg.Amount,
 		arg.Notes,
 		arg.Type,
 		arg.Status,
 		arg.CreatedBy,
 		arg.PisNumber,
+		arg.CourtRef,
 	)
 	var id int32
 	err := row.Scan(&id)
@@ -105,8 +145,12 @@ func (q *Queries) CreateLedgerForCourtRef(ctx context.Context, arg CreateLedgerF
 const getLedgerForPayment = `-- name: GetLedgerForPayment :one
 SELECT l.id
 FROM ledger l
-LEFT JOIN finance_client fc ON fc.id = l.finance_client_id
-WHERE l.amount = $1 AND l.status = 'CONFIRMED' AND l.bankdate = $2 AND l.type = $3 AND fc.court_ref = $4
+         JOIN finance_client fc ON fc.id = l.finance_client_id
+WHERE l.amount = $1
+  AND l.status = 'CONFIRMED'
+  AND l.bankdate = $2
+  AND l.type = $3
+  AND fc.court_ref = $4
 LIMIT 1
 `
 
