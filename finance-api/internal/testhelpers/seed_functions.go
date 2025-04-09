@@ -2,6 +2,8 @@ package testhelpers
 
 import (
 	"context"
+	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"time"
@@ -133,14 +135,30 @@ func (s *Seeder) CreateFeeReduction(ctx context.Context, clientId int32, feeType
 	assert.NoError(s.t, err, "failed to update ledger allocation dates for reduction: %v", err)
 }
 
-func (s *Seeder) CreateChequePayment(ctx context.Context, amount int32, bankDate time.Time, courtRef string, pisNumber int, uploadDate time.Time) {
+func (s *Seeder) CreatePayment(ctx context.Context, amount int32, bankDate time.Time, courtRef string, ledgerType shared.TransactionType, uploadDate time.Time, pisNumber int32) {
 	payment := shared.PaymentDetails{
-		Amount:       amount,
-		BankDate:     bankDate,
-		CourtRef:     courtRef,
-		LedgerType:   shared.TransactionTypeSupervisionChequePayment.Key(),
-		ReceivedDate: uploadDate,
-		PisNumber:    shared.Nillable[int]{Value: pisNumber, Valid: true},
+		Amount: amount,
+		BankDate: pgtype.Date{
+			Time:  bankDate,
+			Valid: true,
+		},
+		CourtRef: pgtype.Text{
+			String: courtRef,
+			Valid:  true,
+		},
+		LedgerType: ledgerType,
+		ReceivedDate: pgtype.Timestamp{
+			Time:  uploadDate,
+			Valid: true,
+		},
+		CreatedBy: pgtype.Int4{
+			Int32: ctx.(auth.Context).User.ID,
+			Valid: true,
+		},
+		PisNumber: pgtype.Int4{
+			Int32: pisNumber,
+			Valid: pisNumber > 0,
+		},
 	}
 
 	tx, err := s.Service.BeginStoreTx(ctx)
@@ -150,11 +168,8 @@ func (s *Seeder) CreateChequePayment(ctx context.Context, amount int32, bankDate
 	err = s.Conn.QueryRow(ctx, "SELECT COALESCE(MAX(id), 0) FROM supervision_finance.ledger").Scan(&latestLedgerId)
 	assert.NoError(s.t, err, "failed to find latest ledger id: %v", err)
 
-	failedLines := make(map[int]string)
-
-	err = s.Service.ProcessPaymentsUploadLine(ctx, tx, payment, 0, &failedLines)
+	err = s.Service.ProcessPaymentsUploadLine(ctx, tx, payment)
 	assert.NoError(s.t, err, "payment not processed: %v", err)
-	assert.Len(s.t, failedLines, 0, "payment failed: %v", failedLines)
 
 	err = tx.Commit(ctx)
 	assert.NoError(s.t, err, "failed to commit payment: %v", err)
@@ -172,35 +187,23 @@ func (s *Seeder) CreateChequePayment(ctx context.Context, amount int32, bankDate
 	assert.Greater(s.t, newMaxLedger, latestLedgerId, "no ledgers created")
 }
 
-func (s *Seeder) CreatePayment(ctx context.Context, amount int32, bankDate time.Time, courtRef string, ledgerType shared.TransactionType, uploadDate time.Time) {
-	payment := shared.PaymentDetails{
-		Amount:       amount,
-		BankDate:     bankDate,
-		CourtRef:     courtRef,
-		LedgerType:   ledgerType.Key(),
-		ReceivedDate: uploadDate,
-	}
-
-	tx, err := s.Service.BeginStoreTx(ctx)
-	assert.NoError(s.t, err, "failed to begin transaction: %v", err)
-
+func (s *Seeder) ReversePayment(ctx context.Context, erroredCourtRef string, correctCourtRef string, amount string, bankDate string, receivedDate string, ledgerType shared.TransactionType) {
 	var latestLedgerId int
-	err = s.Conn.QueryRow(ctx, "SELECT COALESCE(MAX(id), 0) FROM supervision_finance.ledger").Scan(&latestLedgerId)
+	err := s.Conn.QueryRow(ctx, "SELECT COALESCE(MAX(id), 0) FROM supervision_finance.ledger").Scan(&latestLedgerId)
 	assert.NoError(s.t, err, "failed to find latest ledger id: %v", err)
 
-	failedLines := make(map[int]string)
+	records := [][]string{
+		{"Payment type", "Current (errored) court reference", "New (correct) court reference", "Bank date", "Received date", "Amount", "PIS number (cheque only)"},
+		{ledgerType.Key(), erroredCourtRef, correctCourtRef, bankDate, receivedDate, amount, ""},
+	}
+	failedLines, err := s.Service.ProcessPaymentReversals(ctx, records, shared.ReportTypeUploadMisappliedPayments)
+	assert.Empty(s.t, failedLines, "failed to process reversals")
+	assert.NoError(s.t, err, "failed to process reversals: %v", err)
 
-	err = s.Service.ProcessPaymentsUploadLine(ctx, tx, payment, 0, &failedLines)
-	assert.NoError(s.t, err, "payment not processed: %v", err)
-	assert.Len(s.t, failedLines, 0, "payment failed: %v", failedLines)
-
-	err = tx.Commit(ctx)
-	assert.NoError(s.t, err, "failed to commit payment: %v", err)
-
-	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger SET datetime = $1, created_at = $1 WHERE id > $2", uploadDate, latestLedgerId)
+	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger SET datetime = $1, created_at = $1 WHERE id > $2", receivedDate, latestLedgerId)
 	assert.NoError(s.t, err, "failed to update ledger dates for payment: %v", err)
 
-	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger_allocation SET datetime = $1 WHERE ledger_id > $2", uploadDate, latestLedgerId)
+	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger_allocation SET datetime = $1 WHERE ledger_id > $2", receivedDate, latestLedgerId)
 	assert.NoError(s.t, err, "failed to update ledger allocation dates for payment: %v", err)
 
 	var newMaxLedger int
