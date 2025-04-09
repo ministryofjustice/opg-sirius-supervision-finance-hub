@@ -84,14 +84,14 @@ func getReversalLines(ctx context.Context, record []string, uploadType shared.Re
 
 		bd, err := time.Parse("2006-01-02", record[3])
 		if err != nil {
-			(*failedLines)[index] = "BANK_DATE_PARSE_ERROR"
+			(*failedLines)[index] = "DATE_PARSE_ERROR"
 			return shared.ReversalDetails{}
 		}
 		_ = bankDate.Scan(bd)
 
 		rd, err := time.Parse("2006-01-02", record[4])
 		if err != nil {
-			(*failedLines)[index] = "RECEIVED_DATE_PARSE_ERROR"
+			(*failedLines)[index] = "DATE_PARSE_ERROR"
 			return shared.ReversalDetails{}
 		}
 		_ = receivedDate.Scan(rd)
@@ -140,7 +140,7 @@ func (s *Service) validateReversalLine(ctx context.Context, details shared.Rever
 	exists, _ = s.store.CheckClientExistsByCourtRef(ctx, details.CorrectCourtRef)
 
 	if !exists {
-		(*failedLines)[index] = "COURT_REF_MISMATCH"
+		(*failedLines)[index] = "CLIENT_NOT_FOUND"
 		return false
 	}
 
