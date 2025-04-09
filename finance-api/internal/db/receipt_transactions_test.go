@@ -21,8 +21,8 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
 	_, _ = suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, twoMonthsAgo.StringPtr())
 
-	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "11111111", shared.TransactionTypeMotoCardPayment, yesterday.Date())
-	suite.seeder.CreatePayment(ctx, 2550, yesterday.Date(), "11111111", shared.TransactionTypeSupervisionBACSPayment, yesterday.Date())
+	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "11111111", shared.TransactionTypeMotoCardPayment, yesterday.Date(), 0)
+	suite.seeder.CreatePayment(ctx, 2550, yesterday.Date(), "11111111", shared.TransactionTypeSupervisionBACSPayment, yesterday.Date(), 0)
 
 	suite.seeder.CreateFeeReduction(ctx, client1ID, shared.FeeReductionTypeExemption, strconv.Itoa(yesterday.Date().Year()-1), 4, "", yesterday.Date())
 
@@ -31,8 +31,8 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	suite.seeder.CreateOrder(ctx, client2ID, "ACTIVE")
 	invoice2ID, _ := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, &general, twoMonthsAgo.StringPtr(), nil, nil, nil, twoMonthsAgo.StringPtr())
 
-	suite.seeder.CreatePayment(ctx, 120, yesterday.Date(), "22222222", shared.TransactionTypeOPGBACSPayment, yesterday.Date())
-	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "22222222", shared.TransactionTypeMotoCardPayment, yesterday.Date())
+	suite.seeder.CreatePayment(ctx, 120, yesterday.Date(), "22222222", shared.TransactionTypeOPGBACSPayment, yesterday.Date(), 0)
+	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "22222222", shared.TransactionTypeMotoCardPayment, yesterday.Date(), 0)
 
 	suite.seeder.CreateAdjustment(ctx, client2ID, invoice2ID, shared.AdjustmentTypeCreditMemo, -2500, "", yesterday.DatePtr())
 
@@ -41,25 +41,34 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	suite.seeder.CreateOrder(ctx, client2ID, "ACTIVE")
 	_, _ = suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeGA, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, twoMonthsAgo.StringPtr())
 
-	suite.seeder.CreatePayment(ctx, 4020, yesterday.Date(), "33333333", shared.TransactionTypeDirectDebitPayment, yesterday.Date())
-	suite.seeder.CreatePayment(ctx, 1700, yesterday.Date(), "33333333", shared.TransactionTypeOnlineCardPayment, yesterday.Date())
+	suite.seeder.CreatePayment(ctx, 4020, yesterday.Date(), "33333333", shared.TransactionTypeDirectDebitPayment, yesterday.Date(), 0)
+	suite.seeder.CreatePayment(ctx, 1700, yesterday.Date(), "33333333", shared.TransactionTypeOnlineCardPayment, yesterday.Date(), 0)
 
 	// one client with two MOTO overpayments, one on a different date
 	client4ID := suite.seeder.CreateClient(ctx, "Olive", "Overpayment", "44444444", "2314")
 	_, _ = suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeS3, &minimal, yesterday.StringPtr(), nil, nil, nil, yesterday.StringPtr())
-	suite.seeder.CreatePayment(ctx, 10000, yesterday.Date(), "44444444", shared.TransactionTypeMotoCardPayment, yesterday.Date())
-	suite.seeder.CreatePayment(ctx, 10000, today.Date(), "44444444", shared.TransactionTypeMotoCardPayment, today.Date())
+	suite.seeder.CreatePayment(ctx, 10000, yesterday.Date(), "44444444", shared.TransactionTypeMotoCardPayment, yesterday.Date(), 0)
+	suite.seeder.CreatePayment(ctx, 10000, today.Date(), "44444444", shared.TransactionTypeMotoCardPayment, today.Date(), 0)
+
+	// an additional MOTO payment that is misapplied and added onto the correct client
+	client5ID := suite.seeder.CreateClient(ctx, "Ernie", "Error", "55555555", "2314")
+	_, _ = suite.seeder.CreateInvoice(ctx, client5ID, shared.InvoiceTypeS3, &minimal, yesterday.StringPtr(), nil, nil, nil, yesterday.StringPtr())
+	suite.seeder.CreatePayment(ctx, 1000, yesterday.Date(), "55555555", shared.TransactionTypeMotoCardPayment, yesterday.Date(), 0)
+
+	client6ID := suite.seeder.CreateClient(ctx, "Colette", "Correct", "66666666", "2314")
+	_, _ = suite.seeder.CreateInvoice(ctx, client6ID, shared.InvoiceTypeS3, &minimal, yesterday.StringPtr(), nil, nil, nil, yesterday.StringPtr())
+	suite.seeder.ReversePayment(ctx, "55555555", "66666666", "10.00", yesterday.String(), yesterday.String(), shared.TransactionTypeMotoCardPayment)
 
 	// one client with an S2 invoice, two cheques payments for the same PIS number and one cheque payment for another PIS number
-	client5ID := suite.seeder.CreateClient(ctx, "Gilgamesh", "Test", "12398785", "9999")
-	suite.seeder.CreateOrder(ctx, client5ID, "ACTIVE")
-	_, _ = suite.seeder.CreateInvoice(ctx, client5ID, shared.InvoiceTypeS2, &general, twoMonthsAgo.StringPtr(), nil, nil, nil, twoMonthsAgo.StringPtr())
+	client7ID := suite.seeder.CreateClient(ctx, "Gilgamesh", "Test", "77777777", "9999")
+	suite.seeder.CreateOrder(ctx, client7ID, "ACTIVE")
+	_, _ = suite.seeder.CreateInvoice(ctx, client7ID, shared.InvoiceTypeS2, &general, twoMonthsAgo.StringPtr(), nil, nil, nil, twoMonthsAgo.StringPtr())
 
-	pisNumber1 := 100023
-	pisNumber2 := 100024
-	suite.seeder.CreateChequePayment(ctx, 4020, yesterday.Date(), "12398785", pisNumber1, yesterday.Date())
-	suite.seeder.CreateChequePayment(ctx, 1700, yesterday.Date(), "12398785", pisNumber1, yesterday.Date())
-	suite.seeder.CreateChequePayment(ctx, 1500, yesterday.Date(), "12398785", pisNumber2, yesterday.Date())
+	pisNumber1 := int32(100023)
+	pisNumber2 := int32(100024)
+	suite.seeder.CreatePayment(ctx, 4020, yesterday.Date(), "77777777", shared.TransactionTypeSupervisionChequePayment, yesterday.Date(), pisNumber1)
+	suite.seeder.CreatePayment(ctx, 1700, yesterday.Date(), "77777777", shared.TransactionTypeSupervisionChequePayment, yesterday.Date(), pisNumber1)
+	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "77777777", shared.TransactionTypeSupervisionChequePayment, yesterday.Date(), pisNumber2)
 
 	c := Client{suite.seeder.Conn}
 
@@ -80,8 +89,8 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	assert.Equal(suite.T(), "=\"00000000\"", results[0]["Analysis"], "Analysis - MOTO card Payments Debit")
 	assert.Equal(suite.T(), "=\"0000\"", results[0]["Intercompany"], "Intercompany - MOTO card Payments Debit")
 	assert.Equal(suite.T(), "=\"000000\"", results[0]["Spare"], "Spare - MOTO card Payments Debit")
-	assert.Equal(suite.T(), "130.00", results[0]["Debit"], "Debit - MOTO card Payments Debit")
-	assert.Equal(suite.T(), "", results[0]["Credit"], "Credit - MOTO card Payments Debit")
+	assert.Equal(suite.T(), "140.00", results[0]["Debit"], "Debit - MOTO card Payments Debit")
+	assert.Equal(suite.T(), "10.00", results[0]["Credit"], "Credit - MOTO card Payments Debit")
 	assert.Equal(suite.T(), fmt.Sprintf("MOTO card [%s]", yesterday.Date().Format("02/01/2006")), results[0]["Line description"], "Line description - MOTO card Payments Debit")
 
 	assert.Equal(suite.T(), "=\"0470\"", results[1]["Entity"], "Entity - MOTO card Payments Credit")
@@ -91,8 +100,8 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	assert.Equal(suite.T(), "=\"00000000\"", results[1]["Analysis"], "Analysis - MOTO card Payments Credit")
 	assert.Equal(suite.T(), "=\"0000\"", results[1]["Intercompany"], "Intercompany - MOTO card Payments Credit")
 	assert.Equal(suite.T(), "=\"00000\"", results[1]["Spare"], "Spare - MOTO card Payments Credit")
-	assert.Equal(suite.T(), "", results[1]["Debit"], "Debit - MOTO card Payments Credit")
-	assert.Equal(suite.T(), "40.00", results[1]["Credit"], "Credit - MOTO card Payments Credit")
+	assert.Equal(suite.T(), "10.00", results[1]["Debit"], "Debit - MOTO card Payments Credit")
+	assert.Equal(suite.T(), "50.00", results[1]["Credit"], "Credit - MOTO card Payments Credit")
 	assert.Equal(suite.T(), fmt.Sprintf("MOTO card [%s]", yesterday.Date().Format("02/01/2006")), results[1]["Line description"], "Line description - MOTO card Payments Credit")
 
 	assert.Equal(suite.T(), "=\"0470\"", results[2]["Entity"], "Entity - MOTO card Payments Overpayment")
