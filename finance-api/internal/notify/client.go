@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"net/http"
 	"strings"
@@ -60,6 +61,9 @@ func parseNotifyApiKey(notifyApiKey string) (string, string) {
 }
 
 func (c *Client) Send(ctx context.Context, payload Payload) error {
+	logger := telemetry.LoggerFromContext(ctx)
+	logger.Info("sending payload to notify")
+
 	signedToken, err := c.createSignedJwtToken()
 	if err != nil {
 		return err
@@ -67,10 +71,14 @@ func (c *Client) Send(ctx context.Context, payload Payload) error {
 
 	var body bytes.Buffer
 
+	logger.Info("jwt signed")
+
 	err = json.NewEncoder(&body).Encode(payload)
 	if err != nil {
 		return err
 	}
+
+	logger.Info("payload encoded")
 
 	r, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/%s", c.notifyUrl, emailEndpoint), &body)
 
@@ -85,6 +93,8 @@ func (c *Client) Send(ctx context.Context, payload Payload) error {
 	if err != nil {
 		return err
 	}
+
+	logger.Info("payload sent to notify")
 
 	defer resp.Body.Close()
 
