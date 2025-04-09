@@ -1,7 +1,6 @@
 package api
 
 import (
-	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"net/http"
@@ -12,7 +11,7 @@ import (
 func (s *Server) authenticateAPI(h http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := auth.Context{Context: r.Context()}
-		logger := telemetry.LoggerFromContext(ctx)
+		logger := s.Logger(ctx)
 
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
@@ -45,7 +44,7 @@ func (s *Server) authenticateAPI(h http.Handler) http.HandlerFunc {
 func (s *Server) authenticateEvent(h http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := auth.Context{Context: r.Context()}
-		logger := telemetry.LoggerFromContext(ctx)
+		logger := s.Logger(ctx)
 
 		authHeader := r.Header.Get("Authorization")
 

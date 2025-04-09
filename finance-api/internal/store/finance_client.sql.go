@@ -11,6 +11,17 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const checkClientExistsByCourtRef = `-- name: CheckClientExistsByCourtRef :one
+SELECT EXISTS (SELECT 1 FROM finance_client WHERE court_ref = $1)
+`
+
+func (q *Queries) CheckClientExistsByCourtRef(ctx context.Context, courtRef pgtype.Text) (bool, error) {
+	row := q.db.QueryRow(ctx, checkClientExistsByCourtRef, courtRef)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const getAccountInformation = `-- name: GetAccountInformation :one
 WITH balances AS (SELECT fc.id,
                          COALESCE(SUM(
