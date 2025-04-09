@@ -144,6 +144,10 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 			return "", reportName, nil, fmt.Errorf("unimplemented journal query: %s", reportRequest.JournalType.Key())
 		}
 	case shared.ReportsTypeSchedule:
+		if reportRequest.ScheduleType != nil {
+			fmt.Printf("requested schedule: %s", reportRequest.ScheduleType.Key())
+		}
+
 		filename = fmt.Sprintf("schedule_%s_%s.csv", reportRequest.ScheduleType.Key(), reportRequest.TransactionDate.Time.Format("02:01:2006"))
 		reportName = reportRequest.ScheduleType.Translation()
 		switch *reportRequest.ScheduleType {
@@ -155,6 +159,11 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 			query = &db.PaymentsSchedule{
 				Date:         reportRequest.TransactionDate,
 				ScheduleType: reportRequest.ScheduleType,
+			}
+		case shared.ScheduleTypeChequePayments:
+			query = &db.ChequePaymentsSchedule{
+				Date:      reportRequest.TransactionDate,
+				PisNumber: *reportRequest.PisNumber,
 			}
 		case shared.ScheduleTypeAdFeeInvoices,
 			shared.ScheduleTypeS2FeeInvoices,
