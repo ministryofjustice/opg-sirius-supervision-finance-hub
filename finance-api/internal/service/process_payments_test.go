@@ -335,6 +335,31 @@ func Test_getPaymentDetails(t *testing.T) {
 			},
 		},
 		{
+			name:       "DIRECT DEBIT",
+			record:     []string{"9800000000000000000", "012345678       ", "   200.92", "D", "05/03/2025"},
+			uploadType: shared.ReportTypeUploadDirectDebitsCollections,
+			index:      0,
+			expectedPaymentDetails: shared.PaymentDetails{
+				Amount: 20092,
+				ReceivedDate: pgtype.Timestamp{
+					Time:             time.Date(2025, 03, 05, 0, 0, 0, 0, time.UTC),
+					InfinityModifier: 0,
+					Valid:            true,
+				},
+				CourtRef:   pgtype.Text{String: "012345678", Valid: true},
+				LedgerType: shared.TransactionTypeDirectDebitPayment,
+				BankDate: pgtype.Date{
+					Time:             time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
+					InfinityModifier: 0,
+					Valid:            true,
+				},
+				CreatedBy: pgtype.Int4{
+					Int32: 10,
+					Valid: true,
+				},
+			},
+		},
+		{
 			name:                "Amount parse error returns failed line",
 			record:              []string{"23145746", "2024-01-01 00:00:00", "five hundred pounds!!!"},
 			uploadType:          shared.ReportTypeUploadPaymentsMOTOCard,

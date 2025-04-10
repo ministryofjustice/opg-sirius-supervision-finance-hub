@@ -60,6 +60,8 @@ func getLedgerType(uploadType shared.ReportUploadType) (shared.TransactionType, 
 		return shared.TransactionTypeOPGBACSPayment, nil
 	case shared.ReportTypeUploadPaymentsSupervisionCheque:
 		return shared.TransactionTypeSupervisionChequePayment, nil
+	case shared.ReportTypeUploadDirectDebitsCollections:
+		return shared.TransactionTypeDirectDebitPayment, nil
 	}
 	return shared.TransactionTypeUnknown, fmt.Errorf("unknown upload type")
 }
@@ -140,6 +142,19 @@ func getPaymentDetails(ctx context.Context, record []string, uploadType shared.R
 		}
 
 		rd, err := time.Parse("02/01/2006", record[4])
+		if err != nil {
+			(*failedLines)[index] = "DATE_PARSE_ERROR"
+			return shared.PaymentDetails{}
+		}
+		_ = receivedDate.Scan(rd)
+	case shared.ReportTypeUploadDirectDebitsCollections:
+		_ = courtRef.Scan(strings.TrimSpace(record[1]))
+		amount, err = parseAmount(strings.TrimSpace(record[2]))
+		if err != nil {
+			(*failedLines)[index] = "AMOUNT_PARSE_ERROR"
+			return shared.PaymentDetails{}
+		}
+		rd, err := time.Parse("02/01/2006", strings.TrimSpace(record[4]))
 		if err != nil {
 			(*failedLines)[index] = "DATE_PARSE_ERROR"
 			return shared.PaymentDetails{}
