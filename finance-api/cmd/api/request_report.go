@@ -28,11 +28,8 @@ func (s *Server) requestReport(w http.ResponseWriter, r *http.Request) error {
 	fmt.Println(stringRequest)
 
 	fmt.Println("pis number: ")
-	if reportRequest.PisNumber == nil {
-		fmt.Println("nil :(")
-	} else {
-		fmt.Printf("%d", *reportRequest.PisNumber)
-	}
+
+	fmt.Printf("%d", reportRequest.PisNumber)
 
 	err := s.validateReportRequest(reportRequest)
 	if err != nil {
@@ -122,11 +119,11 @@ func (s *Server) validateReportRequest(reportRequest shared.ReportRequest) error
 		}
 
 		if reportRequest.ScheduleType != nil && *reportRequest.ScheduleType == shared.ScheduleTypeChequePayments {
-			if reportRequest.PisNumber == nil {
+			if reportRequest.PisNumber == 0 {
 				validationErrors["PisNumber"] = map[string]string{
 					"required": "This field PisNumber needs to be looked at required",
 				}
-			} else if len(strconv.Itoa(*reportRequest.PisNumber)) != 6 {
+			} else if len(strconv.Itoa(reportRequest.PisNumber)) != 6 {
 				validationErrors["PisNumber"] = map[string]string{
 					"eqSix": "PIS number must be 6 digits",
 				}
