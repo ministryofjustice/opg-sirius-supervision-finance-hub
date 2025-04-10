@@ -59,6 +59,8 @@ func getLedgerType(uploadType string) (string, error) {
 		return shared.TransactionTypeOPGBACSPayment.Key(), nil
 	case shared.ReportTypeUploadPaymentsSupervisionCheque.Key():
 		return shared.TransactionTypeSupervisionChequePayment.Key(), nil
+	case "SOP_UNALLOCATED":
+		return shared.TransactionTypeSOPUnallocatedPayment.Key(), nil
 	case shared.ReportTypeUploadDirectDebitsCollections.Key():
 		return shared.TransactionTypeDirectDebitPayment.Key(), nil
 	}
@@ -92,10 +94,14 @@ func getPaymentDetails(record []string, uploadType string, bankDate shared.Date,
 		courtRef = record[10]
 		amountString = record[6]
 		receivedDateString = record[4]
-	case "PAYMENTS_SUPERVISION_CHEQUE":
+	case shared.ReportTypeUploadPaymentsSupervisionCheque.Key():
 		courtRef = record[0]
 		amountString = record[2]
 		receivedDateString = record[4]
+	case "SOP_UNALLOCATED":
+		courtRef = record[0]
+		amountString = record[1]
+		receivedDateString = "31/03/2025"
 	case shared.ReportTypeUploadDirectDebitsCollections.Key():
 		courtRef = record[1]
 		amountString = record[2]
