@@ -226,9 +226,6 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 		return "", "unknown query", nil, fmt.Errorf("unknown query")
 	}
 
-	params := fmt.Sprintf("Params: %s\n", query.GetParams())
-	fmt.Println(params)
-
 	file, err = c.generate(ctx, filename, query)
 	if err != nil {
 		return filename, reportName, nil, err
