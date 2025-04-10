@@ -156,6 +156,11 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 				Date:         reportRequest.TransactionDate,
 				ScheduleType: reportRequest.ScheduleType,
 			}
+		case shared.ScheduleTypeChequePayments:
+			query = &db.ChequePaymentsSchedule{
+				Date:      reportRequest.TransactionDate,
+				PisNumber: *reportRequest.PisNumber,
+			}
 		case shared.ScheduleTypeAdFeeInvoices,
 			shared.ScheduleTypeS2FeeInvoices,
 			shared.ScheduleTypeS3FeeInvoices,
@@ -220,6 +225,9 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 	default:
 		return "", "unknown query", nil, fmt.Errorf("unknown query")
 	}
+
+	fmt.Println("Query: " + query.GetQuery())
+	_ = fmt.Sprintf("Params: %s\n", query.GetParams())
 
 	file, err = c.generate(ctx, filename, query)
 	if err != nil {
