@@ -31,7 +31,7 @@ func (s *Server) requestReport(w http.ResponseWriter, r *http.Request) error {
 	if reportRequest.PisNumber == nil {
 		fmt.Println("nil :(")
 	} else {
-		fmt.Println(fmt.Sprintf("%d", *reportRequest.PisNumber))
+		fmt.Printf("%d", *reportRequest.PisNumber)
 	}
 
 	err := s.validateReportRequest(reportRequest)
