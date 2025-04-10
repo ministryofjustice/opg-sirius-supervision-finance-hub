@@ -20,7 +20,7 @@ func TestServer_download(t *testing.T) {
 	fileContent := "col1,col2,col3\n1,a,Z\n"
 
 	mockS3 := MockFileStorage{}
-	mockS3.file = bytes.NewBufferString(fileContent)
+	mockS3.data = bytes.NewBufferString(fileContent)
 
 	server := NewServer(nil, nil, &mockS3, nil, nil, &Envs{ReportsBucket: "test"})
 	_ = server.download(w, r)
