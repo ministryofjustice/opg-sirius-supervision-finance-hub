@@ -331,7 +331,7 @@ func TestValidateReportRequest(t *testing.T) {
 				Email:           "test@example",
 				TransactionDate: &shared.Date{Time: goLive},
 				ReportType:      shared.ReportsTypeSchedule,
-				PisNumber:       toPtr(12345),
+				PisNumber:       12345,
 				ScheduleType:    toPtr(shared.ScheduleTypeChequePayments),
 			},
 			expectedError: apierror.ValidationError{
