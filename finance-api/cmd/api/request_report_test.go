@@ -313,6 +313,31 @@ func TestValidateReportRequest(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "cheques schedule without pis number",
+			reportRequest: shared.ReportRequest{
+				Email:           "test@example",
+				TransactionDate: &shared.Date{Time: goLive},
+				ReportType:      shared.ReportsTypeSchedule,
+				ScheduleType:    toPtr(shared.ScheduleTypeChequePayments),
+			},
+			expectedError: apierror.ValidationError{
+				Errors: apierror.ValidationErrors{"PisNumber": map[string]string{"required": "This field PisNumber needs to be looked at required"}},
+			},
+		},
+		{
+			name: "cheques schedule with invalid pis number",
+			reportRequest: shared.ReportRequest{
+				Email:           "test@example",
+				TransactionDate: &shared.Date{Time: goLive},
+				ReportType:      shared.ReportsTypeSchedule,
+				PisNumber:       12345,
+				ScheduleType:    toPtr(shared.ScheduleTypeChequePayments),
+			},
+			expectedError: apierror.ValidationError{
+				Errors: apierror.ValidationErrors{"PisNumber": map[string]string{"eqSix": "PIS number must be 6 digits"}},
+			},
+		},
 	}
 
 	for _, tt := range tests {
