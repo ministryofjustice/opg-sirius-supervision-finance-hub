@@ -144,10 +144,6 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 			return "", reportName, nil, fmt.Errorf("unimplemented journal query: %s", reportRequest.JournalType.Key())
 		}
 	case shared.ReportsTypeSchedule:
-		if reportRequest.ScheduleType != nil {
-			fmt.Printf("requested schedule: %s", reportRequest.ScheduleType.Key())
-		}
-
 		filename = fmt.Sprintf("schedule_%s_%s.csv", reportRequest.ScheduleType.Key(), reportRequest.TransactionDate.Time.Format("02:01:2006"))
 		reportName = reportRequest.ScheduleType.Translation()
 		switch *reportRequest.ScheduleType {
@@ -229,6 +225,9 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 	default:
 		return "", "unknown query", nil, fmt.Errorf("unknown query")
 	}
+
+	fmt.Println("Query: " + query.GetQuery())
+	_ = fmt.Sprintf("Params: %s\n", query.GetParams())
 
 	file, err = c.generate(ctx, filename, query)
 	if err != nil {
