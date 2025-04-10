@@ -118,8 +118,6 @@ func (s *Server) validateReportRequest(reportRequest shared.ReportRequest) error
 		}
 	}
 
-	fmt.Println(reportRequest)
-
 	if len(validationErrors) > 0 {
 		return apierror.ValidationError{Errors: validationErrors}
 	}
