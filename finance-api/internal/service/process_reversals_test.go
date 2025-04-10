@@ -108,7 +108,7 @@ func (suite *IntegrationSuite) Test_processReversals() {
 			},
 			expectedFailedLines: map[int]string{
 				1: "NO_MATCHED_PAYMENT",
-				2: "CLIENT_NOT_FOUND",
+				2: "REVERSAL_CLIENT_NOT_FOUND",
 				3: "NO_MATCHED_PAYMENT",
 				4: "NO_MATCHED_PAYMENT",
 				5: "NO_MATCHED_PAYMENT",

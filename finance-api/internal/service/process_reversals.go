@@ -140,7 +140,7 @@ func (s *Service) validateReversalLine(ctx context.Context, details shared.Rever
 	exists, _ = s.store.CheckClientExistsByCourtRef(ctx, details.CorrectCourtRef)
 
 	if !exists {
-		(*failedLines)[index] = "CLIENT_NOT_FOUND"
+		(*failedLines)[index] = "REVERSAL_CLIENT_NOT_FOUND"
 		return false
 	}
 

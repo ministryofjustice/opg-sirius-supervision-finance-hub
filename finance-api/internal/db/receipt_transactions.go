@@ -24,9 +24,12 @@ WITH transaction_type_order AS (
 ),
 ledger_totals AS (
     SELECT
-        SUM(l.amount) AS debit_amount,
-        tt.index,
-        COALESCE(l.pis_number, 0) AS pis_number
+		CASE 
+		    WHEN l.type = 'SUPERVISION CHEQUE PAYMENT' THEN tt.line_description || ' [' || l.pis_number || ']'
+		    ELSE tt.line_description || ' [' || TO_CHAR(l.bankdate, 'DD/MM/YYYY') || ']' 
+		END AS line_description,
+        SUM(CASE WHEN l.amount > 0 THEN l.amount ELSE 0 END) AS debit_amount,
+        tt.index
     FROM supervision_finance.ledger l
     INNER JOIN LATERAL (
         SELECT tto.index, fee_type, line_description
@@ -35,7 +38,7 @@ ledger_totals AS (
         WHERE tt.ledger_type = l.type AND tto.index IS NOT NULL
     ) tt ON TRUE
     WHERE l.created_at::DATE = $1
-    GROUP BY tt.line_description, l.bankdate, l.type, tt.index, l.pis_number
+    GROUP BY tt.line_description, tt.index, l.type, l.pis_number, l.bankdate
 ),
 allocation_totals AS (
 	SELECT 
@@ -49,11 +52,10 @@ allocation_totals AS (
         END AS debit_account_code,
 		'1816102003' AS credit_account_code,
         SUM(l.amount) AS debit_amount,
-        SUM(CASE WHEN la.status != 'UNAPPLIED' THEN la.amount ELSE 0 END) AS credit_amount,
+        SUM(CASE WHEN la.status != 'UNAPPLIED' AND la.amount > 0 THEN la.amount ELSE 0 END) AS credit_amount,
         SUM(CASE WHEN la.status = 'UNAPPLIED' AND la.amount < 0 THEN ABS(la.amount) ELSE 0 END) AS overpayment_amount,
         SUM(CASE WHEN la.status != 'UNAPPLIED' AND la.amount < 0 THEN ABS(la.amount) ELSE 0 END) AS reversed_amount,
-		tt.index,
-		COALESCE(l.pis_number, 0) AS pis_number
+		tt.index
 	FROM supervision_finance.ledger_allocation la 
 	INNER JOIN supervision_finance.ledger l ON l.id = la.ledger_id 
 	INNER JOIN LATERAL (
@@ -63,7 +65,7 @@ allocation_totals AS (
 		WHERE tt.ledger_type = l.type AND tto.index IS NOT NULL
 	) tt ON TRUE
 	WHERE l.created_at::DATE = $1
-	GROUP BY tt.line_description, l.bankdate, l.type, tt.index, l.pis_number
+	GROUP BY tt.line_description, tt.index, l.bankdate, l.type, l.pis_number
 ),
 transaction_rows AS (
     SELECT
@@ -78,10 +80,9 @@ transaction_rows AS (
         CASE WHEN at.reversed_amount > 0 THEN (at.reversed_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) ELSE '' END AS credit,
         at.line_description,
         at.index,
-		lt.pis_number,
         1 AS n
     FROM allocation_totals at
-    JOIN ledger_totals lt ON at.index = lt.index AND at.pis_number = lt.pis_number
+    JOIN ledger_totals lt ON at.index = lt.index AND at.line_description = lt.line_description
     UNION ALL
     SELECT
         '="0470"' AS entity,
@@ -95,7 +96,6 @@ transaction_rows AS (
         (credit_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS credit,
         line_description,
         index,
-		pis_number,
         2 AS n
     FROM allocation_totals
     UNION ALL
@@ -111,7 +111,6 @@ transaction_rows AS (
         (overpayment_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS credit,
         line_description,
         index,
-		pis_number,
         3 AS n
     FROM allocation_totals
     WHERE overpayment_amount > 0
@@ -128,7 +127,7 @@ SELECT
     credit AS "Credit",
     line_description AS "Line description"
 FROM transaction_rows
-ORDER BY index, pis_number, n;
+ORDER BY index, line_description, n;
 `
 
 func (r *ReceiptTransactions) GetHeaders() []string {
