@@ -77,7 +77,7 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int32, data sha
 	invoiceParams := store.AddInvoiceParams{
 		PersonID:   personID,
 		Feetype:    data.InvoiceType.Key(),
-		Reference:  data.InvoiceType.Key() + invoiceRef + "/" + strconv.Itoa(data.StartDate.Value.Time.Year()%100),
+		Reference:  data.InvoiceType.Key() + invoiceRef + "/" + strconv.Itoa(data.StartDate.Value.Time.Year()%100+1),
 		Startdate:  startDate,
 		Enddate:    endDate,
 		Amount:     data.Amount.Value,
