@@ -24,8 +24,8 @@ describe("Add manual invoice form", () => {
 
         cy.get('[data-cy="amount"]').type("123");
         cy.get('[data-cy="raised-date-field-input"]').type("2024-01-01");
-        cy.get('[data-cy="startDate"]').type("9998-01-01");
-        cy.get('[data-cy="endDate"]').type("9998-01-01");
+        cy.get('[data-cy="startDate"]').type("9999-01-01");
+        cy.get('[data-cy="endDate"]').type("9999-01-01");
         cy.contains("label", "General").click();
 
         cy.contains(".govuk-button", "Save and continue").click();

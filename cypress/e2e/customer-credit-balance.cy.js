@@ -85,11 +85,11 @@ describe("Customer credit balance", () => {
 
         const now = new Date().toLocaleDateString("en-UK");
         cy.get(".moj-timeline__item").first().within((el) => {
-            cy.get(".moj-timeline__title").contains("£30 reapplied to AD000001/23");
+            cy.get(".moj-timeline__title").contains("£30 reapplied to AD000001/22");
             cy.get(".moj-timeline__byline").contains(`by Ian Admin, ${now}`);
             cy.get(".moj-timeline__date").contains("Outstanding balance: £70 Credit balance: £0");
             cy.get(".govuk-list > li")
-                .first().contains("£30 reapplied to AD000001/23");
+                .first().contains("£30 reapplied to AD000001/22");
         });
     });
 });

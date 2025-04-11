@@ -74,10 +74,12 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int32, data sha
 	_ = source.Scan("Created manually")
 	_ = store.ToInt4(&createdBy, ctx.(auth.Context).User.ID)
 
+	calculateFinanceYear := data.StartDate.Value.CalculateFinanceYear()
+
 	invoiceParams := store.AddInvoiceParams{
 		PersonID:   personID,
 		Feetype:    data.InvoiceType.Key(),
-		Reference:  data.InvoiceType.Key() + invoiceRef + "/" + strconv.Itoa(data.StartDate.Value.Time.Year()%100+1),
+		Reference:  data.InvoiceType.Key() + invoiceRef + "/" + calculateFinanceYear,
 		Startdate:  startDate,
 		Enddate:    endDate,
 		Amount:     data.Amount.Value,
