@@ -1,5 +1,5 @@
 const {defineConfig} = require("cypress");
-const { SignJWT } = require('jose');
+const { SignJWT } = import('jose');
 
 module.exports = defineConfig({
     fixturesFolder: false,
