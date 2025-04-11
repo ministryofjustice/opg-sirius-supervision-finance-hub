@@ -32,7 +32,7 @@ describe("Add manual invoice form", () => {
 
         cy.url().should("include", "clients/3/invoices?success=invoice-type[SO]");
         cy.get(".moj-banner__message").contains("The SO invoice has been successfully created");
-        cy.contains(".govuk-table__row", "SO000001/99");
+        cy.contains(".govuk-table__row", "SO000001/98");
 
         // billing history
         cy.visit("/clients/3/billing-history");
@@ -42,7 +42,7 @@ describe("Add manual invoice form", () => {
             cy.get(".moj-timeline__title").contains("SO invoice created for £123");
             cy.get(".moj-timeline__byline").contains(`by Ian Admin, ${now}`);
             cy.get(".moj-timeline__date").contains("Outstanding balance: £123 Credit balance: £0");
-            cy.contains(".govuk-link", "SO000001/99");
+            cy.contains(".govuk-link", "SO000001/98");
         });
     });
 
