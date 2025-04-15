@@ -1,7 +1,8 @@
-const {defineConfig} = require("cypress");
-const { SignJWT } = require('jose');
+import {SignJWT} from "jose";
+import {defineConfig} from "cypress";
+import cypress_failed_log from "cypress-failed-log/src/failed";
 
-module.exports = defineConfig({
+export default defineConfig({
     fixturesFolder: false,
     e2e: {
         setupNodeEvents(on, config) {
@@ -35,7 +36,7 @@ module.exports = defineConfig({
                         .setSubject(`urn:opg:sirius:users:${user.id}`)
                         .sign(secret);
                 },
-                failed: require("cypress-failed-log/src/failed")()
+                failed: cypress_failed_log()
             });
         },
         baseUrl: "http://localhost:8888/finance",
