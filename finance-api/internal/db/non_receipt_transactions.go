@@ -62,7 +62,7 @@ WITH transaction_type_order AS (
 			WHEN line_description LIKE 'GT Write-off reversal%' THEN 47
 			ELSE 48
 			END AS index
-	FROM supervision_finance.transaction_type WHERE is_receipt = false
+	FROM supervision_finance.transaction_type WHERE is_receipt = FALSE
 ),
 transactions AS (
    	SELECT
@@ -74,10 +74,10 @@ transactions AS (
         supervision_finance.ledger_allocation la
         INNER JOIN supervision_finance.ledger l ON l.id = la.ledger_id
 		INNER JOIN supervision_finance.invoice i ON i.id = la.invoice_id
-	WHERE l.created_at::DATE = $1
+	WHERE l.created_at::DATE = $1 AND la.status = 'ALLOCATED'
 	UNION
 	SELECT
-		null AS ledger_type,
+		NULL AS ledger_type,
 		i.feetype AS fee_type,
 		-i.amount AS amount,
 		i.id AS invoice_id
@@ -110,7 +110,7 @@ transaction_totals AS (
 		AND sl.supervision_level = tt.supervision_level
 	) tt ON TRUE
 	INNER JOIN supervision_finance.account ON tt.account_code = account.code
-	CROSS JOIN (select 1 as n union all select 2) n
+	CROSS JOIN (SELECT 1 AS n UNION ALL SELECT 2) n
 	GROUP BY tt.line_description, tt.account_code, account.cost_centre, tt.index, n 
 )
 SELECT
@@ -127,11 +127,11 @@ SELECT
     '="00000000"' AS "Analysis",
     '="0000"' AS "Intercompany",
     '="00000000"' AS "Spare",
-    CASE WHEN n % 2 = 1 AND is_credit = false OR n % 2 = 0 AND is_credit 
+    CASE WHEN n % 2 = 1 AND is_credit = FALSE OR n % 2 = 0 AND is_credit 
 		THEN ''
         ELSE amount
         END AS "Debit",
-    CASE WHEN n % 2 = 1 AND is_credit = false OR n % 2 = 0 AND is_credit 
+    CASE WHEN n % 2 = 1 AND is_credit = FALSE OR n % 2 = 0 AND is_credit 
 		THEN amount
         ELSE ''
         END AS "Credit",
