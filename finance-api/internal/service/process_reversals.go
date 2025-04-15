@@ -5,6 +5,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"time"
 )
@@ -75,7 +76,7 @@ func getReversalLines(ctx context.Context, record []string, uploadType shared.Re
 	case shared.ReportTypeUploadMisappliedPayments:
 		paymentType = shared.ParseTransactionType(record[0])
 		if !paymentType.Valid() {
-			(*failedLines)[index] = "PAYMENT_TYPE_PARSE_ERROR"
+			(*failedLines)[index] = validation.UploadErrorPaymentTypeParse
 			return shared.ReversalDetails{}
 		}
 
@@ -84,28 +85,28 @@ func getReversalLines(ctx context.Context, record []string, uploadType shared.Re
 
 		bd, err := time.Parse("02/01/2006", record[3])
 		if err != nil {
-			(*failedLines)[index] = "DATE_PARSE_ERROR"
+			(*failedLines)[index] = validation.UploadErrorDateParse
 			return shared.ReversalDetails{}
 		}
 		_ = bankDate.Scan(bd)
 
 		rd, err := time.Parse("02/01/2006", record[4])
 		if err != nil {
-			(*failedLines)[index] = "DATE_PARSE_ERROR"
+			(*failedLines)[index] = validation.UploadErrorDateParse
 			return shared.ReversalDetails{}
 		}
 		_ = receivedDate.Scan(rd)
 
 		amount, err = parseAmount(record[5])
 		if err != nil {
-			(*failedLines)[index] = "AMOUNT_PARSE_ERROR"
+			(*failedLines)[index] = validation.UploadErrorAmountParse
 			return shared.ReversalDetails{}
 		}
 
 		_ = pisNumber.Scan(record[6]) // will have no value for non-cheque payments
 
 	default:
-		(*failedLines)[index] = "UNKNOWN_UPLOAD_TYPE"
+		(*failedLines)[index] = validation.UploadErrorUnknownUploadType
 	}
 
 	_ = store.ToInt4(&createdBy, ctx.(auth.Context).User.ID)
@@ -133,14 +134,14 @@ func (s *Service) validateReversalLine(ctx context.Context, details shared.Rever
 	exists, _ := s.store.CheckDuplicateLedger(ctx, params)
 
 	if !exists {
-		(*failedLines)[index] = "NO_MATCHED_PAYMENT"
+		(*failedLines)[index] = validation.UploadErrorNoMatchedPayment
 		return false
 	}
 
 	exists, _ = s.store.CheckClientExistsByCourtRef(ctx, details.CorrectCourtRef)
 
 	if !exists {
-		(*failedLines)[index] = "REVERSAL_CLIENT_NOT_FOUND"
+		(*failedLines)[index] = validation.UploadErrorReversalClientNotFound
 		return false
 	}
 

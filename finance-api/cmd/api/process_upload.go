@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"os"
 	"slices"
@@ -71,23 +72,23 @@ func formatFailedLines(failedLines map[int]string) []string {
 		errorMessage = ""
 
 		switch failedLine {
-		case "DATE_PARSE_ERROR":
+		case validation.UploadErrorDateParse:
 			errorMessage = "Unable to parse date - please use the format DD/MM/YYYY"
-		case "DATE_TIME_PARSE_ERROR":
+		case validation.UploadErrorDateTimeParse:
 			errorMessage = "Unable to parse date - please use the format YYYY-MM-DD HH:MM:SS"
-		case "AMOUNT_PARSE_ERROR":
+		case validation.UploadErrorAmountParse:
 			errorMessage = "Unable to parse amount - please use the format 320.00"
-		case "DUPLICATE_PAYMENT":
+		case validation.UploadErrorDuplicatePayment:
 			errorMessage = "Duplicate payment line"
-		case "CLIENT_NOT_FOUND":
+		case validation.UploadErrorClientNotFound:
 			errorMessage = "Could not find a client with this court reference"
-		case "PAYMENT_TYPE_PARSE_ERROR":
+		case validation.UploadErrorPaymentTypeParse:
 			errorMessage = "Unable to parse payment type"
-		case "UNKNOWN_UPLOAD_TYPE":
+		case validation.UploadErrorUnknownUploadType:
 			errorMessage = "Unknown upload type"
-		case "NO_MATCHED_PAYMENT":
+		case validation.UploadErrorNoMatchedPayment:
 			errorMessage = "Unable to find a matched payment to reverse"
-		case "REVERSAL_CLIENT_NOT_FOUND":
+		case validation.UploadErrorReversalClientNotFound:
 			errorMessage = "Could not find client with this court reference [New (correct) court reference]"
 		}
 

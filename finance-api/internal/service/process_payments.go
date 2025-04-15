@@ -6,6 +6,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"strconv"
 	"strings"
@@ -97,7 +98,7 @@ func getPaymentDetails(ctx context.Context, record []string, uploadType shared.R
 
 	paymentType, err = getLedgerType(uploadType)
 	if err != nil {
-		(*failedLines)[index] = "PAYMENT_TYPE_PARSE_ERROR"
+		(*failedLines)[index] = validation.UploadErrorDateParse
 		return shared.PaymentDetails{}
 	}
 
@@ -107,13 +108,13 @@ func getPaymentDetails(ctx context.Context, record []string, uploadType shared.R
 
 		amount, err = parseAmount(record[2])
 		if err != nil {
-			(*failedLines)[index] = "AMOUNT_PARSE_ERROR"
+			(*failedLines)[index] = validation.UploadErrorAmountParse
 			return shared.PaymentDetails{}
 		}
 
 		rd, err := time.Parse("02/01/2006", record[1])
 		if err != nil {
-			(*failedLines)[index] = "DATE_PARSE_ERROR"
+			(*failedLines)[index] = validation.UploadErrorDateParse
 			return shared.PaymentDetails{}
 		}
 		_ = receivedDate.Scan(rd)
@@ -122,13 +123,13 @@ func getPaymentDetails(ctx context.Context, record []string, uploadType shared.R
 
 		amount, err = parseAmount(record[6])
 		if err != nil {
-			(*failedLines)[index] = "AMOUNT_PARSE_ERROR"
+			(*failedLines)[index] = validation.UploadErrorAmountParse
 			return shared.PaymentDetails{}
 		}
 
 		rd, err := time.Parse("02/01/2006", record[4])
 		if err != nil {
-			(*failedLines)[index] = "DATE_PARSE_ERROR"
+			(*failedLines)[index] = validation.UploadErrorDateParse
 			return shared.PaymentDetails{}
 		}
 		_ = receivedDate.Scan(rd)
@@ -137,13 +138,13 @@ func getPaymentDetails(ctx context.Context, record []string, uploadType shared.R
 
 		amount, err = parseAmount(record[2])
 		if err != nil {
-			(*failedLines)[index] = "AMOUNT_PARSE_ERROR"
+			(*failedLines)[index] = validation.UploadErrorAmountParse
 			return shared.PaymentDetails{}
 		}
 
 		rd, err := time.Parse("02/01/2006", record[4])
 		if err != nil {
-			(*failedLines)[index] = "DATE_PARSE_ERROR"
+			(*failedLines)[index] = validation.UploadErrorDateParse
 			return shared.PaymentDetails{}
 		}
 		_ = receivedDate.Scan(rd)
@@ -151,12 +152,12 @@ func getPaymentDetails(ctx context.Context, record []string, uploadType shared.R
 		_ = courtRef.Scan(strings.TrimSpace(record[1]))
 		amount, err = parseAmount(strings.TrimSpace(record[2]))
 		if err != nil {
-			(*failedLines)[index] = "AMOUNT_PARSE_ERROR"
+			(*failedLines)[index] = validation.UploadErrorAmountParse
 			return shared.PaymentDetails{}
 		}
 		rd, err := time.Parse("02/01/2006", strings.TrimSpace(record[4]))
 		if err != nil {
-			(*failedLines)[index] = "DATE_PARSE_ERROR"
+			(*failedLines)[index] = validation.UploadErrorDateParse
 			return shared.PaymentDetails{}
 		}
 		_ = receivedDate.Scan(rd)
@@ -176,14 +177,14 @@ func (s *Service) validatePaymentLine(ctx context.Context, details shared.Paymen
 	})
 
 	if exists {
-		(*failedLines)[index] = "DUPLICATE_PAYMENT"
+		(*failedLines)[index] = validation.UploadErrorDuplicatePayment
 		return false
 	}
 
 	exists, _ = s.store.CheckClientExistsByCourtRef(ctx, details.CourtRef)
 
 	if !exists {
-		(*failedLines)[index] = "CLIENT_NOT_FOUND"
+		(*failedLines)[index] = validation.UploadErrorClientNotFound
 		return false
 	}
 
