@@ -1,6 +1,7 @@
 package reports
 
 import (
+	"bytes"
 	"context"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/db"
@@ -21,7 +22,7 @@ type MockFileStorage struct {
 	err        error
 }
 
-func (m *MockFileStorage) PutFile(ctx context.Context, bucketName string, fileName string, data io.Reader) (*string, error) {
+func (m *MockFileStorage) PutFile(ctx context.Context, bucketName string, fileName string, data *bytes.Buffer) (*string, error) {
 	m.bucketName = bucketName
 	m.filename = fileName
 	m.data = data
