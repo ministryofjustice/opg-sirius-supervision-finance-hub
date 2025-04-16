@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"context"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
@@ -145,7 +146,7 @@ func (m *mockFileStorage) GetFileWithVersion(ctx context.Context, bucketName str
 	return io.NopCloser(m.data), m.err
 }
 
-func (m *mockFileStorage) PutFile(ctx context.Context, bucketName string, fileName string, data io.Reader) (*string, error) {
+func (m *mockFileStorage) PutFile(ctx context.Context, bucketName string, fileName string, data *bytes.Buffer) (*string, error) {
 	m.bucketname = bucketName
 	m.filename = fileName
 	m.data = data
