@@ -114,6 +114,7 @@ func Test_translate(t *testing.T) {
 		name       string
 		ledgerType string
 		status     string
+		amount     int
 		want       string
 	}{
 		{
@@ -142,9 +143,16 @@ func Test_translate(t *testing.T) {
 			want:       "Manual Debit",
 		},
 		{
-			name:       "Does not title case uppercase words",
-			ledgerType: "BACS payment (supervision)",
-			want:       "BACS Payment (Supervision)",
+			name:       "translates payment types",
+			ledgerType: shared.TransactionTypeSupervisionBACSPayment.Key(),
+			amount:     32000,
+			want:       "BACS payment (Supervision account)",
+		},
+		{
+			name:       "translates reversals",
+			ledgerType: shared.TransactionTypeSupervisionBACSPayment.Key(),
+			amount:     -32000,
+			want:       "BACS payment (Supervision account) reversal",
 		},
 		{
 			name:   "returns a correct value for UNAPPLIED",
@@ -159,7 +167,7 @@ func Test_translate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, translate(tt.ledgerType, tt.status), "translate(%v)", tt.ledgerType)
+			assert.Equalf(t, tt.want, translate(tt.ledgerType, tt.status, tt.amount), "translate(%v)", tt.ledgerType)
 		})
 	}
 }

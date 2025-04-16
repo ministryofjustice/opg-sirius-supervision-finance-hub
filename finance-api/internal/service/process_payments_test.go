@@ -2,12 +2,12 @@ package service
 
 import (
 	"context"
-	"fmt"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
+	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"strconv"
-	"strings"
 	"testing"
 	"time"
 )
@@ -23,90 +23,6 @@ type createdLedgerAllocation struct {
 	pisNumber        int
 }
 
-type mockNotify struct {
-	payload notify.Payload
-	err     error
-}
-
-func (n *mockNotify) Send(ctx context.Context, payload notify.Payload) error {
-	n.payload = payload
-	return n.err
-}
-
-func (suite *IntegrationSuite) Test_processFinanceAdminUpload() {
-	ctx := suite.ctx
-	seeder := suite.cm.Seeder(ctx, suite.T())
-
-	fileStorage := &mockFileStorage{}
-	fileStorage.file = strings.NewReader("test")
-	notifyClient := &mockNotify{}
-
-	s := NewService(seeder.Conn, nil, fileStorage, notifyClient, nil)
-
-	tests := []struct {
-		name            string
-		uploadType      string
-		fileStorageErr  error
-		expectedPayload notify.Payload
-	}{
-		{
-			name:       "Unknown report",
-			uploadType: "test",
-			expectedPayload: notify.Payload{
-				EmailAddress: "test@email.com",
-				TemplateId:   notify.ProcessingErrorTemplateId,
-				Personalisation: struct {
-					Error      string `json:"error"`
-					UploadType string `json:"upload_type"`
-				}{
-					"unknown upload type",
-					"",
-				},
-			},
-		},
-		{
-			name:           "S3 error",
-			uploadType:     "test",
-			fileStorageErr: fmt.Errorf("test"),
-			expectedPayload: notify.Payload{
-				EmailAddress: "test@email.com",
-				TemplateId:   notify.ProcessingErrorTemplateId,
-				Personalisation: struct {
-					Error      string `json:"error"`
-					UploadType string `json:"upload_type"`
-				}{
-					"unable to download report",
-					"",
-				},
-			},
-		},
-		{
-			name:       "Known report",
-			uploadType: "PAYMENTS_MOTO_CARD",
-			expectedPayload: notify.Payload{
-				EmailAddress: "test@email.com",
-				TemplateId:   notify.ProcessingSuccessTemplateId,
-				Personalisation: struct {
-					UploadType string `json:"upload_type"`
-				}{"Payments - MOTO card"},
-			},
-		},
-	}
-	for _, tt := range tests {
-		suite.T().Run(tt.name, func(t *testing.T) {
-			filename := "test.csv"
-			emailAddress := "test@email.com"
-			fileStorage.err = tt.fileStorageErr
-
-			err := s.ProcessFinanceAdminUpload(suite.ctx, shared.FinanceAdminUploadEvent{
-				EmailAddress: emailAddress, Filename: filename, UploadType: tt.uploadType,
-			})
-			assert.Nil(t, err)
-			assert.Equal(t, tt.expectedPayload, notifyClient.payload)
-		})
-	}
-}
-
 func (suite *IntegrationSuite) Test_processPayments() {
 	ctx := suite.ctx
 	seeder := suite.cm.Seeder(ctx, suite.T())
@@ -115,10 +31,16 @@ func (suite *IntegrationSuite) Test_processPayments() {
 		"INSERT INTO finance_client VALUES (1, 1, 'invoice-1', 'DEMANDED', NULL, '1234');",
 		"INSERT INTO finance_client VALUES (2, 2, 'invoice-2', 'DEMANDED', NULL, '12345');",
 		"INSERT INTO finance_client VALUES (3, 3, 'invoice-3', 'DEMANDED', NULL, '123456');",
+		"INSERT INTO finance_client VALUES (4, 4, 'invoice-4', 'DEMANDED', NULL, '1234567');",
 		"INSERT INTO invoice VALUES (1, 1, 1, 'AD', 'AD11223/19', '2023-04-01', '2025-03-31', 15000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 		"INSERT INTO invoice VALUES (2, 2, 2, 'AD', 'AD11224/19', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 		"INSERT INTO invoice VALUES (3, 3, 3, 'AD', 'AD11225/19', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 		"INSERT INTO invoice VALUES (4, 3, 3, 'AD', 'AD11226/19', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
+		"INSERT INTO invoice VALUES (5, 4, 4, 'AD', 'AD11227/19', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
+		"INSERT INTO ledger VALUES (1, 'ref', '2024-01-01 15:30:27', '', 10000, 'payment', 'MOTO CARD PAYMENT', 'CONFIRMED', 4, NULL, NULL, NULL, '2024-01-01', NULL, NULL, NULL, NULL, '2020-05-05', 1);",
+		"INSERT INTO ledger_allocation VALUES (1, 1, 5, '2024-01-01 15:30:27', 10000, 'ALLOCATED', NULL, '', '2024-01-01', NULL);",
+		"ALTER SEQUENCE ledger_id_seq RESTART WITH 2;",
+		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 2;",
 	)
 
 	dispatch := &mockDispatch{}
@@ -127,24 +49,26 @@ func (suite *IntegrationSuite) Test_processPayments() {
 	tests := []struct {
 		name                      string
 		records                   [][]string
+		paymentType               shared.ReportUploadType
 		bankDate                  shared.Date
 		pisNumber                 int
 		expectedClientId          int
 		expectedLedgerAllocations []createdLedgerAllocation
+		expectedFailedLines       map[int]string
 		want                      error
 	}{
 		{
 			name: "Underpayment",
 			records: [][]string{
-				{"Ordercode", "BankDate", "Amount"},
+				{"Ordercode", "Date", "Amount"},
 				{
 					"1234-1",
 					"01/01/2024",
 					"100",
 				},
 			},
+			paymentType:      shared.ReportTypeUploadPaymentsMOTOCard,
 			bankDate:         shared.NewDate("2024-01-17"),
-			pisNumber:        12,
 			expectedClientId: 1,
 			expectedLedgerAllocations: []createdLedgerAllocation{
 				{
@@ -155,27 +79,31 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					10000,
 					"ALLOCATED",
 					1,
-					12,
+					0,
 				},
 			},
+			expectedFailedLines: map[int]string{},
 		},
 		{
 			name: "Overpayment",
 			records: [][]string{
-				{"Ordercode", "BankDate", "Amount"},
+				{"Case number (confirmed on Sirius)", "Cheque number", "Cheque Value (£)", "Comments", "Date in Bank"},
 				{
 					"12345",
+					"54321",
+					"250.10",
+					"",
 					"01/01/2024",
-					"250.1",
 				},
 			},
+			paymentType:      shared.ReportTypeUploadPaymentsSupervisionCheque,
 			bankDate:         shared.NewDate("2024-01-17"),
 			pisNumber:        150,
 			expectedClientId: 2,
 			expectedLedgerAllocations: []createdLedgerAllocation{
 				{
 					25010,
-					"MOTO CARD PAYMENT",
+					"SUPERVISION CHEQUE PAYMENT",
 					"CONFIRMED",
 					time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 					10000,
@@ -185,26 +113,28 @@ func (suite *IntegrationSuite) Test_processPayments() {
 				},
 				{
 					25010,
-					"MOTO CARD PAYMENT",
+					"SUPERVISION CHEQUE PAYMENT",
 					"CONFIRMED",
 					time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 					-15010,
 					"UNAPPLIED",
 					0,
-					0,
+					150,
 				},
 			},
+			expectedFailedLines: map[int]string{},
 		},
 		{
 			name: "Underpayment with multiple invoices",
 			records: [][]string{
-				{"Ordercode", "BankDate", "Amount"},
+				{"Ordercode", "Date", "Amount"},
 				{
 					"123456",
 					"01/01/2024",
 					"50",
 				},
 			},
+			paymentType:      shared.ReportTypeUploadPaymentsMOTOCard,
 			bankDate:         shared.NewDate("2024-01-17"),
 			expectedClientId: 3,
 			expectedLedgerAllocations: []createdLedgerAllocation{
@@ -219,26 +149,45 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					0,
 				},
 			},
+			expectedFailedLines: map[int]string{},
+		},
+		{
+			name: "failure cases",
+			records: [][]string{
+				{"Ordercode", "Date", "Amount"},
+				{"1234567890", "01/01/2024", "50"}, // client not found
+				{"1234567", "01/01/2024", "100"},   // duplicate
+			},
+			paymentType:      shared.ReportTypeUploadPaymentsMOTOCard,
+			bankDate:         shared.NewDate("2024-01-01"),
+			expectedClientId: 3,
+			expectedFailedLines: map[int]string{
+				1: "CLIENT_NOT_FOUND",
+				2: "DUPLICATE_PAYMENT",
+			},
 		},
 	}
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
+			var currentLedgerId int
+			_ = seeder.QueryRow(suite.ctx, `SELECT MAX(id) FROM ledger`).Scan(&currentLedgerId)
+
 			var failedLines map[int]string
-			failedLines, err := s.processPayments(suite.ctx, tt.records, "PAYMENTS_MOTO_CARD", tt.bankDate, shared.Nillable[int]{Value: tt.pisNumber, Valid: true})
+			failedLines, err := s.ProcessPayments(suite.ctx, tt.records, tt.paymentType, tt.bankDate, tt.pisNumber)
 			assert.Equal(t, tt.want, err)
-			assert.Equal(t, map[int]string{}, failedLines)
+			assert.Equal(t, tt.expectedFailedLines, failedLines)
 
 			var createdLedgerAllocations []createdLedgerAllocation
 
 			rows, _ := seeder.Query(suite.ctx,
-				`SELECT l.amount, l.type, l.status, l.datetime, la.amount, la.status, la.invoice_id, l.pis_number
+				`SELECT l.amount, l.type, l.status, l.datetime, la.amount, la.status, COALESCE(l.pis_number, 0), COALESCE(la.invoice_id, 0)
 						FROM ledger l
-						LEFT JOIN ledger_allocation la ON l.id = la.ledger_id
-					WHERE l.finance_client_id = $1`, tt.expectedClientId)
+						JOIN ledger_allocation la ON l.id = la.ledger_id
+					WHERE l.finance_client_id = $1 AND l.id > $2`, tt.expectedClientId, currentLedgerId)
 
 			for rows.Next() {
 				var r createdLedgerAllocation
-				_ = rows.Scan(&r.ledgerAmount, &r.ledgerType, &r.ledgerStatus, &r.datetime, &r.allocationAmount, &r.allocationStatus, &r.invoiceId, &r.pisNumber)
+				_ = rows.Scan(&r.ledgerAmount, &r.ledgerType, &r.ledgerStatus, &r.datetime, &r.allocationAmount, &r.allocationStatus, &r.pisNumber, &r.invoiceId)
 				createdLedgerAllocations = append(createdLedgerAllocations, r)
 			}
 
@@ -298,8 +247,8 @@ func Test_getPaymentDetails(t *testing.T) {
 	tests := []struct {
 		name                   string
 		record                 []string
-		uploadType             string
-		ledgerType             string
+		uploadType             shared.ReportUploadType
+		pisNumber              int
 		index                  int
 		failedLines            map[int]string
 		expectedPaymentDetails shared.PaymentDetails
@@ -308,49 +257,112 @@ func Test_getPaymentDetails(t *testing.T) {
 		{
 			name:       "Moto card",
 			record:     []string{"12345678", "02/01/2025", "320.00"},
-			uploadType: "PAYMENTS_MOTO_CARD",
-			ledgerType: "Payments Moto Card",
+			uploadType: shared.ReportTypeUploadPaymentsMOTOCard,
 			index:      0,
 			expectedPaymentDetails: shared.PaymentDetails{
-				Amount:       32000,
-				ReceivedDate: time.Date(2025, time.January, 2, 0, 0, 0, 0, time.UTC),
-				CourtRef:     "12345678",
-				LedgerType:   "Payments Moto Card",
-				BankDate:     time.Date(2025, time.January, 1, 0, 0, 0, 0, time.UTC),
+				Amount: 32000,
+				ReceivedDate: pgtype.Timestamp{
+					Time:             time.Date(2025, 1, 2, 0, 0, 0, 0, time.UTC),
+					InfinityModifier: 0,
+					Valid:            true,
+				},
+				CourtRef:   pgtype.Text{String: "12345678", Valid: true},
+				LedgerType: shared.TransactionTypeMotoCardPayment,
+				BankDate: pgtype.Date{
+					Time:             time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
+					InfinityModifier: 0,
+					Valid:            true,
+				},
+				CreatedBy: pgtype.Int4{
+					Int32: 10,
+					Valid: true,
+				},
 			},
 		},
 		{
 			name:       "BACS",
 			record:     []string{"", "", "", "", "01/06/2024", "", "20.50", "", "", "", "87654321"},
-			uploadType: "PAYMENTS_SUPERVISION_BACS",
-			ledgerType: "Payments Supervision BACS",
+			uploadType: shared.ReportTypeUploadPaymentsSupervisionBACS,
 			index:      0,
 			expectedPaymentDetails: shared.PaymentDetails{
-				Amount:       2050,
-				ReceivedDate: time.Date(2024, time.June, 1, 0, 0, 0, 0, time.UTC),
-				CourtRef:     "87654321",
-				LedgerType:   "Payments Supervision BACS",
-				BankDate:     time.Date(2025, time.January, 1, 0, 0, 0, 0, time.UTC),
+				Amount: 2050,
+				ReceivedDate: pgtype.Timestamp{
+					Time:             time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC),
+					InfinityModifier: 0,
+					Valid:            true,
+				},
+				CourtRef:   pgtype.Text{String: "87654321", Valid: true},
+				LedgerType: shared.TransactionTypeSupervisionBACSPayment,
+				BankDate: pgtype.Date{
+					Time:             time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
+					InfinityModifier: 0,
+					Valid:            true,
+				},
+				CreatedBy: pgtype.Int4{
+					Int32: 10,
+					Valid: true,
+				},
 			},
 		},
 		{
 			name:       "CHEQUE",
 			record:     []string{"23145746", "", "541.02", "", "31/10/2024"},
-			uploadType: "PAYMENTS_SUPERVISION_CHEQUE",
-			ledgerType: "Payments Supervision Cheque",
+			uploadType: shared.ReportTypeUploadPaymentsSupervisionCheque,
+			pisNumber:  123,
 			index:      0,
 			expectedPaymentDetails: shared.PaymentDetails{
-				Amount:       54102,
-				ReceivedDate: time.Date(2024, time.October, 31, 0, 0, 0, 0, time.UTC),
-				CourtRef:     "23145746",
-				LedgerType:   "Payments Supervision Cheque",
-				BankDate:     time.Date(2025, time.January, 1, 0, 0, 0, 0, time.UTC),
+				Amount: 54102,
+				ReceivedDate: pgtype.Timestamp{
+					Time:             time.Date(2024, 10, 31, 0, 0, 0, 0, time.UTC),
+					InfinityModifier: 0,
+					Valid:            true,
+				},
+				CourtRef:   pgtype.Text{String: "23145746", Valid: true},
+				LedgerType: shared.TransactionTypeSupervisionChequePayment,
+				BankDate: pgtype.Date{
+					Time:             time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
+					InfinityModifier: 0,
+					Valid:            true,
+				},
+				PisNumber: pgtype.Int4{
+					Int32: 123,
+					Valid: true,
+				},
+				CreatedBy: pgtype.Int4{
+					Int32: 10,
+					Valid: true,
+				},
+			},
+		},
+		{
+			name:       "DIRECT DEBIT",
+			record:     []string{"9800000000000000000", "012345678       ", "   200.92", "D", "05/03/2025"},
+			uploadType: shared.ReportTypeUploadDirectDebitsCollections,
+			index:      0,
+			expectedPaymentDetails: shared.PaymentDetails{
+				Amount: 20092,
+				ReceivedDate: pgtype.Timestamp{
+					Time:             time.Date(2025, 03, 05, 0, 0, 0, 0, time.UTC),
+					InfinityModifier: 0,
+					Valid:            true,
+				},
+				CourtRef:   pgtype.Text{String: "012345678", Valid: true},
+				LedgerType: shared.TransactionTypeDirectDebitPayment,
+				BankDate: pgtype.Date{
+					Time:             time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
+					InfinityModifier: 0,
+					Valid:            true,
+				},
+				CreatedBy: pgtype.Int4{
+					Int32: 10,
+					Valid: true,
+				},
 			},
 		},
 		{
 			name:                "Amount parse error returns failed line",
 			record:              []string{"23145746", "2024-01-01 00:00:00", "five hundred pounds!!!"},
-			uploadType:          "PAYMENTS_MOTO_CARD",
+			uploadType:          shared.ReportTypeUploadPaymentsMOTOCard,
 			index:               0,
 			failedLines:         map[int]string{},
 			expectedFailedLines: map[int]string{0: "AMOUNT_PARSE_ERROR"},
@@ -358,7 +370,7 @@ func Test_getPaymentDetails(t *testing.T) {
 		{
 			name:                "Date parse error returns failed line",
 			record:              []string{"23145746", "", "200", "", "yesterday"},
-			uploadType:          "PAYMENTS_SUPERVISION_CHEQUE",
+			uploadType:          shared.ReportTypeUploadPaymentsSupervisionCheque,
 			index:               0,
 			failedLines:         map[int]string{},
 			expectedFailedLines: map[int]string{0: "DATE_PARSE_ERROR"},
@@ -366,7 +378,7 @@ func Test_getPaymentDetails(t *testing.T) {
 		{
 			name:                "Failed line adds to existing failed lines",
 			record:              []string{"23145746", "yesterday", "200"},
-			uploadType:          "PAYMENTS_MOTO_CARD",
+			uploadType:          shared.ReportTypeUploadPaymentsMOTOCard,
 			index:               1,
 			failedLines:         map[int]string{0: "AMOUNT_PARSE_ERROR"},
 			expectedFailedLines: map[int]string{0: "AMOUNT_PARSE_ERROR", 1: "DATE_PARSE_ERROR"},
@@ -374,43 +386,13 @@ func Test_getPaymentDetails(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			paymentDetails := getPaymentDetails(tt.record, tt.uploadType, shared.NewDate("01/01/2025"), tt.ledgerType, tt.index, &tt.failedLines, shared.Nillable[int]{Valid: false})
-			assert.Equal(t, tt.expectedPaymentDetails, paymentDetails)
+			ctx := auth.Context{
+				Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test")),
+				User:    &shared.User{ID: 10},
+			}
+			paymentDetails := getPaymentDetails(ctx, tt.record, tt.uploadType, shared.NewDate("01/01/2025"), tt.pisNumber, tt.index, &tt.failedLines)
 			assert.Equal(t, tt.expectedFailedLines, tt.failedLines)
-		})
-	}
-}
-func Test_formatFailedLines(t *testing.T) {
-	tests := []struct {
-		name        string
-		failedLines map[int]string
-		want        []string
-	}{
-		{
-			name:        "Empty",
-			failedLines: map[int]string{},
-			want:        []string(nil),
-		},
-		{
-			name: "Unsorted lines",
-			failedLines: map[int]string{
-				5: "DATE_PARSE_ERROR",
-				3: "CLIENT_NOT_FOUND",
-				8: "DUPLICATE_PAYMENT",
-				1: "DUPLICATE_PAYMENT",
-			},
-			want: []string{
-				"Line 1: Duplicate payment line",
-				"Line 3: Could not find a client with this court reference",
-				"Line 5: Unable to parse date - please use the format DD/MM/YYYY",
-				"Line 8: Duplicate payment line",
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			formattedLines := formatFailedLines(tt.failedLines)
-			assert.Equal(t, tt.want, formattedLines)
+			assert.Equal(t, tt.expectedPaymentDetails, paymentDetails)
 		})
 	}
 }
