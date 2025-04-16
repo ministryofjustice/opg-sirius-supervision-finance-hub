@@ -1,6 +1,7 @@
 package filestorage
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -187,7 +188,7 @@ func TestPutFile(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			client := &Client{s3: tt.mock}
-			got, err := client.PutFile(context.Background(), "bucket", "filename", nil)
+			got, err := client.PutFile(context.Background(), "bucket", "filename", bytes.NewBuffer(nil))
 			assert.Equal(t, tt.want, got)
 			assert.Equal(t, tt.wantErr, err)
 		})

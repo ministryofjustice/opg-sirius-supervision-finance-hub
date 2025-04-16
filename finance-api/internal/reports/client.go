@@ -7,7 +7,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/db"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
-	"io"
 	"time"
 )
 
@@ -17,7 +16,7 @@ type dbClient interface {
 }
 
 type fileStorageClient interface {
-	PutFile(ctx context.Context, bucketName string, fileName string, data io.Reader) (*string, error)
+	PutFile(ctx context.Context, bucketName string, fileName string, data *bytes.Buffer) (*string, error)
 }
 
 type notifyClient interface {
