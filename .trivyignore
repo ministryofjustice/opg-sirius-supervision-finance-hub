@@ -5,3 +5,4 @@ CVE-2025-22866 - stdlib
 CVE-2025-22871 - stdlib
 CVE-2025-22870 - golang.org/x/net
 CVE-2025-30204 - github.com/golang-jwt/jwt/v4
+CVE-2025-22871 - stdlib
