@@ -132,22 +132,23 @@ type mockFileStorage struct {
 	versionId  string
 	bucketname string
 	filename   string
-	file       io.Reader
+	data       io.Reader
 	err        error
 	exists     bool
 }
 
 func (m *mockFileStorage) GetFile(ctx context.Context, bucketName string, fileName string) (io.ReadCloser, error) {
-	return io.NopCloser(m.file), m.err
+	return io.NopCloser(m.data), m.err
 }
 
 func (m *mockFileStorage) GetFileWithVersion(ctx context.Context, bucketName string, fileName string, versionID string) (io.ReadCloser, error) {
-	return io.NopCloser(m.file), m.err
+	return io.NopCloser(m.data), m.err
 }
 
-func (m *mockFileStorage) PutFile(ctx context.Context, bucketName string, fileName string, file io.Reader) (*string, error) {
+func (m *mockFileStorage) PutFile(ctx context.Context, bucketName string, fileName string, data io.Reader) (*string, error) {
 	m.bucketname = bucketName
 	m.filename = fileName
+	m.data = data
 
 	return &m.versionId, nil
 }
