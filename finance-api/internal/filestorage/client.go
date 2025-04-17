@@ -1,6 +1,7 @@
 package filestorage
 
 import (
+	"bytes"
 	"context"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -78,11 +79,11 @@ func (c *Client) GetFileWithVersion(ctx context.Context, bucketName string, file
 	return output.Body, nil
 }
 
-func (c *Client) PutFile(ctx context.Context, bucketName string, fileName string, file io.Reader) (*string, error) {
+func (c *Client) PutFile(ctx context.Context, bucketName string, fileName string, data *bytes.Buffer) (*string, error) {
 	output, err := c.s3.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:               &bucketName,
 		Key:                  &fileName,
-		Body:                 file,
+		Body:                 bytes.NewReader(data.Bytes()),
 		ServerSideEncryption: "aws:kms",
 		SSEKMSKeyId:          aws.String(c.kmsKey),
 	})
