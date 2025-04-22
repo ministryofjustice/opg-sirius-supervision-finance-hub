@@ -92,6 +92,12 @@ test-migrations:
 cypress: setup-directories clean start-and-seed
 	docker compose run cypress
 
-zap: clean start-and-seed
-	docker compose up -d finance-hub
-	docker compose run --rm zap
+export ACTIVE_SCAN ?= true
+export ACTIVE_SCAN_TIMEOUT ?= 600
+export SERVICE_NAME ?= FinanceHub
+export SCAN_URL ?= http://finance-hub:8888/finance
+cypress-zap: clean start-and-seed
+	docker compose -f docker-compose.yml -f zap/docker-compose.zap.yml run --rm cypress
+	docker compose -f docker-compose.yml -f zap/docker-compose.zap.yml exec -u root zap-proxy bash -c "apk add --no-cache jq"
+	docker compose -f docker-compose.yml -f zap/docker-compose.zap.yml exec zap-proxy bash -c "/zap/wrk/scan.sh"
+	docker compose -f docker-compose.yml -f zap/docker-compose.zap.yml down
