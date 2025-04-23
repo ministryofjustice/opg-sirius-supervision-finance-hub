@@ -23,14 +23,6 @@ func (s *Server) requestReport(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	fmt.Println("Received request: ")
-	stringRequest := fmt.Sprintf("%v", reportRequest)
-	fmt.Println(stringRequest)
-
-	fmt.Println("pis number: ")
-
-	fmt.Printf("%d", reportRequest.PisNumber)
-
 	err := s.validateReportRequest(reportRequest)
 	if err != nil {
 		return err
