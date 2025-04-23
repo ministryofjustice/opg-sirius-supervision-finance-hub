@@ -11,6 +11,7 @@ const (
 	ScheduleTypeOPGBACSTransfer
 	ScheduleTypeSupervisionBACSTransfer
 	ScheduleTypeDirectDebitPayments
+	ScheduleTypeChequePayments
 	ScheduleTypeAdFeeInvoices
 	ScheduleTypeS2FeeInvoices
 	ScheduleTypeS3FeeInvoices
@@ -65,6 +66,7 @@ var scheduleTypeMap = map[string]ScheduleType{
 	"OPGBACSTransfer":          ScheduleTypeOPGBACSTransfer,
 	"SupervisionBACSTransfer":  ScheduleTypeSupervisionBACSTransfer,
 	"DirectDebitPayment":       ScheduleTypeDirectDebitPayments,
+	"ChequePayments":           ScheduleTypeChequePayments,
 	"AdFeeInvoices":            ScheduleTypeAdFeeInvoices,
 	"S2FeeInvoices":            ScheduleTypeS2FeeInvoices,
 	"S3FeeInvoices":            ScheduleTypeS3FeeInvoices,
@@ -129,6 +131,8 @@ func (s ScheduleType) Translation() string {
 		return "Supervision BACS transfer"
 	case ScheduleTypeDirectDebitPayments:
 		return "Direct Debit Payment"
+	case ScheduleTypeChequePayments:
+		return "Cheque Payments"
 	case ScheduleTypeAdFeeInvoices:
 		return "Ad Fee Invoices"
 	case ScheduleTypeS2FeeInvoices:
@@ -238,6 +242,8 @@ func (s ScheduleType) Key() string {
 		return "SupervisionBACSTransfer"
 	case ScheduleTypeDirectDebitPayments:
 		return "DirectDebitPayment"
+	case ScheduleTypeChequePayments:
+		return "ChequePayments"
 	case ScheduleTypeAdFeeInvoices:
 		return "AdFeeInvoices"
 	case ScheduleTypeS2FeeInvoices:

@@ -10,4 +10,5 @@ type ReportRequest struct {
 	ToDate                 *Date                   `json:"toDate,omitempty"`
 	FromDate               *Date                   `json:"fromDate,omitempty"`
 	Email                  string                  `json:"email"`
+	PisNumber              int                     `json:"pisNumber"`
 }

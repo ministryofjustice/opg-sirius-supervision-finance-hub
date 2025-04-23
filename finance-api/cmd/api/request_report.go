@@ -11,6 +11,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -106,6 +107,18 @@ func (s *Server) validateReportRequest(reportRequest shared.ReportRequest) error
 		} else if reportRequest.TransactionDate.Before(shared.Date{Time: s.envs.GoLiveDate}) {
 			validationErrors["Date"] = map[string]string{
 				"min-go-live": "This field Date needs to be looked at min-go-live",
+			}
+		}
+
+		if reportRequest.ScheduleType != nil && *reportRequest.ScheduleType == shared.ScheduleTypeChequePayments {
+			if reportRequest.PisNumber == 0 {
+				validationErrors["PisNumber"] = map[string]string{
+					"required": "This field PisNumber needs to be looked at required",
+				}
+			} else if len(strconv.Itoa(reportRequest.PisNumber)) != 6 {
+				validationErrors["PisNumber"] = map[string]string{
+					"eqSix": "PIS number must be 6 digits",
+				}
 			}
 		}
 	}
