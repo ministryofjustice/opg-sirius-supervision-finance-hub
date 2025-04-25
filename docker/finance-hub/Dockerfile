@@ -34,9 +34,11 @@ WORKDIR /app
 COPY go.mod .
 COPY go.sum .
 
-RUN go mod download
+COPY apierror apierror
+COPY finance-hub finance-hub
+COPY shared shared
 
-COPY . .
+RUN go mod download
 
 WORKDIR /app/finance-hub
 
