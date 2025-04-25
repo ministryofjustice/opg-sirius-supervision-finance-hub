@@ -170,19 +170,20 @@ jobs:
       - name: Test Migrations
         run: make test-migrations
 
+  build:
     strategy:
-        fail-fast: true
-        matrix:
-          include:
-            - image_name: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-api
-              service_name: api
-              build_options: --file docker/finance-api/Dockerfile
-            - image_name: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-hub
-              service_name: hub
-              build_options: --file docker/finance-hub/Dockerfile
-            - image_name: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-migration
-              service_name: migrations
-              build_options: --file docker/finance-migration/Dockerfile
+      fail-fast: true
+      matrix:
+        include:
+          - image_name: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-api
+            service_name: api
+            build_options: --file docker/finance-api/Dockerfile
+          - image_name: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-hub
+            service_name: hub
+            build_options: --file docker/finance-hub/Dockerfile
+          - image_name: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-migration
+            service_name: migrations
+            build_options: --file docker/finance-migration/Dockerfile
     name: Build ${{ matrix.service_name }}
     uses: ministryofjustice/opg-github-workflows/.github/workflows/build-multi-architecture-image.yml@6bc0246b5cca2f4c85d06986c82a9a42643f6851 # v3.13.0
     with:
