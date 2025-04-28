@@ -185,7 +185,8 @@ services:
     command: "up"
 
   localstack:
-    image: localstack/localstack:4.1
+    build:
+      dockerfile: docker/localstack/Dockerfile
     volumes:
       - "./scripts/localstack/init:/etc/localstack/init/ready.d"
       - "./scripts/localstack/files:/scripts/files"
@@ -194,6 +195,7 @@ services:
       - "4566:4566"
     environment:
       AWS_DEFAULT_REGION: eu-west-1
+#      USE_SSL: true
     healthcheck:
       test: bash /scripts/wait/healthcheck.sh
       interval: 10s
