@@ -1,7 +1,9 @@
 package reports
 
 import (
+	"bytes"
 	"context"
+	"encoding/csv"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/db"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
@@ -17,15 +19,22 @@ type MockFileStorage struct {
 	versionId  string
 	bucketName string
 	filename   string
-	file       io.Reader
+	data       io.Reader
 	err        error
 }
 
-func (m *MockFileStorage) PutFile(ctx context.Context, bucketName string, fileName string, file io.Reader) (*string, error) {
+func (m *MockFileStorage) PutFile(ctx context.Context, bucketName string, fileName string, data *bytes.Buffer) (*string, error) {
 	m.bucketName = bucketName
 	m.filename = fileName
-	m.file = file
+	m.data = data
 
+	return &m.versionId, m.err
+}
+
+func (m *MockFileStorage) StreamFile(ctx context.Context, bucketName string, fileName string, stream io.ReadCloser) (*string, error) {
+	m.bucketName = bucketName
+	m.filename = fileName
+	m.data = stream
 	return &m.versionId, m.err
 }
 
@@ -47,6 +56,25 @@ type MockDb struct {
 func (m *MockDb) Run(ctx context.Context, query db.ReportQuery) ([][]string, error) {
 	m.query = query
 	return m.rows, nil
+}
+
+func (m *MockDb) CopyStream(ctx context.Context, query db.ReportQuery) (io.ReadCloser, error) {
+	m.query = query
+
+	var buf bytes.Buffer
+	writer := csv.NewWriter(&buf)
+
+	for _, row := range m.rows {
+		if err := writer.Write(row); err != nil {
+			return nil, err
+		}
+	}
+	writer.Flush()
+	if err := writer.Error(); err != nil {
+		return nil, err
+	}
+
+	return io.NopCloser(bytes.NewReader(buf.Bytes())), nil
 }
 
 func (m *MockDb) Close() {}
