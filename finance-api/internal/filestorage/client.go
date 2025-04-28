@@ -95,6 +95,22 @@ func (c *Client) PutFile(ctx context.Context, bucketName string, fileName string
 	return output.VersionId, err
 }
 
+func (c *Client) StreamFile(ctx context.Context, bucketName string, fileName string, stream io.ReadCloser) (*string, error) {
+	output, err := c.s3.PutObject(ctx, &s3.PutObjectInput{
+		Bucket:               &bucketName,
+		Key:                  &fileName,
+		Body:                 stream,
+		ServerSideEncryption: "aws:kms",
+		SSEKMSKeyId:          aws.String(c.kmsKey),
+	})
+
+	if output == nil {
+		return nil, err
+	}
+
+	return output.VersionId, err
+}
+
 func (c *Client) FileExists(ctx context.Context, bucketName string, filename string) bool {
 	_, err := c.s3.HeadObject(ctx, &s3.HeadObjectInput{
 		Bucket: aws.String(bucketName),
