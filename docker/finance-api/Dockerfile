@@ -18,9 +18,12 @@ FROM base AS build-env
 WORKDIR /app
 
 COPY go.mod go.sum ./
-RUN go mod download
 
-COPY . .
+COPY apierror apierror
+COPY finance-api finance-api
+COPY shared shared
+
+RUN go mod download
 
 WORKDIR /app/finance-api
 
