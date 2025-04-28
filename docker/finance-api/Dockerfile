@@ -8,10 +8,6 @@ RUN update-ca-certificates
 FROM base AS dev
 WORKDIR /app/finance-api
 
-COPY docker/localstack/localstack-cert.pem /usr/local/share/ca-certificates/localstack-cert.crt
-
-RUN update-ca-certificates
-
 RUN go install github.com/air-verse/air@latest && go install github.com/go-delve/delve/cmd/dlv@latest
 EXPOSE 8080
 EXPOSE 2345
