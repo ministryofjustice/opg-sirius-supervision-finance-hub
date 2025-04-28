@@ -39,12 +39,12 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: finance
       AWS_REGION: eu-west-1
-      AWS_BASE_URL: https://localstack:4566
+      AWS_BASE_URL: http://localstack:4566
       AWS_ACCESS_KEY_ID: localstack
       AWS_SECRET_ACCESS_KEY: localstack
       EVENT_BUS_NAME: local-main
       S3_ENCRYPTION_KEY: alias/aws/s3
-      AWS_S3_ENDPOINT: https://localstack:4566
+      AWS_S3_ENDPOINT: http://localstack:4566
       SIRIUS_PUBLIC_URL: http://localhost:8181
       FINANCE_ADMIN_PREFIX: /supervision/finance-admin
       JWT_SECRET: mysupersecrettestkeythatis128bits
@@ -185,8 +185,7 @@ services:
     command: "up"
 
   localstack:
-    build:
-      dockerfile: docker/localstack/Dockerfile
+    image: localstack/localstack:4.1
     volumes:
       - "./scripts/localstack/init:/etc/localstack/init/ready.d"
       - "./scripts/localstack/files:/scripts/files"
@@ -195,7 +194,6 @@ services:
       - "4566:4566"
     environment:
       AWS_DEFAULT_REGION: eu-west-1
-      USE_SSL: true
     healthcheck:
       test: bash /scripts/wait/healthcheck.sh
       interval: 10s
