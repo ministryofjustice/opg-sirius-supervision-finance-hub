@@ -1,7 +1,6 @@
 package service
 
 import (
-	"bytes"
 	"context"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -27,7 +26,6 @@ type Dispatch interface {
 type FileStorage interface {
 	GetFile(ctx context.Context, bucketName string, fileName string) (io.ReadCloser, error)
 	GetFileWithVersion(ctx context.Context, bucketName string, fileName string, versionID string) (io.ReadCloser, error)
-	PutFile(ctx context.Context, bucketName string, fileName string, data *bytes.Buffer) (*string, error)
 }
 
 type NotifyClient interface {
