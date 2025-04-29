@@ -102,10 +102,12 @@ func (c *Client) PutFile(ctx context.Context, bucketName string, fileName string
 
 func (c *Client) StreamFile(ctx context.Context, bucketName string, fileName string, stream io.ReadCloser) (*string, error) {
 	_, err := c.uploader.Upload(ctx, &s3.PutObjectInput{
-		Bucket:      aws.String(bucketName),
-		Key:         aws.String(fileName),
-		Body:        stream,
-		ContentType: aws.String("text/csv"),
+		Bucket:               aws.String(bucketName),
+		Key:                  aws.String(fileName),
+		Body:                 stream,
+		ContentType:          aws.String("text/csv"),
+		ServerSideEncryption: "aws:kms",
+		SSEKMSKeyId:          aws.String(c.kmsKey),
 	})
 
 	if err != nil {
