@@ -8,6 +8,8 @@ import (
 const (
 	EventSourceSirius             = "opg.supervision.sirius"
 	EventSourceFinanceAdmin       = "opg.supervision.finance.admin"
+	EventSourceFinanceAdhoc       = "opg.supervision.finance.adhoc"
+	DetailTypeFinanceAdhoc        = "finance-adhoc"
 	DetailTypeDebtPositionChanged = "debt-position-changed"
 	DetailTypeClientCreated       = "client-created"
 	DetailTypeFinanceAdminUpload  = "finance-admin-upload"
@@ -53,6 +55,12 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		e.Detail = detail
+	case DetailTypeFinanceAdhoc:
+		var detail AdhocEvent
+		if err := json.Unmarshal(raw.Detail, &detail); err != nil {
+			return err
+		}
+		e.Detail = detail
 	default:
 		return fmt.Errorf("unknown detail type: %s", e.DetailType)
 	}
@@ -75,4 +83,8 @@ type FinanceAdminUploadEvent struct {
 	UploadType   ReportUploadType `json:"uploadType"`
 	UploadDate   Date             `json:"uploadDate"`
 	PisNumber    int              `json:"pisNumber"`
+}
+
+type AdhocEvent struct {
+	AdhocProcessName string `json:"adhocProcessName"`
 }
