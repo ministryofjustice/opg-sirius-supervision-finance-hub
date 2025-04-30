@@ -7,6 +7,7 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"slices"
 	"time"
 )
 
@@ -35,7 +36,7 @@ func (s *Service) ProcessPaymentReversals(ctx context.Context, records [][]strin
 					return nil, err
 				}
 
-				if uploadType == shared.ReportTypeUploadMisappliedPayments {
+				if slices.Contains(shared.ReportUploadReversalTypes, uploadType) {
 					err = s.ProcessPaymentsUploadLine(ctx, tx, shared.PaymentDetails{
 						Amount:       details.Amount,
 						BankDate:     details.BankDate,
@@ -73,7 +74,7 @@ func getReversalLines(ctx context.Context, record []string, uploadType shared.Re
 	)
 
 	switch uploadType {
-	case shared.ReportTypeUploadMisappliedPayments:
+	case shared.ReportTypeUploadMisappliedPayments, shared.ReportTypeUploadDuplicatedPayments:
 		paymentType = shared.ParseTransactionType(record[0])
 		if !paymentType.Valid() {
 			(*failedLines)[index] = validation.UploadErrorPaymentTypeParse
