@@ -8,10 +8,12 @@ import (
 
 func (suite *IntegrationSuite) Test_unapply_reapply_schedules() {
 	ctx := suite.ctx
-	yesterday := suite.seeder.Today().Sub(0, 0, 1)
-	sixMonthsAgo := suite.seeder.Today().Sub(0, 6, 0)
-	twoYearsAgo := suite.seeder.Today().Sub(2, 0, 0)
-	threeYearsAgo := suite.seeder.Today().Sub(3, 0, 0)
+	
+	today := suite.seeder.Today()
+	yesterday := today.Sub(0, 0, 1)
+	sixMonthsAgo := today.Sub(0, 6, 0)
+	twoYearsAgo := today.Sub(2, 0, 0)
+	threeYearsAgo := today.Sub(3, 0, 0)
 	courtRef1 := "12345678"
 	courtRef2 := "87654321"
 	courtRef3 := "33333333"
