@@ -170,7 +170,29 @@ jobs:
       - name: Test Migrations
         run: make test-migrations
 
-  build-and-push:
+  build:
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - image_name: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-api
+            service_name: api
+            build_options: --file docker/finance-api/Dockerfile
+          - image_name: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-hub
+            service_name: hub
+            build_options: --file docker/finance-hub/Dockerfile
+          - image_name: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-migration
+            service_name: migrations
+            build_options: --file docker/finance-migration/Dockerfile
+    name: Build ${{ matrix.service_name }}
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/build-multi-architecture-image.yml@6bc0246b5cca2f4c85d06986c82a9a42643f6851 # v3.13.0
+    with:
+      image_name: ${{ matrix.image_name }}
+      artifact_name: ${{ matrix.service_name }}-multi-arch
+      job_name: Build ${{ matrix.service_name }} Image
+      build_options: ${{ matrix.build_options }}
+
+  push:
     strategy:
       fail-fast: true
       matrix:
@@ -181,9 +203,9 @@ jobs:
             service_name: hub
           - ecr_repository: sirius-finance-migration
             service_name: migrations
-    name: "Build & Push Containers"
+    name: "Push Images"
     runs-on: ubuntu-latest
-    needs: ['test', 'test-migrations', 'golint', 'gosec', 'sqlc', 'version']
+    needs: ['test', 'test-migrations', 'golint', 'gosec', 'sqlc', 'version', 'build']
     env:
       TAG: ${{needs.version.outputs.tag}}
       TIMESTAMP: ${{needs.version.outputs.timestamp}}
@@ -194,8 +216,19 @@ jobs:
 
       - uses: unfor19/install-aws-cli-action@v1
 
-      - name: Build Container
-        run: make build-${{ matrix.service_name }}
+      - name: Set up Docker
+        run: |
+          echo '{"experimental": true, "features": { "containerd-snapshotter": true }}' | sudo tee -a /etc/docker/daemon.json
+          sudo systemctl restart docker
+          docker run --privileged --rm tonistiigi/binfmt --install all
+      - uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
+        with:
+          pattern: "${{ matrix.service_name }}-multi-arch"
+          path: /tmp/images
+          merge-multiple: true
+      - name: Load Images
+        run: |
+          docker load -i /tmp/images/${{ matrix.service_name }}-multi-arch.tar
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -245,9 +278,26 @@ jobs:
             docker push 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/${{ matrix.ecr_repository }}:$TAG
           fi
 
+  end_of_pr_workflow:
+    name: End of PR Workflow
+    runs-on: ubuntu-latest
+    if: always()
+    needs: ['test', 'test-migrations', 'golint', 'gosec', 'sqlc', 'version', 'cypress', 'build']
+    steps:
+      - name: End of PR Workflow
+        run: |
+          if ${{ contains(needs.*.result,'failure') }}
+          then
+            echo "Not all checks succedeed, check the previous jobs."
+            exit 1
+          else
+            echo "All checks succedeed!"
+            exit 0
+          fi
+
   push-tags:
     runs-on: ubuntu-latest
-    needs: [ build-and-push, version ]
+    needs: [ end_of_pr_workflow, version ]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
