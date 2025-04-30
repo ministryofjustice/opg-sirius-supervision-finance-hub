@@ -7,7 +7,6 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"slices"
 	"time"
 )
 
@@ -27,7 +26,7 @@ func (s *Service) ProcessPaymentReversals(ctx context.Context, records [][]strin
 			details := getReversalLines(ctx, record, uploadType, index, &failedLines)
 
 			if details != (shared.ReversalDetails{}) {
-				if !s.validateReversalLine(ctx, details, index, &failedLines) {
+				if !s.validateReversalLine(ctx, details, uploadType, index, &failedLines) {
 					continue
 				}
 
@@ -36,7 +35,7 @@ func (s *Service) ProcessPaymentReversals(ctx context.Context, records [][]strin
 					return nil, err
 				}
 
-				if slices.Contains(shared.ReportUploadReversalTypes, uploadType) {
+				if uploadType == shared.ReportTypeUploadMisappliedPayments {
 					err = s.ProcessPaymentsUploadLine(ctx, tx, shared.PaymentDetails{
 						Amount:       details.Amount,
 						BankDate:     details.BankDate,
@@ -153,7 +152,7 @@ func getReversalLines(ctx context.Context, record []string, uploadType shared.Re
 	}
 }
 
-func (s *Service) validateReversalLine(ctx context.Context, details shared.ReversalDetails, index int, failedLines *map[int]string) bool {
+func (s *Service) validateReversalLine(ctx context.Context, details shared.ReversalDetails, uploadType shared.ReportUploadType, index int, failedLines *map[int]string) bool {
 	params := store.CheckDuplicateLedgerParams{
 		CourtRef:     details.ErroredCourtRef,
 		Amount:       details.Amount,
@@ -169,7 +168,9 @@ func (s *Service) validateReversalLine(ctx context.Context, details shared.Rever
 		return false
 	}
 
-	exists, _ = s.store.CheckClientExistsByCourtRef(ctx, details.CorrectCourtRef)
+	if uploadType == shared.ReportTypeUploadMisappliedPayments {
+		exists, _ = s.store.CheckClientExistsByCourtRef(ctx, details.CorrectCourtRef)
+	}
 
 	if !exists {
 		(*failedLines)[index] = validation.UploadErrorReversalClientNotFound
