@@ -46,9 +46,9 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 
 	if err != nil {
 		logger.Error("failed to generate report", "err", err)
-		nerr := c.sendFailureNotification(ctx, reportRequest.Email, requestedDate, reportName)
-		if nerr != nil {
-			logger.Error("unable to send message to notify", "err", nerr)
+		notifyErr := c.sendFailureNotification(ctx, reportRequest.Email, requestedDate, reportName)
+		if notifyErr != nil {
+			logger.Error("unable to send message to notify", "err", notifyErr)
 		}
 		return
 	}
@@ -70,16 +70,16 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 	versionId, err := c.fileStorage.PutFile(ctx, c.envs.ReportsBucket, filename, file)
 	if err != nil {
 		logger.Error("failed to generate report", "err", err)
-		nerr := c.sendFailureNotification(ctx, reportRequest.Email, requestedDate, reportName)
-		if nerr != nil {
-			logger.Error("unable to send message to notify", "err", nerr)
+		notifyErr := c.sendFailureNotification(ctx, reportRequest.Email, requestedDate, reportName)
+		if notifyErr != nil {
+			logger.Error("unable to send message to notify", "err", notifyErr)
 		}
 		return
 	}
 
-	nerr := c.sendSuccessNotification(ctx, reportRequest.Email, filename, versionId, requestedDate, reportName)
-	if nerr != nil {
-		logger.Error("unable to send message to notify", "err", nerr)
+	notifyErr := c.sendSuccessNotification(ctx, reportRequest.Email, filename, versionId, requestedDate, reportName)
+	if notifyErr != nil {
+		logger.Error("unable to send message to notify", "err", notifyErr)
 	}
 }
 
@@ -155,6 +155,11 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 			query = &db.PaymentsSchedule{
 				Date:         reportRequest.TransactionDate,
 				ScheduleType: reportRequest.ScheduleType,
+			}
+		case shared.ScheduleTypeChequePayments:
+			query = &db.ChequePaymentsSchedule{
+				Date:      reportRequest.TransactionDate,
+				PisNumber: reportRequest.PisNumber,
 			}
 		case shared.ScheduleTypeAdFeeInvoices,
 			shared.ScheduleTypeS2FeeInvoices,

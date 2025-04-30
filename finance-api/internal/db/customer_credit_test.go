@@ -10,10 +10,10 @@ func (suite *IntegrationSuite) Test_customer_credit() {
 	ctx := suite.ctx
 
 	today := suite.seeder.Today()
-	yesterday := suite.seeder.Today().Sub(0, 0, 1)
-	twoMonthsAgo := suite.seeder.Today().Sub(0, 2, 0)
-	twoYearsAgo := suite.seeder.Today().Sub(2, 0, 0)
-	threeYearsAgo := suite.seeder.Today().Sub(3, 0, 0)
+	yesterday := today.Sub(0, 0, 1)
+	twoMonthsAgo := today.Sub(0, 2, 0)
+	twoYearsAgo := today.Sub(2, 0, 0)
+	threeYearsAgo := today.Sub(3, 0, 0)
 	minimal := "10"
 
 	// client 1 with:

@@ -12,8 +12,8 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	ctx := suite.ctx
 
 	today := suite.seeder.Today()
-	yesterday := suite.seeder.Today().Sub(0, 0, 1)
-	twoMonthsAgo := suite.seeder.Today().Sub(0, 2, 0)
+	yesterday := today.Sub(0, 0, 1)
+	twoMonthsAgo := today.Sub(0, 2, 0)
 	general := "320.00"
 	minimal := "10.00"
 
@@ -90,9 +90,9 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	assert.Equal(suite.T(), "=\"00000000\"", results[0]["Analysis"], "Analysis - MOTO card Payments Debit")
 	assert.Equal(suite.T(), "=\"0000\"", results[0]["Intercompany"], "Intercompany - MOTO card Payments Debit")
 	assert.Equal(suite.T(), "=\"000000\"", results[0]["Spare"], "Spare - MOTO card Payments Debit")
-	assert.Equal(suite.T(), "130.00", results[0]["Debit"], "Debit - MOTO card Payments Debit")
-	assert.Equal(suite.T(), "", results[0]["Credit"], "Credit - MOTO card Payments Debit")
-	assert.Equal(suite.T(), fmt.Sprintf("MOTO card [%s]", yesterday.Date().Format("02/01/2006")), results[0]["Line description"], "Line description - MOTO card Payments Debit")
+	assert.Equal(suite.T(), "12.34", results[0]["Debit"], "Debit - MOTO card Payments Debit")
+	assert.Equal(suite.T(), "12.34", results[0]["Credit"], "Credit - MOTO card Payments Debit")
+	assert.Equal(suite.T(), fmt.Sprintf("MOTO card [%s]", twoMonthsAgo.Date().Format("02/01/2006")), results[0]["Line description"], "Line description - MOTO card Payments Debit")
 
 	assert.Equal(suite.T(), "=\"0470\"", results[1]["Entity"], "Entity - MOTO card Payments Credit")
 	assert.Equal(suite.T(), "99999999", results[1]["Cost Centre"], "Cost Centre - MOTO card Payments Credit")
@@ -101,9 +101,9 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	assert.Equal(suite.T(), "=\"00000000\"", results[1]["Analysis"], "Analysis - MOTO card Payments Credit")
 	assert.Equal(suite.T(), "=\"0000\"", results[1]["Intercompany"], "Intercompany - MOTO card Payments Credit")
 	assert.Equal(suite.T(), "=\"00000\"", results[1]["Spare"], "Spare - MOTO card Payments Credit")
-	assert.Equal(suite.T(), "", results[1]["Debit"], "Debit - MOTO card Payments Credit")
-	assert.Equal(suite.T(), "40.00", results[1]["Credit"], "Credit - MOTO card Payments Credit")
-	assert.Equal(suite.T(), fmt.Sprintf("MOTO card [%s]", yesterday.Date().Format("02/01/2006")), results[1]["Line description"], "Line description - MOTO card Payments Credit")
+	assert.Equal(suite.T(), "12.34", results[1]["Debit"], "Debit - MOTO card Payments Credit")
+	assert.Equal(suite.T(), "10.00", results[1]["Credit"], "Credit - MOTO card Payments Credit")
+	assert.Equal(suite.T(), fmt.Sprintf("MOTO card [%s]", twoMonthsAgo.Date().Format("02/01/2006")), results[1]["Line description"], "Line description - MOTO card Payments Credit")
 
 	assert.Equal(suite.T(), "=\"0470\"", results[2]["Entity"], "Entity - MOTO card Payments Overpayment")
 	assert.Equal(suite.T(), "", results[2]["Cost Centre"], "Cost Centre - MOTO card Payments Overpayment")
@@ -113,8 +113,8 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	assert.Equal(suite.T(), "", results[2]["Intercompany"], "Intercompany - MOTO card Payments Overpayment")
 	assert.Equal(suite.T(), "", results[2]["Spare"], "Spare - MOTO card Payments Overpayment")
 	assert.Equal(suite.T(), "", results[2]["Debit"], "Debit - MOTO card Payments Overpayment")
-	assert.Equal(suite.T(), "90.00", results[2]["Credit"], "Credit - MOTO card Payments Overpayment")
-	assert.Equal(suite.T(), fmt.Sprintf("MOTO card [%s]", yesterday.Date().Format("02/01/2006")), results[2]["Line description"], "Line description - MOTO card Payments Overpayment")
+	assert.Equal(suite.T(), "2.34", results[2]["Credit"], "Credit - MOTO card Payments Overpayment")
+	assert.Equal(suite.T(), fmt.Sprintf("MOTO card [%s]", twoMonthsAgo.Date().Format("02/01/2006")), results[2]["Line description"], "Line description - MOTO card Payments Overpayment")
 
 	assert.Equal(suite.T(), "=\"0470\"", results[3]["Entity"], "Entity - MOTO card Payments Debit")
 	assert.Equal(suite.T(), "99999999", results[3]["Cost Centre"], "Cost Centre - MOTO card Payments Debit")
@@ -123,9 +123,9 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	assert.Equal(suite.T(), "=\"00000000\"", results[3]["Analysis"], "Analysis - MOTO card Payments Debit")
 	assert.Equal(suite.T(), "=\"0000\"", results[3]["Intercompany"], "Intercompany - MOTO card Payments Debit")
 	assert.Equal(suite.T(), "=\"000000\"", results[3]["Spare"], "Spare - MOTO card Payments Debit")
-	assert.Equal(suite.T(), "12.34", results[3]["Debit"], "Debit - MOTO card Payments Debit")
-	assert.Equal(suite.T(), "12.34", results[3]["Credit"], "Credit - MOTO card Payments Debit")
-	assert.Equal(suite.T(), fmt.Sprintf("MOTO card [%s]", twoMonthsAgo.Date().Format("02/01/2006")), results[3]["Line description"], "Line description - MOTO card Payments Debit")
+	assert.Equal(suite.T(), "130.00", results[3]["Debit"], "Debit - MOTO card Payments Debit")
+	assert.Equal(suite.T(), "", results[3]["Credit"], "Credit - MOTO card Payments Debit")
+	assert.Equal(suite.T(), fmt.Sprintf("MOTO card [%s]", yesterday.Date().Format("02/01/2006")), results[3]["Line description"], "Line description - MOTO card Payments Debit")
 
 	assert.Equal(suite.T(), "=\"0470\"", results[4]["Entity"], "Entity - MOTO card Payments Credit")
 	assert.Equal(suite.T(), "99999999", results[4]["Cost Centre"], "Cost Centre - MOTO card Payments Credit")
@@ -134,9 +134,9 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	assert.Equal(suite.T(), "=\"00000000\"", results[4]["Analysis"], "Analysis - MOTO card Payments Credit")
 	assert.Equal(suite.T(), "=\"0000\"", results[4]["Intercompany"], "Intercompany - MOTO card Payments Credit")
 	assert.Equal(suite.T(), "=\"00000\"", results[4]["Spare"], "Spare - MOTO card Payments Credit")
-	assert.Equal(suite.T(), "12.34", results[4]["Debit"], "Debit - MOTO card Payments Credit")
-	assert.Equal(suite.T(), "10.00", results[4]["Credit"], "Credit - MOTO card Payments Credit")
-	assert.Equal(suite.T(), fmt.Sprintf("MOTO card [%s]", twoMonthsAgo.Date().Format("02/01/2006")), results[4]["Line description"], "Line description - MOTO card Payments Credit")
+	assert.Equal(suite.T(), "", results[4]["Debit"], "Debit - MOTO card Payments Credit")
+	assert.Equal(suite.T(), "40.00", results[4]["Credit"], "Credit - MOTO card Payments Credit")
+	assert.Equal(suite.T(), fmt.Sprintf("MOTO card [%s]", yesterday.Date().Format("02/01/2006")), results[4]["Line description"], "Line description - MOTO card Payments Credit")
 
 	assert.Equal(suite.T(), "=\"0470\"", results[5]["Entity"], "Entity - MOTO card Payments Overpayment")
 	assert.Equal(suite.T(), "", results[5]["Cost Centre"], "Cost Centre - MOTO card Payments Overpayment")
@@ -146,8 +146,8 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	assert.Equal(suite.T(), "", results[5]["Intercompany"], "Intercompany - MOTO card Payments Overpayment")
 	assert.Equal(suite.T(), "", results[5]["Spare"], "Spare - MOTO card Payments Overpayment")
 	assert.Equal(suite.T(), "", results[5]["Debit"], "Debit - MOTO card Payments Overpayment")
-	assert.Equal(suite.T(), "2.34", results[5]["Credit"], "Credit - MOTO card Payments Overpayment")
-	assert.Equal(suite.T(), fmt.Sprintf("MOTO card [%s]", twoMonthsAgo.Date().Format("02/01/2006")), results[5]["Line description"], "Line description - MOTO card Payments Overpayment")
+	assert.Equal(suite.T(), "90.00", results[5]["Credit"], "Credit - MOTO card Payments Overpayment")
+	assert.Equal(suite.T(), fmt.Sprintf("MOTO card [%s]", yesterday.Date().Format("02/01/2006")), results[5]["Line description"], "Line description - MOTO card Payments Overpayment")
 
 	assert.Equal(suite.T(), "=\"0470\"", results[6]["Entity"], "Entity - Online card Payments Debit")
 	assert.Equal(suite.T(), "99999999", results[6]["Cost Centre"], "Cost Centre - Online card Payments Debit")

@@ -12,10 +12,10 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 	ctx := suite.ctx
 
 	today := suite.seeder.Today()
-	yesterday := suite.seeder.Today().Sub(0, 0, 1)
-	twoMonthsAgo := suite.seeder.Today().Sub(0, 2, 0)
-	threeMonthsAgo := suite.seeder.Today().Sub(0, 3, 0)
-	oneYearAgo := suite.seeder.Today().Sub(1, 0, 0)
+	yesterday := today.Sub(0, 0, 1)
+	twoMonthsAgo := today.Sub(0, 2, 0)
+	threeMonthsAgo := today.Sub(0, 3, 0)
+	oneYearAgo := today.Sub(1, 0, 0)
 
 	// client with one AD invoice, one minimal S3 invoice, a GS invoice, an exemption and a moto card payment. The payment creates an unapply.
 	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234")
