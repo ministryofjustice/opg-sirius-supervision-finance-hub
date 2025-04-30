@@ -7,6 +7,7 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"slices"
 	"time"
 )
 
@@ -35,7 +36,7 @@ func (s *Service) ProcessPaymentReversals(ctx context.Context, records [][]strin
 					return nil, err
 				}
 
-				if uploadType == shared.ReportTypeUploadMisappliedPayments {
+				if slices.Contains(shared.ReportUploadReversalTypes, uploadType) {
 					err = s.ProcessPaymentsUploadLine(ctx, tx, shared.PaymentDetails{
 						Amount:       details.Amount,
 						BankDate:     details.BankDate,
@@ -104,6 +105,36 @@ func getReversalLines(ctx context.Context, record []string, uploadType shared.Re
 		}
 
 		_ = pisNumber.Scan(record[6]) // will have no value for non-cheque payments
+	case shared.ReportTypeUploadDuplicatedPayments:
+		paymentType = shared.ParseTransactionType(record[0])
+		if !paymentType.Valid() {
+			(*failedLines)[index] = validation.UploadErrorPaymentTypeParse
+			return shared.ReversalDetails{}
+		}
+
+		_ = erroredCourtRef.Scan(record[1])
+
+		bd, err := time.Parse("02/01/2006", record[2])
+		if err != nil {
+			(*failedLines)[index] = validation.UploadErrorDateParse
+			return shared.ReversalDetails{}
+		}
+		_ = bankDate.Scan(bd)
+
+		rd, err := time.Parse("02/01/2006", record[3])
+		if err != nil {
+			(*failedLines)[index] = validation.UploadErrorDateParse
+			return shared.ReversalDetails{}
+		}
+		_ = receivedDate.Scan(rd)
+
+		amount, err = parseAmount(record[4])
+		if err != nil {
+			(*failedLines)[index] = validation.UploadErrorAmountParse
+			return shared.ReversalDetails{}
+		}
+
+		_ = pisNumber.Scan(record[5]) // will have no value for non-cheque payments
 
 	default:
 		(*failedLines)[index] = validation.UploadErrorUnknownUploadType
