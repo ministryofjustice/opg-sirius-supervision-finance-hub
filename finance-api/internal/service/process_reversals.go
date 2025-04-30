@@ -74,7 +74,7 @@ func getReversalLines(ctx context.Context, record []string, uploadType shared.Re
 	)
 
 	switch uploadType {
-	case shared.ReportTypeUploadMisappliedPayments, shared.ReportTypeUploadDuplicatedPayments:
+	case shared.ReportTypeUploadMisappliedPayments:
 		paymentType = shared.ParseTransactionType(record[0])
 		if !paymentType.Valid() {
 			(*failedLines)[index] = validation.UploadErrorPaymentTypeParse
@@ -105,6 +105,36 @@ func getReversalLines(ctx context.Context, record []string, uploadType shared.Re
 		}
 
 		_ = pisNumber.Scan(record[6]) // will have no value for non-cheque payments
+	case shared.ReportTypeUploadDuplicatedPayments:
+		paymentType = shared.ParseTransactionType(record[0])
+		if !paymentType.Valid() {
+			(*failedLines)[index] = validation.UploadErrorPaymentTypeParse
+			return shared.ReversalDetails{}
+		}
+
+		_ = erroredCourtRef.Scan(record[1])
+
+		bd, err := time.Parse("02/01/2006", record[2])
+		if err != nil {
+			(*failedLines)[index] = validation.UploadErrorDateParse
+			return shared.ReversalDetails{}
+		}
+		_ = bankDate.Scan(bd)
+
+		rd, err := time.Parse("02/01/2006", record[3])
+		if err != nil {
+			(*failedLines)[index] = validation.UploadErrorDateParse
+			return shared.ReversalDetails{}
+		}
+		_ = receivedDate.Scan(rd)
+
+		amount, err = parseAmount(record[4])
+		if err != nil {
+			(*failedLines)[index] = validation.UploadErrorAmountParse
+			return shared.ReversalDetails{}
+		}
+
+		_ = pisNumber.Scan(record[5]) // will have no value for non-cheque payments
 
 	default:
 		(*failedLines)[index] = validation.UploadErrorUnknownUploadType
