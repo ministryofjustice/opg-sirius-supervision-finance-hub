@@ -12,11 +12,11 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	ctx := suite.ctx
 
 	today := suite.seeder.Today()
-	yesterday := suite.seeder.Today().Sub(0, 0, 1)
-	oneWeekAgo := suite.seeder.Today().Sub(0, 0, 7)
-	twoMonthsAgo := suite.seeder.Today().Sub(0, 2, 0)
-	twoYearsAgo := suite.seeder.Today().Sub(2, 0, 0)
-	fourYearsAgo := suite.seeder.Today().Sub(4, 0, 0)
+	yesterday := today.Sub(0, 0, 1)
+	oneWeekAgo := today.Sub(0, 0, 7)
+	twoMonthsAgo := today.Sub(0, 2, 0)
+	twoYearsAgo := today.Sub(2, 0, 0)
+	fourYearsAgo := today.Sub(4, 0, 0)
 	general := "320.00"
 	minimal := "10.00"
 

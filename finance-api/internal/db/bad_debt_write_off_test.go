@@ -10,9 +10,9 @@ import (
 func (suite *IntegrationSuite) Test_bad_debt_write_off() {
 	ctx := suite.ctx
 	today := suite.seeder.Today()
-	twoMonthsAgo := suite.seeder.Today().Sub(0, 2, 0)
-	twoYearsAgo := suite.seeder.Today().Sub(2, 0, 0)
-	fourYearsAgo := suite.seeder.Today().Sub(4, 0, 0)
+	twoMonthsAgo := today.Sub(0, 2, 0)
+	twoYearsAgo := today.Sub(2, 0, 0)
+	fourYearsAgo := today.Sub(4, 0, 0)
 	general := "320.00"
 
 	suite.seeder.CreateTestAssignee(ctx)
@@ -51,7 +51,7 @@ func (suite *IntegrationSuite) Test_bad_debt_write_off() {
 		ToDate:   &to,
 	})
 
-	runTime := time.Now()
+	runTime := today
 
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), 4, len(rows))
@@ -68,7 +68,7 @@ func (suite *IntegrationSuite) Test_bad_debt_write_off() {
 	assert.Equal(suite.T(), "5356202100", results[0]["Account code"], "Account code - client 1")
 	assert.Equal(suite.T(), "EXP - IMPAIRMENT - BAD DEBTS-Appoint Deputy Write Off", results[0]["Account code description"], "Account code description - client 1")
 	assert.Equal(suite.T(), "100.00", results[0]["Adjustment amount"], "Adjustment amount - client 1")
-	assert.Contains(suite.T(), results[0]["Adjustment date"], runTime.UTC().Format("2006-01-02 15:04"), "Adjustment date - client 1")
+	assert.Contains(suite.T(), results[0]["Adjustment date"], runTime.Date().Format("2006-01-02 15:04"), "Adjustment date - client 1")
 	assert.Equal(suite.T(), "WO"+c1i1Ref, results[0]["Txn number"], "Txn number - client 1")
 	assert.Equal(suite.T(), "Johnny Test", results[0]["Approver"], "Approver - client 1")
 
@@ -81,7 +81,7 @@ func (suite *IntegrationSuite) Test_bad_debt_write_off() {
 	assert.Equal(suite.T(), "5356202100", results[1]["Account code"], "Account code - client 2 write off 1")
 	assert.Equal(suite.T(), "EXP - IMPAIRMENT - BAD DEBTS-Appoint Deputy Write Off", results[1]["Account code description"], "Account code description - client 2 write off 1")
 	assert.Equal(suite.T(), "100.00", results[1]["Adjustment amount"], "Adjustment amount - client 2 write off 1")
-	assert.Contains(suite.T(), results[1]["Adjustment date"], runTime.UTC().Format("2006-01-02 15:04"), "Adjustment date - client 2 write off 1")
+	assert.Contains(suite.T(), results[1]["Adjustment date"], runTime.Date().Format("2006-01-02 15:04"), "Adjustment date - client 2 write off 1")
 	assert.Equal(suite.T(), "WO"+c2i1Ref, results[1]["Txn number"], "Txn number - client 2 write off 1")
 	assert.Equal(suite.T(), "Johnny Test", results[1]["Approver"], "Approver - client 2 write off 1")
 
@@ -94,7 +94,7 @@ func (suite *IntegrationSuite) Test_bad_debt_write_off() {
 	assert.Equal(suite.T(), "5356202102", results[2]["Account code"], "Account code - client 2 write off 2")
 	assert.Equal(suite.T(), "EXP - IMPAIRMENT - BAD DEBTS-Sup Fee 2 Write Off\tWrite-off", results[2]["Account code description"], "Account code description - client 2 write off 2")
 	assert.Equal(suite.T(), "320.00", results[2]["Adjustment amount"], "Adjustment amount - client 2 write off 2")
-	assert.Contains(suite.T(), results[2]["Adjustment date"], runTime.UTC().Format("2006-01-02 15:04"), "Adjustment date - client 2 write off 2")
+	assert.Contains(suite.T(), results[2]["Adjustment date"], runTime.Date().Format("2006-01-02 15:04"), "Adjustment date - client 2 write off 2")
 	assert.Equal(suite.T(), "WO"+c2i2Ref, results[2]["Txn number"], "Txn number - client 2 write off 2")
 	assert.Equal(suite.T(), "Johnny Test", results[2]["Approver"], "Approver - client 2 write off 2")
 }
