@@ -9,10 +9,10 @@ import (
 func (suite *IntegrationSuite) Test_receipts() {
 	ctx := suite.ctx
 	today := suite.seeder.Today()
-	yesterday := suite.seeder.Today().Sub(0, 0, 1)
-	twoYearsAgo := suite.seeder.Today().Sub(2, 0, 0)
-	twoMonthsAgo := suite.seeder.Today().Sub(0, 2, 0)
-	oneMonthAgo := suite.seeder.Today().Sub(0, 1, 0)
+	yesterday := today.Sub(0, 0, 1)
+	twoYearsAgo := today.Sub(2, 0, 0)
+	twoMonthsAgo := today.Sub(0, 2, 0)
+	oneMonthAgo := today.Sub(0, 1, 0)
 	courtRef1 := "12345678"
 	courtRef2 := "22222222"
 	courtRef3 := "33333333"

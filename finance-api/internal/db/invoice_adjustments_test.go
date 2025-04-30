@@ -13,7 +13,7 @@ import (
 func (suite *IntegrationSuite) Test_invoice_adjustments() {
 	ctx := suite.ctx
 	today := suite.seeder.Today()
-	fourYearsAgo := suite.seeder.Today().Sub(4, 0, 0)
+	fourYearsAgo := today.Sub(4, 0, 0)
 
 	// one client with two orders, one with a credit memo:
 	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234")
@@ -27,13 +27,13 @@ func (suite *IntegrationSuite) Test_invoice_adjustments() {
 	client2ID := suite.seeder.CreateClient(ctx, "Barry", "Giggle", "87654321", "4321")
 	suite.seeder.CreateOrder(ctx, client2ID, "ACTIVE")
 	_, client2Invoice2Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, valToPtr("320.00"), today.StringPtr(), nil, nil, nil, nil)
-	suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeRemission, strconv.Itoa(today.Date().Year()-1), 4, "Test remission", time.Now())
+	suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeRemission, strconv.Itoa(today.Date().Year()-1), 4, "Test remission", today.Date())
 
 	// one client with a guardianship a remission:
 	client3ID := suite.seeder.CreateClient(ctx, "Edith", "Exemption", "33333333", "3333")
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
 	_, client3InvoiceRef := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeGS, valToPtr("200.00"), today.StringPtr(), today.StringPtr(), today.StringPtr(), nil, nil)
-	suite.seeder.CreateFeeReduction(ctx, client3ID, shared.FeeReductionTypeExemption, strconv.Itoa(today.Date().Year()-1), 4, "Test exemption", time.Now())
+	suite.seeder.CreateFeeReduction(ctx, client3ID, shared.FeeReductionTypeExemption, strconv.Itoa(today.Date().Year()-1), 4, "Test exemption", today.Date())
 
 	c := Client{suite.seeder.Conn}
 
@@ -66,7 +66,7 @@ func (suite *IntegrationSuite) Test_invoice_adjustments() {
 	assert.Equal(suite.T(), "Manual Credit", results[0]["Txn description"], "Txn description - client 1")
 	assert.Equal(suite.T(), "", results[0]["Remission/exemption term"], "Remission/Exemption award term - client 1")
 	assert.Equal(suite.T(), formattedFinancialYear, results[0]["Financial Year"], "Financial Year - client 1")
-	assert.Equal(suite.T(), time.Now().Format("2006-01-02"), results[0]["Approved date"], "Approved date - client 1")
+	assert.Equal(suite.T(), today.Date().Format("2006-01-02"), results[0]["Approved date"], "Approved date - client 1")
 	assert.Equal(suite.T(), "100.00", results[0]["Adjustment amount"], "Adjustment amount - client 1")
 	assert.Equal(suite.T(), "£100 credit", results[0]["Reason for adjustment"], "Reason for adjustment - client 1")
 
@@ -83,7 +83,7 @@ func (suite *IntegrationSuite) Test_invoice_adjustments() {
 	assert.Equal(suite.T(), "Exemption Credit", results[1]["Txn description"], "Txn description - client 3")
 	assert.Equal(suite.T(), "3 year", results[1]["Remission/exemption term"], "Remission/Exemption award term - client 3")
 	assert.Equal(suite.T(), formattedFinancialYear, results[1]["Financial Year"], "Financial Year - client 3")
-	assert.Equal(suite.T(), time.Now().Format("2006-01-02"), results[1]["Approved date"], "Approved date - client 3")
+	assert.Equal(suite.T(), today.Date().Format("2006-01-02"), results[1]["Approved date"], "Approved date - client 3")
 	assert.Equal(suite.T(), "200.00", results[1]["Adjustment amount"], "Adjustment amount - client 3")
 	assert.Equal(suite.T(), "Test exemption", results[1]["Reason for adjustment"], "Reason for adjustment - client 3")
 
@@ -100,7 +100,7 @@ func (suite *IntegrationSuite) Test_invoice_adjustments() {
 	assert.Equal(suite.T(), "Remission Credit", results[2]["Txn description"], "Txn description - client 2")
 	assert.Equal(suite.T(), "3 year", results[2]["Remission/exemption term"], "Remission/Exemption award term - client 2")
 	assert.Equal(suite.T(), formattedFinancialYear, results[2]["Financial Year"], "Financial Year - client 2")
-	assert.Equal(suite.T(), time.Now().Format("2006-01-02"), results[2]["Approved date"], "Approved date - client 2")
+	assert.Equal(suite.T(), today.Date().Format("2006-01-02"), results[2]["Approved date"], "Approved date - client 2")
 	assert.Equal(suite.T(), "160.00", results[2]["Adjustment amount"], "Adjustment amount - client 2")
 	assert.Equal(suite.T(), "Test remission", results[2]["Reason for adjustment"], "Reason for adjustment - client 2")
 }

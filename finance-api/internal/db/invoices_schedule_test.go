@@ -7,9 +7,10 @@ import (
 
 func (suite *IntegrationSuite) Test_invoices_schedules() {
 	ctx := suite.ctx
-	yesterday := suite.seeder.Today().Sub(0, 0, 1)
-	twoDaysAgo := suite.seeder.Today().Sub(0, 0, 2)
-	oneMonthAgo := suite.seeder.Today().Sub(0, 1, 0)
+	today := suite.seeder.Today()
+	yesterday := today.Sub(0, 0, 1)
+	twoDaysAgo := today.Sub(0, 0, 2)
+	oneMonthAgo := today.Sub(0, 1, 0)
 	courtRef1 := "12345678"
 	courtRef2 := "87654321"
 	courtRef3 := "10101010"
@@ -46,7 +47,7 @@ func (suite *IntegrationSuite) Test_invoices_schedules() {
 	_, gtRef := suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeGT, valToPtr("100.00"), twoDaysAgo.StringPtr(), nil, nil, nil, twoDaysAgo.StringPtr())
 
 	// ignored as raised date in scope but created date out of scope
-	_, _ = suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeSE, valToPtr("10.00"), yesterday.StringPtr(), nil, nil, valToPtr("MINIMAL"), suite.seeder.Today().StringPtr())
+	_, _ = suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeSE, valToPtr("10.00"), yesterday.StringPtr(), nil, nil, valToPtr("MINIMAL"), today.StringPtr())
 	_, _ = suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeSE, valToPtr("10.00"), oneMonthAgo.StringPtr(), nil, nil, valToPtr("MINIMAL"), oneMonthAgo.StringPtr())
 
 	c := Client{suite.seeder.Conn}

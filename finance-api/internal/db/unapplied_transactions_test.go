@@ -10,9 +10,10 @@ import (
 func (suite *IntegrationSuite) Test_unapplied_transactions() {
 	ctx := suite.ctx
 
-	yesterday := suite.seeder.Today().Sub(0, 0, 1)
-	twoMonthsAgo := suite.seeder.Today().Sub(0, 2, 0)
-	threeYearsAgo := suite.seeder.Today().Sub(3, 0, 0)
+	today := suite.seeder.Today()
+	yesterday := today.Sub(0, 0, 1)
+	twoMonthsAgo := today.Sub(0, 2, 0)
+	threeYearsAgo := today.Sub(3, 0, 0)
 	general := "320.00"
 	minimal := "10.00"
 
