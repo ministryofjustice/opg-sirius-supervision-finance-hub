@@ -26,7 +26,7 @@ func (s *Service) ProcessPaymentReversals(ctx context.Context, records [][]strin
 			details := getReversalLines(ctx, record, uploadType, index, &failedLines)
 
 			if details != (shared.ReversalDetails{}) {
-				if !s.validateReversalLine(ctx, details, index, &failedLines) {
+				if !s.validateReversalLine(ctx, details, uploadType, index, &failedLines) {
 					continue
 				}
 
@@ -104,6 +104,36 @@ func getReversalLines(ctx context.Context, record []string, uploadType shared.Re
 		}
 
 		_ = pisNumber.Scan(record[6]) // will have no value for non-cheque payments
+	case shared.ReportTypeUploadDuplicatedPayments:
+		paymentType = shared.ParseTransactionType(record[0])
+		if !paymentType.Valid() {
+			(*failedLines)[index] = validation.UploadErrorPaymentTypeParse
+			return shared.ReversalDetails{}
+		}
+
+		_ = erroredCourtRef.Scan(record[1])
+
+		bd, err := time.Parse("02/01/2006", record[2])
+		if err != nil {
+			(*failedLines)[index] = validation.UploadErrorDateParse
+			return shared.ReversalDetails{}
+		}
+		_ = bankDate.Scan(bd)
+
+		rd, err := time.Parse("02/01/2006", record[3])
+		if err != nil {
+			(*failedLines)[index] = validation.UploadErrorDateParse
+			return shared.ReversalDetails{}
+		}
+		_ = receivedDate.Scan(rd)
+
+		amount, err = parseAmount(record[4])
+		if err != nil {
+			(*failedLines)[index] = validation.UploadErrorAmountParse
+			return shared.ReversalDetails{}
+		}
+
+		_ = pisNumber.Scan(record[5]) // will have no value for non-cheque payments
 
 	default:
 		(*failedLines)[index] = validation.UploadErrorUnknownUploadType
@@ -122,7 +152,7 @@ func getReversalLines(ctx context.Context, record []string, uploadType shared.Re
 	}
 }
 
-func (s *Service) validateReversalLine(ctx context.Context, details shared.ReversalDetails, index int, failedLines *map[int]string) bool {
+func (s *Service) validateReversalLine(ctx context.Context, details shared.ReversalDetails, uploadType shared.ReportUploadType, index int, failedLines *map[int]string) bool {
 	params := store.CheckDuplicateLedgerParams{
 		CourtRef:     details.ErroredCourtRef,
 		Amount:       details.Amount,
@@ -138,7 +168,9 @@ func (s *Service) validateReversalLine(ctx context.Context, details shared.Rever
 		return false
 	}
 
-	exists, _ = s.store.CheckClientExistsByCourtRef(ctx, details.CorrectCourtRef)
+	if uploadType == shared.ReportTypeUploadMisappliedPayments {
+		exists, _ = s.store.CheckClientExistsByCourtRef(ctx, details.CorrectCourtRef)
+	}
 
 	if !exists {
 		(*failedLines)[index] = validation.UploadErrorReversalClientNotFound
