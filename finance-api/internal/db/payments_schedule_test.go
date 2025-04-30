@@ -8,8 +8,8 @@ import (
 func (suite *IntegrationSuite) Test_payments_schedules() {
 	ctx := suite.ctx
 	today := suite.seeder.Today()
-	yesterday := suite.seeder.Today().Sub(0, 0, 1)
-	oneMonthAgo := suite.seeder.Today().Sub(0, 1, 0)
+	yesterday := today.Sub(0, 0, 1)
+	oneMonthAgo := today.Sub(0, 1, 0)
 	courtRef1 := "12345678"
 	courtRef2 := "87654321"
 	courtRef3 := "10101010"

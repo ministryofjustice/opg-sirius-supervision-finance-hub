@@ -10,10 +10,10 @@ import (
 func (suite *IntegrationSuite) Test_aged_debt_by_customer() {
 	ctx := suite.ctx
 	today := suite.seeder.Today()
-	twoMonthsAgo := suite.seeder.Today().Sub(0, 2, 0)
-	twoYearsAgo := suite.seeder.Today().Sub(2, 0, 0)
-	fourYearsAgo := suite.seeder.Today().Sub(4, 0, 0)
-	fiveYearsAgo := suite.seeder.Today().Sub(5, 0, 0)
+	twoMonthsAgo := today.Sub(0, 2, 0)
+	twoYearsAgo := today.Sub(2, 0, 0)
+	fourYearsAgo := today.Sub(4, 0, 0)
+	fiveYearsAgo := today.Sub(5, 0, 0)
 	general := "320.00"
 	// one client with:
 	// - a lay deputy
