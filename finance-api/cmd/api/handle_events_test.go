@@ -53,9 +53,19 @@ func TestServer_handleEvents(t *testing.T) {
 			expectedHandler: "UpdateClient",
 		},
 		{
+			name: "adhoc event",
+			event: shared.Event{
+				Source:     "opg.supervision.finance.adhoc",
+				DetailType: "finance-adhoc",
+				Detail:     shared.AdhocEvent{AdhocProcessName: "NegativeInvoices"},
+			},
+			expectedErr:     nil,
+			expectedHandler: "ProcessAdhocEvent",
+		},
+		{
 			name: "unknown event",
 			event: shared.Event{
-				Source:     "opg.supervision.sirius",
+				Source:     "opg.supervision.finance.adhoc",
 				DetailType: "test",
 			},
 			expectedErr:     e,
