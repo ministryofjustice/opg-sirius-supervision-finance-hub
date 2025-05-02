@@ -42,10 +42,11 @@ func (s *Server) requestReport(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	go func(logger *slog.Logger) {
-		ctx := telemetry.ContextWithLogger(auth.Context{
-			Context: context.Background(),
+		ctx := telemetry.ContextWithLogger(context.Background(), logger)
+		ctx = auth.Context{
+			Context: ctx,
 			User:    r.Context().(auth.Context).User,
-		}, logger)
+		}
 		s.reports.GenerateAndUploadReport(ctx, reportRequest, time.Now())
 	}(telemetry.LoggerFromContext(r.Context()))
 
