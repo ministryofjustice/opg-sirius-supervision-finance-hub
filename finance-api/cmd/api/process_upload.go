@@ -48,10 +48,11 @@ func (s *Server) processUpload(w http.ResponseWriter, r *http.Request) error {
 	logger.Info(fmt.Sprintf("processing %s upload", upload.UploadType))
 
 	go func(logger *slog.Logger) {
-		ctx := telemetry.ContextWithLogger(auth.Context{
-			Context: context.Background(),
+		ctx := telemetry.ContextWithLogger(context.Background(), logger)
+		ctx = auth.Context{
+			Context: ctx,
 			User:    r.Context().(auth.Context).User,
-		}, logger)
+		}
 		s.processUploadFile(ctx, Upload{
 			UploadType:   upload.UploadType,
 			EmailAddress: upload.EmailAddress,
@@ -59,10 +60,10 @@ func (s *Server) processUpload(w http.ResponseWriter, r *http.Request) error {
 			PisNumber:    upload.PisNumber,
 			FileBytes:    bytes.NewReader(fileBytes),
 		})
-	}(telemetry.LoggerFromContext(r.Context()))
+	}(telemetry.LoggerFromContext(ctx))
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(http.StatusOK)
 
 	return nil
 }

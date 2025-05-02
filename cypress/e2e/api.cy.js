@@ -148,11 +148,11 @@ describe('API Tests', () => {
                  .parentsUntil("tr").siblings()
                  .first().contains("Unpaid");
 
-             cy.readFile('cypress/fixtures/feemoto_01042025normal.csv', { encoding: 'base64' }).then((base64Data) => {
+             cy.readFile('fixtures/feemoto_01042025normal.csv', { encoding: 'base64' }).then((base64Data) => {
                  cy.task('generateJWT', user).then((token) => {
                      cy.request({
                          method: 'POST',
-                         url: `${apiUrl}/events`,
+                         url: `${apiUrl}/upload`,
                          body: {
                              data: base64Data,
                              emailAddress: "test@example.com",
@@ -176,7 +176,7 @@ describe('API Tests', () => {
              }).then((response) => {
                  const notify = response.body.pop();
                  expect(notify).to.have.property('email_address');
-                 expect(notify.email_address).to.eq(event.detail.emailAddress);
+                 expect(notify.email_address).to.eq("test@example.com");
                  expect(notify).to.have.property('template_id');
                  expect(notify.template_id).to.eq(processingSuccessTemplateId);
              });

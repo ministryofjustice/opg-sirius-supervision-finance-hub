@@ -75,7 +75,7 @@ INSERT INTO invoice VALUES (10, 12, 12, 'AD', 'AD12121/24', '2024-04-01', '2025-
 
 -- payments - api
 INSERT INTO finance_client VALUES (13, 13, 'paymentsapi', 'DEMANDED', null, '13131313');
-INSERT INTO invoice VALUES (10, 13, 13, 'AD', 'AD33333/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2025-03-31', 99);
+INSERT INTO invoice VALUES (11, 13, 13, 'AD', 'AD33333/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2025-03-31', 99);
 
 -- TEST CLIENT DATA: Add data for default client here
 

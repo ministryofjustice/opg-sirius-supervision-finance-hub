@@ -1,7 +1,7 @@
 package shared
 
 type Upload struct {
-	UploadType   ReportUploadType `json:"upload-type"`
+	UploadType   ReportUploadType `json:"uploadType"`
 	EmailAddress string           `json:"emailAddress"`
 	Base64Data   string           `json:"data"`
 	UploadDate   Date             `json:"uploadDate"`
