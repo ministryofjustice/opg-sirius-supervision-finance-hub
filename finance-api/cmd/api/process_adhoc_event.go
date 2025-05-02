@@ -7,8 +7,8 @@ import (
 )
 
 func (s *Server) processAdhocEvent(ctx context.Context, event shared.AdhocEvent) error {
-	if event.AdhocProcessName != "NegativeInvoices" {
-		return fmt.Errorf("invalid adhoc process name: %s", event.AdhocProcessName)
+	if event.Task != "NegativeInvoices" {
+		return fmt.Errorf("invalid adhoc process name: %s", event.Task)
 	}
 
 	err := s.service.ProcessAdhocEvent(ctx)

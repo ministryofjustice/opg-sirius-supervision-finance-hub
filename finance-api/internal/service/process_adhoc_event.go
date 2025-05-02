@@ -24,38 +24,34 @@ func (s *Service) ProcessAdhocEvent(ctx context.Context) error {
 		return err
 	}
 
+	var clientIDs []int32
+
 	for _, invoice := range invoices {
 		now := time.Now().UTC()
 		todaysDate := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
-		details := shared.PaymentDetails{
-			Amount: int32(invoice.Ledgerallocationamountneeded),
-			ReceivedDate: pgtype.Timestamp{
-				Time:             todaysDate,
-				InfinityModifier: 0,
-				Valid:            true,
-			},
-			CourtRef:   pgtype.Text{String: invoice.CourtRef.String, Valid: true},
-			LedgerType: shared.TransactionTypeUnappliedPayment,
-			BankDate: pgtype.Date{
-				Time:             todaysDate,
-				InfinityModifier: 0,
-				Valid:            true,
-			},
-			CreatedBy: pgtype.Int4{
-				Int32: ctx.(auth.Context).User.ID,
-				Valid: true,
-			},
-		}
+
+		var (
+			receivedDate pgtype.Timestamp
+			courtRef     pgtype.Text
+			billingDate  pgtype.Date
+			createdBy    pgtype.Int4
+			pisNumber    pgtype.Int4
+		)
+
+		_ = receivedDate.Scan(todaysDate)
+		_ = courtRef.Scan(invoice.CourtRef.String)
+		_ = billingDate.Scan(todaysDate)
+		_ = createdBy.Scan(ctx.(auth.Context).User.ID)
 
 		params := store.CreateLedgerForCourtRefParams{
-			CourtRef:     details.CourtRef,
-			Amount:       details.Amount,
-			Type:         details.LedgerType.Key(),
+			CourtRef:     courtRef,
+			Amount:       int32(invoice.Ledgerallocationamountneeded),
+			Type:         shared.TransactionTypeUnappliedPayment.Key(),
 			Status:       "CONFIRMED",
-			CreatedBy:    details.CreatedBy,
-			BankDate:     details.BankDate,
-			ReceivedDate: details.ReceivedDate,
-			PisNumber:    details.PisNumber,
+			CreatedBy:    createdBy,
+			BankDate:     billingDate,
+			ReceivedDate: receivedDate,
+			PisNumber:    pisNumber,
 		}
 
 		ledgerID, err := tx.CreateLedgerForCourtRef(ctx, params)
@@ -68,18 +64,26 @@ func (s *Service) ProcessAdhocEvent(ctx context.Context) error {
 
 		err = tx.CreateLedgerAllocation(ctx, store.CreateLedgerAllocationParams{
 			InvoiceID: invoiceID,
-			Amount:    details.Amount,
-			Status:    "ALLOCATED",
+			Amount:    int32(invoice.Ledgerallocationamountneeded),
+			Status:    "UNAPPLIED",
 			LedgerID:  ledgerID,
 		})
 		if err != nil {
 			return err
 		}
+		clientIDs = append(clientIDs, invoice.PersonID.Int32)
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
 		return err
+	}
+
+	for _, clientID := range clientIDs {
+		err = s.ReapplyCredit(ctx, clientID)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

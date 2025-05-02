@@ -86,5 +86,5 @@ type FinanceAdminUploadEvent struct {
 }
 
 type AdhocEvent struct {
-	AdhocProcessName string `json:"adhocProcessName"`
+	Task string `json:"task"`
 }
