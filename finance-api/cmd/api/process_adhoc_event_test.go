@@ -29,7 +29,7 @@ func Test_processAdhocEvent(t *testing.T) {
 		{
 			name: "Unknown report",
 			adhocProcessName: shared.AdhocEvent{
-				AdhocProcessName: "unknown",
+				Task: "unknown",
 			},
 			expectedResponse: fmt.Errorf("invalid adhoc process name: unknown"),
 			hasError:         true,
@@ -37,7 +37,7 @@ func Test_processAdhocEvent(t *testing.T) {
 		{
 			name: "Negative Invoices",
 			adhocProcessName: shared.AdhocEvent{
-				AdhocProcessName: "NegativeInvoices",
+				Task: "NegativeInvoices",
 			},
 			expectedResponse: nil,
 			hasError:         false,
@@ -45,7 +45,7 @@ func Test_processAdhocEvent(t *testing.T) {
 	}
 	for _, tt := range tests {
 		err := server.processAdhocEvent(ctx, shared.AdhocEvent{
-			AdhocProcessName: tt.adhocProcessName.AdhocProcessName,
+			Task: tt.adhocProcessName.Task,
 		})
 		if tt.hasError {
 			assert.Error(t, err)

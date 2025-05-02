@@ -62,7 +62,7 @@ func (suite *IntegrationSuite) Test_processAdhocEvent() {
 					"CONFIRMED",
 					todaysDate,
 					-5000,
-					"ALLOCATED",
+					"UNAPPLIED",
 					5,
 					0,
 				},

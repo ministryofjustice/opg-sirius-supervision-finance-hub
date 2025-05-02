@@ -13,7 +13,6 @@ var ReportUploadPaymentTypes = []ReportUploadType{
 	ReportTypeUploadPaymentsSupervisionBACS,
 	ReportTypeUploadPaymentsSupervisionCheque,
 	ReportTypeUploadDirectDebitsCollections,
-	ReportTypeUploadAdhoc,
 }
 
 var ReportUploadReversalTypes = []ReportUploadType{
@@ -33,7 +32,6 @@ const (
 	ReportTypeUploadDeputySchedule
 	ReportTypeUploadDirectDebitsCollections
 	ReportTypeUploadMisappliedPayments
-	ReportTypeUploadAdhoc
 )
 
 var reportTypeUploadMap = map[string]ReportUploadType{
@@ -46,7 +44,6 @@ var reportTypeUploadMap = map[string]ReportUploadType{
 	"DEPUTY_SCHEDULE":             ReportTypeUploadDeputySchedule,
 	"DIRECT_DEBITS_COLLECTIONS":   ReportTypeUploadDirectDebitsCollections,
 	"MISAPPLIED_PAYMENTS":         ReportTypeUploadMisappliedPayments,
-	"UPLOAD_ADHOC":                ReportTypeUploadAdhoc,
 }
 
 func (i ReportUploadType) String() string {
@@ -73,8 +70,6 @@ func (i ReportUploadType) Translation() string {
 		return "Direct debits collections"
 	case ReportTypeUploadMisappliedPayments:
 		return "Payment Reversals - Misapplied payments"
-	case ReportTypeUploadAdhoc:
-		return "Adhoc - negative invoices"
 	default:
 		return ""
 	}
@@ -100,8 +95,6 @@ func (i ReportUploadType) Key() string {
 		return "DIRECT_DEBITS_COLLECTIONS"
 	case ReportTypeUploadMisappliedPayments:
 		return "MISAPPLIED_PAYMENTS"
-	case ReportTypeUploadAdhoc:
-		return "ADHOC"
 	default:
 		return ""
 	}
@@ -123,8 +116,6 @@ func (i ReportUploadType) CSVHeaders() []string {
 		return []string{"Client_no", "Deputy_name", "Total_debt"}
 	case ReportTypeUploadMisappliedPayments:
 		return []string{"Payment type", "Current (errored) court reference", "New (correct) court reference", "Bank date", "Received date", "Amount", "PIS number (cheque only)"}
-	case ReportTypeUploadAdhoc:
-		return []string{"Payment type", "Court reference", "Created date", "Amount"}
 	}
 
 	return []string{"Unknown report type"}
@@ -151,8 +142,6 @@ func (i ReportUploadType) Filename(date string) (string, error) {
 		return fmt.Sprintf("directdebitscollections_%s.csv", parsedDate.Format("02012006")), nil
 	case ReportTypeUploadMisappliedPayments:
 		return "misappliedpayments.csv", nil
-	case ReportTypeUploadAdhoc:
-		return "negativeInvoices.csv", nil
 	default:
 		return "", nil
 	}
