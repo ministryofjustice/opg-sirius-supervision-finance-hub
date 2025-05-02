@@ -152,7 +152,7 @@ describe('API Tests', () => {
                  cy.task('generateJWT', user).then((token) => {
                      cy.request({
                          method: 'POST',
-                         url: `${apiUrl}/upload`,
+                         url: `${apiUrl}/uploads`,
                          body: {
                              data: base64Data,
                              emailAddress: "test@example.com",
