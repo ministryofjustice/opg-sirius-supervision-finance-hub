@@ -33,16 +33,6 @@ func TestServer_handleEvents(t *testing.T) {
 			expectedHandler: "ReapplyCredit",
 		},
 		{
-			name: "upload event",
-			event: shared.Event{
-				Source:     "opg.supervision.finance.admin",
-				DetailType: "finance-admin-upload",
-				Detail:     shared.FinanceAdminUploadEvent{Filename: "file.csv", EmailAddress: "hello@test.com", UploadType: shared.ReportTypeUploadPaymentsMOTOCard},
-			},
-			expectedErr:     nil,
-			expectedHandler: "ProcessPayments",
-		},
-		{
 			name: "client created event",
 			event: shared.Event{
 				Source:     "opg.supervision.sirius",

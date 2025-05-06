@@ -16,7 +16,6 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"os"
 	"slices"
 )
 
@@ -109,34 +108,6 @@ func (s *Server) processUploadFile(ctx context.Context, upload Upload) {
 	if err != nil {
 		logger.Error("unable to send notification", "err", err)
 	}
-}
-
-// deprecated
-func (s *Server) processUploadEvent(ctx context.Context, event shared.FinanceAdminUploadEvent) {
-	logger := s.Logger(ctx)
-
-	logger.Info(fmt.Sprintf("processing %s upload", event.UploadType))
-	file, err := s.fileStorage.GetFile(ctx, os.Getenv("ASYNC_S3_BUCKET"), event.Filename)
-
-	var payload notify.Payload
-
-	if err != nil {
-		logger.Error("unable to fetch report from file storage", "err", err)
-		payload = createUploadNotifyPayload(event.EmailAddress, event.UploadType, fmt.Errorf("unable to download report"), map[int]string{})
-		err = s.notify.Send(ctx, payload)
-		if err != nil {
-			logger.Error("unable to send notification", "err", err)
-		}
-		return
-	}
-
-	s.processUploadFile(ctx, Upload{
-		UploadType:   event.UploadType,
-		EmailAddress: event.EmailAddress,
-		UploadDate:   event.UploadDate,
-		PisNumber:    event.PisNumber,
-		FileBytes:    file,
-	})
 }
 
 func formatFailedLines(failedLines map[int]string) []string {

@@ -7,10 +7,8 @@ import (
 
 const (
 	EventSourceSirius             = "opg.supervision.sirius"
-	EventSourceFinanceAdmin       = "opg.supervision.finance.admin"
 	DetailTypeDebtPositionChanged = "debt-position-changed"
 	DetailTypeClientCreated       = "client-created"
-	DetailTypeFinanceAdminUpload  = "finance-admin-upload"
 )
 
 type Event struct {
@@ -37,12 +35,6 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 	switch e.DetailType {
 	case DetailTypeDebtPositionChanged:
 		var detail DebtPositionChangedEvent
-		if err := json.Unmarshal(raw.Detail, &detail); err != nil {
-			return err
-		}
-		e.Detail = detail
-	case DetailTypeFinanceAdminUpload:
-		var detail FinanceAdminUploadEvent
 		if err := json.Unmarshal(raw.Detail, &detail); err != nil {
 			return err
 		}
