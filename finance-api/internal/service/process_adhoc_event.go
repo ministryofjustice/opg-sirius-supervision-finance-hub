@@ -32,7 +32,6 @@ func (s *Service) ProcessAdhocEvent(ctx context.Context) error {
 
 		now := time.Now().UTC()
 		todaysDate := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
-
 		var (
 			receivedDate pgtype.Timestamp
 			courtRef     pgtype.Text
