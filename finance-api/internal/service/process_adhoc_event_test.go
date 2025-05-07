@@ -15,7 +15,7 @@ func (suite *IntegrationSuite) Test_processAdhocEvent() {
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (4, 4, 'invoice-4', 'DEMANDED', NULL, '1234567');",
 		"INSERT INTO invoice VALUES (5, 4, 4, 'AD', 'AD11227/19', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
-		"INSERT INTO ledger VALUES (1, 'ref', '2024-01-01 15:30:27', '', 15000, 'payment', 'MOTO CARD PAYMENT', 'CONFIRMED', 4, NULL, NULL, NULL, '2024-01-01', NULL, NULL, NULL, NULL, '2020-05-05', 1);",
+		"INSERT INTO ledger VALUES (1, 'ref', '2024-01-01 15:30:27', '', 15000, 'payment', 'CREDIT EXEMPTION', 'CONFIRMED', 4, NULL, NULL, NULL, '2024-01-01', NULL, NULL, NULL, NULL, '2020-05-05', 1);",
 		"INSERT INTO ledger_allocation VALUES (1, 1, 5, '2024-01-01 15:30:27', 15000, 'ALLOCATED', NULL, '', '2024-01-01', NULL);",
 		"ALTER SEQUENCE ledger_id_seq RESTART WITH 2;",
 		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 2;",
@@ -44,7 +44,7 @@ func (suite *IntegrationSuite) Test_processAdhocEvent() {
 					Valid:            true,
 				},
 				CourtRef:   pgtype.Text{String: "AD11227/19", Valid: true},
-				LedgerType: shared.TransactionTypeUnappliedPayment,
+				LedgerType: shared.TransactionTypeExemption,
 				BankDate: pgtype.Date{
 					Time:             todaysDate,
 					InfinityModifier: 0,
@@ -58,7 +58,7 @@ func (suite *IntegrationSuite) Test_processAdhocEvent() {
 			expectedLedgerAllocations: []createdLedgerAllocation{
 				{
 					-5000,
-					"UNAPPLIED PAYMENT",
+					"CREDIT EXEMPTION",
 					"CONFIRMED",
 					todaysDate,
 					-5000,
