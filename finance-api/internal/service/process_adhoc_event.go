@@ -5,7 +5,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"time"
 )
 
@@ -46,7 +45,7 @@ func (s *Service) ProcessAdhocEvent(ctx context.Context) error {
 		params := store.CreateLedgerForCourtRefParams{
 			CourtRef:     courtRef,
 			Amount:       int32(invoice.Ledgerallocationamountneeded),
-			Type:         shared.TransactionTypeUnappliedPayment.Key(),
+			Type:         invoice.Type,
 			Status:       "CONFIRMED",
 			CreatedBy:    createdBy,
 			BankDate:     billingDate,
@@ -60,7 +59,7 @@ func (s *Service) ProcessAdhocEvent(ctx context.Context) error {
 		}
 
 		var invoiceID pgtype.Int4
-		_ = store.ToInt4(&invoiceID, invoice.ID)
+		_ = store.ToInt4(&invoiceID, invoice.Invoiceid)
 
 		err = tx.CreateLedgerAllocation(ctx, store.CreateLedgerAllocationParams{
 			InvoiceID: invoiceID,
