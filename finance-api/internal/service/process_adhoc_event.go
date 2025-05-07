@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
@@ -26,9 +27,19 @@ func (s *Service) ProcessAdhocEvent(ctx context.Context) error {
 	var clientIDs []int32
 
 	for _, invoice := range invoices {
-		if invoice.Type == "UNKNOWN DEBIT" || invoice.Type == "UNKNOWN CREDIT" {
-			continue
+		if invoice.Type == "UNKNOWN DEBIT" {
+			invoice.Type = "CREDIT REMISSION"
 		}
+
+		if invoice.Type == "UNKNOWN CREDIT" {
+			if invoice.Ledgerid == 652949 || invoice.Ledgerid == 652948 {
+				invoice.Type = "CREDIT REMISSION"
+			} else {
+				invoice.Type = "CREDIT EXEMPTION"
+			}
+		}
+
+		fmt.Print(invoice.Type)
 
 		now := time.Now().UTC()
 		todaysDate := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
