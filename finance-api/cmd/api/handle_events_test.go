@@ -53,6 +53,16 @@ func TestServer_handleEvents(t *testing.T) {
 			expectedHandler: "UpdateClient",
 		},
 		{
+			name: "adhoc event",
+			event: shared.Event{
+				Source:     "opg.supervision.finance.adhoc",
+				DetailType: "finance-adhoc",
+				Detail:     shared.AdhocEvent{Task: "NegativeInvoices"},
+			},
+			expectedErr:     nil,
+			expectedHandler: "ProcessAdhocEvent",
+		},
+		{
 			name: "unknown event",
 			event: shared.Event{
 				Source:     "opg.supervision.sirius",
@@ -62,6 +72,7 @@ func TestServer_handleEvents(t *testing.T) {
 			expectedHandler: "",
 		},
 	}
+
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			mock := &mockService{}
