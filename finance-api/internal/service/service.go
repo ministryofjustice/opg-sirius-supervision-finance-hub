@@ -26,7 +26,6 @@ type Dispatch interface {
 type FileStorage interface {
 	GetFile(ctx context.Context, bucketName string, fileName string) (io.ReadCloser, error)
 	GetFileWithVersion(ctx context.Context, bucketName string, fileName string, versionID string) (io.ReadCloser, error)
-	PutFile(ctx context.Context, bucketName string, fileName string, file io.Reader) (*string, error)
 }
 
 type NotifyClient interface {
