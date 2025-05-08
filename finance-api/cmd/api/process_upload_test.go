@@ -20,7 +20,7 @@ func Test_processFinanceAdminUpload(t *testing.T) {
 	}
 
 	fileStorage := &mockFileStorage{}
-	fileStorage.data = io.NopCloser(strings.NewReader("test"))
+	fileStorage.file = io.NopCloser(strings.NewReader("test"))
 	notifyClient := &mockNotify{}
 	service := &mockService{}
 

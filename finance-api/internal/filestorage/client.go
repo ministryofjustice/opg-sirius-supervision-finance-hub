@@ -5,26 +5,21 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
-	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"io"
 )
 
 type S3Client interface {
+	PutObject(ctx context.Context, params *s3.PutObjectInput, optFns ...func(*s3.Options)) (*s3.PutObjectOutput, error)
 	GetObject(ctx context.Context, params *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error)
 	HeadObject(ctx context.Context, params *s3.HeadObjectInput, optFns ...func(*s3.Options)) (*s3.HeadObjectOutput, error)
 	Options() s3.Options
 }
 
-type Uploader interface {
-	Upload(ctx context.Context, input *s3.PutObjectInput, opts ...func(*manager.Uploader)) (*manager.UploadOutput, error)
-}
-
 type Client struct {
-	s3       S3Client
-	kmsKey   string
-	uploader Uploader
+	s3     S3Client
+	kmsKey string
 }
 
 func NewClient(ctx context.Context, region string, iamRole string, endpoint string, kmsKey string) (*Client, error) {
@@ -43,7 +38,7 @@ func NewClient(ctx context.Context, region string, iamRole string, endpoint stri
 		cfg.Credentials = stscreds.NewAssumeRoleProvider(client, iamRole)
 	}
 
-	s3Client := s3.NewFromConfig(cfg, func(u *s3.Options) {
+	client := s3.NewFromConfig(cfg, func(u *s3.Options) {
 		u.UsePathStyle = true
 		u.Region = awsRegion
 
@@ -52,12 +47,9 @@ func NewClient(ctx context.Context, region string, iamRole string, endpoint stri
 		}
 	})
 
-	uploader := manager.NewUploader(s3Client)
-
 	return &Client{
-		s3:       s3Client,
-		kmsKey:   kmsKey,
-		uploader: uploader,
+		s3:     client,
+		kmsKey: kmsKey,
 	}, nil
 }
 
@@ -86,21 +78,20 @@ func (c *Client) GetFileWithVersion(ctx context.Context, bucketName string, file
 	return output.Body, nil
 }
 
-func (c *Client) StreamFile(ctx context.Context, bucketName string, fileName string, stream io.ReadCloser) (*string, error) {
-	output, err := c.uploader.Upload(ctx, &s3.PutObjectInput{
-		Bucket:               aws.String(bucketName),
-		Key:                  aws.String(fileName),
-		Body:                 stream,
-		ContentType:          aws.String("text/csv"),
+func (c *Client) PutFile(ctx context.Context, bucketName string, fileName string, file io.Reader) (*string, error) {
+	output, err := c.s3.PutObject(ctx, &s3.PutObjectInput{
+		Bucket:               &bucketName,
+		Key:                  &fileName,
+		Body:                 file,
 		ServerSideEncryption: "aws:kms",
 		SSEKMSKeyId:          aws.String(c.kmsKey),
 	})
 
-	if err != nil {
+	if output == nil {
 		return nil, err
 	}
 
-	return output.VersionID, err
+	return output.VersionId, err
 }
 
 func (c *Client) FileExists(ctx context.Context, bucketName string, filename string) bool {
