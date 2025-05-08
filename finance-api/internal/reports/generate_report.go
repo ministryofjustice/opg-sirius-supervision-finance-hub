@@ -7,7 +7,7 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/db"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"io"
+	"os"
 	"time"
 )
 
@@ -42,7 +42,7 @@ func (c *Client) createDownloadFeeAccrualNotifyPayload(emailAddress string, requ
 
 func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) {
 	logger := telemetry.LoggerFromContext(ctx)
-	filename, reportName, stream, err := c.generateReport(ctx, reportRequest, requestedDate)
+	filename, reportName, file, err := c.generateReport(ctx, reportRequest, requestedDate)
 
 	if err != nil {
 		logger.Error("failed to generate report", "err", err)
@@ -67,7 +67,7 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 		return
 	}
 
-	versionId, err := c.fileStorage.StreamFile(ctx, c.envs.ReportsBucket, filename, stream)
+	versionId, err := c.fileStorage.PutFile(ctx, c.envs.ReportsBucket, filename, file)
 	if err != nil {
 		logger.Error("failed to generate report", "err", err)
 		notifyErr := c.sendFailureNotification(ctx, reportRequest.Email, requestedDate, reportName)
@@ -83,7 +83,7 @@ func (c *Client) GenerateAndUploadReport(ctx context.Context, reportRequest shar
 	}
 }
 
-func (c *Client) generateReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) (filename string, reportName string, stream io.ReadCloser, err error) {
+func (c *Client) generateReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) (filename string, reportName string, file *os.File, err error) {
 	var query db.ReportQuery
 
 	switch reportRequest.ReportType {
@@ -226,12 +226,12 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 		return "", "unknown query", nil, fmt.Errorf("unknown query")
 	}
 
-	stream, err = c.stream(ctx, query)
+	file, err = c.generate(ctx, filename, query)
 	if err != nil {
 		return filename, reportName, nil, err
 	}
 
-	return filename, reportName, stream, nil
+	return filename, reportName, file, nil
 }
 
 type reportRequestedNotifyPersonalisation struct {

@@ -1,14 +1,4 @@
 FROM golang:1.24 AS base
-
-RUN adduser \
-    --disabled-password \
-    --gecos "" \
-    --home "/nonexistent" \
-    --shell "/sbin/nologin" \
-    --no-create-home \
-    --uid 65532 \
-    app-user
-
 WORKDIR /app
 
 ENV CGO_ENABLED=0 GOOS=linux
@@ -38,7 +28,7 @@ EXPOSE 2345
 
 ENTRYPOINT ["air"]
 
-FROM base AS app-build
+FROM base AS build-env
 WORKDIR /app
 
 COPY go.mod .
@@ -54,29 +44,17 @@ WORKDIR /app/finance-hub
 
 RUN go build -a -installsuffix cgo -o /go/bin/finance-hub
 
-FROM base AS healthcheck-build
-WORKDIR /app
+FROM alpine:3
+WORKDIR /go/bin
 
-COPY healthcheck healthcheck
+RUN apk --update --no-cache add \
+    ca-certificates \
+    tzdata
 
-WORKDIR /app/healthcheck
+# Patch vulnerabilities
+RUN apk upgrade --no-cache busybox libcrypto3 libssl3 musl musl-utils
 
-RUN go build -a -installsuffix cgo -o /go/bin/healthcheck
-
-FROM scratch
-
-COPY --from=base /usr/share/zoneinfo /usr/share/zoneinfo
-COPY --from=base /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=base /etc/passwd /etc/passwd
-COPY --from=base /etc/group /etc/group
-
-COPY --from=app-build /go/bin/finance-hub finance-hub
-COPY --from=app-build /app/finance-hub/web/template web/template
-COPY --from=healthcheck-build /go/bin/healthcheck healthcheck
+COPY --from=build-env /go/bin/finance-hub finance-hub
+COPY --from=build-env /app/finance-hub/web/template web/template
 COPY --from=asset-env /app/web/static web/static
-
-USER app-user:app-user
-
-HEALTHCHECK --interval=5s --timeout=5s --start-period=5s --retries=5 CMD [ "/healthcheck" ]
-
 ENTRYPOINT ["./finance-hub"]

@@ -1,14 +1,4 @@
 FROM golang:1.24 AS base
-
-RUN adduser \
-    --disabled-password \
-    --gecos "" \
-    --home "/nonexistent" \
-    --shell "/sbin/nologin" \
-    --no-create-home \
-    --uid 65532 \
-    app-user
-
 WORKDIR /app
 
 ENV CGO_ENABLED=0 GOOS=linux
@@ -24,7 +14,7 @@ EXPOSE 2345
 
 ENTRYPOINT ["air"]
 
-FROM base AS app-build
+FROM base AS build-env
 WORKDIR /app
 
 COPY go.mod go.sum ./
@@ -39,26 +29,15 @@ WORKDIR /app/finance-api
 
 RUN go build -a -installsuffix cgo -o /go/bin/finance-api
 
-FROM base AS healthcheck-build
-WORKDIR /app
+FROM alpine:3
+WORKDIR /go/bin
 
-COPY healthcheck healthcheck
+RUN apk --update --no-cache add \
+    ca-certificates \
+    tzdata
 
-WORKDIR /app/healthcheck
+# Patch vulnerabilities
+RUN apk upgrade --no-cache busybox libcrypto3 libssl3 musl musl-utils
 
-RUN go build -a -installsuffix cgo -o /go/bin/healthcheck
-
-FROM scratch
-
-COPY --from=base /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=base /etc/passwd /etc/passwd
-COPY --from=base /etc/group /etc/group
-
-COPY --from=app-build /go/bin/finance-api finance-api
-COPY --from=healthcheck-build /go/bin/healthcheck healthcheck
-
-USER app-user:app-user
-
-HEALTHCHECK --interval=5s --timeout=5s --start-period=5s --retries=5 CMD [ "/healthcheck" ]
-
+COPY --from=build-env /go/bin/finance-api finance-api
 ENTRYPOINT ["./finance-api"]
