@@ -137,24 +137,8 @@ services:
       timeout: 5s
       retries: 5
 
-  sqlc-gen:
-    image: kjconroy/sqlc
-    working_dir: /src
-    volumes:
-      - ./finance-api/internal/store:/src
-      - ./migrations:/schema
-    command: generate
-
-  sqlc-diff:
-    image: kjconroy/sqlc
-    working_dir: /src
-    volumes:
-      - ./finance-api/internal/store:/src
-      - ./migrations:/schema
-    command: diff
-
-  sqlc-vet:
-    image: kjconroy/sqlc
+  sqlc:
+    image: sqlc/sqlc:1.20.0
     environment:
       POSTGRES_CONN: localhost:5432
       POSTGRES_USER: user
@@ -165,7 +149,6 @@ services:
     volumes:
       - ./finance-api/internal/store:/src
       - ./migrations:/schema
-    command: vet
     depends_on:
       - finance-migration
 
