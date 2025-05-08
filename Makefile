@@ -53,7 +53,7 @@ clean:
 	docker compose down
 	docker compose run --rm yarn
 
-up: clean build-dev start-and-seed sqlc-gen
+up: clean build-dev start-and-seed sqlc
 	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml up finance-hub finance-api yarn
 
 down:
@@ -63,13 +63,13 @@ compile-assets:
 	docker compose run --rm yarn build
 
 sqlc-gen:
-	docker compose run --rm sqlc-gen
+	docker compose run --rm --no-deps sqlc generate
 
 sqlc-diff:
-	docker compose run --rm sqlc-diff
+	docker compose run --rm --no-deps sqlc diff
 
 sqlc-vet:
-	docker compose run --rm sqlc-vet
+	docker compose run --rm sqlc vet
 
 migrate:
 	docker compose run --rm finance-migration

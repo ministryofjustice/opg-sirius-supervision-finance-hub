@@ -53,13 +53,6 @@ jobs:
       - name: diff
         run: make sqlc-diff
 
-      - uses: sqlc-dev/setup-sqlc@v4
-        with:
-          sqlc-version: '1.26.0'
-      - uses: sqlc-dev/action-setup-postgres@master
-        with:
-          postgres-version: "16"
-        id: postgres
       - run: make sqlc-vet
         env:
           POSTGRESQL_SERVER_URI: postgres://user:password@sirius-db:5432/finance?search_path=supervision_finance&sslmode=disable
