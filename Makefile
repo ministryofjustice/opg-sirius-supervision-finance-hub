@@ -63,13 +63,13 @@ compile-assets:
 	docker compose run --rm yarn build
 
 sqlc-gen:
-	docker compose run --rm sqlc-gen
+	docker compose run --rm --no-deps sqlc generate
 
 sqlc-diff:
-	docker compose run --rm sqlc-diff
+	docker compose run --rm --no-deps sqlc diff
 
 sqlc-vet:
-	docker compose run --rm sqlc-vet
+	docker compose run --rm sqlc vet
 
 migrate:
 	docker compose run --rm finance-migration
