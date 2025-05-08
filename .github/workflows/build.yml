@@ -20,25 +20,25 @@ jobs:
 
     steps:
       - name: Set up Go 1.24.0
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v5.4.0
         with:
           go-version: 1.24.0
         id: go
 
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Run unit tests
         run: make unit-test
 
       - name: Test Summary
-        uses: test-summary/action@v2
+        uses: test-summary/action@v2.4
         with:
           paths: "test-results/unit-tests.xml"
         if: always()
 
       - name: Upload Code Coverage
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v5.4.0
         with:
           files: test-results/test-coverage.txt
           fail_ci_if_error: false
@@ -48,7 +48,7 @@ jobs:
     name: sqlc validation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
 
       - name: diff
         run: make sqlc-diff
@@ -61,7 +61,7 @@ jobs:
     name: Go Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
       - name: Go Lint
         run: make go-lint
 
@@ -69,13 +69,13 @@ jobs:
     name: Go Sec
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
       - name: Go Sec
         continue-on-error: true
         run: make gosec
       - name: Upload GoSec results to GitHub Security tab
         if: ${{ always() }}
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v3.28.15
         with:
           sarif_file: 'test-results/gosec.sarif'
           category: gosec
@@ -87,7 +87,7 @@ jobs:
       tag: ${{ steps.bump_version.outputs.tag }}
       timestamp: ${{ steps.set_timestamp.outputs.build_timestamp }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
         with:
           fetch-depth: '0'
       - name: Extract branch name
@@ -118,19 +118,19 @@ jobs:
     runs-on: ubuntu-latest
     needs: ['test', 'golint', 'gosec', 'sqlc', 'version']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
       - name: Build Images
         run: make build-all
       - name: Run cypress
         run: make cypress
       - name: Store screenshots
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         if: failure()
         with:
           name: cypress-screenshots
           path: cypress/screenshots
       - name: Store logs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         if: failure()
         with:
           name: cypress-logs
@@ -143,11 +143,11 @@ jobs:
       tag: ${{ steps.bump_version.outputs.tag }}
       timestamp: ${{ steps.set_timestamp.outputs.build_timestamp }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
         with:
           fetch-depth: '0'
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v4.1.0
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
@@ -157,7 +157,7 @@ jobs:
           role-session-name: GitHubActions
       - name: ECR Login
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+        uses: aws-actions/amazon-ecr-login@v2.0.1
         with:
           registries: 311462405659
       - name: Test Migrations
@@ -203,11 +203,11 @@ jobs:
       TAG: ${{needs.version.outputs.tag}}
       TIMESTAMP: ${{needs.version.outputs.timestamp}}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
         with:
           fetch-depth: '0'
 
-      - uses: unfor19/install-aws-cli-action@v1
+      - uses: unfor19/install-aws-cli-action@v1.0.7
 
       - name: Set up Docker
         run: |
@@ -224,7 +224,7 @@ jobs:
           docker load -i /tmp/images/${{ matrix.service_name }}-multi-arch.tar
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v4.1.0
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
@@ -235,7 +235,7 @@ jobs:
 
       - name: ECR Login
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+        uses: aws-actions/amazon-ecr-login@v2.0.1
         with:
           registries: 311462405659
 
@@ -248,7 +248,7 @@ jobs:
         run: make scan-${{ matrix.service_name }}
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v3.28.15
         with:
           sarif_file: 'test-results/'
           category: trivy-docker-${{ matrix.service_name }}
@@ -293,10 +293,10 @@ jobs:
     needs: [ end_of_pr_workflow, version ]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v4.1.0
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
@@ -307,7 +307,7 @@ jobs:
 
       - name: Install AWS CLI
         id: install-aws-cli
-        uses: unfor19/install-aws-cli-action@v1
+        uses: unfor19/install-aws-cli-action@v1.0.7
 
       - name: Push Tag to Parameter Store
         run: |
