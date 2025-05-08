@@ -1,7 +1,6 @@
 package db
 
 import (
-	"bytes"
 	"context"
 	"encoding/csv"
 	"fmt"
@@ -64,8 +63,7 @@ func (c *Client) CopyStream(ctx context.Context, query ReportQuery) (io.ReadClos
 		}
 		defer rows.Close()
 
-		var buf bytes.Buffer
-		writer := csv.NewWriter(&buf)
+		writer := csv.NewWriter(pw)
 		defer writer.Flush()
 
 		if err = writer.Write(query.GetHeaders()); err != nil {
@@ -89,6 +87,9 @@ func (c *Client) CopyStream(ctx context.Context, query ReportQuery) (io.ReadClos
 			return
 		}
 		writer.Flush()
+		if err := writer.Error(); err != nil {
+			pw.CloseWithError(err)
+		}
 	}()
 
 	return pr, nil
