@@ -15,10 +15,23 @@ ENV CGO_ENABLED=0 GOOS=linux
 
 RUN update-ca-certificates
 
+FROM base AS healthcheck-build
+WORKDIR /app
+
+COPY healthcheck healthcheck
+
+WORKDIR /app/healthcheck
+
+RUN go build -a -installsuffix cgo -o /go/bin/healthcheck
+
 FROM base AS dev
 WORKDIR /app/finance-api
 
+COPY --from=healthcheck-build /go/bin/healthcheck /go/bin/healthcheck
+
 RUN go install github.com/air-verse/air@latest && go install github.com/go-delve/delve/cmd/dlv@latest
+
+HEALTHCHECK --interval=5s --timeout=5s --start-period=5s --retries=5 CMD [ "/go/bin/healthcheck" ]
 EXPOSE 8080
 EXPOSE 2345
 
@@ -38,15 +51,6 @@ RUN go mod download
 WORKDIR /app/finance-api
 
 RUN go build -a -installsuffix cgo -o /go/bin/finance-api
-
-FROM base AS healthcheck-build
-WORKDIR /app
-
-COPY healthcheck healthcheck
-
-WORKDIR /app/healthcheck
-
-RUN go build -a -installsuffix cgo -o /go/bin/healthcheck
 
 FROM scratch
 
