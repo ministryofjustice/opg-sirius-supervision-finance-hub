@@ -69,9 +69,13 @@ INSERT INTO invoice VALUES (9, 11, 11, 'AD', 'AD10102/24', '2024-04-01', '2025-0
 INSERT INTO invoice_adjustment VALUES (4, 11, 9, '2022-04-11', 'CREDIT MEMO', 10000, 'credit adjustment for 100.00', 'PENDING', '2022-04-11T08:36:40+00:00', 2);
 INSERT INTO fee_reduction VALUES (5, 11, 'REMISSION', null, CONCAT(date_part('year', now()), '-01-01')::DATE, CONCAT(date_part('year', now()), '-12-31')::DATE + INTERVAL '1 year', 'notes', false, '2019-05-01');
 
--- payments
+-- payments - events
 INSERT INTO finance_client VALUES (12, 12, 'payments', 'DEMANDED', null, '12121212');
 INSERT INTO invoice VALUES (10, 12, 12, 'AD', 'AD12121/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2025-03-31', 99);
+
+-- payments - api
+INSERT INTO finance_client VALUES (13, 13, 'paymentsapi', 'DEMANDED', null, '13131313');
+INSERT INTO invoice VALUES (11, 13, 13, 'AD', 'AD33333/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2025-03-31', 99);
 
 -- TEST CLIENT DATA: Add data for default client here
 
