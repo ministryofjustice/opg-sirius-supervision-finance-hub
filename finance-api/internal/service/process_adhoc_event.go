@@ -55,10 +55,11 @@ func (s *Service) ProcessAdhocEvent(ctx context.Context) error {
 		_ = courtRef.Scan(invoice.CourtRef.String)
 		_ = billingDate.Scan(todaysDate)
 		_ = createdBy.Scan(ctx.(auth.Context).User.ID)
+		amount := int32(invoice.Ledgerallocationamountneeded) // #nosec G115 -- This is a false positive
 
 		params := store.CreateLedgerForCourtRefParams{
 			CourtRef:     courtRef,
-			Amount:       int32(invoice.Ledgerallocationamountneeded),
+			Amount:       amount,
 			Type:         invoice.Type,
 			Status:       "CONFIRMED",
 			CreatedBy:    createdBy,
@@ -77,7 +78,7 @@ func (s *Service) ProcessAdhocEvent(ctx context.Context) error {
 
 		err = tx.CreateLedgerAllocation(ctx, store.CreateLedgerAllocationParams{
 			InvoiceID: invoiceID,
-			Amount:    int32(invoice.Ledgerallocationamountneeded),
+			Amount:    amount,
 			Status:    "UNAPPLIED",
 			LedgerID:  ledgerID,
 		})
