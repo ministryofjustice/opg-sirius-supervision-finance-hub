@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/stretchr/testify/assert"
 	"io"
@@ -19,17 +20,11 @@ type mockS3Client struct {
 	getObjectInput   *s3.GetObjectInput
 	getObjectOutput  *s3.GetObjectOutput
 	getObjectError   error
-	putObjectOutput  *s3.PutObjectOutput
-	putObjectError   error
 }
 
 func (m *mockS3Client) HeadObject(ctx context.Context, params *s3.HeadObjectInput, optFns ...func(*s3.Options)) (*s3.HeadObjectOutput, error) {
 	m.headObjectInput = params
 	return m.headObjectOutput, m.headObjectError
-}
-
-func (m *mockS3Client) PutObject(ctx context.Context, params *s3.PutObjectInput, optFns ...func(*s3.Options)) (*s3.PutObjectOutput, error) {
-	return m.putObjectOutput, m.putObjectError
 }
 
 func (m *mockS3Client) GetObject(ctx context.Context, params *s3.GetObjectInput, optFns ...func(*s3.Options)) (*s3.GetObjectOutput, error) {
@@ -156,28 +151,36 @@ func TestGetFileWithVersion(t *testing.T) {
 	}
 }
 
-func TestPutFile(t *testing.T) {
+type mockUploader struct {
+	output *manager.UploadOutput
+	err    error
+}
+
+func (m *mockUploader) Upload(ctx context.Context, input *s3.PutObjectInput, opts ...func(*manager.Uploader)) (*manager.UploadOutput, error) {
+	return m.output, m.err
+}
+
+func TestStreamFile(t *testing.T) {
 	versionId := "test"
 	tests := []struct {
-		name    string
-		mock    *mockS3Client
-		want    *string
-		wantErr error
+		name         string
+		mockUploader *mockUploader
+		mockS3       *mockS3Client
+		want         *string
+		wantErr      error
 	}{
 		{
 			name: "success",
-			mock: &mockS3Client{
-				putObjectOutput: &s3.PutObjectOutput{VersionId: &versionId},
-				putObjectError:  nil,
+			mockUploader: &mockUploader{
+				output: &manager.UploadOutput{VersionID: &versionId},
 			},
 			want:    &versionId,
 			wantErr: nil,
 		},
 		{
 			name: "fail",
-			mock: &mockS3Client{
-				putObjectOutput: nil,
-				putObjectError:  errors.New("error"),
+			mockUploader: &mockUploader{
+				err: errors.New("error"),
 			},
 			want:    nil,
 			wantErr: fmt.Errorf("error"),
@@ -186,8 +189,8 @@ func TestPutFile(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			client := &Client{s3: tt.mock}
-			got, err := client.PutFile(context.Background(), "bucket", "filename", nil)
+			client := &Client{uploader: tt.mockUploader}
+			got, err := client.StreamFile(context.Background(), "bucket", "filename", io.NopCloser(strings.NewReader("test")))
 			assert.Equal(t, tt.want, got)
 			assert.Equal(t, tt.wantErr, err)
 		})

@@ -77,7 +77,7 @@ func TestServer_handleEvents(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			mock := &mockService{}
 			fileStorage := &mockFileStorage{}
-			fileStorage.file = io.NopCloser(strings.NewReader("test"))
+			fileStorage.data = io.NopCloser(strings.NewReader("test"))
 			notifyClient := &mockNotify{}
 			server := NewServer(mock, nil, fileStorage, notifyClient, nil, nil, nil)
 
