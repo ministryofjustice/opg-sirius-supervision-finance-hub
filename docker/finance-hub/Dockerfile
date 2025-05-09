@@ -27,12 +27,24 @@ COPY finance-hub/yarn.lock .
 RUN yarn install
 RUN yarn build
 
+FROM base AS healthcheck-build
+WORKDIR /app
+
+COPY healthcheck healthcheck
+
+WORKDIR /app/healthcheck
+
+RUN go build -a -installsuffix cgo -o /go/bin/healthcheck
+
 FROM base AS dev
 WORKDIR /app/finance-hub
 
 COPY --from=asset-env /app/web/static web/static
+COPY --from=healthcheck-build /go/bin/healthcheck /go/bin/healthcheck
 
 RUN go install github.com/air-verse/air@latest && go install github.com/go-delve/delve/cmd/dlv@latest
+
+HEALTHCHECK --interval=5s --timeout=5s --start-period=5s --retries=5 CMD [ "/go/bin//healthcheck" ]
 EXPOSE 8080
 EXPOSE 2345
 
@@ -53,15 +65,6 @@ RUN go mod download
 WORKDIR /app/finance-hub
 
 RUN go build -a -installsuffix cgo -o /go/bin/finance-hub
-
-FROM base AS healthcheck-build
-WORKDIR /app
-
-COPY healthcheck healthcheck
-
-WORKDIR /app/healthcheck
-
-RUN go build -a -installsuffix cgo -o /go/bin/healthcheck
 
 FROM scratch
 
