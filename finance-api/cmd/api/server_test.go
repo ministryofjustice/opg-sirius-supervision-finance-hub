@@ -26,6 +26,11 @@ type mockService struct {
 	err                error
 }
 
+func (s *mockService) ProcessAdhocEvent(ctx context.Context) error {
+	s.lastCalled = "ProcessAdhocEvent"
+	return s.err
+}
+
 func (s *mockService) UpdatePaymentMethod(ctx context.Context, clientID int32, paymentMethod shared.PaymentMethod) error {
 	s.expectedIds = []int{int(clientID)}
 	s.lastCalled = "UpdatePaymentMethod"
