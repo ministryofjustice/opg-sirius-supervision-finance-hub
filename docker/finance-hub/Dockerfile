@@ -44,7 +44,7 @@ COPY --from=healthcheck-build /go/bin/healthcheck /go/bin/healthcheck
 
 RUN go install github.com/air-verse/air@latest && go install github.com/go-delve/delve/cmd/dlv@latest
 
-HEALTHCHECK --interval=5s --timeout=5s --start-period=5s --retries=5 CMD [ "/go/bin//healthcheck" ]
+HEALTHCHECK --interval=5s --timeout=5s --start-period=5s --retries=5 CMD [ "/go/bin/healthcheck" ]
 EXPOSE 8080
 EXPOSE 2345
 
