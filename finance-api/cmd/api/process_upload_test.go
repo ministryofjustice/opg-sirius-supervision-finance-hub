@@ -185,7 +185,7 @@ func Test_processUploadEvent(t *testing.T) {
 	}
 
 	fileStorage := &mockFileStorage{}
-	fileStorage.file = io.NopCloser(strings.NewReader("test"))
+	fileStorage.data = io.NopCloser(strings.NewReader("test"))
 	notifyClient := &mockNotify{}
 	service := &mockService{}
 
