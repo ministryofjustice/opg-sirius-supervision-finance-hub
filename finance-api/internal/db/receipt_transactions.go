@@ -55,6 +55,8 @@ allocation_totals AS (
         SUM(CASE WHEN la.status != 'UNAPPLIED' AND la.amount > 0 THEN la.amount ELSE 0 END) AS credit_amount,
         SUM(CASE WHEN la.status = 'UNAPPLIED' AND la.amount < 0 THEN ABS(la.amount) ELSE 0 END) AS overpayment_amount,
         SUM(CASE WHEN la.status != 'UNAPPLIED' AND la.amount < 0 THEN ABS(la.amount) ELSE 0 END) AS reversed_amount,
+        l.bankdate,
+        l.pis_number,
 		tt.index
 	FROM supervision_finance.ledger_allocation la 
 	INNER JOIN supervision_finance.ledger l ON l.id = la.ledger_id 
@@ -79,6 +81,8 @@ transaction_rows AS (
         (lt.debit_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS debit,
         CASE WHEN at.reversed_amount > 0 THEN (at.reversed_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) ELSE '' END AS credit,
         at.line_description,
+        at.bankdate,
+        at.pis_number,
         at.index,
         1 AS n
     FROM allocation_totals at
@@ -95,6 +99,8 @@ transaction_rows AS (
         CASE WHEN reversed_amount > 0 THEN (reversed_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) ELSE '' END AS debit,
         (credit_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS credit,
         line_description,
+        bankdate,
+        pis_number,
         index,
         2 AS n
     FROM allocation_totals
@@ -110,6 +116,8 @@ transaction_rows AS (
         '' AS debit,
         (overpayment_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS credit,
         line_description,
+        bankdate,
+        pis_number,
         index,
         3 AS n
     FROM allocation_totals
@@ -127,7 +135,7 @@ SELECT
     credit AS "Credit",
     line_description AS "Line description"
 FROM transaction_rows
-ORDER BY index, line_description, n;
+ORDER BY index, bankdate, pis_number, n;
 `
 
 func (r *ReceiptTransactions) GetHeaders() []string {
