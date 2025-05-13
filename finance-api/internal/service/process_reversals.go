@@ -170,11 +170,10 @@ func (s *Service) validateReversalLine(ctx context.Context, details shared.Rever
 
 	if uploadType == shared.ReportTypeUploadMisappliedPayments {
 		exists, _ = s.store.CheckClientExistsByCourtRef(ctx, details.CorrectCourtRef)
-	}
-
-	if !exists {
-		(*failedLines)[index] = validation.UploadErrorReversalClientNotFound
-		return false
+		if !exists {
+			(*failedLines)[index] = validation.UploadErrorReversalClientNotFound
+			return false
+		}
 	}
 
 	return true
