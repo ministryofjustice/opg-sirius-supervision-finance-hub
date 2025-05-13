@@ -84,7 +84,7 @@ filter_false_positives() {
     # This will globally report all alert results of this type as a false positive and exclude them from the reports
     # These Alert ID's can be found by viewing the ids of the /JSON/pscan/view/scanners/ and /JSON/ascan/view/scanners/ endpoints
     ALERTS=(
-        "10038" # Content Security Policy (CSP) Header Not Set
+        "10031" # User Controllable HTML Element Attribute (Potential XSS)
     )
     for ALERT in "${ALERTS[@]}"
     do
@@ -122,7 +122,7 @@ fi
 ##### Enable the below if you want to filter out results with the filtering function #####
 ##########################################################################################
 ##########################################################################################
-# filter_false_positives
+filter_false_positives
 
 # Run Reports
 run_reports
