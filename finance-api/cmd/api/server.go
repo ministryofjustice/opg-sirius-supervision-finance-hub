@@ -116,6 +116,8 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 
 	authFunc("POST /reports", shared.RoleFinanceReporting, s.requestReport)
 
+	authFunc("POST /uploads", shared.RoleFinanceReporting, s.processUpload)
+
 	// unauthenticated as request is coming from EventBridge
 	eventFunc := func(pattern string, h handlerFunc) {
 		handler := otelhttp.WithRouteTag(pattern, h)
