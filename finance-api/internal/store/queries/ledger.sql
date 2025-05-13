@@ -54,7 +54,7 @@ SELECT EXISTS (SELECT 1
                         JOIN finance_client fc ON fc.id = l.finance_client_id
                WHERE l.amount = @amount
                  AND l.status = 'CONFIRMED'
-                 AND l.bankdate = @bank_date
+                 AND (COALESCE(l.pis_number, 0) <> 0 OR l.bankdate = @bank_date)
                  AND l.datetime::DATE = (@received_date::TIMESTAMP)::DATE
                  AND l.type = @type
                  AND fc.court_ref = @court_ref
