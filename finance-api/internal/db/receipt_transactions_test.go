@@ -5,7 +5,6 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"strconv"
-	//"strconv"
 )
 
 func (suite *IntegrationSuite) Test_receipt_transactions() {

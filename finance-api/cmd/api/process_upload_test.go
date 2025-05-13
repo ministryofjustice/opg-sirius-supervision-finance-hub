@@ -1,26 +1,191 @@
 package api
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"io"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 )
 
-func Test_processFinanceAdminUpload(t *testing.T) {
+func Test_processUpload(t *testing.T) {
+	notifyClient := &mockNotify{}
+	service := &mockService{}
+
+	server := NewServer(service, nil, nil, notifyClient, nil, nil, nil)
+
+	tests := []struct {
+		name   string
+		upload shared.Upload
+		err    error
+	}{
+		{
+			name: "fail",
+			upload: shared.Upload{
+				UploadType:   shared.ReportTypeUploadUnknown,
+				EmailAddress: "test@email.com",
+				Base64Data:   "wrong",
+				UploadDate:   shared.Date{},
+				PisNumber:    0,
+			},
+			err: apierror.BadRequest{},
+		},
+		{
+			name: "pass",
+			upload: shared.Upload{
+				UploadType:   shared.ReportTypeUploadPaymentsMOTOCard,
+				EmailAddress: "test@email.com",
+				Base64Data:   base64.StdEncoding.EncodeToString([]byte("col1, col2\nabc,1")),
+				UploadDate:   shared.Date{},
+				PisNumber:    0,
+			},
+			err: nil,
+		},
+	}
+	for _, tt := range tests {
+		var body bytes.Buffer
+
+		_ = json.NewEncoder(&body).Encode(tt.upload)
+		r := httptest.NewRequest(http.MethodPost, "/upload", &body)
+		ctx := auth.Context{
+			Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test")),
+			User:    &shared.User{ID: 1},
+		}
+		r = r.WithContext(ctx)
+		w := httptest.NewRecorder()
+
+		err := server.processUpload(w, r)
+		if tt.err != nil {
+			assert.ErrorAs(t, err, &tt.err)
+		} else {
+			assert.NoError(t, err)
+		}
+	}
+}
+
+func Test_processUploadFile(t *testing.T) {
+	notifyClient := &mockNotify{}
+	service := &mockService{}
+
+	server := NewServer(service, nil, nil, notifyClient, nil, nil, nil)
+
+	tests := []struct {
+		name                string
+		upload              Upload
+		expectedPayload     notify.Payload
+		expectedServiceCall string
+	}{
+		{
+			name: "Unknown report",
+			upload: Upload{
+				UploadType:   shared.ReportTypeUploadUnknown,
+				EmailAddress: "test@email.com",
+				FileBytes:    bytes.NewReader([]byte("col1, col2\nabc,1")),
+				UploadDate:   shared.Date{},
+				PisNumber:    0,
+			},
+			expectedPayload: notify.Payload{
+				EmailAddress: "test@email.com",
+				TemplateId:   notify.ProcessingErrorTemplateId,
+				Personalisation: struct {
+					Error      string `json:"error"`
+					UploadType string `json:"upload_type"`
+				}{
+					"invalid upload type",
+					"",
+				},
+			},
+		},
+		{
+			name: "Unparseable csv",
+			upload: Upload{
+				UploadType:   shared.ReportTypeUploadUnknown,
+				EmailAddress: "test@email.com",
+				FileBytes:    bytes.NewReader([]byte("\"d,32")),
+				UploadDate:   shared.Date{},
+				PisNumber:    0,
+			},
+			expectedPayload: notify.Payload{
+				EmailAddress: "test@email.com",
+				TemplateId:   notify.ProcessingErrorTemplateId,
+				Personalisation: struct {
+					Error      string `json:"error"`
+					UploadType string `json:"upload_type"`
+				}{
+					"unable to read report",
+					"",
+				},
+			},
+		},
+		{
+			name: "Known payment upload",
+			upload: Upload{
+				UploadType:   shared.ReportTypeUploadPaymentsMOTOCard,
+				EmailAddress: "test@email.com",
+				FileBytes:    bytes.NewReader([]byte("col1, col2\nabc,1")),
+				UploadDate:   shared.Date{},
+				PisNumber:    0,
+			},
+			expectedPayload: notify.Payload{
+				EmailAddress: "test@email.com",
+				TemplateId:   notify.ProcessingSuccessTemplateId,
+				Personalisation: struct {
+					UploadType string `json:"upload_type"`
+				}{"Payments - MOTO card"},
+			},
+			expectedServiceCall: "ProcessPayments",
+		},
+		{
+			name: "Known reversal upload",
+			upload: Upload{
+				UploadType:   shared.ReportTypeUploadMisappliedPayments,
+				EmailAddress: "test@email.com",
+				FileBytes:    bytes.NewReader([]byte("col1, col2\nabc,1")),
+				UploadDate:   shared.Date{},
+				PisNumber:    0,
+			},
+			expectedPayload: notify.Payload{
+				EmailAddress: "test@email.com",
+				TemplateId:   notify.ProcessingSuccessTemplateId,
+				Personalisation: struct {
+					UploadType string `json:"upload_type"`
+				}{"Payment Reversals - Misapplied payments"},
+			},
+			expectedServiceCall: "ProcessPaymentReversals",
+		},
+	}
+	for _, tt := range tests {
+		ctx := auth.Context{
+			Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test")),
+			User:    &shared.User{ID: 1},
+		}
+
+		server.processUploadFile(ctx, tt.upload)
+		assert.Equal(t, tt.expectedPayload, notifyClient.payload)
+		assert.Equal(t, tt.expectedServiceCall, service.lastCalled)
+	}
+}
+
+// deprecated
+func Test_processUploadEvent(t *testing.T) {
 	ctx := auth.Context{
 		Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test")),
 		User:    &shared.User{ID: 1},
 	}
 
 	fileStorage := &mockFileStorage{}
-	fileStorage.file = io.NopCloser(strings.NewReader("test"))
+	fileStorage.data = io.NopCloser(strings.NewReader("test"))
 	notifyClient := &mockNotify{}
 	service := &mockService{}
 
@@ -86,7 +251,7 @@ func Test_processFinanceAdminUpload(t *testing.T) {
 					UploadType string `json:"upload_type"`
 				}{"Payment Reversals - Misapplied payments"},
 			},
-			expectedServiceCall: "ProcessReversals",
+			expectedServiceCall: "ProcessPaymentReversals",
 		},
 	}
 	for _, tt := range tests {
@@ -94,11 +259,11 @@ func Test_processFinanceAdminUpload(t *testing.T) {
 		emailAddress := "test@email.com"
 		fileStorage.err = tt.fileStorageErr
 
-		err := server.processUpload(ctx, shared.FinanceAdminUploadEvent{
+		server.processUploadEvent(ctx, shared.FinanceAdminUploadEvent{
 			EmailAddress: emailAddress, Filename: filename, UploadType: tt.uploadType,
 		})
-		assert.Nil(t, err)
 		assert.Equal(t, tt.expectedPayload, notifyClient.payload)
+		assert.Equal(t, tt.expectedServiceCall, service.lastCalled)
 	}
 }
 
