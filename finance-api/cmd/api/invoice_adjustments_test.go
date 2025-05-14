@@ -27,6 +27,7 @@ func TestServer_getInvoiceAdjustments(t *testing.T) {
 			Amount:         123400,
 			Status:         "PENDING",
 			Notes:          "Credit memo for invoice",
+			CreatedBy:      2,
 		},
 	}
 
@@ -37,7 +38,7 @@ func TestServer_getInvoiceAdjustments(t *testing.T) {
 	res := w.Result()
 	defer res.Body.Close()
 
-	expected := `[{"id":1,"invoiceRef":"abc123/24","raisedDate":"16\/03\/2020","adjustmentType":"CREDIT MEMO","amount":123400,"status":"PENDING","notes":"Credit memo for invoice"}]`
+	expected := `[{"id":1,"invoiceRef":"abc123/24","raisedDate":"16\/03\/2020","adjustmentType":"CREDIT MEMO","amount":123400,"status":"PENDING","notes":"Credit memo for invoice","createdBy":2}]`
 
 	assert.Equal(t, strings.TrimSpace(expected), strings.TrimSpace(w.Body.String()))
 	assert.Equal(t, 1, mock.expectedIds[0])
