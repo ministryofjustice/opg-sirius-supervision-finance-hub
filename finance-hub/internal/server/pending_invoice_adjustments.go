@@ -17,6 +17,7 @@ type PendingInvoiceAdjustment struct {
 	AdjustmentAmount string
 	Notes            string
 	Status           string
+	CreatedBy        int
 }
 
 type PendingInvoiceAdjustmentsTab struct {
@@ -55,6 +56,7 @@ func (h *PendingInvoiceAdjustmentsHandler) transform(in shared.InvoiceAdjustment
 			AdjustmentAmount: shared.IntToDecimalString(int(math.Abs(float64(adjustment.Amount)))),
 			Notes:            adjustment.Notes,
 			Status:           h.transformStatus(adjustment.Status),
+			CreatedBy:        adjustment.CreatedBy,
 		})
 	}
 
