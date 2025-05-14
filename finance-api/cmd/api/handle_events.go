@@ -37,6 +37,13 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
 		if detail, ok := event.Detail.(shared.FinanceAdminUploadEvent); ok {
 			s.processUploadEvent(ctx, detail)
 		}
+	} else if event.Source == shared.EventSourceFinanceAdhoc && event.DetailType == shared.DetailTypeFinanceAdhoc {
+		if detail, ok := event.Detail.(shared.AdhocEvent); ok {
+			err := s.processAdhocEvent(ctx, detail)
+			if err != nil {
+				return err
+			}
+		}
 	} else {
 		return apierror.BadRequestError("event", fmt.Sprintf("could not match event: %s %s", event.Source, event.DetailType), errors.New("no match"))
 	}
