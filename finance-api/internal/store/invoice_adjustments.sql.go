@@ -146,7 +146,8 @@ SELECT ia.id,
        ia.adjustment_type,
        ia.amount,
        ia.notes,
-       ia.status
+       ia.status,
+       ia.created_by
 FROM invoice_adjustment ia
          JOIN invoice i ON i.id = ia.invoice_id
          JOIN finance_client fc ON fc.id = ia.finance_client_id
@@ -162,6 +163,7 @@ type GetInvoiceAdjustmentsRow struct {
 	Amount         int32
 	Notes          string
 	Status         string
+	CreatedBy      int32
 }
 
 func (q *Queries) GetInvoiceAdjustments(ctx context.Context, clientID int32) ([]GetInvoiceAdjustmentsRow, error) {
@@ -181,6 +183,7 @@ func (q *Queries) GetInvoiceAdjustments(ctx context.Context, clientID int32) ([]
 			&i.Amount,
 			&i.Notes,
 			&i.Status,
+			&i.CreatedBy,
 		); err != nil {
 			return nil, err
 		}
