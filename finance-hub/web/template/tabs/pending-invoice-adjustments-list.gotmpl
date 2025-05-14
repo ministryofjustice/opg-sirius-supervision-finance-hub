@@ -38,23 +38,22 @@
                         {{ if $user.IsFinanceManager }}
                             {{ if eq .Status "Pending"}}
                                 <div class="form-button-menu">
-                                    {{ if ne $user.ID .CreatedBy }}
-                                        <form method="post"
-                                              hx-post="{{ prefix (printf "/clients/%s/pending-invoice-adjustments/%s/%s/approved" $clientId .Id .AdjustmentType) }}"
-                                              hx-disabled-elt="find button">
-                                            <input type="hidden" name="CSRF" value="{{ $xsrfToken }}"/>
-                                            <button class="govuk-button moj-button-menu__item govuk-button--secondary"
-                                                    type="submit">
-                                                Approve
-                                            </button>
-                                        </form>
-                                    {{ end }}
+                                    <form method="post"
+                                          hx-post="{{ prefix (printf "/clients/%s/pending-invoice-adjustments/%s/%s/approved" $clientId .Id .AdjustmentType) }}"
+                                          hx-disabled-elt="find button">
+                                        <input type="hidden" name="CSRF" value="{{ $xsrfToken }}"/>
+                                        <button class="govuk-button moj-button-menu__item govuk-button--secondary {{ if eq $user.ID .CreatedBy }}hide{{end}}"
+                                                type="submit">
+                                            Approve
+                                        </button>
+                                    </form>
 
                                     <form method="post"
                                           hx-post="{{ prefix (printf "/clients/%s/pending-invoice-adjustments/%s/%s/rejected" $clientId .Id .AdjustmentType) }}"
                                           hx-disabled-elt="find button">
                                         <input type="hidden" name="CSRF" value="{{ $xsrfToken }}"/>
-                                        <button class="govuk-button moj-button-menu__item govuk-button--secondary" type="submit">
+                                        <button class="govuk-button moj-button-menu__item govuk-button--secondary"
+                                                type="submit">
                                             Reject
                                         </button>
                                     </form>
