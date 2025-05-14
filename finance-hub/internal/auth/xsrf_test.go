@@ -70,7 +70,7 @@ func TestXsrfCheck(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			req := httptest.NewRequest(tt.method, "/", strings.NewReader(url.Values{"xsrfToken": {tt.formToken}}.Encode()))
+			req := httptest.NewRequest(tt.method, "/", strings.NewReader(url.Values{"CSRF": {tt.formToken}}.Encode()))
 			req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 			rr := httptest.NewRecorder()
 
