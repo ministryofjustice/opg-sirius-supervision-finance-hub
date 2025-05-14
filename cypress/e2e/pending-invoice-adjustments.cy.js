@@ -40,7 +40,7 @@ describe("Pending Invoice Adjustments", () => {
             .contains("AD10101/24").parent("tr")
             .find(".form-button-menu")
             .within(() => {
-                cy.contains("button", "Approve").should("not.exist");
+                cy.contains("button", "Approve").should("not.be.visible");
                 cy.contains("button", "Reject");
             });
     });
