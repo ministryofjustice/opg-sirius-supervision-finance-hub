@@ -2,6 +2,8 @@ package shared
 
 import (
 	"encoding/json"
+	"fmt"
+	"time"
 )
 
 var reportUploadPaymentTypes = []ReportUploadType{
@@ -75,7 +77,7 @@ func (u ReportUploadType) Translation() string {
 	case ReportTypeUploadDeputySchedule:
 		return "Deputy schedule"
 	case ReportTypeUploadDirectDebitsCollections:
-		return "Direct debits collections"
+		return "Direct Debits Collections"
 	case ReportTypeUploadMisappliedPayments:
 		return "Payment Reversals - Misapplied payments"
 	case ReportTypeUploadDuplicatedPayments:
@@ -116,8 +118,8 @@ func (u ReportUploadType) Key() string {
 	}
 }
 
-func (i ReportUploadType) CSVHeaders() []string {
-	switch i {
+func (u ReportUploadType) CSVHeaders() []string {
+	switch u {
 	case ReportTypeUploadPaymentsMOTOCard, ReportTypeUploadPaymentsOnlineCard:
 		return []string{"Ordercode", "Date", "Amount"}
 	case ReportTypeUploadPaymentsSupervisionBACS:
@@ -141,13 +143,22 @@ func (i ReportUploadType) CSVHeaders() []string {
 	return []string{"Unknown report type"}
 }
 
-func (i ReportUploadType) Filename(date string) (string, error) {
+func (u ReportUploadType) Filename(date string) (string, error) {
+	switch u {
+	case ReportTypeUploadMisappliedPayments:
+		return "misappliedpayments.csv", nil
+	case ReportTypeUploadBouncedCheque:
+		return "bouncedcheque.csv", nil
+	case ReportTypeUploadDuplicatedPayments:
+		return "duplicatedpayments.csv", nil
+	}
+
 	parsedDate, err := time.Parse("2006-01-02", date)
 	if err != nil {
 		return "", err
 	}
 
-	switch i {
+	switch u {
 	case ReportTypeUploadPaymentsMOTOCard:
 		return fmt.Sprintf("feemoto_%snormal.csv", parsedDate.Format("02012006")), nil
 	case ReportTypeUploadPaymentsOnlineCard:
@@ -160,18 +171,12 @@ func (i ReportUploadType) Filename(date string) (string, error) {
 		return fmt.Sprintf("supervisioncheques_%s.csv", parsedDate.Format("02012006")), nil
 	case ReportTypeUploadDirectDebitsCollections:
 		return fmt.Sprintf("directdebitscollections_%s.csv", parsedDate.Format("02012006")), nil
-	case ReportTypeUploadMisappliedPayments:
-		return "misappliedpayments.csv", nil
-	case ReportTypeUploadDuplicatedPayments:
-		return "duplicatedpayments.csv", nil
-	case ReportTypeUploadBouncedCheque:
-		return "bouncedcheque.csv", nil
 	default:
 		return "", nil
 	}
 }
 
-func ParseReportUploadType(s string) ReportUploadType {
+func ParseUploadType(s string) ReportUploadType {
 	value, ok := reportTypeUploadMap[s]
 	if !ok {
 		return ReportUploadType(0)
@@ -219,6 +224,6 @@ func (u *ReportUploadType) UnmarshalJSON(data []byte) (err error) {
 	if err := json.Unmarshal(data, &s); err != nil {
 		return err
 	}
-	*u = ParseReportUploadType(s)
+	*u = ParseUploadType(s)
 	return nil
 }
