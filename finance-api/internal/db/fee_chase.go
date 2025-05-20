@@ -24,7 +24,7 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
                a.county AS "County",
                a.postcode AS "Postcode",
                CASE WHEN do_not_invoice_warning_count.count >= 1 THEN 'Yes' ELSE 'No' END  AS "Do_not_chase",
-               gi.invoice AS "Invoice",
+--                gi.invoice AS "Invoice",
                gi.count AS "Count",
                gi.total AS "Total_debt"
         FROM public.persons cl
@@ -34,8 +34,9 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
                        SELECT a.* FROM public.addresses a WHERE a.person_id = p.id ORDER BY a.id DESC LIMIT 1
                 ) a ON TRUE
            , LATERAL (
-            SELECT json_agg(json_build_object(
-                   'ref', i.reference, 'debt', i.amount - COALESCE(transactions.received, 0)) ORDER BY i.startdate)   as invoice,
+            SELECT 
+--                 json_agg(json_build_object(
+--                    'ref', i.reference, 'debt', i.amount - COALESCE(transactions.received, 0)) ORDER BY i.startdate)   as invoice,
                    count(i.reference)                                                                         		  as count,
                    SUM(i.amount - COALESCE(transactions.received, 0))                                                 as total
               FROM supervision_finance.invoice i
