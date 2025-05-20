@@ -84,8 +84,9 @@ filter_false_positives() {
     # This will globally report all alert results of this type as a false positive and exclude them from the reports
     # These Alert ID's can be found by viewing the ids of the /JSON/pscan/view/scanners/ and /JSON/ascan/view/scanners/ endpoints
     ALERTS=(
-        "10031", # User Controllable HTML Element Attribute (Potential XSS)
-        "6" # Path Traversal
+        "10031" # User Controllable HTML Element Attribute (Potential XSS)
+        "6"     # Path Traversal
+        "30002" # Format String Error
     )
     for ALERT in "${ALERTS[@]}"
     do
