@@ -8,7 +8,7 @@ import (
 
 func (suite *IntegrationSuite) Test_unapply_reapply_schedules() {
 	ctx := suite.ctx
-	
+
 	today := suite.seeder.Today()
 	yesterday := today.Sub(0, 0, 1)
 	sixMonthsAgo := today.Sub(0, 6, 0)
@@ -22,18 +22,18 @@ func (suite *IntegrationSuite) Test_unapply_reapply_schedules() {
 
 	// client 1 - no credit
 	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", courtRef1, "1234")
-	suite.seeder.CreateFeeReduction(ctx, client1ID, shared.FeeReductionTypeExemption, strconv.Itoa(twoYearsAgo.Date().Year()), 3, "notes", yesterday.Date())
+	_ = suite.seeder.CreateFeeReduction(ctx, client1ID, shared.FeeReductionTypeExemption, strconv.Itoa(twoYearsAgo.Date().Year()), 3, "notes", yesterday.Date())
 	_, _ = suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeS2, &general, sixMonthsAgo.StringPtr(), nil, nil, valToPtr("GENERAL"), sixMonthsAgo.StringPtr())
 
 	// client 2 - unapplied credit
 	client2ID := suite.seeder.CreateClient(ctx, "Una", "Unapply", courtRef2, "4321")
-	suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeExemption, strconv.Itoa(twoYearsAgo.Date().Year()), 3, "notes", twoYearsAgo.Date())
+	_ = suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeExemption, strconv.Itoa(twoYearsAgo.Date().Year()), 3, "notes", twoYearsAgo.Date())
 	inv2ID, inv2Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeAD, nil, sixMonthsAgo.StringPtr(), nil, nil, nil, sixMonthsAgo.StringPtr())
 	suite.seeder.CreateAdjustment(ctx, client2ID, inv2ID, shared.AdjustmentTypeCreditMemo, 9900, "Credit added", yesterday.DatePtr())
 
 	// client 3 - reapplied credit
 	client3ID := suite.seeder.CreateClient(ctx, "Reginald", "Reapply", courtRef3, "4321")
-	suite.seeder.CreateFeeReduction(ctx, client3ID, shared.FeeReductionTypeExemption, strconv.Itoa(threeYearsAgo.Date().Year()), 2, "notes", threeYearsAgo.Date())
+	_ = suite.seeder.CreateFeeReduction(ctx, client3ID, shared.FeeReductionTypeExemption, strconv.Itoa(threeYearsAgo.Date().Year()), 2, "notes", threeYearsAgo.Date())
 	inv3ID, inv3Ref := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeAD, nil, twoYearsAgo.StringPtr(), nil, nil, nil, twoYearsAgo.StringPtr())
 	suite.seeder.CreateAdjustment(ctx, client3ID, inv3ID, shared.AdjustmentTypeCreditMemo, 8800, "Credit added", sixMonthsAgo.DatePtr())
 	_, inv4Ref := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeS3, &minimal, yesterday.StringPtr(), nil, nil, valToPtr("MINIMAL"), yesterday.StringPtr())

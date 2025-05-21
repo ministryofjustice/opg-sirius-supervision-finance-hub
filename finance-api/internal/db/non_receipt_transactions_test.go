@@ -26,7 +26,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 	suite.seeder.AddFeeRanges(ctx, invoice2ID, []testhelpers.FeeRange{{SupervisionLevel: "MINIMAL", FromDate: oneYearAgo.Date(), ToDate: today.Date()}})
 	_, _ = suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeGS, valToPtr("350.00"), threeMonthsAgo.StringPtr(), nil, nil, valToPtr("GENERAL"), yesterday.StringPtr())
 
-	suite.seeder.CreateFeeReduction(ctx, client1ID, shared.FeeReductionTypeExemption, strconv.Itoa(yesterday.Date().Year()-1), 2, "Test", yesterday.Date())
+	_ = suite.seeder.CreateFeeReduction(ctx, client1ID, shared.FeeReductionTypeExemption, strconv.Itoa(yesterday.Date().Year()-1), 2, "Test", yesterday.Date())
 	suite.seeder.CreatePayment(ctx, 1200, yesterday.Date(), "12345678", shared.TransactionTypeMotoCardPayment, yesterday.Date(), 0)
 
 	// client with one AD invoice, an S2 invoice, a GA invoice, a hardship and a direct debit payment
@@ -38,7 +38,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 	suite.seeder.AddFeeRanges(ctx, invoice7ID, []testhelpers.FeeRange{{SupervisionLevel: "GENERAL", FromDate: oneYearAgo.Date(), ToDate: today.Date()}})
 	_, _ = suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeGA, nil, threeMonthsAgo.StringPtr(), nil, nil, nil, yesterday.StringPtr())
 
-	suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeHardship, strconv.Itoa(yesterday.Date().Year()-1), 4, "Test", yesterday.Date())
+	_ = suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeHardship, strconv.Itoa(yesterday.Date().Year()-1), 4, "Test", yesterday.Date())
 	suite.seeder.CreatePayment(ctx, 1000, yesterday.Date(), "87654321", shared.TransactionTypeDirectDebitPayment, yesterday.Date(), 0)
 
 	// client with an SE invoice, a credit memo, a direct debit payment and a reapply
@@ -49,11 +49,13 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 	suite.seeder.CreatePayment(ctx, 1000, yesterday.Date(), "12344321", shared.TransactionTypeDirectDebitPayment, yesterday.Date(), 0)
 	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "12344321", shared.TransactionTypeReapply, yesterday.Date(), 0)
 
-	// client with AD invoice, a partial payment and an exemption. The exemption creates an unapply that should not be counted.
+	// client with AD invoice, a partial payment and two exemptions on the same day. The exemptions create unapplies that should not be counted.
 	client4ID := suite.seeder.CreateClient(ctx, "Flora", "Four", "44444444", "9876")
 	_, _ = suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeAD, nil, threeMonthsAgo.StringPtr(), nil, nil, nil, yesterday.StringPtr())
 	suite.seeder.CreatePayment(ctx, 1000, yesterday.Date(), "44444444", shared.TransactionTypeDirectDebitPayment, yesterday.Date(), 0)
-	suite.seeder.CreateFeeReduction(ctx, client4ID, shared.FeeReductionTypeExemption, strconv.Itoa(oneYearAgo.Date().Year()), 2, "Test", yesterday.Date())
+	reductionID := suite.seeder.CreateFeeReduction(ctx, client4ID, shared.FeeReductionTypeExemption, strconv.Itoa(oneYearAgo.Date().Year()), 2, "Test", yesterday.Date())
+	suite.seeder.CancelFeeReduction(ctx, reductionID)
+	_ = suite.seeder.CreateFeeReduction(ctx, client4ID, shared.FeeReductionTypeExemption, strconv.Itoa(oneYearAgo.Date().Year()), 2, "Test", yesterday.Date())
 
 	c := Client{suite.seeder.Conn}
 
@@ -208,7 +210,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 	assert.Equal(suite.T(), "=\"00000000\"", results[12]["Analysis"], "Analysis - AD Remissions & Exemptions Debit")
 	assert.Equal(suite.T(), "=\"0000\"", results[12]["Intercompany"], "Intercompany - AD Remissions & Exemptions Debit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[12]["Spare"], "Spare - AD Remissions & Exemptions Debit")
-	assert.Equal(suite.T(), "300.00", results[12]["Debit"], "Debit - AD Remissions & Exemptions Debit")
+	assert.Equal(suite.T(), "400.00", results[12]["Debit"], "Debit - AD Remissions & Exemptions Debit")
 	assert.Equal(suite.T(), "", results[12]["Credit"], "Credit - AD Remissions & Exemptions Debit")
 	assert.Equal(suite.T(), fmt.Sprintf("AD Rem/Exem [%s]", yesterday.Date().Format("02/01/2006")), results[12]["Line description"], "Line description - AD Remissions & Exemptions Debit")
 
@@ -220,7 +222,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 	assert.Equal(suite.T(), "=\"0000\"", results[13]["Intercompany"], "Intercompany - AD Remissions & Exemptions Credit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[13]["Spare"], "Spare - AD Remissions & Exemptions Credit")
 	assert.Equal(suite.T(), "", results[13]["Debit"], "Debit - AD Remissions & Exemptions Credit")
-	assert.Equal(suite.T(), "300.00", results[13]["Credit"], "Credit - AD Remissions & Exemptions Credit")
+	assert.Equal(suite.T(), "400.00", results[13]["Credit"], "Credit - AD Remissions & Exemptions Credit")
 	assert.Equal(suite.T(), fmt.Sprintf("AD Rem/Exem [%s]", yesterday.Date().Format("02/01/2006")), results[13]["Line description"], "Line description - AD Remissions & Exemptions Credit")
 
 	assert.Equal(suite.T(), "=\"0470\"", results[14]["Entity"], "Entity - General Remissions & Exemptions Debit")
