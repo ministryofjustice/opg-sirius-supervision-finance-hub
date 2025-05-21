@@ -4,29 +4,27 @@ type FeeChase struct{}
 
 const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
                cl.id AS "Client_no",
-               cl.salutation AS "Client_title",
+               COALESCE(cl.salutation, '') AS "Client_title",
                cl.firstname AS "Client_forename",
                cl.surname AS "Client_surname",
+               CASE WHEN do_not_invoice_warning_count.count >= 1 THEN 'Yes' ELSE 'No' END  AS "Do_not_chase",
                initcap(fc.payment_method) AS "Payment_method",
-               p.deputytype AS "Deputy_type",
-               p.deputynumber AS "Deputy_no",
-               a.isairmailrequired,
+               COALESCE(p.deputytype, '') AS "Deputy_type",
+               COALESCE(p.deputynumber::VARCHAR, '') AS "Deputy_no",
                CASE WHEN a.isairmailrequired IS TRUE THEN 'Yes' ELSE 'No' END AS "Airmail",
-               p.salutation AS "Deputy_title",
+               COALESCE(p.salutation, '') AS "Deputy_title",
                CASE WHEN p.correspondencebywelsh IS TRUE THEN 'Yes' ELSE 'No' END AS "Deputy_Welsh",
                CASE WHEN p.specialcorrespondencerequirements_largeprint IS TRUE THEN 'Yes' ELSE 'No' END AS "Deputy_Large_Print",
                COALESCE(nullif(p.organisationname, ''), CONCAT(p.firstname, ' ' , p.surname)) AS "Deputy_name",
-               p.email AS "Email",
-               CASE WHEN a.address_lines IS NOT NULL THEN a.address_lines ->> 0 ELSE '' END AS "Address1",
-               CASE WHEN a.address_lines IS NOT NULL THEN a.address_lines ->> 1 ELSE '' END AS "Address2",
-               CASE WHEN a.address_lines IS NOT NULL THEN a.address_lines ->> 2 ELSE '' END AS "Address3",
-               a.town AS "City_Town",
-               a.county AS "County",
-               a.postcode AS "Postcode",
-               CASE WHEN do_not_invoice_warning_count.count >= 1 THEN 'Yes' ELSE 'No' END  AS "Do_not_chase",
---                gi.invoice AS "Invoice",
-               gi.count AS "Count",
-               gi.total AS "Total_debt"
+               COALESCE(p.email, '') AS "Email",
+               CASE WHEN a.address_lines IS NOT NULL THEN COALESCE(a.address_lines ->> 0, '') ELSE '' END AS "Address1",
+               CASE WHEN a.address_lines IS NOT NULL THEN COALESCE(a.address_lines ->> 1, '') ELSE '' END AS "Address2",
+               CASE WHEN a.address_lines IS NOT NULL THEN COALESCE(a.address_lines ->> 2, '') ELSE '' END AS "Address3",
+               COALESCE(a.town, '') AS "City_Town",
+               COALESCE(a.county, '') AS "County",
+               COALESCE(a.postcode, '') AS "Postcode",
+               ABS(gi.total / 100.0)::NUMERIC(10,2)::VARCHAR(255) AS "Total_debt",
+               (SELECT * FROM json_array_elements(gi.invoice)) AS invoice
         FROM public.persons cl
                 INNER JOIN supervision_finance.finance_client fc on cl.id = fc.client_id
                 LEFT JOIN public.persons p ON cl.feepayer_id = p.id
@@ -35,8 +33,8 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
                 ) a ON TRUE
            , LATERAL (
             SELECT 
---                 json_agg(json_build_object(
---                    'ref', i.reference, 'debt', i.amount - COALESCE(transactions.received, 0)) ORDER BY i.startdate)   as invoice,
+                json_agg(json_build_object(
+                   'reference', i.reference, 'debt', ABS((i.amount - COALESCE(transactions.received, 0)) / 100.0)::NUMERIC(10,2)::VARCHAR(255)) ORDER BY i.startdate)   as invoice,
                    count(i.reference)                                                                         		  as count,
                    SUM(i.amount - COALESCE(transactions.received, 0))                                                 as total
               FROM supervision_finance.invoice i
@@ -86,7 +84,7 @@ func (c *FeeChase) GetHeaders() []string {
 		"County",
 		"Postcode",
 		"Total_debt",
-		//"Invoice",
+		"Invoice",
 	}
 }
 
