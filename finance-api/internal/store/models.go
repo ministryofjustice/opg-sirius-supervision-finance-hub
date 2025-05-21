@@ -14,6 +14,19 @@ type Account struct {
 	CostCentre             pgtype.Int4
 }
 
+type Address struct {
+	ID                  int32
+	PersonID            pgtype.Int4
+	AddressLines        []byte
+	Town                pgtype.Text
+	County              pgtype.Text
+	Postcode            pgtype.Text
+	Country             pgtype.Text
+	Type                pgtype.Text
+	Isairmailrequired   pgtype.Bool
+	Casrecaddressnumber pgtype.Int4
+}
+
 type Assignee struct {
 	ID      int32
 	Name    pgtype.Text
