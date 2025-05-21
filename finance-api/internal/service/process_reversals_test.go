@@ -62,8 +62,14 @@ func (suite *IntegrationSuite) Test_processReversals() {
 		"INSERT INTO ledger VALUES (5, 'bounced cheque', '2025-01-02 15:32:10', '', 10000, 'payment 4', 'SUPERVISION CHEQUE PAYMENT', 'CONFIRMED', 7, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1, 123);",
 		"INSERT INTO ledger_allocation VALUES (8, 5, 8, '2025-01-02 15:32:10', 10000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
 
-		"ALTER SEQUENCE ledger_id_seq RESTART WITH 6;",
-		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 9;",
+		// test 4
+		"INSERT INTO finance_client VALUES (8, 8, 'test 4', 'DEMANDED', NULL, '8888');",
+		"INSERT INTO invoice VALUES (9, 8, 8, 'AD', 'test 4 paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
+		"INSERT INTO ledger VALUES (6, 'test 4', '2025-01-02 15:32:10', '', 5000, 'payment 4', 'ONLINE CARD PAYMENT', 'CONFIRMED', 8, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
+		"INSERT INTO ledger_allocation VALUES (9, 6, 9, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
+
+		"ALTER SEQUENCE ledger_id_seq RESTART WITH 7;",
+		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 10;",
 	)
 
 	dispatch := &mockDispatch{}
@@ -124,7 +130,7 @@ func (suite *IntegrationSuite) Test_processReversals() {
 			},
 		},
 		{
-			name: "original payment over two invoices applied to client with overpayment",
+			name: "misapplied payment - original payment over two invoices applied to client with overpayment",
 			records: [][]string{
 				{"Payment type", "Current (errored) court reference", "New (correct) court reference", "Bank date", "Received date", "Amount", "PIS number (cheque only)"},
 				{"ONLINE CARD PAYMENT", "3333", "4444", "02/01/2025", "02/01/2025", "150.00", ""},
@@ -168,7 +174,7 @@ func (suite *IntegrationSuite) Test_processReversals() {
 			expectedFailedLines: map[int]string{},
 		},
 		{
-			name: "errored client in credit",
+			name: "misapplied payment - errored client in credit",
 			records: [][]string{
 				{"Payment type", "Current (errored) court reference", "New (correct) court reference", "Bank date", "Received date", "Amount", "PIS number (cheque only)"},
 				{"ONLINE CARD PAYMENT", "5555", "6666", "02/01/2025", "02/01/2025", "150.00", ""},
@@ -229,6 +235,28 @@ func (suite *IntegrationSuite) Test_processReversals() {
 					allocationStatus: "ALLOCATED",
 					invoiceId:        pgtype.Int4{Int32: 8, Valid: true},
 					financeClientId:  7,
+				},
+			},
+			expectedFailedLines: map[int]string{},
+		},
+		{
+			name: "duplicate payment",
+			records: [][]string{
+				{"Payment type", "Current (errored) court reference", "Bank date", "Received date", "Amount", "PIS number (cheque only)"},
+				{"ONLINE CARD PAYMENT", "8888", "02/01/2025", "02/01/2025", "50.00", ""},
+			},
+			uploadType: shared.ReportTypeUploadDuplicatedPayments,
+			allocations: []createdReversalAllocation{
+				{
+					ledgerAmount:     -5000,
+					ledgerType:       "ONLINE CARD PAYMENT",
+					ledgerStatus:     "CONFIRMED",
+					receivedDate:     time.Date(2025, 01, 02, 0, 0, 0, 0, time.UTC),
+					bankDate:         time.Date(2025, 01, 02, 0, 0, 0, 0, time.UTC),
+					allocationAmount: -5000,
+					allocationStatus: "ALLOCATED",
+					invoiceId:        pgtype.Int4{Int32: 9, Valid: true},
+					financeClientId:  8,
 				},
 			},
 			expectedFailedLines: map[int]string{},
