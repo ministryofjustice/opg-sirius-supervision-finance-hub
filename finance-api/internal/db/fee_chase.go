@@ -46,6 +46,7 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
                     AND la.invoice_id = i.id
                   ) transactions ON TRUE
               WHERE i.amount > COALESCE(transactions.received, 0)
+              AND i.finance_client_id = fc.id
             group by i.person_id, i.amount
             ) AS gi
            , LATERAL (
