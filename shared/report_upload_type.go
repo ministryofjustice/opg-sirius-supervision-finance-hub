@@ -2,11 +2,9 @@ package shared
 
 import (
 	"encoding/json"
-	"fmt"
-	"time"
 )
 
-var ReportUploadPaymentTypes = []ReportUploadType{
+var reportUploadPaymentTypes = []ReportUploadType{
 	ReportTypeUploadPaymentsMOTOCard,
 	ReportTypeUploadPaymentsOnlineCard,
 	ReportTypeUploadPaymentsOPGBACS,
@@ -15,8 +13,12 @@ var ReportUploadPaymentTypes = []ReportUploadType{
 	ReportTypeUploadDirectDebitsCollections,
 }
 
-var ReportUploadReversalTypes = []ReportUploadType{
+var reportUploadReversalTypes = []ReportUploadType{
 	ReportTypeUploadMisappliedPayments,
+}
+
+var reportUploadNoHeaderTypes = []ReportUploadType{
+	ReportTypeUploadDirectDebitsCollections,
 }
 
 type ReportUploadType int
@@ -46,12 +48,12 @@ var reportTypeUploadMap = map[string]ReportUploadType{
 	"MISAPPLIED_PAYMENTS":         ReportTypeUploadMisappliedPayments,
 }
 
-func (i ReportUploadType) String() string {
-	return i.Key()
+func (u ReportUploadType) String() string {
+	return u.Key()
 }
 
-func (i ReportUploadType) Translation() string {
-	switch i {
+func (u ReportUploadType) Translation() string {
+	switch u {
 	case ReportTypeUploadPaymentsMOTOCard:
 		return "Payments - MOTO card"
 	case ReportTypeUploadPaymentsOnlineCard:
@@ -75,8 +77,8 @@ func (i ReportUploadType) Translation() string {
 	}
 }
 
-func (i ReportUploadType) Key() string {
-	switch i {
+func (u ReportUploadType) Key() string {
+	switch u {
 	case ReportTypeUploadPaymentsMOTOCard:
 		return "PAYMENTS_MOTO_CARD"
 	case ReportTypeUploadPaymentsOnlineCard:
@@ -100,53 +102,6 @@ func (i ReportUploadType) Key() string {
 	}
 }
 
-func (i ReportUploadType) CSVHeaders() []string {
-	switch i {
-	case ReportTypeUploadPaymentsMOTOCard, ReportTypeUploadPaymentsOnlineCard:
-		return []string{"Ordercode", "Date", "Amount"}
-	case ReportTypeUploadPaymentsSupervisionBACS:
-		return []string{"Line", "Type", "Code", "Number", "Transaction Date", "Value Date", "Amount", "Amount Reconciled", "Charges", "Status", "Desc Flex", "Consolidated line"}
-	case ReportTypeUploadPaymentsOPGBACS:
-		return []string{"Line", "Type", "Code", "Number", "Transaction Date", "Value Date", "Amount", "Amount Reconciled", "Charges", "Status", "Desc Flex"}
-	case ReportTypeUploadPaymentsSupervisionCheque:
-		return []string{"Case number (confirmed on Sirius)", "Cheque number", "Cheque Value (£)", "Comments", "Date in Bank"}
-	case ReportTypeUploadDeputySchedule:
-		return []string{"Deputy number", "Deputy name", "Case number", "Client forename", "Client surname", "Do not invoice", "Total outstanding"}
-	case ReportTypeUploadDebtChase:
-		return []string{"Client_no", "Deputy_name", "Total_debt"}
-	case ReportTypeUploadMisappliedPayments:
-		return []string{"Payment type", "Current (errored) court reference", "New (correct) court reference", "Bank date", "Received date", "Amount", "PIS number (cheque only)"}
-	}
-
-	return []string{"Unknown report type"}
-}
-
-func (i ReportUploadType) Filename(date string) (string, error) {
-	parsedDate, err := time.Parse("2006-01-02", date)
-	if err != nil {
-		return "", err
-	}
-
-	switch i {
-	case ReportTypeUploadPaymentsMOTOCard:
-		return fmt.Sprintf("feemoto_%snormal.csv", parsedDate.Format("02012006")), nil
-	case ReportTypeUploadPaymentsOnlineCard:
-		return fmt.Sprintf("feemoto_%smlpayments.csv", parsedDate.Format("02012006")), nil
-	case ReportTypeUploadPaymentsSupervisionBACS:
-		return fmt.Sprintf("feebacs_%s_new_acc.csv", parsedDate.Format("02012006")), nil
-	case ReportTypeUploadPaymentsOPGBACS:
-		return fmt.Sprintf("feebacs_%s.csv", parsedDate.Format("02012006")), nil
-	case ReportTypeUploadPaymentsSupervisionCheque:
-		return fmt.Sprintf("supervisioncheques_%s.csv", parsedDate.Format("02012006")), nil
-	case ReportTypeUploadDirectDebitsCollections:
-		return fmt.Sprintf("directdebitscollections_%s.csv", parsedDate.Format("02012006")), nil
-	case ReportTypeUploadMisappliedPayments:
-		return "misappliedpayments.csv", nil
-	default:
-		return "", nil
-	}
-}
-
 func ParseReportUploadType(s string) ReportUploadType {
 	value, ok := reportTypeUploadMap[s]
 	if !ok {
@@ -155,37 +110,46 @@ func ParseReportUploadType(s string) ReportUploadType {
 	return value
 }
 
-func (i ReportUploadType) Valid() bool {
-	return i != ReportTypeUploadUnknown
+func (u ReportUploadType) Valid() bool {
+	return u != ReportTypeUploadUnknown
 }
 
-func (i ReportUploadType) IsPayment() bool {
-	for _, t := range ReportUploadPaymentTypes {
-		if i == t {
+func (u ReportUploadType) IsPayment() bool {
+	for _, t := range reportUploadPaymentTypes {
+		if u == t {
 			return true
 		}
 	}
 	return false
 }
 
-func (i ReportUploadType) IsReversal() bool {
-	for _, t := range ReportUploadReversalTypes {
-		if i == t {
+func (u ReportUploadType) IsReversal() bool {
+	for _, t := range reportUploadReversalTypes {
+		if u == t {
 			return true
 		}
 	}
 	return false
 }
 
-func (i ReportUploadType) MarshalJSON() ([]byte, error) {
-	return json.Marshal(i.Key())
+func (u ReportUploadType) HasHeader() bool {
+	for _, t := range reportUploadNoHeaderTypes {
+		if u == t {
+			return false
+		}
+	}
+	return true
 }
 
-func (i *ReportUploadType) UnmarshalJSON(data []byte) (err error) {
+func (u ReportUploadType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(u.Key())
+}
+
+func (u *ReportUploadType) UnmarshalJSON(data []byte) (err error) {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
 		return err
 	}
-	*i = ParseReportUploadType(s)
+	*u = ParseReportUploadType(s)
 	return nil
 }

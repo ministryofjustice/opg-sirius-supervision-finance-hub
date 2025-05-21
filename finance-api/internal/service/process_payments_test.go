@@ -60,20 +60,15 @@ func (suite *IntegrationSuite) Test_processPayments() {
 		{
 			name: "Underpayment",
 			records: [][]string{
-				{"Ordercode", "Date", "Amount"},
-				{
-					"1234-1",
-					"01/01/2024",
-					"100",
-				},
+				{"9800000000000000000", "1234", "100", "D", "01/01/2024"},
 			},
-			paymentType:      shared.ReportTypeUploadPaymentsMOTOCard,
+			paymentType:      shared.ReportTypeUploadDirectDebitsCollections,
 			bankDate:         shared.NewDate("2024-01-17"),
 			expectedClientId: 1,
 			expectedLedgerAllocations: []createdLedgerAllocation{
 				{
 					10000,
-					"MOTO CARD PAYMENT",
+					"DIRECT DEBIT PAYMENT",
 					"CONFIRMED",
 					time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 					10000,
@@ -88,13 +83,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 			name: "Overpayment",
 			records: [][]string{
 				{"Case number (confirmed on Sirius)", "Cheque number", "Cheque Value (£)", "Comments", "Date in Bank"},
-				{
-					"12345",
-					"54321",
-					"250.10",
-					"",
-					"01/01/2024",
-				},
+				{"12345", "54321", "250.10", "", "01/01/2024"},
 			},
 			paymentType:      shared.ReportTypeUploadPaymentsSupervisionCheque,
 			bankDate:         shared.NewDate("2024-01-17"),
@@ -128,11 +117,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 			name: "Underpayment with multiple invoices",
 			records: [][]string{
 				{"Ordercode", "Date", "Amount"},
-				{
-					"123456",
-					"01/01/2024",
-					"50",
-				},
+				{"123456", "01/01/2024", "50"},
 			},
 			paymentType:      shared.ReportTypeUploadPaymentsMOTOCard,
 			bankDate:         shared.NewDate("2024-01-17"),
