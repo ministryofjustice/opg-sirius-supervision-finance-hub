@@ -22,14 +22,14 @@ func (suite *IntegrationSuite) Test_unapplied_transactions() {
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
 	_, _ = suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, twoMonthsAgo.StringPtr())
 	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "12345678", shared.TransactionTypeMotoCardPayment, yesterday.Date(), 0)
-	suite.seeder.CreateFeeReduction(ctx, client1ID, shared.FeeReductionTypeExemption, strconv.Itoa(yesterday.Date().Year()-1), 4, "", yesterday.Date())
+	_ = suite.seeder.CreateFeeReduction(ctx, client1ID, shared.FeeReductionTypeExemption, strconv.Itoa(yesterday.Date().Year()-1), 4, "", yesterday.Date())
 
 	// an existing 100.00 unapply that has 10.00 reapplied
 	client2ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "87654321", "4321")
 	suite.seeder.CreateOrder(ctx, client2ID, "ACTIVE")
 	_, _ = suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, &general, threeYearsAgo.StringPtr(), nil, nil, nil, threeYearsAgo.StringPtr())
 	suite.seeder.CreatePayment(ctx, 42000, threeYearsAgo.Date(), "87654321", shared.TransactionTypeOPGBACSPayment, threeYearsAgo.Date(), 0)
-	suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeExemption, strconv.Itoa(threeYearsAgo.Date().Year()-1), 2, "", threeYearsAgo.Date())
+	_ = suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeExemption, strconv.Itoa(threeYearsAgo.Date().Year()-1), 2, "", threeYearsAgo.Date())
 	_, _ = suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS3, &minimal, yesterday.StringPtr(), nil, nil, nil, yesterday.StringPtr())
 
 	// 12.34 unapply and reapply on the same day

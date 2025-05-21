@@ -32,7 +32,7 @@ func (suite *IntegrationSuite) Test_customer_credit() {
 	suite.seeder.CreateOrder(ctx, client2ID, "ACTIVE")
 	suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeAD, nil, twoYearsAgo.StringPtr(), nil, nil, nil, nil)
 	suite.seeder.CreatePayment(ctx, 10000, twoYearsAgo.Date(), "87654321", shared.TransactionTypeOPGBACSPayment, twoYearsAgo.Date(), 0)
-	suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeExemption, strconv.Itoa(threeYearsAgo.Date().Year()), 2, "A reduction", threeYearsAgo.Date())
+	_ = suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeExemption, strconv.Itoa(threeYearsAgo.Date().Year()), 2, "A reduction", threeYearsAgo.Date())
 	suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS3, &minimal, today.StringPtr(), today.StringPtr(), nil, nil, nil)
 
 	// Doesn't display client with:
