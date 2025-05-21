@@ -75,7 +75,7 @@ transactions AS (
         INNER JOIN supervision_finance.ledger l ON l.id = la.ledger_id
 		INNER JOIN supervision_finance.invoice i ON i.id = la.invoice_id
 	WHERE l.created_at::DATE = $1 AND la.status = 'ALLOCATED'
-	UNION
+	UNION ALL
 	SELECT
 		NULL AS ledger_type,
 		i.feetype AS fee_type,
