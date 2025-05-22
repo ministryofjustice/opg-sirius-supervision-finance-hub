@@ -25,6 +25,7 @@ func (s *Service) GetInvoiceAdjustments(ctx context.Context, clientId int32) (*s
 			AdjustmentType: shared.ParseAdjustmentType(ia.AdjustmentType),
 			Notes:          ia.Notes,
 			Status:         ia.Status,
+			CreatedBy:      int(ia.CreatedBy),
 		}
 
 		adjustments = append(adjustments, a)

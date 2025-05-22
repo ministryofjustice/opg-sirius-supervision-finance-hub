@@ -61,7 +61,7 @@ INSERT INTO ledger_allocation VALUES (5, 5, 7, '2024-04-11T08:36:40+00:00', 2000
 -- pending-invoice-adjustments
 INSERT INTO finance_client VALUES (10, 10, 'pending-invoice-adjustments', 'DEMANDED', null, '10101010');
 INSERT INTO invoice VALUES (8, 10, 10, 'AD', 'AD10101/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2025-03-31', 99);
-INSERT INTO invoice_adjustment VALUES (3, 10, 8, '2022-04-11', 'CREDIT MEMO', 10000, 'credit adjustment for 100.00', 'PENDING', '2022-04-11T08:36:40+00:00', 2);
+INSERT INTO invoice_adjustment VALUES (3, 10, 8, '2022-04-11', 'CREDIT MEMO', 10000, 'credit adjustment for 100.00', 'PENDING', '2022-04-11T08:36:40+00:00', 4);
 
 -- permissions
 INSERT INTO finance_client VALUES (11, 11, 'permissions', 'DEMANDED', null, '11011011');
