@@ -52,7 +52,7 @@ func Init(ctx context.Context, searchPath string) *ContainerManager {
 
 	container, err := postgres.Run(
 		ctx,
-		"docker.io/postgres:13-alpine",
+		"docker.io/postgres:14-alpine",
 		postgres.WithDatabase(dbname),
 		postgres.WithUsername(user),
 		postgres.WithPassword(password),
