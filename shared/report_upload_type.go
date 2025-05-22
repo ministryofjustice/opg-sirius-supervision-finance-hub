@@ -18,6 +18,7 @@ var ReportUploadPaymentTypes = []ReportUploadType{
 var ReportUploadReversalTypes = []ReportUploadType{
 	ReportTypeUploadMisappliedPayments,
 	ReportTypeUploadDuplicatedPayments,
+	ReportTypeUploadBouncedCheque,
 }
 
 type ReportUploadType int
@@ -34,6 +35,7 @@ const (
 	ReportTypeUploadDirectDebitsCollections
 	ReportTypeUploadMisappliedPayments
 	ReportTypeUploadDuplicatedPayments
+	ReportTypeUploadBouncedCheque
 )
 
 var reportTypeUploadMap = map[string]ReportUploadType{
@@ -47,6 +49,7 @@ var reportTypeUploadMap = map[string]ReportUploadType{
 	"DIRECT_DEBITS_COLLECTIONS":   ReportTypeUploadDirectDebitsCollections,
 	"MISAPPLIED_PAYMENTS":         ReportTypeUploadMisappliedPayments,
 	"DUPLICATED_PAYMENTS":         ReportTypeUploadDuplicatedPayments,
+	"BOUNCED_CHEQUE":              ReportTypeUploadBouncedCheque,
 }
 
 func (i ReportUploadType) String() string {
@@ -75,6 +78,8 @@ func (i ReportUploadType) Translation() string {
 		return "Payment Reversals - Misapplied payments"
 	case ReportTypeUploadDuplicatedPayments:
 		return "Payment Reversals - Duplicated payments"
+	case ReportTypeUploadBouncedCheque:
+		return "Payment Reversals - Bounced cheque"
 	default:
 		return ""
 	}
@@ -102,6 +107,8 @@ func (i ReportUploadType) Key() string {
 		return "MISAPPLIED_PAYMENTS"
 	case ReportTypeUploadDuplicatedPayments:
 		return "DUPLICATED_PAYMENTS"
+	case ReportTypeUploadBouncedCheque:
+		return "BOUNCED_CHEQUE"
 	default:
 		return ""
 	}
@@ -125,6 +132,8 @@ func (i ReportUploadType) CSVHeaders() []string {
 		return []string{"Payment type", "Current (errored) court reference", "New (correct) court reference", "Bank date", "Received date", "Amount", "PIS number (cheque only)"}
 	case ReportTypeUploadDuplicatedPayments:
 		return []string{"Payment type", "Current (errored) court reference", "Bank date", "Received date", "Amount", "PIS number (cheque only)"}
+	case ReportTypeUploadBouncedCheque:
+		return []string{"Court reference", "Bank date", "Received date", "Amount", "PIS number"}
 	}
 
 	return []string{"Unknown report type"}
@@ -153,6 +162,8 @@ func (i ReportUploadType) Filename(date string) (string, error) {
 		return "misappliedpayments.csv", nil
 	case ReportTypeUploadDuplicatedPayments:
 		return "duplicatedpayments.csv", nil
+	case ReportTypeUploadBouncedCheque:
+		return "bouncedcheque.csv", nil
 	default:
 		return "", nil
 	}
