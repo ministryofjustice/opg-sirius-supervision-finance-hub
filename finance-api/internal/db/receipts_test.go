@@ -28,7 +28,7 @@ func (suite *IntegrationSuite) Test_receipts() {
 	clientID := suite.seeder.CreateClient(ctx, "Ian", "Test", courtRef1, "1234")
 	_, inv1Ref := suite.seeder.CreateInvoice(ctx, clientID, shared.InvoiceTypeGA, nil, twoYearsAgo.StringPtr(), nil, nil, nil, nil)
 	suite.seeder.CreatePayment(ctx, 20000, twoYearsAgo.Date(), courtRef1, shared.TransactionTypeOPGBACSPayment, twoYearsAgo.Date(), 0)
-	suite.seeder.CreateFeeReduction(ctx, clientID, shared.FeeReductionTypeRemission, strconv.Itoa(twoYearsAgo.Date().Year()-1), 2, "A reduction", twoYearsAgo.Date())
+	_ = suite.seeder.CreateFeeReduction(ctx, clientID, shared.FeeReductionTypeRemission, strconv.Itoa(twoYearsAgo.Date().Year()-1), 2, "A reduction", twoYearsAgo.Date())
 
 	_, inv2Ref := suite.seeder.CreateInvoice(ctx, clientID, shared.InvoiceTypeS2, valToPtr("316.24"), twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
 	_, inv3Ref := suite.seeder.CreateInvoice(ctx, clientID, shared.InvoiceTypeSO, valToPtr("70.00"), twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
