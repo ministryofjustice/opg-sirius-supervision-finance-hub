@@ -206,6 +206,7 @@ func (s *Service) validateReversalLine(ctx context.Context, details shared.Rever
 			(*failedLines)[index] = validation.UploadErrorReversalClientNotFound
 			return false
 		}
+	}
 	return true
 }
 
