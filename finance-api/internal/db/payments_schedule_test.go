@@ -15,6 +15,7 @@ func (suite *IntegrationSuite) Test_payments_schedules() {
 	courtRef3 := "10101010"
 	courtRef4 := "44444444"
 	courtRef5 := "55555555"
+	courtRef6 := "66666666"
 	general := "320.00"
 
 	// client 1
@@ -43,12 +44,19 @@ func (suite *IntegrationSuite) Test_payments_schedules() {
 	_, inv5Ref := suite.seeder.CreateInvoice(ctx, client6ID, shared.InvoiceTypeS2, &general, yesterday.StringPtr(), nil, nil, nil, yesterday.StringPtr())
 	suite.seeder.ReversePayment(ctx, courtRef4, courtRef5, "150.00", yesterday.Date(), yesterday.Date(), shared.TransactionTypeOnlineCardPayment, yesterday.Date())
 
+	// cheques
+	client7ID := suite.seeder.CreateClient(ctx, "Ian", "Test", courtRef6, "1234")
+	_, inv6Ref := suite.seeder.CreateInvoice(ctx, client7ID, shared.InvoiceTypeS2, &general, oneMonthAgo.StringPtr(), nil, nil, nil, nil)
+	suite.seeder.CreatePayment(ctx, 1000, today.Date(), courtRef6, shared.TransactionTypeSupervisionChequePayment, today.Date(), 123456)
+	suite.seeder.CreatePayment(ctx, 1234, today.Date(), courtRef6, shared.TransactionTypeSupervisionChequePayment, today.Date(), 654321)
+
 	c := Client{suite.seeder.Conn}
 
 	tests := []struct {
 		name         string
 		date         shared.Date
 		scheduleType shared.ScheduleType
+		pisNumber    int
 		expectedRows int
 		expectedData []map[string]string
 	}{
@@ -127,6 +135,22 @@ func (suite *IntegrationSuite) Test_payments_schedules() {
 			},
 		},
 		{
+			name:         "cheques by pis number",
+			date:         shared.Date{Time: today.Date()},
+			scheduleType: shared.ScheduleTypeChequePayments,
+			pisNumber:    123456,
+			expectedRows: 2,
+			expectedData: []map[string]string{
+				{
+					"Court reference":   courtRef6,
+					"Invoice reference": inv6Ref,
+					"Amount":            "10.00",
+					"Payment date":      today.String(),
+					"Bank date":         today.String(),
+				},
+			},
+		},
+		{
 			name:         "misapplied payments with overpayment",
 			date:         shared.Date{Time: yesterday.Date()},
 			scheduleType: shared.ScheduleTypeOnlineCardPayments,
@@ -176,6 +200,7 @@ func (suite *IntegrationSuite) Test_payments_schedules() {
 			rows, err := c.Run(ctx, &PaymentsSchedule{
 				Date:         &tt.date,
 				ScheduleType: &tt.scheduleType,
+				PisNumber:    tt.pisNumber,
 			})
 			assert.NoError(suite.T(), err)
 			assert.Equal(suite.T(), tt.expectedRows, len(rows))
