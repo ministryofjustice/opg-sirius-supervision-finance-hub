@@ -15,16 +15,13 @@ type Account struct {
 }
 
 type Address struct {
-	ID                  int32
-	PersonID            pgtype.Int4
-	AddressLines        []byte
-	Town                pgtype.Text
-	County              pgtype.Text
-	Postcode            pgtype.Text
-	Country             pgtype.Text
-	Type                pgtype.Text
-	Isairmailrequired   pgtype.Bool
-	Casrecaddressnumber pgtype.Int4
+	ID                int32
+	PersonID          pgtype.Int4
+	AddressLines      []byte
+	Town              pgtype.Text
+	County            pgtype.Text
+	Postcode          pgtype.Text
+	Isairmailrequired pgtype.Bool
 }
 
 type Assignee struct {
@@ -191,12 +188,25 @@ type LedgerAllocation struct {
 }
 
 type Person struct {
-	ID            int32
-	Firstname     pgtype.Text
-	Surname       pgtype.Text
-	Caserecnumber pgtype.Text
-	FeepayerID    pgtype.Int4
-	Deputytype    pgtype.Text
+	ID                                          int32
+	Salutation                                  pgtype.Text
+	Firstname                                   pgtype.Text
+	Surname                                     pgtype.Text
+	Caserecnumber                               pgtype.Text
+	FeepayerID                                  pgtype.Int4
+	Deputytype                                  pgtype.Text
+	Deputynumber                                pgtype.Int4
+	Correspondencebywelsh                       bool
+	SpecialcorrespondencerequirementsLargeprint bool
+	Organisationname                            pgtype.Text
+	Email                                       pgtype.Text
+	Type                                        pgtype.Text
+	Clientstatus                                pgtype.Text
+}
+
+type PersonWarning struct {
+	PersonID  int32
+	WarningID int32
 }
 
 type Property struct {
@@ -244,4 +254,10 @@ type TransactionTypeUpdate struct {
 	TransactionTypeID     int32
 	LineDescriptionUpdate pgtype.Text
 	IsReceiptUpdate       pgtype.Bool
+}
+
+type Warning struct {
+	ID           int32
+	Warningtype  pgtype.Text
+	Systemstatus bool
 }

@@ -25,7 +25,7 @@ func (suite *IntegrationSuite) Test_fee_chase() {
 	suite.seeder.CreateAddresses(ctx, client2DeputyID, []string{"92 Fake Avenue", "Binglestone View", "Greater Gregley"}, "Blompton", "Heartwoodshire", "NO2 RLY", false)
 
 	suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeAD, nil, yesterday.StringPtr(), nil, nil, nil, nil)
-	suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, valToPtr("120"), yesterday.StringPtr(), nil, nil, nil, nil)
+	suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, valToPtr("120.21"), yesterday.StringPtr(), nil, nil, nil, nil)
 
 	c := Client{suite.seeder.Conn}
 
@@ -58,8 +58,8 @@ func (suite *IntegrationSuite) Test_fee_chase() {
 	assert.Equal(suite.T(), "Realton", results[0]["City_Town"], "Deputy town - client 1")
 	assert.Equal(suite.T(), "Nonfictionshire", results[0]["County"], "Deputy county - client 1")
 	assert.Equal(suite.T(), "OK1 NO2", results[0]["Postcode"], "Deputy postcode - client 1")
-	assert.Equal(suite.T(), "100.00", results[0]["Total_debt"], "Total debt - client 1")
-	assert.Equal(suite.T(), "map[debt:100.00 reference:AD000001/25]", results[0]["Invoice"], "Invoices - client 1")
+	assert.Equal(suite.T(), "£100.00", results[0]["Total_debt"], "Total debt - client 1")
+	assert.Equal(suite.T(), "no,AD000001/25,£100.00", results[0]["Invoice"], "Invoices - client 1")
 
 	// client 2
 	assert.Equal(suite.T(), "87654321", results[1]["Case_no"], "Case name - client 2")
@@ -83,6 +83,6 @@ func (suite *IntegrationSuite) Test_fee_chase() {
 	assert.Equal(suite.T(), "Blompton", results[1]["City_Town"], "Deputy town - client 2")
 	assert.Equal(suite.T(), "Heartwoodshire", results[1]["County"], "Deputy county - client 2")
 	assert.Equal(suite.T(), "NO2 RLY", results[1]["Postcode"], "Deputy postcode - client 2")
-	assert.Equal(suite.T(), "100.00", results[1]["Total_debt"], "Total debt - client 2")
-	assert.Equal(suite.T(), "map[debt:100.00 reference:AD000002/25, debt:1.20 reference:S2000001/25]", results[1]["Invoice"], "Invoices - client 2")
+	assert.Equal(suite.T(), "£220.21", results[1]["Total_debt"], "Total debt - client 2")
+	assert.Equal(suite.T(), "no,S2000001/0,£120.21,no,AD000002/25,£100.00", results[1]["Invoice"], "Invoices - client 2")
 }

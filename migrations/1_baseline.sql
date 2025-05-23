@@ -22,8 +22,6 @@ CREATE TABLE persons
     email                                                        varchar(255) default NULL::character varying,
     type                                                         varchar(255)               ,
     clientstatus                                                 varchar(255) default NULL::character varying
-
-
 );
 
 ALTER TABLE public.persons
@@ -78,31 +76,12 @@ create table warnings
 (
     id           integer                   not null
         primary key,
-    added_by     integer
-        constraint fk_6949e612699b6baf
-            references assignees
-            on delete cascade,
-    closed_by    integer
-        constraint fk_6949e61288f6e01
-            references public.assignees
-            on delete cascade,
     warningtype  varchar(255) default NULL::character varying,
-    warningtext  text,
-    dateadded    timestamp(0),
-    dateclosed   timestamp(0),
     systemstatus boolean      default true not null
 );
 
 alter table warnings
     owner to api;
-
-create index idx_6949e612699b6baf
-    on warnings (added_by);
-
-create index idx_6949e61288f6e01
-    on warnings (closed_by);
-
-
 
 create table person_warning
 (
