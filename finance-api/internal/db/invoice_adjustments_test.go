@@ -27,13 +27,13 @@ func (suite *IntegrationSuite) Test_invoice_adjustments() {
 	client2ID := suite.seeder.CreateClient(ctx, "Barry", "Giggle", "87654321", "4321")
 	suite.seeder.CreateOrder(ctx, client2ID, "ACTIVE")
 	_, client2Invoice2Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, valToPtr("320.00"), today.StringPtr(), nil, nil, nil, nil)
-	suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeRemission, strconv.Itoa(today.Date().Year()-1), 4, "Test remission", today.Date())
+	_ = suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeRemission, strconv.Itoa(today.Date().Year()-1), 4, "Test remission", today.Date())
 
 	// one client with a guardianship a remission:
 	client3ID := suite.seeder.CreateClient(ctx, "Edith", "Exemption", "33333333", "3333")
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
 	_, client3InvoiceRef := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeGS, valToPtr("200.00"), today.StringPtr(), today.StringPtr(), today.StringPtr(), nil, nil)
-	suite.seeder.CreateFeeReduction(ctx, client3ID, shared.FeeReductionTypeExemption, strconv.Itoa(today.Date().Year()-1), 4, "Test exemption", today.Date())
+	_ = suite.seeder.CreateFeeReduction(ctx, client3ID, shared.FeeReductionTypeExemption, strconv.Itoa(today.Date().Year()-1), 4, "Test exemption", today.Date())
 
 	c := Client{suite.seeder.Conn}
 
