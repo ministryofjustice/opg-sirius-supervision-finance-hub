@@ -128,9 +128,9 @@
   "tasks": {
     "personId": 10,
     "type": "FPIA",
-    "dueDate": "11/06/2025",
+    "dueDate": "24/06/2025",
     "assigneeId": 41,
-    "description": "Pending credit write off added to AD10101/24 requires manager approval"
+    "description": "Pending credit memo added to AD10101/24 requires manager approval"
   },
   "notify": []
 }
