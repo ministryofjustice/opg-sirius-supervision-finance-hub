@@ -122,6 +122,10 @@ CREATE SEQUENCE public.addresses_id_seq;
 
 ALTER SEQUENCE public.addresses_id_seq OWNER TO api;
 
+CREATE SEQUENCE public.warnings_id_seq;
+
+ALTER SEQUENCE public.warnings_id_seq OWNER TO api;
+
 CREATE SCHEMA supervision_finance;
 GRANT ALL ON SCHEMA supervision_finance TO api;
 SET SEARCH_PATH TO supervision_finance;

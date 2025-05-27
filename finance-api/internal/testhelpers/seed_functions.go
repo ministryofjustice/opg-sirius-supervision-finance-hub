@@ -243,3 +243,15 @@ func (s *Seeder) AddFeeRanges(ctx context.Context, invoiceId int32, ranges []Fee
 		assert.NoError(s.t, err, "failed to add fee range: %v", err)
 	}
 }
+
+func (s *Seeder) CreateWarning(ctx context.Context, personId int32, warningType string) {
+	var warningId int
+	err := s.Conn.QueryRow(ctx, "INSERT INTO public.warnings VALUES (NEXTVAL('public.warnings_id_seq'), $1, true) RETURNING id", warningType).Scan(&warningId)
+	assert.NoError(s.t, err, "failed to add warning: %v", err)
+
+	_, err = s.Conn.Exec(ctx,
+		"INSERT INTO public.person_warning VALUES ($1, $2)",
+		personId, warningId)
+	assert.NoError(s.t, err, "failed to add person warning: %v", err)
+
+}
