@@ -7,6 +7,7 @@ import (
 type PaymentsSchedule struct {
 	Date         *shared.Date
 	ScheduleType *shared.ScheduleType
+	PisNumber    int
 }
 
 const PaymentsScheduleQuery = `SELECT
@@ -20,7 +21,7 @@ const PaymentsScheduleQuery = `SELECT
 	JOIN supervision_finance.ledger l ON la.ledger_id = l.id
 	LEFT JOIN supervision_finance.invoice i ON i.id = la.invoice_id
 	JOIN supervision_finance.finance_client fc ON fc.id = l.finance_client_id
-	WHERE l.bankdate = $1 AND l.type = $2;
+	WHERE l.bankdate = $1 AND l.type = $2 AND COALESCE(l.pis_number, 0) = COALESCE($3, 0);
 `
 
 func (p *PaymentsSchedule) GetHeaders() []string {
@@ -39,7 +40,10 @@ func (p *PaymentsSchedule) GetQuery() string {
 }
 
 func (p *PaymentsSchedule) GetParams() []any {
-	var transactionType shared.TransactionType
+	var (
+		transactionType shared.TransactionType
+		pisNumber       int
+	)
 	switch *p.ScheduleType {
 	case shared.ScheduleTypeMOTOCardPayments:
 		transactionType = shared.TransactionTypeMotoCardPayment
@@ -51,8 +55,11 @@ func (p *PaymentsSchedule) GetParams() []any {
 		transactionType = shared.TransactionTypeSupervisionBACSPayment
 	case shared.ScheduleTypeDirectDebitPayments:
 		transactionType = shared.TransactionTypeDirectDebitPayment
+	case shared.ScheduleTypeChequePayments:
+		transactionType = shared.TransactionTypeSupervisionChequePayment
+		pisNumber = p.PisNumber
 	default:
 		transactionType = shared.TransactionTypeUnknown
 	}
-	return []any{p.Date.Time.Format("2006-01-02"), transactionType.Key()}
+	return []any{p.Date.Time.Format("2006-01-02"), transactionType.Key(), pisNumber}
 }
