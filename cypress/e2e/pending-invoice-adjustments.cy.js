@@ -27,8 +27,32 @@ describe("Pending Invoice Adjustments", () => {
         cy.get("@row")
             .find(".form-button-menu")
             .within(() => {
-                cy.get("button").contains("Approve");
-                cy.get("button").contains("Reject").click();
+                cy.contains("button", "Approve");
+                cy.contains("button", "Reject");
+            });
+    });
+
+    it("hides approve button where the adjustment was created by the user", () => {
+        cy.setUser("4");
+        cy.visit("/clients/10/pending-invoice-adjustments");
+
+        cy.get("table#pending-invoice-adjustments > tbody")
+            .contains("AD10101/24").parent("tr")
+            .find(".form-button-menu")
+            .within(() => {
+                cy.contains("button", "Approve").should("not.be.visible");
+                cy.contains("button", "Reject");
+            });
+    });
+
+    it("successfully rejects adjustment", () => {
+        cy.visit("/clients/10/pending-invoice-adjustments");
+
+        cy.get("table#pending-invoice-adjustments > tbody")
+            .contains("AD10101/24").parent("tr")
+            .find(".form-button-menu")
+            .within(() => {
+                cy.contains("button", "Reject").click();
             });
 
         cy.url().should("include", "/pending-invoice-adjustments?success=rejected-invoice-adjustment[CREDIT]");

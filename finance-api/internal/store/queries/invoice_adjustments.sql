@@ -5,7 +5,8 @@ SELECT ia.id,
        ia.adjustment_type,
        ia.amount,
        ia.notes,
-       ia.status
+       ia.status,
+       ia.created_by
 FROM invoice_adjustment ia
          JOIN invoice i ON i.id = ia.invoice_id
          JOIN finance_client fc ON fc.id = ia.finance_client_id
