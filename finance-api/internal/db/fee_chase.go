@@ -24,7 +24,7 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
                COALESCE(a.county, '') AS "County",
                COALESCE(a.postcode, '') AS "Postcode",
                CONCAT('£', ABS(gi.total / 100.0)::NUMERIC(10,2)::VARCHAR(255)) AS "Total_debt",
-               (SELECT string_agg(CONCAT('no,', reference, ',£', debt), ',') FROM json_to_recordset(gi.invoice) as x(reference text, debt text)) AS invoice
+               (SELECT string_agg(CONCAT(reference, ': £', debt), ', ') FROM json_to_recordset(gi.invoice) as x(reference text, debt text)) AS invoice
         FROM public.persons cl
                 INNER JOIN supervision_finance.finance_client fc on cl.id = fc.client_id
                 LEFT JOIN public.persons p ON cl.feepayer_id = p.id
