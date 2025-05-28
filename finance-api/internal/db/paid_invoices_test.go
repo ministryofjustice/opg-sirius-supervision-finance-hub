@@ -26,7 +26,7 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "11111111", "1111")
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
 	_, c1i1Ref := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
-	suite.seeder.CreateFeeReduction(ctx, client1ID, shared.FeeReductionTypeExemption, strconv.Itoa(twoYearsAgo.Date().Year()), 2, "Test exemption", today.Date())
+	_ = suite.seeder.CreateFeeReduction(ctx, client1ID, shared.FeeReductionTypeExemption, strconv.Itoa(twoYearsAgo.Date().Year()), 2, "Test exemption", today.Date())
 
 	// client with:
 	// one invoice with no outstanding balance due to an exemption
@@ -35,14 +35,14 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	suite.seeder.CreateOrder(ctx, client2ID, "ACTIVE")
 	_, c2i1Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeAD, nil, fourYearsAgo.StringPtr(), nil, nil, nil, nil)
 	_, _ = suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, &general, twoMonthsAgo.StringPtr(), twoMonthsAgo.StringPtr(), nil, nil, nil)
-	suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeExemption, strconv.Itoa(fourYearsAgo.Date().Year()-1), 2, "Test exemption", today.Date())
+	_ = suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeExemption, strconv.Itoa(fourYearsAgo.Date().Year()-1), 2, "Test exemption", today.Date())
 
 	// client with:
 	// one invoice partially paid due to a remission
 	client3ID := suite.seeder.CreateClient(ctx, "Tony", "Three", "33333333", "3333")
 	suite.seeder.CreateOrder(ctx, client3ID, "ACTIVE")
 	_, _ = suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeAD, nil, fourYearsAgo.StringPtr(), nil, nil, nil, nil)
-	suite.seeder.CreateFeeReduction(ctx, client3ID, shared.FeeReductionTypeRemission, strconv.Itoa(fourYearsAgo.Date().Year()-1), 4, "Test remission", today.Date())
+	_ = suite.seeder.CreateFeeReduction(ctx, client3ID, shared.FeeReductionTypeRemission, strconv.Itoa(fourYearsAgo.Date().Year()-1), 4, "Test remission", today.Date())
 
 	// client with:
 	//one invoice paid with supervision BACS payment
@@ -67,7 +67,7 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	suite.seeder.CreateOrder(ctx, client6ID, "ACTIVE")
 	_, c6i1Ref := suite.seeder.CreateInvoice(ctx, client6ID, shared.InvoiceTypeGA, valToPtr("200.00"), today.StringPtr(), nil, nil, nil, nil)
 	suite.seeder.CreatePayment(ctx, 10000, today.Date(), client6ref, shared.TransactionTypeOPGBACSPayment, today.Date(), 0)
-	suite.seeder.CreateFeeReduction(ctx, client6ID, shared.FeeReductionTypeRemission, strconv.Itoa(today.Date().Year()-1), 2, "Gary's remission", today.Date())
+	_ = suite.seeder.CreateFeeReduction(ctx, client6ID, shared.FeeReductionTypeRemission, strconv.Itoa(today.Date().Year()-1), 2, "Gary's remission", today.Date())
 
 	// client with:
 	// one Guardianship invoice with exemption
@@ -75,7 +75,7 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	client7ID := suite.seeder.CreateClient(ctx, "Edith", "Exemption", client7ref, "7777")
 	suite.seeder.CreateOrder(ctx, client7ID, "ACTIVE")
 	_, c7i1Ref := suite.seeder.CreateInvoice(ctx, client7ID, shared.InvoiceTypeGS, valToPtr("200.00"), today.StringPtr(), today.StringPtr(), today.StringPtr(), nil, nil)
-	suite.seeder.CreateFeeReduction(ctx, client7ID, shared.FeeReductionTypeExemption, strconv.Itoa(today.Date().Year()-1), 2, "Edith's exemption", today.Date())
+	_ = suite.seeder.CreateFeeReduction(ctx, client7ID, shared.FeeReductionTypeExemption, strconv.Itoa(today.Date().Year()-1), 2, "Edith's exemption", today.Date())
 
 	// misapplied payments
 	// first client will not show in report as the payment has been reversed (and the invoice is not paid)

@@ -125,7 +125,7 @@ func (s *Seeder) CreateAdjustment(ctx context.Context, clientID int32, invoiceId
 	assert.NoError(s.t, err, "failed to update ledger allocation dates: %v", err)
 }
 
-func (s *Seeder) CreateFeeReduction(ctx context.Context, clientId int32, feeType shared.FeeReductionType, startYear string, length int, notes string, createdAt time.Time) {
+func (s *Seeder) CreateFeeReduction(ctx context.Context, clientId int32, feeType shared.FeeReductionType, startYear string, length int, notes string, createdAt time.Time) int32 {
 	received := shared.NewDate(startYear + "-01-01")
 	reduction := shared.AddFeeReduction{
 		FeeType:       feeType,
@@ -138,7 +138,7 @@ func (s *Seeder) CreateFeeReduction(ctx context.Context, clientId int32, feeType
 	assert.NoError(s.t, err, "failed to create fee reduction: %v", err)
 
 	// update created dates to enable testing reductions added in the past
-	var id int
+	var id int32
 	err = s.Conn.QueryRow(ctx, "SELECT id FROM supervision_finance.fee_reduction ORDER BY id DESC LIMIT 1").Scan(&id)
 	assert.NoError(s.t, err, "failed find created reduction: %v", err)
 
@@ -147,6 +147,13 @@ func (s *Seeder) CreateFeeReduction(ctx context.Context, clientId int32, feeType
 
 	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger_allocation SET datetime = $1 WHERE ledger_id IN (SELECT id FROM supervision_finance.ledger WHERE fee_reduction_id = $2)", createdAt, id)
 	assert.NoError(s.t, err, "failed to update ledger allocation dates for reduction: %v", err)
+
+	return id
+}
+
+func (s *Seeder) CancelFeeReduction(ctx context.Context, feeReductionId int32) {
+	err := s.Service.CancelFeeReduction(ctx, feeReductionId, shared.CancelFeeReduction{CancellationReason: ""})
+	assert.NoError(s.t, err, "failed to cancel fee reduction: %v", err)
 }
 
 func (s *Seeder) CreatePayment(ctx context.Context, amount int32, bankDate time.Time, courtRef string, ledgerType shared.TransactionType, uploadDate time.Time, pisNumber int32) {

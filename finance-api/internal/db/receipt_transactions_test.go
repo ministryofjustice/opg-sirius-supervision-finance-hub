@@ -24,7 +24,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "11111111", shared.TransactionTypeMotoCardPayment, yesterday.Date(), 0)
 	suite.seeder.CreatePayment(ctx, 2550, yesterday.Date(), "11111111", shared.TransactionTypeSupervisionBACSPayment, yesterday.Date(), 0)
 
-	suite.seeder.CreateFeeReduction(ctx, client1ID, shared.FeeReductionTypeExemption, strconv.Itoa(yesterday.Date().Year()-1), 4, "", yesterday.Date())
+	_ = suite.seeder.CreateFeeReduction(ctx, client1ID, shared.FeeReductionTypeExemption, strconv.Itoa(yesterday.Date().Year()-1), 4, "", yesterday.Date())
 
 	// one client with an invoice with a MOTO card payment, an OPG BACS payment and an S2 invoice with an approved credit memo
 	client2ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "22222222", "4321")
