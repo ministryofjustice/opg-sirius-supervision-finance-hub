@@ -220,7 +220,7 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 			return "", reportName, nil, fmt.Errorf("unimplemented schedule query: %s", reportRequest.ScheduleType.Key())
 		}
 	case shared.ReportsTypeDebt:
-		filename = fmt.Sprintf("debt_%s_%s.csv", reportRequest.DebtType.Key(), reportRequest.TransactionDate.Time.Format("02:01:2006"))
+		filename = fmt.Sprintf("debt_%s_%s.csv", reportRequest.DebtType.Key(), requestedDate.Format("02:01:2006"))
 		reportName = reportRequest.DebtType.Translation()
 		switch *reportRequest.DebtType {
 		case shared.DebtTypeFeeChase:
