@@ -78,10 +78,10 @@ func (q *Queries) AddInvoice(ctx context.Context, arg AddInvoiceParams) (Invoice
 }
 
 const getInvoiceBalanceDetails = `-- name: GetInvoiceBalanceDetails :one
-SELECT i.amount                                      initial,
-       i.amount - COALESCE(transactions.received, 0) outstanding,
+SELECT i.amount                                                                           initial,
+       i.amount - COALESCE(transactions.received, 0)                                      outstanding,
        i.feetype,
-       COALESCE(write_offs.amount, 0)::INT           write_off_amount
+       COALESCE(write_offs.amount, 0)::INT - COALESCE(write_off_reversals.amount, 0)::INT write_off_amount
 FROM invoice i
          LEFT JOIN LATERAL (
     SELECT SUM(la.amount) AS amount
@@ -90,6 +90,13 @@ FROM invoice i
     WHERE la.status = 'ALLOCATED'
       AND la.invoice_id = i.id
     ) write_offs ON TRUE
+         LEFT JOIN LATERAL (
+    SELECT SUM(la.amount) AS amount
+    FROM ledger_allocation la
+             JOIN ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED' AND l.type = 'WRITE OFF REVERSAL'
+    WHERE la.status = 'ALLOCATED'
+      AND la.invoice_id = i.id
+    ) write_off_reversals ON TRUE
          LEFT JOIN LATERAL (
     SELECT SUM(la.amount) AS received
     FROM ledger_allocation la
