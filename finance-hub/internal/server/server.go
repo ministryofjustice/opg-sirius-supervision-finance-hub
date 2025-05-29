@@ -19,7 +19,7 @@ type ApiClient interface {
 	GetFeeReductions(context.Context, int) (shared.FeeReductions, error)
 	GetInvoices(context.Context, int) (shared.Invoices, error)
 	GetPermittedAdjustments(context.Context, int, int) ([]shared.AdjustmentType, error)
-	AdjustInvoice(context.Context, int, int, int, string, string, string) error
+	AdjustInvoice(context.Context, int, int, int, string, string, string, bool) error
 	GetAccountInformation(context.Context, int) (shared.AccountInformation, error)
 	GetInvoiceAdjustments(context.Context, int) (shared.InvoiceAdjustments, error)
 	AddFeeReduction(context.Context, int, string, string, string, string, string) error
