@@ -87,32 +87,23 @@ WHERE invoice_id = ANY ($1::INT[])
 ORDER BY todate DESC;
 
 -- name: GetInvoiceBalanceDetails :one
-SELECT i.amount                                                                           initial,
-       i.amount - COALESCE(transactions.received, 0)                                      outstanding,
-       i.feetype,
-       COALESCE(write_offs.amount, 0)::INT - COALESCE(write_off_reversals.amount, 0)::INT write_off_amount
+WITH ledger_sums AS (
+    SELECT
+        la.invoice_id,
+        SUM(CASE WHEN l.status = 'CONFIRMED' AND l.type = 'CREDIT WRITE OFF' AND la.status = 'ALLOCATED' THEN la.amount ELSE 0 END) AS write_off_amount,
+        SUM(CASE WHEN l.status = 'CONFIRMED' AND l.type = 'WRITE OFF REVERSAL' AND la.status = 'ALLOCATED' THEN la.amount ELSE 0 END) AS write_off_reversal_amount,
+        SUM(CASE WHEN l.status = 'CONFIRMED' AND la.status NOT IN ('PENDING', 'UN ALLOCATED') THEN la.amount ELSE 0 END) AS received
+    FROM ledger_allocation la
+             JOIN ledger l ON la.ledger_id = l.id
+    GROUP BY la.invoice_id
+)
+SELECT
+    i.amount AS initial,
+    i.amount - COALESCE(ls.received, 0) AS outstanding,
+    i.feetype,
+    COALESCE(ls.write_off_amount, 0)::INT - COALESCE(ls.write_off_reversal_amount, 0)::INT AS write_off_amount
 FROM invoice i
-         LEFT JOIN LATERAL (
-    SELECT SUM(la.amount) AS amount
-    FROM ledger_allocation la
-             JOIN ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED' AND l.type = 'CREDIT WRITE OFF'
-    WHERE la.status = 'ALLOCATED'
-      AND la.invoice_id = i.id
-    ) write_offs ON TRUE
-         LEFT JOIN LATERAL (
-    SELECT SUM(la.amount) AS amount
-    FROM ledger_allocation la
-             JOIN ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED' AND l.type = 'WRITE OFF REVERSAL'
-    WHERE la.status = 'ALLOCATED'
-      AND la.invoice_id = i.id
-    ) write_off_reversals ON TRUE
-         LEFT JOIN LATERAL (
-    SELECT SUM(la.amount) AS received
-    FROM ledger_allocation la
-             JOIN ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
-    WHERE la.status NOT IN ('PENDING', 'UN ALLOCATED')
-      AND la.invoice_id = i.id
-    ) transactions ON TRUE
+         LEFT JOIN ledger_sums ls ON ls.invoice_id = i.id
 WHERE i.id = $1;
 
 -- name: GetInvoiceBalancesForFeeReductionRange :many
