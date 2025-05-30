@@ -113,7 +113,7 @@ SELECT ia.amount,
        i.amount - COALESCE(SUM(la.amount), 0) outstanding
 FROM invoice_adjustment ia
          JOIN invoice i ON ia.invoice_id = i.id
-         LEFT JOIN ledger_allocation la ON i.id = la.invoice_id AND la.status NOT IN ('PENDING', 'UNALLOCATED')
+         LEFT JOIN ledger_allocation la ON i.id = la.invoice_id AND la.status NOT IN ('PENDING', 'UN ALLOCATED')
 WHERE ia.id = $1
 GROUP BY ia.amount, ia.adjustment_type, ia.finance_client_id, ia.invoice_id, i.amount
 `
@@ -205,7 +205,7 @@ RETURNING ia.amount, ia.adjustment_type, ia.finance_client_id, ia.invoice_id,
     (SELECT i.amount - COALESCE(SUM(la.amount), 0) outstanding
      FROM invoice i
               LEFT JOIN ledger_allocation la
-                        ON i.id = la.invoice_id AND la.status NOT IN ('PENDING', 'UNALLOCATED')
+                        ON i.id = la.invoice_id AND la.status NOT IN ('PENDING', 'UN ALLOCATED')
      WHERE i.id = ia.invoice_id
      GROUP BY i.amount)
 `
