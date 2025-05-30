@@ -2,11 +2,9 @@ package shared
 
 import (
 	"encoding/json"
-	"fmt"
-	"time"
 )
 
-var ReportUploadPaymentTypes = []ReportUploadType{
+var reportUploadPaymentTypes = []ReportUploadType{
 	ReportTypeUploadPaymentsMOTOCard,
 	ReportTypeUploadPaymentsOnlineCard,
 	ReportTypeUploadPaymentsOPGBACS,
@@ -15,10 +13,14 @@ var ReportUploadPaymentTypes = []ReportUploadType{
 	ReportTypeUploadDirectDebitsCollections,
 }
 
-var ReportUploadReversalTypes = []ReportUploadType{
+var reportUploadReversalTypes = []ReportUploadType{
 	ReportTypeUploadMisappliedPayments,
 	ReportTypeUploadDuplicatedPayments,
 	ReportTypeUploadBouncedCheque,
+}
+
+var reportUploadNoHeaderTypes = []ReportUploadType{
+	ReportTypeUploadDirectDebitsCollections,
 }
 
 type ReportUploadType int
@@ -52,12 +54,12 @@ var reportTypeUploadMap = map[string]ReportUploadType{
 	"BOUNCED_CHEQUE":              ReportTypeUploadBouncedCheque,
 }
 
-func (i ReportUploadType) String() string {
-	return i.Key()
+func (u ReportUploadType) String() string {
+	return u.Key()
 }
 
-func (i ReportUploadType) Translation() string {
-	switch i {
+func (u ReportUploadType) Translation() string {
+	switch u {
 	case ReportTypeUploadPaymentsMOTOCard:
 		return "Payments - MOTO card"
 	case ReportTypeUploadPaymentsOnlineCard:
@@ -85,8 +87,8 @@ func (i ReportUploadType) Translation() string {
 	}
 }
 
-func (i ReportUploadType) Key() string {
-	switch i {
+func (u ReportUploadType) Key() string {
+	switch u {
 	case ReportTypeUploadPaymentsMOTOCard:
 		return "PAYMENTS_MOTO_CARD"
 	case ReportTypeUploadPaymentsOnlineCard:
@@ -177,37 +179,46 @@ func ParseReportUploadType(s string) ReportUploadType {
 	return value
 }
 
-func (i ReportUploadType) Valid() bool {
-	return i != ReportTypeUploadUnknown
+func (u ReportUploadType) Valid() bool {
+	return u != ReportTypeUploadUnknown
 }
 
-func (i ReportUploadType) IsPayment() bool {
-	for _, t := range ReportUploadPaymentTypes {
-		if i == t {
+func (u ReportUploadType) IsPayment() bool {
+	for _, t := range reportUploadPaymentTypes {
+		if u == t {
 			return true
 		}
 	}
 	return false
 }
 
-func (i ReportUploadType) IsReversal() bool {
-	for _, t := range ReportUploadReversalTypes {
-		if i == t {
+func (u ReportUploadType) IsReversal() bool {
+	for _, t := range reportUploadReversalTypes {
+		if u == t {
 			return true
 		}
 	}
 	return false
 }
 
-func (i ReportUploadType) MarshalJSON() ([]byte, error) {
-	return json.Marshal(i.Key())
+func (u ReportUploadType) HasHeader() bool {
+	for _, t := range reportUploadNoHeaderTypes {
+		if u == t {
+			return false
+		}
+	}
+	return true
 }
 
-func (i *ReportUploadType) UnmarshalJSON(data []byte) (err error) {
+func (u ReportUploadType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(u.Key())
+}
+
+func (u *ReportUploadType) UnmarshalJSON(data []byte) (err error) {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
 		return err
 	}
-	*i = ParseReportUploadType(s)
+	*u = ParseReportUploadType(s)
 	return nil
 }
