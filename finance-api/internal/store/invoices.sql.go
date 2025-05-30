@@ -94,7 +94,7 @@ FROM invoice i
     SELECT SUM(la.amount) AS received
     FROM ledger_allocation la
              JOIN ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
-    WHERE la.status NOT IN ('PENDING', 'UNALLOCATED')
+    WHERE la.status NOT IN ('PENDING', 'UN ALLOCATED')
       AND la.invoice_id = i.id
     ) transactions ON TRUE
 WHERE i.id = $1
@@ -131,7 +131,7 @@ FROM invoice i
     SELECT SUM(la.amount) AS received
     FROM ledger_allocation la
              JOIN ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
-    WHERE la.status NOT IN ('PENDING', 'UNALLOCATED')
+    WHERE la.status NOT IN ('PENDING', 'UN ALLOCATED')
       AND la.invoice_id = i.id
     ) transactions ON TRUE
          LEFT JOIN LATERAL (
@@ -208,7 +208,7 @@ FROM invoice i
     FROM ledger_allocation la
              JOIN ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
              LEFT JOIN fee_reduction fr ON l.fee_reduction_id = fr.id
-    WHERE la.status NOT IN ('PENDING', 'UNALLOCATED')
+    WHERE la.status NOT IN ('PENDING', 'UN ALLOCATED')
       AND la.invoice_id = i.id
     ) transactions ON TRUE
 WHERE fc.client_id = $1
@@ -259,7 +259,7 @@ FROM invoice i
     SELECT SUM(la.amount) AS received
     FROM ledger_allocation la
              JOIN ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
-    WHERE la.status NOT IN ('PENDING', 'UNALLOCATED')
+    WHERE la.status NOT IN ('PENDING', 'UN ALLOCATED')
       AND la.invoice_id = i.id
     ) transactions ON TRUE
 WHERE fc.court_ref = $1
@@ -305,7 +305,7 @@ WITH allocations AS (SELECT la.invoice_id,
                      FROM ledger_allocation la
                               JOIN ledger l ON la.ledger_id = l.id
                      WHERE la.invoice_id = ANY ($1::INT[])
-                       AND la.status NOT IN ('PENDING', 'UNALLOCATED')
+                       AND la.status NOT IN ('PENDING', 'UN ALLOCATED')
                        AND l.status = 'CONFIRMED'
                      UNION
                      SELECT ia.invoice_id,
@@ -410,7 +410,7 @@ FROM invoice i
     SELECT SUM(la.amount) AS received
     FROM ledger_allocation la
              JOIN ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
-    WHERE la.status NOT IN ('PENDING', 'UNALLOCATED')
+    WHERE la.status NOT IN ('PENDING', 'UN ALLOCATED')
       AND la.invoice_id = i.id
     ) transactions ON TRUE
 WHERE fc.court_ref = $1
