@@ -28,6 +28,6 @@ func DecimalStringToInt(s string) int32 {
 	}
 
 	combined := parts[0] + parts[1]
-	val, _ := strconv.Atoi(combined)
+	val, _ := strconv.ParseInt(combined, 10, 32)
 	return int32(val)
 }
