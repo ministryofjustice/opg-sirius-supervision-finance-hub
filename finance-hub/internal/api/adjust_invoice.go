@@ -10,13 +10,14 @@ import (
 	"net/http"
 )
 
-func (c *Client) AdjustInvoice(ctx context.Context, clientId int, supervisionBillingTeamId int, invoiceId int, adjustmentType string, notes string, amount string) error {
+func (c *Client) AdjustInvoice(ctx context.Context, clientId int, supervisionBillingTeamId int, invoiceId int, adjustmentType string, notes string, amount string, managerOverride bool) error {
 	var body bytes.Buffer
 
 	adjustment := shared.AddInvoiceAdjustmentRequest{
 		AdjustmentType:  shared.ParseAdjustmentType(adjustmentType),
 		AdjustmentNotes: notes,
 		Amount:          shared.DecimalStringToInt(amount),
+		ManagerOverride: managerOverride,
 	}
 
 	err := json.NewEncoder(&body).Encode(adjustment)

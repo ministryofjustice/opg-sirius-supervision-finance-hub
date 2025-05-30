@@ -27,12 +27,30 @@ htmx.onLoad(content => {
         htmx.on(`#${element.id}`, "click", () => htmx.toggleClass(htmx.find(`#${element.id}-reveal`), "hide"));
     }));
 
-    htmx.findAll(".show-input-field").forEach((element) => {
-        element.addEventListener("click", () => htmx.removeClass(htmx.find("#field-input"), "hide"));
+    htmx.findAll(".show-amount-field").forEach((element) => {
+        element.addEventListener("click", () => htmx.removeClass(htmx.find("#amount-field"), "hide"));
     });
 
-    htmx.findAll(".hide-input-field").forEach((element) => {
-        element.addEventListener("click", () => htmx.addClass(htmx.find("#field-input"), "hide"));
+    htmx.findAll(".hide-amount-field").forEach((element) => {
+        element.addEventListener("click", () => htmx.addClass(htmx.find("#amount-field"), "hide"));
+    });
+
+    htmx.findAll(".show-manager-override-field").forEach((element) => {
+        element.addEventListener("click", () => htmx.removeClass(htmx.find("#manager-override-field"), "hide"));
+    });
+
+    htmx.findAll(".hide-manager-override-field").forEach((element) => {
+        element.addEventListener("click", () => htmx.addClass(htmx.find("#manager-override-field"), "hide"));
+    });
+
+    htmx.findAll("#manager-override").forEach((element) => {
+        element.addEventListener("change", (event) => {
+            if (event.target.checked) {
+                htmx.removeClass(htmx.find("#amount-field"), "hide");
+            } else {
+                htmx.addClass(htmx.find("#amount-field"), "hide");
+            }
+        });
     });
 
     htmx.findAll(".moj-banner--success").forEach((element) => {

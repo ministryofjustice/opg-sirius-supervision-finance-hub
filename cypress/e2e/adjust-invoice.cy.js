@@ -61,10 +61,21 @@ describe("Adjust invoice form", () => {
         cy.get("#f-AdjustmentType").contains(".govuk-radios__item", "Write off reversal").click();
         cy.get("#f-AdjustmentNotes").type("Reversing write off");
         cy.get("#f-Amount").should("be.hidden");
+        cy.get("#f-manager-override").click();
+        cy.get("#f-Amount").type("10");
         cy.contains(".govuk-button", "Save and continue").click();
 
         cy.url().should("include", "clients/4/invoices?success=invoice-adjustment[WRITE%20OFF%20REVERSAL]");
         cy.get(".moj-banner__message").contains("Write-off reversal successfully created");
+    });
+
+    it("does not show manager override checkbox for write off reversals when not a Finance Manager", () => {
+        cy.setUser("1");
+        cy.visit("/clients/4/invoices/4/adjustments");
+
+        cy.get("#f-AdjustmentType").contains(".govuk-radios__item", "Write off reversal").click();
+        cy.get("#f-Amount").should("be.hidden");
+        cy.get("#f-manager-override").should("not.exist");
     });
 
     it("adds debit to an invoice", () => {

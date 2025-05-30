@@ -44,39 +44,39 @@ func (suite *IntegrationSuite) Test_adjustments_schedules() {
 	// create one of each invoice
 	invADID, invADRef := suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeAD, valToPtr("100.00"), twoDaysAgo.StringPtr(), nil, nil, nil, twoDaysAgo.StringPtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invADID, shared.AdjustmentTypeDebitMemo, 1000, "Debit added", twoDaysAgo.DatePtr())
-	suite.seeder.CreateAdjustment(ctx, client4ID, invADID, shared.AdjustmentTypeWriteOff, 1000, "Write off", twoDaysAgo.DatePtr())
+	suite.seeder.CreateAdjustment(ctx, client4ID, invADID, shared.AdjustmentTypeWriteOff, 0, "Write off", twoDaysAgo.DatePtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invADID, shared.AdjustmentTypeCreditMemo, 1000, "Credit added", twoDaysAgo.DatePtr())
-	suite.seeder.CreateAdjustment(ctx, client4ID, invADID, shared.AdjustmentTypeWriteOffReversal, 1000, "Write off reversal", twoDaysAgo.DatePtr())
+	suite.seeder.CreateAdjustment(ctx, client4ID, invADID, shared.AdjustmentTypeWriteOffReversal, 0, "Write off reversal", twoDaysAgo.DatePtr())
 
 	invS2ID, invS2Ref := suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeS2, valToPtr("320.00"), twoDaysAgo.StringPtr(), nil, nil, nil, twoDaysAgo.StringPtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invS2ID, shared.AdjustmentTypeDebitMemo, 1000, "Debit added", twoDaysAgo.DatePtr())
-	suite.seeder.CreateAdjustment(ctx, client4ID, invS2ID, shared.AdjustmentTypeWriteOff, 1000, "Write off", twoDaysAgo.DatePtr())
+	suite.seeder.CreateAdjustment(ctx, client4ID, invS2ID, shared.AdjustmentTypeWriteOff, 0, "Write off", twoDaysAgo.DatePtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invS2ID, shared.AdjustmentTypeCreditMemo, 1000, "Credit added", twoDaysAgo.DatePtr())
-	suite.seeder.CreateAdjustment(ctx, client4ID, invS2ID, shared.AdjustmentTypeWriteOffReversal, 1000, "Write off reversal", twoDaysAgo.DatePtr())
+	suite.seeder.CreateAdjustment(ctx, client4ID, invS2ID, shared.AdjustmentTypeWriteOffReversal, 0, "Write off reversal", twoDaysAgo.DatePtr())
 
 	invS3ID, invS3Ref := suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeS3, valToPtr("10.00"), twoDaysAgo.StringPtr(), nil, nil, nil, twoDaysAgo.StringPtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invS3ID, shared.AdjustmentTypeDebitMemo, 1000, "Debit added", twoDaysAgo.DatePtr())
-	suite.seeder.CreateAdjustment(ctx, client4ID, invS3ID, shared.AdjustmentTypeWriteOff, 1000, "Write off", twoDaysAgo.DatePtr())
+	suite.seeder.CreateAdjustment(ctx, client4ID, invS3ID, shared.AdjustmentTypeWriteOff, 0, "Write off", twoDaysAgo.DatePtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invS3ID, shared.AdjustmentTypeCreditMemo, 1000, "Credit added", twoDaysAgo.DatePtr())
-	suite.seeder.CreateAdjustment(ctx, client4ID, invS3ID, shared.AdjustmentTypeWriteOffReversal, 1000, "Write off reversal", twoDaysAgo.DatePtr())
+	suite.seeder.CreateAdjustment(ctx, client4ID, invS3ID, shared.AdjustmentTypeWriteOffReversal, 0, "Write off reversal", twoDaysAgo.DatePtr())
 
 	invGAID, invGARef := suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeGA, valToPtr("200.00"), twoDaysAgo.StringPtr(), nil, nil, nil, twoDaysAgo.StringPtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invGAID, shared.AdjustmentTypeDebitMemo, 1000, "Debit added", twoDaysAgo.DatePtr())
-	suite.seeder.CreateAdjustment(ctx, client4ID, invGAID, shared.AdjustmentTypeWriteOff, 1000, "Write off", twoDaysAgo.DatePtr())
+	suite.seeder.CreateAdjustment(ctx, client4ID, invGAID, shared.AdjustmentTypeWriteOff, 0, "Write off", twoDaysAgo.DatePtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invGAID, shared.AdjustmentTypeCreditMemo, 1000, "Credit added", twoDaysAgo.DatePtr())
-	suite.seeder.CreateAdjustment(ctx, client4ID, invGAID, shared.AdjustmentTypeWriteOffReversal, 1000, "Write off reversal", twoDaysAgo.DatePtr())
+	suite.seeder.CreateAdjustment(ctx, client4ID, invGAID, shared.AdjustmentTypeWriteOffReversal, 0, "Write off reversal", twoDaysAgo.DatePtr())
 
 	invGSID, invGSRef := suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeGS, valToPtr("100.00"), twoDaysAgo.StringPtr(), nil, nil, nil, twoDaysAgo.StringPtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invGSID, shared.AdjustmentTypeDebitMemo, 1000, "Debit added", twoDaysAgo.DatePtr())
-	suite.seeder.CreateAdjustment(ctx, client4ID, invGSID, shared.AdjustmentTypeWriteOff, 1000, "Write off", twoDaysAgo.DatePtr())
+	suite.seeder.CreateAdjustment(ctx, client4ID, invGSID, shared.AdjustmentTypeWriteOff, 0, "Write off", twoDaysAgo.DatePtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invGSID, shared.AdjustmentTypeCreditMemo, 1000, "Credit added", twoDaysAgo.DatePtr())
-	suite.seeder.CreateAdjustment(ctx, client4ID, invGSID, shared.AdjustmentTypeWriteOffReversal, 1000, "Write off reversal", twoDaysAgo.DatePtr())
+	suite.seeder.CreateAdjustment(ctx, client4ID, invGSID, shared.AdjustmentTypeWriteOffReversal, 0, "Write off reversal", twoDaysAgo.DatePtr())
 
 	invGTID, invGTRef := suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeGT, valToPtr("100.00"), twoDaysAgo.StringPtr(), nil, nil, nil, twoDaysAgo.StringPtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invGTID, shared.AdjustmentTypeDebitMemo, 1000, "Debit added", twoDaysAgo.DatePtr())
-	suite.seeder.CreateAdjustment(ctx, client4ID, invGTID, shared.AdjustmentTypeWriteOff, 1000, "Write off", twoDaysAgo.DatePtr())
+	suite.seeder.CreateAdjustment(ctx, client4ID, invGTID, shared.AdjustmentTypeWriteOff, 0, "Write off", twoDaysAgo.DatePtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invGTID, shared.AdjustmentTypeCreditMemo, 1000, "Credit added", twoDaysAgo.DatePtr())
-	suite.seeder.CreateAdjustment(ctx, client4ID, invGTID, shared.AdjustmentTypeWriteOffReversal, 1000, "Write off reversal", twoDaysAgo.DatePtr())
+	suite.seeder.CreateAdjustment(ctx, client4ID, invGTID, shared.AdjustmentTypeWriteOffReversal, 0, "Write off reversal", twoDaysAgo.DatePtr())
 	c := Client{suite.seeder.Conn}
 
 	tests := []struct {
