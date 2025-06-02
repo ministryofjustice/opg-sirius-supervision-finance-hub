@@ -13,7 +13,6 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 
 	today := suite.seeder.Today()
 	yesterday := today.Sub(0, 0, 1)
-	oneWeekAgo := today.Sub(0, 0, 7)
 	twoMonthsAgo := today.Sub(0, 2, 0)
 	twoYearsAgo := today.Sub(2, 0, 0)
 	fourYearsAgo := today.Sub(4, 0, 0)
@@ -26,7 +25,7 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "11111111", "1111")
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
 	_, c1i1Ref := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
-	_ = suite.seeder.CreateFeeReduction(ctx, client1ID, shared.FeeReductionTypeExemption, strconv.Itoa(twoYearsAgo.Date().Year()), 2, "Test exemption", today.Date())
+	_ = suite.seeder.CreateFeeReduction(ctx, client1ID, shared.FeeReductionTypeExemption, strconv.Itoa(twoYearsAgo.Date().Year()), 3, "Test exemption", today.Sub(0, 0, 3).Date())
 
 	// client with:
 	// one invoice with no outstanding balance due to an exemption
@@ -35,7 +34,7 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	suite.seeder.CreateOrder(ctx, client2ID, "ACTIVE")
 	_, c2i1Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeAD, nil, fourYearsAgo.StringPtr(), nil, nil, nil, nil)
 	_, _ = suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, &general, twoMonthsAgo.StringPtr(), twoMonthsAgo.StringPtr(), nil, nil, nil)
-	_ = suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeExemption, strconv.Itoa(fourYearsAgo.Date().Year()-1), 2, "Test exemption", today.Date())
+	_ = suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeExemption, strconv.Itoa(fourYearsAgo.Date().Year()-1), 2, "Test exemption", today.Sub(0, 0, 1).Date())
 
 	// client with:
 	// one invoice partially paid due to a remission
@@ -50,24 +49,24 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	client4ID := suite.seeder.CreateClient(ctx, "Sally", "Supervision", client4ref, "4444")
 	suite.seeder.CreateOrder(ctx, client4ID, "ACTIVE")
 	_, c4i1Ref := suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeS3, &minimal, yesterday.StringPtr(), nil, nil, nil, nil)
-	suite.seeder.CreatePayment(ctx, 1000, yesterday.Date(), client4ref, shared.TransactionTypeSupervisionBACSPayment, yesterday.Date(), 0)
+	suite.seeder.CreatePayment(ctx, 1000, today.Sub(0, 0, 6).Date(), client4ref, shared.TransactionTypeSupervisionBACSPayment, today.Sub(0, 0, 6).Date(), 0)
 
 	// client with:
 	// one invoice paid with OPG BACS payment
 	client5ref := "55555555"
 	client5ID := suite.seeder.CreateClient(ctx, "Owen", "OPG", client5ref, "5555")
 	suite.seeder.CreateOrder(ctx, client5ID, "ACTIVE")
-	_, c5i1Ref := suite.seeder.CreateInvoice(ctx, client5ID, shared.InvoiceTypeS2, &general, today.StringPtr(), nil, nil, nil, nil)
-	suite.seeder.CreatePayment(ctx, 32000, today.Date(), client5ref, shared.TransactionTypeOPGBACSPayment, today.Date(), 0)
+	_, c5i1Ref := suite.seeder.CreateInvoice(ctx, client5ID, shared.InvoiceTypeS2, &general, today.Sub(0, 0, 4).StringPtr(), nil, nil, nil, nil)
+	suite.seeder.CreatePayment(ctx, 32000, today.Sub(0, 0, 4).Date(), client5ref, shared.TransactionTypeOPGBACSPayment, today.Sub(0, 0, 4).Date(), 0)
 
 	// client with:
 	// one Guardianship invoice paid with OPG BACS payment and remission
 	client6ref := "66666666"
 	client6ID := suite.seeder.CreateClient(ctx, "Gary", "Guardianship", client6ref, "6666")
 	suite.seeder.CreateOrder(ctx, client6ID, "ACTIVE")
-	_, c6i1Ref := suite.seeder.CreateInvoice(ctx, client6ID, shared.InvoiceTypeGA, valToPtr("200.00"), today.StringPtr(), nil, nil, nil, nil)
-	suite.seeder.CreatePayment(ctx, 10000, today.Date(), client6ref, shared.TransactionTypeOPGBACSPayment, today.Date(), 0)
-	_ = suite.seeder.CreateFeeReduction(ctx, client6ID, shared.FeeReductionTypeRemission, strconv.Itoa(today.Date().Year()-1), 2, "Gary's remission", today.Date())
+	_, c6i1Ref := suite.seeder.CreateInvoice(ctx, client6ID, shared.InvoiceTypeGA, valToPtr("200.00"), today.Sub(0, 0, 2).StringPtr(), nil, nil, nil, nil)
+	suite.seeder.CreatePayment(ctx, 10000, today.Sub(0, 0, 2).Date(), client6ref, shared.TransactionTypeOPGBACSPayment, today.Sub(0, 0, 2).Date(), 0)
+	_ = suite.seeder.CreateFeeReduction(ctx, client6ID, shared.FeeReductionTypeRemission, strconv.Itoa(today.Sub(0, 0, 2).Date().Year()-1), 2, "Gary's remission", today.Sub(0, 0, 2).Date())
 
 	// client with:
 	// one Guardianship invoice with exemption
@@ -75,18 +74,18 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	client7ID := suite.seeder.CreateClient(ctx, "Edith", "Exemption", client7ref, "7777")
 	suite.seeder.CreateOrder(ctx, client7ID, "ACTIVE")
 	_, c7i1Ref := suite.seeder.CreateInvoice(ctx, client7ID, shared.InvoiceTypeGS, valToPtr("200.00"), today.StringPtr(), today.StringPtr(), today.StringPtr(), nil, nil)
-	_ = suite.seeder.CreateFeeReduction(ctx, client7ID, shared.FeeReductionTypeExemption, strconv.Itoa(today.Date().Year()-1), 2, "Edith's exemption", today.Date())
+	_ = suite.seeder.CreateFeeReduction(ctx, client7ID, shared.FeeReductionTypeExemption, strconv.Itoa(today.Date().Year()-1), 2, "Edith's exemption", today.Sub(0, 0, 5).Date())
 
 	// misapplied payments
 	// first client will not show in report as the payment has been reversed (and the invoice is not paid)
 	client8ref := "88888888"
 	client8ID := suite.seeder.CreateClient(ctx, "Ernie", "Error", client8ref, "2222")
-	_, _ = suite.seeder.CreateInvoice(ctx, client8ID, shared.InvoiceTypeAD, nil, oneWeekAgo.StringPtr(), nil, nil, nil, oneWeekAgo.StringPtr())
-	suite.seeder.CreatePayment(ctx, 15000, oneWeekAgo.Date(), client8ref, shared.TransactionTypeOnlineCardPayment, oneWeekAgo.Date(), 0)
+	_, _ = suite.seeder.CreateInvoice(ctx, client8ID, shared.InvoiceTypeAD, nil, today.Sub(0, 0, 7).StringPtr(), nil, nil, nil, today.Sub(0, 0, 7).StringPtr())
+	suite.seeder.CreatePayment(ctx, 15000, today.Sub(0, 0, 7).Date(), client8ref, shared.TransactionTypeOnlineCardPayment, today.Sub(0, 0, 7).Date(), 0)
 	client9ref := "99999999"
 	client9ID := suite.seeder.CreateClient(ctx, "Colette", "Correct", client9ref, "3333")
-	_, c9i1Ref := suite.seeder.CreateInvoice(ctx, client9ID, shared.InvoiceTypeSO, valToPtr("90.00"), oneWeekAgo.StringPtr(), nil, nil, nil, oneWeekAgo.StringPtr())
-	suite.seeder.ReversePayment(ctx, client8ref, client9ref, "150.00", oneWeekAgo.Date(), oneWeekAgo.Date(), shared.TransactionTypeOnlineCardPayment, today.Date())
+	_, c9i1Ref := suite.seeder.CreateInvoice(ctx, client9ID, shared.InvoiceTypeSO, valToPtr("90.00"), today.Sub(0, 0, 7).StringPtr(), nil, nil, nil, today.Sub(0, 0, 7).StringPtr())
+	suite.seeder.ReversePayment(ctx, client8ref, client9ref, "150.00", today.Sub(0, 0, 7).Date(), today.Sub(0, 0, 7).Date(), shared.TransactionTypeOnlineCardPayment, today.Date())
 
 	c := Client{suite.seeder.Conn}
 
@@ -118,8 +117,8 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	assert.Equal(suite.T(), "OC"+c9i1Ref, results[0]["Txn number"], "Txn number - client 9")
 	assert.Equal(suite.T(), "Online Card Payment", results[0]["Txn description"], "Txn description - client 9")
 	assert.Equal(suite.T(), "90.00", results[0]["Original amount"], "Original amount - client 9")
-	assert.Equal(suite.T(), oneWeekAgo.String(), results[0]["Received date"], "Received date - client 9")
-	assert.Contains(suite.T(), oneWeekAgo.String(), results[0]["Sirius upload date"], "Sirius upload date - client 9")
+	assert.Equal(suite.T(), today.Sub(0, 0, 7).String(), results[0]["Received date"], "Received date - client 9")
+	assert.Contains(suite.T(), today.Sub(0, 0, 7).String(), results[0]["Sirius upload date"], "Sirius upload date - client 9")
 	assert.Equal(suite.T(), "90.00", results[0]["Cash amount"], "Cash amount - client 9")
 	assert.Equal(suite.T(), "0", results[0]["Credit amount"], "Credit amount - client 9")
 	assert.Equal(suite.T(), "0", results[0]["Adjustment amount"], "Adjustment amount - client 9")
@@ -139,8 +138,8 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	assert.Equal(suite.T(), "BC"+c4i1Ref, results[1]["Txn number"], "Txn number - client 4")
 	assert.Equal(suite.T(), "BACS Payment", results[1]["Txn description"], "Txn description - client 4")
 	assert.Equal(suite.T(), "10.00", results[1]["Original amount"], "Original amount - client 4")
-	assert.Equal(suite.T(), yesterday.String(), results[1]["Received date"], "Received date - client 4")
-	assert.Contains(suite.T(), yesterday.String(), results[1]["Sirius upload date"], "Sirius upload date - client 4")
+	assert.Equal(suite.T(), today.Sub(0, 0, 6).String(), results[1]["Received date"], "Received date - client 4")
+	assert.Contains(suite.T(), today.Sub(0, 0, 6).String(), results[1]["Sirius upload date"], "Sirius upload date - client 4")
 	assert.Equal(suite.T(), "10.00", results[1]["Cash amount"], "Cash amount - client 4")
 	assert.Equal(suite.T(), "0", results[1]["Credit amount"], "Credit amount - client 4")
 	assert.Equal(suite.T(), "0", results[1]["Adjustment amount"], "Adjustment amount - client 4")
@@ -161,7 +160,7 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	assert.Equal(suite.T(), "Exemption Credit", results[2]["Txn description"], "Txn description - client 7 - exemption")
 	assert.Equal(suite.T(), "200.00", results[2]["Original amount"], "Original amount - client 7 - exemption")
 	assert.Equal(suite.T(), "", results[2]["Received date"], "Received date - client 7 - exemption")
-	assert.Contains(suite.T(), today.String(), results[2]["Sirius upload date"], "Sirius upload date - client 7 - exemption")
+	assert.Contains(suite.T(), today.Sub(0, 0, 5).String(), results[2]["Sirius upload date"], "Sirius upload date - client 7 - exemption")
 	assert.Equal(suite.T(), "0", results[2]["Cash amount"], "Cash amount - client 7 - exemption")
 	assert.Equal(suite.T(), "200.00", results[2]["Credit amount"], "Credit amount - client 7 - exemption")
 	assert.Equal(suite.T(), "0", results[2]["Adjustment amount"], "Adjustment amount - client 7 - exemption")
@@ -181,8 +180,8 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	assert.Equal(suite.T(), "BC"+c5i1Ref, results[3]["Txn number"], "Txn number - client 5")
 	assert.Equal(suite.T(), "BACS Payment", results[3]["Txn description"], "Txn description - client 5")
 	assert.Equal(suite.T(), "320.00", results[3]["Original amount"], "Original amount - client 5")
-	assert.Equal(suite.T(), today.String(), results[3]["Received date"], "Received date - client 5")
-	assert.Contains(suite.T(), today.String(), results[3]["Sirius upload date"], "Sirius upload date - client 5")
+	assert.Equal(suite.T(), today.Sub(0, 0, 4).String(), results[3]["Received date"], "Received date - client 5")
+	assert.Contains(suite.T(), today.Sub(0, 0, 4).String(), results[3]["Sirius upload date"], "Sirius upload date - client 5")
 	assert.Equal(suite.T(), "320.00", results[3]["Cash amount"], "Cash amount - client 5")
 	assert.Equal(suite.T(), "0", results[3]["Credit amount"], "Credit amount - client 5")
 	assert.Equal(suite.T(), "0", results[3]["Adjustment amount"], "Adjustment amount - client 5")
@@ -203,7 +202,7 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	assert.Equal(suite.T(), "Exemption Credit", results[4]["Txn description"], "Txn description - client 1")
 	assert.Equal(suite.T(), "100.00", results[4]["Original amount"], "Original amount - client 1")
 	assert.Equal(suite.T(), "", results[4]["Received date"], "Received date - client 1")
-	assert.Contains(suite.T(), today.String(), results[4]["Sirius upload date"], "Sirius upload date - client 1")
+	assert.Contains(suite.T(), today.Sub(0, 0, 3).String(), results[4]["Sirius upload date"], "Sirius upload date - client 1")
 	assert.Equal(suite.T(), "0", results[4]["Cash amount"], "Cash amount - client 1")
 	assert.Equal(suite.T(), "100.00", results[4]["Credit amount"], "Credit amount - client 1")
 	assert.Equal(suite.T(), "0", results[4]["Adjustment amount"], "Adjustment amount - client 1")
@@ -223,8 +222,8 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	assert.Equal(suite.T(), "BC"+c6i1Ref, results[5]["Txn number"], "Txn number - client 6 - payment")
 	assert.Equal(suite.T(), "BACS Payment", results[5]["Txn description"], "Txn description - client 6 - payment")
 	assert.Equal(suite.T(), "200.00", results[5]["Original amount"], "Original amount - client 6 - payment")
-	assert.Equal(suite.T(), today.String(), results[5]["Received date"], "Received date - client 6 - payment")
-	assert.Contains(suite.T(), today.String(), results[5]["Sirius upload date"], "Sirius upload date - client 6 - payment")
+	assert.Equal(suite.T(), today.Sub(0, 0, 2).String(), results[5]["Received date"], "Received date - client 6 - payment")
+	assert.Contains(suite.T(), today.Sub(0, 0, 2).String(), results[5]["Sirius upload date"], "Sirius upload date - client 6 - payment")
 	assert.Equal(suite.T(), "100.00", results[5]["Cash amount"], "Cash amount - client 6 - payment")
 	assert.Equal(suite.T(), "0", results[5]["Credit amount"], "Credit amount - client 6 - payment")
 	assert.Equal(suite.T(), "0", results[5]["Adjustment amount"], "Adjustment amount - client 6 - payment")
@@ -245,7 +244,7 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	assert.Equal(suite.T(), "Remission Credit", results[6]["Txn description"], "Txn description - client6 - remission")
 	assert.Equal(suite.T(), "200.00", results[6]["Original amount"], "Original amount - client6 - remission")
 	assert.Equal(suite.T(), "", results[6]["Received date"], "Received date - client6 - remission")
-	assert.Contains(suite.T(), today.String(), results[6]["Sirius upload date"], "Sirius upload date - client6 - remission")
+	assert.Contains(suite.T(), today.Sub(0, 0, 2).String(), results[6]["Sirius upload date"], "Sirius upload date - client6 - remission")
 	assert.Equal(suite.T(), "0", results[6]["Cash amount"], "Cash amount - client6 - remission")
 	assert.Equal(suite.T(), "100.00", results[6]["Credit amount"], "Credit amount - client6 - remission")
 	assert.Equal(suite.T(), "0", results[6]["Adjustment amount"], "Adjustment amount - client6 - remission")
@@ -266,7 +265,7 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	assert.Equal(suite.T(), "Exemption Credit", results[7]["Txn description"], "Txn description - client 2 invoice 1")
 	assert.Equal(suite.T(), "100.00", results[7]["Original amount"], "Original amount - client 2 invoice 1")
 	assert.Equal(suite.T(), "", results[7]["Received date"], "Received date - client 2 invoice 1")
-	assert.Contains(suite.T(), today.String(), results[7]["Sirius upload date"], "Sirius upload date - client 2 invoice 1")
+	assert.Contains(suite.T(), today.Sub(0, 0, 1).String(), results[7]["Sirius upload date"], "Sirius upload date - client 2 invoice 1")
 	assert.Equal(suite.T(), "0", results[7]["Cash amount"], "Cash amount - client 2 invoice 1")
 	assert.Equal(suite.T(), "100.00", results[7]["Credit amount"], "Credit amount - client 2 invoice 1")
 	assert.Equal(suite.T(), "0", results[7]["Adjustment amount"], "Adjustment amount - client 2 invoice 1")
