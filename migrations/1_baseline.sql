@@ -7,13 +7,21 @@ CREATE TABLE persons
 (
     id            INTEGER NOT NULL
         PRIMARY KEY,
+    salutation                                                   varchar(255) default NULL::character varying,
     firstname     VARCHAR(255) DEFAULT NULL,
     surname       VARCHAR(255) DEFAULT NULL,
     caserecnumber VARCHAR(255) DEFAULT NULL,
     feepayer_id   INTEGER      DEFAULT NULL
         CONSTRAINT fk_a25cc7d3aff282de
             REFERENCES persons,
-    deputytype    VARCHAR(255) DEFAULT NULL
+    deputytype    VARCHAR(255) DEFAULT NULL,
+    deputynumber                                                 integer,
+    correspondencebywelsh                                        boolean      default false not null,
+    specialcorrespondencerequirements_largeprint                 boolean      default false not null,
+    organisationname                                             varchar(255) default NULL::character varying,
+    email                                                        varchar(255) default NULL::character varying,
+    type                                                         varchar(255)               ,
+    clientstatus                                                 varchar(255) default NULL::character varying
 );
 
 ALTER TABLE public.persons
@@ -40,6 +48,64 @@ CREATE TABLE public.assignees
     surname VARCHAR(255) DEFAULT NULL
 );
 
+create table addresses
+(
+    id                  integer not null
+        primary key,
+    person_id           integer
+        constraint fk_6fca7516217bbb47
+            references public.persons
+            on delete cascade,
+    address_lines       json,
+    town                varchar(255) default NULL::character varying,
+    county              varchar(255) default NULL::character varying,
+    postcode            varchar(255) default NULL::character varying,
+    isairmailrequired   boolean
+);
+
+alter table addresses
+    owner to api;
+
+create index idx_6fca7516217bbb47
+    on addresses (person_id);
+
+create index idx_address_postcode
+    on addresses (postcode);
+
+create table warnings
+(
+    id           integer                   not null
+        primary key,
+    warningtype  varchar(255) default NULL::character varying,
+    systemstatus boolean      default true not null
+);
+
+alter table warnings
+    owner to api;
+
+create table person_warning
+(
+    person_id  integer not null
+        constraint fk_62d02f4f217bbb47
+            references public.persons
+            on delete cascade,
+    warning_id integer not null
+        constraint fk_62d02f4fbff38603
+            references public.warnings
+            on delete cascade,
+    primary key (person_id, warning_id)
+);
+
+alter table person_warning
+    owner to api;
+
+create index idx_62d02f4f217bbb47
+    on person_warning (person_id);
+
+create index idx_62d02f4fbff38603
+    on person_warning (warning_id);
+
+
 CREATE SEQUENCE public.persons_id_seq;
 
 ALTER SEQUENCE public.persons_id_seq OWNER TO api;
@@ -51,6 +117,14 @@ ALTER SEQUENCE public.cases_id_seq OWNER TO api;
 CREATE SEQUENCE public.assignees_id_seq;
 
 ALTER SEQUENCE public.assignees_id_seq OWNER TO api;
+
+CREATE SEQUENCE public.addresses_id_seq;
+
+ALTER SEQUENCE public.addresses_id_seq OWNER TO api;
+
+CREATE SEQUENCE public.warnings_id_seq;
+
+ALTER SEQUENCE public.warnings_id_seq OWNER TO api;
 
 CREATE SCHEMA supervision_finance;
 GRANT ALL ON SCHEMA supervision_finance TO api;
