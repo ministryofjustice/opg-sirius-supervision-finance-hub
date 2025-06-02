@@ -55,5 +55,5 @@ As this is adding new values to an existing field, we need to be wary of two thi
   investigated.
 * Confusing the semantics of the `status` column. The original plan was for the allocation type to store the new values,
   but on inspecting the schema, allocations don't have a type themselves and instead are the type of their parent ledger.
-  That said, the `status` column currently contains the following statuses: `PENDING`, `ALLOCATED`, and `UNALLOCATED`, so
+  That said, the `status` column currently contains the following statuses: `PENDING`, `ALLOCATED`, and `UN ALLOCATED`, so
   these new statuses don't feel to change the meaning of the column drastically.
