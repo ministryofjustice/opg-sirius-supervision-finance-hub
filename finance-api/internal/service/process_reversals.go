@@ -210,7 +210,7 @@ func (s *Service) validateReversalLine(ctx context.Context, details shared.Rever
 	}
 
 	if slices.Contains(shared.ReportUploadReversalTypes, uploadType) {
-		params = store.CheckDuplicateLedgerParams{
+		countParams := store.CountDuplicateLedgerParams{
 			CourtRef:     details.ErroredCourtRef,
 			Amount:       -details.Amount,
 			Type:         details.PaymentType.Key(),
@@ -218,8 +218,21 @@ func (s *Service) validateReversalLine(ctx context.Context, details shared.Rever
 			ReceivedDate: details.ReceivedDate,
 			PisNumber:    details.PisNumber,
 		}
-		exists, _ = s.store.CheckDuplicateLedger(ctx, params)
-		if exists {
+		// We need to get the amount of matching reversals, and matching ledgers. If there are more reversals than ledgers, we should block it
+		reversals, _ := s.store.CountDuplicateLedger(ctx, countParams)
+
+		countParams = store.CountDuplicateLedgerParams{
+			CourtRef:     details.ErroredCourtRef,
+			Amount:       details.Amount,
+			Type:         details.PaymentType.Key(),
+			BankDate:     details.BankDate,
+			ReceivedDate: details.ReceivedDate,
+			PisNumber:    details.PisNumber,
+		}
+
+		ledgers, _ := s.store.CountDuplicateLedger(ctx, countParams)
+
+		if reversals >= ledgers {
 			(*failedLines)[index] = validation.UploadErrorDuplicateReversal
 			return false
 		}
