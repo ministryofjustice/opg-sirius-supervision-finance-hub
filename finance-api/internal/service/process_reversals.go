@@ -7,6 +7,7 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"slices"
 	"time"
 )
 
@@ -204,6 +205,22 @@ func (s *Service) validateReversalLine(ctx context.Context, details shared.Rever
 		exists, _ = s.store.CheckClientExistsByCourtRef(ctx, details.CorrectCourtRef)
 		if !exists {
 			(*failedLines)[index] = validation.UploadErrorReversalClientNotFound
+			return false
+		}
+	}
+
+	if slices.Contains(shared.ReportUploadReversalTypes, uploadType) {
+		params = store.CheckDuplicateLedgerParams{
+			CourtRef:     details.ErroredCourtRef,
+			Amount:       -details.Amount,
+			Type:         details.PaymentType.Key(),
+			BankDate:     details.BankDate,
+			ReceivedDate: details.ReceivedDate,
+			PisNumber:    details.PisNumber,
+		}
+		exists, _ = s.store.CheckDuplicateLedger(ctx, params)
+		if exists {
+			(*failedLines)[index] = validation.UploadErrorDuplicateReversal
 			return false
 		}
 	}

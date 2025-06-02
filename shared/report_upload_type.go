@@ -15,7 +15,7 @@ var reportUploadPaymentTypes = []ReportUploadType{
 	ReportTypeUploadDirectDebitsCollections,
 }
 
-var reportUploadReversalTypes = []ReportUploadType{
+var ReportUploadReversalTypes = []ReportUploadType{
 	ReportTypeUploadMisappliedPayments,
 	ReportTypeUploadDuplicatedPayments,
 	ReportTypeUploadBouncedCheque,
@@ -198,7 +198,7 @@ func (u ReportUploadType) IsPayment() bool {
 }
 
 func (u ReportUploadType) IsReversal() bool {
-	for _, t := range reportUploadReversalTypes {
+	for _, t := range ReportUploadReversalTypes {
 		if u == t {
 			return true
 		}
