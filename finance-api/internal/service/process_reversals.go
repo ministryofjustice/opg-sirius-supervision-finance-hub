@@ -7,6 +7,7 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"slices"
 	"time"
 )
 
@@ -204,6 +205,35 @@ func (s *Service) validateReversalLine(ctx context.Context, details shared.Rever
 		exists, _ = s.store.CheckClientExistsByCourtRef(ctx, details.CorrectCourtRef)
 		if !exists {
 			(*failedLines)[index] = validation.UploadErrorReversalClientNotFound
+			return false
+		}
+	}
+
+	if slices.Contains(shared.ReportUploadReversalTypes, uploadType) {
+		countParams := store.CountDuplicateLedgerParams{
+			CourtRef:     details.ErroredCourtRef,
+			Amount:       -details.Amount,
+			Type:         details.PaymentType.Key(),
+			BankDate:     details.BankDate,
+			ReceivedDate: details.ReceivedDate,
+			PisNumber:    details.PisNumber,
+		}
+		// We need to get the amount of matching reversals, and matching ledgers. If there are more reversals than ledgers, we should block it
+		reversals, _ := s.store.CountDuplicateLedger(ctx, countParams)
+
+		countParams = store.CountDuplicateLedgerParams{
+			CourtRef:     details.ErroredCourtRef,
+			Amount:       details.Amount,
+			Type:         details.PaymentType.Key(),
+			BankDate:     details.BankDate,
+			ReceivedDate: details.ReceivedDate,
+			PisNumber:    details.PisNumber,
+		}
+
+		ledgers, _ := s.store.CountDuplicateLedger(ctx, countParams)
+
+		if reversals >= ledgers {
+			(*failedLines)[index] = validation.UploadErrorDuplicateReversal
 			return false
 		}
 	}

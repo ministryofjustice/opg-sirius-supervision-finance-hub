@@ -261,6 +261,17 @@ func (suite *IntegrationSuite) Test_processReversals() {
 			},
 			expectedFailedLines: map[int]string{},
 		},
+		{
+			name: "duplicate reversal should be ignored",
+			records: [][]string{
+				{"Payment type", "Current (errored) court reference", "Bank date", "Received date", "Amount", "PIS number (cheque only)"},
+				{"ONLINE CARD PAYMENT", "8888", "02/01/2025", "02/01/2025", "50.00", ""},
+			},
+			uploadType: shared.ReportTypeUploadDuplicatedPayments,
+			expectedFailedLines: map[int]string{
+				1: "DUPLICATE_REVERSAL",
+			},
+		},
 	}
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
