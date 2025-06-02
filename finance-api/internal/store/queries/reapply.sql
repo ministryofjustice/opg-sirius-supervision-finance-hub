@@ -11,7 +11,7 @@ WITH total_credit AS (SELECT fc.id                                 AS finance_cl
                               i.id                                   AS invoice_id,
                               i.amount - COALESCE(SUM(la.amount), 0) AS outstanding
                        FROM invoice i
-                                LEFT JOIN ledger_allocation la ON i.id = la.invoice_id AND la.status NOT IN ('PENDING', 'UNALLOCATED')
+                                LEFT JOIN ledger_allocation la ON i.id = la.invoice_id AND la.status NOT IN ('PENDING', 'UN ALLOCATED')
                                 LEFT JOIN ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
                        WHERE i.finance_client_id = (SELECT fc.id
                                                     FROM finance_client fc
