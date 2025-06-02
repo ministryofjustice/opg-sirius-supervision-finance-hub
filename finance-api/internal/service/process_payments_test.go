@@ -168,12 +168,35 @@ func (suite *IntegrationSuite) Test_processPayments() {
 			name: "duplicate payment",
 			records: [][]string{
 				{"Ordercode", "Date", "Amount"},
-				{"1234567", "01/01/2024", "100"},
+				{"1234567", "01/05/2025", "150"},
+				{"1234567", "01/05/2025", "150"},
 			},
 			paymentType:         shared.ReportTypeUploadPaymentsMOTOCard,
 			bankDate:            shared.NewDate("2024-01-01"),
-			expectedClientId:    3,
+			expectedClientId:    4,
 			expectedFailedLines: map[int]string{},
+			expectedLedgerAllocations: []createdLedgerAllocation{
+				{
+					15000,
+					"MOTO CARD PAYMENT",
+					"CONFIRMED",
+					time.Date(2025, 5, 1, 0, 0, 0, 0, time.UTC),
+					-15000,
+					"UNAPPLIED",
+					0,
+					0,
+				},
+				{
+					15000,
+					"MOTO CARD PAYMENT",
+					"CONFIRMED",
+					time.Date(2025, 5, 1, 0, 0, 0, 0, time.UTC),
+					-15000,
+					"UNAPPLIED",
+					0,
+					0,
+				},
+			},
 		},
 	}
 	for _, tt := range tests {
