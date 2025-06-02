@@ -23,7 +23,7 @@ const AgedDebtByCustomerQuery = `WITH outstanding_invoices AS (SELECT i.id AS in
 								  SELECT SUM(la.amount) AS received
 								  FROM supervision_finance.ledger_allocation la
 								  		 JOIN supervision_finance.ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
-								  WHERE la.status NOT IN ('PENDING', 'UNALLOCATED')
+								  WHERE la.status NOT IN ('PENDING', 'UN ALLOCATED')
 								    AND la.invoice_id = i.id
 								  ) transactions ON TRUE
                               WHERE i.amount > COALESCE(transactions.received, 0)),
