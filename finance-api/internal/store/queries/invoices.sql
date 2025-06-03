@@ -87,10 +87,10 @@ WHERE invoice_id = ANY ($1::INT[])
 ORDER BY todate DESC;
 
 -- name: GetInvoiceBalanceDetails :one
-SELECT i.amount                                      initial,
-       i.amount - COALESCE(transactions.received, 0) outstanding,
+SELECT i.amount::INT                                        initial,
+       (i.amount - COALESCE(transactions.received, 0))::INT outstanding,
        i.feetype,
-       COALESCE(write_offs.amount, 0)::INT           write_off_amount
+       COALESCE(write_offs.amount, 0)::INT                  write_off_amount
 FROM invoice i
          LEFT JOIN LATERAL (
     SELECT SUM(la.amount) AS amount
@@ -111,8 +111,8 @@ WHERE i.id = $1;
 -- name: GetInvoiceBalancesForFeeReductionRange :many
 SELECT i.id,
        i.amount,
-       COALESCE(general_fee.amount, 0)::INT          general_supervision_fee,
-       i.amount - COALESCE(transactions.received, 0) outstanding,
+       COALESCE(general_fee.amount, 0)::INT               general_supervision_fee,
+       i.amount - COALESCE(transactions.received, 0)::INT outstanding,
        i.feetype
 FROM invoice i
          JOIN fee_reduction fr ON i.finance_client_id = fr.finance_client_id
