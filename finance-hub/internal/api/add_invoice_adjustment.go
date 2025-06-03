@@ -10,7 +10,7 @@ import (
 	"net/http"
 )
 
-func (c *Client) AdjustInvoice(ctx context.Context, clientId int, supervisionBillingTeamId int, invoiceId int, adjustmentType string, notes string, amount string) error {
+func (c *Client) AddInvoiceAdjustment(ctx context.Context, clientId int, supervisionBillingTeamId int, invoiceId int, adjustmentType string, notes string, amount string) error {
 	var body bytes.Buffer
 
 	adjustment := shared.AddInvoiceAdjustmentRequest{
