@@ -32,7 +32,7 @@ func (h *SubmitInvoiceAdjustmentHandler) render(v AppVars, w http.ResponseWriter
 		managerOverride = r.PostFormValue("managerOverride")
 	)
 
-	err := h.Client().AdjustInvoice(ctx, clientID, v.EnvironmentVars.BillingTeamID, invoiceId, adjustmentType, notes, amount, managerOverride != "")
+	err := h.Client().AddInvoiceAdjustment(ctx, clientID, v.EnvironmentVars.BillingTeamID, invoiceId, adjustmentType, notes, amount, managerOverride != "")
 
 	if err == nil {
 		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices?success=invoice-adjustment[%s]", v.EnvironmentVars.Prefix, clientID, adjustmentType))
