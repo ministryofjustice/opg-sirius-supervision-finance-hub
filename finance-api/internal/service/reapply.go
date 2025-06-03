@@ -31,7 +31,7 @@ func (s *Service) ReapplyCredit(ctx context.Context, clientID int32) error {
 		})
 	}
 
-	reapplyAmount := getReapplyAmount(creditPosition.Credit, creditPosition.Outstanding.Int32)
+	reapplyAmount := getReapplyAmount(creditPosition.Credit, creditPosition.Outstanding)
 	allocation := store.CreateLedgerAllocationParams{
 		InvoiceID: creditPosition.InvoiceID,
 		Amount:    reapplyAmount,
