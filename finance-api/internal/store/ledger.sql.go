@@ -11,42 +11,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const checkDuplicateLedger = `-- name: CheckDuplicateLedger :one
-SELECT EXISTS (SELECT 1
-               FROM ledger l
-                        JOIN finance_client fc ON fc.id = l.finance_client_id
-               WHERE l.amount = $1
-                 AND l.status = 'CONFIRMED'
-                 AND (COALESCE(l.pis_number, 0) <> 0 OR l.bankdate = $2)
-                 AND l.datetime::DATE = ($3::TIMESTAMP)::DATE
-                 AND l.type = $4
-                 AND fc.court_ref = $5
-                 AND COALESCE(l.pis_number, 0) = COALESCE($6, 0))
-`
-
-type CheckDuplicateLedgerParams struct {
-	Amount       int32
-	BankDate     pgtype.Date
-	ReceivedDate pgtype.Timestamp
-	Type         string
-	CourtRef     pgtype.Text
-	PisNumber    pgtype.Int4
-}
-
-func (q *Queries) CheckDuplicateLedger(ctx context.Context, arg CheckDuplicateLedgerParams) (bool, error) {
-	row := q.db.QueryRow(ctx, checkDuplicateLedger,
-		arg.Amount,
-		arg.BankDate,
-		arg.ReceivedDate,
-		arg.Type,
-		arg.CourtRef,
-		arg.PisNumber,
-	)
-	var exists bool
-	err := row.Scan(&exists)
-	return exists, err
-}
-
 const countDuplicateLedger = `-- name: CountDuplicateLedger :one
 SELECT COUNT(*)
 FROM ledger l
