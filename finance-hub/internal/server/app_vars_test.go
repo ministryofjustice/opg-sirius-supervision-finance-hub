@@ -36,6 +36,11 @@ func TestNewAppVars(t *testing.T) {
 				Id:       "pending-invoice-adjustments",
 			},
 			{
+				Title:    "Refunds",
+				BasePath: "/clients/1/refunds",
+				Id:       "refunds",
+			},
+			{
 				Title:    "Billing History",
 				BasePath: "/clients/1/billing-history",
 				Id:       "billing-history",

@@ -76,7 +76,7 @@ func TestPendingInvoiceAdjustments_Errors(t *testing.T) {
 	assert.False(t, ro.executed)
 }
 
-func TestTransformType(t *testing.T) {
+func TestPendingInvoiceAdjustmentsTransformType(t *testing.T) {
 	sut := PendingInvoiceAdjustmentsHandler{}
 
 	tests := []struct {
@@ -112,7 +112,7 @@ func TestTransformType(t *testing.T) {
 	}
 }
 
-func TestTransformStatus(t *testing.T) {
+func TestPendingInvoiceAdjustmentsTransformStatus(t *testing.T) {
 	sut := PendingInvoiceAdjustmentsHandler{}
 
 	tests := []struct {
