@@ -29,6 +29,7 @@ type ApiClient interface {
 	GetBillingHistory(context.Context, int) ([]shared.BillingHistory, error)
 	SubmitPaymentMethod(context.Context, int, string) error
 	GetUser(context.Context, int) (shared.User, error)
+	GetRefunds(ctx context.Context, id int) (shared.Refunds, error)
 }
 
 type router interface {
