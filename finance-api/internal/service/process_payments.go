@@ -25,7 +25,7 @@ func (s *Service) ProcessPayments(ctx context.Context, records [][]string, uploa
 	}
 
 	for index, record := range records {
-		if index != 0 && record[0] != "" {
+		if !isHeaderRow(uploadType, index) && record[0] != "" {
 			details := getPaymentDetails(ctx, record, uploadType, bankDate, pisNumber, index, &failedLines)
 
 			if details != (shared.PaymentDetails{}) {
@@ -244,4 +244,8 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 	}
 
 	return nil
+}
+
+func isHeaderRow(uploadType shared.ReportUploadType, index int) bool {
+	return uploadType.HasHeader() && index == 0
 }
