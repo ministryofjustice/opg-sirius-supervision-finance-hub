@@ -60,6 +60,7 @@
                     <td class="govuk-table__cell">{{.Notes}}</td>
                     <td class="govuk-table__cell">{{.Status}}</td>
                     <td class="govuk-table__cell">
+                        {{ if $user.IsFinanceManager }}
                         <div class="form-button-menu">
                             {{ if $user.IsFinanceManager }}
                                 {{ if eq .Status "Pending"}}
@@ -93,6 +94,7 @@
                                         </button>
                                     </form>
                                 {{ end}}
+                            </div>
                             {{ end}}
                         </div>
                     </td>
