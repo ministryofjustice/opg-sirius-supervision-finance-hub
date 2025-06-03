@@ -63,10 +63,10 @@ compile-assets:
 	docker compose run --rm yarn build
 
 sqlc-gen:
-	docker compose run --rm --no-deps sqlc generate
+	docker compose run --rm sqlc generate
 
 sqlc-diff:
-	docker compose run --rm --no-deps sqlc diff
+	docker compose run --rm sqlc diff
 
 sqlc-vet:
 	docker compose run --rm sqlc vet

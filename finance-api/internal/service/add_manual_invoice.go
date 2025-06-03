@@ -123,7 +123,7 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int32, data sha
 
 	reductionForDateParams := store.GetFeeReductionForDateParams{
 		ClientID:     clientId,
-		Datereceived: invoice.Raiseddate,
+		DateReceived: invoice.Raiseddate,
 	}
 
 	feeReduction, _ := tx.GetFeeReductionForDate(ctx, reductionForDateParams)
