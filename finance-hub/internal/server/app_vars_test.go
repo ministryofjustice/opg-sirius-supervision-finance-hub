@@ -45,6 +45,11 @@ func TestNewAppVars(t *testing.T) {
 				Show:     false,
 			},
 			{
+				Title:    "Refunds",
+				BasePath: "/clients/1/refunds",
+				Id:       "refunds",
+			},
+			{
 				Title:    "Billing History",
 				BasePath: "/clients/1/billing-history",
 				Id:       "billing-history",
