@@ -7,6 +7,7 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"slices"
 	"time"
 )
 
@@ -185,25 +186,49 @@ func getReversalLines(ctx context.Context, record []string, uploadType shared.Re
 }
 
 func (s *Service) validateReversalLine(ctx context.Context, details shared.ReversalDetails, uploadType shared.ReportUploadType, index int, failedLines *map[int]string) bool {
-	params := store.CheckDuplicateLedgerParams{
+	ledgerCount, _ := s.store.CountDuplicateLedger(ctx, store.CountDuplicateLedgerParams{
 		CourtRef:     details.ErroredCourtRef,
 		Amount:       details.Amount,
 		Type:         details.PaymentType.Key(),
 		BankDate:     details.BankDate,
 		ReceivedDate: details.ReceivedDate,
 		PisNumber:    details.PisNumber,
-	}
-	exists, _ := s.store.CheckDuplicateLedger(ctx, params)
+	})
 
-	if !exists {
+	if ledgerCount == 0 {
 		(*failedLines)[index] = validation.UploadErrorNoMatchedPayment
 		return false
 	}
 
 	if uploadType == shared.ReportTypeUploadMisappliedPayments {
-		exists, _ = s.store.CheckClientExistsByCourtRef(ctx, details.CorrectCourtRef)
+		exists, _ := s.store.CheckClientExistsByCourtRef(ctx, details.CorrectCourtRef)
 		if !exists {
 			(*failedLines)[index] = validation.UploadErrorReversalClientNotFound
+			return false
+		}
+	}
+
+	if slices.Contains(shared.ReportUploadReversalTypes, uploadType) {
+		reversalCount, _ := s.store.CountDuplicateLedger(ctx, store.CountDuplicateLedgerParams{
+			CourtRef:     details.ErroredCourtRef,
+			Amount:       -details.Amount,
+			Type:         details.PaymentType.Key(),
+			BankDate:     details.BankDate,
+			ReceivedDate: details.ReceivedDate,
+			PisNumber:    details.PisNumber,
+		})
+
+		ledgerCount, _ = s.store.CountDuplicateLedger(ctx, store.CountDuplicateLedgerParams{
+			CourtRef:     details.ErroredCourtRef,
+			Amount:       details.Amount,
+			Type:         details.PaymentType.Key(),
+			BankDate:     details.BankDate,
+			ReceivedDate: details.ReceivedDate,
+			PisNumber:    details.PisNumber,
+		})
+
+		if reversalCount >= ledgerCount {
+			(*failedLines)[index] = validation.UploadErrorDuplicateReversal
 			return false
 		}
 	}
