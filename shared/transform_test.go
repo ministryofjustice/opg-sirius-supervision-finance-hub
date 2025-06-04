@@ -65,6 +65,11 @@ func TestDecimalStringToInt(t *testing.T) {
 			"0.12",
 			12,
 		},
+		{
+			"floating point conversion",
+			"134.14",
+			13414,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
