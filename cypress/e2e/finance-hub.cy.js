@@ -30,6 +30,10 @@ describe("Finance Hub", () => {
             cy.get('[data-cy="billing-history"]').click();
             cy.url().should("contain", "billing-history");
             cy.contains(".govuk-heading-l", "Billing History");
+
+            cy.get('[data-cy="refunds"]').click();
+            cy.url().should("contain", "refunds");
+            cy.contains(".govuk-heading-l", "Refunds");
         })
     })
 });

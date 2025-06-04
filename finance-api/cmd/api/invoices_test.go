@@ -18,7 +18,7 @@ func TestServer_getInvoices(t *testing.T) {
 	dateString := "2020-03-16"
 	date, _ := time.Parse("2006-01-02", dateString)
 
-	invoicesInfo := &shared.Invoices{
+	invoicesInfo := shared.Invoices{
 		shared.Invoice{
 			Id:                 1,
 			Ref:                "S203531/19",
@@ -58,7 +58,7 @@ func TestServer_getInvoices_returns_an_empty_array(t *testing.T) {
 	req.SetPathValue("clientId", "2")
 	w := httptest.NewRecorder()
 
-	invoicesInfo := &shared.Invoices{}
+	invoicesInfo := shared.Invoices{}
 
 	mock := &mockService{invoices: invoicesInfo}
 	server := NewServer(mock, nil, nil, nil, nil, nil, nil)

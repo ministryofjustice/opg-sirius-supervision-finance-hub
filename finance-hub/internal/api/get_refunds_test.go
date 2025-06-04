@@ -16,21 +16,28 @@ func TestGetRefundsCanReturn200(t *testing.T) {
 	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""})
 
 	json := `
-	[
-	  {
-		 "id":3,
-		 "raisedDate":"01/04/2222",
-		 "fulfilledDate":"02/05/2222",
-		 "amount":232,
-		 "status":"PENDING",
-		 "notes":"Some notes here",
-		 "bankDetails":{
-			"name":"Billy Banker",
-			"account":"12345678",
-			"sortCode":"10-20-30"
-		}
-	  }
-	]
+		[
+		  {
+			"id": 3,
+			"raisedDate": "01/04/2222",
+			"fulfilledDate": {
+			  "value": "02/05/2222",
+			  "valid": true
+			},
+			"amount": 232,
+			"status": "PENDING",
+			"notes": "Some notes here",
+			"createdBy": 99,
+			"bankDetails": {
+			  "value": {
+				"name": "Billy Banker",
+				"account": "12345678",
+				"sortCode": "10-20-30"
+			  },
+			  "valid": true
+			}
+		  }
+		]
 	`
 
 	r := io.NopCloser(bytes.NewReader([]byte(json)))
@@ -42,19 +49,24 @@ func TestGetRefundsCanReturn200(t *testing.T) {
 		}, nil
 	}
 
+	fulfilledDate := "02/05/2222"
+
 	expectedResponse := shared.Refunds{
 		{
 			ID:            3,
 			RaisedDate:    shared.NewDate("01/04/2222"),
-			FulfilledDate: shared.NewDate("02/05/2222"),
+			FulfilledDate: shared.TransformNillableDate(&fulfilledDate),
 			Amount:        232,
 			Status:        "PENDING",
 			Notes:         "Some notes here",
-			BankDetails: shared.BankDetails{
-				Name:     "Billy Banker",
-				Account:  "12345678",
-				SortCode: "10-20-30",
-			},
+			CreatedBy:     99,
+			BankDetails: shared.NewNillable(
+				&shared.BankDetails{
+					Name:     "Billy Banker",
+					Account:  "12345678",
+					SortCode: "10-20-30",
+				},
+			),
 		},
 	}
 

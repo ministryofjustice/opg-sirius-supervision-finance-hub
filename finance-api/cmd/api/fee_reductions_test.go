@@ -18,7 +18,7 @@ func TestServer_getFeeReductions(t *testing.T) {
 	dateString := "2020-03-16"
 	date, _ := time.Parse("2006-01-02", dateString)
 
-	feeReductionInfo := &shared.FeeReductions{
+	feeReductionInfo := shared.FeeReductions{
 		shared.FeeReduction{
 			Id:           1,
 			Type:         shared.FeeReductionTypeRemission,
