@@ -26,8 +26,8 @@ var adjustmentTypeMap = map[string]AdjustmentType{
 	"WRITE OFF REVERSAL": AdjustmentTypeWriteOffReversal,
 }
 
-func (i AdjustmentType) String() string {
-	switch i {
+func (a AdjustmentType) String() string {
+	switch a {
 	case AdjustmentTypeWriteOff:
 		return "Write off"
 	case AdjustmentTypeCreditMemo:
@@ -41,8 +41,8 @@ func (i AdjustmentType) String() string {
 	}
 }
 
-func (i AdjustmentType) Translation() string {
-	switch i {
+func (a AdjustmentType) Translation() string {
+	switch a {
 	case AdjustmentTypeWriteOff:
 		return "Write off"
 	case AdjustmentTypeCreditMemo:
@@ -56,8 +56,8 @@ func (i AdjustmentType) Translation() string {
 	}
 }
 
-func (i AdjustmentType) Key() string {
-	switch i {
+func (a AdjustmentType) Key() string {
+	switch a {
 	case AdjustmentTypeWriteOff:
 		return "CREDIT WRITE OFF"
 	case AdjustmentTypeCreditMemo:
@@ -71,8 +71,8 @@ func (i AdjustmentType) Key() string {
 	}
 }
 
-func (i AdjustmentType) AmountRequired() bool {
-	switch i {
+func (a AdjustmentType) AmountRequired() bool {
+	switch a {
 	case AdjustmentTypeCreditMemo, AdjustmentTypeDebitMemo:
 		return true
 	default:
@@ -80,8 +80,12 @@ func (i AdjustmentType) AmountRequired() bool {
 	}
 }
 
-func (i AdjustmentType) Valid() bool {
-	return i != AdjustmentTypeUnknown
+func (a AdjustmentType) CanOverride() bool {
+	return a == AdjustmentTypeWriteOffReversal
+}
+
+func (a AdjustmentType) Valid() bool {
+	return a != AdjustmentTypeUnknown
 }
 
 func ParseAdjustmentType(s string) AdjustmentType {
@@ -92,15 +96,15 @@ func ParseAdjustmentType(s string) AdjustmentType {
 	return value
 }
 
-func (i AdjustmentType) MarshalJSON() ([]byte, error) {
-	return json.Marshal(i.Key())
+func (a AdjustmentType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(a.Key())
 }
 
-func (i *AdjustmentType) UnmarshalJSON(data []byte) (err error) {
+func (a *AdjustmentType) UnmarshalJSON(data []byte) (err error) {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
 		return err
 	}
-	*i = ParseAdjustmentType(s)
+	*a = ParseAdjustmentType(s)
 	return nil
 }
