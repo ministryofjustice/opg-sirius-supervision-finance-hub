@@ -160,8 +160,6 @@ func formatFailedLines(failedLines map[int]string) []string {
 			errorMessage = "Unable to parse date - please use the format YYYY-MM-DD HH:MM:SS"
 		case validation.UploadErrorAmountParse:
 			errorMessage = "Unable to parse amount - please use the format 320.00"
-		case validation.UploadErrorDuplicatePayment:
-			errorMessage = "Duplicate payment line"
 		case validation.UploadErrorClientNotFound:
 			errorMessage = "Could not find a client with this court reference"
 		case validation.UploadErrorPaymentTypeParse:
