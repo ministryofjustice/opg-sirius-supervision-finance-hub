@@ -2,6 +2,7 @@ package testhelpers
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
@@ -11,16 +12,24 @@ import (
 
 func (s *Seeder) CreateClient(ctx context.Context, firstName string, surname string, courtRef string, sopNumber string) int32 {
 	var clientId int32
-	err := s.Conn.QueryRow(ctx, "INSERT INTO public.persons VALUES (NEXTVAL('public.persons_id_seq'), $1, $2, $3) RETURNING id", firstName, surname, courtRef).Scan(&clientId)
+	err := s.Conn.QueryRow(ctx, "INSERT INTO public.persons (id, firstname, surname, caserecnumber, type, clientstatus) VALUES (NEXTVAL('public.persons_id_seq'), $1, $2, $3, 'actor_client', 'ACTIVE') RETURNING id", firstName, surname, courtRef).Scan(&clientId)
 	assert.NoError(s.t, err, "failed to add Person: %v", err)
 	_, err = s.Conn.Exec(ctx, "INSERT INTO supervision_finance.finance_client VALUES ($1, $1, $2, 'DEMANDED', NULL, $3) RETURNING id", clientId, sopNumber, courtRef)
 	assert.NoError(s.t, err, "failed to add FinanceClient: %v", err)
 	return clientId
 }
 
+func (s *Seeder) CreateAddresses(ctx context.Context, clientId int32, addressLines []string, town string, county string, postcode string, airmailRequired bool) int32 {
+	var addressId int32
+	addressLinesJson, _ := json.Marshal(addressLines)
+	err := s.Conn.QueryRow(ctx, "INSERT INTO public.addresses VALUES (NEXTVAL('public.addresses_id_seq'), $1, $2, $3, $4, $5, $6) RETURNING id", clientId, addressLinesJson, town, county, postcode, airmailRequired).Scan(&addressId)
+	assert.NoError(s.t, err, "failed to add Address: %v", err)
+	return addressId
+}
+
 func (s *Seeder) CreateDeputy(ctx context.Context, clientId int32, firstName string, surname string, deputyType string) int32 {
 	var deputyId int32
-	err := s.Conn.QueryRow(ctx, "INSERT INTO public.persons VALUES (NEXTVAL('public.persons_id_seq'), $1, $2, NULL, $3, $4) RETURNING id", firstName, surname, clientId, deputyType).Scan(&deputyId)
+	err := s.Conn.QueryRow(ctx, "INSERT INTO public.persons (id, firstname, surname, feepayer_id, deputytype) VALUES (NEXTVAL('public.persons_id_seq'), $1, $2, $3, $4) RETURNING id", firstName, surname, clientId, deputyType).Scan(&deputyId)
 	assert.NoError(s.t, err, "failed to add Deputy: %v", err)
 	_, err = s.Conn.Exec(ctx, "UPDATE public.persons SET feepayer_id = $1 WHERE id = $2", deputyId, clientId)
 	assert.NoError(s.t, err, "failed to add Deputy to FinanceClient: %v", err)
@@ -240,4 +249,16 @@ func (s *Seeder) AddFeeRanges(ctx context.Context, invoiceId int32, ranges []Fee
 			invoiceId, r.SupervisionLevel, r.FromDate, r.ToDate, r.Amount)
 		assert.NoError(s.t, err, "failed to add fee range: %v", err)
 	}
+}
+
+func (s *Seeder) CreateWarning(ctx context.Context, personId int32, warningType string) {
+	var warningId int
+	err := s.Conn.QueryRow(ctx, "INSERT INTO public.warnings VALUES (NEXTVAL('public.warnings_id_seq'), $1, true) RETURNING id", warningType).Scan(&warningId)
+	assert.NoError(s.t, err, "failed to add warning: %v", err)
+
+	_, err = s.Conn.Exec(ctx,
+		"INSERT INTO public.person_warning VALUES ($1, $2)",
+		personId, warningId)
+	assert.NoError(s.t, err, "failed to add person warning: %v", err)
+
 }
