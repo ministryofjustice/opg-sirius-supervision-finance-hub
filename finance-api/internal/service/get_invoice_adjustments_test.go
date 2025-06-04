@@ -31,13 +31,13 @@ func (suite *IntegrationSuite) TestService_GetInvoiceAdjustments() {
 	tests := []struct {
 		name    string
 		id      int32
-		want    *shared.InvoiceAdjustments
+		want    shared.InvoiceAdjustments
 		wantErr bool
 	}{
 		{
 			name: "returns invoice adjustments when clientId matches clientId in ledgers table",
 			id:   1,
-			want: &shared.InvoiceAdjustments{
+			want: shared.InvoiceAdjustments{
 				shared.InvoiceAdjustment{
 					Id:             4,
 					InvoiceRef:     "S205753/20",
@@ -73,7 +73,7 @@ func (suite *IntegrationSuite) TestService_GetInvoiceAdjustments() {
 		{
 			name: "returns an empty array when no match is found",
 			id:   2,
-			want: &shared.InvoiceAdjustments{},
+			want: shared.InvoiceAdjustments{},
 		},
 	}
 	for _, tt := range tests {
@@ -84,7 +84,7 @@ func (suite *IntegrationSuite) TestService_GetInvoiceAdjustments() {
 				t.Errorf("GetInvoiceAdjustments() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if (err == nil) && len(*tt.want) == 0 {
+			if (err == nil) && len(tt.want) == 0 {
 				assert.Empty(t, got)
 				return
 			}

@@ -10,19 +10,24 @@ import (
 )
 
 func TestRefunds(t *testing.T) {
+	fulfilledDate := shared.NewDate("02/05/2222")
+
 	data := shared.Refunds{
 		{
 			ID:            3,
 			RaisedDate:    shared.NewDate("01/04/2222"),
-			FulfilledDate: shared.NewDate("02/05/2222"),
+			FulfilledDate: shared.NewNillable(&fulfilledDate),
 			Amount:        232,
 			Status:        "PENDING",
 			Notes:         "Some notes here",
-			BankDetails: shared.BankDetails{
-				Name:     "Billy Banker",
-				Account:  "12345678",
-				SortCode: "10-20-30",
-			},
+			CreatedBy:     99,
+			BankDetails: shared.NewNillable(
+				&shared.BankDetails{
+					Name:     "Billy Banker",
+					Account:  "12345678",
+					SortCode: "10-20-30",
+				},
+			),
 		},
 	}
 
@@ -45,11 +50,12 @@ func TestRefunds(t *testing.T) {
 		{
 			ID:            "3",
 			DateRaised:    shared.NewDate("01/04/2222"),
-			DateFulfilled: shared.NewDate("02/05/2222"),
+			DateFulfilled: &fulfilledDate,
 			Amount:        "2.32",
 			Status:        "Pending",
 			Notes:         "Some notes here",
-			BankDetails: BankDetails{
+			CreatedBy:     99,
+			BankDetails: &BankDetails{
 				Name:     "Billy Banker",
 				Account:  "12345678",
 				SortCode: "10-20-30",

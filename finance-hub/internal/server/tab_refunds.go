@@ -11,10 +11,11 @@ type Refunds []Refund
 type Refund struct {
 	ID            string
 	DateRaised    shared.Date
-	DateFulfilled shared.Date
+	DateFulfilled *shared.Date
 	Amount        string
-	BankDetails   BankDetails
+	BankDetails   *BankDetails
 	Notes         string
+	CreatedBy     int
 	Status        string
 }
 
@@ -51,20 +52,27 @@ func (h *RefundsHandler) render(v AppVars, w http.ResponseWriter, r *http.Reques
 
 func (h *RefundsHandler) transform(in shared.Refunds) Refunds {
 	var out Refunds
-	for _, refund := range in {
-		out = append(out, Refund{
-			ID:            strconv.Itoa(refund.ID),
-			DateRaised:    refund.RaisedDate,
-			DateFulfilled: refund.FulfilledDate,
-			Amount:        shared.IntToDecimalString(refund.Amount),
-			BankDetails: BankDetails{
-				Name:     refund.BankDetails.Name,
-				Account:  refund.BankDetails.Account,
-				SortCode: refund.BankDetails.SortCode,
-			},
-			Notes:  refund.Notes,
-			Status: h.transformStatus(refund.Status),
-		})
+	for _, r := range in {
+		refund := Refund{
+			ID:         strconv.Itoa(r.ID),
+			DateRaised: r.RaisedDate,
+			Amount:     shared.IntToDecimalString(r.Amount),
+			Notes:      r.Notes,
+			CreatedBy:  r.CreatedBy,
+			Status:     h.transformStatus(r.Status),
+		}
+		if r.FulfilledDate.Valid {
+			refund.DateFulfilled = &r.FulfilledDate.Value
+		}
+		if r.BankDetails.Valid {
+			bd := r.BankDetails.Value
+			refund.BankDetails = &BankDetails{
+				Name:     bd.Name,
+				Account:  bd.Account,
+				SortCode: bd.SortCode,
+			}
+		}
+		out = append(out, refund)
 	}
 
 	return out

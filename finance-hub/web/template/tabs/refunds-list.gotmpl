@@ -9,7 +9,7 @@
             <th scope="col" class="govuk-table__header">Date raised</th>
             <th scope="col" class="govuk-table__header">Date fulfilled</th>
             <th scope="col" class="govuk-table__header">Amount</th>
-            {{ if User.IsFinanceManager }}
+            {{ if .User.IsFinanceManager }}
                 <th scope="col" class="govuk-table__header">Bank details</th>
             {{ end }}
             <th scope="col" class="govuk-table__header">Notes</th>
@@ -30,15 +30,15 @@
                 <tbody class="govuk-table__body">
                 <tr>
                     <td class="govuk-table__cell">{{.DateRaised}}</td>
-                    <td class="govuk-table__cell">{{.DateFulfilled}}</td>
+                    <td class="govuk-table__cell">{{ if .DateFulfilled }}{{ .DateFulfilled }}{{ else }}{{ "" }}{{ end }}</td>
                     <td class="govuk-table__cell">£{{.Amount}}</td>
-                    {{ if and $user.IsFinanceManager (eq .Status "Pending") }}
-                        <td class="govuk-table__cell">
-                            Account Name: {{.BankDetails.Name}}<br>
-                            Account Number: {{.BankDetails.Account}}<br>
-                            Sort Code: {{.BankDetails.SortCode}}
-                        </td>
-                    {{ end }}
+                    <td class="govuk-table__cell">
+                        {{ if and $user.IsFinanceManager (eq .Status "Pending") }}
+                            <b>Account Name:</b> {{.BankDetails.Name}}<br>
+                            <b>Account Number:</b> {{.BankDetails.Account}}<br>
+                            <b>Sort Code:</b> {{.BankDetails.SortCode}}
+                        {{ end }}
+                    </td>
                     <td class="govuk-table__cell">{{.Notes}}</td>
                     <td class="govuk-table__cell">{{.Status}}</td>
                     <td class="govuk-table__cell">
@@ -46,7 +46,7 @@
                             <div class="form-button-menu">
                                 {{ if eq .Status "Pending"}}
                                     <form method="post"
-                                          hx-post="{{ prefix (printf "/clients/%s/refunds/%s?decision=approve" $clientId .Id) }}"
+                                          hx-post="{{ prefix (printf "/clients/%s/refunds/%s?decision=approve" $clientId .ID) }}"
                                           hx-disabled-elt="find button">
                                         <input type="hidden" name="CSRF" value="{{ $xsrfToken }}"/>
                                         <button class="govuk-button moj-button-menu__item govuk-button--secondary {{ if eq $user.ID .CreatedBy }}invisible{{end}}"
@@ -56,7 +56,7 @@
                                     </form>
 
                                     <form method="post"
-                                          hx-post="{{ prefix (printf "/clients/%s/refunds/%s?decision=reject" $clientId .Id) }}"
+                                          hx-post="{{ prefix (printf "/clients/%s/refunds/%s?decision=reject" $clientId .ID) }}"
                                           hx-disabled-elt="find button">
                                         <input type="hidden" name="CSRF" value="{{ $xsrfToken }}"/>
                                         <button class="govuk-button moj-button-menu__item govuk-button--secondary"
@@ -66,7 +66,7 @@
                                     </form>
                                 {{ else if (or (eq .Status "Approved") (eq .Status "Processing")) }}
                                     <form method="post"
-                                          hx-post="{{ prefix (printf "/clients/%s/refunds/%s?decision=cancel" $clientId .Id) }}"
+                                          hx-post="{{ prefix (printf "/clients/%s/refunds/%s?decision=cancel" $clientId .ID) }}"
                                           hx-disabled-elt="find button">
                                         <input type="hidden" name="CSRF" value="{{ $xsrfToken }}"/>
                                         <button class="govuk-button moj-button-menu__item govuk-button--secondary {{ if eq $user.ID .CreatedBy }}invisible{{end}}"
