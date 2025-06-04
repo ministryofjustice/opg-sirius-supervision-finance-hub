@@ -16,9 +16,9 @@ import (
 
 func (s *Service) AddFeeReduction(ctx context.Context, clientId int32, data shared.AddFeeReduction) error {
 	overlapParams := store.CountOverlappingFeeReductionParams{
-		ClientID:   clientId,
-		Overlaps:   calculateFeeReductionStartDate(data.StartYear),
-		Overlaps_2: calculateFeeReductionEndDate(data.StartYear, data.LengthOfAward),
+		ClientID:  clientId,
+		StartDate: calculateFeeReductionStartDate(data.StartYear),
+		EndDate:   calculateFeeReductionEndDate(data.StartYear, data.LengthOfAward),
 	}
 
 	hasFeeReduction, _ := s.store.CountOverlappingFeeReduction(ctx, overlapParams)
@@ -36,10 +36,10 @@ func (s *Service) AddFeeReduction(ctx context.Context, clientId int32, data shar
 	feeReductionParams := store.AddFeeReductionParams{
 		ClientID:     clientId,
 		Type:         data.FeeType.Key(),
-		Startdate:    calculateFeeReductionStartDate(data.StartYear),
-		Enddate:      calculateFeeReductionEndDate(data.StartYear, data.LengthOfAward),
+		StartDate:    calculateFeeReductionStartDate(data.StartYear),
+		EndDate:      calculateFeeReductionEndDate(data.StartYear, data.LengthOfAward),
 		Notes:        data.Notes,
-		Datereceived: dateReceived,
+		DateReceived: dateReceived,
 		CreatedBy:    createdBy,
 	}
 
