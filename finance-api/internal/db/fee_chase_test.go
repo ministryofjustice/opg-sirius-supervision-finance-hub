@@ -10,7 +10,6 @@ func (suite *IntegrationSuite) Test_fee_chase() {
 
 	today := suite.seeder.Today()
 	yesterday := today.Sub(0, 0, 1)
-	//twoYearsAgo := today.Sub(2, 0, 0)
 
 	// client 1 with 2 unpaid invoices and an unrelated warning
 	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234")
