@@ -31,7 +31,7 @@ func (h *SubmitInvoiceAdjustmentHandler) render(v AppVars, w http.ResponseWriter
 		amount         = r.PostFormValue("amount")
 	)
 
-	err := h.Client().AdjustInvoice(ctx, clientID, v.EnvironmentVars.BillingTeamID, invoiceId, adjustmentType, notes, amount)
+	err := h.Client().AddInvoiceAdjustment(ctx, clientID, v.EnvironmentVars.BillingTeamID, invoiceId, adjustmentType, notes, amount)
 
 	if err == nil {
 		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices?success=invoice-adjustment[%s]", v.EnvironmentVars.Prefix, clientID, adjustmentType))
