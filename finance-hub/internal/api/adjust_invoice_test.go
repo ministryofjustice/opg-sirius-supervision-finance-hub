@@ -29,7 +29,7 @@ func TestAdjustInvoice(t *testing.T) {
 		}, nil
 	}
 
-	err := client.AdjustInvoice(testContext(), 2, 41, 4, "CREDIT_MEMO", "notes here", "100")
+	err := client.AdjustInvoice(testContext(), 2, 41, 4, "CREDIT_MEMO", "notes here", "100", false)
 	assert.Equal(t, nil, err)
 }
 
@@ -41,7 +41,7 @@ func TestAdjustInvoiceUnauthorised(t *testing.T) {
 
 	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	err := client.AdjustInvoice(testContext(), 2, 41, 4, "CREDIT_MEMO", "notes here", "100")
+	err := client.AdjustInvoice(testContext(), 2, 41, 4, "CREDIT_MEMO", "notes here", "100", false)
 
 	assert.Equal(t, ErrUnauthorized.Error(), err.Error())
 }
@@ -54,7 +54,7 @@ func TestAdjustInvoiceReturns500Error(t *testing.T) {
 
 	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	err := client.AdjustInvoice(testContext(), 2, 41, 4, "CREDIT_MEMO", "notes here", "100")
+	err := client.AdjustInvoice(testContext(), 2, 41, 4, "CREDIT_MEMO", "notes here", "100", false)
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/clients/2/invoices/4/invoice-adjustments",
@@ -79,7 +79,7 @@ func TestAdjustInvoiceReturnsValidationError(t *testing.T) {
 
 	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	err := client.AdjustInvoice(testContext(), 2, 41, 4, "CREDIT_MEMO", "notes here", "100")
+	err := client.AdjustInvoice(testContext(), 2, 41, 4, "CREDIT_MEMO", "notes here", "100", false)
 	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"Field": map[string]string{"Tag": "Message"}}}
 	assert.Equal(t, expectedError, err.(apierror.ValidationError))
 }
