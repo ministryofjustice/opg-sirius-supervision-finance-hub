@@ -7,7 +7,6 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"slices"
 	"time"
 )
 
@@ -208,30 +207,20 @@ func (s *Service) validateReversalLine(ctx context.Context, details shared.Rever
 		}
 	}
 
-	if slices.Contains(shared.ReportUploadReversalTypes, uploadType) {
-		reversalCount, _ := s.store.CountDuplicateLedger(ctx, store.CountDuplicateLedgerParams{
-			CourtRef:     details.ErroredCourtRef,
-			Amount:       -details.Amount,
-			Type:         details.PaymentType.Key(),
-			BankDate:     details.BankDate,
-			ReceivedDate: details.ReceivedDate,
-			PisNumber:    details.PisNumber,
-		})
+	reversalCount, _ := s.store.CountDuplicateLedger(ctx, store.CountDuplicateLedgerParams{
+		CourtRef:     details.ErroredCourtRef,
+		Amount:       -details.Amount,
+		Type:         details.PaymentType.Key(),
+		BankDate:     details.BankDate,
+		ReceivedDate: details.ReceivedDate,
+		PisNumber:    details.PisNumber,
+	})
 
-		ledgerCount, _ = s.store.CountDuplicateLedger(ctx, store.CountDuplicateLedgerParams{
-			CourtRef:     details.ErroredCourtRef,
-			Amount:       details.Amount,
-			Type:         details.PaymentType.Key(),
-			BankDate:     details.BankDate,
-			ReceivedDate: details.ReceivedDate,
-			PisNumber:    details.PisNumber,
-		})
-
-		if reversalCount >= ledgerCount {
-			(*failedLines)[index] = validation.UploadErrorDuplicateReversal
-			return false
-		}
+	if reversalCount >= ledgerCount {
+		(*failedLines)[index] = validation.UploadErrorDuplicateReversal
+		return false
 	}
+
 	return true
 }
 

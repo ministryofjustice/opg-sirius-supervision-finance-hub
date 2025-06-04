@@ -4,13 +4,13 @@ INSERT INTO ledger (id, datetime, finance_client_id, amount, notes, type, status
 SELECT NEXTVAL('ledger_id_seq'),
        NOW(),
        fc.id,
-       $2,
-       $3,
-       $4,
-       $5,
-       $6,
+       @amount,
+       @notes,
+       @type,
+       @status,
+       @fee_reduction_id,
        NOW(),
-       $7,
+       @created_by,
        gen_random_uuid(),
        ''
 FROM finance_client fc
@@ -41,11 +41,11 @@ RETURNING id;
 SELECT l.id
 FROM ledger l
          JOIN finance_client fc ON fc.id = l.finance_client_id
-WHERE l.amount = $1
+WHERE l.amount = @amount
   AND l.status = 'CONFIRMED'
-  AND l.bankdate = $2
-  AND l.type = $3
-  AND fc.court_ref = $4
+  AND l.bankdate = @bank_date
+  AND l.type = @type
+  AND fc.court_ref = @court_ref
 LIMIT 1;
 
 -- name: CountDuplicateLedger :one

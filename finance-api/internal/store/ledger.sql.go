@@ -156,7 +156,7 @@ LIMIT 1
 
 type GetLedgerForPaymentParams struct {
 	Amount   int32
-	Bankdate pgtype.Date
+	BankDate pgtype.Date
 	Type     string
 	CourtRef pgtype.Text
 }
@@ -164,7 +164,7 @@ type GetLedgerForPaymentParams struct {
 func (q *Queries) GetLedgerForPayment(ctx context.Context, arg GetLedgerForPaymentParams) (int32, error) {
 	row := q.db.QueryRow(ctx, getLedgerForPayment,
 		arg.Amount,
-		arg.Bankdate,
+		arg.BankDate,
 		arg.Type,
 		arg.CourtRef,
 	)
