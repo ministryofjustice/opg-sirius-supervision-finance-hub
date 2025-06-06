@@ -17,16 +17,19 @@ describe("Refunds tab", () => {
 
         cy.get("@row")
             .children()
-            .first().contains("2025-06-01")
-            .next().contains("2025-06-06")
+            .first().contains("01/06/2025")
+            .next().contains("06/06/2025")
             .next().contains("£123.40")
-            .next().contains("") // no bank details for fulfilled refunds
-            .next().contains("Fulfilled")
-            .next().contains("Fulfilled refund");
+            .next()
+            .should($el => {
+                expect($el.text().trim()).to.eq('');
+            })// no bank details for fulfilled refunds
+            .next().contains("Fulfilled refund")
+            .next().contains("Fulfilled");
     });
 
     it("hides bank details and actions to non-finance managers", () => {
-        cy.setUser("4");
+        cy.setUser("1");
         cy.visit("/clients/14/refunds");
 
         cy.get("table#refunds > tbody")
@@ -37,7 +40,10 @@ describe("Refunds tab", () => {
             .first()
             .next()
             .next()
-            .next().should("be.empty"); // hides bank details for non-managers
+            .next()
+            .should($el => {
+                expect($el.text().trim()).to.eq('');
+            }); // hides bank details for non-managers
 
         cy.get("@pendingRow")
             .find(".form-button-menu")
@@ -68,7 +74,10 @@ describe("Refunds tab", () => {
             .first()
             .next()
             .next()
-            .next().should("be.empty"); // bank details in DB but hidden
+            .next()
+            .should($el => {
+                expect($el.text().trim()).to.eq('');
+            }); // bank details in DB but hidden
 
         cy.get("@approvedRow")
             .find(".form-button-menu")
@@ -107,7 +116,7 @@ describe("Refunds tab", () => {
 
     });
 
-    it("should have no accessibility violations",() => {
+    it("should have no accessibility violations", () => {
         cy.visit("/clients/14/refunds");
         cy.checkAccessibility();
     });
