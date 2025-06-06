@@ -30,7 +30,7 @@ type ApiClient interface {
 	SubmitPaymentMethod(context.Context, int, string) error
 	GetUser(context.Context, int) (shared.User, error)
 	GetRefunds(context.Context, int) (shared.Refunds, error)
-	AddRefund(context.Context, int, string, string, string) error
+	AddRefund(context.Context, int, string, string, string, string) error
 }
 
 type router interface {

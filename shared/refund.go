@@ -18,3 +18,10 @@ type BankDetails struct {
 	Account  string `json:"account" validate:"required,numeric,len=8"`
 	SortCode string `json:"sortCode" validate:"required,len=8"`
 }
+
+type AddRefund struct {
+	AccountName string `json:"name" validate:"required"`
+	Account     string `json:"account" validate:"required,numeric,len=8"`
+	SortCode    string `json:"sortCode" validate:"required,len=8"`
+	Notes       string `json:"notes" validate:"required,thousand-character-limit"`
+}

@@ -10,13 +10,14 @@ import (
 	"net/http"
 )
 
-func (c *Client) AddRefund(ctx context.Context, clientId int, accountName string, accountNumber string, sortCode string) error {
+func (c *Client) AddRefund(ctx context.Context, clientId int, accountName string, accountNumber string, sortCode string, notes string) error {
 	var body bytes.Buffer
 
-	err := json.NewEncoder(&body).Encode(shared.BankDetails{
-		Name:     accountName,
-		Account:  accountNumber,
-		SortCode: sortCode,
+	err := json.NewEncoder(&body).Encode(shared.AddRefund{
+		AccountName: accountName,
+		Account:     accountNumber,
+		SortCode:    sortCode,
+		Notes:       notes,
 	})
 	if err != nil {
 		return err

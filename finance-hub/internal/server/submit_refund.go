@@ -21,9 +21,10 @@ func (h *SubmitRefundHandler) render(v AppVars, w http.ResponseWriter, r *http.R
 		accountName   = r.PostFormValue("accountName")
 		accountNumber = r.PostFormValue("accountNumber")
 		sortCode      = r.PostFormValue("sortCode")
+		notes         = r.PostFormValue("notes")
 	)
 
-	err := h.Client().AddRefund(ctx, clientID, accountName, accountNumber, sortCode)
+	err := h.Client().AddRefund(ctx, clientID, accountName, accountNumber, sortCode, notes)
 
 	if err == nil {
 		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/refund?success=refund", v.EnvironmentVars.Prefix, clientID))

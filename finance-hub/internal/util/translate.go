@@ -82,6 +82,9 @@ var validationMappings = map[string]map[string]pair{
 	"SupervisionLevel": {
 		"nillable-string-oneof": pair{"SupervisionLevel", "Please select a valid supervision level"},
 	},
+	"NoCreditToRefund": {
+		"no-credit-to-refund": pair{"Amount", "Client has no credit balance to refund"},
+	},
 }
 
 func RenameErrors(siriusError apierror.ValidationErrors) apierror.ValidationErrors {
