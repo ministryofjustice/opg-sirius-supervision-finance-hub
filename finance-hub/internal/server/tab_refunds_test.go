@@ -124,6 +124,11 @@ func TestRefundsTransformStatus(t *testing.T) {
 			"Cancelled",
 		},
 		{
+			"Fulfilled",
+			"FULFILLED",
+			"Fulfilled",
+		},
+		{
 			"Unknown",
 			"CONFIRMED",
 			"",

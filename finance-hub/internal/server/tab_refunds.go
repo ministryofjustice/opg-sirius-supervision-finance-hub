@@ -90,6 +90,8 @@ func (h *RefundsHandler) transformStatus(in string) string {
 		return "Processing"
 	case "CANCELLED":
 		return "Cancelled"
+	case "FULFILLED":
+		return "Fulfilled"
 	default:
 		return ""
 	}

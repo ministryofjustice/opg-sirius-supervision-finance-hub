@@ -9,9 +9,7 @@
             <th scope="col" class="govuk-table__header">Date raised</th>
             <th scope="col" class="govuk-table__header">Date fulfilled</th>
             <th scope="col" class="govuk-table__header">Amount</th>
-            {{ if .User.IsFinanceManager }}
-                <th scope="col" class="govuk-table__header">Bank details</th>
-            {{ end }}
+            <th scope="col" class="govuk-table__header">Bank details</th>
             <th scope="col" class="govuk-table__header">Notes</th>
             <th scope="col" class="govuk-table__header">Status</th>
             <th scope="col" class="govuk-table__header">Actions</th>
@@ -42,8 +40,8 @@
                     <td class="govuk-table__cell">{{.Notes}}</td>
                     <td class="govuk-table__cell">{{.Status}}</td>
                     <td class="govuk-table__cell">
-                        {{ if $user.IsFinanceManager }}
-                            <div class="form-button-menu">
+                        <div class="form-button-menu">
+                            {{ if $user.IsFinanceManager }}
                                 {{ if eq .Status "Pending"}}
                                     <form method="post"
                                           hx-post="{{ prefix (printf "/clients/%s/refunds/%s?decision=approve" $clientId .ID) }}"
@@ -75,8 +73,8 @@
                                         </button>
                                     </form>
                                 {{ end}}
-                            </div>
-                        {{ end}}
+                            {{ end}}
+                        </div>
                     </td>
                 </tr>
                 </tbody>
