@@ -77,6 +77,18 @@ INSERT INTO invoice VALUES (10, 12, 12, 'AD', 'AD12121/24', '2024-04-01', '2025-
 INSERT INTO finance_client VALUES (13, 13, 'paymentsapi', 'DEMANDED', null, '13131313');
 INSERT INTO invoice VALUES (11, 13, 13, 'AD', 'AD33333/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2025-03-31', 99);
 
+-- refunds
+INSERT INTO finance_client VALUES (14, 14, 'refunds', 'DEMANDED', null, '14141414');
+INSERT INTO refund VALUES (1, 14, '2025-06-01', '2025-06-06', 12340, 'FULFILLED', 'Fulfilled refund', 1, '2026-06-01 00:00:00', 1, '2026-06-06 00:00:00');
+INSERT INTO refund VALUES (2, 14, '2024-06-01', NULL, 12341, 'PENDING', 'Pending refund', 1, '2025-06-01 00:00:00', NULL, NULL);
+INSERT INTO refund VALUES (3, 14, '2023-06-01', NULL, 12342, 'APPROVED', 'Approved refund', 1, '2024-06-01 00:00:00', 1, '2024-06-06 00:00:00');
+INSERT INTO refund VALUES (4, 14, '2022-06-01', NULL, 12343, 'REJECTED', 'Rejected refund', 1, '2023-06-01 00:00:00', 1, '2023-06-06 00:00:00');
+INSERT INTO refund VALUES (5, 14, '2021-06-01', NULL, 12344, 'PROCESSING', 'Processing refund', 1, '2022-06-01 00:00:00', 1, '2022-06-06 00:00:00');
+INSERT INTO refund VALUES (6, 14, '2020-06-01', NULL, 12345, 'CANCELLED', 'Cancelled refund', 1, '2021-06-01 00:00:00', 1, '2021-06-06 00:00:00');
+
+INSERT INTO bank_details VALUES (1, 2, 'Reginald Refund', '12345678', '11-22-33');
+INSERT INTO bank_details VALUES (1, 3, 'Reginald Refund', '12345678', '11-22-33');
+
 -- TEST CLIENT DATA: Add data for default client here
 
 -- UPDATE SEQUENCES
@@ -87,3 +99,4 @@ SELECT setval('invoice_adjustment_id_seq', (SELECT MAX(id) FROM invoice_adjustme
 SELECT setval('ledger_id_seq', (SELECT MAX(id) FROM ledger));
 SELECT setval('ledger_allocation_id_seq', (SELECT MAX(id) FROM ledger_allocation));
 SELECT setval('invoice_fee_range_id_seq', (SELECT MAX(id) FROM invoice_fee_range));
+SELECT setval('refund_id_seq', (SELECT MAX(id) FROM refund));

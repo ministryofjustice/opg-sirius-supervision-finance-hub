@@ -8,15 +8,14 @@ import (
 	"time"
 )
 
-func (s *Service) GetFeeReductions(ctx context.Context, id int32) (*shared.FeeReductions, error) {
+func (s *Service) GetFeeReductions(ctx context.Context, id int32) (shared.FeeReductions, error) {
+	var feeReductions shared.FeeReductions
 	feeReductionsRawData, err := s.store.GetFeeReductions(ctx, id)
 
 	if err != nil {
 		s.Logger(ctx).Error(fmt.Sprintf("Error in getting fee reductions for client:  %d", id), slog.String("err", err.Error()))
-		return nil, err
+		return feeReductions, err
 	}
-
-	var feeReductions shared.FeeReductions
 
 	for _, fee := range feeReductionsRawData {
 		startDate := shared.Date{Time: fee.Startdate.Time}
@@ -33,7 +32,7 @@ func (s *Service) GetFeeReductions(ctx context.Context, id int32) (*shared.FeeRe
 		feeReductions = append(feeReductions, feeReduction)
 	}
 
-	return &feeReductions, nil
+	return feeReductions, nil
 }
 
 func calculateStatus(startDate shared.Date, endDate shared.Date, deleted bool) string {
