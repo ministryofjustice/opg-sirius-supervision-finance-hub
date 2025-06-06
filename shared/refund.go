@@ -14,7 +14,7 @@ type Refund struct {
 }
 
 type BankDetails struct {
-	Name     string `json:"name"`
-	Account  string `json:"account"`
-	SortCode string `json:"sortCode"`
+	Name     string `json:"name" validate:"required"`
+	Account  string `json:"account" validate:"required,numeric,len=8"`
+	SortCode string `json:"sortCode" validate:"required,len=8"`
 }

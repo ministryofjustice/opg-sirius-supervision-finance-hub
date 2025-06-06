@@ -29,7 +29,8 @@ type ApiClient interface {
 	GetBillingHistory(context.Context, int) ([]shared.BillingHistory, error)
 	SubmitPaymentMethod(context.Context, int, string) error
 	GetUser(context.Context, int) (shared.User, error)
-	GetRefunds(ctx context.Context, id int) (shared.Refunds, error)
+	GetRefunds(context.Context, int) (shared.Refunds, error)
+	AddRefund(context.Context, int, string, string, string) error
 }
 
 type router interface {
@@ -76,8 +77,10 @@ func New(logger *slog.Logger, client *api.Client, templates map[string]*template
 	handleMux("GET /clients/{clientId}/invoices", &InvoicesHandler{&route{client: client, tmpl: templates["invoices.gotmpl"], partial: "invoices"}})
 	handleMux("GET /clients/{clientId}/fee-reductions", &FeeReductionsHandler{&route{client: client, tmpl: templates["fee-reductions.gotmpl"], partial: "fee-reductions"}})
 	handleMux("GET /clients/{clientId}/invoice-adjustments", &InvoiceAdjustmentsHandler{&route{client: client, tmpl: templates["invoice-adjustments.gotmpl"], partial: "invoice-adjustments"}})
-	handleMux("GET /clients/{clientId}/invoices/{invoiceId}/adjustments", &AddInvoiceAdjustmentFormHandler{&route{client: client, tmpl: templates["adjust-invoice.gotmpl"], partial: "adjust-invoice"}})
+	handleMux("GET /clients/{clientId}/pending-invoice-adjustments", &PendingInvoiceAdjustmentsHandler{&route{client: client, tmpl: templates["pending-invoice-adjustments.gotmpl"], partial: "pending-invoice-adjustments"}})
 	handleMux("GET /clients/{clientId}/refunds", &RefundsHandler{&route{client: client, tmpl: templates["refunds.gotmpl"], partial: "refunds"}})
+	handleMux("GET /clients/{clientId}/refunds/add", &AddRefundHandler{&route{client: client, tmpl: templates["add-refund.gotmpl"], partial: "add-refund"}})
+	handleMux("GET /clients/{clientId}/invoices/{invoiceId}/adjustments", &AddInvoiceAdjustmentFormHandler{&route{client: client, tmpl: templates["adjust-invoice.gotmpl"], partial: "adjust-invoice"}})
 	handleMux("GET /clients/{clientId}/fee-reductions/add", &UpdateFeeReductionHandler{&route{client: client, tmpl: templates["add-fee-reduction.gotmpl"], partial: "add-fee-reduction"}})
 	handleMux("GET /clients/{clientId}/payment-method/add", &PaymentMethodHandler{&route{client: client, tmpl: templates["set-up-payment-method.gotmpl"], partial: "set-up-payment-method"}})
 	handleMux("GET /clients/{clientId}/invoices/add", &AddManualInvoiceHandler{&route{client: client, tmpl: templates["add-manual-invoice.gotmpl"], partial: "add-manual-invoice"}})
