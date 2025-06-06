@@ -2,6 +2,22 @@
 {{ define "refunds-list" }}
     <header>
         <h1 class="govuk-heading-l  govuk-!-margin-bottom-0  govuk-!-margin-top-0">Refunds</h1>
+        <div style="float: right;">
+            {{ if .User.IsFinanceUser }}
+                <div class="moj-button-menu">
+                    <a
+                            class="govuk-button moj-button-menu__item govuk-button--secondary"
+                            role="button"
+                            draggable="false"
+                            data-module="govuk-button"
+                            hx-get="{{ prefix (printf "/clients/%s/refunds/add" .ClientId) }}"
+                            hx-target="#main-content"
+                            hx-push-url="{{ prefix  (printf "/clients/%s/refunds/add" .ClientId) }}">
+                        Add refund
+                    </a>
+                </div>
+            {{ end }}
+        </div>
     </header>
     <table id="refunds" class="govuk-table">
         <thead class="govuk-table__head">

@@ -134,3 +134,7 @@ func (m mockApiClient) GetInvoiceAdjustments(context.Context, int) (shared.Invoi
 func (m mockApiClient) GetRefunds(ctx context.Context, id int) (shared.Refunds, error) {
 	return m.refunds, m.error
 }
+
+func (m mockApiClient) AddRefund(context.Context, int, string, string, string) error {
+	return m.error
+}
