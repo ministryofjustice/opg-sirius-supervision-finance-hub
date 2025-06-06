@@ -20,7 +20,8 @@ func TestAddRefund(t *testing.T) {
 	json := `{
 			"accountName":      "Reginald Refund",
 			"accountNumber":    "12345678",
-			"sortCode":     	"11-22-33"
+			"sortCode":     	"11-22-33",
+			"notes":			"this is notes",
         }`
 
 	r := io.NopCloser(bytes.NewReader([]byte(json)))
@@ -32,7 +33,7 @@ func TestAddRefund(t *testing.T) {
 		}, nil
 	}
 
-	err := client.AddRefund(testContext(), 1, "Reginald Refund", "12345678", "11-22-33")
+	err := client.AddRefund(testContext(), 1, "Reginald Refund", "12345678", "11-22-33", "this is notes")
 	assert.Equal(t, nil, err)
 }
 
@@ -44,7 +45,7 @@ func TestAddRefundUnauthorised(t *testing.T) {
 
 	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	err := client.AddRefund(testContext(), 1, "Reginald Refund", "12345678", "11-22-33")
+	err := client.AddRefund(testContext(), 1, "Reginald Refund", "12345678", "11-22-33", "")
 
 	assert.Equal(t, ErrUnauthorized.Error(), err.Error())
 }
@@ -57,7 +58,7 @@ func TestAddRefundReturns500Error(t *testing.T) {
 
 	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	err := client.AddRefund(testContext(), 1, "Reginald Refund", "12345678", "11-22-33")
+	err := client.AddRefund(testContext(), 1, "Reginald Refund", "12345678", "11-22-33", "")
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/clients/1/refunds",
@@ -82,7 +83,7 @@ func TestAddRefundReturnsValidationError(t *testing.T) {
 
 	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	err := client.AddRefund(testContext(), 1, "Reginald Refund", "12345678", "11-22-33")
+	err := client.AddRefund(testContext(), 1, "Reginald Refund", "12345678", "11-22-33", "")
 	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"accountNumber": map[string]string{"tooLong": "Account number must by 8 digits"}}}
 	assert.Equal(t, expectedError, err.(apierror.ValidationError))
 }

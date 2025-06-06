@@ -16,6 +16,7 @@ func TestAddRefundSuccess(t *testing.T) {
 		"accountName":   {"Mr Reginald Refund"},
 		"accountNumber": {"12345678"},
 		"sortCode":      {"11-22-33"},
+		"Notes":         {"notes here"},
 	}
 
 	client := mockApiClient{}

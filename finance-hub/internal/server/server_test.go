@@ -135,6 +135,6 @@ func (m mockApiClient) GetRefunds(ctx context.Context, id int) (shared.Refunds, 
 	return m.refunds, m.error
 }
 
-func (m mockApiClient) AddRefund(context.Context, int, string, string, string) error {
+func (m mockApiClient) AddRefund(context.Context, int, string, string, string, string) error {
 	return m.error
 }

@@ -16,10 +16,11 @@ import (
 func TestServer_addRefund(t *testing.T) {
 	var b bytes.Buffer
 
-	refund := shared.BankDetails{
-		Name:     "Mr Reginald Refund",
-		Account:  "12345678",
-		SortCode: "11-22-33",
+	refund := shared.AddRefund{
+		AccountName: "Mr Reginald Refund",
+		Account:     "12345678",
+		SortCode:    "11-22-33",
+		Notes:       "This is a test",
 	}
 	_ = json.NewEncoder(&b).Encode(refund)
 	req := httptest.NewRequest(http.MethodPost, "/clients/1/refunds", &b)
@@ -28,7 +29,7 @@ func TestServer_addRefund(t *testing.T) {
 
 	validator, _ := validation.New()
 
-	mock := &mockService{refund: refund}
+	mock := &mockService{addRefund: refund}
 	server := NewServer(mock, nil, nil, nil, nil, validator, nil)
 	_ = server.addRefund(w, req)
 
@@ -44,10 +45,11 @@ func TestServer_addRefund(t *testing.T) {
 func TestServer_addRefundValidationErrors(t *testing.T) {
 	var b bytes.Buffer
 
-	refund := shared.BankDetails{
-		Name:     "",
-		Account:  "",
-		SortCode: "",
+	refund := shared.AddRefund{
+		AccountName: "",
+		Account:     "",
+		SortCode:    "",
+		Notes:       "",
 	}
 	_ = json.NewEncoder(&b).Encode(refund)
 	req := httptest.NewRequest(http.MethodPost, "/clients/1/refunds", &b)
@@ -56,7 +58,7 @@ func TestServer_addRefundValidationErrors(t *testing.T) {
 
 	validator, _ := validation.New()
 
-	mock := &mockService{refund: refund}
+	mock := &mockService{addRefund: refund}
 	server := NewServer(mock, nil, nil, nil, nil, validator, nil)
 	err := server.addRefund(w, req)
 
@@ -70,6 +72,9 @@ func TestServer_addRefundValidationErrors(t *testing.T) {
 		"SortCode": {
 			"required": "This field SortCode needs to be looked at required",
 		},
+		"Notes": {
+			"required": "This field Notes needs to be looked at required",
+		},
 	}}
 	assert.Equal(t, expected, err)
 
@@ -77,10 +82,11 @@ func TestServer_addRefundValidationErrors(t *testing.T) {
 
 func TestServer_addRefund500Error(t *testing.T) {
 	var b bytes.Buffer
-	refund := shared.BankDetails{
-		Name:     "Mr Reginald Refund",
-		Account:  "12345678",
-		SortCode: "11-22-33",
+	refund := shared.AddRefund{
+		AccountName: "Mr Reginald Refund",
+		Account:     "12345678",
+		SortCode:    "11-22-33",
+		Notes:       "This is a test",
 	}
 	_ = json.NewEncoder(&b).Encode(refund)
 	req := httptest.NewRequest(http.MethodPost, "/clients/1/refunds", &b)
@@ -89,7 +95,7 @@ func TestServer_addRefund500Error(t *testing.T) {
 
 	validator, _ := validation.New()
 
-	mock := &mockService{refund: refund, err: errors.New("something is wrong")}
+	mock := &mockService{addRefund: refund, err: errors.New("something is wrong")}
 	server := NewServer(mock, nil, nil, nil, nil, validator, nil)
 	err := server.addRefund(w, req)
 	assert.Error(t, err)

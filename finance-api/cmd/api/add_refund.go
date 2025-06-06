@@ -9,7 +9,7 @@ import (
 func (s *Server) addRefund(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 
-	var refund shared.BankDetails
+	var refund shared.AddRefund
 	defer r.Body.Close()
 
 	if err := json.NewDecoder(r.Body).Decode(&refund); err != nil {

@@ -37,7 +37,7 @@ type Service interface {
 	ProcessPayments(ctx context.Context, records [][]string, uploadType shared.ReportUploadType, bankDate shared.Date, pisNumber int) (map[int]string, error)
 	ProcessAdhocEvent(ctx context.Context) error
 	ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType) (map[int]string, error)
-	AddRefund(ctx context.Context, clientId int32, refund shared.BankDetails) error
+	AddRefund(ctx context.Context, clientId int32, refund shared.AddRefund) error
 }
 
 type FileStorage interface {
