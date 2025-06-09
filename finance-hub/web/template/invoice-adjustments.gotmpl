@@ -1,16 +1,16 @@
 {{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.PendingInvoiceAdjustmentsTab*/ -}}
 {{ template "page" . }}
 
-{{ define "title" }}OPG Sirius Finance Hub - Pending Invoice Adjustments{{ end }}
+{{ define "title" }}OPG Sirius Finance Hub - Invoice Adjustments{{ end }}
 
 {{ define "main-content" }}
 
-  {{ block "pending-invoice-adjustments" .Data }}
+  {{ block "invoice-adjustments" .Data }}
     {{ template "navigation" . }}
     <div>
       <div class="govuk-grid-row">
         <div class="govuk-grid-column-full">
-          {{ template "pending-invoice-adjustments-list" . }}
+          {{ template "invoice-adjustments-list" . }}
         </div>
       </div>
     </div>
