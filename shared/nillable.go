@@ -1,8 +1,24 @@
 package shared
 
+import "github.com/jackc/pgx/v5/pgtype"
+
 type Nillable[T any] struct {
 	Value T
 	Valid bool
+}
+
+func NewNillable[T any](v *T) Nillable[T] {
+	return Nillable[T]{
+		Value: *v,
+		Valid: v != nil,
+	}
+}
+
+func TransformNillablePgDate(v pgtype.Date) Nillable[Date] {
+	return Nillable[Date]{
+		Value: Date{Time: v.Time},
+		Valid: v.Valid,
+	}
 }
 
 func TransformNillableDate(stringPointer *string) Nillable[Date] {

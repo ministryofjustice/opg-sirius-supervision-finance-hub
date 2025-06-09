@@ -6,14 +6,14 @@ import (
 	"log/slog"
 )
 
-func (s *Service) GetInvoiceAdjustments(ctx context.Context, clientId int32) (*shared.InvoiceAdjustments, error) {
+func (s *Service) GetInvoiceAdjustments(ctx context.Context, clientId int32) (shared.InvoiceAdjustments, error) {
 	var adjustments shared.InvoiceAdjustments
 
 	data, err := s.store.GetInvoiceAdjustments(ctx, clientId)
 
 	if err != nil {
 		s.Logger(ctx).Error("Error get invoice adjustments", slog.String("err", err.Error()))
-		return nil, err
+		return adjustments, err
 	}
 
 	for _, ia := range data {
@@ -31,5 +31,5 @@ func (s *Service) GetInvoiceAdjustments(ctx context.Context, clientId int32) (*s
 		adjustments = append(adjustments, a)
 	}
 
-	return &adjustments, nil
+	return adjustments, nil
 }

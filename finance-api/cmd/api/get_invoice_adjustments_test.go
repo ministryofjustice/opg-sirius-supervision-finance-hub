@@ -18,7 +18,7 @@ func TestServer_getInvoiceAdjustments(t *testing.T) {
 	dateString := "2020-03-16"
 	date, _ := time.Parse("2006-01-02", dateString)
 
-	ia := &shared.InvoiceAdjustments{
+	ia := shared.InvoiceAdjustments{
 		shared.InvoiceAdjustment{
 			Id:             1,
 			InvoiceRef:     "abc123/24",
@@ -50,7 +50,7 @@ func TestServer_getInvoiceAdjustments_returns_an_empty_array(t *testing.T) {
 	req.SetPathValue("clientId", "2")
 	w := httptest.NewRecorder()
 
-	ia := &shared.InvoiceAdjustments{}
+	ia := shared.InvoiceAdjustments{}
 
 	mock := &mockService{invoiceAdjustments: ia}
 	server := NewServer(mock, nil, nil, nil, nil, nil, nil)
