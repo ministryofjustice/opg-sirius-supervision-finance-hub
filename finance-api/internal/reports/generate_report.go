@@ -219,6 +219,15 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 		default:
 			return "", reportName, nil, fmt.Errorf("unimplemented schedule query: %s", reportRequest.ScheduleType.Key())
 		}
+	case shared.ReportsTypeDebt:
+		filename = fmt.Sprintf("debt_%s_%s.csv", reportRequest.DebtType.Key(), requestedDate.Format("02:01:2006"))
+		reportName = reportRequest.DebtType.Translation()
+		switch *reportRequest.DebtType {
+		case shared.DebtTypeFeeChase:
+			query = &db.FeeChase{}
+		default:
+			return "", reportName, nil, fmt.Errorf("unimplemented debt query: %s", reportRequest.ScheduleType.Key())
+		}
 	default:
 		return "", "unknown query", nil, fmt.Errorf("unknown query")
 	}
