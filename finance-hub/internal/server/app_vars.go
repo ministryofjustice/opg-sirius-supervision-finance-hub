@@ -41,9 +41,9 @@ func NewAppVars(r *http.Request, envVars Envs) AppVars {
 			BasePath: "/clients/" + clientId + "/fee-reductions",
 		},
 		{
-			Id:       "pending-invoice-adjustments",
-			Title:    "Pending Adjustments",
-			BasePath: "/clients/" + clientId + "/pending-invoice-adjustments",
+			Id:       "invoice-adjustments",
+			Title:    "Invoice Adjustments",
+			BasePath: "/clients/" + clientId + "/invoice-adjustments",
 		},
 		{
 			Id:       "refunds",

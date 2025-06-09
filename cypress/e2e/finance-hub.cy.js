@@ -19,9 +19,9 @@ describe("Finance Hub", () => {
             cy.url().should("contain", "fee-reductions");
             cy.contains(".govuk-heading-l", "Fee Reductions");
 
-            cy.get('[data-cy="pending-invoice-adjustments"]').click();
-            cy.url().should("contain", "pending-invoice-adjustments");
-            cy.contains(".govuk-heading-l", "Pending Invoice Adjustments");
+            cy.get('[data-cy="invoice-adjustments"]').click();
+            cy.url().should("contain", "invoice-adjustments");
+            cy.contains(".govuk-heading-l", "Invoice Adjustments");
 
             cy.get('[data-cy="invoices"]').click();
             cy.url().should("contain", "invoices");

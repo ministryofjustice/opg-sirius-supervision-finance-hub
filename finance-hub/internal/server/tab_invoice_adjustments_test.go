@@ -31,13 +31,13 @@ func TestPendingInvoiceAdjustments(t *testing.T) {
 
 	appVars := AppVars{Path: "/path/"}
 
-	sut := PendingInvoiceAdjustmentsHandler{ro}
+	sut := InvoiceAdjustmentsHandler{ro}
 	err := sut.render(appVars, w, r)
 
 	assert.Nil(t, err)
 	assert.True(t, ro.executed)
 
-	out := PendingInvoiceAdjustments{
+	out := InvoiceAdjustments{
 		PendingInvoiceAdjustment{
 			Id:               "3",
 			Invoice:          "N2000001/20",
@@ -49,10 +49,10 @@ func TestPendingInvoiceAdjustments(t *testing.T) {
 		},
 	}
 
-	expected := &PendingInvoiceAdjustmentsTab{
-		PendingInvoiceAdjustments: out,
-		ClientId:                  "1",
-		AppVars:                   appVars,
+	expected := &InvoiceAdjustmentsTab{
+		InvoiceAdjustments: out,
+		ClientId:           "1",
+		AppVars:            appVars,
 	}
 
 	assert.Equal(t, expected, ro.data)
@@ -69,7 +69,7 @@ func TestPendingInvoiceAdjustments_Errors(t *testing.T) {
 
 	appVars := AppVars{Path: "/path/"}
 
-	sut := PendingInvoiceAdjustmentsHandler{ro}
+	sut := InvoiceAdjustmentsHandler{ro}
 	err := sut.render(appVars, w, r)
 
 	assert.Equal(t, "this has failed", err.Error())
@@ -77,7 +77,7 @@ func TestPendingInvoiceAdjustments_Errors(t *testing.T) {
 }
 
 func TestPendingInvoiceAdjustmentsTransformType(t *testing.T) {
-	sut := PendingInvoiceAdjustmentsHandler{}
+	sut := InvoiceAdjustmentsHandler{}
 
 	tests := []struct {
 		name string
@@ -113,7 +113,7 @@ func TestPendingInvoiceAdjustmentsTransformType(t *testing.T) {
 }
 
 func TestPendingInvoiceAdjustmentsTransformStatus(t *testing.T) {
-	sut := PendingInvoiceAdjustmentsHandler{}
+	sut := InvoiceAdjustmentsHandler{}
 
 	tests := []struct {
 		name string

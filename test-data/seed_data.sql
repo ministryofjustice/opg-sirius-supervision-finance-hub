@@ -58,8 +58,8 @@ INSERT INTO invoice_fee_range VALUES (1, 7, 'GENERAL', '2022-04-01', '2023-03-31
 INSERT INTO ledger VALUES (5, 'ignore-me', '2024-04-11T08:36:40+00:00', '', 2000, '', 'CARD PAYMENT', 'APPROVED', 9, null, null, '11/04/2042', '12/04/2024', 1, '', '', 1, '05/05/2024', 2);
 INSERT INTO ledger_allocation VALUES (5, 5, 7, '2024-04-11T08:36:40+00:00', 2000, 'ALLOCATED', null, 'invoices-test', '2024-04-11', null);
 
--- pending-invoice-adjustments
-INSERT INTO finance_client VALUES (10, 10, 'pending-invoice-adjustments', 'DEMANDED', null, '10101010');
+-- invoice-adjustments
+INSERT INTO finance_client VALUES (10, 10, 'invoice-adjustments', 'DEMANDED', null, '10101010');
 INSERT INTO invoice VALUES (8, 10, 10, 'AD', 'AD10101/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2025-03-31', 99);
 INSERT INTO invoice_adjustment VALUES (3, 10, 8, '2022-04-11', 'CREDIT MEMO', 10000, 'credit adjustment for 100.00', 'PENDING', '2022-04-11T08:36:40+00:00', 4);
 
