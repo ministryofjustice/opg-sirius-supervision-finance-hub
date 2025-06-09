@@ -170,6 +170,8 @@ func formatFailedLines(failedLines map[int]string) []string {
 			errorMessage = "Unable to find a matched payment to reverse"
 		case validation.UploadErrorReversalClientNotFound:
 			errorMessage = "Could not find client with this court reference [New (correct) court reference]"
+		case validation.UploadErrorDuplicateReversal:
+			errorMessage = "This payment has already been reversed"
 		}
 
 		formattedLines = append(formattedLines, fmt.Sprintf("Line %d: %s", key, errorMessage))
