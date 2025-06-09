@@ -13,6 +13,7 @@ require (
 	github.com/aws/smithy-go v1.22.3
 	github.com/go-playground/validator/v10 v10.26.0
 	github.com/golang-jwt/jwt/v5 v5.2.2
+	github.com/google/go-cmp v0.7.0
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/lib/pq v1.10.9
 	github.com/ministryofjustice/opg-go-common v1.106.0
@@ -29,7 +30,6 @@ require (
 
 require (
 	dario.cat/mergo v1.0.1 // indirect
-	github.com/AdaLogics/go-fuzz-headers v0.0.0-20230811130428-ced1acdcaa24 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.10 // indirect
@@ -88,9 +88,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
 	github.com/sethvargo/go-retry v0.3.0 // indirect
-	github.com/shirou/gopsutil/v3 v3.24.5 // indirect
 	github.com/shirou/gopsutil/v4 v4.25.1 // indirect
-	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/tklauser/go-sysconf v0.3.14 // indirect
 	github.com/tklauser/numcpus v0.8.0 // indirect

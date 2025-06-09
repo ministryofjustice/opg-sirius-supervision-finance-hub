@@ -49,7 +49,7 @@ func (ib *invoiceBuilder) IDs() []int32 {
 	return maps.Keys(ib.invoices)
 }
 
-func (ib *invoiceBuilder) Build() *shared.Invoices {
+func (ib *invoiceBuilder) Build() shared.Invoices {
 	var invoices shared.Invoices
 	for _, inv := range ib.invoices {
 		invoice := inv.invoice
@@ -77,7 +77,7 @@ func (ib *invoiceBuilder) Build() *shared.Invoices {
 		invoice.Status = status
 		invoices = append(invoices, *inv.invoice)
 	}
-	return &invoices
+	return invoices
 }
 
 func (ib *invoiceBuilder) addLedgerAllocations(ilas []store.GetLedgerAllocationsRow) {
@@ -123,7 +123,7 @@ func (ib *invoiceBuilder) addSupervisionLevels(supervisionLevels []store.GetSupe
 	}
 }
 
-func (s *Service) GetInvoices(ctx context.Context, clientId int32) (*shared.Invoices, error) {
+func (s *Service) GetInvoices(ctx context.Context, clientId int32) (shared.Invoices, error) {
 	invoices, err := s.store.GetInvoices(ctx, clientId)
 	if err != nil {
 		return nil, err
@@ -134,7 +134,7 @@ func (s *Service) GetInvoices(ctx context.Context, clientId int32) (*shared.Invo
 
 	if err != nil {
 		s.Logger(ctx).Error("Get ledger allocations in get invoices has an issue " + err.Error())
-		return nil, err
+		return shared.Invoices{}, err
 	}
 
 	builder.addLedgerAllocations(ledgerAllocations)
@@ -142,7 +142,7 @@ func (s *Service) GetInvoices(ctx context.Context, clientId int32) (*shared.Invo
 
 	if err != nil {
 		s.Logger(ctx).Error("Get supervision levels in get invoices has an issue " + err.Error())
-		return nil, err
+		return shared.Invoices{}, err
 	}
 
 	builder.addSupervisionLevels(supervisionLevels)

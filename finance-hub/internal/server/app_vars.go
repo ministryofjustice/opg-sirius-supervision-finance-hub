@@ -23,6 +23,7 @@ type Tab struct {
 	Title    string
 	BasePath string
 	Selected bool
+	Show     bool
 }
 
 func NewAppVars(r *http.Request, envVars Envs) AppVars {
@@ -34,21 +35,31 @@ func NewAppVars(r *http.Request, envVars Envs) AppVars {
 			Id:       "invoices",
 			Title:    "Invoices",
 			BasePath: "/clients/" + clientId + "/invoices",
+			Show:     true,
 		},
 		{
 			Id:       "fee-reductions",
 			Title:    "Fee Reductions",
 			BasePath: "/clients/" + clientId + "/fee-reductions",
+			Show:     true,
 		},
 		{
-			Id:       "pending-invoice-adjustments",
-			Title:    "Pending Adjustments",
-			BasePath: "/clients/" + clientId + "/pending-invoice-adjustments",
+			Id:       "invoice-adjustments",
+			Title:    "Invoice Adjustments",
+			BasePath: "/clients/" + clientId + "/invoice-adjustments",
+			Show:     true,
+		},
+		{
+			Id:       "refunds",
+			Title:    "Refunds",
+			BasePath: "/clients/" + clientId + "/refunds",
+			Show:     envVars.ShowRefunds,
 		},
 		{
 			Id:       "billing-history",
 			Title:    "Billing History",
 			BasePath: "/clients/" + clientId + "/billing-history",
+			Show:     true,
 		},
 	}
 
@@ -71,6 +82,7 @@ func (a *AppVars) selectTab(s string) {
 				tab.Title,
 				tab.BasePath,
 				true,
+				tab.Show,
 			}
 		}
 	}
