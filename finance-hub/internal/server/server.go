@@ -77,7 +77,6 @@ func New(logger *slog.Logger, client *api.Client, templates map[string]*template
 	handleMux("GET /clients/{clientId}/invoices", &InvoicesHandler{&route{client: client, tmpl: templates["invoices.gotmpl"], partial: "invoices"}})
 	handleMux("GET /clients/{clientId}/fee-reductions", &FeeReductionsHandler{&route{client: client, tmpl: templates["fee-reductions.gotmpl"], partial: "fee-reductions"}})
 	handleMux("GET /clients/{clientId}/invoice-adjustments", &InvoiceAdjustmentsHandler{&route{client: client, tmpl: templates["invoice-adjustments.gotmpl"], partial: "invoice-adjustments"}})
-	handleMux("GET /clients/{clientId}/pending-invoice-adjustments", &PendingInvoiceAdjustmentsHandler{&route{client: client, tmpl: templates["pending-invoice-adjustments.gotmpl"], partial: "pending-invoice-adjustments"}})
 	handleMux("GET /clients/{clientId}/refunds", &RefundsHandler{&route{client: client, tmpl: templates["refunds.gotmpl"], partial: "refunds"}})
 	handleMux("GET /clients/{clientId}/refunds/add", &AddRefundHandler{&route{client: client, tmpl: templates["add-refund.gotmpl"], partial: "add-refund"}})
 	handleMux("GET /clients/{clientId}/invoices/{invoiceId}/adjustments", &AddInvoiceAdjustmentFormHandler{&route{client: client, tmpl: templates["adjust-invoice.gotmpl"], partial: "adjust-invoice"}})
