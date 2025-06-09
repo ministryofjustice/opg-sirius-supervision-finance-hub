@@ -54,6 +54,7 @@ type Envs struct {
 	Prefix          string
 	BackendURL      string
 	BillingTeamID   int
+	ShowRefunds     bool
 }
 
 func New(logger *slog.Logger, client *api.Client, templates map[string]*template.Template, envs Envs) http.Handler {
