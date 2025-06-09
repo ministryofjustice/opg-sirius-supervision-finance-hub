@@ -11,16 +11,17 @@ import (
 
 type mockService struct {
 	accountInfo        *shared.AccountInformation
-	invoices           *shared.Invoices
-	feeReductions      *shared.FeeReductions
+	invoices           shared.Invoices
+	feeReductions      shared.FeeReductions
 	invoiceReference   *shared.InvoiceReference
-	invoiceAdjustments *shared.InvoiceAdjustments
+	invoiceAdjustments shared.InvoiceAdjustments
 	feeReduction       *shared.AddFeeReduction
 	cancelFeeReduction *shared.CancelFeeReduction
 	ledger             *shared.AddInvoiceAdjustmentRequest
 	manualInvoice      *shared.AddManualInvoice
 	adjustmentTypes    []shared.AdjustmentType
 	billingHistory     []shared.BillingHistory
+	refunds            shared.Refunds
 	expectedIds        []int
 	lastCalled         string
 	err                error
@@ -85,22 +86,28 @@ func (s *mockService) GetAccountInformation(ctx context.Context, id int32) (*sha
 	return s.accountInfo, s.err
 }
 
-func (s *mockService) GetInvoices(ctx context.Context, id int32) (*shared.Invoices, error) {
+func (s *mockService) GetInvoices(ctx context.Context, id int32) (shared.Invoices, error) {
 	s.expectedIds = []int{int(id)}
 	s.lastCalled = "GetInvoices"
 	return s.invoices, s.err
 }
 
-func (s *mockService) GetFeeReductions(ctx context.Context, id int32) (*shared.FeeReductions, error) {
+func (s *mockService) GetFeeReductions(ctx context.Context, id int32) (shared.FeeReductions, error) {
 	s.expectedIds = []int{int(id)}
 	s.lastCalled = "GetFeeReductions"
 	return s.feeReductions, s.err
 }
 
-func (s *mockService) GetInvoiceAdjustments(ctx context.Context, id int32) (*shared.InvoiceAdjustments, error) {
+func (s *mockService) GetInvoiceAdjustments(ctx context.Context, id int32) (shared.InvoiceAdjustments, error) {
 	s.expectedIds = []int{int(id)}
 	s.lastCalled = "GetInvoiceAdjustments"
 	return s.invoiceAdjustments, s.err
+}
+
+func (s *mockService) GetRefunds(ctx context.Context, id int32) (shared.Refunds, error) {
+	s.expectedIds = []int{int(id)}
+	s.lastCalled = "GetRefunds"
+	return s.refunds, s.err
 }
 
 func (s *mockService) AddInvoiceAdjustment(ctx context.Context, clientId int32, invoiceId int32, ledgerEntry *shared.AddInvoiceAdjustmentRequest) (*shared.InvoiceReference, error) {

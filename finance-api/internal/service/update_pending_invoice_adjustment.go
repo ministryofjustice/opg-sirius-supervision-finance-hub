@@ -30,7 +30,7 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId i
 
 	adjustment, err := tx.SetAdjustmentDecision(ctx, decisionParams)
 	if err != nil {
-		s.Logger(ctx).Error(fmt.Sprintf("Set adjustment decision in updating pending invoice has an issue %s for client %d", err.Error(), clientId))
+		s.Logger(ctx).Error(fmt.Sprintf("Set adjustment decision in updating invoice adjustment has an issue %s for client %d", err.Error(), clientId))
 
 		return err
 	}

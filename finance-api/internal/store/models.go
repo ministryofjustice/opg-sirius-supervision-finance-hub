@@ -20,6 +20,14 @@ type Assignee struct {
 	Surname pgtype.Text
 }
 
+type BankDetail struct {
+	ID       int32
+	RefundID int32
+	Name     string
+	Account  string
+	SortCode string
+}
+
 type BillingPeriod struct {
 	ID              int32
 	FinanceClientID pgtype.Int4
@@ -199,6 +207,20 @@ type Rate struct {
 	Enddate   pgtype.Date
 	// (DC2Type:money)
 	Amount int32
+}
+
+type Refund struct {
+	ID            int32
+	ClientID      int32
+	RaisedDate    pgtype.Date
+	FulfilledDate pgtype.Date
+	Amount        int32
+	Status        string
+	Notes         string
+	CreatedBy     int32
+	CreatedAt     pgtype.Timestamp
+	UpdatedBy     pgtype.Int4
+	UpdatedAt     pgtype.Timestamp
 }
 
 type Report struct {
