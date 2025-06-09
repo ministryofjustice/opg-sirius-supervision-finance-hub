@@ -90,7 +90,7 @@ func (m mockApiClient) UpdatePendingInvoiceAdjustment(context context.Context, i
 	return m.error
 }
 
-func (m mockApiClient) AdjustInvoice(context.Context, int, int, int, string, string, string, bool) error {
+func (m mockApiClient) AddInvoiceAdjustment(context.Context, int, int, int, string, string, string, bool) error {
 	return m.error
 }
 
