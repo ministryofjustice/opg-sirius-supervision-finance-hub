@@ -21,12 +21,14 @@ func (s *Service) ProcessPaymentReversals(ctx context.Context, records [][]strin
 		return nil, err
 	}
 
+	var processedRecords []shared.ReversalDetails
+
 	for index, record := range records {
 		if index != 0 && record[0] != "" {
 			details := getReversalLines(ctx, record, uploadType, index, &failedLines)
 
 			if details != (shared.ReversalDetails{}) {
-				if !s.validateReversalLine(ctx, details, uploadType, index, &failedLines) {
+				if !s.validateReversalLine(ctx, details, uploadType, processedRecords, index, &failedLines) {
 					continue
 				}
 
@@ -40,6 +42,8 @@ func (s *Service) ProcessPaymentReversals(ctx context.Context, records [][]strin
 				if err != nil {
 					return nil, err
 				}
+
+				processedRecords = append(processedRecords, details)
 
 				if uploadType == shared.ReportTypeUploadMisappliedPayments {
 					err = s.ProcessPaymentsUploadLine(ctx, tx, shared.PaymentDetails{
@@ -184,7 +188,7 @@ func getReversalLines(ctx context.Context, record []string, uploadType shared.Re
 	}
 }
 
-func (s *Service) validateReversalLine(ctx context.Context, details shared.ReversalDetails, uploadType shared.ReportUploadType, index int, failedLines *map[int]string) bool {
+func (s *Service) validateReversalLine(ctx context.Context, details shared.ReversalDetails, uploadType shared.ReportUploadType, processedRecords []shared.ReversalDetails, index int, failedLines *map[int]string) bool {
 	ledgerCount, _ := s.store.CountDuplicateLedger(ctx, store.CountDuplicateLedgerParams{
 		CourtRef:     details.ErroredCourtRef,
 		Amount:       details.Amount,
@@ -217,6 +221,11 @@ func (s *Service) validateReversalLine(ctx context.Context, details shared.Rever
 	})
 
 	if reversalCount >= ledgerCount {
+		(*failedLines)[index] = validation.UploadErrorDuplicateReversal
+		return false
+	}
+
+	if fileReversalCount(processedRecords, details) >= int(ledgerCount) {
 		(*failedLines)[index] = validation.UploadErrorDuplicateReversal
 		return false
 	}
@@ -296,4 +305,14 @@ func (s *Service) ProcessReversalUploadLine(ctx context.Context, tx *store.Tx, d
 	}
 
 	return nil
+}
+
+func fileReversalCount(processedRecords []shared.ReversalDetails, details shared.ReversalDetails) int {
+	count := 0
+	for _, s := range processedRecords {
+		if s == details {
+			count++
+		}
+	}
+	return count
 }

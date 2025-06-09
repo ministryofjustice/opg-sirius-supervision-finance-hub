@@ -15,7 +15,7 @@ const countDuplicateLedger = `-- name: CountDuplicateLedger :one
 SELECT COUNT(*)
 FROM ledger l
         JOIN finance_client fc ON fc.id = l.finance_client_id
-WHERE l.amount = $1
+WHERE (l.amount = $1)
  AND l.status = 'CONFIRMED'
  AND (COALESCE(l.pis_number, 0) <> 0 OR l.bankdate = $2)
  AND l.datetime::DATE = ($3::TIMESTAMP)::DATE
