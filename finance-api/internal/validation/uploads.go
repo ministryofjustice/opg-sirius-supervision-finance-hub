@@ -9,4 +9,5 @@ const (
 	UploadErrorUnknownUploadType      = "UNKNOWN_UPLOAD_TYPE"
 	UploadErrorNoMatchedPayment       = "NO_MATCHED_PAYMENT"
 	UploadErrorReversalClientNotFound = "REVERSAL_CLIENT_NOT_FOUND"
+	UploadErrorDuplicateReversal      = "DUPLICATE_REVERSAL"
 )
