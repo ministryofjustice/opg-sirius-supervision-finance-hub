@@ -147,8 +147,6 @@ func formatFailedLines(failedLines map[int]string) []string {
 		keys = append(keys, i)
 	}
 
-	fmt.Println(failedLines)
-
 	slices.Sort(keys)
 
 	for _, key := range keys {
