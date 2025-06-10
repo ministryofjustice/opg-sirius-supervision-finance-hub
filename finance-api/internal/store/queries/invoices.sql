@@ -106,6 +106,24 @@ FROM invoice i
          LEFT JOIN ledger_sums ls ON ls.invoice_id = i.id
 WHERE i.id = $1;
 
+-- name: GetInvoiceFeeReductionReversalDetails :one
+SELECT
+    (SELECT SUM(amount)
+    FROM invoice_adjustment ia
+    WHERE ia.invoice_id = @invoice_id
+    AND ia.adjustment_type = 'FEE REDUCTION REVERSAL'
+    AND ia.status = 'APPROVED') as reversal_total,
+    (SELECT SUM(la.amount)
+     FROM ledger l
+              JOIN ledger_allocation la ON l.id = la.ledger_id
+     WHERE la.invoice_id = @invoice_id
+       AND l.fee_reduction_id IS NOT NULL
+     GROUP BY l.fee_reduction_id
+     ORDER BY l.fee_reduction_id DESC) AS fee_reduction_total;
+
+
+
+
 -- name: GetInvoiceBalancesForFeeReductionRange :many
 SELECT i.id,
        i.amount,

@@ -17,13 +17,15 @@ const (
 	AdjustmentTypeCreditMemo
 	AdjustmentTypeDebitMemo
 	AdjustmentTypeWriteOffReversal
+	AdjustmentTypeFeeReductionReversal
 )
 
 var adjustmentTypeMap = map[string]AdjustmentType{
-	"CREDIT WRITE OFF":   AdjustmentTypeWriteOff,
-	"CREDIT MEMO":        AdjustmentTypeCreditMemo,
-	"DEBIT MEMO":         AdjustmentTypeDebitMemo,
-	"WRITE OFF REVERSAL": AdjustmentTypeWriteOffReversal,
+	"CREDIT WRITE OFF":       AdjustmentTypeWriteOff,
+	"CREDIT MEMO":            AdjustmentTypeCreditMemo,
+	"DEBIT MEMO":             AdjustmentTypeDebitMemo,
+	"WRITE OFF REVERSAL":     AdjustmentTypeWriteOffReversal,
+	"FEE REDUCTION REVERSAL": AdjustmentTypeFeeReductionReversal,
 }
 
 func (a AdjustmentType) String() string {
@@ -36,6 +38,8 @@ func (a AdjustmentType) String() string {
 		return "Debit memo"
 	case AdjustmentTypeWriteOffReversal:
 		return "Write off reversal"
+	case AdjustmentTypeFeeReductionReversal:
+		return "Fee reduction reversal"
 	default:
 		return ""
 	}
@@ -51,6 +55,8 @@ func (a AdjustmentType) Translation() string {
 		return "Add debit"
 	case AdjustmentTypeWriteOffReversal:
 		return "Write off reversal"
+	case AdjustmentTypeFeeReductionReversal:
+		return "Fee reduction reversal"
 	default:
 		return ""
 	}
@@ -66,6 +72,8 @@ func (a AdjustmentType) Key() string {
 		return "DEBIT MEMO"
 	case AdjustmentTypeWriteOffReversal:
 		return "WRITE OFF REVERSAL"
+	case AdjustmentTypeFeeReductionReversal:
+		return "FEE REDUCTION REVERSAL"
 	default:
 		return ""
 	}
@@ -73,7 +81,7 @@ func (a AdjustmentType) Key() string {
 
 func (a AdjustmentType) AmountRequired() bool {
 	switch a {
-	case AdjustmentTypeCreditMemo, AdjustmentTypeDebitMemo:
+	case AdjustmentTypeCreditMemo, AdjustmentTypeDebitMemo, AdjustmentTypeFeeReductionReversal:
 		return true
 	default:
 		return false
