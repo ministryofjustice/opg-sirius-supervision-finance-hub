@@ -27,7 +27,7 @@ func (h *SubmitRefundHandler) render(v AppVars, w http.ResponseWriter, r *http.R
 	err := h.Client().AddRefund(ctx, clientID, accountName, accountNumber, sortCode, notes)
 
 	if err == nil {
-		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/refund?success=refund", v.EnvironmentVars.Prefix, clientID))
+		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/refunds?success=refund-added", v.EnvironmentVars.Prefix, clientID))
 	} else {
 		var (
 			valErr apierror.ValidationError

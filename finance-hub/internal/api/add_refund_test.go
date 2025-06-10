@@ -70,7 +70,7 @@ func TestAddRefundReturnsValidationError(t *testing.T) {
 	validationErrors := apierror.ValidationError{
 		Errors: map[string]map[string]string{
 			"accountNumber": {
-				"tooLong": "Account number must by 8 digits",
+				"tooLong": "AccountNumber number must by 8 digits",
 			},
 		},
 	}
@@ -84,6 +84,6 @@ func TestAddRefundReturnsValidationError(t *testing.T) {
 	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
 	err := client.AddRefund(testContext(), 1, "Reginald Refund", "12345678", "11-22-33", "")
-	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"accountNumber": map[string]string{"tooLong": "Account number must by 8 digits"}}}
+	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"accountNumber": map[string]string{"tooLong": "AccountNumber number must by 8 digits"}}}
 	assert.Equal(t, expectedError, err.(apierror.ValidationError))
 }

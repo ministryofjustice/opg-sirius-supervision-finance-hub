@@ -17,7 +17,7 @@ type AddRefundHandler struct {
 func (h *AddRefundHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
 	clientID := getClientID(r)
 
-	data := &AddRefund{ClientId: strconv.Itoa(clientID), AppVars: v}
+	data := AddRefund{ClientId: strconv.Itoa(clientID), AppVars: v}
 
 	return h.execute(w, r, data)
 }

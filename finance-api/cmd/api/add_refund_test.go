@@ -17,10 +17,10 @@ func TestServer_addRefund(t *testing.T) {
 	var b bytes.Buffer
 
 	refund := shared.AddRefund{
-		AccountName: "Mr Reginald Refund",
-		Account:     "12345678",
-		SortCode:    "11-22-33",
-		Notes:       "This is a test",
+		AccountName:   "Mr Reginald Refund",
+		AccountNumber: "12345678",
+		SortCode:      "11-22-33",
+		RefundNotes:   "This is a test",
 	}
 	_ = json.NewEncoder(&b).Encode(refund)
 	req := httptest.NewRequest(http.MethodPost, "/clients/1/refunds", &b)
@@ -46,10 +46,10 @@ func TestServer_addRefundValidationErrors(t *testing.T) {
 	var b bytes.Buffer
 
 	refund := shared.AddRefund{
-		AccountName: "",
-		Account:     "",
-		SortCode:    "",
-		Notes:       "",
+		AccountName:   "",
+		AccountNumber: "",
+		SortCode:      "",
+		RefundNotes:   "",
 	}
 	_ = json.NewEncoder(&b).Encode(refund)
 	req := httptest.NewRequest(http.MethodPost, "/clients/1/refunds", &b)
@@ -66,14 +66,14 @@ func TestServer_addRefundValidationErrors(t *testing.T) {
 		"AccountName": {
 			"required": "This field AccountName needs to be looked at required",
 		},
-		"Account": {
-			"required": "This field Account needs to be looked at required",
+		"AccountNumber": {
+			"required": "This field AccountNumber needs to be looked at required",
 		},
 		"SortCode": {
 			"required": "This field SortCode needs to be looked at required",
 		},
-		"Notes": {
-			"required": "This field Notes needs to be looked at required",
+		"RefundNotes": {
+			"required": "This field RefundNotes needs to be looked at required",
 		},
 	}}
 	assert.Equal(t, expected, err)
@@ -83,10 +83,10 @@ func TestServer_addRefundValidationErrors(t *testing.T) {
 func TestServer_addRefund500Error(t *testing.T) {
 	var b bytes.Buffer
 	refund := shared.AddRefund{
-		AccountName: "Mr Reginald Refund",
-		Account:     "12345678",
-		SortCode:    "11-22-33",
-		Notes:       "This is a test",
+		AccountName:   "Mr Reginald Refund",
+		AccountNumber: "12345678",
+		SortCode:      "11-22-33",
+		RefundNotes:   "This is a test",
 	}
 	_ = json.NewEncoder(&b).Encode(refund)
 	req := httptest.NewRequest(http.MethodPost, "/clients/1/refunds", &b)

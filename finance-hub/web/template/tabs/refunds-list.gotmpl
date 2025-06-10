@@ -3,8 +3,8 @@
     <header>
         <h1 class="govuk-heading-l  govuk-!-margin-bottom-0  govuk-!-margin-top-0">Refunds</h1>
         <div style="float: right;">
-            {{ if .User.IsFinanceUser }}
-                <div class="moj-button-menu">
+            <div class="moj-button-menu">
+                {{ if .User.IsFinanceUser }}
                     <a
                             class="govuk-button moj-button-menu__item govuk-button--secondary"
                             role="button"
@@ -15,8 +15,8 @@
                             hx-push-url="{{ prefix  (printf "/clients/%s/refunds/add" .ClientId) }}">
                         Add refund
                     </a>
-                </div>
-            {{ end }}
+                {{ end }}
+            </div>
         </div>
     </header>
     <table id="refunds" class="govuk-table">
@@ -25,8 +25,8 @@
             <th scope="col" class="govuk-table__header">Date raised</th>
             <th scope="col" class="govuk-table__header">Date fulfilled</th>
             <th scope="col" class="govuk-table__header">Amount</th>
-            {{ if User.IsFinanceManager }}
-            <th scope="col" class="govuk-table__header">Bank details</th>
+            {{ if .User.IsFinanceManager }}
+                <th scope="col" class="govuk-table__header">Bank details</th>
             {{ end }}
             <th scope="col" class="govuk-table__header">Notes</th>
             <th scope="col" class="govuk-table__header">Status</th>
@@ -48,18 +48,18 @@
                     <td class="govuk-table__cell">{{.DateRaised}}</td>
                     <td class="govuk-table__cell">{{ if .DateFulfilled }}{{ .DateFulfilled }}{{ else }}{{ "" }}{{ end }}</td>
                     <td class="govuk-table__cell">£{{.Amount}}</td>
-                    <td class="govuk-table__cell">
-                        {{ if and $user.IsFinanceManager (eq .Status "Pending") }}
-                            <b>Account Name:</b> {{.BankDetails.Name}}<br>
-                            <b>Account Number:</b> {{.BankDetails.Account}}<br>
-                            <b>Sort Code:</b> {{.BankDetails.SortCode}}
-                        {{ end }}
-                    </td>
+                    {{ if $user.IsFinanceManager }}
+                        <td class="govuk-table__cell">
+                            {{ if eq .Status "Pending" }}
+                                <b>Account Name:</b> {{.BankDetails.Name}}<br>
+                                <b>Account Number:</b> {{.BankDetails.Account}}<br>
+                                <b>Sort Code:</b> {{.BankDetails.SortCode}}
+                            {{ end }}
+                        </td>
                     {{ end }}
                     <td class="govuk-table__cell">{{.Notes}}</td>
                     <td class="govuk-table__cell">{{.Status}}</td>
                     <td class="govuk-table__cell">
-                        {{ if $user.IsFinanceManager }}
                         <div class="form-button-menu">
                             {{ if $user.IsFinanceManager }}
                                 {{ if eq .Status "Pending"}}
@@ -93,7 +93,6 @@
                                         </button>
                                     </form>
                                 {{ end}}
-                            </div>
                             {{ end}}
                         </div>
                     </td>

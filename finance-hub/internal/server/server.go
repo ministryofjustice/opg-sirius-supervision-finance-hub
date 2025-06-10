@@ -92,6 +92,7 @@ func New(logger *slog.Logger, client *api.Client, templates map[string]*template
 	handleMux("POST /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", &SubmitCancelFeeReductionsHandler{&route{client: client, tmpl: templates["cancel-fee-reduction.gotmpl"], partial: "error-summary"}})
 	handleMux("POST /clients/{clientId}/invoice-adjustments/{adjustmentId}/{adjustmentType}/{status}", &SubmitUpdatePendingInvoiceAdjustmentHandler{&route{client: client, tmpl: templates["invoice-adjustments.gotmpl"], partial: "invoice-adjustments"}})
 	handleMux("POST /clients/{clientId}/payment-method/add", &SubmitPaymentMethodHandler{&route{client: client, tmpl: templates["set-up-direct-debit.gotmpl"], partial: "error-summary"}})
+	handleMux("POST /clients/{clientId}/refunds", &SubmitRefundHandler{&route{client: client, tmpl: templates["add-refund.gotmpl"], partial: "error-summary"}})
 
 	mux.Handle("/health-check", healthCheck())
 
