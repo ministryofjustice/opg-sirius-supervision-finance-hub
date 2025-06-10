@@ -29,6 +29,10 @@ func (m *mockDispatch) CreditOnAccount(ctx context.Context, event event.CreditOn
 	return nil
 }
 
+func (m *mockDispatch) RefundAdded(ctx context.Context, event event.RefundAdded) error {
+	return nil
+}
+
 func (suite *IntegrationSuite) SetupSuite() {
 	suite.ctx = auth.Context{
 		Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test")),

@@ -16,7 +16,7 @@ func TestAddRefundSuccess(t *testing.T) {
 		"accountName":   {"Mr Reginald Refund"},
 		"accountNumber": {"12345678"},
 		"sortCode":      {"11-22-33"},
-		"Notes":         {"notes here"},
+		"RefundNotes":   {"notes here"},
 	}
 
 	client := mockApiClient{}
@@ -38,7 +38,7 @@ func TestAddRefundSuccess(t *testing.T) {
 	err := sut.render(appVars, w, r)
 
 	assert.Nil(t, err)
-	assert.Equal(t, "prefix/clients/1/refunds?success=refund", w.Header().Get("HX-Redirect"))
+	assert.Equal(t, "prefix/clients/1/refunds?success=refund-added", w.Header().Get("HX-Redirect"))
 }
 
 func TestAddRefundValidationErrors(t *testing.T) {
@@ -48,7 +48,7 @@ func TestAddRefundValidationErrors(t *testing.T) {
 
 	validationErrors := apierror.ValidationErrors{
 		"accountNumber": {
-			"tooLong": "Account number must by 8 digits",
+			"tooLong": "AccountNumber number must by 8 digits",
 		},
 	}
 

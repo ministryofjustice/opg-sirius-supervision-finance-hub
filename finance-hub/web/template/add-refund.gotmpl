@@ -13,12 +13,12 @@
                 <div id="error-summary"></div>
                 <div class="govuk-grid-row">
                     <form
-                        id="add-refund-form"
-                        class="govuk-grid-column-one-third"
-                        method="post"
-                        hx-post="{{ prefix (printf "/clients/%s/refund" .ClientId) }}"
-                        hx-target="#error-summary"
-                        hx-disabled-elt="find button">
+                            id="add-refund-form"
+                            class="govuk-grid-column-one-third"
+                            method="post"
+                            hx-post="{{ prefix (printf "/clients/%s/refunds" .ClientId) }}"
+                            hx-target="#error-summary"
+                            hx-disabled-elt="find button">
                         <input type="hidden" name="CSRF" value="{{ .AppVars.XSRFToken }}"/>
 
                         <div id="f-AccountName" class="govuk-form-group">
@@ -26,7 +26,8 @@
                                 Name on bank account
                             </label>
                             <span id="error-message__AccountName"></span>
-                            <input class="govuk-input" id="accountName" name="accountName" style="width: 40%" type="text">
+                            <input class="govuk-input" id="accountName" name="accountName" style="width: 40%"
+                                   type="text">
                         </div>
 
                         <div id="f-AccountNumber" class="govuk-form-group">
@@ -34,7 +35,7 @@
                                 Account number
                             </label>
                             <span id="error-message__AccountNumber"></span>
-                            <input class="govuk-input" id="accountNumber" name="accountNumber" style="width: 40%" inputmode="numeric" maxlength="8">
+                            <input class="govuk-input" id="accountNumber" name="accountNumber" style="width: 40%" type="number">
                         </div>
 
                         <div id="f-SortCode" class="govuk-form-group">
@@ -42,18 +43,20 @@
                                 Sort code
                             </label>
                             <span id="error-message__SortCode"></span>
-                            <input class="govuk-input" id="sortCode" name="sortCode" style="width: 40%" inputmode="numeric" maxlength="8">
+                            <input class="govuk-input" id="sortCode" name="sortCode" style="width: 40%" inputmode="numeric">
                         </div>
 
                         <div class="govuk-character-count" data-module="govuk-character-count" data-maxlength="1000">
                             <div id="f-Notes" class="govuk-form-group">
                                 <label class="govuk-label" for="refund-notes">
-                                    Reasons for refund
+                                    Reason for refund
                                 </label>
                                 <span id="error-message__Notes"></span>
-                                <textarea class="govuk-textarea govuk-js-character-count" id="refund-notes" name="notes" rows="10" aria-describedby="refund-notes-info notes-hint"></textarea>
+                                <textarea class="govuk-textarea govuk-js-character-count" id="refund-notes" name="notes"
+                                          rows="10" aria-describedby="refund-notes-info notes-hint"></textarea>
                             </div>
-                            <div id="refund-notes-info" class="govuk-hint govuk-character-count__message" aria-live="polite">
+                            <div id="refund-notes-info" class="govuk-hint govuk-character-count__message"
+                                 aria-live="polite">
                                 You have 1,000 characters remaining
                             </div>
                         </div>
@@ -62,7 +65,8 @@
                             <button class="govuk-button" data-module="govuk-button">
                                 Save and continue
                             </button>
-                            <a class="govuk-link"  href="{{ prefix (printf "/clients/%s/refunds" .ClientId) }}">Cancel</a>
+                            <a class="govuk-link"
+                               href="{{ prefix (printf "/clients/%s/refunds" .ClientId) }}">Cancel</a>
                         </div>
                     </form>
                 </div>

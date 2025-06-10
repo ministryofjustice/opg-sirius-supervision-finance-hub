@@ -14,10 +14,10 @@ func (c *Client) AddRefund(ctx context.Context, clientId int, accountName string
 	var body bytes.Buffer
 
 	err := json.NewEncoder(&body).Encode(shared.AddRefund{
-		AccountName: accountName,
-		Account:     accountNumber,
-		SortCode:    sortCode,
-		Notes:       notes,
+		AccountName:   accountName,
+		AccountNumber: accountNumber,
+		SortCode:      sortCode,
+		RefundNotes:   notes,
 	})
 	if err != nil {
 		return err
