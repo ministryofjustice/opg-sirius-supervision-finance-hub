@@ -21,10 +21,10 @@ func (suite *IntegrationSuite) TestService_AddRefund() {
 	)
 
 	params := shared.AddRefund{
-		AccountName: "Reginald Refund",
-		Account:     "12345678",
-		SortCode:    "11-22-33",
-		Notes:       "A refund note",
+		AccountName:   "Reginald Refund",
+		AccountNumber: "12345678",
+		SortCode:      "11-22-33",
+		RefundNotes:   "A refund note",
 	}
 
 	clientID := int32(24)
@@ -60,10 +60,10 @@ func (suite *IntegrationSuite) TestService_AddRefund() {
 	assert.Equal(suite.T(), time.Now().Format("2006-01-02"), raisedDate.Format("2006-01-02"))
 	assert.Equal(suite.T(), 5000, amount)
 	assert.Equal(suite.T(), "PENDING", status)
-	assert.Equal(suite.T(), params.Notes, notes)
+	assert.Equal(suite.T(), params.RefundNotes, notes)
 	assert.Equal(suite.T(), 10, createdById)
 	assert.Equal(suite.T(), params.AccountName, name)
-	assert.Equal(suite.T(), params.Account, account)
+	assert.Equal(suite.T(), params.AccountNumber, account)
 	assert.Equal(suite.T(), params.SortCode, sortCode)
 
 	assert.Equal(suite.T(), clientID, dispatch.event.(event.RefundAdded).ClientID)
@@ -83,10 +83,10 @@ func (suite *IntegrationSuite) TestService_AddRefund_noCreditToRefund() {
 	)
 
 	params := shared.AddRefund{
-		AccountName: "Reginald Refund",
-		Account:     "12345678",
-		SortCode:    "11-22-33",
-		Notes:       "A refund note",
+		AccountName:   "Reginald Refund",
+		AccountNumber: "12345678",
+		SortCode:      "11-22-33",
+		RefundNotes:   "A refund note",
 	}
 
 	clientID := int32(24)

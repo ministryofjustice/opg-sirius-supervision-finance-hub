@@ -47,6 +47,11 @@ var validationMappings = map[string]map[string]pair{
 		"required":                 pair{"Notes", "Enter a reason for awarding fee reduction"},
 		"thousand-character-limit": pair{"Notes", "Reason for awarding fee reduction must be 1000 characters or less"},
 	},
+
+	"RefundNotes": {
+		"required":                 pair{"Notes", "Enter a reason for the refund"},
+		"thousand-character-limit": pair{"Notes", "Reason for the refund must be 1000 characters or less"},
+	},
 	"CancellationReason": {
 		"required":                 pair{"CancellationReason", "Enter a reason for cancelling fee reduction"},
 		"thousand-character-limit": pair{"CancellationReason", "Reason for cancellation must be 1000 characters or less"},
@@ -62,10 +67,12 @@ var validationMappings = map[string]map[string]pair{
 		"gteEighteen": pair{"AccountName", "Account name can not be over 18 characters"},
 	},
 	"SortCode": {
-		"eqSix": pair{"SortCode", "Sort code must consist of 6 digits and cannot be all zeros"},
+		"eqSix":    pair{"SortCode", "Sort code must consist of 6 digits and cannot be all zeros"},
+		"required": pair{"SortCode", "Enter the sort code"},
 	},
 	"AccountNumber": {
-		"eqEight": pair{"AccountNumber", "Enter the account number, must consist of 8 digits"},
+		"len":      pair{"AccountNumber", "The account number must consist of 8 digits"},
+		"required": pair{"AccountNumber", "Enter the account number"},
 	},
 	"StartDate": {
 		"nillable-date-required": pair{"StartDate", "Enter a start date"},
