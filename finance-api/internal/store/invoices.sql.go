@@ -194,12 +194,12 @@ func (q *Queries) GetInvoiceCounter(ctx context.Context, key string) (string, er
 
 const getInvoiceFeeReductionReversalDetails = `-- name: GetInvoiceFeeReductionReversalDetails :one
 SELECT
-    (SELECT SUM(amount)
+    (SELECT COALESCE(SUM(amount), 0)
     FROM invoice_adjustment ia
     WHERE ia.invoice_id = $1
     AND ia.adjustment_type = 'FEE REDUCTION REVERSAL'
     AND ia.status = 'APPROVED') as reversal_total,
-    (SELECT SUM(la.amount)
+    (SELECT COALESCE(SUM(la.amount), 0)
      FROM ledger l
               JOIN ledger_allocation la ON l.id = la.ledger_id
      WHERE la.invoice_id = $1
@@ -209,8 +209,8 @@ SELECT
 `
 
 type GetInvoiceFeeReductionReversalDetailsRow struct {
-	ReversalTotal     int64
-	FeeReductionTotal int64
+	ReversalTotal     pgtype.Int8
+	FeeReductionTotal pgtype.Int8
 }
 
 func (q *Queries) GetInvoiceFeeReductionReversalDetails(ctx context.Context, invoiceID int32) (GetInvoiceFeeReductionReversalDetailsRow, error) {

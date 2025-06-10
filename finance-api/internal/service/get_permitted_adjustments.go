@@ -33,11 +33,7 @@ func (s *Service) GetPermittedAdjustments(ctx context.Context, invoiceId int32) 
 		return nil, err
 	}
 
-	// add condition for fee reduction reversal
-	// if there is an existing fee reduction credit on the invoice and there is not an equivalent fee reduction reversal for that fee reductio
-	// (calculated by the total of fee reduction credits + total of fee reduction reversal debits being more than zero)
-
-	if feeReductionDetails.ReversalTotal < feeReductionDetails.FeeReductionTotal {
+	if feeReductionDetails.ReversalTotal.Int64 < feeReductionDetails.FeeReductionTotal.Int64 {
 		permitted = append(permitted, shared.AdjustmentTypeFeeReductionReversal)
 	}
 

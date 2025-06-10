@@ -108,12 +108,12 @@ WHERE i.id = $1;
 
 -- name: GetInvoiceFeeReductionReversalDetails :one
 SELECT
-    (SELECT SUM(amount)
+    (SELECT COALESCE(SUM(amount), 0)
     FROM invoice_adjustment ia
     WHERE ia.invoice_id = @invoice_id
     AND ia.adjustment_type = 'FEE REDUCTION REVERSAL'
     AND ia.status = 'APPROVED') as reversal_total,
-    (SELECT SUM(la.amount)
+    (SELECT COALESCE(SUM(la.amount), 0)
      FROM ledger l
               JOIN ledger_allocation la ON l.id = la.ledger_id
      WHERE la.invoice_id = @invoice_id
