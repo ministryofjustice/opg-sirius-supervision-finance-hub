@@ -32,6 +32,7 @@ type Envs struct {
 	port            string
 	jwtSecret       string
 	billingTeamID   int
+	showRefunds     bool
 }
 
 func parseEnvs() (*Envs, error) {
@@ -70,6 +71,7 @@ func parseEnvs() (*Envs, error) {
 		billingTeamID:   billingTeamId,
 		webDir:          "web",
 		port:            envs["PORT"],
+		showRefunds:     os.Getenv("SHOW_REFUNDS") == "1",
 	}, nil
 }
 
@@ -120,6 +122,7 @@ func run(ctx context.Context, logger *slog.Logger) error {
 			Prefix:          envs.prefix,
 			BackendURL:      envs.backendURL,
 			BillingTeamID:   envs.billingTeamID,
+			ShowRefunds:     envs.showRefunds,
 		}),
 		ReadHeaderTimeout: 10 * time.Second,
 	}

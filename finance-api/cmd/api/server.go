@@ -20,11 +20,12 @@ import (
 
 type Service interface {
 	GetAccountInformation(ctx context.Context, id int32) (*shared.AccountInformation, error)
-	GetInvoices(ctx context.Context, clientId int32) (*shared.Invoices, error)
+	GetInvoices(ctx context.Context, clientId int32) (shared.Invoices, error)
+	GetInvoiceAdjustments(ctx context.Context, clientId int32) (shared.InvoiceAdjustments, error)
 	GetPermittedAdjustments(ctx context.Context, invoiceId int32) ([]shared.AdjustmentType, error)
-	GetFeeReductions(ctx context.Context, invoiceId int32) (*shared.FeeReductions, error)
+	GetRefunds(ctx context.Context, clientId int32) (shared.Refunds, error)
+	GetFeeReductions(ctx context.Context, invoiceId int32) (shared.FeeReductions, error)
 	AddInvoiceAdjustment(ctx context.Context, clientId int32, invoiceId int32, ledgerEntry *shared.AddInvoiceAdjustmentRequest) (*shared.InvoiceReference, error)
-	GetInvoiceAdjustments(ctx context.Context, clientId int32) (*shared.InvoiceAdjustments, error)
 	AddFeeReduction(ctx context.Context, clientId int32, data shared.AddFeeReduction) error
 	CancelFeeReduction(ctx context.Context, id int32, cancelledFeeReduction shared.CancelFeeReduction) error
 	UpdatePendingInvoiceAdjustment(ctx context.Context, clientId int32, adjustmentId int32, status shared.AdjustmentStatus) error
@@ -103,6 +104,7 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 	authFunc("GET /clients/{clientId}/fee-reductions", shared.RoleAny, s.getFeeReductions)
 	authFunc("GET /clients/{clientId}/invoice-adjustments", shared.RoleAny, s.getInvoiceAdjustments)
 	authFunc("GET /clients/{clientId}/billing-history", shared.RoleAny, s.getBillingHistory)
+	authFunc("GET /clients/{clientId}/refunds", shared.RoleAny, s.getRefunds)
 
 	authFunc("POST /clients/{clientId}/invoices", shared.RoleFinanceManager, s.addManualInvoice)
 	authFunc("POST /clients/{clientId}/invoices/{invoiceId}/invoice-adjustments", shared.RoleFinanceUser, s.AddInvoiceAdjustment)

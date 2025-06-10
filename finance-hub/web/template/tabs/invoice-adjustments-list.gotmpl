@@ -1,9 +1,9 @@
 {{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.PendingInvoiceAdjustmentsTab*/ -}}
-{{ define "pending-invoice-adjustments-list" }}
+{{ define "invoice-adjustments-list" }}
     <header>
-        <h1 class="govuk-heading-l  govuk-!-margin-bottom-0  govuk-!-margin-top-0">Pending Invoice Adjustments</h1>
+        <h1 class="govuk-heading-l  govuk-!-margin-bottom-0  govuk-!-margin-top-0">Invoice Adjustments</h1>
     </header>
-    <table id="pending-invoice-adjustments" class="govuk-table">
+    <table id="invoice-adjustments" class="govuk-table">
         <thead class="govuk-table__head">
         <tr class="govuk-table__row">
             <th scope="col" data-cy="invoice" class="govuk-table__header">Invoice</th>
@@ -15,9 +15,9 @@
             <th scope="col" data-cy="actions" class="govuk-table__header">Actions</th>
         </tr>
         </thead>
-        {{ if eq (len .PendingInvoiceAdjustments) 0 }}
+        {{ if eq (len .InvoiceAdjustments) 0 }}
             <tr class="govuk-table__row">
-                <td colspan="100%" class="govuk-table__cell govuk-table__cell--no-data">There are no pending invoice
+                <td colspan="100%" class="govuk-table__cell govuk-table__cell--no-data">There are no invoice
                     adjustments
                 </td>
             </tr>
@@ -25,7 +25,7 @@
             {{ $clientId := .ClientId }}
             {{ $user := .User }}
             {{ $xsrfToken := .AppVars.XSRFToken }}
-            {{ range .PendingInvoiceAdjustments }}
+            {{ range .InvoiceAdjustments }}
                 <tbody class="govuk-table__body">
                 <tr>
                     <td class="govuk-table__cell">{{.Invoice}}</td>
@@ -39,7 +39,7 @@
                             {{ if eq .Status "Pending"}}
                                 <div class="form-button-menu">
                                     <form method="post"
-                                          hx-post="{{ prefix (printf "/clients/%s/pending-invoice-adjustments/%s/%s/approved" $clientId .Id .AdjustmentType) }}"
+                                          hx-post="{{ prefix (printf "/clients/%s/invoice-adjustments/%s/%s/approved" $clientId .Id .AdjustmentType) }}"
                                           hx-disabled-elt="find button">
                                         <input type="hidden" name="CSRF" value="{{ $xsrfToken }}"/>
                                         <button class="govuk-button moj-button-menu__item govuk-button--secondary {{ if eq $user.ID .CreatedBy }}invisible{{end}}"
@@ -49,7 +49,7 @@
                                     </form>
 
                                     <form method="post"
-                                          hx-post="{{ prefix (printf "/clients/%s/pending-invoice-adjustments/%s/%s/rejected" $clientId .Id .AdjustmentType) }}"
+                                          hx-post="{{ prefix (printf "/clients/%s/invoice-adjustments/%s/%s/rejected" $clientId .Id .AdjustmentType) }}"
                                           hx-disabled-elt="find button">
                                         <input type="hidden" name="CSRF" value="{{ $xsrfToken }}"/>
                                         <button class="govuk-button moj-button-menu__item govuk-button--secondary"
