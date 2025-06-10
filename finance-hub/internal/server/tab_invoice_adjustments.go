@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-type PendingInvoiceAdjustments []PendingInvoiceAdjustment
+type InvoiceAdjustments []PendingInvoiceAdjustment
 
 type PendingInvoiceAdjustment struct {
 	Id               string
@@ -20,17 +20,17 @@ type PendingInvoiceAdjustment struct {
 	CreatedBy        int
 }
 
-type PendingInvoiceAdjustmentsTab struct {
-	PendingInvoiceAdjustments PendingInvoiceAdjustments
-	ClientId                  string
+type InvoiceAdjustmentsTab struct {
+	InvoiceAdjustments InvoiceAdjustments
+	ClientId           string
 	AppVars
 }
 
-type PendingInvoiceAdjustmentsHandler struct {
+type InvoiceAdjustmentsHandler struct {
 	router
 }
 
-func (h *PendingInvoiceAdjustmentsHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
+func (h *InvoiceAdjustmentsHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 	clientID := getClientID(r)
 
@@ -39,14 +39,14 @@ func (h *PendingInvoiceAdjustmentsHandler) render(v AppVars, w http.ResponseWrit
 		return err
 	}
 
-	data := &PendingInvoiceAdjustmentsTab{PendingInvoiceAdjustments: h.transform(ia), ClientId: strconv.Itoa(clientID), AppVars: v}
-	data.selectTab("pending-invoice-adjustments")
+	data := &InvoiceAdjustmentsTab{InvoiceAdjustments: h.transform(ia), ClientId: strconv.Itoa(clientID), AppVars: v}
+	data.selectTab("invoice-adjustments")
 
 	return h.execute(w, r, data)
 }
 
-func (h *PendingInvoiceAdjustmentsHandler) transform(in shared.InvoiceAdjustments) PendingInvoiceAdjustments {
-	var out PendingInvoiceAdjustments
+func (h *InvoiceAdjustmentsHandler) transform(in shared.InvoiceAdjustments) InvoiceAdjustments {
+	var out InvoiceAdjustments
 	for _, adjustment := range in {
 		out = append(out, PendingInvoiceAdjustment{
 			Id:               strconv.Itoa(adjustment.Id),
@@ -63,7 +63,7 @@ func (h *PendingInvoiceAdjustmentsHandler) transform(in shared.InvoiceAdjustment
 	return out
 }
 
-func (h *PendingInvoiceAdjustmentsHandler) transformType(in shared.AdjustmentType) string {
+func (h *InvoiceAdjustmentsHandler) transformType(in shared.AdjustmentType) string {
 	switch in {
 	case shared.AdjustmentTypeCreditMemo:
 		return "Credit"
@@ -78,7 +78,7 @@ func (h *PendingInvoiceAdjustmentsHandler) transformType(in shared.AdjustmentTyp
 	}
 }
 
-func (h *PendingInvoiceAdjustmentsHandler) transformStatus(in string) string {
+func (h *InvoiceAdjustmentsHandler) transformStatus(in string) string {
 	switch in {
 	case "PENDING":
 		return "Pending"

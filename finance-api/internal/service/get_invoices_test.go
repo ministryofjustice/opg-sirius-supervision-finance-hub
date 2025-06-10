@@ -34,13 +34,13 @@ func (suite *IntegrationSuite) TestService_GetInvoices() {
 	tests := []struct {
 		name    string
 		id      int32
-		want    *shared.Invoices
+		want    shared.Invoices
 		wantErr bool
 	}{
 		{
 			name: "returns invoices when clientId matches clientId in invoice table",
 			id:   1,
-			want: &shared.Invoices{
+			want: shared.Invoices{
 				shared.Invoice{
 					Id:                 1,
 					Ref:                "S203531/19",
@@ -77,7 +77,7 @@ func (suite *IntegrationSuite) TestService_GetInvoices() {
 		{
 			name: "returns an empty array when no match is found",
 			id:   2,
-			want: &shared.Invoices{},
+			want: shared.Invoices{},
 		},
 	}
 	for _, tt := range tests {
@@ -91,7 +91,7 @@ func (suite *IntegrationSuite) TestService_GetInvoices() {
 				t.Errorf("GetInvoices() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if (err == nil) && len(*tt.want) == 0 {
+			if (err == nil) && len(tt.want) == 0 {
 				assert.Empty(t, got)
 				return
 			}
@@ -324,7 +324,7 @@ func Test_invoiceBuilder_statuses(t *testing.T) {
 				},
 			})
 			ib.addLedgerAllocations(tt.ilas)
-			invoices := *ib.Build()
+			invoices := ib.Build()
 			assert.Equal(t, tt.status, invoices[0].Status)
 		})
 	}

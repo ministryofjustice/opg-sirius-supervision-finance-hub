@@ -16,7 +16,7 @@ describe("Role-based permissions", () => {
         cy.contains(".govuk-button", "Award fee reduction").should("not.exist");
         cy.contains(".govuk-button", "Cancel").should("not.exist");
 
-        cy.visit("/clients/11/pending-invoice-adjustments");
+        cy.visit("/clients/11/invoice-adjustments");
         cy.contains(".govuk-button", "Approve").should("not.exist");
         cy.contains(".govuk-button", "Reject").should("not.exist");
     });
@@ -34,7 +34,7 @@ describe("Role-based permissions", () => {
         cy.contains(".govuk-button", "Award a fee reduction").should("exist");
         cy.contains(".govuk-button", "Cancel").should("exist");
 
-        cy.visit("/clients/11/pending-invoice-adjustments");
+        cy.visit("/clients/11/invoice-adjustments");
         cy.contains(".govuk-button", "Approve").should("not.exist");
         cy.contains(".govuk-button", "Reject").should("not.exist");
     });
@@ -52,7 +52,7 @@ describe("Role-based permissions", () => {
         cy.contains(".govuk-button", "Award fee reduction").should("not.exist");
         cy.contains(".govuk-button", "Cancel").should("not.exist");
 
-        cy.visit("/clients/11/pending-invoice-adjustments");
+        cy.visit("/clients/11/invoice-adjustments");
         cy.contains(".govuk-button", "Approve").should("exist");
         cy.contains(".govuk-button", "Reject").should("exist");
     });
