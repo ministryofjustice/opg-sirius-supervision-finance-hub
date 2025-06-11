@@ -100,11 +100,11 @@ jobs:
       - name: Set Build Timestamp
         id: set_timestamp
         run: echo "BUILD_TIMESTAMP=$(date +"%Y%m%d%H%M%S")" >> $GITHUB_OUTPUT
+
       - name: Bump Version
         id: semver_tag
         uses: ministryofjustice/opg-github-actions/.github/actions/semver-tag@c9c5dfb290b8f614df0884928c521165ba83d630 # v3.1.4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
           default_bump: minor
           releases_enabled: false
 
