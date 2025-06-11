@@ -83,7 +83,7 @@ jobs:
     name: Version & Tag
     runs-on: ubuntu-latest
     outputs:
-      tag: ${{ steps.bump_version.outputs.tag }}
+      tag: ${{ steps.semver_tag.outputs.created_tag }}
       timestamp: ${{ steps.set_timestamp.outputs.build_timestamp }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -100,17 +100,13 @@ jobs:
       - name: Set Build Timestamp
         id: set_timestamp
         run: echo "BUILD_TIMESTAMP=$(date +"%Y%m%d%H%M%S")" >> $GITHUB_OUTPUT
+
       - name: Bump Version
-        id: bump_version
-        uses: anothrNick/github-tag-action@e528bc2b9628971ce0e6f823f3052d1dcd9d512c # 1.73.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          INITIAL_VERSION: 1.0.0
-          DEFAULT_BUMP: minor
-          PRERELEASE: true
-          PRERELEASE_SUFFIX: ${{ env.BRANCH_NAME }}
-          RELEASE_BRANCHES: main
-          WITH_V: true
+        id: semver_tag
+        uses: ministryofjustice/opg-github-actions/.github/actions/semver-tag@c9c5dfb290b8f614df0884928c521165ba83d630 # v3.1.4
+        with:
+          default_bump: minor
+          releases_enabled: false
 
   cypress:
     name: Cypress Tests
@@ -139,7 +135,7 @@ jobs:
     name: Test Migrations are Safe.
     runs-on: ubuntu-latest
     outputs:
-      tag: ${{ steps.bump_version.outputs.tag }}
+      tag: ${{ steps.semver_tag.outputs.created_tag }}
       timestamp: ${{ steps.set_timestamp.outputs.build_timestamp }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
