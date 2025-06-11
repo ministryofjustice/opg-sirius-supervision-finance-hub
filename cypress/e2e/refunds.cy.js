@@ -2,6 +2,8 @@ describe("Refunds tab", () => {
     it("displays table and content", () => {
         cy.visit("/clients/14/refunds");
 
+        cy.contains(".moj-button-menu", "Add refund");
+
         cy.get("table#refunds > thead > tr")
             .children()
             .first().contains("Date raised")
@@ -31,6 +33,8 @@ describe("Refunds tab", () => {
     it("hides bank details and actions to non-finance managers", () => {
         cy.setUser("1");
         cy.visit("/clients/14/refunds");
+
+        cy.get(".moj-button-menu").should("not.contain", "Add refund");
 
         cy.get("table#refunds > tbody")
             .contains("Pending").parent("tr").as("pendingRow");

@@ -2,6 +2,22 @@
 {{ define "refunds-list" }}
     <header>
         <h1 class="govuk-heading-l  govuk-!-margin-bottom-0  govuk-!-margin-top-0">Refunds</h1>
+        <div style="float: right;">
+            {{ if .User.IsFinanceUser }}
+                <div class="moj-button-menu">
+                    <a
+                            class="govuk-button moj-button-menu__item govuk-button--secondary"
+                            role="button"
+                            draggable="false"
+                            data-module="govuk-button"
+                            hx-get="{{ prefix (printf "/clients/%s/refunds/add" .ClientId) }}"
+                            hx-target="#main-content"
+                            hx-push-url="{{ prefix  (printf "/clients/%s/refunds/add" .ClientId) }}">
+                        Add refund
+                    </a>
+                </div>
+            {{ end }}
+        </div>
     </header>
     <table id="refunds" class="govuk-table">
         <thead class="govuk-table__head">
@@ -9,7 +25,9 @@
             <th scope="col" class="govuk-table__header">Date raised</th>
             <th scope="col" class="govuk-table__header">Date fulfilled</th>
             <th scope="col" class="govuk-table__header">Amount</th>
+            {{ if User.IsFinanceManager }}
             <th scope="col" class="govuk-table__header">Bank details</th>
+            {{ end }}
             <th scope="col" class="govuk-table__header">Notes</th>
             <th scope="col" class="govuk-table__header">Status</th>
             <th scope="col" class="govuk-table__header">Actions</th>
@@ -37,9 +55,11 @@
                             <b>Sort Code:</b> {{.BankDetails.SortCode}}
                         {{ end }}
                     </td>
+                    {{ end }}
                     <td class="govuk-table__cell">{{.Notes}}</td>
                     <td class="govuk-table__cell">{{.Status}}</td>
                     <td class="govuk-table__cell">
+                        {{ if $user.IsFinanceManager }}
                         <div class="form-button-menu">
                             {{ if $user.IsFinanceManager }}
                                 {{ if eq .Status "Pending"}}
@@ -73,6 +93,7 @@
                                         </button>
                                     </form>
                                 {{ end}}
+                            </div>
                             {{ end}}
                         </div>
                     </td>
