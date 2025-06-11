@@ -1,6 +1,9 @@
 package shared
 
-type Refunds []Refund
+type Refunds struct {
+	Refunds       []Refund `json:"refunds"`
+	CreditBalance int      `json:"creditBalance"`
+}
 
 type Refund struct {
 	ID            int                   `json:"id"`

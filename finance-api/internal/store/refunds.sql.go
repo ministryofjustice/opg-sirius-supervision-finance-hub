@@ -15,7 +15,7 @@ const createRefund = `-- name: CreateRefund :one
 WITH r AS (
     INSERT INTO refund (id, client_id, raised_date, amount, status, notes, created_by, created_at)
         VALUES (NEXTVAL('refund_id_seq'),
-                $1,
+                (SELECT id FROM finance_client WHERE client_id = $1),
                 NOW(),
                 $2,
                 'PENDING',
@@ -32,13 +32,13 @@ FROM r
 `
 
 type CreateRefundParams struct {
-	ClientID  int32
-	Amount    int32
-	Notes     string
-	CreatedBy int32
-	Name      string
-	Account   string
-	SortCode  string
+	ClientID      pgtype.Int4
+	Amount        pgtype.Int4
+	Notes         pgtype.Text
+	CreatedBy     pgtype.Int4
+	AccountName   pgtype.Text
+	AccountNumber pgtype.Text
+	SortCode      pgtype.Text
 }
 
 func (q *Queries) CreateRefund(ctx context.Context, arg CreateRefundParams) (int32, error) {
@@ -47,8 +47,8 @@ func (q *Queries) CreateRefund(ctx context.Context, arg CreateRefundParams) (int
 		arg.Amount,
 		arg.Notes,
 		arg.CreatedBy,
-		arg.Name,
-		arg.Account,
+		arg.AccountName,
+		arg.AccountNumber,
 		arg.SortCode,
 	)
 	var id int32
@@ -88,8 +88,9 @@ SELECT r.id,
        COALESCE(bd.account, '')::VARCHAR   AS account_code,
        COALESCE(bd.sort_code, '')::VARCHAR AS sort_code
 FROM refund r
+         JOIN finance_client fc ON fc.id = r.client_id
          LEFT JOIN bank_details bd ON r.id = bd.refund_id
-WHERE client_id = $1
+WHERE fc.client_id = $1
 ORDER BY r.raised_date DESC, r.created_at DESC
 `
 

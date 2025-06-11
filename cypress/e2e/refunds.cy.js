@@ -109,7 +109,12 @@ describe("Refunds tab", () => {
             .within(() => {
                 cy.get("button").should("have.length", 0);
             });
+    });
 
+    it("hides Add Refund button when no credit balance exists", () => {
+        cy.visit("/clients/16/refunds");
+
+        cy.get(".moj-button-menu").should("not.contain", "Add refund");
     });
 
     it("should have no accessibility violations", () => {
