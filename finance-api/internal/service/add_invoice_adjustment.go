@@ -81,6 +81,10 @@ func (s *Service) validateAdjustmentAmount(ctx context.Context, adjustment *shar
 				return apierror.BadRequestError("Amount", "A write off reversal cannot be added to an invoice without an associated write off", nil)
 			}
 		}
+	case shared.AdjustmentTypeFeeReductionReversal:
+		if adjustment.Amount > balance.FeeReductionReversalAmount {
+			return apierror.BadRequestError("Amount", fmt.Sprintf("The fee reduction reversal amount must be £%s or less", shared.IntToDecimalString(int(balance.FeeReductionReversalAmount))), nil)
+		}
 	default:
 		return apierror.BadRequestError("AdjustmentType", "Unimplemented adjustment type", nil)
 	}

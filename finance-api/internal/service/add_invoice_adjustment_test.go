@@ -279,6 +279,28 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 			},
 			err: nil,
 		},
+		{
+			name: "Fee reduction reversal - valid",
+			adjustment: &shared.AddInvoiceAdjustmentRequest{
+				AdjustmentType: shared.AdjustmentTypeFeeReductionReversal,
+				Amount:         500,
+			},
+			balance: store.GetInvoiceBalanceDetailsRow{
+				FeeReductionReversalAmount: 500,
+			},
+			err: nil,
+		},
+		{
+			name: "Fee reduction reversal - invalid amount",
+			adjustment: &shared.AddInvoiceAdjustmentRequest{
+				AdjustmentType: shared.AdjustmentTypeFeeReductionReversal,
+				Amount:         1000,
+			},
+			balance: store.GetInvoiceBalanceDetailsRow{
+				FeeReductionReversalAmount: 500,
+			},
+			err: apierror.BadRequest{Field: "Amount", Reason: "The fee reduction reversal amount must be £5 or less"},
+		},
 	}
 
 	for _, tt := range testCases {
