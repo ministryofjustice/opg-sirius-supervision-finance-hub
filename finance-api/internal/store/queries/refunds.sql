@@ -10,8 +10,9 @@ SELECT r.id,
        COALESCE(bd.account, '')::VARCHAR   AS account_code,
        COALESCE(bd.sort_code, '')::VARCHAR AS sort_code
 FROM refund r
+         JOIN finance_client fc ON fc.id = r.client_id
          LEFT JOIN bank_details bd ON r.id = bd.refund_id
-WHERE client_id = $1
+WHERE fc.client_id = $1
 ORDER BY r.raised_date DESC, r.created_at DESC;
 
 -- name: GetRefundAmount :one
@@ -30,17 +31,17 @@ WHERE fc.client_id = $1;
 WITH r AS (
     INSERT INTO refund (id, client_id, raised_date, amount, status, notes, created_by, created_at)
         VALUES (NEXTVAL('refund_id_seq'),
-                $1,
+                (SELECT id FROM finance_client WHERE client_id = @client_id),
                 NOW(),
-                $2,
+                @amount,
                 'PENDING',
-                $3,
-                $4,
+                @notes,
+                @created_by,
                 NOW())
         RETURNING id),
      b AS (
          INSERT INTO bank_details (id, refund_id, name, account, sort_code)
-             SELECT NEXTVAL('refund_id_seq'), r.id, $5, $6, $7
+             SELECT NEXTVAL('refund_id_seq'), r.id, @account_name, @account_number, @sort_code
              FROM r)
 SELECT id
 FROM r;

@@ -67,7 +67,7 @@ var validationMappings = map[string]map[string]pair{
 		"gteEighteen": pair{"AccountName", "Account name can not be over 18 characters"},
 	},
 	"SortCode": {
-		"eqSix":    pair{"SortCode", "Sort code must consist of 6 digits and cannot be all zeros"},
+		"len":      pair{"SortCode", "Sort code must consist of 6 digits in the format 00-00-00"},
 		"required": pair{"SortCode", "Enter the sort code"},
 	},
 	"AccountNumber": {

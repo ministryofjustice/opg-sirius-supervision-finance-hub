@@ -28,21 +28,29 @@ func (h *SubmitRefundHandler) render(v AppVars, w http.ResponseWriter, r *http.R
 
 	if err == nil {
 		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/refunds?success=refund-added", v.EnvironmentVars.Prefix, clientID))
-	} else {
-		var (
-			valErr apierror.ValidationError
-			stErr  api.StatusError
-		)
-		if errors.As(err, &valErr) {
-			data := AppVars{Errors: util.RenameErrors(valErr.Errors)}
-			w.WriteHeader(http.StatusUnprocessableEntity)
-			err = h.execute(w, r, data)
-		} else if errors.As(err, &stErr) {
-			data := AppVars{Error: stErr.Error(), Code: stErr.Code}
-			w.WriteHeader(stErr.Code)
-			err = h.execute(w, r, data)
-		}
+		return nil
 	}
 
-	return err
+	var (
+		ve    apierror.ValidationError
+		stErr api.StatusError
+		data  AppVars
+	)
+	switch {
+	case errors.As(err, &ve):
+		{
+			data = AppVars{Errors: util.RenameErrors(ve.Errors)}
+			w.WriteHeader(http.StatusUnprocessableEntity)
+		}
+	case errors.As(err, &stErr):
+		{
+			data = AppVars{Error: stErr.Error(), Code: stErr.Code}
+			w.WriteHeader(http.StatusUnprocessableEntity)
+		}
+	default:
+		data = AppVars{Error: err.Error()}
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	return h.execute(w, r, data)
 }
