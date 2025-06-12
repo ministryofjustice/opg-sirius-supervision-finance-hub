@@ -11,6 +11,71 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createRefund = `-- name: CreateRefund :one
+WITH r AS (
+    INSERT INTO refund (id, client_id, raised_date, amount, status, notes, created_by, created_at)
+        VALUES (NEXTVAL('refund_id_seq'),
+                (SELECT id FROM finance_client WHERE client_id = $1),
+                NOW(),
+                $2,
+                'PENDING',
+                $3,
+                $4,
+                NOW())
+        RETURNING id),
+     b AS (
+         INSERT INTO bank_details (id, refund_id, name, account, sort_code)
+             SELECT NEXTVAL('refund_id_seq'), r.id, $5, $6, $7
+             FROM r)
+SELECT id
+FROM r
+`
+
+type CreateRefundParams struct {
+	ClientID      pgtype.Int4
+	Amount        pgtype.Int4
+	Notes         pgtype.Text
+	CreatedBy     pgtype.Int4
+	AccountName   pgtype.Text
+	AccountNumber pgtype.Text
+	SortCode      pgtype.Text
+}
+
+func (q *Queries) CreateRefund(ctx context.Context, arg CreateRefundParams) (int32, error) {
+	row := q.db.QueryRow(ctx, createRefund,
+		arg.ClientID,
+		arg.Amount,
+		arg.Notes,
+		arg.CreatedBy,
+		arg.AccountName,
+		arg.AccountNumber,
+		arg.SortCode,
+	)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
+}
+
+const getRefundAmount = `-- name: GetRefundAmount :one
+SELECT ABS(COALESCE(SUM(
+                            CASE
+                                WHEN la.status IN ('UNAPPLIED', 'REAPPLIED')
+                                    THEN la.amount
+                                ELSE 0
+                                END), 0))::INT AS credit
+FROM finance_client fc
+         LEFT JOIN ledger l ON fc.id = l.finance_client_id AND l.status = 'CONFIRMED'
+         LEFT JOIN ledger_allocation la ON l.id = la.ledger_id
+WHERE fc.client_id = $1
+`
+
+func (q *Queries) GetRefundAmount(ctx context.Context, clientID int32) (int32, error) {
+	row := q.db.QueryRow(ctx, getRefundAmount, clientID)
+	var credit int32
+	err := row.Scan(&credit)
+	return credit, err
+}
+
 const getRefunds = `-- name: GetRefunds :many
 SELECT r.id,
        r.raised_date,
@@ -23,8 +88,9 @@ SELECT r.id,
        COALESCE(bd.account, '')::VARCHAR   AS account_code,
        COALESCE(bd.sort_code, '')::VARCHAR AS sort_code
 FROM refund r
+         JOIN finance_client fc ON fc.id = r.client_id
          LEFT JOIN bank_details bd ON r.id = bd.refund_id
-WHERE client_id = $1
+WHERE fc.client_id = $1
 ORDER BY r.raised_date DESC, r.created_at DESC
 `
 

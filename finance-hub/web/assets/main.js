@@ -53,6 +53,27 @@ htmx.onLoad(content => {
         });
     });
 
+    htmx.findAll("#sortCode").forEach((element) => {
+        element.addEventListener("input", (e) => {
+            const input = e.target;
+            const digits = input.value.replace(/\D/g, "").slice(0, 6);
+            let formatted = "";
+
+            if (digits.length > 0) {
+                formatted += digits.slice(0, 2);
+            }
+            if (digits.length >= 3) {
+                formatted += "-" + digits.slice(2, 4);
+            }
+            if (digits.length >= 5) {
+                formatted += "-" + digits.slice(4, 6);
+            }
+
+            input.value = formatted;
+
+        });
+    });
+
     htmx.findAll(".moj-banner--success").forEach((element) => {
         element.addEventListener("click", () => htmx.addClass(htmx.find(".moj-banner--success"), "hide"));
     });

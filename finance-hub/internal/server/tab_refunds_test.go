@@ -13,21 +13,24 @@ func TestRefunds(t *testing.T) {
 	fulfilledDate := shared.NewDate("02/05/2222")
 
 	data := shared.Refunds{
-		{
-			ID:            3,
-			RaisedDate:    shared.NewDate("01/04/2222"),
-			FulfilledDate: shared.NewNillable(&fulfilledDate),
-			Amount:        232,
-			Status:        "PENDING",
-			Notes:         "Some notes here",
-			CreatedBy:     99,
-			BankDetails: shared.NewNillable(
-				&shared.BankDetails{
-					Name:     "Billy Banker",
-					Account:  "12345678",
-					SortCode: "10-20-30",
-				},
-			),
+		CreditBalance: 50,
+		Refunds: []shared.Refund{
+			{
+				ID:            3,
+				RaisedDate:    shared.NewDate("01/04/2222"),
+				FulfilledDate: shared.NewNillable(&fulfilledDate),
+				Amount:        232,
+				Status:        "PENDING",
+				Notes:         "Some notes here",
+				CreatedBy:     99,
+				BankDetails: shared.NewNillable(
+					&shared.BankDetails{
+						Name:     "Billy Banker",
+						Account:  "12345678",
+						SortCode: "10-20-30",
+					},
+				),
+			},
 		},
 	}
 
@@ -64,9 +67,10 @@ func TestRefunds(t *testing.T) {
 	}
 
 	expected := &RefundsTab{
-		Refunds:  out,
-		ClientId: "1",
-		AppVars:  appVars,
+		Refunds:       out,
+		CreditBalance: 50,
+		ClientId:      "1",
+		AppVars:       appVars,
 	}
 
 	assert.Equal(t, expected, ro.data)
