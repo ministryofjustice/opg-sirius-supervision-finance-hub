@@ -1,6 +1,7 @@
 package db
 
 import (
+	"github.com/jackc/pgx/v5"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
@@ -48,4 +49,8 @@ func (u *UnapplyReapplySchedule) GetParams() []any {
 	}
 
 	return []any{u.Date.Time.Format("2006-01-02"), allocationStatus}
+}
+
+func (u *UnapplyReapplySchedule) GetCallback() func(row pgx.CollectableRow) ([]string, error) {
+	return RowToStringMap
 }

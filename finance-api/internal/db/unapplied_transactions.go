@@ -1,6 +1,7 @@
 package db
 
 import (
+	"github.com/jackc/pgx/v5"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
@@ -77,7 +78,7 @@ SELECT
 FROM splits;
 `
 
-func (r *UnappliedTransactions) GetHeaders() []string {
+func (u *UnappliedTransactions) GetHeaders() []string {
 	return []string{
 		"Entity",
 		"Cost Centre",
@@ -92,10 +93,14 @@ func (r *UnappliedTransactions) GetHeaders() []string {
 	}
 }
 
-func (r *UnappliedTransactions) GetQuery() string {
+func (u *UnappliedTransactions) GetQuery() string {
 	return UnappliedTransactionsQuery
 }
 
-func (r *UnappliedTransactions) GetParams() []any {
-	return []any{r.Date.Time.Format("2006-01-02")}
+func (u *UnappliedTransactions) GetParams() []any {
+	return []any{u.Date.Time.Format("2006-01-02")}
+}
+
+func (u *UnappliedTransactions) GetCallback() func(row pgx.CollectableRow) ([]string, error) {
+	return RowToStringMap
 }

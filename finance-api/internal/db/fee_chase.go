@@ -1,5 +1,11 @@
 package db
 
+import (
+	"encoding/json"
+	"fmt"
+	"github.com/jackc/pgx/v5"
+)
+
 type FeeChase struct{}
 
 const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
@@ -23,8 +29,8 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
                COALESCE(a.town, '') AS "City_Town",
                COALESCE(a.county, '') AS "County",
                COALESCE(a.postcode, '') AS "Postcode",
-               CONCAT('£', ABS(gi.total / 100.0)::NUMERIC(10,2)::VARCHAR(255)) AS "Total_debt",
-               (SELECT string_agg(CONCAT(reference, ': £', debt), ', ') FROM json_to_recordset(gi.invoice) as x(reference text, debt text)) AS invoice
+               CONCAT('="£"', ABS(gi.total / 100.0)::NUMERIC(10,2)::VARCHAR(255)) AS "Total_debt",
+				gi.invoice
         FROM public.persons cl
                 INNER JOIN supervision_finance.finance_client fc on cl.id = fc.client_id
                 LEFT JOIN public.persons p ON cl.feepayer_id = p.id
@@ -33,10 +39,14 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
                 ) a ON TRUE
            , LATERAL (
             SELECT 
-                json_agg(json_build_object(
-                   'reference', i.reference, 'debt', ABS((i.amount - COALESCE(transactions.received, 0)) / 100.0)::NUMERIC(10,2)::VARCHAR(255)) ORDER BY i.startdate)   as invoice,
-                   count(i.reference)                                                                         		  as count,
-                   SUM(i.amount - COALESCE(transactions.received, 0))                                                 as total
+                json_agg(
+                	json_build_object(
+                   		'reference', i.reference, 
+                   		'debt', CONCAT('="£"', ABS((i.amount - COALESCE(transactions.received, 0)) / 100.0)::NUMERIC(10,2)::VARCHAR(255))
+                	) ORDER BY i.startdate
+				)   as invoice,
+			   count(i.reference)                                                                         		  as count,
+			   SUM(i.amount - COALESCE(transactions.received, 0))                                                 as total
               FROM supervision_finance.invoice i
                        LEFT JOIN LATERAL (
                   SELECT SUM(la.amount) AS received
@@ -61,7 +71,7 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
               AND cl.clientstatus = 'ACTIVE'
               AND gi.total IS NOT NULL AND gi.total > 0;`
 
-func (c *FeeChase) GetHeaders() []string {
+func (f *FeeChase) GetHeaders() []string {
 	return []string{
 		"Case_no",
 		"Client_no",
@@ -89,10 +99,47 @@ func (c *FeeChase) GetHeaders() []string {
 	}
 }
 
-func (c *FeeChase) GetQuery() string {
+func (f *FeeChase) GetQuery() string {
 	return FeeChaseQuery
 }
 
-func (c *FeeChase) GetParams() []any {
+func (f *FeeChase) GetParams() []any {
 	return []any{}
+}
+
+func (f *FeeChase) GetCallback() func(row pgx.CollectableRow) ([]string, error) {
+	return func(row pgx.CollectableRow) ([]string, error) {
+		var stringRow []string
+		values, err := row.Values()
+		if err != nil {
+			return nil, err
+		}
+
+		for index, value := range values {
+			if index == 22 {
+				jsonBytes, err := json.Marshal(value)
+				if err != nil {
+					return nil, fmt.Errorf("error marshaling to JSON: %v", err)
+				}
+
+				var invoices []struct {
+					Reference string `json:"reference"`
+					Debt      string `json:"debt"`
+				}
+
+				if err := json.Unmarshal(jsonBytes, &invoices); err != nil {
+					return nil, fmt.Errorf("error unmarshaling to struct: %v", err)
+				}
+
+				for _, invoice := range invoices {
+					stringRow = append(stringRow, fmt.Sprintf("%v", invoice.Reference))
+					stringRow = append(stringRow, fmt.Sprintf("%v", invoice.Debt))
+				}
+			} else {
+				stringRow = append(stringRow, fmt.Sprintf("%v", value))
+			}
+
+		}
+		return stringRow, nil
+	}
 }

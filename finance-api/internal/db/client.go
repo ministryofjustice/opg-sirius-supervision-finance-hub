@@ -30,8 +30,10 @@ type ReportQuery interface {
 	GetHeaders() []string
 	GetQuery() string
 	GetParams() []any
+	GetCallback() func(row pgx.CollectableRow) ([]string, error)
 }
 
+// Move to client test?
 func (c *Client) Run(ctx context.Context, query ReportQuery) ([][]string, error) {
 	headers := [][]string{query.GetHeaders()}
 
@@ -42,7 +44,7 @@ func (c *Client) Run(ctx context.Context, query ReportQuery) ([][]string, error)
 
 	defer rows.Close()
 
-	stringRows, err := pgx.CollectRows[[]string](rows, rowToStringMap)
+	stringRows, err := pgx.CollectRows[[]string](rows, query.GetCallback())
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +74,7 @@ func (c *Client) CopyStream(ctx context.Context, query ReportQuery) (io.ReadClos
 		}
 
 		_, err = pgx.CollectRows(rows, func(row pgx.CollectableRow) ([]string, error) {
-			stringRow, err := rowToStringMap(row)
+			stringRow, err := query.GetCallback()(row)
 			if err != nil {
 				return nil, err
 			}
@@ -95,7 +97,7 @@ func (c *Client) CopyStream(ctx context.Context, query ReportQuery) (io.ReadClos
 	return pr, nil
 }
 
-func rowToStringMap(row pgx.CollectableRow) ([]string, error) {
+func RowToStringMap(row pgx.CollectableRow) ([]string, error) {
 	var stringRow []string
 	values, err := row.Values()
 	if err != nil {
