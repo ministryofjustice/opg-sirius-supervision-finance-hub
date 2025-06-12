@@ -225,7 +225,7 @@ func (s *Service) validateReversalLine(ctx context.Context, details shared.Rever
 		return false
 	}
 
-	if fileReversalCount(processedRecords, details) >= int(ledgerCount) {
+	if duplicateReversalInUploadFile(processedRecords, int(ledgerCount), details) {
 		(*failedLines)[index] = validation.UploadErrorDuplicateReversal
 		return false
 	}
@@ -307,12 +307,12 @@ func (s *Service) ProcessReversalUploadLine(ctx context.Context, tx *store.Tx, d
 	return nil
 }
 
-func fileReversalCount(processedRecords []shared.ReversalDetails, details shared.ReversalDetails) int {
+func duplicateReversalInUploadFile(processedRecords []shared.ReversalDetails, totalPayments int, details shared.ReversalDetails) bool {
 	count := 0
 	for _, s := range processedRecords {
 		if s == details {
 			count++
 		}
 	}
-	return count
+	return count >= totalPayments
 }
