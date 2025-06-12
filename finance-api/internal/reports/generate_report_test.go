@@ -182,6 +182,14 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			expectedTemplate: reportRequestedTemplateId,
 		},
 		{
+			name: "Unknown accounts receivable",
+			reportRequest: shared.ReportRequest{
+				ReportType:             shared.ReportsTypeAccountsReceivable,
+				AccountsReceivableType: toPtr(shared.AccountsReceivableTypeUnknown),
+			},
+			expectedTemplate: reportFailedTemplateId,
+		},
+		{
 			name: "NonReceiptTransactions",
 			reportRequest: shared.ReportRequest{
 				ReportType:      shared.ReportsTypeJournal,
@@ -215,10 +223,11 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			expectedTemplate: reportRequestedTemplateId,
 		},
 		{
-			name: "Unknown",
+			name: "Unknown journal",
 			reportRequest: shared.ReportRequest{
-				ReportType:             shared.ReportsTypeAccountsReceivable,
-				AccountsReceivableType: toPtr(shared.AccountsReceivableTypeUnknown),
+				ReportType:      shared.ReportsTypeJournal,
+				JournalType:     toPtr(shared.JournalTypeUnknown),
+				TransactionDate: &toDate,
 			},
 			expectedTemplate: reportFailedTemplateId,
 		},
@@ -291,6 +300,33 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			},
 			expectedFilename: "schedule_UnappliedPayments_10:10:2024.csv",
 			expectedTemplate: reportRequestedTemplateId,
+		},
+		{
+			name: "Unknown schedule",
+			reportRequest: shared.ReportRequest{
+				ReportType:      shared.ReportsTypeSchedule,
+				ScheduleType:    toPtr(shared.ScheduleTypeUnknown),
+				TransactionDate: &toDate,
+			},
+			expectedTemplate: reportFailedTemplateId,
+		},
+		{
+			name: "Debt chase",
+			reportRequest: shared.ReportRequest{
+				ReportType: shared.ReportsTypeDebt,
+				DebtType:   toPtr(shared.DebtTypeFeeChase),
+			},
+			expectedQuery:    &db.FeeChase{},
+			expectedFilename: "debt_FeeChase_01:01:2024.csv",
+			expectedTemplate: reportRequestedTemplateId,
+		},
+		{
+			name: "Unknown debt",
+			reportRequest: shared.ReportRequest{
+				ReportType: shared.ReportsTypeDebt,
+				DebtType:   toPtr(shared.DebtTypeUnknown),
+			},
+			expectedTemplate: reportFailedTemplateId,
 		},
 	}
 
