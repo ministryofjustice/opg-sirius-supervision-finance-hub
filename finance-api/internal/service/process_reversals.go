@@ -21,12 +21,14 @@ func (s *Service) ProcessPaymentReversals(ctx context.Context, records [][]strin
 		return nil, err
 	}
 
+	var processedRecords []shared.ReversalDetails
+
 	for index, record := range records {
 		if index != 0 && record[0] != "" {
 			details := getReversalLines(ctx, record, uploadType, index, &failedLines)
 
 			if details != (shared.ReversalDetails{}) {
-				if !s.validateReversalLine(ctx, details, uploadType, index, &failedLines) {
+				if !s.validateReversalLine(ctx, details, uploadType, processedRecords, index, &failedLines) {
 					continue
 				}
 
@@ -40,6 +42,8 @@ func (s *Service) ProcessPaymentReversals(ctx context.Context, records [][]strin
 				if err != nil {
 					return nil, err
 				}
+
+				processedRecords = append(processedRecords, details)
 
 				if uploadType == shared.ReportTypeUploadMisappliedPayments {
 					err = s.ProcessPaymentsUploadLine(ctx, tx, shared.PaymentDetails{
@@ -184,29 +188,48 @@ func getReversalLines(ctx context.Context, record []string, uploadType shared.Re
 	}
 }
 
-func (s *Service) validateReversalLine(ctx context.Context, details shared.ReversalDetails, uploadType shared.ReportUploadType, index int, failedLines *map[int]string) bool {
-	params := store.CheckDuplicateLedgerParams{
+func (s *Service) validateReversalLine(ctx context.Context, details shared.ReversalDetails, uploadType shared.ReportUploadType, processedRecords []shared.ReversalDetails, index int, failedLines *map[int]string) bool {
+	ledgerCount, _ := s.store.CountDuplicateLedger(ctx, store.CountDuplicateLedgerParams{
 		CourtRef:     details.ErroredCourtRef,
 		Amount:       details.Amount,
 		Type:         details.PaymentType.Key(),
 		BankDate:     details.BankDate,
 		ReceivedDate: details.ReceivedDate,
 		PisNumber:    details.PisNumber,
-	}
-	exists, _ := s.store.CheckDuplicateLedger(ctx, params)
+	})
 
-	if !exists {
+	if ledgerCount == 0 {
 		(*failedLines)[index] = validation.UploadErrorNoMatchedPayment
 		return false
 	}
 
 	if uploadType == shared.ReportTypeUploadMisappliedPayments {
-		exists, _ = s.store.CheckClientExistsByCourtRef(ctx, details.CorrectCourtRef)
+		exists, _ := s.store.CheckClientExistsByCourtRef(ctx, details.CorrectCourtRef)
 		if !exists {
 			(*failedLines)[index] = validation.UploadErrorReversalClientNotFound
 			return false
 		}
 	}
+
+	reversalCount, _ := s.store.CountDuplicateLedger(ctx, store.CountDuplicateLedgerParams{
+		CourtRef:     details.ErroredCourtRef,
+		Amount:       -details.Amount,
+		Type:         details.PaymentType.Key(),
+		BankDate:     details.BankDate,
+		ReceivedDate: details.ReceivedDate,
+		PisNumber:    details.PisNumber,
+	})
+
+	if reversalCount >= ledgerCount {
+		(*failedLines)[index] = validation.UploadErrorDuplicateReversal
+		return false
+	}
+
+	if !hasPaymentToReverse(processedRecords, details, int(ledgerCount)) {
+		(*failedLines)[index] = validation.UploadErrorDuplicateReversal
+		return false
+	}
+
 	return true
 }
 
@@ -282,4 +305,14 @@ func (s *Service) ProcessReversalUploadLine(ctx context.Context, tx *store.Tx, d
 	}
 
 	return nil
+}
+
+func hasPaymentToReverse(processedRecords []shared.ReversalDetails, details shared.ReversalDetails, totalPayments int) bool {
+	reversals := 0
+	for _, s := range processedRecords {
+		if s == details {
+			reversals++
+		}
+	}
+	return reversals < totalPayments
 }

@@ -3,6 +3,7 @@ package shared
 import (
 	"encoding/json"
 	"fmt"
+	"slices"
 	"time"
 )
 
@@ -189,30 +190,15 @@ func (u ReportUploadType) Valid() bool {
 }
 
 func (u ReportUploadType) IsPayment() bool {
-	for _, t := range reportUploadPaymentTypes {
-		if u == t {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(reportUploadPaymentTypes, u)
 }
 
 func (u ReportUploadType) IsReversal() bool {
-	for _, t := range reportUploadReversalTypes {
-		if u == t {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(reportUploadReversalTypes, u)
 }
 
 func (u ReportUploadType) HasHeader() bool {
-	for _, t := range reportUploadNoHeaderTypes {
-		if u == t {
-			return false
-		}
-	}
-	return true
+	return !slices.Contains(reportUploadNoHeaderTypes, u)
 }
 
 func (u ReportUploadType) MarshalJSON() ([]byte, error) {

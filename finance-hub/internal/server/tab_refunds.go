@@ -26,8 +26,9 @@ type BankDetails struct {
 }
 
 type RefundsTab struct {
-	Refunds  []Refund
-	ClientId string
+	Refunds       []Refund
+	CreditBalance int
+	ClientId      string
 	AppVars
 }
 
@@ -39,12 +40,12 @@ func (h *RefundsHandler) render(v AppVars, w http.ResponseWriter, r *http.Reques
 	ctx := r.Context()
 	clientID := getClientID(r)
 
-	ia, err := h.Client().GetRefunds(ctx, clientID)
+	refunds, err := h.Client().GetRefunds(ctx, clientID)
 	if err != nil {
 		return err
 	}
 
-	data := &RefundsTab{Refunds: h.transform(ia), ClientId: strconv.Itoa(clientID), AppVars: v}
+	data := &RefundsTab{Refunds: h.transform(refunds), CreditBalance: refunds.CreditBalance, ClientId: strconv.Itoa(clientID), AppVars: v}
 	data.selectTab("refunds")
 
 	return h.execute(w, r, data)
@@ -52,7 +53,7 @@ func (h *RefundsHandler) render(v AppVars, w http.ResponseWriter, r *http.Reques
 
 func (h *RefundsHandler) transform(in shared.Refunds) Refunds {
 	var out Refunds
-	for _, r := range in {
+	for _, r := range in.Refunds {
 		refund := Refund{
 			ID:         strconv.Itoa(r.ID),
 			DateRaised: r.RaisedDate,

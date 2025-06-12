@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"log/slog"
 )
@@ -9,12 +10,21 @@ import (
 func (s *Service) GetRefunds(ctx context.Context, clientId int32) (shared.Refunds, error) {
 	var refunds shared.Refunds
 
+	ai, err := s.store.GetAccountInformation(ctx, clientId)
+
+	if err != nil {
+		s.Logger(ctx).Error(fmt.Sprintf("Error in getting account information for client %d", clientId), slog.String("err", err.Error()))
+		return refunds, err
+	}
+
 	data, err := s.store.GetRefunds(ctx, clientId)
 
 	if err != nil {
 		s.Logger(ctx).Error("Error get refunds", slog.String("err", err.Error()))
-		return nil, err
+		return refunds, err
 	}
+
+	refunds.CreditBalance = int(ai.Credit)
 
 	for _, refund := range data {
 		var r = shared.Refund{
@@ -35,7 +45,7 @@ func (s *Service) GetRefunds(ctx context.Context, clientId int32) (shared.Refund
 			CreatedBy: int(refund.CreatedBy),
 		}
 
-		refunds = append(refunds, r)
+		refunds.Refunds = append(refunds.Refunds, r)
 	}
 
 	return refunds, nil
