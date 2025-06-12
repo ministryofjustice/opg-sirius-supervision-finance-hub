@@ -6,6 +6,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/stretchr/testify/assert"
+	"strconv"
 	"testing"
 )
 
@@ -20,7 +21,11 @@ func mapByHeader(rows [][]string) []map[string]string {
 	for _, row := range rows[1:] {
 		rowMap := make(map[string]string)
 		for i, value := range row {
-			rowMap[headers[i]] = value
+			if len(headers) <= i {
+				rowMap[strconv.Itoa(i)] = value
+			} else {
+				rowMap[headers[i]] = value
+			}
 		}
 		result = append(result, rowMap)
 	}
@@ -72,7 +77,7 @@ func TestRowToStringMap(t *testing.T) {
 		values: [][]any{{"test", "values", 2, 3, 5.55}},
 	}
 
-	got, err := rowToStringMap(&row)
+	got, err := RowToStringMap(&row)
 
 	want := []string{"test", "values", "2", "3", "5.55"}
 
@@ -86,7 +91,7 @@ func TestRowToStringMapError(t *testing.T) {
 		err:    fmt.Errorf("Oh no!"),
 	}
 
-	got, err := rowToStringMap(&row)
+	got, err := RowToStringMap(&row)
 	want := fmt.Errorf("Oh no!")
 
 	assert.Nil(t, got)
@@ -102,6 +107,9 @@ func (m mockQueryReport) GetParams() []any { return nil }
 
 func (m mockQueryReport) GetHeaders() []string {
 	return m.headers
+}
+func (m mockQueryReport) GetCallback() func(row pgx.CollectableRow) ([]string, error) {
+	return RowToStringMap
 }
 
 func TestRun(t *testing.T) {

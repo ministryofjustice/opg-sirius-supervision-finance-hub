@@ -1,6 +1,7 @@
 package db
 
 import (
+	"github.com/jackc/pgx/v5"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
@@ -160,4 +161,8 @@ func (n *NonReceiptTransactions) GetQuery() string {
 
 func (n *NonReceiptTransactions) GetParams() []any {
 	return []any{n.Date.Time.Format("2006-01-02")}
+}
+
+func (n *NonReceiptTransactions) GetCallback() func(row pgx.CollectableRow) ([]string, error) {
+	return RowToStringMap
 }

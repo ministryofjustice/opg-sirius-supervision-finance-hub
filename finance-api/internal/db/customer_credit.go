@@ -1,5 +1,7 @@
 package db
 
+import "github.com/jackc/pgx/v5"
+
 type CustomerCredit struct{}
 
 const CustomerCreditQuery = `SELECT CONCAT(p.firstname, ' ', p.surname)   AS "Customer Name",
@@ -29,4 +31,8 @@ func (c *CustomerCredit) GetQuery() string {
 
 func (c *CustomerCredit) GetParams() []any {
 	return []any{}
+}
+
+func (c *CustomerCredit) GetCallback() func(row pgx.CollectableRow) ([]string, error) {
+	return RowToStringMap
 }

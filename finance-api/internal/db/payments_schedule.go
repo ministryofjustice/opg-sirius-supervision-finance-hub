@@ -1,6 +1,7 @@
 package db
 
 import (
+	"github.com/jackc/pgx/v5"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
@@ -62,4 +63,8 @@ func (p *PaymentsSchedule) GetParams() []any {
 		transactionType = shared.TransactionTypeUnknown
 	}
 	return []any{p.Date.Time.Format("2006-01-02"), transactionType.Key(), pisNumber}
+}
+
+func (p *PaymentsSchedule) GetCallback() func(row pgx.CollectableRow) ([]string, error) {
+	return RowToStringMap
 }

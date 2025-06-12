@@ -1,5 +1,7 @@
 package db
 
+import "github.com/jackc/pgx/v5"
+
 type AgedDebtByCustomer struct{}
 
 const AgedDebtByCustomerQuery = `WITH outstanding_invoices AS (SELECT i.id AS invoice_id,
@@ -91,4 +93,8 @@ func (a *AgedDebtByCustomer) GetQuery() string {
 
 func (a *AgedDebtByCustomer) GetParams() []any {
 	return []any{}
+}
+
+func (a *AgedDebtByCustomer) GetCallback() func(row pgx.CollectableRow) ([]string, error) {
+	return RowToStringMap
 }
