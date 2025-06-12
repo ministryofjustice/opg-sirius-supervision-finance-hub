@@ -32,7 +32,7 @@ func (s *Service) GetRefunds(ctx context.Context, clientId int32) (shared.Refund
 			RaisedDate:    shared.Date{Time: refund.RaisedDate.Time},
 			FulfilledDate: shared.TransformNillablePgDate(refund.FulfilledDate),
 			Amount:        int(refund.Amount),
-			Status:        refund.Status,
+			Status:        shared.ParseRefundStatus(refund.Status),
 			Notes:         refund.Notes,
 			BankDetails: shared.Nillable[shared.BankDetails]{
 				Value: shared.BankDetails{

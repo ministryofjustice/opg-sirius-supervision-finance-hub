@@ -15,7 +15,7 @@ func (suite *IntegrationSuite) TestService_GetRefunds() {
 		"INSERT INTO finance_client VALUES (1, 1, 'findme', 'DEMANDED', 1)",
 		"INSERT INTO ledger VALUES (1, 'abc1', '2022-04-02T00:00:00+00:00', '', 10000, 'Write off', 'CREDIT WRITE OFF', 'CONFIRMED', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '05/05/2022', 1);",
 		"INSERT INTO ledger_allocation VALUES (1, 1, NULL, '2022-04-02T00:00:00+00:00', -10000, 'UNAPPLIED', NULL, '', '2022-04-02', NULL);",
-		"INSERT INTO refund VALUES (1, 1, '2019-01-27', '2022-04-02', 12300, 'FULFILLED', 'A fulfilled refund', 99, '2025-06-04 00:00:00', 99, '2025-06-04 00:00:00')",
+		"INSERT INTO refund VALUES (1, 1, '2019-01-27', '2022-04-02', 12300, 'APPROVED', 'A fulfilled refund', 99, '2025-06-04 00:00:00', 99, '2025-06-04 00:00:00', '2026-06-06 00:00:00', '2026-06-06 00:00:00')",
 		"INSERT INTO refund VALUES (2, 1, '2020-01-01', NULL, 32100, 'PENDING', 'A pending refund', 99, '2025-06-04 00:00:00', NULL, NULL)",
 
 		"INSERT INTO bank_details VALUES (1, 2, 'Clint Client', '12345678', '11-22-33');",
@@ -29,7 +29,7 @@ func (suite *IntegrationSuite) TestService_GetRefunds() {
 		"INSERT INTO ledger_allocation VALUES (3, 3, NULL, '2022-04-02T00:00:00+00:00', -50, 'UNAPPLIED', NULL, '', '2022-04-02', NULL);",
 
 		"INSERT INTO finance_client VALUES (4, 4, 'dontfindme', 'DEMANDED', 4)",
-		"INSERT INTO refund VALUES (4, 4, '2019-01-27', '2022-04-02', 99999, 'FULFILLED', 'A refund for a different client', 99, '2025-06-04 00:00:00', 99, '2025-06-04 00:00:00')",
+		"INSERT INTO refund VALUES (4, 4, '2019-01-27', '2022-04-02', 99999, 'APPROVED', 'A refund for a different client', 99, '2025-06-04 00:00:00', 99, '2025-06-04 00:00:00', '2026-06-06 00:00:00', '2026-06-06 00:00:00')",
 
 		"INSERT INTO finance_client VALUES (99, 99, 'empty', 'DEMANDED', 99)",
 	)
@@ -53,7 +53,7 @@ func (suite *IntegrationSuite) TestService_GetRefunds() {
 					ID:         2,
 					RaisedDate: shared.NewDate("2020-01-01"),
 					Amount:     32100,
-					Status:     "PENDING",
+					Status:     shared.RefundStatusPending,
 					Notes:      "A pending refund",
 					CreatedBy:  99,
 					BankDetails: shared.NewNillable(
@@ -68,7 +68,7 @@ func (suite *IntegrationSuite) TestService_GetRefunds() {
 						RaisedDate:    shared.NewDate("2019-01-27"),
 						FulfilledDate: shared.TransformNillableDate(&fulfilledDate),
 						Amount:        12300,
-						Status:        "FULFILLED",
+						Status:        shared.RefundStatusFulfilled,
 						Notes:         "A fulfilled refund",
 						CreatedBy:     99,
 						BankDetails:   shared.Nillable[shared.BankDetails]{},

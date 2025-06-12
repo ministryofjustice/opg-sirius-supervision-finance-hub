@@ -3,7 +3,12 @@ SELECT r.id,
        r.raised_date,
        r.fulfilled_date,
        r.amount,
-       r.status,
+       CASE
+           WHEN r.cancelled_at IS NOT NULL THEN 'CANCELLED'
+           WHEN r.processed_at IS NOT NULL THEN 'PROCESSING'
+           WHEN r.fulfilled_at IS NOT NULL THEN 'FULFILLED'
+           ELSE r.decision
+           END                             AS status,
        r.notes,
        r.created_by,
        COALESCE(bd.name, '')::VARCHAR      AS account_name,
@@ -29,7 +34,7 @@ WHERE fc.client_id = $1;
 
 -- name: CreateRefund :one
 WITH r AS (
-    INSERT INTO refund (id, client_id, raised_date, amount, status, notes, created_by, created_at)
+    INSERT INTO refund (id, client_id, raised_date, amount, decision, notes, created_by, created_at)
         VALUES (NEXTVAL('refund_id_seq'),
                 (SELECT id FROM finance_client WHERE client_id = @client_id),
                 NOW(),
