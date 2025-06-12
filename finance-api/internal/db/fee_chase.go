@@ -29,7 +29,7 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
                COALESCE(a.town, '') AS "City_Town",
                COALESCE(a.county, '') AS "County",
                COALESCE(a.postcode, '') AS "Postcode",
-               CONCAT('="£', ABS(gi.total / 100.0)::NUMERIC(10,2)::VARCHAR(255), '"') AS "Total_debt",
+               CONCAT('=UNICHAR(163)&', ABS(gi.total / 100.0)::NUMERIC(10,2)::VARCHAR(255)) AS "Total_debt",
 				gi.invoice
         FROM public.persons cl
                 INNER JOIN supervision_finance.finance_client fc on cl.id = fc.client_id
@@ -42,7 +42,7 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
                 json_agg(
                 	json_build_object(
                    		'reference', i.reference, 
-                   		'debt', CONCAT('="£', ABS((i.amount - COALESCE(transactions.received, 0)) / 100.0)::NUMERIC(10,2)::VARCHAR(255), '"')
+                   		'debt', CONCAT('=UNICHAR(163)&', ABS((i.amount - COALESCE(transactions.received, 0)) / 100.0)::NUMERIC(10,2)::VARCHAR(255))
                 	) ORDER BY i.startdate
 				)   as invoice,
 			   count(i.reference)                                                                         		  as count,
