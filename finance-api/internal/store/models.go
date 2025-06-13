@@ -233,17 +233,19 @@ type Rate struct {
 }
 
 type Refund struct {
-	ID            int32
-	ClientID      int32
-	RaisedDate    pgtype.Date
-	FulfilledDate pgtype.Date
-	Amount        int32
-	Status        string
-	Notes         string
-	CreatedBy     int32
-	CreatedAt     pgtype.Timestamp
-	UpdatedBy     pgtype.Int4
-	UpdatedAt     pgtype.Timestamp
+	ID              int32
+	FinanceClientID int32
+	RaisedDate      pgtype.Date
+	Amount          int32
+	Decision        string
+	Notes           string
+	CreatedBy       int32
+	CreatedAt       pgtype.Timestamp
+	DecisionBy      pgtype.Int4
+	DecisionAt      pgtype.Timestamp
+	ProcessedAt     pgtype.Timestamp
+	CancelledAt     pgtype.Timestamp
+	FulfilledAt     pgtype.Timestamp
 }
 
 type Report struct {

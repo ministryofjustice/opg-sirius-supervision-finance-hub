@@ -38,6 +38,7 @@ type Service interface {
 	ProcessAdhocEvent(ctx context.Context) error
 	ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType) (map[int]string, error)
 	AddRefund(ctx context.Context, clientId int32, refund shared.AddRefund) error
+	UpdateRefundDecision(ctx context.Context, clientId int32, refundId int32, status shared.RefundStatus) error
 }
 
 type FileStorage interface {
@@ -114,6 +115,7 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 	authFunc("PUT /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", shared.RoleFinanceUser, s.cancelFeeReduction)
 	authFunc("PUT /clients/{clientId}/payment-method", shared.RoleFinanceUser, s.updatePaymentMethod)
 	authFunc("POST /clients/{clientId}/refunds", shared.RoleFinanceUser, s.addRefund)
+	authFunc("PUT /clients/{clientId}/refunds/{refundId}", shared.RoleFinanceManager, s.updateRefundDecision)
 
 	authFunc("GET /download", shared.RoleFinanceReporting, s.download)
 	authFunc("HEAD /download", shared.RoleFinanceReporting, s.checkDownload)

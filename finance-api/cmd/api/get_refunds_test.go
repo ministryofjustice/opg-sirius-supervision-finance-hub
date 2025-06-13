@@ -24,7 +24,7 @@ func TestServer_getRefunds(t *testing.T) {
 				RaisedDate:    shared.NewDate("2020-03-16"),
 				FulfilledDate: shared.NewNillable(&fulfilledDate),
 				Amount:        123400,
-				Status:        "PENDING",
+				Status:        shared.RefundStatusPending,
 				Notes:         "Refund for client",
 				BankDetails: shared.NewNillable(
 					&shared.BankDetails{

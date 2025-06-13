@@ -1,16 +1,21 @@
 -- name: GetRefunds :many
 SELECT r.id,
        r.raised_date,
-       r.fulfilled_date,
+       r.fulfilled_at::DATE AS fulfilled_date,
        r.amount,
-       r.status,
+       CASE
+           WHEN r.fulfilled_at IS NOT NULL THEN 'FULFILLED'
+           WHEN r.cancelled_at IS NOT NULL THEN 'CANCELLED'
+           WHEN r.processed_at IS NOT NULL THEN 'PROCESSING'
+           ELSE r.decision
+           END::VARCHAR      AS status,
        r.notes,
        r.created_by,
        COALESCE(bd.name, '')::VARCHAR      AS account_name,
        COALESCE(bd.account, '')::VARCHAR   AS account_code,
        COALESCE(bd.sort_code, '')::VARCHAR AS sort_code
 FROM refund r
-         JOIN finance_client fc ON fc.id = r.client_id
+         JOIN finance_client fc ON fc.id = r.finance_client_id
          LEFT JOIN bank_details bd ON r.id = bd.refund_id
 WHERE fc.client_id = $1
 ORDER BY r.raised_date DESC, r.created_at DESC;
@@ -29,7 +34,7 @@ WHERE fc.client_id = $1;
 
 -- name: CreateRefund :one
 WITH r AS (
-    INSERT INTO refund (id, client_id, raised_date, amount, status, notes, created_by, created_at)
+    INSERT INTO refund (id, finance_client_id, raised_date, amount, decision, notes, created_by, created_at)
         VALUES (NEXTVAL('refund_id_seq'),
                 (SELECT id FROM finance_client WHERE client_id = @client_id),
                 NOW(),
@@ -45,3 +50,16 @@ WITH r AS (
              FROM r)
 SELECT id
 FROM r;
+
+-- name: SetRefundDecision :exec
+UPDATE refund
+SET decision    = @decision,
+    decision_at = NOW(),
+    decision_by = @decision_by
+WHERE finance_client_id = (SELECT id FROM finance_client WHERE client_id = @client_id)
+  AND id = @refund_id;
+
+-- name: RemoveBankDetails :exec
+DELETE
+FROM bank_details
+WHERE refund_id = $1;

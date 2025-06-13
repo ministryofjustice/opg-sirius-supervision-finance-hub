@@ -60,7 +60,7 @@ func (h *RefundsHandler) transform(in shared.Refunds) Refunds {
 			Amount:     shared.IntToDecimalString(r.Amount),
 			Notes:      r.Notes,
 			CreatedBy:  r.CreatedBy,
-			Status:     h.transformStatus(r.Status),
+			Status:     r.Status.String(),
 		}
 		if r.FulfilledDate.Valid {
 			refund.DateFulfilled = &r.FulfilledDate.Value
