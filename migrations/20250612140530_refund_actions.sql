@@ -1,4 +1,5 @@
 -- +goose Up
+ALTER TABLE refund RENAME client_id TO finance_client_id;
 ALTER TABLE refund RENAME status TO decision;
 ALTER TABLE refund RENAME updated_at TO decision_at;
 ALTER TABLE refund RENAME updated_by TO decision_by;

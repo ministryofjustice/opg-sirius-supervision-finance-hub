@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func (c *Client) UpdateRefundStatus(ctx context.Context, clientID int, refundID int, status string) error {
+func (c *Client) UpdateRefundDecision(ctx context.Context, clientID int, refundID int, status string) error {
 	var body bytes.Buffer
 
 	err := json.NewEncoder(&body).Encode(shared.UpdateRefundStatus{

@@ -139,6 +139,6 @@ func (m mockApiClient) AddRefund(context.Context, int, string, string, string, s
 	return m.error
 }
 
-func (m mockApiClient) UpdateRefundStatus(context.Context, int, int, string) error {
+func (m mockApiClient) UpdateRefundDecision(context.Context, int, int, string) error {
 	return m.error
 }

@@ -14,7 +14,7 @@ func TestSubmitRefundSuccess(t *testing.T) {
 	ro := &mockRoute{client: client}
 
 	form := url.Values{
-		"status": {"APPROVED"},
+		"decision": {"APPROVED"},
 	}
 
 	w := httptest.NewRecorder()
@@ -29,7 +29,7 @@ func TestSubmitRefundSuccess(t *testing.T) {
 
 	appVars.EnvironmentVars.Prefix = "prefix"
 
-	sut := SubmitRefundStatusHandler{ro}
+	sut := SubmitRefundDecisionHandler{ro}
 
 	err := sut.render(appVars, w, r)
 

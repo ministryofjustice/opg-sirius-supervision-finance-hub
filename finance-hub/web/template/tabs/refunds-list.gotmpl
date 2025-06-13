@@ -65,9 +65,10 @@
                             {{ if $user.IsFinanceManager }}
                                 {{ if eq .Status "Pending"}}
                                     <form method="post"
-                                          hx-put="{{ prefix (printf "/clients/%s/refunds/%s?decision=approve" $clientId .ID) }}"
+                                          hx-post="{{ prefix (printf "/clients/%s/refunds/%s" $clientId .ID) }}"
                                           hx-disabled-elt="find button">
                                         <input type="hidden" name="CSRF" value="{{ $xsrfToken }}"/>
+                                        <input type="hidden" name="decision" value="APPROVED"/>
                                         <button class="govuk-button moj-button-menu__item govuk-button--secondary {{ if eq $user.ID .CreatedBy }}invisible{{end}}"
                                                 type="submit">
                                             Approve
@@ -75,7 +76,7 @@
                                     </form>
 
                                     <form method="post"
-                                          hx-put="{{ prefix (printf "/clients/%s/refunds/%s" $clientId .ID) }}"
+                                          hx-post="{{ prefix (printf "/clients/%s/refunds/%s" $clientId .ID) }}"
                                           hx-disabled-elt="find button">
                                         <input type="hidden" name="CSRF" value="{{ $xsrfToken }}"/>
                                         <input type="hidden" name="decision" value="REJECTED"/>
@@ -86,10 +87,10 @@
                                     </form>
                                 {{ else if (or (eq .Status "Approved") (eq .Status "Processing")) }}
                                     <form method="post"
-                                          hx-put="{{ prefix (printf "/clients/%s/refunds/%s" $clientId .ID) }}"
+                                          hx-post="{{ prefix (printf "/clients/%s/refunds/%s" $clientId .ID) }}"
                                           hx-disabled-elt="find button">
                                         <input type="hidden" name="CSRF" value="{{ $xsrfToken }}"/>
-                                        <input type="hidden" name="decision" value="APPROVED"/>
+                                        <input type="hidden" name="decision" value="CANCELLED"/>
                                         <button class="govuk-button moj-button-menu__item govuk-button--secondary {{ if eq $user.ID .CreatedBy }}invisible{{end}}"
                                                 type="submit">
                                             Cancel

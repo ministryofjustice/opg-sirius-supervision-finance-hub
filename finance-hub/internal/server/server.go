@@ -31,7 +31,7 @@ type ApiClient interface {
 	GetUser(context.Context, int) (shared.User, error)
 	GetRefunds(context.Context, int) (shared.Refunds, error)
 	AddRefund(context.Context, int, string, string, string, string) error
-	UpdateRefundStatus(context.Context, int, int, string) error
+	UpdateRefundDecision(context.Context, int, int, string) error
 }
 
 type router interface {
@@ -94,7 +94,7 @@ func New(logger *slog.Logger, client *api.Client, templates map[string]*template
 	handleMux("POST /clients/{clientId}/invoice-adjustments/{adjustmentId}/{adjustmentType}/{status}", &SubmitUpdatePendingInvoiceAdjustmentHandler{&route{client: client, tmpl: templates["invoice-adjustments.gotmpl"], partial: "invoice-adjustments"}})
 	handleMux("POST /clients/{clientId}/payment-method/add", &SubmitPaymentMethodHandler{&route{client: client, tmpl: templates["set-up-direct-debit.gotmpl"], partial: "error-summary"}})
 	handleMux("POST /clients/{clientId}/refunds", &SubmitRefundHandler{&route{client: client, tmpl: templates["add-refund.gotmpl"], partial: "error-summary"}})
-	handleMux("PUT /clients/{clientId}/refunds/{refundId}", &SubmitRefundStatusHandler{&route{client: client, tmpl: templates["refunds.gotmpl"], partial: "refunds"}})
+	handleMux("POST /clients/{clientId}/refunds/{refundId}", &SubmitRefundDecisionHandler{&route{client: client, tmpl: templates["refunds.gotmpl"], partial: "refunds"}})
 
 	mux.Handle("/health-check", healthCheck())
 

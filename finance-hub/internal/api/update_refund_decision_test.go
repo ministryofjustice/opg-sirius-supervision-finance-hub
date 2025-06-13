@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUpdateRefundStatus(t *testing.T) {
+func TestUpdateRefundDecision(t *testing.T) {
 	mockClient := SetUpTest()
 	mockJWT := mockJWTClient{}
 	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""})
@@ -23,11 +23,11 @@ func TestUpdateRefundStatus(t *testing.T) {
 		}, nil
 	}
 
-	err := client.UpdateRefundStatus(testContext(), 2, 4, "APPROVED")
+	err := client.UpdateRefundDecision(testContext(), 2, 4, "APPROVED")
 	assert.Equal(t, nil, err)
 }
 
-func TestUpdateRefundStatusUnauthorised(t *testing.T) {
+func TestUpdateRefundDecisionUnauthorised(t *testing.T) {
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 	}))
@@ -35,12 +35,12 @@ func TestUpdateRefundStatusUnauthorised(t *testing.T) {
 
 	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	err := client.UpdateRefundStatus(testContext(), 1, 5, "APPROVED")
+	err := client.UpdateRefundDecision(testContext(), 1, 5, "APPROVED")
 
 	assert.Equal(t, ErrUnauthorized.Error(), err.Error())
 }
 
-func TestUpdateRefundStatusReturns500Error(t *testing.T) {
+func TestUpdateRefundDecisionReturns500Error(t *testing.T) {
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
@@ -48,7 +48,7 @@ func TestUpdateRefundStatusReturns500Error(t *testing.T) {
 
 	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	err := client.UpdateRefundStatus(testContext(), 1, 2, "APPROVED")
+	err := client.UpdateRefundDecision(testContext(), 1, 2, "APPROVED")
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/clients/1/refunds/2",
