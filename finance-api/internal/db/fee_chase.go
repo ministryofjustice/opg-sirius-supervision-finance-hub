@@ -6,10 +6,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-type FeeChase struct {
-	headers         []string
-	maxInvoiceCount int
-}
+type FeeChase struct{}
 
 const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
 				cl.id AS "Client_no",
@@ -75,19 +72,9 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
 			AND gi.total IS NOT NULL AND gi.total > 0;`
 
 func (f *FeeChase) GetHeaders() []string {
-	return f.headers
-}
+	maxInvoiceCount := 23
 
-func (f *FeeChase) GetQuery() string {
-	return FeeChaseQuery
-}
-
-func (f *FeeChase) GetParams() []any {
-	return []any{}
-}
-
-func (f *FeeChase) GetCallback() func(row pgx.CollectableRow) ([]string, error) {
-	f.headers = []string{
+	headers := []string{
 		"Case_no",
 		"Client_no",
 		"Client_title",
@@ -112,6 +99,23 @@ func (f *FeeChase) GetCallback() func(row pgx.CollectableRow) ([]string, error) 
 		"Total_debt",
 	}
 
+	for i := 1; i <= maxInvoiceCount; i++ {
+		headers = append(headers, fmt.Sprintf("Invoice%d", i))
+		headers = append(headers, fmt.Sprintf("Amount%d", i))
+	}
+
+	return headers
+}
+
+func (f *FeeChase) GetQuery() string {
+	return FeeChaseQuery
+}
+
+func (f *FeeChase) GetParams() []any {
+	return []any{}
+}
+
+func (f *FeeChase) GetCallback() func(row pgx.CollectableRow) ([]string, error) {
 	return func(row pgx.CollectableRow) ([]string, error) {
 		var stringRow []string
 		values, err := row.Values()
@@ -133,15 +137,6 @@ func (f *FeeChase) GetCallback() func(row pgx.CollectableRow) ([]string, error) 
 
 				if err := json.Unmarshal(jsonBytes, &invoices); err != nil {
 					return nil, fmt.Errorf("error unmarshaling to struct: %v", err)
-				}
-
-				if len(invoices) > f.maxInvoiceCount {
-					newColumns := len(invoices) - f.maxInvoiceCount
-					f.maxInvoiceCount = len(invoices)
-					for i := 1; i <= newColumns; i++ {
-						f.headers = append(f.headers, fmt.Sprintf("Invoice%d", i))
-						f.headers = append(f.headers, fmt.Sprintf("Amount%d", i))
-					}
 				}
 
 				for _, invoice := range invoices {

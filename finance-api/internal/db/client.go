@@ -33,8 +33,9 @@ type ReportQuery interface {
 	GetCallback() func(row pgx.CollectableRow) ([]string, error)
 }
 
-// Move to client test?
 func (c *Client) Run(ctx context.Context, query ReportQuery) ([][]string, error) {
+	headers := [][]string{query.GetHeaders()}
+
 	rows, err := c.db.Query(ctx, query.GetQuery(), query.GetParams()...)
 	if err != nil {
 		return nil, err
@@ -46,8 +47,6 @@ func (c *Client) Run(ctx context.Context, query ReportQuery) ([][]string, error)
 	if err != nil {
 		return nil, err
 	}
-
-	headers := [][]string{query.GetHeaders()}
 
 	return append(headers, stringRows...), nil
 }
