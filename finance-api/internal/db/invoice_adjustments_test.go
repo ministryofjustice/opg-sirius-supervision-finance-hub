@@ -40,7 +40,7 @@ func (suite *IntegrationSuite) Test_invoice_adjustments() {
 	from := shared.NewDate(fourYearsAgo.String())
 	to := shared.NewDate(today.Add(0, 0, 1).String())
 
-	rows, err := c.Run(ctx, &InvoiceAdjustments{FromDate: &from, ToDate: &to})
+	rows, err := c.Run(ctx, NewInvoiceAdjustments(&from, &to, time.Time{}))
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), 4, len(rows))
 

@@ -1,13 +1,21 @@
 package db
 
 import (
-	"github.com/jackc/pgx/v5"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
 type InvoicesSchedule struct {
+	ReportQuery
 	Date         *shared.Date
 	ScheduleType *shared.ScheduleType
+}
+
+func NewInvoicesSchedule(date *shared.Date, ScheduleType *shared.ScheduleType) ReportQuery {
+	return &InvoicesSchedule{
+		ReportQuery:  NewReportQuery(InvoicesScheduleQuery),
+		Date:         date,
+		ScheduleType: ScheduleType,
+	}
 }
 
 const InvoicesScheduleQuery = `SELECT
@@ -39,10 +47,6 @@ func (i *InvoicesSchedule) GetHeaders() []string {
 		"Amount",
 		"Raised date",
 	}
-}
-
-func (i *InvoicesSchedule) GetQuery() string {
-	return InvoicesScheduleQuery
 }
 
 func (i *InvoicesSchedule) GetParams() []any {
@@ -101,8 +105,4 @@ func (i *InvoicesSchedule) GetParams() []any {
 	}
 
 	return []any{i.Date.Time.Format("2006-01-02"), invoiceType.Key(), supervisionLevel}
-}
-
-func (i *InvoicesSchedule) GetCallback() func(row pgx.CollectableRow) ([]string, error) {
-	return RowToStringMap
 }

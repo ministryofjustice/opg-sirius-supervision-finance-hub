@@ -27,10 +27,25 @@ func (c *Client) Close() {
 }
 
 type ReportQuery interface {
-	GetHeaders() []string
 	GetQuery() string
+	GetHeaders() []string
 	GetParams() []any
 	GetCallback() func(row pgx.CollectableRow) ([]string, error)
+}
+
+func NewReportQuery(query string) ReportQuery {
+	return &reportQuery{query}
+}
+
+type reportQuery struct {
+	Query string
+}
+
+func (q *reportQuery) GetQuery() string     { return q.Query }
+func (q *reportQuery) GetHeaders() []string { return []string{} }
+func (q *reportQuery) GetParams() []any     { return []any{} }
+func (q *reportQuery) GetCallback() func(row pgx.CollectableRow) ([]string, error) {
+	return func(row pgx.CollectableRow) ([]string, error) { return RowToStringMap(row) }
 }
 
 func (c *Client) Run(ctx context.Context, query ReportQuery) ([][]string, error) {

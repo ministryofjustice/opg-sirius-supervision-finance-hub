@@ -1,13 +1,21 @@
 package db
 
 import (
-	"github.com/jackc/pgx/v5"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
 type AdjustmentsSchedule struct {
+	ReportQuery
 	Date         *shared.Date
 	ScheduleType *shared.ScheduleType
+}
+
+func NewAdjustmentsSchedule(date *shared.Date, scheduleType *shared.ScheduleType) ReportQuery {
+	return &AdjustmentsSchedule{
+		ReportQuery:  NewReportQuery(AdjustmentsScheduleQuery),
+		Date:         date,
+		ScheduleType: scheduleType,
+	}
 }
 
 const AdjustmentsScheduleQuery = `SELECT
@@ -41,10 +49,6 @@ func (a *AdjustmentsSchedule) GetHeaders() []string {
 		"Amount",
 		"Created date",
 	}
-}
-
-func (a *AdjustmentsSchedule) GetQuery() string {
-	return AdjustmentsScheduleQuery
 }
 
 func (a *AdjustmentsSchedule) GetParams() []any {
@@ -184,8 +188,4 @@ func (a *AdjustmentsSchedule) GetParams() []any {
 	}
 
 	return []any{a.Date.Time.Format("2006-01-02"), ledgerTypes, supervisionLevel, invoiceTypes}
-}
-
-func (a *AdjustmentsSchedule) GetCallback() func(row pgx.CollectableRow) ([]string, error) {
-	return RowToStringMap
 }

@@ -1,14 +1,23 @@
 package db
 
 import (
-	"github.com/jackc/pgx/v5"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
 type PaymentsSchedule struct {
+	ReportQuery
 	Date         *shared.Date
 	ScheduleType *shared.ScheduleType
 	PisNumber    int
+}
+
+func NewPaymentsSchedule(date *shared.Date, scheduleType *shared.ScheduleType, pisNumber int) ReportQuery {
+	return &PaymentsSchedule{
+		ReportQuery:  NewReportQuery(PaymentsScheduleQuery),
+		Date:         date,
+		ScheduleType: scheduleType,
+		PisNumber:    pisNumber,
+	}
 }
 
 const PaymentsScheduleQuery = `SELECT
@@ -36,10 +45,6 @@ func (p *PaymentsSchedule) GetHeaders() []string {
 	}
 }
 
-func (p *PaymentsSchedule) GetQuery() string {
-	return PaymentsScheduleQuery
-}
-
 func (p *PaymentsSchedule) GetParams() []any {
 	var (
 		transactionType shared.TransactionType
@@ -63,8 +68,4 @@ func (p *PaymentsSchedule) GetParams() []any {
 		transactionType = shared.TransactionTypeUnknown
 	}
 	return []any{p.Date.Time.Format("2006-01-02"), transactionType.Key(), pisNumber}
-}
-
-func (p *PaymentsSchedule) GetCallback() func(row pgx.CollectableRow) ([]string, error) {
-	return RowToStringMap
 }

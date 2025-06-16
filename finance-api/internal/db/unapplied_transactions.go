@@ -1,12 +1,19 @@
 package db
 
 import (
-	"github.com/jackc/pgx/v5"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
 type UnappliedTransactions struct {
+	ReportQuery
 	Date *shared.Date
+}
+
+func NewUnappliedTransactions(date *shared.Date) ReportQuery {
+	return &UnappliedTransactions{
+		ReportQuery: NewReportQuery(UnappliedTransactionsQuery),
+		Date:        date,
+	}
 }
 
 const UnappliedTransactionsQuery = `
@@ -93,14 +100,6 @@ func (u *UnappliedTransactions) GetHeaders() []string {
 	}
 }
 
-func (u *UnappliedTransactions) GetQuery() string {
-	return UnappliedTransactionsQuery
-}
-
 func (u *UnappliedTransactions) GetParams() []any {
 	return []any{u.Date.Time.Format("2006-01-02")}
-}
-
-func (u *UnappliedTransactions) GetCallback() func(row pgx.CollectableRow) ([]string, error) {
-	return RowToStringMap
 }

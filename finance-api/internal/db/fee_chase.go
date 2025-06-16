@@ -6,7 +6,15 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-type FeeChase struct{}
+type FeeChase struct {
+	ReportQuery
+}
+
+func NewFeeChase() ReportQuery {
+	return &FeeChase{
+		ReportQuery: NewReportQuery(FeeChaseQuery),
+	}
+}
 
 const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
 				cl.id AS "Client_no",
@@ -105,14 +113,6 @@ func (f *FeeChase) GetHeaders() []string {
 	}
 
 	return headers
-}
-
-func (f *FeeChase) GetQuery() string {
-	return FeeChaseQuery
-}
-
-func (f *FeeChase) GetParams() []any {
-	return []any{}
 }
 
 func (f *FeeChase) GetCallback() func(row pgx.CollectableRow) ([]string, error) {

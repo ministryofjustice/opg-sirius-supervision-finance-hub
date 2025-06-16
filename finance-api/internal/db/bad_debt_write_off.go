@@ -1,15 +1,24 @@
 package db
 
 import (
-	"github.com/jackc/pgx/v5"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"time"
 )
 
 type BadDebtWriteOff struct {
+	ReportQuery
 	FromDate   *shared.Date
 	ToDate     *shared.Date
 	GoLiveDate time.Time
+}
+
+func NewBadDebtWriteOff(fromDate *shared.Date, toDate *shared.Date, goLiveDate time.Time) ReportQuery {
+	return &BadDebtWriteOff{
+		ReportQuery: NewReportQuery(BadDebtWriteOffQuery),
+		FromDate:    fromDate,
+		ToDate:      toDate,
+		GoLiveDate:  goLiveDate,
+	}
 }
 
 const BadDebtWriteOffQuery = `SELECT CONCAT(p.firstname, ' ', p.surname)        "Customer Name",
@@ -63,10 +72,6 @@ func (b *BadDebtWriteOff) GetHeaders() []string {
 	}
 }
 
-func (b *BadDebtWriteOff) GetQuery() string {
-	return BadDebtWriteOffQuery
-}
-
 func (b *BadDebtWriteOff) GetParams() []any {
 	var (
 		from, to time.Time
@@ -85,8 +90,4 @@ func (b *BadDebtWriteOff) GetParams() []any {
 	}
 
 	return []any{from.Format("2006-01-02"), to.Format("2006-01-02")}
-}
-
-func (b *BadDebtWriteOff) GetCallback() func(row pgx.CollectableRow) ([]string, error) {
-	return RowToStringMap
 }

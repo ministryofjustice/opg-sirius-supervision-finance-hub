@@ -1,13 +1,21 @@
 package db
 
 import (
-	"github.com/jackc/pgx/v5"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
 type UnapplyReapplySchedule struct {
+	ReportQuery
 	Date         *shared.Date
 	ScheduleType *shared.ScheduleType
+}
+
+func NewUnapplyReapplySchedule(date *shared.Date, scheduleType *shared.ScheduleType) ReportQuery {
+	return &UnapplyReapplySchedule{
+		ReportQuery:  NewReportQuery(UnapplyReapplyScheduleQuery),
+		Date:         date,
+		ScheduleType: scheduleType,
+	}
 }
 
 const UnapplyReapplyScheduleQuery = `SELECT
@@ -31,10 +39,6 @@ func (u *UnapplyReapplySchedule) GetHeaders() []string {
 	}
 }
 
-func (u *UnapplyReapplySchedule) GetQuery() string {
-	return UnapplyReapplyScheduleQuery
-}
-
 func (u *UnapplyReapplySchedule) GetParams() []any {
 	var (
 		allocationStatus string
@@ -49,8 +53,4 @@ func (u *UnapplyReapplySchedule) GetParams() []any {
 	}
 
 	return []any{u.Date.Time.Format("2006-01-02"), allocationStatus}
-}
-
-func (u *UnapplyReapplySchedule) GetCallback() func(row pgx.CollectableRow) ([]string, error) {
-	return RowToStringMap
 }

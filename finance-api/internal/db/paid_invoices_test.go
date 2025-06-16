@@ -92,10 +92,7 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	from := shared.NewDate(fourYearsAgo.String())
 	to := shared.NewDate(today.String())
 
-	rows, err := c.Run(ctx, &PaidInvoices{
-		FromDate: &from,
-		ToDate:   &to,
-	})
+	rows, err := c.Run(ctx, NewPaidInvoices(&from, &to, time.Time{}))
 
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), 9, len(rows))

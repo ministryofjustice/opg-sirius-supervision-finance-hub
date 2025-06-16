@@ -197,11 +197,8 @@ func (suite *IntegrationSuite) Test_payments_schedules() {
 
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
-			rows, err := c.Run(ctx, &PaymentsSchedule{
-				Date:         &tt.date,
-				ScheduleType: &tt.scheduleType,
-				PisNumber:    tt.pisNumber,
-			})
+			rows, err := c.Run(ctx, NewPaymentsSchedule(&tt.date, &tt.scheduleType, tt.pisNumber))
+
 			assert.NoError(suite.T(), err)
 			assert.Equal(suite.T(), tt.expectedRows, len(rows))
 

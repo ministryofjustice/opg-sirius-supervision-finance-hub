@@ -1,15 +1,24 @@
 package db
 
 import (
-	"github.com/jackc/pgx/v5"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"time"
 )
 
 type InvoiceAdjustments struct {
+	ReportQuery
 	FromDate   *shared.Date
 	ToDate     *shared.Date
 	GoLiveDate time.Time
+}
+
+func NewInvoiceAdjustments(fromDate *shared.Date, toDate *shared.Date, goLiveDate time.Time) ReportQuery {
+	return &InvoiceAdjustments{
+		ReportQuery: NewReportQuery(InvoiceAdjustmentsQuery),
+		FromDate:    fromDate,
+		ToDate:      toDate,
+		GoLiveDate:  goLiveDate,
+	}
 }
 
 const InvoiceAdjustmentsQuery = `
@@ -82,10 +91,6 @@ func (i *InvoiceAdjustments) GetHeaders() []string {
 	}
 }
 
-func (i *InvoiceAdjustments) GetQuery() string {
-	return InvoiceAdjustmentsQuery
-}
-
 func (i *InvoiceAdjustments) GetParams() []any {
 	var (
 		from, to time.Time
@@ -104,8 +109,4 @@ func (i *InvoiceAdjustments) GetParams() []any {
 	}
 
 	return []any{from.Format("2006-01-02"), to.Format("2006-01-02")}
-}
-
-func (i *InvoiceAdjustments) GetCallback() func(row pgx.CollectableRow) ([]string, error) {
-	return RowToStringMap
 }

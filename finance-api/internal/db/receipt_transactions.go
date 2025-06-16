@@ -1,12 +1,19 @@
 package db
 
 import (
-	"github.com/jackc/pgx/v5"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
 type ReceiptTransactions struct {
+	ReportQuery
 	Date *shared.Date
+}
+
+func NewReceiptTransactions(date *shared.Date) ReportQuery {
+	return &ReceiptTransactions{
+		ReportQuery: NewReportQuery(ReceiptTransactionsQuery),
+		Date:        date,
+	}
 }
 
 const ReceiptTransactionsQuery = `
@@ -154,14 +161,6 @@ func (r *ReceiptTransactions) GetHeaders() []string {
 	}
 }
 
-func (r *ReceiptTransactions) GetQuery() string {
-	return ReceiptTransactionsQuery
-}
-
 func (r *ReceiptTransactions) GetParams() []any {
 	return []any{r.Date.Time.Format("2006-01-02")}
-}
-
-func (r *ReceiptTransactions) GetCallback() func(row pgx.CollectableRow) ([]string, error) {
-	return RowToStringMap
 }

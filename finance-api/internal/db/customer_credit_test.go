@@ -46,7 +46,7 @@ func (suite *IntegrationSuite) Test_customer_credit() {
 
 	c := Client{suite.seeder.Conn}
 
-	rows, err := c.Run(ctx, &CustomerCredit{})
+	rows, err := c.Run(ctx, NewCustomerCredit())
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), 3, len(rows))
 

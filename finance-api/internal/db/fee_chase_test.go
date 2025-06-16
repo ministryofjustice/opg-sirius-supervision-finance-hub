@@ -51,7 +51,7 @@ func (suite *IntegrationSuite) Test_fee_chase() {
 
 	c := Client{suite.seeder.Conn}
 
-	rows, err := c.Run(ctx, &FeeChase{})
+	rows, err := c.Run(ctx, NewFeeChase())
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), 4, len(rows))
 

@@ -46,10 +46,7 @@ func (suite *IntegrationSuite) Test_bad_debt_write_off() {
 	from := shared.NewDate(fourYearsAgo.String())
 	to := shared.NewDate(today.String())
 
-	rows, err := c.Run(ctx, &BadDebtWriteOff{
-		FromDate: &from,
-		ToDate:   &to,
-	})
+	rows, err := c.Run(ctx, NewBadDebtWriteOff(&from, &to, time.Time{}))
 
 	runTime := today
 

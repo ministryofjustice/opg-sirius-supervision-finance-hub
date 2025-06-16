@@ -92,37 +92,19 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 		reportName = reportRequest.AccountsReceivableType.Translation()
 		switch *reportRequest.AccountsReceivableType {
 		case shared.AccountsReceivableTypeAgedDebt:
-			query = &db.AgedDebt{
-				FromDate: reportRequest.FromDate,
-				ToDate:   reportRequest.ToDate,
-			}
+			query = db.NewAgedDebt(reportRequest.FromDate, reportRequest.ToDate)
 		case shared.AccountsReceivableTypeAgedDebtByCustomer:
-			query = &db.AgedDebtByCustomer{}
+			query = db.NewAgedDebtByCustomer()
 		case shared.AccountsReceivableTypeARPaidInvoice:
-			query = &db.PaidInvoices{
-				FromDate:   reportRequest.FromDate,
-				ToDate:     reportRequest.ToDate,
-				GoLiveDate: c.envs.GoLiveDate,
-			}
+			query = db.NewPaidInvoices(reportRequest.FromDate, reportRequest.ToDate, c.envs.GoLiveDate)
 		case shared.AccountsReceivableTypeInvoiceAdjustments:
-			query = &db.InvoiceAdjustments{
-				FromDate:   reportRequest.FromDate,
-				ToDate:     reportRequest.ToDate,
-				GoLiveDate: c.envs.GoLiveDate,
-			}
+			query = db.NewInvoiceAdjustments(reportRequest.FromDate, reportRequest.ToDate, c.envs.GoLiveDate)
 		case shared.AccountsReceivableTypeBadDebtWriteOff:
-			query = &db.BadDebtWriteOff{
-				FromDate:   reportRequest.FromDate,
-				ToDate:     reportRequest.ToDate,
-				GoLiveDate: c.envs.GoLiveDate,
-			}
+			query = db.NewBadDebtWriteOff(reportRequest.FromDate, reportRequest.ToDate, c.envs.GoLiveDate)
 		case shared.AccountsReceivableTypeTotalReceipts:
-			query = &db.Receipts{
-				FromDate: reportRequest.FromDate,
-				ToDate:   reportRequest.ToDate,
-			}
+			query = db.NewReceipts(reportRequest.FromDate, reportRequest.ToDate)
 		case shared.AccountsReceivableTypeUnappliedReceipts:
-			query = &db.CustomerCredit{}
+			query = db.NewCustomerCredit()
 		case shared.AccountsReceivableTypeFeeAccrual:
 			return filename, reportName, nil, nil
 		default:
@@ -134,12 +116,11 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 		reportName = reportRequest.JournalType.Translation()
 		switch *reportRequest.JournalType {
 		case shared.JournalTypeNonReceiptTransactions:
-			query = &db.NonReceiptTransactions{Date: reportRequest.TransactionDate}
+			query = db.NewNonReceiptTransactions(reportRequest.TransactionDate)
 		case shared.JournalTypeReceiptTransactions:
-			query = &db.ReceiptTransactions{Date: reportRequest.TransactionDate}
-
+			query = db.NewReceiptTransactions(reportRequest.TransactionDate)
 		case shared.JournalTypeUnappliedTransactions:
-			query = &db.UnappliedTransactions{Date: reportRequest.TransactionDate}
+			query = db.NewUnappliedTransactions(reportRequest.TransactionDate)
 		default:
 			return "", reportName, nil, fmt.Errorf("unimplemented journal query: %s", reportRequest.JournalType.Key())
 		}
@@ -153,11 +134,7 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 			shared.ScheduleTypeSupervisionBACSTransfer,
 			shared.ScheduleTypeDirectDebitPayments,
 			shared.ScheduleTypeChequePayments:
-			query = &db.PaymentsSchedule{
-				Date:         reportRequest.TransactionDate,
-				ScheduleType: reportRequest.ScheduleType,
-				PisNumber:    reportRequest.PisNumber,
-			}
+			query = db.NewPaymentsSchedule(reportRequest.TransactionDate, reportRequest.ScheduleType, reportRequest.PisNumber)
 		case shared.ScheduleTypeAdFeeInvoices,
 			shared.ScheduleTypeS2FeeInvoices,
 			shared.ScheduleTypeS3FeeInvoices,
@@ -172,10 +149,8 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 			shared.ScheduleTypeGAFeeInvoices,
 			shared.ScheduleTypeGSFeeInvoices,
 			shared.ScheduleTypeGTFeeInvoices:
-			query = &db.InvoicesSchedule{
-				Date:         reportRequest.TransactionDate,
-				ScheduleType: reportRequest.ScheduleType,
-			}
+			query = db.NewInvoicesSchedule(reportRequest.TransactionDate, reportRequest.ScheduleType)
+
 		case shared.ScheduleTypeADFeeReductions,
 			shared.ScheduleTypeGeneralFeeReductions,
 			shared.ScheduleTypeMinimalFeeReductions,
@@ -206,16 +181,12 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 			shared.ScheduleTypeGAWriteOffReversals,
 			shared.ScheduleTypeGSWriteOffReversals,
 			shared.ScheduleTypeGTWriteOffReversals:
-			query = &db.AdjustmentsSchedule{
-				Date:         reportRequest.TransactionDate,
-				ScheduleType: reportRequest.ScheduleType,
-			}
+			query = db.NewAdjustmentsSchedule(reportRequest.TransactionDate, reportRequest.ScheduleType)
+
 		case shared.ScheduleTypeUnappliedPayments,
 			shared.ScheduleTypeReappliedPayments:
-			query = &db.UnapplyReapplySchedule{
-				Date:         reportRequest.TransactionDate,
-				ScheduleType: reportRequest.ScheduleType,
-			}
+			query = db.NewUnapplyReapplySchedule(reportRequest.TransactionDate, reportRequest.ScheduleType)
+
 		default:
 			return "", reportName, nil, fmt.Errorf("unimplemented schedule query: %s", reportRequest.ScheduleType.Key())
 		}
@@ -224,7 +195,7 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 		reportName = reportRequest.DebtType.Translation()
 		switch *reportRequest.DebtType {
 		case shared.DebtTypeFeeChase:
-			query = &db.FeeChase{}
+			query = db.NewFeeChase()
 		default:
 			return "", reportName, nil, fmt.Errorf("unimplemented debt query: %s", reportRequest.DebtType.Key())
 		}

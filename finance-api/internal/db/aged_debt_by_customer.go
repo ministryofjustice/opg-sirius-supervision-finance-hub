@@ -1,8 +1,12 @@
 package db
 
-import "github.com/jackc/pgx/v5"
+type AgedDebtByCustomer struct{ ReportQuery }
 
-type AgedDebtByCustomer struct{}
+func NewAgedDebtByCustomer() ReportQuery {
+	return &AgedDebtByCustomer{
+		ReportQuery: NewReportQuery(AgedDebtByCustomerQuery),
+	}
+}
 
 const AgedDebtByCustomerQuery = `WITH outstanding_invoices AS (SELECT i.id AS invoice_id,
                                      i.finance_client_id,
@@ -85,16 +89,4 @@ func (a *AgedDebtByCustomer) GetHeaders() []string {
 		"3-5 years",
 		"5+ years",
 	}
-}
-
-func (a *AgedDebtByCustomer) GetQuery() string {
-	return AgedDebtByCustomerQuery
-}
-
-func (a *AgedDebtByCustomer) GetParams() []any {
-	return []any{}
-}
-
-func (a *AgedDebtByCustomer) GetCallback() func(row pgx.CollectableRow) ([]string, error) {
-	return RowToStringMap
 }

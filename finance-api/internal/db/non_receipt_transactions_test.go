@@ -61,9 +61,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 
 	date := shared.NewDate(yesterday.String())
 
-	rows, err := c.Run(ctx, &NonReceiptTransactions{
-		Date: &date,
-	})
+	rows, err := c.Run(ctx, NewNonReceiptTransactions(&date))
 
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), 25, len(rows))

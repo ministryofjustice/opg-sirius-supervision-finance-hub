@@ -1,8 +1,12 @@
 package db
 
-import "github.com/jackc/pgx/v5"
+type CustomerCredit struct{ ReportQuery }
 
-type CustomerCredit struct{}
+func NewCustomerCredit() ReportQuery {
+	return &CustomerCredit{
+		ReportQuery: NewReportQuery(CustomerCreditQuery),
+	}
+}
 
 const CustomerCreditQuery = `SELECT CONCAT(p.firstname, ' ', p.surname)   AS "Customer Name",
 								   p.caserecnumber                       AS "Customer number",
@@ -23,16 +27,4 @@ func (c *CustomerCredit) GetHeaders() []string {
 		"SOP number",
 		"Credit balance",
 	}
-}
-
-func (c *CustomerCredit) GetQuery() string {
-	return CustomerCreditQuery
-}
-
-func (c *CustomerCredit) GetParams() []any {
-	return []any{}
-}
-
-func (c *CustomerCredit) GetCallback() func(row pgx.CollectableRow) ([]string, error) {
-	return RowToStringMap
 }

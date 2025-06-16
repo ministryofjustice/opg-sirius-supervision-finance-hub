@@ -1,14 +1,22 @@
 package db
 
 import (
-	"github.com/jackc/pgx/v5"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"time"
 )
 
 type Receipts struct {
+	ReportQuery
 	FromDate *shared.Date
 	ToDate   *shared.Date
+}
+
+func NewReceipts(fromDate *shared.Date, toDate *shared.Date) ReportQuery {
+	return &Receipts{
+		ReportQuery: NewReportQuery(ReceiptsQuery),
+		FromDate:    fromDate,
+		ToDate:      toDate,
+	}
 }
 
 const ReceiptsQuery = `SELECT CONCAT(p.firstname, ' ', p.surname)                             AS "Customer Name",
@@ -71,10 +79,6 @@ func (r *Receipts) GetHeaders() []string {
 	}
 }
 
-func (r *Receipts) GetQuery() string {
-	return ReceiptsQuery
-}
-
 func (r *Receipts) GetParams() []any {
 	var (
 		from, to time.Time
@@ -93,8 +97,4 @@ func (r *Receipts) GetParams() []any {
 	}
 
 	return []any{from.Format("2006-01-02"), to.Format("2006-01-02")}
-}
-
-func (r *Receipts) GetCallback() func(row pgx.CollectableRow) ([]string, error) {
-	return RowToStringMap
 }
