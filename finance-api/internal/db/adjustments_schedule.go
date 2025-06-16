@@ -6,15 +6,18 @@ import (
 
 type AdjustmentsSchedule struct {
 	ReportQuery
+	AdjustmentsScheduleParams
+}
+
+type AdjustmentsScheduleParams struct {
 	Date         *shared.Date
 	ScheduleType *shared.ScheduleType
 }
 
-func NewAdjustmentsSchedule(date *shared.Date, scheduleType *shared.ScheduleType) ReportQuery {
+func NewAdjustmentsSchedule(params AdjustmentsScheduleParams) ReportQuery {
 	return &AdjustmentsSchedule{
-		ReportQuery:  NewReportQuery(AdjustmentsScheduleQuery),
-		Date:         date,
-		ScheduleType: scheduleType,
+		ReportQuery:               NewReportQuery(AdjustmentsScheduleQuery),
+		AdjustmentsScheduleParams: params,
 	}
 }
 

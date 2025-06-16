@@ -7,15 +7,18 @@ import (
 
 type Receipts struct {
 	ReportQuery
+	ReceiptsParams
+}
+
+type ReceiptsParams struct {
 	FromDate *shared.Date
 	ToDate   *shared.Date
 }
 
-func NewReceipts(fromDate *shared.Date, toDate *shared.Date) ReportQuery {
+func NewReceipts(params ReceiptsParams) ReportQuery {
 	return &Receipts{
-		ReportQuery: NewReportQuery(ReceiptsQuery),
-		FromDate:    fromDate,
-		ToDate:      toDate,
+		ReportQuery:    NewReportQuery(ReceiptsQuery),
+		ReceiptsParams: params,
 	}
 }
 

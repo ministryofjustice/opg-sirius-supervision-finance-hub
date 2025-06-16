@@ -307,7 +307,10 @@ func (suite *IntegrationSuite) Test_invoices_schedules() {
 
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
-			rows, err := c.Run(ctx, NewInvoicesSchedule(&tt.date, &tt.scheduleType))
+			rows, err := c.Run(ctx, NewInvoicesSchedule(InvoicesScheduleParams{
+				Date:         &tt.date,
+				ScheduleType: &tt.scheduleType,
+			}))
 			assert.NoError(suite.T(), err)
 			assert.Equal(suite.T(), tt.expectedRows, len(rows))
 
