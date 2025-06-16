@@ -16,7 +16,7 @@ describe("Add Refunds", () => {
         cy.contains("label", "Name on bank account").type("Ms Regina Refund");
         cy.contains("label", "Account number").type("12345678");
         cy.contains("label", "Sort code").type("112233"); // will be automatically hyphenated
-        cy.contains("label", "Reason for refund").type("This refund is needed for reasons");
+        cy.contains("label", "Reasons for refund").type("This refund is needed for reasons");
         cy.contains(".govuk-character-count__status", "You have 967 characters remaining");
         cy.contains(".govuk-button", "Save and continue").click();
 

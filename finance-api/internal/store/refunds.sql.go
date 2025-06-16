@@ -13,7 +13,7 @@ import (
 
 const createRefund = `-- name: CreateRefund :one
 WITH r AS (
-    INSERT INTO refund (id, client_id, raised_date, amount, status, notes, created_by, created_at)
+    INSERT INTO refund (id, finance_client_id, raised_date, amount, decision, notes, created_by, created_at)
         VALUES (NEXTVAL('refund_id_seq'),
                 (SELECT id FROM finance_client WHERE client_id = $1),
                 NOW(),
@@ -32,13 +32,13 @@ FROM r
 `
 
 type CreateRefundParams struct {
-	ClientID      pgtype.Int4
-	Amount        pgtype.Int4
-	Notes         pgtype.Text
-	CreatedBy     pgtype.Int4
-	AccountName   pgtype.Text
-	AccountNumber pgtype.Text
-	SortCode      pgtype.Text
+	ClientID      int32
+	Amount        int32
+	Notes         string
+	CreatedBy     int32
+	AccountName   string
+	AccountNumber string
+	SortCode      string
 }
 
 func (q *Queries) CreateRefund(ctx context.Context, arg CreateRefundParams) (int32, error) {
@@ -79,16 +79,21 @@ func (q *Queries) GetRefundAmount(ctx context.Context, clientID int32) (int32, e
 const getRefunds = `-- name: GetRefunds :many
 SELECT r.id,
        r.raised_date,
-       r.fulfilled_date,
+       r.fulfilled_at::DATE AS fulfilled_date,
        r.amount,
-       r.status,
+       CASE
+           WHEN r.fulfilled_at IS NOT NULL THEN 'FULFILLED'
+           WHEN r.cancelled_at IS NOT NULL THEN 'CANCELLED'
+           WHEN r.processed_at IS NOT NULL THEN 'PROCESSING'
+           ELSE r.decision
+           END::VARCHAR      AS status,
        r.notes,
        r.created_by,
        COALESCE(bd.name, '')::VARCHAR      AS account_name,
        COALESCE(bd.account, '')::VARCHAR   AS account_code,
        COALESCE(bd.sort_code, '')::VARCHAR AS sort_code
 FROM refund r
-         JOIN finance_client fc ON fc.id = r.client_id
+         JOIN finance_client fc ON fc.id = r.finance_client_id
          LEFT JOIN bank_details bd ON r.id = bd.refund_id
 WHERE fc.client_id = $1
 ORDER BY r.raised_date DESC, r.created_at DESC
@@ -136,4 +141,41 @@ func (q *Queries) GetRefunds(ctx context.Context, clientID int32) ([]GetRefundsR
 		return nil, err
 	}
 	return items, nil
+}
+
+const removeBankDetails = `-- name: RemoveBankDetails :exec
+DELETE
+FROM bank_details
+WHERE refund_id = $1
+`
+
+func (q *Queries) RemoveBankDetails(ctx context.Context, refundID int32) error {
+	_, err := q.db.Exec(ctx, removeBankDetails, refundID)
+	return err
+}
+
+const setRefundDecision = `-- name: SetRefundDecision :exec
+UPDATE refund
+SET decision    = $1,
+    decision_at = NOW(),
+    decision_by = $2
+WHERE finance_client_id = (SELECT id FROM finance_client WHERE client_id = $3)
+  AND id = $4
+`
+
+type SetRefundDecisionParams struct {
+	Decision   pgtype.Text
+	DecisionBy pgtype.Int4
+	ClientID   pgtype.Int4
+	RefundID   pgtype.Int4
+}
+
+func (q *Queries) SetRefundDecision(ctx context.Context, arg SetRefundDecisionParams) error {
+	_, err := q.db.Exec(ctx, setRefundDecision,
+		arg.Decision,
+		arg.DecisionBy,
+		arg.ClientID,
+		arg.RefundID,
+	)
+	return err
 }
