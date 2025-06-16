@@ -117,6 +117,12 @@ func (s *mockService) AddRefund(ctx context.Context, id int32, refund shared.Add
 	return s.err
 }
 
+func (s *mockService) UpdateRefundDecision(ctx context.Context, clientId int32, refundId int32, status shared.RefundStatus) error {
+	s.expectedIds = []int{int(refundId)}
+	s.lastCalled = "UpdateRefundDecision"
+	return s.err
+}
+
 func (s *mockService) AddInvoiceAdjustment(ctx context.Context, clientId int32, invoiceId int32, ledgerEntry *shared.AddInvoiceAdjustmentRequest) (*shared.InvoiceReference, error) {
 	s.ledger = ledgerEntry
 	s.expectedIds = []int{int(clientId), int(invoiceId)}

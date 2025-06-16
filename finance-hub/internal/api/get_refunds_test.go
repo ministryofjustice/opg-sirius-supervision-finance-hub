@@ -62,7 +62,7 @@ func TestGetRefundsCanReturn200(t *testing.T) {
 				RaisedDate:    shared.NewDate("01/04/2222"),
 				FulfilledDate: shared.TransformNillableDate(&fulfilledDate),
 				Amount:        232,
-				Status:        "PENDING",
+				Status:        shared.RefundStatusPending,
 				Notes:         "Some notes here",
 				CreatedBy:     99,
 				BankDetails: shared.NewNillable(
