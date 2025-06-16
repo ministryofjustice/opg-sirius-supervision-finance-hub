@@ -6,30 +6,33 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-type FeeChase struct{}
+type FeeChase struct {
+	headers         []string
+	maxInvoiceCount int
+}
 
 const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
-               cl.id AS "Client_no",
-               COALESCE(cl.salutation, '') AS "Client_title",
-               cl.firstname AS "Client_forename",
-               cl.surname AS "Client_surname",
-               CASE WHEN do_not_invoice_warning_count.count >= 1 THEN 'Yes' ELSE 'No' END  AS "Do_not_chase",
-               initcap(fc.payment_method) AS "Payment_method",
-               COALESCE(p.deputytype, '') AS "Deputy_type",
-               COALESCE(p.deputynumber::VARCHAR, '') AS "Deputy_no",
-               CASE WHEN a.isairmailrequired IS TRUE THEN 'Yes' ELSE 'No' END AS "Airmail",
-               COALESCE(p.salutation, '') AS "Deputy_title",
-               CASE WHEN p.correspondencebywelsh IS TRUE THEN 'Yes' ELSE 'No' END AS "Deputy_Welsh",
-               CASE WHEN p.specialcorrespondencerequirements_largeprint IS TRUE THEN 'Yes' ELSE 'No' END AS "Deputy_Large_Print",
-               COALESCE(nullif(p.organisationname, ''), CONCAT(p.firstname, ' ' , p.surname)) AS "Deputy_name",
-               COALESCE(p.email, '') AS "Email",
-               CASE WHEN a.address_lines IS NOT NULL THEN COALESCE(a.address_lines ->> 0, '') ELSE '' END AS "Address1",
-               CASE WHEN a.address_lines IS NOT NULL THEN COALESCE(a.address_lines ->> 1, '') ELSE '' END AS "Address2",
-               CASE WHEN a.address_lines IS NOT NULL THEN COALESCE(a.address_lines ->> 2, '') ELSE '' END AS "Address3",
-               COALESCE(a.town, '') AS "City_Town",
-               COALESCE(a.county, '') AS "County",
-               COALESCE(a.postcode, '') AS "Postcode",
-               CONCAT('=UNICHAR(163)&', ABS(gi.total / 100.0)::NUMERIC(10,2)::VARCHAR(255)) AS "Total_debt",
+				cl.id AS "Client_no",
+				COALESCE(cl.salutation, '') AS "Client_title",
+				cl.firstname AS "Client_forename",
+				cl.surname AS "Client_surname",
+				CASE WHEN do_not_invoice_warning_count.count >= 1 THEN 'Yes' ELSE 'No' END  AS "Do_not_chase",
+				initcap(fc.payment_method) AS "Payment_method",
+				COALESCE(p.deputytype, '') AS "Deputy_type",
+				COALESCE(p.deputynumber::VARCHAR, '') AS "Deputy_no",
+				CASE WHEN a.isairmailrequired IS TRUE THEN 'Yes' ELSE 'No' END AS "Airmail",
+				COALESCE(p.salutation, '') AS "Deputy_title",
+				CASE WHEN p.correspondencebywelsh IS TRUE THEN 'Yes' ELSE 'No' END AS "Deputy_Welsh",
+				CASE WHEN p.specialcorrespondencerequirements_largeprint IS TRUE THEN 'Yes' ELSE 'No' END AS "Deputy_Large_Print",
+				COALESCE(nullif(p.organisationname, ''), CONCAT(p.firstname, ' ' , p.surname)) AS "Deputy_name",
+				COALESCE(p.email, '') AS "Email",
+				CASE WHEN a.address_lines IS NOT NULL THEN COALESCE(a.address_lines ->> 0, '') ELSE '' END AS "Address1",
+				CASE WHEN a.address_lines IS NOT NULL THEN COALESCE(a.address_lines ->> 1, '') ELSE '' END AS "Address2",
+				CASE WHEN a.address_lines IS NOT NULL THEN COALESCE(a.address_lines ->> 2, '') ELSE '' END AS "Address3",
+				COALESCE(a.town, '') AS "City_Town",
+				COALESCE(a.county, '') AS "County",
+				COALESCE(a.postcode, '') AS "Postcode",
+				CONCAT('=UNICHAR(163)&', ABS(gi.total / 100.0)::NUMERIC(10,2)::VARCHAR(255)) AS "Total_debt",
 				gi.invoice
         FROM public.persons cl
                 INNER JOIN supervision_finance.finance_client fc on cl.id = fc.client_id
@@ -47,19 +50,19 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
 				)   as invoice,
 			   count(i.reference)                                                                         		  as count,
 			   SUM(i.amount - COALESCE(transactions.received, 0))                                                 as total
-              FROM supervision_finance.invoice i
-                       LEFT JOIN LATERAL (
-                  SELECT SUM(la.amount) AS received
-                  FROM supervision_finance.ledger_allocation la
-                         JOIN supervision_finance.ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
-                  WHERE la.status NOT IN ('PENDING', 'UNALLOCATED')
-                    AND la.invoice_id = i.id
-                  ) transactions ON TRUE
-              WHERE i.amount > COALESCE(transactions.received, 0)
-              AND i.finance_client_id = fc.id
-			group by i.person_id
+			FROM supervision_finance.invoice i
+			LEFT JOIN LATERAL (
+				SELECT SUM(la.amount) AS received
+				FROM supervision_finance.ledger_allocation la
+					 JOIN supervision_finance.ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
+				WHERE la.status NOT IN ('PENDING', 'UNALLOCATED')
+				AND la.invoice_id = i.id
+				) transactions ON TRUE
+			WHERE i.amount > COALESCE(transactions.received, 0)
+			AND i.finance_client_id = fc.id
+			GROUP BY i.person_id
             ) AS gi
-           , LATERAL (
+            , LATERAL (
             SELECT COUNT(w.id)
             FROM public.person_warning pw
             INNER JOIN public.warnings w on pw.warning_id = w.id
@@ -68,11 +71,23 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
               AND w.warningtype = 'Do not invoice'
             ) AS do_not_invoice_warning_count
             WHERE cl.type = 'actor_client'
-              AND cl.clientstatus = 'ACTIVE'
-              AND gi.total IS NOT NULL AND gi.total > 0;`
+			AND cl.clientstatus = 'ACTIVE'
+			AND gi.total IS NOT NULL AND gi.total > 0;`
 
 func (f *FeeChase) GetHeaders() []string {
-	return []string{
+	return f.headers
+}
+
+func (f *FeeChase) GetQuery() string {
+	return FeeChaseQuery
+}
+
+func (f *FeeChase) GetParams() []any {
+	return []any{}
+}
+
+func (f *FeeChase) GetCallback() func(row pgx.CollectableRow) ([]string, error) {
+	f.headers = []string{
 		"Case_no",
 		"Client_no",
 		"Client_title",
@@ -95,19 +110,8 @@ func (f *FeeChase) GetHeaders() []string {
 		"County",
 		"Postcode",
 		"Total_debt",
-		"Invoice",
 	}
-}
 
-func (f *FeeChase) GetQuery() string {
-	return FeeChaseQuery
-}
-
-func (f *FeeChase) GetParams() []any {
-	return []any{}
-}
-
-func (f *FeeChase) GetCallback() func(row pgx.CollectableRow) ([]string, error) {
 	return func(row pgx.CollectableRow) ([]string, error) {
 		var stringRow []string
 		values, err := row.Values()
@@ -129,6 +133,15 @@ func (f *FeeChase) GetCallback() func(row pgx.CollectableRow) ([]string, error) 
 
 				if err := json.Unmarshal(jsonBytes, &invoices); err != nil {
 					return nil, fmt.Errorf("error unmarshaling to struct: %v", err)
+				}
+
+				if len(invoices) > f.maxInvoiceCount {
+					newColumns := len(invoices) - f.maxInvoiceCount
+					f.maxInvoiceCount = len(invoices)
+					for i := 1; i <= newColumns; i++ {
+						f.headers = append(f.headers, fmt.Sprintf("Invoice%d", i))
+						f.headers = append(f.headers, fmt.Sprintf("Amount%d", i))
+					}
 				}
 
 				for _, invoice := range invoices {

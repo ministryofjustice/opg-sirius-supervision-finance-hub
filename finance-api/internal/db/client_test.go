@@ -6,7 +6,6 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/stretchr/testify/assert"
-	"strconv"
 	"testing"
 )
 
@@ -21,11 +20,7 @@ func mapByHeader(rows [][]string) []map[string]string {
 	for _, row := range rows[1:] {
 		rowMap := make(map[string]string)
 		for i, value := range row {
-			if len(headers) <= i {
-				rowMap[strconv.Itoa(i)] = value
-			} else {
-				rowMap[headers[i]] = value
-			}
+			rowMap[headers[i]] = value
 		}
 		result = append(result, rowMap)
 	}
