@@ -72,7 +72,7 @@ func TestRowToStringMap(t *testing.T) {
 		values: [][]any{{"test", "values", 2, 3, 5.55}},
 	}
 
-	got, err := RowToStringMap(&row)
+	got, err := rowToStringMap(&row)
 
 	want := []string{"test", "values", "2", "3", "5.55"}
 
@@ -86,7 +86,7 @@ func TestRowToStringMapError(t *testing.T) {
 		err:    fmt.Errorf("Oh no!"),
 	}
 
-	got, err := RowToStringMap(&row)
+	got, err := rowToStringMap(&row)
 	want := fmt.Errorf("Oh no!")
 
 	assert.Nil(t, got)
@@ -99,12 +99,11 @@ type mockQueryReport struct {
 
 func (m mockQueryReport) GetQuery() string { return "" }
 func (m mockQueryReport) GetParams() []any { return nil }
-
 func (m mockQueryReport) GetHeaders() []string {
 	return m.headers
 }
 func (m mockQueryReport) GetCallback() func(row pgx.CollectableRow) ([]string, error) {
-	return RowToStringMap
+	return rowToStringMap
 }
 
 func TestRun(t *testing.T) {

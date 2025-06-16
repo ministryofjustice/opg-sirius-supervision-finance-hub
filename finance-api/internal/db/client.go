@@ -45,7 +45,7 @@ func (q *reportQuery) GetQuery() string     { return q.Query }
 func (q *reportQuery) GetHeaders() []string { return []string{} }
 func (q *reportQuery) GetParams() []any     { return []any{} }
 func (q *reportQuery) GetCallback() func(row pgx.CollectableRow) ([]string, error) {
-	return func(row pgx.CollectableRow) ([]string, error) { return RowToStringMap(row) }
+	return func(row pgx.CollectableRow) ([]string, error) { return rowToStringMap(row) }
 }
 
 func (c *Client) Run(ctx context.Context, query ReportQuery) ([][]string, error) {
@@ -111,7 +111,7 @@ func (c *Client) CopyStream(ctx context.Context, query ReportQuery) (io.ReadClos
 	return pr, nil
 }
 
-func RowToStringMap(row pgx.CollectableRow) ([]string, error) {
+func rowToStringMap(row pgx.CollectableRow) ([]string, error) {
 	var stringRow []string
 	values, err := row.Values()
 	if err != nil {
