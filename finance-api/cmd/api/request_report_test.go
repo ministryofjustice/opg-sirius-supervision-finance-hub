@@ -36,10 +36,27 @@ func TestRequestReport(t *testing.T) {
 	r, _ := http.NewRequestWithContext(ctx, http.MethodPost, "/downloads", &b)
 	w := httptest.NewRecorder()
 
-	mock := &MockReports{}
-	mock.requestedReport = downloadForm
-	server := NewServer(nil, mock, nil, nil, nil, nil, nil)
+	reports := &MockReports{}
+	reports.requestedReport = downloadForm
+	service := &mockService{}
+
+	done := make(chan struct{})
+
+	server := NewServer(service, reports, nil, nil, nil, nil, nil)
+
+	server.onReportRequested = func() {
+		close(done)
+	}
+
 	_ = server.requestReport(w, r)
+
+	// wait for async to finish
+	select {
+	case <-done:
+		// success
+	case <-time.After(2 * time.Second):
+		t.Fatal("timeout waiting for async report to complete")
+	}
 
 	res := w.Result()
 	defer res.Body.Close()
@@ -47,7 +64,8 @@ func TestRequestReport(t *testing.T) {
 	assert.Equal(t, "", w.Body.String())
 	assert.Equal(t, http.StatusCreated, w.Code)
 
-	assert.EqualValues(t, downloadForm, mock.requestedReport)
+	assert.EqualValues(t, downloadForm, reports.requestedReport)
+	assert.Equal(t, "PostReportActions", service.lastCalled)
 }
 
 func TestRequestReportNoEmail(t *testing.T) {
@@ -144,9 +162,27 @@ func TestRequestReportJournalDate(t *testing.T) {
 			r, _ := http.NewRequestWithContext(ctx, http.MethodPost, "/downloads", &b)
 			w := httptest.NewRecorder()
 
-			mock := &MockReports{}
-			server := NewServer(nil, mock, nil, nil, nil, nil, nil)
+			service := &mockService{}
+			reports := &MockReports{}
+
+			done := make(chan struct{})
+
+			server := NewServer(service, reports, nil, nil, nil, nil, nil)
+			server.onReportRequested = func() {
+				close(done)
+			}
+
 			err := server.requestReport(w, r)
+
+			if tt.err == nil {
+				// wait for async to finish
+				select {
+				case <-done:
+					// success
+				case <-time.After(2 * time.Second):
+					t.Fatal("timeout waiting for async report to complete")
+				}
+			}
 
 			res := w.Result()
 			defer res.Body.Close()
@@ -342,7 +378,7 @@ func TestValidateReportRequest(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			server := &Server{nil, nil, nil, nil, nil, nil, &Envs{GoLiveDate: goLive}}
+			server := &Server{envs: &Envs{GoLiveDate: goLive}}
 			err := server.validateReportRequest(tt.reportRequest)
 			assert.Equal(t, tt.expectedError, err)
 		})

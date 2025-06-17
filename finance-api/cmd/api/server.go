@@ -39,6 +39,7 @@ type Service interface {
 	ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType) (map[int]string, error)
 	AddRefund(ctx context.Context, clientId int32, refund shared.AddRefund) error
 	UpdateRefundDecision(ctx context.Context, clientId int32, refundId int32, status shared.RefundStatus) error
+	PostReportActions(ctx context.Context, report shared.ReportRequest)
 }
 
 type FileStorage interface {
@@ -61,13 +62,14 @@ type NotifyClient interface {
 }
 
 type Server struct {
-	service     Service
-	reports     Reports
-	fileStorage FileStorage
-	notify      NotifyClient
-	JWT         JWTClient
-	validator   *validation.Validate
-	envs        *Envs
+	service           Service
+	reports           Reports
+	fileStorage       FileStorage
+	notify            NotifyClient
+	JWT               JWTClient
+	validator         *validation.Validate
+	envs              *Envs
+	onReportRequested func() // hook to allow tests to wait on async function to complete
 }
 
 type Envs struct {

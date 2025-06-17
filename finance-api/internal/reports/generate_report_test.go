@@ -321,6 +321,16 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			expectedTemplate: reportRequestedTemplateId,
 		},
 		{
+			name: "Approved refunds",
+			reportRequest: shared.ReportRequest{
+				ReportType: shared.ReportsTypeDebt,
+				DebtType:   toPtr(shared.DebtTypeApprovedRefunds),
+			},
+			expectedQuery:    &db.ApprovedRefunds{},
+			expectedFilename: "debt_ApprovedRefunds_01:01:2024.csv",
+			expectedTemplate: reportRequestedTemplateId,
+		},
+		{
 			name: "Unknown debt",
 			reportRequest: shared.ReportRequest{
 				ReportType: shared.ReportsTypeDebt,

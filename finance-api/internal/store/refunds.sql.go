@@ -143,6 +143,33 @@ func (q *Queries) GetRefunds(ctx context.Context, clientID int32) ([]GetRefundsR
 	return items, nil
 }
 
+const markRefundsAsProcessed = `-- name: MarkRefundsAsProcessed :many
+UPDATE refund
+SET processed_at = NOW()
+WHERE decision = 'APPROVED' AND processed_at IS NULL
+RETURNING id
+`
+
+func (q *Queries) MarkRefundsAsProcessed(ctx context.Context) ([]int32, error) {
+	rows, err := q.db.Query(ctx, markRefundsAsProcessed)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int32
+	for rows.Next() {
+		var id int32
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const removeBankDetails = `-- name: RemoveBankDetails :exec
 DELETE
 FROM bank_details
