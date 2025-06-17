@@ -6,17 +6,17 @@ import (
 
 type NonReceiptTransactions struct {
 	ReportQuery
-	NonReceiptTransactionsParams
+	NonReceiptTransactionsInput
 }
 
-type NonReceiptTransactionsParams struct {
+type NonReceiptTransactionsInput struct {
 	Date *shared.Date
 }
 
-func NewNonReceiptTransactions(params NonReceiptTransactionsParams) ReportQuery {
+func NewNonReceiptTransactions(input NonReceiptTransactionsInput) ReportQuery {
 	return &NonReceiptTransactions{
-		ReportQuery:                  NewReportQuery(NonReceiptTransactionsQuery),
-		NonReceiptTransactionsParams: params,
+		ReportQuery:                 NewReportQuery(NonReceiptTransactionsQuery),
+		NonReceiptTransactionsInput: input,
 	}
 }
 

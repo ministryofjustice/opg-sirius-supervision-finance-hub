@@ -6,17 +6,17 @@ import (
 
 type UnappliedTransactions struct {
 	ReportQuery
-	UnappliedTransactionsParams
+	UnappliedTransactionsInput
 }
 
-type UnappliedTransactionsParams struct {
+type UnappliedTransactionsInput struct {
 	Date *shared.Date
 }
 
-func NewUnappliedTransactions(params UnappliedTransactionsParams) ReportQuery {
+func NewUnappliedTransactions(input UnappliedTransactionsInput) ReportQuery {
 	return &UnappliedTransactions{
-		ReportQuery:                 NewReportQuery(UnappliedTransactionsQuery),
-		UnappliedTransactionsParams: params,
+		ReportQuery:                NewReportQuery(UnappliedTransactionsQuery),
+		UnappliedTransactionsInput: input,
 	}
 }
 

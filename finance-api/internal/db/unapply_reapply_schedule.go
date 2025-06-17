@@ -6,18 +6,18 @@ import (
 
 type UnapplyReapplySchedule struct {
 	ReportQuery
-	UnapplyReapplyScheduleParams
+	UnapplyReapplyScheduleInput
 }
 
-type UnapplyReapplyScheduleParams struct {
+type UnapplyReapplyScheduleInput struct {
 	Date         *shared.Date
 	ScheduleType *shared.ScheduleType
 }
 
-func NewUnapplyReapplySchedule(params UnapplyReapplyScheduleParams) ReportQuery {
+func NewUnapplyReapplySchedule(input UnapplyReapplyScheduleInput) ReportQuery {
 	return &UnapplyReapplySchedule{
-		ReportQuery:                  NewReportQuery(UnapplyReapplyScheduleQuery),
-		UnapplyReapplyScheduleParams: params,
+		ReportQuery:                 NewReportQuery(UnapplyReapplyScheduleQuery),
+		UnapplyReapplyScheduleInput: input,
 	}
 }
 

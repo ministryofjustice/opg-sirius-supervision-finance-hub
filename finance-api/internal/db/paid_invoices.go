@@ -7,19 +7,19 @@ import (
 
 type PaidInvoices struct {
 	ReportQuery
-	PaidInvoicesParams
+	PaidInvoicesInput
 }
 
-type PaidInvoicesParams struct {
+type PaidInvoicesInput struct {
 	FromDate   *shared.Date
 	ToDate     *shared.Date
 	GoLiveDate time.Time
 }
 
-func NewPaidInvoices(params PaidInvoicesParams) ReportQuery {
+func NewPaidInvoices(input PaidInvoicesInput) ReportQuery {
 	return &PaidInvoices{
-		ReportQuery:        NewReportQuery(PaidInvoicesQuery),
-		PaidInvoicesParams: params,
+		ReportQuery:       NewReportQuery(PaidInvoicesQuery),
+		PaidInvoicesInput: input,
 	}
 }
 

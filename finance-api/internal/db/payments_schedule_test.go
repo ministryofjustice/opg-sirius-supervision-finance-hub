@@ -197,7 +197,7 @@ func (suite *IntegrationSuite) Test_payments_schedules() {
 
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
-			rows, err := c.Run(ctx, NewPaymentsSchedule(PaymentsScheduleParams{
+			rows, err := c.Run(ctx, NewPaymentsSchedule(PaymentsScheduleInput{
 				Date:         &tt.date,
 				ScheduleType: &tt.scheduleType,
 				PisNumber:    tt.pisNumber,

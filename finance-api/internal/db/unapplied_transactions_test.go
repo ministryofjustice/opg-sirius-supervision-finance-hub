@@ -44,7 +44,7 @@ func (suite *IntegrationSuite) Test_unapplied_transactions() {
 
 	date := shared.NewDate(yesterday.String())
 
-	rows, err := c.Run(ctx, NewUnappliedTransactions(UnappliedTransactionsParams{
+	rows, err := c.Run(ctx, NewUnappliedTransactions(UnappliedTransactionsInput{
 		Date: &date,
 	}))
 

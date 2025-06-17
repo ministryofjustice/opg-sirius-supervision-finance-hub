@@ -50,7 +50,7 @@ func (suite *IntegrationSuite) Test_receipts() {
 	from := shared.NewDate(twoYearsAgo.Sub(0, 0, 1).String())
 	to := shared.NewDate(yesterday.String())
 
-	rows, err := c.Run(ctx, NewReceipts(ReceiptsParams{
+	rows, err := c.Run(ctx, NewReceipts(ReceiptsInput{
 		FromDate: &from,
 		ToDate:   &to,
 	}))

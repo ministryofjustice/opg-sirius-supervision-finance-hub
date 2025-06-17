@@ -72,7 +72,7 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	from := shared.NewDate(fourYearsAgo.String())
 	to := shared.NewDate(yesterday.String())
 
-	rows, err := c.Run(ctx, NewAgedDebt(AgedDebtParams{
+	rows, err := c.Run(ctx, NewAgedDebt(AgedDebtInput{
 		FromDate: &from,
 		ToDate:   &to,
 	}))

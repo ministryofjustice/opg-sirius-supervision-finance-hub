@@ -572,7 +572,7 @@ func (suite *IntegrationSuite) Test_adjustments_schedules() {
 
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
-			rows, err := c.Run(ctx, NewAdjustmentsSchedule(AdjustmentsScheduleParams{
+			rows, err := c.Run(ctx, NewAdjustmentsSchedule(AdjustmentsScheduleInput{
 				Date:         &tt.date,
 				ScheduleType: &tt.scheduleType,
 			}))

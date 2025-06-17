@@ -7,18 +7,18 @@ import (
 
 type AgedDebt struct {
 	ReportQuery
-	AgedDebtParams
+	AgedDebtInput
 }
 
-type AgedDebtParams struct {
+type AgedDebtInput struct {
 	FromDate *shared.Date
 	ToDate   *shared.Date
 }
 
-func NewAgedDebt(params AgedDebtParams) ReportQuery {
+func NewAgedDebt(input AgedDebtInput) ReportQuery {
 	return &AgedDebt{
-		ReportQuery:    NewReportQuery(AgedDebtQuery),
-		AgedDebtParams: params,
+		ReportQuery:   NewReportQuery(AgedDebtQuery),
+		AgedDebtInput: input,
 	}
 }
 

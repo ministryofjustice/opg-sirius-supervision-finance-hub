@@ -92,7 +92,7 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	from := shared.NewDate(fourYearsAgo.String())
 	to := shared.NewDate(today.String())
 
-	rows, err := c.Run(ctx, NewPaidInvoices(PaidInvoicesParams{
+	rows, err := c.Run(ctx, NewPaidInvoices(PaidInvoicesInput{
 		FromDate: &from,
 		ToDate:   &to,
 	}))
@@ -300,7 +300,7 @@ func Test_paidInvoices_getParams(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			paidInvoices := NewPaidInvoices(PaidInvoicesParams{
+			paidInvoices := NewPaidInvoices(PaidInvoicesInput{
 				FromDate:   tt.fromDate,
 				ToDate:     tt.toDate,
 				GoLiveDate: goLiveDate,

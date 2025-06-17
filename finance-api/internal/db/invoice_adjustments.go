@@ -7,19 +7,19 @@ import (
 
 type InvoiceAdjustments struct {
 	ReportQuery
-	InvoiceAdjustmentsParams
+	InvoiceAdjustmentsInput
 }
 
-type InvoiceAdjustmentsParams struct {
+type InvoiceAdjustmentsInput struct {
 	FromDate   *shared.Date
 	ToDate     *shared.Date
 	GoLiveDate time.Time
 }
 
-func NewInvoiceAdjustments(params InvoiceAdjustmentsParams) ReportQuery {
+func NewInvoiceAdjustments(input InvoiceAdjustmentsInput) ReportQuery {
 	return &InvoiceAdjustments{
-		ReportQuery:              NewReportQuery(InvoiceAdjustmentsQuery),
-		InvoiceAdjustmentsParams: params,
+		ReportQuery:             NewReportQuery(InvoiceAdjustmentsQuery),
+		InvoiceAdjustmentsInput: input,
 	}
 }
 

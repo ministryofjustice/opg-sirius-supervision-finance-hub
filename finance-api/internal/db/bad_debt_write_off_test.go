@@ -46,7 +46,7 @@ func (suite *IntegrationSuite) Test_bad_debt_write_off() {
 	from := shared.NewDate(fourYearsAgo.String())
 	to := shared.NewDate(today.String())
 
-	rows, err := c.Run(ctx, NewBadDebtWriteOff(BadDebtWriteOffParams{
+	rows, err := c.Run(ctx, NewBadDebtWriteOff(BadDebtWriteOffInput{
 		FromDate: &from,
 		ToDate:   &to,
 	}))
@@ -127,7 +127,7 @@ func Test_badDebtWriteOff_getParams(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			badDebtWriteOff := NewBadDebtWriteOff(BadDebtWriteOffParams{
+			badDebtWriteOff := NewBadDebtWriteOff(BadDebtWriteOffInput{
 				FromDate:   tt.fromDate,
 				ToDate:     tt.toDate,
 				GoLiveDate: goLiveDate,

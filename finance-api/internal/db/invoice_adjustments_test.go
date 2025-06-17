@@ -40,7 +40,7 @@ func (suite *IntegrationSuite) Test_invoice_adjustments() {
 	from := shared.NewDate(fourYearsAgo.String())
 	to := shared.NewDate(today.Add(0, 0, 1).String())
 
-	rows, err := c.Run(ctx, NewInvoiceAdjustments(InvoiceAdjustmentsParams{
+	rows, err := c.Run(ctx, NewInvoiceAdjustments(InvoiceAdjustmentsInput{
 		FromDate: &from,
 		ToDate:   &to,
 	}))
@@ -136,7 +136,7 @@ func Test_invoiceAdjustments_getParams(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			invoiceAdjustments := NewInvoiceAdjustments(InvoiceAdjustmentsParams{
+			invoiceAdjustments := NewInvoiceAdjustments(InvoiceAdjustmentsInput{
 				FromDate:   tt.fromDate,
 				ToDate:     tt.toDate,
 				GoLiveDate: goLiveDate,

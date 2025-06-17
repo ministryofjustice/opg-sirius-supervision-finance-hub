@@ -7,19 +7,19 @@ import (
 
 type BadDebtWriteOff struct {
 	ReportQuery
-	BadDebtWriteOffParams
+	BadDebtWriteOffInput
 }
 
-type BadDebtWriteOffParams struct {
+type BadDebtWriteOffInput struct {
 	FromDate   *shared.Date
 	ToDate     *shared.Date
 	GoLiveDate time.Time
 }
 
-func NewBadDebtWriteOff(params BadDebtWriteOffParams) ReportQuery {
+func NewBadDebtWriteOff(input BadDebtWriteOffInput) ReportQuery {
 	return &BadDebtWriteOff{
-		ReportQuery:           NewReportQuery(BadDebtWriteOffQuery),
-		BadDebtWriteOffParams: params,
+		ReportQuery:          NewReportQuery(BadDebtWriteOffQuery),
+		BadDebtWriteOffInput: input,
 	}
 }
 

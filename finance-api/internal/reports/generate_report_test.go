@@ -103,7 +103,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				FromDate:               &fromDate,
 			},
 			expectedQuery: &db.AgedDebt{
-				AgedDebtParams: db.AgedDebtParams{
+				AgedDebtInput: db.AgedDebtInput{
 					FromDate: &fromDate,
 					ToDate:   &toDate,
 				},
@@ -130,7 +130,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				FromDate:               &fromDate,
 			},
 			expectedQuery: &db.PaidInvoices{
-				PaidInvoicesParams: db.PaidInvoicesParams{
+				PaidInvoicesInput: db.PaidInvoicesInput{
 					FromDate: &fromDate,
 					ToDate:   &toDate,
 				},
@@ -147,7 +147,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				FromDate:               &fromDate,
 			},
 			expectedQuery: &db.InvoiceAdjustments{
-				InvoiceAdjustmentsParams: db.InvoiceAdjustmentsParams{
+				InvoiceAdjustmentsInput: db.InvoiceAdjustmentsInput{
 					FromDate: &fromDate,
 					ToDate:   &toDate,
 				},
@@ -174,7 +174,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				FromDate:               &fromDate,
 			},
 			expectedQuery: &db.Receipts{
-				ReceiptsParams: db.ReceiptsParams{
+				ReceiptsInput: db.ReceiptsInput{
 					FromDate: &fromDate,
 					ToDate:   &toDate,
 				},
@@ -217,7 +217,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				TransactionDate: &toDate,
 			},
 			expectedQuery: &db.NonReceiptTransactions{
-				NonReceiptTransactionsParams: db.NonReceiptTransactionsParams{
+				NonReceiptTransactionsInput: db.NonReceiptTransactionsInput{
 					Date: &toDate,
 				},
 				ReportQuery: db.NewReportQuery(db.NonReceiptTransactionsQuery)},
@@ -232,7 +232,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				TransactionDate: &toDate,
 			},
 			expectedQuery: &db.ReceiptTransactions{
-				ReceiptTransactionsParams: db.ReceiptTransactionsParams{
+				ReceiptTransactionsInput: db.ReceiptTransactionsInput{
 					Date: &toDate,
 				},
 				ReportQuery: db.NewReportQuery(db.ReceiptTransactionsQuery)},
@@ -247,7 +247,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				TransactionDate: &toDate,
 			},
 			expectedQuery: &db.UnappliedTransactions{
-				UnappliedTransactionsParams: db.UnappliedTransactionsParams{
+				UnappliedTransactionsInput: db.UnappliedTransactionsInput{
 					Date: &toDate,
 				},
 				ReportQuery: db.NewReportQuery(db.UnappliedTransactionsQuery)},
@@ -271,7 +271,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				TransactionDate: &toDate,
 			},
 			expectedQuery: &db.PaymentsSchedule{
-				PaymentsScheduleParams: db.PaymentsScheduleParams{
+				PaymentsScheduleInput: db.PaymentsScheduleInput{
 					Date:         &toDate,
 					ScheduleType: toPtr(shared.ScheduleTypeOnlineCardPayments),
 				},
@@ -288,7 +288,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				TransactionDate: &toDate,
 			},
 			expectedQuery: &db.InvoicesSchedule{
-				InvoicesScheduleParams: db.InvoicesScheduleParams{
+				InvoicesScheduleInput: db.InvoicesScheduleInput{
 					Date:         &toDate,
 					ScheduleType: toPtr(shared.ScheduleTypeSEFeeInvoicesGeneral),
 				},
@@ -305,7 +305,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				TransactionDate: &toDate,
 			},
 			expectedQuery: &db.AdjustmentsSchedule{
-				AdjustmentsScheduleParams: db.AdjustmentsScheduleParams{
+				AdjustmentsScheduleInput: db.AdjustmentsScheduleInput{
 					Date:         &toDate,
 					ScheduleType: toPtr(shared.ScheduleTypeADFeeReductions),
 				},
@@ -322,7 +322,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				TransactionDate: &fromDate,
 			},
 			expectedQuery: &db.AdjustmentsSchedule{
-				AdjustmentsScheduleParams: db.AdjustmentsScheduleParams{
+				AdjustmentsScheduleInput: db.AdjustmentsScheduleInput{
 					Date:         &fromDate,
 					ScheduleType: toPtr(shared.ScheduleTypeMinimalManualDebits),
 				},
@@ -339,7 +339,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				TransactionDate: &fromDate,
 			},
 			expectedQuery: &db.UnapplyReapplySchedule{
-				UnapplyReapplyScheduleParams: db.UnapplyReapplyScheduleParams{
+				UnapplyReapplyScheduleInput: db.UnapplyReapplyScheduleInput{
 					Date:         &fromDate,
 					ScheduleType: toPtr(shared.ScheduleTypeUnappliedPayments),
 				},

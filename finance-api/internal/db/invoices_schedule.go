@@ -6,18 +6,18 @@ import (
 
 type InvoicesSchedule struct {
 	ReportQuery
-	InvoicesScheduleParams
+	InvoicesScheduleInput
 }
 
-type InvoicesScheduleParams struct {
+type InvoicesScheduleInput struct {
 	Date         *shared.Date
 	ScheduleType *shared.ScheduleType
 }
 
-func NewInvoicesSchedule(params InvoicesScheduleParams) ReportQuery {
+func NewInvoicesSchedule(input InvoicesScheduleInput) ReportQuery {
 	return &InvoicesSchedule{
-		ReportQuery:            NewReportQuery(InvoicesScheduleQuery),
-		InvoicesScheduleParams: params,
+		ReportQuery:           NewReportQuery(InvoicesScheduleQuery),
+		InvoicesScheduleInput: input,
 	}
 }
 

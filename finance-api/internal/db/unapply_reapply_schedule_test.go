@@ -93,7 +93,7 @@ func (suite *IntegrationSuite) Test_unapply_reapply_schedules() {
 
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
-			rows, err := c.Run(ctx, NewUnapplyReapplySchedule(UnapplyReapplyScheduleParams{
+			rows, err := c.Run(ctx, NewUnapplyReapplySchedule(UnapplyReapplyScheduleInput{
 				Date:         &tt.date,
 				ScheduleType: &tt.scheduleType,
 			}))
