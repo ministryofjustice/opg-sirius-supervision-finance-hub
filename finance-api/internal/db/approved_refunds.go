@@ -1,13 +1,21 @@
 package db
 
-type ApprovedRefunds struct{}
+type ApprovedRefunds struct {
+	ReportQuery
+}
+
+func NewApprovedRefunds() ReportQuery {
+	return &ApprovedRefunds{
+		ReportQuery: NewReportQuery(ApprovedRefundsQuery),
+	}
+}
 
 const ApprovedRefundsQuery = `
 	SELECT fc.court_ref                                   "Court reference",
        ((r.amount / 100.0)::NUMERIC(10, 2))::VARCHAR(255) "Amount",
        bd.name                                            "Bank account name",
-       bd.account                                         "Bank account number",
-       bd.sort_code                                       "Bank account sort code",
+       bd.account    					                  "Bank account number",
+       CONCAT('="', bd.sort_code, '"')                    "Bank account sort code",
        CONCAT(ca.name, ' ', ca.surname)                   "Created by",
        CONCAT(da.name, ' ', da.surname)                   "Approved by"
 		FROM supervision_finance.refund r
