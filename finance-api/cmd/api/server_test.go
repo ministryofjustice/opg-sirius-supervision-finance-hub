@@ -154,6 +154,10 @@ func (s *mockService) ProcessPaymentReversals(ctx context.Context, records [][]s
 	return nil, s.err
 }
 
+func (s *mockService) PostReportActions(ctx context.Context, reportType shared.ReportRequest) {
+	s.lastCalled = "PostReportActions"
+}
+
 type mockFileStorage struct {
 	versionId  string
 	bucketname string

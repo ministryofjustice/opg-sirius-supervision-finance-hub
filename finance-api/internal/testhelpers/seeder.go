@@ -20,6 +20,9 @@ type Service interface {
 	ProcessReversalUploadLine(ctx context.Context, tx *store.Tx, details shared.ReversalDetails) error
 	ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType) (map[int]string, error)
 	CancelFeeReduction(ctx context.Context, id int32, cancelledFeeReduction shared.CancelFeeReduction) error
+	AddRefund(ctx context.Context, clientId int32, refund shared.AddRefund) error
+	UpdateRefundDecision(ctx context.Context, clientId int32, refundId int32, status shared.RefundStatus) error
+	PostReportActions(ctx context.Context, reportType shared.ReportRequest)
 	BeginStoreTx(ctx context.Context) (*store.Tx, error)
 }
 

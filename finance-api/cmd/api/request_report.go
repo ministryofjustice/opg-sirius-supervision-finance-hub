@@ -4,13 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"log/slog"
 	"net/http"
 	"os"
+	"runtime/debug"
 	"strconv"
 	"time"
 )
@@ -41,19 +39,29 @@ func (s *Server) requestReport(w http.ResponseWriter, r *http.Request) error {
 		}
 	}
 
-	go func(logger *slog.Logger) {
-		ctx := telemetry.ContextWithLogger(context.Background(), logger)
-		ctx = auth.Context{
-			Context: ctx,
-			User:    r.Context().(auth.Context).User,
-		}
-		s.reports.GenerateAndUploadReport(ctx, reportRequest, time.Now())
-	}(telemetry.LoggerFromContext(r.Context()))
+	s.asyncRequestReport(s.copyCtx(r), reportRequest)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 
 	return nil
+}
+
+func (s *Server) asyncRequestReport(ctx context.Context, reportRequest shared.ReportRequest) {
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				fmt.Printf("Recovered from panic in asyncRequestReport: %v\n%s", r, debug.Stack())
+			}
+		}()
+
+		s.reports.GenerateAndUploadReport(ctx, reportRequest, time.Now())
+		s.service.PostReportActions(ctx, reportRequest)
+
+		if s.onReportRequested != nil {
+			s.onReportRequested()
+		}
+	}()
 }
 
 func (s *Server) validateReportRequest(reportRequest shared.ReportRequest) error {
