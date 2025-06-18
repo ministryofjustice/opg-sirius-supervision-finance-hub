@@ -79,6 +79,7 @@ func (c *Client) CopyStream(ctx context.Context, query ReportQuery) (io.ReadClos
 		}
 		defer rows.Close()
 
+		// Write UTF-8 BOM so Excel can open it without formatting errors
 		_, err = pw.Write([]byte("\uFEFF"))
 		if err != nil {
 			return
