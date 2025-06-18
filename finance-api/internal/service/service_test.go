@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/testhelpers"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/suite"
@@ -50,4 +51,23 @@ var (
 
 func (m *MockClient) Do(req *http.Request) (*http.Response, error) {
 	return GetDoFunc(req)
+}
+
+type mockDispatch struct {
+	event any
+}
+
+func (m *mockDispatch) PaymentMethodChanged(ctx context.Context, event event.PaymentMethod) error {
+	m.event = event
+	return nil
+}
+
+func (m *mockDispatch) CreditOnAccount(ctx context.Context, event event.CreditOnAccount) error {
+	m.event = event
+	return nil
+}
+
+func (m *mockDispatch) RefundAdded(ctx context.Context, event event.RefundAdded) error {
+	m.event = event
+	return nil
 }

@@ -146,6 +146,14 @@ func (r route) getSuccess(req *http.Request) string {
 		return "The GT invoice has been successfully created"
 	case "payment-method":
 		return "Payment method has been successfully changed"
+	case "refund-added":
+		return "The refund has been successfully added"
+	case "refunds[APPROVED]":
+		return "You have approved the refund"
+	case "refunds[REJECTED]":
+		return "You have rejected the refund"
+	case "refunds[CANCELLED]":
+		return "You have cancelled the refund"
 	}
 	return ""
 }
