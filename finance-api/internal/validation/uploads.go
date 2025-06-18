@@ -10,4 +10,5 @@ const (
 	UploadErrorNoMatchedPayment       = "NO_MATCHED_PAYMENT"
 	UploadErrorReversalClientNotFound = "REVERSAL_CLIENT_NOT_FOUND"
 	UploadErrorDuplicateReversal      = "DUPLICATE_REVERSAL"
+	UploadErrorRefundNotFound         = "REFUND_NOT_FOUND_OR_DUPLICATE"
 )

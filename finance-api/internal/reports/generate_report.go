@@ -228,7 +228,7 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 		case shared.DebtTypeFeeChase:
 			query = db.NewFeeChase()
 		case shared.DebtTypeApprovedRefunds:
-			query = &db.ApprovedRefunds{}
+			query = db.NewApprovedRefunds()
 		default:
 			return "", reportName, nil, fmt.Errorf("unimplemented debt query: %s", reportRequest.DebtType.Key())
 		}

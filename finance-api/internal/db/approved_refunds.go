@@ -1,6 +1,14 @@
 package db
 
-type ApprovedRefunds struct{}
+type ApprovedRefunds struct {
+	ReportQuery
+}
+
+func NewApprovedRefunds() ReportQuery {
+	return &ApprovedRefunds{
+		ReportQuery: NewReportQuery(ApprovedRefundsQuery),
+	}
+}
 
 const ApprovedRefundsQuery = `
 	SELECT fc.court_ref                                   "Court reference",
