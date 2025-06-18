@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"log/slog"
 )
@@ -29,7 +28,6 @@ func (s *Service) GetPermittedAdjustments(ctx context.Context, invoiceId int32) 
 	}
 
 	feeReductionDetails, err := s.store.GetInvoiceFeeReductionReversalDetails(ctx, invoiceId)
-	fmt.Println(feeReductionDetails)
 	if err != nil {
 		s.Logger(ctx).Error("Error get invoice fee reduction details in get permitted adjustments", slog.String("err", err.Error()))
 		return nil, err

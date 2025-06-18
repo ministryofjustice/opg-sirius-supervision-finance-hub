@@ -23,7 +23,9 @@ func (s *Service) AddInvoiceAdjustment(ctx context.Context, clientId int32, invo
 		return nil, err
 	}
 
-	err = s.validateAdjustmentAmount(ctx, adjustment, balance)
+	feeReductionDetails, err := s.store.GetInvoiceFeeReductionReversalDetails(ctx, invoiceId)
+
+	err = s.validateAdjustmentAmount(ctx, adjustment, balance, feeReductionDetails)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +47,7 @@ func (s *Service) AddInvoiceAdjustment(ctx context.Context, clientId int32, invo
 	return &shared.InvoiceReference{InvoiceRef: invoiceReference}, nil
 }
 
-func (s *Service) validateAdjustmentAmount(ctx context.Context, adjustment *shared.AddInvoiceAdjustmentRequest, balance store.GetInvoiceBalanceDetailsRow) error {
+func (s *Service) validateAdjustmentAmount(ctx context.Context, adjustment *shared.AddInvoiceAdjustmentRequest, balance store.GetInvoiceBalanceDetailsRow, feeReductionDetails store.GetInvoiceFeeReductionReversalDetailsRow) error {
 	switch adjustment.AdjustmentType {
 	case shared.AdjustmentTypeCreditMemo:
 		if adjustment.Amount-balance.Outstanding > balance.Initial {
@@ -82,8 +84,9 @@ func (s *Service) validateAdjustmentAmount(ctx context.Context, adjustment *shar
 			}
 		}
 	case shared.AdjustmentTypeFeeReductionReversal:
-		if adjustment.Amount > balance.FeeReductionReversalAmount {
-			return apierror.BadRequestError("Amount", fmt.Sprintf("The fee reduction reversal amount must be £%s or less", shared.IntToDecimalString(int(balance.FeeReductionReversalAmount))), nil)
+		unreversedFeeReductionTotal := feeReductionDetails.FeeReductionTotal.Int64 - feeReductionDetails.ReversalTotal.Int64
+		if adjustment.Amount > int32(unreversedFeeReductionTotal) {
+			return apierror.BadRequestError("Amount", fmt.Sprintf("The fee reduction reversal amount must be £%s or less", shared.IntToDecimalString(int(unreversedFeeReductionTotal))), nil)
 		}
 	default:
 		return apierror.BadRequestError("AdjustmentType", "Unimplemented adjustment type", nil)

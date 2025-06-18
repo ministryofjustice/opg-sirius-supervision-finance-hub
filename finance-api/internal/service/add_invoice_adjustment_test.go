@@ -112,11 +112,12 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 	s := Service{}
 
 	testCases := []struct {
-		name       string
-		roles      []string
-		adjustment *shared.AddInvoiceAdjustmentRequest
-		balance    store.GetInvoiceBalanceDetailsRow
-		err        error
+		name                string
+		roles               []string
+		adjustment          *shared.AddInvoiceAdjustmentRequest
+		balance             store.GetInvoiceBalanceDetailsRow
+		feeReductionDetails store.GetInvoiceFeeReductionReversalDetailsRow
+		err                 error
 	}{
 		{
 			name: "Unimplemented adjustment type",
@@ -285,8 +286,9 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 				AdjustmentType: shared.AdjustmentTypeFeeReductionReversal,
 				Amount:         500,
 			},
-			balance: store.GetInvoiceBalanceDetailsRow{
-				FeeReductionReversalAmount: 500,
+			feeReductionDetails: store.GetInvoiceFeeReductionReversalDetailsRow{
+				ReversalTotal:     pgtype.Int8{Int64: 500, Valid: true},
+				FeeReductionTotal: pgtype.Int8{Int64: 1500, Valid: true},
 			},
 			err: nil,
 		},
@@ -296,8 +298,9 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 				AdjustmentType: shared.AdjustmentTypeFeeReductionReversal,
 				Amount:         1000,
 			},
-			balance: store.GetInvoiceBalanceDetailsRow{
-				FeeReductionReversalAmount: 500,
+			feeReductionDetails: store.GetInvoiceFeeReductionReversalDetailsRow{
+				ReversalTotal:     pgtype.Int8{Int64: 500, Valid: true},
+				FeeReductionTotal: pgtype.Int8{Int64: 500, Valid: true},
 			},
 			err: apierror.BadRequest{Field: "Amount", Reason: "The fee reduction reversal amount must be £5 or less"},
 		},
@@ -313,7 +316,7 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 					Roles:       tt.roles,
 				},
 			}
-			err := s.validateAdjustmentAmount(ctx, tt.adjustment, tt.balance)
+			err := s.validateAdjustmentAmount(ctx, tt.adjustment, tt.balance, tt.feeReductionDetails)
 			if tt.err != nil {
 				assert.ErrorAs(t, err, &tt.err)
 			} else {

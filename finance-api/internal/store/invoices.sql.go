@@ -87,40 +87,22 @@ WITH ledger_sums AS (
     FROM ledger_allocation la
              JOIN ledger l ON la.ledger_id = l.id
     GROUP BY la.invoice_id
-), reversal_sums AS (
-    SELECT
-         (
-           SELECT SUM(amount)
-           FROM invoice_adjustment ia
-           WHERE ia.invoice_id = $1
-             AND ia.adjustment_type = 'FEE REDUCTION REVERSAL'
-             AND ia.status = 'APPROVED'
-       ) as reversal_total, (
-           SELECT SUM(la.amount)
-           FROM ledger l
-                    JOIN ledger_allocation la ON l.id = la.ledger_id
-           WHERE la.invoice_id = $1
-             AND l.fee_reduction_id IS NOT NULL
-       ) AS fee_reduction_total
 )
 SELECT
     i.amount::INT AS initial,
     i.amount - COALESCE(ls.received, 0)::INT AS outstanding,
     i.feetype,
-    COALESCE(ls.write_off_amount, 0)::INT - COALESCE(ls.write_off_reversal_amount, 0)::INT AS write_off_amount,
-    COALESCE(rs.fee_reduction_total, 0)::INT - COALESCE(rs.reversal_total, 0)::INT AS fee_reduction_reversal_amount
+    COALESCE(ls.write_off_amount, 0)::INT - COALESCE(ls.write_off_reversal_amount, 0)::INT AS write_off_amount
 FROM invoice i
          LEFT JOIN ledger_sums ls ON ls.invoice_id = i.id
-        LEFT JOIN reversal_sums rs ON TRUE
 WHERE i.id = $1
 `
 
 type GetInvoiceBalanceDetailsRow struct {
-	Initial                    int32
-	Outstanding                int32
-	Feetype                    string
-	WriteOffAmount             int32
-	FeeReductionReversalAmount int32
+	Initial        int32
+	Outstanding    int32
+	Feetype        string
+	WriteOffAmount int32
 }
 
 func (q *Queries) GetInvoiceBalanceDetails(ctx context.Context, invoiceID int32) (GetInvoiceBalanceDetailsRow, error) {
@@ -131,7 +113,6 @@ func (q *Queries) GetInvoiceBalanceDetails(ctx context.Context, invoiceID int32)
 		&i.Outstanding,
 		&i.Feetype,
 		&i.WriteOffAmount,
-		&i.FeeReductionReversalAmount,
 	)
 	return i, err
 }
