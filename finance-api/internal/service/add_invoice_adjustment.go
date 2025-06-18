@@ -24,6 +24,10 @@ func (s *Service) AddInvoiceAdjustment(ctx context.Context, clientId int32, invo
 	}
 
 	feeReductionDetails, err := s.store.GetInvoiceFeeReductionReversalDetails(ctx, invoiceId)
+	if err != nil {
+		s.Logger(ctx).Error("Get fee reduction reversal details has an issue " + err.Error())
+		return nil, err
+	}
 
 	err = s.validateAdjustmentAmount(ctx, adjustment, balance, feeReductionDetails)
 	if err != nil {
