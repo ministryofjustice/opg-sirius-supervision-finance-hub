@@ -16,7 +16,6 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"os"
 	"slices"
 )
 
@@ -100,6 +99,14 @@ func (s *Server) processUploadFile(ctx context.Context, upload Upload) {
 			logger.Error(fmt.Sprintf("unable to process payment reversals due to %d failed lines", len(failedLines)))
 		}
 		payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, err, failedLines)
+	} else if upload.UploadType.IsRefund() {
+		failedLines, perr := s.service.ProcessFulfilledRefunds(ctx, records, upload.UploadDate)
+		if perr != nil {
+			logger.Error("unable to process fulfilled refunds due to error", "err", perr)
+		} else if len(failedLines) > 0 {
+			logger.Error(fmt.Sprintf("unable to process fulfilled refunds due to %d failed lines", len(failedLines)))
+		}
+		payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, err, failedLines)
 	} else {
 		logger.Error("invalid upload type", "type", upload.UploadType)
 		payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, fmt.Errorf("invalid upload type"), map[int]string{})
@@ -109,34 +116,6 @@ func (s *Server) processUploadFile(ctx context.Context, upload Upload) {
 	if err != nil {
 		logger.Error("unable to send notification", "err", err)
 	}
-}
-
-// deprecated
-func (s *Server) processUploadEvent(ctx context.Context, event shared.FinanceAdminUploadEvent) {
-	logger := s.Logger(ctx)
-
-	logger.Info(fmt.Sprintf("processing %s upload", event.UploadType))
-	file, err := s.fileStorage.GetFile(ctx, os.Getenv("ASYNC_S3_BUCKET"), event.Filename)
-
-	var payload notify.Payload
-
-	if err != nil {
-		logger.Error("unable to fetch report from file storage", "err", err)
-		payload = createUploadNotifyPayload(event.EmailAddress, event.UploadType, fmt.Errorf("unable to download report"), map[int]string{})
-		err = s.notify.Send(ctx, payload)
-		if err != nil {
-			logger.Error("unable to send notification", "err", err)
-		}
-		return
-	}
-
-	s.processUploadFile(ctx, Upload{
-		UploadType:   event.UploadType,
-		EmailAddress: event.EmailAddress,
-		UploadDate:   event.UploadDate,
-		PisNumber:    event.PisNumber,
-		FileBytes:    file,
-	})
 }
 
 func formatFailedLines(failedLines map[int]string) []string {

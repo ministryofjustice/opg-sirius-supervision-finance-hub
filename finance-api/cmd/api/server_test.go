@@ -154,6 +154,11 @@ func (s *mockService) ProcessPaymentReversals(ctx context.Context, records [][]s
 	return nil, s.err
 }
 
+func (s *mockService) ProcessFulfilledRefunds(ctx context.Context, records [][]string, date shared.Date) (map[int]string, error) {
+	s.lastCalled = "ProcessFulfilledRefunds"
+	return nil, s.err
+}
+
 func (s *mockService) PostReportActions(ctx context.Context, reportType shared.ReportRequest) {
 	s.lastCalled = "PostReportActions"
 }
