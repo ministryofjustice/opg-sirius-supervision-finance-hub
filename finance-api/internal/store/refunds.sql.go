@@ -68,7 +68,7 @@ WHERE fc.court_ref = $1
   AND r.amount = $2
   AND bd.name = $3
   AND bd.account = $4
-  AND bd.sort_code = $5
+  AND REPLACE(bd.sort_code, '-', '') = $5
 `
 
 type GetProcessingRefundParams struct {

@@ -31,9 +31,9 @@ func (suite *IntegrationSuite) Test_processFulfilledRefunds() {
 
 	records := [][]string{
 		{"Court reference", "Amount", "Bank account name", "Bank account number", "Bank account sort code", "Created by", "Approved by"},
-		{"12345678", "320.00", "MR IAN TEST", "11111111", "11-11-11", "Felicity Finance", "Morty Manager"},     // success
-		{"12345678", "320.00", "MR IAN TEST", "11111111", "11-11-11", "Felicity Finance", "Morty Manager"},     // fail - duplicate
-		{"87654321", "155.00", "MS MARY MISSING", "11111111", "11-11-11", "Felicity Finance", "Morty Manager"}, // fail - missing (Refund not set to processing)
+		{"12345678", "320.00", "MR IAN TEST", "11111111", "111111", "Felicity Finance", "Morty Manager"},     // success
+		{"12345678", "320.00", "MR IAN TEST", "11111111", "111111", "Felicity Finance", "Morty Manager"},     // fail - duplicate
+		{"87654321", "155.00", "MS MARY MISSING", "11111111", "111111", "Felicity Finance", "Morty Manager"}, // fail - missing (Refund not set to processing)
 	}
 
 	expectedFailedLines := map[int]string{
@@ -80,7 +80,7 @@ func (suite *IntegrationSuite) Test_processFulfilledRefunds() {
 
 		var fulfilledAt time.Time
 		_ = seeder.QueryRow(suite.ctx, `SELECT fulfilled_at FROM refund WHERE id = 1`).Scan(&fulfilledAt)
-		
+
 		assert.NotEqual(t, fulfilledAt, time.Time{})
 	})
 }
