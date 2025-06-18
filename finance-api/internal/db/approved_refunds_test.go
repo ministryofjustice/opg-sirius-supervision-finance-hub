@@ -32,7 +32,7 @@ func (suite *IntegrationSuite) Test_approved_refunds() {
 
 	c := Client{suite.seeder.Conn}
 
-	rows, err := c.Run(ctx, &ApprovedRefunds{})
+	rows, err := c.Run(ctx, NewApprovedRefunds())
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), 2, len(rows))
 
@@ -43,7 +43,7 @@ func (suite *IntegrationSuite) Test_approved_refunds() {
 	assert.Equal(suite.T(), "150.00", results[0]["Amount"], "Amount - client 1")
 	assert.Equal(suite.T(), "MS APRIL APPROVED", results[0]["Bank account name"], "Bank account name - client 1")
 	assert.Equal(suite.T(), "33333330", results[0]["Bank account number"], "Bank account number - client 1")
-	assert.Equal(suite.T(), "=\"33-33-33\"", results[0]["Bank account sort code"], "Bank account sort code - client 1")
+	assert.Equal(suite.T(), "333333", results[0]["Bank account sort code"], "Bank account sort code - client 1")
 	assert.Equal(suite.T(), "Johnny Test", results[0]["Created by"], "Do Created by - client 1")
 	assert.Equal(suite.T(), "Johnny Test", results[0]["Approved by"], "Approved by - client 1")
 }
