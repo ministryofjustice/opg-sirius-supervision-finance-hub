@@ -118,8 +118,8 @@ func (f *FeeChase) GetHeaders() []string {
 func (f *FeeChase) GetParams() []any {
 	// This displays a pound sign (£) in Excel
 	// This is not an ideal solution but Excel would otherwise prepend a "¬" to the pound sign
+	//return []any{"=UNICHAR(163)&"}
 	return []any{"£"}
-	return []any{"=UNICHAR(163)&"}
 }
 
 func (f *FeeChase) GetCallback() func(row pgx.CollectableRow) ([]string, error) {
