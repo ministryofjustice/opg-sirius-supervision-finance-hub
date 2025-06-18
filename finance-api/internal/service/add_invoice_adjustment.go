@@ -85,7 +85,7 @@ func (s *Service) validateAdjustmentAmount(ctx context.Context, adjustment *shar
 		}
 	case shared.AdjustmentTypeFeeReductionReversal:
 		unreversedFeeReductionTotal := feeReductionDetails.FeeReductionTotal.Int64 - feeReductionDetails.ReversalTotal.Int64
-		if adjustment.Amount > int32(unreversedFeeReductionTotal) {
+		if int64(adjustment.Amount) > unreversedFeeReductionTotal {
 			return apierror.BadRequestError("Amount", fmt.Sprintf("The fee reduction reversal amount must be £%s or less", shared.IntToDecimalString(int(unreversedFeeReductionTotal))), nil)
 		}
 	default:
