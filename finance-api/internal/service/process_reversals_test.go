@@ -68,8 +68,30 @@ func (suite *IntegrationSuite) Test_processReversals() {
 		"INSERT INTO ledger VALUES (6, 'test 4', '2025-01-02 15:32:10', '', 5000, 'payment 4', 'ONLINE CARD PAYMENT', 'CONFIRMED', 8, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
 		"INSERT INTO ledger_allocation VALUES (9, 6, 9, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
 
-		"ALTER SEQUENCE ledger_id_seq RESTART WITH 7;",
-		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 10;",
+		// invalid duplicate reversal, same reversal in previous upload
+		"INSERT INTO finance_client VALUES (9, 9, 'test 5', 'DEMANDED', NULL, '9999');",
+		"INSERT INTO invoice VALUES (10, 9, 9, 'AD', 'test 5 paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
+		"INSERT INTO ledger VALUES (7, 'test 5', '2025-01-02 15:32:10', '', 5000, 'payment 5', 'ONLINE CARD PAYMENT', 'CONFIRMED', 9, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
+		"INSERT INTO ledger_allocation VALUES (10, 7, 10, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
+		"INSERT INTO ledger VALUES (8, 'test 7', '2025-01-02 15:32:10', '', -5000, 'payment 7', 'ONLINE CARD PAYMENT', 'CONFIRMED', 9, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
+		"INSERT INTO ledger_allocation VALUES (11, 8, 10, '2025-01-02 15:32:10', -5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
+
+		// invalid duplicate reversal, same reversal in upload
+		"INSERT INTO finance_client VALUES (10, 10, 'test 6', 'DEMANDED', NULL, '1010');",
+		"INSERT INTO invoice VALUES (11, 10, 10, 'AD', 'test 6 paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
+		"INSERT INTO ledger VALUES (9, 'test 6', '2025-01-02 15:32:10', '', 5000, 'payment 6', 'ONLINE CARD PAYMENT', 'CONFIRMED', 10, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
+		"INSERT INTO ledger_allocation VALUES (12, 9, 11, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
+
+		// valid duplicate reversal for duplicate payment upload
+		"INSERT INTO finance_client VALUES (11, 11, 'test 8', 'DEMANDED', NULL, '1011');",
+		"INSERT INTO invoice VALUES (12, 11, 11, 'AD', 'test 8 paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
+		"INSERT INTO ledger VALUES (10, 'test 8', '2025-01-02 15:32:10', '', 5000, 'payment 8', 'ONLINE CARD PAYMENT', 'CONFIRMED', 11, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
+		"INSERT INTO ledger_allocation VALUES (13, 10, 12, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
+		"INSERT INTO ledger VALUES (11, 'test 9', '2025-01-02 15:32:10', '', 5000, 'payment 9', 'ONLINE CARD PAYMENT', 'CONFIRMED', 11, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
+		"INSERT INTO ledger_allocation VALUES (14, 11, 12, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
+
+		"ALTER SEQUENCE ledger_id_seq RESTART WITH 12;",
+		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 15;",
 	)
 
 	dispatch := &mockDispatch{}
@@ -261,6 +283,77 @@ func (suite *IntegrationSuite) Test_processReversals() {
 			},
 			expectedFailedLines: map[int]string{},
 		},
+		{
+			name: "duplicate reversal in new file should throw error",
+			records: [][]string{
+				{"Payment type", "Current (errored) court reference", "Bank date", "Received date", "Amount", "PIS number (cheque only)"},
+				{"ONLINE CARD PAYMENT", "9999", "02/01/2025", "02/01/2025", "50.00", ""},
+			},
+			uploadType:          shared.ReportTypeUploadDuplicatedPayments,
+			expectedFailedLines: map[int]string{1: "DUPLICATE_REVERSAL"},
+		},
+		{
+			name: "duplicate reversal in same file should throw error",
+			records: [][]string{
+				{"Payment type", "Current (errored) court reference", "Bank date", "Received date", "Amount", "PIS number (cheque only)"},
+				{"ONLINE CARD PAYMENT", "1010", "02/01/2025", "02/01/2025", "50.00", ""},
+				{"ONLINE CARD PAYMENT", "1010", "02/01/2025", "02/01/2025", "50.00", ""},
+			},
+			uploadType: shared.ReportTypeUploadDuplicatedPayments,
+			expectedFailedLines: map[int]string{
+				2: "DUPLICATE_REVERSAL",
+			},
+			allocations: []createdReversalAllocation{
+				{
+					ledgerAmount:     -5000,
+					ledgerType:       "ONLINE CARD PAYMENT",
+					ledgerStatus:     "CONFIRMED",
+					receivedDate:     time.Date(2025, 01, 02, 0, 0, 0, 0, time.UTC),
+					bankDate:         time.Date(2025, 01, 02, 0, 0, 0, 0, time.UTC),
+					allocationAmount: -5000,
+					allocationStatus: "ALLOCATED",
+					invoiceId:        pgtype.Int4{Int32: 11, Valid: true},
+					financeClientId:  10,
+				},
+			},
+		},
+		{
+			name: "reversal of duplicate payments should be allowed",
+			records: [][]string{
+				{"Payment type", "Current (errored) court reference", "Bank date", "Received date", "Amount", "PIS number (cheque only)"},
+				{"ONLINE CARD PAYMENT", "1011", "02/01/2025", "02/01/2025", "50.00", ""},
+				{"ONLINE CARD PAYMENT", "1011", "02/01/2025", "02/01/2025", "50.00", ""},
+				{"ONLINE CARD PAYMENT", "1011", "02/01/2025", "02/01/2025", "50.00", ""},
+			},
+			uploadType: shared.ReportTypeUploadDuplicatedPayments,
+			expectedFailedLines: map[int]string{
+				3: "DUPLICATE_REVERSAL",
+			},
+			allocations: []createdReversalAllocation{
+				{
+					ledgerAmount:     -5000,
+					ledgerType:       "ONLINE CARD PAYMENT",
+					ledgerStatus:     "CONFIRMED",
+					receivedDate:     time.Date(2025, 01, 02, 00, 00, 00, 0, time.UTC),
+					bankDate:         time.Date(2025, 01, 02, 0, 0, 0, 0, time.UTC),
+					allocationAmount: -5000,
+					allocationStatus: "ALLOCATED",
+					invoiceId:        pgtype.Int4{Int32: 12, Valid: true},
+					financeClientId:  11,
+				},
+				{
+					ledgerAmount:     -5000,
+					ledgerType:       "ONLINE CARD PAYMENT",
+					ledgerStatus:     "CONFIRMED",
+					receivedDate:     time.Date(2025, 01, 02, 00, 00, 00, 0, time.UTC),
+					bankDate:         time.Date(2025, 01, 02, 0, 0, 0, 0, time.UTC),
+					allocationAmount: -5000,
+					allocationStatus: "ALLOCATED",
+					invoiceId:        pgtype.Int4{Int32: 12, Valid: true},
+					financeClientId:  11,
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
@@ -268,7 +361,6 @@ func (suite *IntegrationSuite) Test_processReversals() {
 			_ = seeder.QueryRow(suite.ctx, `SELECT MAX(id) FROM ledger`).Scan(&currentLedgerId)
 
 			var failedLines map[int]string
-
 			failedLines, err := s.ProcessPaymentReversals(suite.ctx, tt.records, tt.uploadType)
 
 			assert.Equal(t, tt.want, err)

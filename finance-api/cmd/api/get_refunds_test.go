@@ -17,20 +17,23 @@ func TestServer_getRefunds(t *testing.T) {
 	fulfilledDate := shared.NewDate("2020-04-17")
 
 	refunds := shared.Refunds{
-		{
-			ID:            1,
-			RaisedDate:    shared.NewDate("2020-03-16"),
-			FulfilledDate: shared.NewNillable(&fulfilledDate),
-			Amount:        123400,
-			Status:        "PENDING",
-			Notes:         "Refund for client",
-			BankDetails: shared.NewNillable(
-				&shared.BankDetails{
-					Name:     "Clint Client",
-					Account:  "12345678",
-					SortCode: "11-22-33",
-				}),
-			CreatedBy: 99,
+		CreditBalance: 50,
+		Refunds: []shared.Refund{
+			{
+				ID:            1,
+				RaisedDate:    shared.NewDate("2020-03-16"),
+				FulfilledDate: shared.NewNillable(&fulfilledDate),
+				Amount:        123400,
+				Status:        shared.RefundStatusPending,
+				Notes:         "Refund for client",
+				BankDetails: shared.NewNillable(
+					&shared.BankDetails{
+						Name:     "Clint Client",
+						Account:  "12345678",
+						SortCode: "11-22-33",
+					}),
+				CreatedBy: 99,
+			},
 		},
 	}
 
@@ -41,7 +44,7 @@ func TestServer_getRefunds(t *testing.T) {
 	res := w.Result()
 	defer res.Body.Close()
 
-	expected := `[{"id":1,"raisedDate":"16\/03\/2020","fulfilledDate":{"Value":"17\/04\/2020","Valid":true},"amount":123400,"status":"PENDING","notes":"Refund for client","bankDetails":{"Value":{"name":"Clint Client","account":"12345678","sortCode":"11-22-33"},"Valid":true},"createdBy":99}]`
+	expected := `{"refunds":[{"id":1,"raisedDate":"16\/03\/2020","fulfilledDate":{"Value":"17\/04\/2020","Valid":true},"amount":123400,"status":"PENDING","notes":"Refund for client","bankDetails":{"Value":{"name":"Clint Client","account":"12345678","sortCode":"11-22-33"},"Valid":true},"createdBy":99}],"creditBalance":50}`
 
 	assert.Equal(t, strings.TrimSpace(expected), strings.TrimSpace(w.Body.String()))
 	assert.Equal(t, 1, mock.expectedIds[0])
@@ -62,7 +65,7 @@ func TestServer_get_refunds_returnsEmpty(t *testing.T) {
 	res := w.Result()
 	defer res.Body.Close()
 
-	expected := `[]`
+	expected := `{"refunds":null,"creditBalance":0}`
 
 	assert.Equal(t, strings.TrimSpace(expected), strings.TrimSpace(w.Body.String()))
 	assert.Equal(t, 2, mock.expectedIds[0])

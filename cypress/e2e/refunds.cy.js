@@ -2,6 +2,8 @@ describe("Refunds tab", () => {
     it("displays table and content", () => {
         cy.visit("/clients/14/refunds");
 
+        cy.contains(".moj-button-menu", "Add refund");
+
         cy.get("table#refunds > thead > tr")
             .children()
             .first().contains("Date raised")
@@ -32,18 +34,12 @@ describe("Refunds tab", () => {
         cy.setUser("1");
         cy.visit("/clients/14/refunds");
 
+        cy.get(".moj-button-menu").should("not.contain", "Add refund");
+
         cy.get("table#refunds > tbody")
             .contains("Pending").parent("tr").as("pendingRow");
 
-        cy.get("@pendingRow")
-            .children()
-            .first()
-            .next()
-            .next()
-            .next()
-            .should($el => {
-                expect($el.text().trim()).to.eq('');
-            }); // hides bank details for non-managers
+        cy.get("th").should("not.contain", "Bank details");
 
         cy.get("@pendingRow")
             .find(".form-button-menu")
@@ -113,7 +109,12 @@ describe("Refunds tab", () => {
             .within(() => {
                 cy.get("button").should("have.length", 0);
             });
+    });
 
+    it("hides Add Refund button when no credit balance exists", () => {
+        cy.visit("/clients/16/refunds");
+
+        cy.get(".moj-button-menu").should("not.contain", "Add refund");
     });
 
     it("should have no accessibility violations", () => {

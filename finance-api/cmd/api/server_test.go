@@ -22,6 +22,7 @@ type mockService struct {
 	adjustmentTypes    []shared.AdjustmentType
 	billingHistory     []shared.BillingHistory
 	refunds            shared.Refunds
+	addRefund          shared.AddRefund
 	expectedIds        []int
 	lastCalled         string
 	err                error
@@ -108,6 +109,18 @@ func (s *mockService) GetRefunds(ctx context.Context, id int32) (shared.Refunds,
 	s.expectedIds = []int{int(id)}
 	s.lastCalled = "GetRefunds"
 	return s.refunds, s.err
+}
+
+func (s *mockService) AddRefund(ctx context.Context, id int32, refund shared.AddRefund) error {
+	s.expectedIds = []int{int(id)}
+	s.lastCalled = "AddRefund"
+	return s.err
+}
+
+func (s *mockService) UpdateRefundDecision(ctx context.Context, clientId int32, refundId int32, status shared.RefundStatus) error {
+	s.expectedIds = []int{int(refundId)}
+	s.lastCalled = "UpdateRefundDecision"
+	return s.err
 }
 
 func (s *mockService) AddInvoiceAdjustment(ctx context.Context, clientId int32, invoiceId int32, ledgerEntry *shared.AddInvoiceAdjustmentRequest) (*shared.InvoiceReference, error) {

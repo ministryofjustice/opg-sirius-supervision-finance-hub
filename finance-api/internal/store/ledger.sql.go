@@ -11,20 +11,20 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const checkDuplicateLedger = `-- name: CheckDuplicateLedger :one
-SELECT EXISTS (SELECT 1
-               FROM ledger l
-                        JOIN finance_client fc ON fc.id = l.finance_client_id
-               WHERE l.amount = $1
-                 AND l.status = 'CONFIRMED'
-                 AND (COALESCE(l.pis_number, 0) <> 0 OR l.bankdate = $2)
-                 AND l.datetime::DATE = ($3::TIMESTAMP)::DATE
-                 AND l.type = $4
-                 AND fc.court_ref = $5
-                 AND COALESCE(l.pis_number, 0) = COALESCE($6, 0))
+const countDuplicateLedger = `-- name: CountDuplicateLedger :one
+SELECT COUNT(*)
+FROM ledger l
+        JOIN finance_client fc ON fc.id = l.finance_client_id
+WHERE (l.amount = $1)
+ AND l.status = 'CONFIRMED'
+ AND (COALESCE(l.pis_number, 0) <> 0 OR l.bankdate = $2)
+ AND l.datetime::DATE = ($3::TIMESTAMP)::DATE
+ AND l.type = $4
+ AND fc.court_ref = $5
+ AND COALESCE(l.pis_number, 0) = COALESCE($6, 0)
 `
 
-type CheckDuplicateLedgerParams struct {
+type CountDuplicateLedgerParams struct {
 	Amount       int32
 	BankDate     pgtype.Date
 	ReceivedDate pgtype.Timestamp
@@ -33,8 +33,8 @@ type CheckDuplicateLedgerParams struct {
 	PisNumber    pgtype.Int4
 }
 
-func (q *Queries) CheckDuplicateLedger(ctx context.Context, arg CheckDuplicateLedgerParams) (bool, error) {
-	row := q.db.QueryRow(ctx, checkDuplicateLedger,
+func (q *Queries) CountDuplicateLedger(ctx context.Context, arg CountDuplicateLedgerParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countDuplicateLedger,
 		arg.Amount,
 		arg.BankDate,
 		arg.ReceivedDate,
@@ -42,9 +42,9 @@ func (q *Queries) CheckDuplicateLedger(ctx context.Context, arg CheckDuplicateLe
 		arg.CourtRef,
 		arg.PisNumber,
 	)
-	var exists bool
-	err := row.Scan(&exists)
-	return exists, err
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }
 
 const createLedger = `-- name: CreateLedger :one
@@ -156,7 +156,7 @@ LIMIT 1
 
 type GetLedgerForPaymentParams struct {
 	Amount   int32
-	Bankdate pgtype.Date
+	BankDate pgtype.Date
 	Type     string
 	CourtRef pgtype.Text
 }
@@ -164,7 +164,7 @@ type GetLedgerForPaymentParams struct {
 func (q *Queries) GetLedgerForPayment(ctx context.Context, arg GetLedgerForPaymentParams) (int32, error) {
 	row := q.db.QueryRow(ctx, getLedgerForPayment,
 		arg.Amount,
-		arg.Bankdate,
+		arg.BankDate,
 		arg.Type,
 		arg.CourtRef,
 	)

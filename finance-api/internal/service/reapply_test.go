@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/stretchr/testify/assert"
 )
@@ -16,20 +15,6 @@ const (
 								JOIN supervision_finance.ledger_allocation la ON l.id = la.ledger_id 
                       				WHERE la.status = 'REAPPLIED' AND fc.client_id = 1;`
 )
-
-type mockDispatch struct {
-	event any
-}
-
-func (m *mockDispatch) PaymentMethodChanged(ctx context.Context, event event.PaymentMethod) error {
-	m.event = event
-	return nil
-}
-
-func (m *mockDispatch) CreditOnAccount(ctx context.Context, event event.CreditOnAccount) error {
-	m.event = event
-	return nil
-}
 
 func (suite *IntegrationSuite) TestService_reapplyCredit_noInvoices() {
 	ctx := suite.ctx
