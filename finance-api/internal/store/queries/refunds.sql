@@ -83,7 +83,7 @@ WHERE fc.court_ref = @court_ref
   AND r.amount = @amount
   AND bd.name = @account_name
   AND bd.account = @account_number
-  AND bd.sort_code = @sort_code;
+  AND REPLACE(bd.sort_code, '-', '') = @sort_code;
 
 -- name: MarkRefundsAsFulfilled :exec
 UPDATE refund
