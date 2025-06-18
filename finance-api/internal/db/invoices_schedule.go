@@ -5,8 +5,20 @@ import (
 )
 
 type InvoicesSchedule struct {
+	ReportQuery
+	InvoicesScheduleInput
+}
+
+type InvoicesScheduleInput struct {
 	Date         *shared.Date
 	ScheduleType *shared.ScheduleType
+}
+
+func NewInvoicesSchedule(input InvoicesScheduleInput) ReportQuery {
+	return &InvoicesSchedule{
+		ReportQuery:           NewReportQuery(InvoicesScheduleQuery),
+		InvoicesScheduleInput: input,
+	}
 }
 
 const InvoicesScheduleQuery = `SELECT
@@ -38,10 +50,6 @@ func (i *InvoicesSchedule) GetHeaders() []string {
 		"Amount",
 		"Raised date",
 	}
-}
-
-func (i *InvoicesSchedule) GetQuery() string {
-	return InvoicesScheduleQuery
 }
 
 func (i *InvoicesSchedule) GetParams() []any {

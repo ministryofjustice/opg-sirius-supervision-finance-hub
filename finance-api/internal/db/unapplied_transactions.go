@@ -5,7 +5,19 @@ import (
 )
 
 type UnappliedTransactions struct {
+	ReportQuery
+	UnappliedTransactionsInput
+}
+
+type UnappliedTransactionsInput struct {
 	Date *shared.Date
+}
+
+func NewUnappliedTransactions(input UnappliedTransactionsInput) ReportQuery {
+	return &UnappliedTransactions{
+		ReportQuery:                NewReportQuery(UnappliedTransactionsQuery),
+		UnappliedTransactionsInput: input,
+	}
 }
 
 const UnappliedTransactionsQuery = `
@@ -77,7 +89,7 @@ SELECT
 FROM splits;
 `
 
-func (r *UnappliedTransactions) GetHeaders() []string {
+func (u *UnappliedTransactions) GetHeaders() []string {
 	return []string{
 		"Entity",
 		"Cost Centre",
@@ -92,10 +104,6 @@ func (r *UnappliedTransactions) GetHeaders() []string {
 	}
 }
 
-func (r *UnappliedTransactions) GetQuery() string {
-	return UnappliedTransactionsQuery
-}
-
-func (r *UnappliedTransactions) GetParams() []any {
-	return []any{r.Date.Time.Format("2006-01-02")}
+func (u *UnappliedTransactions) GetParams() []any {
+	return []any{u.Date.Time.Format("2006-01-02")}
 }

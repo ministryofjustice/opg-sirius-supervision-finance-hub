@@ -6,9 +6,21 @@ import (
 )
 
 type PaidInvoices struct {
+	ReportQuery
+	PaidInvoicesInput
+}
+
+type PaidInvoicesInput struct {
 	FromDate   *shared.Date
 	ToDate     *shared.Date
 	GoLiveDate time.Time
+}
+
+func NewPaidInvoices(input PaidInvoicesInput) ReportQuery {
+	return &PaidInvoices{
+		ReportQuery:       NewReportQuery(PaidInvoicesQuery),
+		PaidInvoicesInput: input,
+	}
 }
 
 const PaidInvoicesQuery = `
@@ -118,10 +130,6 @@ func (p *PaidInvoices) GetHeaders() []string {
 		"Adjustment amount",
 		"Memo line description",
 	}
-}
-
-func (p *PaidInvoices) GetQuery() string {
-	return PaidInvoicesQuery
 }
 
 func (p *PaidInvoices) GetParams() []any {

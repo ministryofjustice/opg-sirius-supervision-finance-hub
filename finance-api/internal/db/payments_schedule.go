@@ -5,9 +5,21 @@ import (
 )
 
 type PaymentsSchedule struct {
+	ReportQuery
+	PaymentsScheduleInput
+}
+
+type PaymentsScheduleInput struct {
 	Date         *shared.Date
 	ScheduleType *shared.ScheduleType
 	PisNumber    int
+}
+
+func NewPaymentsSchedule(input PaymentsScheduleInput) ReportQuery {
+	return &PaymentsSchedule{
+		ReportQuery:           NewReportQuery(PaymentsScheduleQuery),
+		PaymentsScheduleInput: input,
+	}
 }
 
 const PaymentsScheduleQuery = `SELECT
@@ -33,10 +45,6 @@ func (p *PaymentsSchedule) GetHeaders() []string {
 		"Bank date",
 		"Create date",
 	}
-}
-
-func (p *PaymentsSchedule) GetQuery() string {
-	return PaymentsScheduleQuery
 }
 
 func (p *PaymentsSchedule) GetParams() []any {

@@ -5,8 +5,20 @@ import (
 )
 
 type AdjustmentsSchedule struct {
+	ReportQuery
+	AdjustmentsScheduleInput
+}
+
+type AdjustmentsScheduleInput struct {
 	Date         *shared.Date
 	ScheduleType *shared.ScheduleType
+}
+
+func NewAdjustmentsSchedule(input AdjustmentsScheduleInput) ReportQuery {
+	return &AdjustmentsSchedule{
+		ReportQuery:              NewReportQuery(AdjustmentsScheduleQuery),
+		AdjustmentsScheduleInput: input,
+	}
 }
 
 const AdjustmentsScheduleQuery = `SELECT
@@ -33,7 +45,7 @@ const AdjustmentsScheduleQuery = `SELECT
   	) AND i.feetype = ANY($4);
 `
 
-func (c *AdjustmentsSchedule) GetHeaders() []string {
+func (a *AdjustmentsSchedule) GetHeaders() []string {
 	return []string{
 		"Court reference",
 		"Invoice reference",
@@ -42,17 +54,13 @@ func (c *AdjustmentsSchedule) GetHeaders() []string {
 	}
 }
 
-func (c *AdjustmentsSchedule) GetQuery() string {
-	return AdjustmentsScheduleQuery
-}
-
-func (c *AdjustmentsSchedule) GetParams() []any {
+func (a *AdjustmentsSchedule) GetParams() []any {
 	var (
 		ledgerTypes      []string
 		supervisionLevel string
 		invoiceTypes     []string
 	)
-	switch *c.ScheduleType {
+	switch *a.ScheduleType {
 	case shared.ScheduleTypeGeneralFeeReductions,
 		shared.ScheduleTypeGeneralManualCredits,
 		shared.ScheduleTypeGeneralManualDebits,
@@ -69,7 +77,7 @@ func (c *AdjustmentsSchedule) GetParams() []any {
 		supervisionLevel = ""
 	}
 
-	switch *c.ScheduleType {
+	switch *a.ScheduleType {
 	case shared.ScheduleTypeADFeeReductions,
 		shared.ScheduleTypeGeneralFeeReductions,
 		shared.ScheduleTypeMinimalFeeReductions,
@@ -123,7 +131,7 @@ func (c *AdjustmentsSchedule) GetParams() []any {
 		}
 	}
 
-	switch *c.ScheduleType {
+	switch *a.ScheduleType {
 	case shared.ScheduleTypeADFeeReductions,
 		shared.ScheduleTypeADManualCredits,
 		shared.ScheduleTypeADManualDebits,
@@ -182,5 +190,5 @@ func (c *AdjustmentsSchedule) GetParams() []any {
 		}
 	}
 
-	return []any{c.Date.Time.Format("2006-01-02"), ledgerTypes, supervisionLevel, invoiceTypes}
+	return []any{a.Date.Time.Format("2006-01-02"), ledgerTypes, supervisionLevel, invoiceTypes}
 }

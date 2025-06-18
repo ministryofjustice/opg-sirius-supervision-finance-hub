@@ -572,10 +572,11 @@ func (suite *IntegrationSuite) Test_adjustments_schedules() {
 
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
-			rows, err := c.Run(ctx, &AdjustmentsSchedule{
+			rows, err := c.Run(ctx, NewAdjustmentsSchedule(AdjustmentsScheduleInput{
 				Date:         &tt.date,
 				ScheduleType: &tt.scheduleType,
-			})
+			}))
+
 			assert.NoError(suite.T(), err)
 			assert.Equal(suite.T(), tt.expectedRows, len(rows))
 

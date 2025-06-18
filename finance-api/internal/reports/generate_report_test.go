@@ -102,7 +102,12 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				ToDate:                 &toDate,
 				FromDate:               &fromDate,
 			},
-			expectedQuery:    &db.AgedDebt{FromDate: &fromDate, ToDate: &toDate},
+			expectedQuery: &db.AgedDebt{
+				AgedDebtInput: db.AgedDebtInput{
+					FromDate: &fromDate,
+					ToDate:   &toDate,
+				},
+				ReportQuery: db.NewReportQuery(db.AgedDebtQuery)},
 			expectedFilename: "AgedDebt_01:01:2024.csv",
 			expectedTemplate: reportRequestedTemplateId,
 		},
@@ -112,7 +117,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				ReportType:             shared.ReportsTypeAccountsReceivable,
 				AccountsReceivableType: toPtr(shared.AccountsReceivableTypeAgedDebtByCustomer),
 			},
-			expectedQuery:    &db.AgedDebtByCustomer{},
+			expectedQuery:    &db.AgedDebtByCustomer{ReportQuery: db.NewReportQuery(db.AgedDebtByCustomerQuery)},
 			expectedFilename: "AgedDebtByCustomer_01:01:2024.csv",
 			expectedTemplate: reportRequestedTemplateId,
 		},
@@ -124,7 +129,12 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				ToDate:                 &toDate,
 				FromDate:               &fromDate,
 			},
-			expectedQuery:    &db.PaidInvoices{FromDate: &fromDate, ToDate: &toDate},
+			expectedQuery: &db.PaidInvoices{
+				PaidInvoicesInput: db.PaidInvoicesInput{
+					FromDate: &fromDate,
+					ToDate:   &toDate,
+				},
+				ReportQuery: db.NewReportQuery(db.PaidInvoicesQuery)},
 			expectedFilename: "ARPaidInvoice_01:01:2024.csv",
 			expectedTemplate: reportRequestedTemplateId,
 		},
@@ -136,7 +146,12 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				ToDate:                 &toDate,
 				FromDate:               &fromDate,
 			},
-			expectedQuery:    &db.InvoiceAdjustments{FromDate: &fromDate, ToDate: &toDate},
+			expectedQuery: &db.InvoiceAdjustments{
+				InvoiceAdjustmentsInput: db.InvoiceAdjustmentsInput{
+					FromDate: &fromDate,
+					ToDate:   &toDate,
+				},
+				ReportQuery: db.NewReportQuery(db.InvoiceAdjustmentsQuery)},
 			expectedFilename: "InvoiceAdjustments_01:01:2024.csv",
 			expectedTemplate: reportRequestedTemplateId,
 		},
@@ -146,7 +161,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				ReportType:             shared.ReportsTypeAccountsReceivable,
 				AccountsReceivableType: toPtr(shared.AccountsReceivableTypeBadDebtWriteOff),
 			},
-			expectedQuery:    &db.BadDebtWriteOff{},
+			expectedQuery:    &db.BadDebtWriteOff{ReportQuery: db.NewReportQuery(db.BadDebtWriteOffQuery)},
 			expectedFilename: "BadDebtWriteOff_01:01:2024.csv",
 			expectedTemplate: reportRequestedTemplateId,
 		},
@@ -158,7 +173,12 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				ToDate:                 &toDate,
 				FromDate:               &fromDate,
 			},
-			expectedQuery:    &db.Receipts{FromDate: &fromDate, ToDate: &toDate},
+			expectedQuery: &db.Receipts{
+				ReceiptsInput: db.ReceiptsInput{
+					FromDate: &fromDate,
+					ToDate:   &toDate,
+				},
+				ReportQuery: db.NewReportQuery(db.ReceiptsQuery)},
 			expectedFilename: "TotalReceipts_01:01:2024.csv",
 			expectedTemplate: reportRequestedTemplateId,
 		},
@@ -168,7 +188,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				ReportType:             shared.ReportsTypeAccountsReceivable,
 				AccountsReceivableType: toPtr(shared.AccountsReceivableTypeUnappliedReceipts),
 			},
-			expectedQuery:    &db.CustomerCredit{},
+			expectedQuery:    &db.CustomerCredit{ReportQuery: db.NewReportQuery(db.CustomerCreditQuery)},
 			expectedFilename: "UnappliedReceipts_01:01:2024.csv",
 			expectedTemplate: reportRequestedTemplateId,
 		},
@@ -196,7 +216,11 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				JournalType:     toPtr(shared.JournalTypeNonReceiptTransactions),
 				TransactionDate: &toDate,
 			},
-			expectedQuery:    &db.NonReceiptTransactions{Date: &toDate},
+			expectedQuery: &db.NonReceiptTransactions{
+				NonReceiptTransactionsInput: db.NonReceiptTransactionsInput{
+					Date: &toDate,
+				},
+				ReportQuery: db.NewReportQuery(db.NonReceiptTransactionsQuery)},
 			expectedFilename: "NonReceiptTransactions_01:01:2024.csv",
 			expectedTemplate: reportRequestedTemplateId,
 		},
@@ -207,7 +231,11 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				JournalType:     toPtr(shared.JournalTypeReceiptTransactions),
 				TransactionDate: &toDate,
 			},
-			expectedQuery:    &db.ReceiptTransactions{Date: &toDate},
+			expectedQuery: &db.ReceiptTransactions{
+				ReceiptTransactionsInput: db.ReceiptTransactionsInput{
+					Date: &toDate,
+				},
+				ReportQuery: db.NewReportQuery(db.ReceiptTransactionsQuery)},
 			expectedFilename: "ReceiptTransactions_01:01:2024.csv",
 			expectedTemplate: reportRequestedTemplateId,
 		},
@@ -218,7 +246,11 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				JournalType:     toPtr(shared.JournalTypeUnappliedTransactions),
 				TransactionDate: &toDate,
 			},
-			expectedQuery:    &db.UnappliedTransactions{Date: &toDate},
+			expectedQuery: &db.UnappliedTransactions{
+				UnappliedTransactionsInput: db.UnappliedTransactionsInput{
+					Date: &toDate,
+				},
+				ReportQuery: db.NewReportQuery(db.UnappliedTransactionsQuery)},
 			expectedFilename: "RefundUnappliedTransactions_01:01:2024.csv",
 			expectedTemplate: reportRequestedTemplateId,
 		},
@@ -239,8 +271,11 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				TransactionDate: &toDate,
 			},
 			expectedQuery: &db.PaymentsSchedule{
-				Date:         &toDate,
-				ScheduleType: toPtr(shared.ScheduleTypeOnlineCardPayments),
+				PaymentsScheduleInput: db.PaymentsScheduleInput{
+					Date:         &toDate,
+					ScheduleType: toPtr(shared.ScheduleTypeOnlineCardPayments),
+				},
+				ReportQuery: db.NewReportQuery(db.PaymentsScheduleQuery),
 			},
 			expectedFilename: "schedule_OnlineCardPayments_01:01:2024.csv",
 			expectedTemplate: reportRequestedTemplateId,
@@ -253,8 +288,11 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				TransactionDate: &toDate,
 			},
 			expectedQuery: &db.InvoicesSchedule{
-				Date:         &toDate,
-				ScheduleType: toPtr(shared.ScheduleTypeSEFeeInvoicesGeneral),
+				InvoicesScheduleInput: db.InvoicesScheduleInput{
+					Date:         &toDate,
+					ScheduleType: toPtr(shared.ScheduleTypeSEFeeInvoicesGeneral),
+				},
+				ReportQuery: db.NewReportQuery(db.InvoicesScheduleQuery),
 			},
 			expectedFilename: "schedule_SEFeeInvoicesGeneral_01:01:2024.csv",
 			expectedTemplate: reportRequestedTemplateId,
@@ -267,8 +305,11 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				TransactionDate: &toDate,
 			},
 			expectedQuery: &db.AdjustmentsSchedule{
-				Date:         &toDate,
-				ScheduleType: toPtr(shared.ScheduleTypeADFeeReductions),
+				AdjustmentsScheduleInput: db.AdjustmentsScheduleInput{
+					Date:         &toDate,
+					ScheduleType: toPtr(shared.ScheduleTypeADFeeReductions),
+				},
+				ReportQuery: db.NewReportQuery(db.AdjustmentsScheduleQuery),
 			},
 			expectedFilename: "schedule_ADFeeReductions_01:01:2024.csv",
 			expectedTemplate: reportRequestedTemplateId,
@@ -281,8 +322,11 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				TransactionDate: &fromDate,
 			},
 			expectedQuery: &db.AdjustmentsSchedule{
-				Date:         &fromDate,
-				ScheduleType: toPtr(shared.ScheduleTypeMinimalManualDebits),
+				AdjustmentsScheduleInput: db.AdjustmentsScheduleInput{
+					Date:         &fromDate,
+					ScheduleType: toPtr(shared.ScheduleTypeMinimalManualDebits),
+				},
+				ReportQuery: db.NewReportQuery(db.AdjustmentsScheduleQuery),
 			},
 			expectedFilename: "schedule_MinimalManualDebits_10:10:2024.csv",
 			expectedTemplate: reportRequestedTemplateId,
@@ -295,8 +339,11 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				TransactionDate: &fromDate,
 			},
 			expectedQuery: &db.UnapplyReapplySchedule{
-				Date:         &fromDate,
-				ScheduleType: toPtr(shared.ScheduleTypeUnappliedPayments),
+				UnapplyReapplyScheduleInput: db.UnapplyReapplyScheduleInput{
+					Date:         &fromDate,
+					ScheduleType: toPtr(shared.ScheduleTypeUnappliedPayments),
+				},
+				ReportQuery: db.NewReportQuery(db.UnapplyReapplyScheduleQuery),
 			},
 			expectedFilename: "schedule_UnappliedPayments_10:10:2024.csv",
 			expectedTemplate: reportRequestedTemplateId,
@@ -316,7 +363,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				ReportType: shared.ReportsTypeDebt,
 				DebtType:   toPtr(shared.DebtTypeFeeChase),
 			},
-			expectedQuery:    &db.FeeChase{},
+			expectedQuery:    &db.FeeChase{ReportQuery: db.NewReportQuery(db.FeeChaseQuery)},
 			expectedFilename: "debt_FeeChase_01:01:2024.csv",
 			expectedTemplate: reportRequestedTemplateId,
 		},

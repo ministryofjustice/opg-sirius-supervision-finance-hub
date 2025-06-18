@@ -6,8 +6,20 @@ import (
 )
 
 type Receipts struct {
+	ReportQuery
+	ReceiptsInput
+}
+
+type ReceiptsInput struct {
 	FromDate *shared.Date
 	ToDate   *shared.Date
+}
+
+func NewReceipts(input ReceiptsInput) ReportQuery {
+	return &Receipts{
+		ReportQuery:   NewReportQuery(ReceiptsQuery),
+		ReceiptsInput: input,
+	}
 }
 
 const ReceiptsQuery = `SELECT CONCAT(p.firstname, ' ', p.surname)                             AS "Customer Name",
@@ -68,10 +80,6 @@ func (r *Receipts) GetHeaders() []string {
 		"Amount applied",
 		"Amount unapplied",
 	}
-}
-
-func (r *Receipts) GetQuery() string {
-	return ReceiptsQuery
 }
 
 func (r *Receipts) GetParams() []any {
