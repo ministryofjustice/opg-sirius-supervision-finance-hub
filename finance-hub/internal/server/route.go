@@ -100,6 +100,8 @@ func (r route) getSuccess(req *http.Request) string {
 		return "Manual debit successfully created"
 	case "invoice-adjustment[WRITE OFF REVERSAL]":
 		return "Write-off reversal successfully created"
+	case "invoice-adjustment[FEE REDUCTION REVERSAL]":
+		return "Write-off reversal successfully created"
 	case "fee-reduction[REMISSION]":
 		return "The remission has been successfully added"
 	case "fee-reduction[EXEMPTION]":
