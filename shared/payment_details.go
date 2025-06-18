@@ -24,3 +24,13 @@ type ReversalDetails struct {
 	CreatedBy       pgtype.Int4
 	PisNumber       pgtype.Int4
 }
+
+type FulfilledRefundDetails struct {
+	CourtRef      pgtype.Text
+	Amount        pgtype.Int4
+	AccountName   pgtype.Text
+	AccountNumber pgtype.Text
+	SortCode      pgtype.Text
+	UploadedBy    pgtype.Int4
+	BankDate      pgtype.Date
+}

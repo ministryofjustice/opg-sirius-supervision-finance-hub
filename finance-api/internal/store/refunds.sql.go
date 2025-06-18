@@ -56,6 +56,42 @@ func (q *Queries) CreateRefund(ctx context.Context, arg CreateRefundParams) (int
 	return id, err
 }
 
+const getProcessingRefund = `-- name: GetProcessingRefund :one
+SELECT r.id
+FROM refund r
+         JOIN supervision_finance.bank_details bd ON r.id = bd.refund_id
+         JOIN supervision_finance.finance_client fc ON fc.id = r.finance_client_id
+WHERE fc.court_ref = $1
+  AND r.decision = 'APPROVED'
+  AND r.processed_at IS NOT NULL
+  AND r.fulfilled_at IS NULL
+  AND r.amount = $2
+  AND bd.name = $3
+  AND bd.account = $4
+  AND bd.sort_code = $5
+`
+
+type GetProcessingRefundParams struct {
+	CourtRef      pgtype.Text
+	Amount        pgtype.Int4
+	AccountName   pgtype.Text
+	AccountNumber pgtype.Text
+	SortCode      pgtype.Text
+}
+
+func (q *Queries) GetProcessingRefund(ctx context.Context, arg GetProcessingRefundParams) (int32, error) {
+	row := q.db.QueryRow(ctx, getProcessingRefund,
+		arg.CourtRef,
+		arg.Amount,
+		arg.AccountName,
+		arg.AccountNumber,
+		arg.SortCode,
+	)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
+}
+
 const getRefundAmount = `-- name: GetRefundAmount :one
 SELECT ABS(COALESCE(SUM(
                             CASE
@@ -79,14 +115,14 @@ func (q *Queries) GetRefundAmount(ctx context.Context, clientID int32) (int32, e
 const getRefunds = `-- name: GetRefunds :many
 SELECT r.id,
        r.raised_date,
-       r.fulfilled_at::DATE AS fulfilled_date,
+       r.fulfilled_at::DATE                AS fulfilled_date,
        r.amount,
        CASE
            WHEN r.fulfilled_at IS NOT NULL THEN 'FULFILLED'
            WHEN r.cancelled_at IS NOT NULL THEN 'CANCELLED'
            WHEN r.processed_at IS NOT NULL THEN 'PROCESSING'
            ELSE r.decision
-           END::VARCHAR      AS status,
+           END::VARCHAR                    AS status,
        r.notes,
        r.created_by,
        COALESCE(bd.name, '')::VARCHAR      AS account_name,
@@ -143,10 +179,22 @@ func (q *Queries) GetRefunds(ctx context.Context, clientID int32) ([]GetRefundsR
 	return items, nil
 }
 
+const markRefundsAsFulfilled = `-- name: MarkRefundsAsFulfilled :exec
+UPDATE refund
+SET fulfilled_at = NOW()
+WHERE id = $1
+`
+
+func (q *Queries) MarkRefundsAsFulfilled(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, markRefundsAsFulfilled, id)
+	return err
+}
+
 const markRefundsAsProcessed = `-- name: MarkRefundsAsProcessed :many
 UPDATE refund
 SET processed_at = NOW()
-WHERE decision = 'APPROVED' AND processed_at IS NULL
+WHERE decision = 'APPROVED'
+  AND processed_at IS NULL
 RETURNING id
 `
 

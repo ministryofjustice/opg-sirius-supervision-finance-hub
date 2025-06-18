@@ -32,7 +32,7 @@ func (suite *IntegrationSuite) Test_approved_refunds() {
 
 	c := Client{suite.seeder.Conn}
 
-	rows, err := c.Run(ctx, &ApprovedRefunds{})
+	rows, err := c.Run(ctx, NewApprovedRefunds())
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), 2, len(rows))
 

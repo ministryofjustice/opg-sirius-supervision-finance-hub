@@ -40,6 +40,7 @@ type Service interface {
 	AddRefund(ctx context.Context, clientId int32, refund shared.AddRefund) error
 	UpdateRefundDecision(ctx context.Context, clientId int32, refundId int32, status shared.RefundStatus) error
 	PostReportActions(ctx context.Context, report shared.ReportRequest)
+	ProcessFulfilledRefunds(ctx context.Context, records [][]string, date shared.Date) (map[int]string, error)
 }
 
 type FileStorage interface {
