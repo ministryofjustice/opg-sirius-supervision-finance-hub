@@ -116,12 +116,18 @@ func (r route) getSuccess(req *http.Request) string {
 		return "You have approved the write off reversal"
 	case "approved-invoice-adjustment[DEBIT]":
 		return "You have approved the debit"
+	case "approved-invoice-adjustment[FEE REDUCTION REVERSAL]":
+		return "You have approved the fee reduction reversal"
 	case "rejected-invoice-adjustment[CREDIT]":
 		return "You have rejected the credit"
 	case "rejected-invoice-adjustment[WRITE OFF]":
 		return "You have rejected the write off"
+	case "rejected-invoice-adjustment[WRITE OFF REVERSAL]":
+		return "You have rejected the write off reversal"
 	case "rejected-invoice-adjustment[DEBIT]":
 		return "You have rejected the debit"
+	case "rejected-invoice-adjustment[FEE REDUCTION REVERSAL]":
+		return "You have rejected the fee reduction reversal"
 	case "invoice-type[AD]":
 		return "The AD invoice has been successfully created"
 	case "invoice-type[S2]":
