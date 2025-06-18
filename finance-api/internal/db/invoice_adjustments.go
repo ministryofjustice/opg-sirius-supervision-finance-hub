@@ -6,9 +6,21 @@ import (
 )
 
 type InvoiceAdjustments struct {
+	ReportQuery
+	InvoiceAdjustmentsInput
+}
+
+type InvoiceAdjustmentsInput struct {
 	FromDate   *shared.Date
 	ToDate     *shared.Date
 	GoLiveDate time.Time
+}
+
+func NewInvoiceAdjustments(input InvoiceAdjustmentsInput) ReportQuery {
+	return &InvoiceAdjustments{
+		ReportQuery:             NewReportQuery(InvoiceAdjustmentsQuery),
+		InvoiceAdjustmentsInput: input,
+	}
 }
 
 const InvoiceAdjustmentsQuery = `
@@ -79,10 +91,6 @@ func (i *InvoiceAdjustments) GetHeaders() []string {
 		"Adjustment amount",
 		"Reason for adjustment",
 	}
-}
-
-func (i *InvoiceAdjustments) GetQuery() string {
-	return InvoiceAdjustmentsQuery
 }
 
 func (i *InvoiceAdjustments) GetParams() []any {

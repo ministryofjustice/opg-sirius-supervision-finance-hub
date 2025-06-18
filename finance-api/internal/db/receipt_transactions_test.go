@@ -72,9 +72,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 
 	c := Client{suite.seeder.Conn}
 
-	rows, err := c.Run(ctx, &ReceiptTransactions{
-		Date: &shared.Date{Time: yesterday.Date()},
-	})
+	rows, err := c.Run(ctx, NewReceiptTransactions(ReceiptTransactionsInput{Date: &shared.Date{Time: yesterday.Date()}}))
 
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), 19, len(rows))

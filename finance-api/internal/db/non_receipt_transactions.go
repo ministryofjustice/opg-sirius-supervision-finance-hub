@@ -5,7 +5,19 @@ import (
 )
 
 type NonReceiptTransactions struct {
+	ReportQuery
+	NonReceiptTransactionsInput
+}
+
+type NonReceiptTransactionsInput struct {
 	Date *shared.Date
+}
+
+func NewNonReceiptTransactions(input NonReceiptTransactionsInput) ReportQuery {
+	return &NonReceiptTransactions{
+		ReportQuery:                 NewReportQuery(NonReceiptTransactionsQuery),
+		NonReceiptTransactionsInput: input,
+	}
 }
 
 const NonReceiptTransactionsQuery = `
@@ -152,10 +164,6 @@ func (n *NonReceiptTransactions) GetHeaders() []string {
 		"Credit",
 		"Line description",
 	}
-}
-
-func (n *NonReceiptTransactions) GetQuery() string {
-	return NonReceiptTransactionsQuery
 }
 
 func (n *NonReceiptTransactions) GetParams() []any {

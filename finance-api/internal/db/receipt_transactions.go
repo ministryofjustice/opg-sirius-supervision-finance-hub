@@ -5,7 +5,19 @@ import (
 )
 
 type ReceiptTransactions struct {
+	ReportQuery
+	ReceiptTransactionsInput
+}
+
+type ReceiptTransactionsInput struct {
 	Date *shared.Date
+}
+
+func NewReceiptTransactions(input ReceiptTransactionsInput) ReportQuery {
+	return &ReceiptTransactions{
+		ReportQuery:              NewReportQuery(ReceiptTransactionsQuery),
+		ReceiptTransactionsInput: input,
+	}
 }
 
 const ReceiptTransactionsQuery = `
@@ -151,10 +163,6 @@ func (r *ReceiptTransactions) GetHeaders() []string {
 		"Credit",
 		"Line description",
 	}
-}
-
-func (r *ReceiptTransactions) GetQuery() string {
-	return ReceiptTransactionsQuery
 }
 
 func (r *ReceiptTransactions) GetParams() []any {

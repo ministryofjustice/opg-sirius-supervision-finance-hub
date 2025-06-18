@@ -6,8 +6,20 @@ import (
 )
 
 type AgedDebt struct {
+	ReportQuery
+	AgedDebtInput
+}
+
+type AgedDebtInput struct {
 	FromDate *shared.Date
 	ToDate   *shared.Date
+}
+
+func NewAgedDebt(input AgedDebtInput) ReportQuery {
+	return &AgedDebt{
+		ReportQuery:   NewReportQuery(AgedDebtQuery),
+		AgedDebtInput: input,
+	}
 }
 
 const AgedDebtQuery = `WITH outstanding_invoices AS (SELECT i.id,
@@ -135,10 +147,6 @@ func (a *AgedDebt) GetHeaders() []string {
 		"5+ years",
 		"Debt impairment years",
 	}
-}
-
-func (a *AgedDebt) GetQuery() string {
-	return AgedDebtQuery
 }
 
 func (a *AgedDebt) GetParams() []any {

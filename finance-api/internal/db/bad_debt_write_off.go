@@ -6,9 +6,21 @@ import (
 )
 
 type BadDebtWriteOff struct {
+	ReportQuery
+	BadDebtWriteOffInput
+}
+
+type BadDebtWriteOffInput struct {
 	FromDate   *shared.Date
 	ToDate     *shared.Date
 	GoLiveDate time.Time
+}
+
+func NewBadDebtWriteOff(input BadDebtWriteOffInput) ReportQuery {
+	return &BadDebtWriteOff{
+		ReportQuery:          NewReportQuery(BadDebtWriteOffQuery),
+		BadDebtWriteOffInput: input,
+	}
 }
 
 const BadDebtWriteOffQuery = `SELECT CONCAT(p.firstname, ' ', p.surname)        "Customer Name",
@@ -60,10 +72,6 @@ func (b *BadDebtWriteOff) GetHeaders() []string {
 		"Txn number",
 		"Approver",
 	}
-}
-
-func (b *BadDebtWriteOff) GetQuery() string {
-	return BadDebtWriteOffQuery
 }
 
 func (b *BadDebtWriteOff) GetParams() []any {
