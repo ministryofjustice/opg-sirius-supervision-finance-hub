@@ -5,8 +5,20 @@ import (
 )
 
 type UnapplyReapplySchedule struct {
+	ReportQuery
+	UnapplyReapplyScheduleInput
+}
+
+type UnapplyReapplyScheduleInput struct {
 	Date         *shared.Date
 	ScheduleType *shared.ScheduleType
+}
+
+func NewUnapplyReapplySchedule(input UnapplyReapplyScheduleInput) ReportQuery {
+	return &UnapplyReapplySchedule{
+		ReportQuery:                 NewReportQuery(UnapplyReapplyScheduleQuery),
+		UnapplyReapplyScheduleInput: input,
+	}
 }
 
 const UnapplyReapplyScheduleQuery = `SELECT
@@ -28,10 +40,6 @@ func (u *UnapplyReapplySchedule) GetHeaders() []string {
 		"Amount",
 		"Created date",
 	}
-}
-
-func (u *UnapplyReapplySchedule) GetQuery() string {
-	return UnapplyReapplyScheduleQuery
 }
 
 func (u *UnapplyReapplySchedule) GetParams() []any {

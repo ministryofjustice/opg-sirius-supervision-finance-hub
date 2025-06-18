@@ -44,9 +44,9 @@ func (suite *IntegrationSuite) Test_unapplied_transactions() {
 
 	date := shared.NewDate(yesterday.String())
 
-	rows, err := c.Run(ctx, &UnappliedTransactions{
+	rows, err := c.Run(ctx, NewUnappliedTransactions(UnappliedTransactionsInput{
 		Date: &date,
-	})
+	}))
 
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), 5, len(rows))
