@@ -37,7 +37,7 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
 				COALESCE(a.town, '') AS "City_Town",
 				COALESCE(a.county, '') AS "County",
 				COALESCE(a.postcode, '') AS "Postcode",
-				CONCAT('=UNICHAR(163)&', ABS(gi.total / 100.0)::NUMERIC(10,2)::VARCHAR(255)) AS "Total_debt",
+				CONCAT($1::TEXT, ABS(gi.total / 100.0)::NUMERIC(10,2)::VARCHAR(255)) AS "Total_debt",
 				gi.invoice
         FROM public.persons cl
                 INNER JOIN supervision_finance.finance_client fc on cl.id = fc.client_id
@@ -50,7 +50,7 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
                 json_agg(
                 	json_build_object(
                    		'reference', i.reference, 
-                   		'debt', CONCAT('=UNICHAR(163)&', ABS((i.amount - COALESCE(transactions.received, 0)) / 100.0)::NUMERIC(10,2)::VARCHAR(255))
+                   		'debt', CONCAT($1::TEXT, ABS((i.amount - COALESCE(transactions.received, 0)) / 100.0)::NUMERIC(10,2)::VARCHAR(255))
                 	) ORDER BY i.startdate
 				)   as invoice,
 			   count(i.reference)                                                                         		  as count,
@@ -113,6 +113,13 @@ func (f *FeeChase) GetHeaders() []string {
 	}
 
 	return headers
+}
+
+func (f *FeeChase) GetParams() []any {
+	// This displays a pound sign (£) in Excel
+	// This is not an ideal solution but Excel would otherwise prepend a "¬" to the pound sign
+	return []any{"£"}
+	return []any{"=UNICHAR(163)&"}
 }
 
 func (f *FeeChase) GetCallback() func(row pgx.CollectableRow) ([]string, error) {

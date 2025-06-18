@@ -79,6 +79,11 @@ func (c *Client) CopyStream(ctx context.Context, query ReportQuery) (io.ReadClos
 		}
 		defer rows.Close()
 
+		_, err = pw.Write([]byte("\uFEFF"))
+		if err != nil {
+			return
+		}
+
 		writer := csv.NewWriter(pw)
 		defer writer.Flush()
 
