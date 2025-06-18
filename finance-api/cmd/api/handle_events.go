@@ -33,10 +33,6 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
 				return err
 			}
 		}
-	} else if event.Source == shared.EventSourceFinanceAdmin && event.DetailType == shared.DetailTypeFinanceAdminUpload {
-		if detail, ok := event.Detail.(shared.FinanceAdminUploadEvent); ok {
-			s.processUploadEvent(ctx, detail)
-		}
 	} else if event.Source == shared.EventSourceFinanceAdhoc && event.DetailType == shared.DetailTypeFinanceAdhoc {
 		if detail, ok := event.Detail.(shared.AdhocEvent); ok {
 			err := s.processAdhocEvent(ctx, detail)
