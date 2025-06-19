@@ -1,14 +1,14 @@
 -- name: GetRefunds :many
 SELECT r.id,
        r.raised_date,
-       r.fulfilled_at::DATE AS fulfilled_date,
+       r.fulfilled_at::DATE                AS fulfilled_date,
        r.amount,
        CASE
            WHEN r.fulfilled_at IS NOT NULL THEN 'FULFILLED'
            WHEN r.cancelled_at IS NOT NULL THEN 'CANCELLED'
            WHEN r.processed_at IS NOT NULL THEN 'PROCESSING'
            ELSE r.decision
-           END::VARCHAR      AS status,
+           END::VARCHAR                    AS status,
        r.notes,
        r.created_by,
        COALESCE(bd.name, '')::VARCHAR      AS account_name,
@@ -64,9 +64,28 @@ DELETE
 FROM bank_details
 WHERE refund_id = $1;
 
-
 -- name: MarkRefundsAsProcessed :many
 UPDATE refund
 SET processed_at = NOW()
-WHERE decision = 'APPROVED' AND processed_at IS NULL
+WHERE decision = 'APPROVED'
+  AND processed_at IS NULL
 RETURNING id;
+
+-- name: GetProcessingRefund :one
+SELECT r.id
+FROM refund r
+         JOIN supervision_finance.bank_details bd ON r.id = bd.refund_id
+         JOIN supervision_finance.finance_client fc ON fc.id = r.finance_client_id
+WHERE fc.court_ref = @court_ref
+  AND r.decision = 'APPROVED'
+  AND r.processed_at IS NOT NULL
+  AND r.fulfilled_at IS NULL
+  AND r.amount = @amount
+  AND bd.name = @account_name
+  AND bd.account = @account_number
+  AND REPLACE(bd.sort_code, '-', '') = @sort_code;
+
+-- name: MarkRefundsAsFulfilled :exec
+UPDATE refund
+SET fulfilled_at = NOW()
+WHERE id = $1;
