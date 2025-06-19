@@ -105,8 +105,8 @@ type GetInvoiceBalanceDetailsRow struct {
 	WriteOffAmount int32
 }
 
-func (q *Queries) GetInvoiceBalanceDetails(ctx context.Context, id int32) (GetInvoiceBalanceDetailsRow, error) {
-	row := q.db.QueryRow(ctx, getInvoiceBalanceDetails, id)
+func (q *Queries) GetInvoiceBalanceDetails(ctx context.Context, invoiceID int32) (GetInvoiceBalanceDetailsRow, error) {
+	row := q.db.QueryRow(ctx, getInvoiceBalanceDetails, invoiceID)
 	var i GetInvoiceBalanceDetailsRow
 	err := row.Scan(
 		&i.Initial,
@@ -190,6 +190,34 @@ func (q *Queries) GetInvoiceCounter(ctx context.Context, key string) (string, er
 	var counter string
 	err := row.Scan(&counter)
 	return counter, err
+}
+
+const getInvoiceFeeReductionReversalDetails = `-- name: GetInvoiceFeeReductionReversalDetails :one
+SELECT (
+    SELECT COALESCE(SUM(amount), 0)
+    FROM invoice_adjustment ia
+    WHERE ia.invoice_id = $1
+       AND ia.adjustment_type = 'FEE REDUCTION REVERSAL'
+       AND ia.status = 'APPROVED'
+    ) as reversal_total, (
+    SELECT COALESCE(SUM(la.amount), 0)
+    FROM ledger l
+    JOIN ledger_allocation la ON l.id = la.ledger_id
+    WHERE la.invoice_id = $1
+        AND l.fee_reduction_id IS NOT NULL
+    ) AS fee_reduction_total
+`
+
+type GetInvoiceFeeReductionReversalDetailsRow struct {
+	ReversalTotal     pgtype.Int8
+	FeeReductionTotal pgtype.Int8
+}
+
+func (q *Queries) GetInvoiceFeeReductionReversalDetails(ctx context.Context, invoiceID int32) (GetInvoiceFeeReductionReversalDetailsRow, error) {
+	row := q.db.QueryRow(ctx, getInvoiceFeeReductionReversalDetails, invoiceID)
+	var i GetInvoiceFeeReductionReversalDetailsRow
+	err := row.Scan(&i.ReversalTotal, &i.FeeReductionTotal)
+	return i, err
 }
 
 const getInvoices = `-- name: GetInvoices :many
