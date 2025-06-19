@@ -24,6 +24,7 @@ type Service interface {
 	UpdateRefundDecision(ctx context.Context, clientId int32, refundId int32, status shared.RefundStatus) error
 	PostReportActions(ctx context.Context, reportType shared.ReportRequest)
 	BeginStoreTx(ctx context.Context) (*store.Tx, error)
+	ProcessFulfilledRefundsLine(ctx context.Context, tx *store.Tx, refundID int32, refund shared.FulfilledRefundDetails) error
 }
 
 // Seeder contains a test database connection pool and HTTP server for API calls
