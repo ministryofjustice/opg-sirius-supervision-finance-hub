@@ -260,5 +260,34 @@ func (s *Seeder) CreateWarning(ctx context.Context, personId int32, warningType 
 		"INSERT INTO public.person_warning VALUES ($1, $2)",
 		personId, warningId)
 	assert.NoError(s.t, err, "failed to add person warning: %v", err)
+}
 
+func (s *Seeder) CreateRefund(ctx context.Context, clientId int32, accountName string, accountNumber string, sortCode string) int32 {
+	err := s.Service.AddRefund(ctx, clientId, shared.AddRefund{
+		AccountName:   accountName,
+		AccountNumber: accountNumber,
+		SortCode:      sortCode,
+		RefundNotes:   "",
+	})
+	assert.NoError(s.t, err, "failed to add refund: %v", err)
+
+	var id int32
+	err = s.Conn.QueryRow(ctx, "SELECT id FROM supervision_finance.refund ORDER BY id DESC LIMIT 1").Scan(&id)
+	assert.NoError(s.t, err, "failed find created reduction: %v", err)
+
+	return id
+}
+
+func (s *Seeder) SetRefundDecision(ctx context.Context, clientId int32, refundId int32, decision shared.RefundStatus) {
+	err := s.Service.UpdateRefundDecision(ctx, clientId, refundId, decision)
+	assert.NoError(s.t, err, "failed to update refund decision: %v", err)
+}
+
+func (s *Seeder) ProcessApprovedRefunds(ctx context.Context) {
+	debtType := shared.DebtTypeApprovedRefunds
+	report := shared.ReportRequest{
+		ReportType: shared.ReportsTypeDebt,
+		DebtType:   &debtType,
+	}
+	s.Service.PostReportActions(ctx, report)
 }
