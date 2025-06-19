@@ -63,3 +63,10 @@ WHERE finance_client_id = (SELECT id FROM finance_client WHERE client_id = @clie
 DELETE
 FROM bank_details
 WHERE refund_id = $1;
+
+
+-- name: MarkRefundsAsProcessed :many
+UPDATE refund
+SET processed_at = NOW()
+WHERE decision = 'APPROVED' AND processed_at IS NULL
+RETURNING id;
