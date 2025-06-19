@@ -27,5 +27,15 @@ func (s *Service) GetPermittedAdjustments(ctx context.Context, invoiceId int32) 
 		permitted = append(permitted, shared.AdjustmentTypeWriteOffReversal)
 	}
 
+	feeReductionDetails, err := s.store.GetInvoiceFeeReductionReversalDetails(ctx, invoiceId)
+	if err != nil {
+		s.Logger(ctx).Error("Error get invoice fee reduction details in get permitted adjustments", slog.String("err", err.Error()))
+		return nil, err
+	}
+
+	if feeReductionDetails.FeeReductionTotal.Int64 > feeReductionDetails.ReversalTotal.Int64 {
+		permitted = append(permitted, shared.AdjustmentTypeFeeReductionReversal)
+	}
+
 	return permitted, nil
 }
