@@ -73,6 +73,8 @@ func (h *InvoiceAdjustmentsHandler) transformType(in shared.AdjustmentType) stri
 		return "Write off"
 	case shared.AdjustmentTypeWriteOffReversal:
 		return "Write off reversal"
+	case shared.AdjustmentTypeFeeReductionReversal:
+		return "Fee reduction reversal"
 	default:
 		return ""
 	}
