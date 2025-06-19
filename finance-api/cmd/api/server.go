@@ -41,6 +41,7 @@ type Service interface {
 	UpdateRefundDecision(ctx context.Context, clientId int32, refundId int32, status shared.RefundStatus) error
 	PostReportActions(ctx context.Context, report shared.ReportRequest)
 	ProcessFulfilledRefunds(ctx context.Context, records [][]string, date shared.Date) (map[int]string, error)
+	ExpireRefunds(ctx context.Context) error
 }
 
 type FileStorage interface {

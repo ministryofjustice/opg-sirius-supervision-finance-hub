@@ -163,6 +163,11 @@ func (s *mockService) PostReportActions(ctx context.Context, reportType shared.R
 	s.lastCalled = "PostReportActions"
 }
 
+func (s *mockService) ExpireRefunds(ctx context.Context) error {
+	s.lastCalled = "ExpireRefunds"
+	return s.err
+}
+
 type mockFileStorage struct {
 	versionId  string
 	bucketname string

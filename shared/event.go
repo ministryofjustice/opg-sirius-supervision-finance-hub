@@ -7,12 +7,13 @@ import (
 
 const (
 	EventSourceSirius             = "opg.supervision.sirius"
-	EventSourceFinanceAdmin       = "opg.supervision.finance.admin"
 	EventSourceFinanceAdhoc       = "opg.supervision.finance.adhoc"
+	EventSourceAws                = "aws.cloudwatch"
 	DetailTypeFinanceAdhoc        = "finance-adhoc"
 	DetailTypeDebtPositionChanged = "debt-position-changed"
 	DetailTypeClientCreated       = "client-created"
 	DetailTypeFinanceAdminUpload  = "finance-admin-upload"
+	DetailTypeScheduledEvent      = "scheduled-event"
 )
 
 type Event struct {
@@ -61,6 +62,12 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		e.Detail = detail
+	case DetailTypeScheduledEvent:
+		var detail ScheduledEvent
+		if err := json.Unmarshal(raw.Detail, &detail); err != nil {
+			return err
+		}
+		e.Detail = detail
 	default:
 		return fmt.Errorf("unknown detail type: %s", e.DetailType)
 	}
@@ -87,4 +94,8 @@ type FinanceAdminUploadEvent struct {
 
 type AdhocEvent struct {
 	Task string `json:"task"`
+}
+
+type ScheduledEvent struct {
+	Trigger string `json:"trigger"`
 }
