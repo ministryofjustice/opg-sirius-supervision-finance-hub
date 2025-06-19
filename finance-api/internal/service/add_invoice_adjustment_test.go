@@ -300,7 +300,7 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 			},
 			feeReductionDetails: store.GetInvoiceFeeReductionReversalDetailsRow{
 				ReversalTotal:     pgtype.Int8{Int64: 500, Valid: true},
-				FeeReductionTotal: pgtype.Int8{Int64: 500, Valid: true},
+				FeeReductionTotal: pgtype.Int8{Int64: 1000, Valid: true},
 			},
 			err: apierror.BadRequest{Field: "Amount", Reason: "The fee reduction reversal amount must be £5 or less"},
 		},
@@ -319,6 +319,7 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 			err := s.validateAdjustmentAmount(ctx, tt.adjustment, tt.balance, tt.feeReductionDetails)
 			if tt.err != nil {
 				assert.ErrorAs(t, err, &tt.err)
+				assert.Equal(t, tt.err.Error(), err.Error())
 			} else {
 				assert.NoError(t, err)
 			}
