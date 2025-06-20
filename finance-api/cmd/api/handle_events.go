@@ -40,7 +40,7 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
 				return err
 			}
 		}
-	} else if event.Source == shared.EventSourceAws && event.DetailType == shared.DetailTypeScheduledEvent {
+	} else if event.Source == shared.EventSourceInfra && event.DetailType == shared.DetailTypeScheduledEvent {
 		if detail, ok := event.Detail.(shared.ScheduledEvent); ok {
 			err := s.processScheduledEvent(ctx, detail)
 			if err != nil {

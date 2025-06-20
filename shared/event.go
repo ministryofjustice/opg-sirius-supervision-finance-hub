@@ -8,7 +8,7 @@ import (
 const (
 	EventSourceSirius             = "opg.supervision.sirius"
 	EventSourceFinanceAdhoc       = "opg.supervision.finance.adhoc"
-	EventSourceAws                = "aws.cloudwatch"
+	EventSourceInfra              = "opg.supervision.infra"
 	DetailTypeFinanceAdhoc        = "finance-adhoc"
 	DetailTypeDebtPositionChanged = "debt-position-changed"
 	DetailTypeClientCreated       = "client-created"
