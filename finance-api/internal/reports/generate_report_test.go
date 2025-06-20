@@ -349,6 +349,22 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			expectedTemplate: reportRequestedTemplateId,
 		},
 		{
+			name: "Refunds",
+			reportRequest: shared.ReportRequest{
+				ReportType:      shared.ReportsTypeSchedule,
+				ScheduleType:    toPtr(shared.ScheduleTypeRefunds),
+				TransactionDate: &fromDate,
+			},
+			expectedQuery: &db.RefundsSchedule{
+				RefundsScheduleInput: db.RefundsScheduleInput{
+					Date: &fromDate,
+				},
+				ReportQuery: db.NewReportQuery(db.RefundsScheduleQuery),
+			},
+			expectedFilename: "schedule_Refunds_10:10:2024.csv",
+			expectedTemplate: reportRequestedTemplateId,
+		},
+		{
 			name: "Unknown schedule",
 			reportRequest: shared.ReportRequest{
 				ReportType:      shared.ReportsTypeSchedule,
