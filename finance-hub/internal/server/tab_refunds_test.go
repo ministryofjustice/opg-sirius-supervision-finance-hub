@@ -20,7 +20,7 @@ func TestRefunds(t *testing.T) {
 				RaisedDate:    shared.NewDate("01/04/2222"),
 				FulfilledDate: shared.NewNillable(&fulfilledDate),
 				Amount:        232,
-				Status:        shared.RefundStatusPending,
+				Status:        shared.RefundStatusFulfilled,
 				Notes:         "Some notes here",
 				CreatedBy:     99,
 				BankDetails: shared.NewNillable(
@@ -55,7 +55,7 @@ func TestRefunds(t *testing.T) {
 			DateRaised:    shared.NewDate("01/04/2222"),
 			DateFulfilled: &fulfilledDate,
 			Amount:        "2.32",
-			Status:        "Pending",
+			Status:        "Fulfilled",
 			Notes:         "Some notes here",
 			CreatedBy:     99,
 			BankDetails: &BankDetails{
@@ -68,7 +68,7 @@ func TestRefunds(t *testing.T) {
 
 	expected := &RefundsTab{
 		Refunds:       out,
-		CreditBalance: 50,
+		ShowAddRefund: true,
 		ClientId:      "1",
 		AppVars:       appVars,
 	}
@@ -141,6 +141,149 @@ func TestRefundsTransformStatus(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equalf(t, tt.want, sut.transformStatus(tt.in), "transformStatus(%v)", tt.in)
+		})
+	}
+}
+
+func TestShouldShowAddRefund(t *testing.T) {
+	sut := RefundsHandler{}
+
+	date := shared.NewDate("02/05/2222")
+	tests := []struct {
+		name string
+		in   shared.Refunds
+		want bool
+	}{
+		{
+			"contains pending",
+			shared.Refunds{
+				CreditBalance: 50,
+				Refunds: []shared.Refund{
+					{
+						ID:            2,
+						RaisedDate:    shared.NewDate("01/04/2222"),
+						FulfilledDate: shared.NewNillable(&date),
+						Amount:        232,
+						Status:        shared.RefundStatusFulfilled,
+						Notes:         "Some notes here",
+						CreatedBy:     99,
+					},
+					{
+						ID:         3,
+						RaisedDate: shared.NewDate("01/04/2222"),
+						Amount:     232,
+						Status:     shared.RefundStatusPending,
+						Notes:      "Some notes here",
+						CreatedBy:  99,
+						BankDetails: shared.NewNillable(
+							&shared.BankDetails{
+								Name:     "Billy Banker",
+								Account:  "12345678",
+								SortCode: "10-20-30",
+							},
+						),
+					},
+				},
+			},
+			false,
+		},
+		{
+			"approved",
+			shared.Refunds{
+				CreditBalance: 50,
+				Refunds: []shared.Refund{
+					{
+						ID:         3,
+						RaisedDate: shared.NewDate("01/04/2222"),
+						Amount:     232,
+						Status:     shared.RefundStatusApproved,
+						Notes:      "Some notes here",
+						CreatedBy:  99,
+					},
+				},
+			},
+			false,
+		},
+		{
+			"processing",
+			shared.Refunds{
+				CreditBalance: 50,
+				Refunds: []shared.Refund{
+					{
+						ID:         3,
+						RaisedDate: shared.NewDate("01/04/2222"),
+						Amount:     232,
+						Status:     shared.RefundStatusProcessing,
+						Notes:      "Some notes here",
+						CreatedBy:  99,
+					},
+				},
+			},
+			false,
+		},
+		{
+			"credit balance",
+			shared.Refunds{
+				CreditBalance: 0,
+				Refunds: []shared.Refund{
+					{
+						ID:            3,
+						RaisedDate:    shared.NewDate("01/04/2222"),
+						FulfilledDate: shared.NewNillable(&date),
+						Amount:        232,
+						Status:        shared.RefundStatusFulfilled,
+						Notes:         "Some notes here",
+						CreatedBy:     99,
+					},
+				},
+			},
+			false,
+		},
+		{
+			"should show add refund",
+			shared.Refunds{
+				CreditBalance: 50,
+				Refunds: []shared.Refund{
+					{
+						ID:            3,
+						RaisedDate:    shared.NewDate("01/04/2222"),
+						FulfilledDate: shared.NewNillable(&date),
+						Amount:        232,
+						Status:        shared.RefundStatusFulfilled,
+						Notes:         "Some notes here",
+						CreatedBy:     99,
+						BankDetails: shared.NewNillable(
+							&shared.BankDetails{
+								Name:     "Billy Banker",
+								Account:  "12345678",
+								SortCode: "10-20-30",
+							},
+						),
+					},
+					{
+						ID:         3,
+						RaisedDate: shared.NewDate("01/04/2222"),
+						Amount:     232,
+						Status:     shared.RefundStatusRejected,
+						Notes:      "Some notes here",
+						CreatedBy:  99,
+					},
+					{
+						ID:         3,
+						RaisedDate: shared.NewDate("01/04/2222"),
+						Amount:     232,
+						Status:     shared.RefundStatusCancelled,
+						Notes:      "Some notes here",
+						CreatedBy:  99,
+					},
+				},
+			},
+			true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, sut.shouldShowAddRefund(tt.in), "shouldShowAddRefund(%v)", tt.in)
 		})
 	}
 }

@@ -14,6 +14,10 @@ describe("Customer credit balance", () => {
         cy.get("table#ledger-allocations > tbody > tr").should("have.length", 1)
             .contains('[data-cy="ledger-amount-data"]', "£30");
 
+        // check add refund button not showing
+        cy.get('[data-cy="refunds"]').click();
+        cy.get(".moj-button-menu").should("not.contain", "Add refund");
+
         // apply fee reduction
         cy.get('[data-cy="fee-reductions"]').click();
         cy.contains("a", "Award a fee reduction").click();
@@ -44,6 +48,10 @@ describe("Customer credit balance", () => {
             cy.contains("Total outstanding balance: £0");
             cy.contains("Total credit balance: £30");
         });
+
+        // check add refund button now shows
+        cy.get('[data-cy="refunds"]').click();
+        cy.get(".moj-button-menu").contains("Add refund");
 
         // check billing history
         cy.visit("/clients/7/billing-history");

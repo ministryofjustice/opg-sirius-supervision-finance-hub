@@ -4,7 +4,7 @@
         <h1 class="govuk-heading-l  govuk-!-margin-bottom-0  govuk-!-margin-top-0">Refunds</h1>
         <div style="float: right;">
             <div class="moj-button-menu">
-                {{ if (and .User.IsFinanceUser (gt .CreditBalance 0)) }}
+                {{ if (and .User.IsFinanceUser .ShowAddRefund) }}
                     <a
                             class="govuk-button moj-button-menu__item govuk-button--secondary"
                             role="button"
