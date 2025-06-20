@@ -246,6 +246,7 @@ type Refund struct {
 	ProcessedAt     pgtype.Timestamp
 	CancelledAt     pgtype.Timestamp
 	FulfilledAt     pgtype.Timestamp
+	CancelledBy     pgtype.Int4
 }
 
 type Report struct {
