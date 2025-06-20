@@ -55,7 +55,7 @@ func TestServer_handleEvents(t *testing.T) {
 		{
 			name: "scheduled event",
 			event: shared.Event{
-				Source:     "aws.cloudwatch",
+				Source:     "opg.supervision.infra",
 				DetailType: "scheduled-event",
 				Detail:     shared.ScheduledEvent{Trigger: "refund-expiry"},
 			},
