@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
@@ -29,14 +30,26 @@ func (s *Service) UpdateRefundDecision(ctx context.Context, clientId int32, refu
 	_ = store.ToInt4(&refundID, refundId)
 	_ = decision.Scan(status.Key())
 
-	decisionParams := store.SetRefundDecisionParams{
-		Decision:   decision,
-		DecisionBy: updatedBy,
-		ClientID:   clientID,
-		RefundID:   refundID,
+	switch decision.String {
+	case shared.RefundStatusCancelled.Key():
+		err = tx.CancelRefund(ctx, store.CancelRefundParams{
+			CancelledBy: updatedBy,
+			RefundID:    refundID,
+			ClientID:    clientID,
+		})
+	case shared.RefundStatusApproved.Key(),
+		shared.RefundStatusRejected.Key():
+		decisionParams := store.SetRefundDecisionParams{
+			Decision:   decision,
+			DecisionBy: updatedBy,
+			ClientID:   clientID,
+			RefundID:   refundID,
+		}
+		err = tx.SetRefundDecision(ctx, decisionParams)
+	default:
+		err = errors.New("unknown decision type: " + decision.String)
 	}
 
-	err = tx.SetRefundDecision(ctx, decisionParams)
 	if err != nil {
 		s.Logger(ctx).Error(fmt.Sprintf("Set refund decision for client %d has error %s", clientId, err.Error()))
 		return err

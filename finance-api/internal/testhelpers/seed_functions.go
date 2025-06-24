@@ -285,8 +285,13 @@ func (s *Seeder) SetRefundDecision(ctx context.Context, clientId int32, refundId
 	err := s.Service.UpdateRefundDecision(ctx, clientId, refundId, decision)
 	assert.NoError(s.t, err, "failed to update refund decision: %v", err)
 
-	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.refund SET decision_at = $1 WHERE id = $2", decisionDate, refundId)
-	assert.NoError(s.t, err, "failed to update refund date: %v", err)
+	if decision == shared.RefundStatusCancelled {
+		_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.refund SET cancelled_at = $1 WHERE id = $2", decisionDate, refundId)
+		assert.NoError(s.t, err, "failed to update refund cancelled date: %v", err)
+	} else {
+		_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.refund SET decision_at = $1 WHERE id = $2", decisionDate, refundId)
+		assert.NoError(s.t, err, "failed to update refund date: %v", err)
+	}
 }
 
 func (s *Seeder) ProcessApprovedRefunds(ctx context.Context, ids []int32, processingDate time.Time) {

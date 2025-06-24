@@ -15,9 +15,11 @@ func (suite *IntegrationSuite) TestService_UpdateRefundDecision() {
 		"INSERT INTO finance_client VALUES (2, 1, 'findme', 'DEMANDED', 1)",
 		"INSERT INTO refund VALUES (1, 2, '2019-01-27', 12300, 'PENDING', '', 99, '2025-06-04 00:00:00')",
 		"INSERT INTO refund VALUES (2, 2, '2020-01-01', 32100, 'PENDING', '', 99, '2025-06-04 00:00:00')",
+		"INSERT INTO refund VALUES (3, 2, '2020-01-01', 32100, 'APPROVED', '', 99, '2025-06-04 00:00:00', 99, '2025-06-04 00:00:00', '2025-06-04 00:00:00')",
 
 		"INSERT INTO bank_details VALUES (1, 1, 'Clint Client', '12345678', '11-22-33');",
 		"INSERT INTO bank_details VALUES (2, 2, 'Clint Client', '12345678', '11-22-33');",
+		"INSERT INTO bank_details VALUES (3, 3, 'Clint Client', '12345678', '11-22-33');",
 	)
 
 	s := NewService(seeder.Conn, nil, nil, nil, nil)
@@ -50,6 +52,15 @@ func (suite *IntegrationSuite) TestService_UpdateRefundDecision() {
 			},
 			removeBankDetails: false,
 		},
+		{
+			name: "Cancelled",
+			args: args{
+				clientId: 1,
+				refundId: 3,
+				status:   shared.RefundStatusCancelled,
+			},
+			removeBankDetails: true,
+		},
 	}
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
@@ -60,28 +71,38 @@ func (suite *IntegrationSuite) TestService_UpdateRefundDecision() {
 			}
 
 			var refund struct {
-				status     string
-				decisionAt pgtype.Date
-				decisionBy int
-			}
-			q := seeder.QueryRow(suite.ctx, "SELECT decision, decision_at, decision_by FROM refund WHERE id = $1", tt.args.refundId)
-			err = q.Scan(
-				&refund.status,
-				&refund.decisionAt,
-				&refund.decisionBy,
-			)
-
-			if err != nil {
-				t.Errorf("UpdateRefundDecision() scan fail error = %v", err)
-				return
+				status      string
+				decisionAt  pgtype.Date
+				decisionBy  int
+				cancelledAt pgtype.Date
+				cancelledBy int
 			}
 
-			assert.Equal(t, tt.args.status.Key(), refund.status)
-			assert.True(t, refund.decisionAt.Valid)
-			assert.Equal(t, 10, refund.decisionBy)
+			if tt.args.status == shared.RefundStatusCancelled {
+				q := seeder.QueryRow(suite.ctx, "SELECT cancelled_at, cancelled_by FROM refund WHERE id = $1", tt.args.refundId)
+				_ = q.Scan(
+					&refund.cancelledAt,
+					&refund.cancelledBy,
+				)
+				assert.True(t, refund.cancelledAt.Valid)
+				assert.Equal(t, 10, refund.cancelledBy)
+			} else {
+				q := seeder.QueryRow(suite.ctx, "SELECT decision, decision_at, decision_by, cancelled_at, cancelled_by FROM refund WHERE id = $1", tt.args.refundId)
+				err = q.Scan(
+					&refund.status,
+					&refund.decisionAt,
+					&refund.decisionBy,
+					&refund.cancelledAt,
+					&refund.cancelledBy,
+				)
+
+				assert.Equal(t, tt.args.status.Key(), refund.status)
+				assert.True(t, refund.decisionAt.Valid)
+				assert.Equal(t, 10, refund.decisionBy)
+			}
 
 			var count int
-			q = seeder.QueryRow(suite.ctx, "SELECT COUNT(*) FROM bank_details where refund_id = $1", tt.args.refundId)
+			q := seeder.QueryRow(suite.ctx, "SELECT COUNT(*) FROM bank_details where refund_id = $1", tt.args.refundId)
 			_ = q.Scan(&count)
 
 			if tt.removeBankDetails {
