@@ -27,7 +27,7 @@ type BankDetails struct {
 
 type RefundsTab struct {
 	Refunds       []Refund
-	CreditBalance int
+	ShowAddRefund bool
 	ClientId      string
 	AppVars
 }
@@ -45,10 +45,27 @@ func (h *RefundsHandler) render(v AppVars, w http.ResponseWriter, r *http.Reques
 		return err
 	}
 
-	data := &RefundsTab{Refunds: h.transform(refunds), CreditBalance: refunds.CreditBalance, ClientId: strconv.Itoa(clientID), AppVars: v}
+	data := &RefundsTab{Refunds: h.transform(refunds), ShowAddRefund: h.shouldShowAddRefund(refunds), ClientId: strconv.Itoa(clientID), AppVars: v}
 	data.selectTab("refunds")
 
 	return h.execute(w, r, data)
+}
+
+func (h *RefundsHandler) shouldShowAddRefund(refunds shared.Refunds) bool {
+	if refunds.CreditBalance == 0 {
+		return false
+	}
+	for _, r := range refunds.Refunds {
+		switch r.Status {
+		case shared.RefundStatusPending,
+			shared.RefundStatusApproved,
+			shared.RefundStatusProcessing:
+			return false
+		default:
+			continue
+		}
+	}
+	return true
 }
 
 func (h *RefundsHandler) transform(in shared.Refunds) Refunds {
