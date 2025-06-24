@@ -217,7 +217,10 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 				Date:         reportRequest.TransactionDate,
 				ScheduleType: reportRequest.ScheduleType,
 			})
-
+		case shared.ScheduleTypeRefunds:
+			query = db.NewRefundsSchedule(db.RefundsScheduleInput{
+				Date: reportRequest.TransactionDate,
+			})
 		default:
 			return "", reportName, nil, fmt.Errorf("unimplemented schedule query: %s", reportRequest.ScheduleType.Key())
 		}
