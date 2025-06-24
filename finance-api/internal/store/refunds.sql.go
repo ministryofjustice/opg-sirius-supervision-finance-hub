@@ -11,6 +11,25 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const cancelRefund = `-- name: CancelRefund :exec
+UPDATE refund
+SET cancelled_at = NOW(), cancelled_by = $1
+WHERE id = $2
+  AND finance_client_id = (SELECT id FROM finance_client WHERE client_id = $3)
+  AND processed_at IS NOT NULL AND fulfilled_at IS NULL
+`
+
+type CancelRefundParams struct {
+	CancelledBy pgtype.Int4
+	RefundID    pgtype.Int4
+	ClientID    pgtype.Int4
+}
+
+func (q *Queries) CancelRefund(ctx context.Context, arg CancelRefundParams) error {
+	_, err := q.db.Exec(ctx, cancelRefund, arg.CancelledBy, arg.RefundID, arg.ClientID)
+	return err
+}
+
 const createRefund = `-- name: CreateRefund :one
 WITH r AS (
     INSERT INTO refund (id, finance_client_id, raised_date, amount, decision, notes, created_by, created_at)
