@@ -1,4 +1,11 @@
 describe("Add Refunds", () => {
+    it("hides add refund button from non-finance managers", () => {
+        cy.setUser("1");
+        cy.visit("/clients/15/refunds");
+
+        cy.get(".moj-button-menu").should("not.contain", "Add refund");
+    });
+
     it("navigates from the refunds tab and adds a refund", () => {
         cy.visit("/clients/15/refunds");
 
@@ -23,6 +30,9 @@ describe("Add Refunds", () => {
         cy.url().should("include", "/clients/15/refunds?success=refund-added");
 
         cy.get(".moj-banner__message").contains("The refund has been successfully added");
+
+        // add refund button no longer visible
+        cy.get(".moj-button-menu").should("not.contain", "Add refund");
     });
 
     it("should have no accessibility violations",() => {

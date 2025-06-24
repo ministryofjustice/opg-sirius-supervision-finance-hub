@@ -8,11 +8,13 @@ const (
 	DebtTypeUnknown DebtType = iota
 	DebtTypeFeeChase
 	DebtTypeApprovedRefunds
+	DebtTypeAllRefunds
 )
 
 var debtTypeMap = map[string]DebtType{
 	"FeeChase":        DebtTypeFeeChase,
 	"ApprovedRefunds": DebtTypeApprovedRefunds,
+	"AllRefunds":      DebtTypeAllRefunds,
 }
 
 func (d DebtType) String() string {
@@ -25,6 +27,8 @@ func (d DebtType) Translation() string {
 		return "Fee Chase"
 	case DebtTypeApprovedRefunds:
 		return "Approved Refunds"
+	case DebtTypeAllRefunds:
+		return "All Refunds"
 	default:
 		return ""
 	}
@@ -36,6 +40,8 @@ func (d DebtType) Key() string {
 		return "FeeChase"
 	case DebtTypeApprovedRefunds:
 		return "ApprovedRefunds"
+	case DebtTypeAllRefunds:
+		return "AllRefunds"
 	default:
 		return ""
 	}
