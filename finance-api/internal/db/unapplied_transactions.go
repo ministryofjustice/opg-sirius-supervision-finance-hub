@@ -45,7 +45,7 @@ WITH transactions AS (
 		THEN ''
 		ELSE (refund_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255)
 		END AS credit,
-	    'Refund' AS line_description
+	    'Bankline refund' AS line_description
 	FROM transactions
 	WHERE refund_amount > 0
 	    UNION ALL 

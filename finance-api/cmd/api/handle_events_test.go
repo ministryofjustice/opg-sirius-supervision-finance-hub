@@ -53,6 +53,16 @@ func TestServer_handleEvents(t *testing.T) {
 			expectedHandler: "ProcessAdhocEvent",
 		},
 		{
+			name: "scheduled event",
+			event: shared.Event{
+				Source:     "opg.supervision.infra",
+				DetailType: "scheduled-event",
+				Detail:     shared.ScheduledEvent{Trigger: "refund-expiry"},
+			},
+			expectedErr:     nil,
+			expectedHandler: "ExpireRefunds",
+		},
+		{
 			name: "unknown event",
 			event: shared.Event{
 				Source:     "opg.supervision.sirius",
