@@ -262,7 +262,7 @@ func (s *Seeder) CreateWarning(ctx context.Context, personId int32, warningType 
 	assert.NoError(s.t, err, "failed to add person warning: %v", err)
 }
 
-func (s *Seeder) CreateRefund(ctx context.Context, clientId int32, accountName string, accountNumber string, sortCode string) int32 {
+func (s *Seeder) CreateRefund(ctx context.Context, clientId int32, accountName string, accountNumber string, sortCode string, createdDate time.Time) int32 {
 	err := s.Service.AddRefund(ctx, clientId, shared.AddRefund{
 		AccountName:   accountName,
 		AccountNumber: accountNumber,
@@ -273,21 +273,91 @@ func (s *Seeder) CreateRefund(ctx context.Context, clientId int32, accountName s
 
 	var id int32
 	err = s.Conn.QueryRow(ctx, "SELECT id FROM supervision_finance.refund ORDER BY id DESC LIMIT 1").Scan(&id)
-	assert.NoError(s.t, err, "failed find created reduction: %v", err)
+	assert.NoError(s.t, err, "failed find created refund: %v", err)
+
+	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.refund SET created_at = $1 WHERE id = $2", createdDate, id)
+	assert.NoError(s.t, err, "failed to update refund date: %v", err)
 
 	return id
 }
 
-func (s *Seeder) SetRefundDecision(ctx context.Context, clientId int32, refundId int32, decision shared.RefundStatus) {
+func (s *Seeder) SetRefundDecision(ctx context.Context, clientId int32, refundId int32, decision shared.RefundStatus, decisionDate time.Time) {
 	err := s.Service.UpdateRefundDecision(ctx, clientId, refundId, decision)
 	assert.NoError(s.t, err, "failed to update refund decision: %v", err)
+
+	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.refund SET decision_at = $1 WHERE id = $2", decisionDate, refundId)
+	assert.NoError(s.t, err, "failed to update refund date: %v", err)
 }
 
-func (s *Seeder) ProcessApprovedRefunds(ctx context.Context) {
+func (s *Seeder) ProcessApprovedRefunds(ctx context.Context, ids []int32, processingDate time.Time) {
 	debtType := shared.DebtTypeApprovedRefunds
 	report := shared.ReportRequest{
 		ReportType: shared.ReportsTypeDebt,
 		DebtType:   &debtType,
 	}
 	s.Service.PostReportActions(ctx, report)
+
+	_, err := s.Conn.Exec(ctx, "UPDATE supervision_finance.refund SET processed_at = $1 WHERE id = ANY($2)", processingDate, ids)
+	assert.NoError(s.t, err, "failed to update refund date: %v", err)
+}
+
+func (s *Seeder) FulfillRefund(ctx context.Context, refundId int32, amount int32, bankDate time.Time, courtRef string, accountName string, accountNumber string, sortCode string, uploadDate time.Time) {
+	refund := shared.FulfilledRefundDetails{
+		CourtRef: pgtype.Text{
+			String: courtRef,
+			Valid:  true,
+		},
+		Amount: pgtype.Int4{
+			Int32: amount,
+			Valid: true,
+		},
+		AccountName: pgtype.Text{
+			String: accountName,
+			Valid:  true,
+		},
+		AccountNumber: pgtype.Text{
+			String: accountNumber,
+			Valid:  true,
+		},
+		SortCode: pgtype.Text{
+			String: sortCode,
+			Valid:  true,
+		},
+		UploadedBy: pgtype.Int4{
+			Int32: 10,
+			Valid: true,
+		},
+		BankDate: pgtype.Date{
+			Time:  bankDate,
+			Valid: true,
+		},
+	}
+
+	tx, err := s.Service.BeginStoreTx(ctx)
+	assert.NoError(s.t, err, "failed to begin transaction: %v", err)
+
+	var latestLedgerId int
+	err = s.Conn.QueryRow(ctx, "SELECT COALESCE(MAX(id), 0) FROM supervision_finance.ledger").Scan(&latestLedgerId)
+	assert.NoError(s.t, err, "failed to find latest ledger id: %v", err)
+
+	_ = s.Service.ProcessFulfilledRefundsLine(ctx, tx, refundId, refund)
+	assert.NoError(s.t, err, "refund not processed: %v", err)
+
+	err = tx.Commit(ctx)
+	assert.NoError(s.t, err, "failed to commit refund: %v", err)
+
+	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger SET datetime = $1, created_at = $1 WHERE id > $2", uploadDate, latestLedgerId)
+	assert.NoError(s.t, err, "failed to update ledger dates for refund: %v", err)
+
+	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger_allocation SET datetime = $1 WHERE ledger_id > $2", uploadDate, latestLedgerId)
+	assert.NoError(s.t, err, "failed to update ledger allocation dates for refund: %v", err)
+
+	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.refund SET fulfilled_at = $1 WHERE id = $2", uploadDate, refundId)
+	assert.NoError(s.t, err, "failed to update refund date: %v", err)
+
+	var newMaxLedger int
+	err = s.Conn.QueryRow(ctx, "SELECT COALESCE(MAX(id), 0) FROM supervision_finance.ledger").Scan(&newMaxLedger)
+	assert.NoError(s.t, err, "failed to find latest ledger id: %v", err)
+
+	assert.Greater(s.t, newMaxLedger, latestLedgerId, "no ledgers created")
 }

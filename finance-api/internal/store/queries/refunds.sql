@@ -89,3 +89,39 @@ WHERE fc.court_ref = @court_ref
 UPDATE refund
 SET fulfilled_at = NOW()
 WHERE id = $1;
+
+-- name: ExpirePendingRefunds :many
+WITH expired_refunds AS (
+    UPDATE refund
+        SET decision = 'REJECTED', decision_at = NOW(), decision_by = $1
+        WHERE decision = 'PENDING' AND created_at::DATE < CURRENT_DATE - INTERVAL '14 days'
+        RETURNING id),
+     deleted_bank_details AS (DELETE
+         FROM bank_details
+             WHERE refund_id IN (SELECT id FROM expired_refunds))
+SELECT COUNT(*)
+FROM expired_refunds;
+
+-- name: ExpireApprovedRefunds :many
+WITH expired_refunds AS (
+    UPDATE refund
+        SET cancelled_at = NOW(), cancelled_by = $1
+        WHERE processed_at IS NULL AND decision_at::DATE < CURRENT_DATE - INTERVAL '14 days'
+        RETURNING id),
+     deleted_bank_details AS (DELETE
+         FROM bank_details
+             WHERE refund_id IN (SELECT id FROM expired_refunds))
+SELECT COUNT(*)
+FROM expired_refunds;
+
+-- name: ExpireProcessingRefunds :many
+WITH expired_refunds AS (
+    UPDATE refund
+        SET cancelled_at = NOW(), cancelled_by = $1
+        WHERE cancelled_at IS NULL AND fulfilled_at IS NULL AND processed_at::DATE < CURRENT_DATE - INTERVAL '14 days'
+        RETURNING id),
+     deleted_bank_details AS (DELETE
+         FROM bank_details
+             WHERE refund_id IN (SELECT id FROM expired_refunds))
+SELECT COUNT(*)
+FROM expired_refunds;

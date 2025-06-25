@@ -217,7 +217,10 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 				Date:         reportRequest.TransactionDate,
 				ScheduleType: reportRequest.ScheduleType,
 			})
-
+		case shared.ScheduleTypeRefunds:
+			query = db.NewRefundsSchedule(db.RefundsScheduleInput{
+				Date: reportRequest.TransactionDate,
+			})
 		default:
 			return "", reportName, nil, fmt.Errorf("unimplemented schedule query: %s", reportRequest.ScheduleType.Key())
 		}
@@ -229,6 +232,11 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 			query = db.NewFeeChase()
 		case shared.DebtTypeApprovedRefunds:
 			query = db.NewApprovedRefunds()
+		case shared.DebtTypeAllRefunds:
+			query = db.NewAllRefunds(db.AllRefundsInput{
+				FromDate: reportRequest.FromDate,
+				ToDate:   reportRequest.ToDate,
+			})
 		default:
 			return "", reportName, nil, fmt.Errorf("unimplemented debt query: %s", reportRequest.DebtType.Key())
 		}

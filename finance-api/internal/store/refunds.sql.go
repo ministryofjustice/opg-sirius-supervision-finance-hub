@@ -56,6 +56,105 @@ func (q *Queries) CreateRefund(ctx context.Context, arg CreateRefundParams) (int
 	return id, err
 }
 
+const expireApprovedRefunds = `-- name: ExpireApprovedRefunds :many
+WITH expired_refunds AS (
+    UPDATE refund
+        SET cancelled_at = NOW(), cancelled_by = $1
+        WHERE processed_at IS NULL AND decision_at::DATE < CURRENT_DATE - INTERVAL '14 days'
+        RETURNING id),
+     deleted_bank_details AS (DELETE
+         FROM bank_details
+             WHERE refund_id IN (SELECT id FROM expired_refunds))
+SELECT COUNT(*)
+FROM expired_refunds
+`
+
+func (q *Queries) ExpireApprovedRefunds(ctx context.Context, cancelledBy pgtype.Int4) ([]int64, error) {
+	rows, err := q.db.Query(ctx, expireApprovedRefunds, cancelledBy)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var count int64
+		if err := rows.Scan(&count); err != nil {
+			return nil, err
+		}
+		items = append(items, count)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const expirePendingRefunds = `-- name: ExpirePendingRefunds :many
+WITH expired_refunds AS (
+    UPDATE refund
+        SET decision = 'REJECTED', decision_at = NOW(), decision_by = $1
+        WHERE decision = 'PENDING' AND created_at::DATE < CURRENT_DATE - INTERVAL '14 days'
+        RETURNING id),
+     deleted_bank_details AS (DELETE
+         FROM bank_details
+             WHERE refund_id IN (SELECT id FROM expired_refunds))
+SELECT COUNT(*)
+FROM expired_refunds
+`
+
+func (q *Queries) ExpirePendingRefunds(ctx context.Context, decisionBy pgtype.Int4) ([]int64, error) {
+	rows, err := q.db.Query(ctx, expirePendingRefunds, decisionBy)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var count int64
+		if err := rows.Scan(&count); err != nil {
+			return nil, err
+		}
+		items = append(items, count)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const expireProcessingRefunds = `-- name: ExpireProcessingRefunds :many
+WITH expired_refunds AS (
+    UPDATE refund
+        SET cancelled_at = NOW(), cancelled_by = $1
+        WHERE cancelled_at IS NULL AND fulfilled_at IS NULL AND processed_at::DATE < CURRENT_DATE - INTERVAL '14 days'
+        RETURNING id),
+     deleted_bank_details AS (DELETE
+         FROM bank_details
+             WHERE refund_id IN (SELECT id FROM expired_refunds))
+SELECT COUNT(*)
+FROM expired_refunds
+`
+
+func (q *Queries) ExpireProcessingRefunds(ctx context.Context, cancelledBy pgtype.Int4) ([]int64, error) {
+	rows, err := q.db.Query(ctx, expireProcessingRefunds, cancelledBy)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var count int64
+		if err := rows.Scan(&count); err != nil {
+			return nil, err
+		}
+		items = append(items, count)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getProcessingRefund = `-- name: GetProcessingRefund :one
 SELECT r.id
 FROM refund r
