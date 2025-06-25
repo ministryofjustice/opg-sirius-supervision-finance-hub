@@ -30,7 +30,7 @@ const AllRefundsQuery = `
        CASE 
            WHEN da.name IS NOT NULL THEN CONCAT(da.name, ' ', da.surname) 
            ELSE '' 
-           END                   						  "Approved by",
+           END                   						  "Decision by",
        CASE
            WHEN r.fulfilled_at IS NOT NULL THEN 'FULFILLED'
            WHEN r.cancelled_at IS NOT NULL THEN 'CANCELLED'
@@ -58,7 +58,7 @@ func (a *AllRefunds) GetHeaders() []string {
 		"Amount",
 		"Create date",
 		"Created by",
-		"Approved by",
+		"Decision by",
 		"Status",
 		"Status Date",
 	}

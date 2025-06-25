@@ -78,7 +78,7 @@ func (suite *IntegrationSuite) Test_all_refunds() {
 	assert.Equal(suite.T(), "150.00", results[0]["Amount"], "Amount - client 2")
 	assert.Equal(suite.T(), yesterday.String(), results[0]["Create date"], "Create date - client 2")
 	assert.Equal(suite.T(), "Johnny Test", results[0]["Created by"], "Created by - client 2")
-	assert.Equal(suite.T(), "", results[0]["Approved by"], "Approved by - client 2")
+	assert.Equal(suite.T(), "", results[0]["Decision by"], "Decision by - client 2")
 	assert.Equal(suite.T(), "PENDING", results[0]["Status"], "Status - client 2")
 	assert.Equal(suite.T(), yesterday.String(), results[0]["Status Date"], "Status Date - client 2")
 
@@ -86,7 +86,7 @@ func (suite *IntegrationSuite) Test_all_refunds() {
 	assert.Equal(suite.T(), "150.00", results[1]["Amount"], "Amount - client 3")
 	assert.Equal(suite.T(), yesterday.String(), results[1]["Create date"], "Create date - client 3")
 	assert.Equal(suite.T(), "Johnny Test", results[1]["Created by"], "Created by - client 3")
-	assert.Equal(suite.T(), "Johnny Test", results[1]["Approved by"], "Approved by - client 3")
+	assert.Equal(suite.T(), "Johnny Test", results[1]["Decision by"], "Decision by - client 3")
 	assert.Equal(suite.T(), "APPROVED", results[1]["Status"], "Status - client 3")
 	assert.Equal(suite.T(), today.String(), results[1]["Status Date"], "Status Date - client 3")
 
@@ -94,7 +94,7 @@ func (suite *IntegrationSuite) Test_all_refunds() {
 	assert.Equal(suite.T(), "150.00", results[2]["Amount"], "Amount - client 6")
 	assert.Equal(suite.T(), threeDaysAgo.String(), results[2]["Create date"], "Create date - client 6")
 	assert.Equal(suite.T(), "Johnny Test", results[2]["Created by"], "Created by - client 6")
-	assert.Equal(suite.T(), "Johnny Test", results[2]["Approved by"], "Approved by - client 6")
+	assert.Equal(suite.T(), "Johnny Test", results[2]["Decision by"], "Decision by - client 6")
 	assert.Equal(suite.T(), "FULFILLED", results[2]["Status"], "Status - client 6")
 	assert.Equal(suite.T(), yesterday.String(), results[2]["Status Date"], "Status Date - client 6")
 
@@ -102,7 +102,7 @@ func (suite *IntegrationSuite) Test_all_refunds() {
 	assert.Equal(suite.T(), "150.00", results[3]["Amount"], "Amount - client 7")
 	assert.Equal(suite.T(), threeDaysAgo.String(), results[3]["Create date"], "Create date - client 7")
 	assert.Equal(suite.T(), "Johnny Test", results[3]["Created by"], "Created by - client 7")
-	assert.Equal(suite.T(), "Johnny Test", results[3]["Approved by"], "Approved by - client 7")
+	assert.Equal(suite.T(), "Johnny Test", results[3]["Decision by"], "Decision by - client 7")
 	assert.Equal(suite.T(), "CANCELLED", results[3]["Status"], "Status - client 7")
 	assert.Equal(suite.T(), yesterday.String(), results[3]["Status Date"], "Status Date - client 7")
 
@@ -110,7 +110,7 @@ func (suite *IntegrationSuite) Test_all_refunds() {
 	assert.Equal(suite.T(), "150.00", results[4]["Amount"], "Amount - client 1")
 	assert.Equal(suite.T(), fourDaysAgo.String(), results[4]["Create date"], "Create date - client 1")
 	assert.Equal(suite.T(), "Johnny Test", results[4]["Created by"], "Created by - client 1")
-	assert.Equal(suite.T(), "Johnny Test", results[4]["Approved by"], "Approved by - client 1")
+	assert.Equal(suite.T(), "Johnny Test", results[4]["Decision by"], "Decision by - client 1")
 	assert.Equal(suite.T(), "PROCESSING", results[4]["Status"], "Status - client 1")
 	assert.Equal(suite.T(), twoDaysAgo.String(), results[4]["Status Date"], "Status Date - client 1")
 }
