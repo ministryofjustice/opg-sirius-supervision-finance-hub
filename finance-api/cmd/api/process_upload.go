@@ -151,6 +151,8 @@ func formatFailedLines(failedLines map[int]string) []string {
 			errorMessage = "Could not find client with this court reference [New (correct) court reference]"
 		case validation.UploadErrorDuplicateReversal:
 			errorMessage = "This payment has already been reversed"
+		case validation.UploadErrorRefundNotFound:
+			errorMessage = "The refund could not be found - either the data does not match or the refund has been cancelled"
 		}
 
 		formattedLines = append(formattedLines, fmt.Sprintf("Line %d: %s", key, errorMessage))
