@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -107,14 +108,14 @@ func (h *InvoicesHandler) transformLedgers(ledgers []shared.Ledger, caser cases.
 		out = append(out, LedgerAllocation{
 			Amount:          shared.IntToDecimalString(int(math.Abs(float64(ledger.Amount)))),
 			ReceivedDate:    ledger.ReceivedDate,
-			TransactionType: translate(ledger.TransactionType, ledger.Status),
+			TransactionType: translate(ledger.TransactionType, ledger.Status, ledger.Amount),
 			Status:          caser.String(ledger.Status),
 		})
 	}
 	return out
 }
 
-func translate(transactionType string, status string) string {
+func translate(transactionType string, status string, amount int) string {
 	switch status {
 	case "UNAPPLIED":
 		return "Unapplied Payment"
@@ -133,6 +134,9 @@ func translate(transactionType string, status string) string {
 
 	parsedTransactionType := shared.ParseTransactionType(transactionType)
 	if parsedTransactionType != shared.TransactionTypeUnknown {
+		if amount < 0 && parsedTransactionType != shared.TransactionTypeWriteOffReversal {
+			return fmt.Sprintf("%s reversal", parsedTransactionType.String())
+		}
 		return parsedTransactionType.String()
 	}
 
