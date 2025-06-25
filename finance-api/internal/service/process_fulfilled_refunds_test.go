@@ -18,9 +18,11 @@ func (suite *IntegrationSuite) Test_processFulfilledRefunds() {
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (99, 1, 'ian-test', 'DEMANDED', NULL, '12345678');",
 		"INSERT INTO finance_client VALUES (2, 2, 'mary-missing', 'DEMANDED', NULL, '87654321');",
+		"INSERT INTO finance_client VALUES (3, 3, 'conrad-cancelled', 'DEMANDED', NULL, '66666666');",
 
 		"INSERT INTO refund VALUES (1, 99, '2019-01-05', 32000, 'APPROVED', 'A processing refund', 99, '2025-06-01 00:00:00', 99, '2025-06-02 00:00:00', '2026-06-03 00:00:00')",
 		"INSERT INTO refund VALUES (2, 2, '2019-01-06', 15500, 'APPROVED', 'An approved refund', 99, '2025-06-01 00:00:00', 99, '2025-06-02 00:00:00')",
+		"INSERT INTO refund VALUES (3, 3, '2019-01-06', 15500, 'APPROVED', 'A cancelled refund', 99, '2025-06-01 00:00:00', 99, '2025-06-02 00:00:00', '2025-06-02 00:00:00', '2025-06-02 00:00:00')",
 
 		"INSERT INTO bank_details VALUES (1, 1, 'MR IAN TEST', '11111111', '11-11-11');",
 		"INSERT INTO bank_details VALUES (2, 2, 'MS MARY MISSING', '11111111', '11-11-11');",
@@ -31,14 +33,16 @@ func (suite *IntegrationSuite) Test_processFulfilledRefunds() {
 
 	records := [][]string{
 		{"Court reference", "Amount", "Bank account name", "Bank account number", "Bank account sort code", "Created by", "Approved by"},
-		{"12345678", "320.00", "MR IAN TEST", "11111111", "111111", "Felicity Finance", "Morty Manager"},     // success
-		{"12345678", "320.00", "MR IAN TEST", "11111111", "111111", "Felicity Finance", "Morty Manager"},     // fail - duplicate
-		{"87654321", "155.00", "MS MARY MISSING", "11111111", "111111", "Felicity Finance", "Morty Manager"}, // fail - missing (Refund not set to processing)
+		{"12345678", "320.00", "MR IAN TEST", "11111111", "111111", "Felicity Finance", "Morty Manager"},         // success
+		{"12345678", "320.00", "MR IAN TEST", "11111111", "111111", "Felicity Finance", "Morty Manager"},         // fail - duplicate
+		{"87654321", "155.00", "MS MARY MISSING", "11111111", "111111", "Felicity Finance", "Morty Manager"},     // fail - missing (Refund not set to processing)
+		{"87654321", "155.00", "DR CONRAD CANCELLED", "11111111", "111111", "Felicity Finance", "Morty Manager"}, // fail - cancelled
 	}
 
 	expectedFailedLines := map[int]string{
 		2: "REFUND_NOT_FOUND_OR_DUPLICATE",
 		3: "REFUND_NOT_FOUND_OR_DUPLICATE",
+		4: "REFUND_NOT_FOUND_OR_DUPLICATE",
 	}
 
 	suite.T().Run("ProcessFulfilledPayments", func(t *testing.T) {
