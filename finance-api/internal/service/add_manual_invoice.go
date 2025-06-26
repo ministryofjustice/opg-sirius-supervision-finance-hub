@@ -158,12 +158,12 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int32, data sha
 		}
 	}
 
-	commitErr := tx.Commit(ctx)
-	if commitErr != nil {
-		return commitErr
+	err = s.ReapplyCredit(ctx, clientId, tx)
+	if err != nil {
+		return err
 	}
 
-	return s.ReapplyCredit(ctx, clientId)
+	return tx.Commit(ctx)
 }
 
 func (s *Service) validateManualInvoice(data shared.AddManualInvoice) apierror.ValidationErrors {

@@ -8,6 +8,7 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -31,7 +32,7 @@ type Service interface {
 	UpdatePendingInvoiceAdjustment(ctx context.Context, clientId int32, adjustmentId int32, status shared.AdjustmentStatus) error
 	AddManualInvoice(ctx context.Context, clientId int32, invoice shared.AddManualInvoice) error
 	GetBillingHistory(ctx context.Context, id int32) ([]shared.BillingHistory, error)
-	ReapplyCredit(ctx context.Context, clientID int32) error
+	ReapplyCredit(ctx context.Context, clientID int32, tx *store.Tx) error
 	UpdateClient(ctx context.Context, clientID int32, courtRef string) error
 	UpdatePaymentMethod(ctx context.Context, clientID int32, paymentMethod shared.PaymentMethod) error
 	ProcessPayments(ctx context.Context, records [][]string, uploadType shared.ReportUploadType, bankDate shared.Date, pisNumber int) (map[int]string, error)
