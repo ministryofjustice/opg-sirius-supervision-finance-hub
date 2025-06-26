@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"io"
 	"time"
@@ -39,7 +40,7 @@ func (s *mockService) UpdatePaymentMethod(ctx context.Context, clientID int32, p
 	return s.err
 }
 
-func (s *mockService) ReapplyCredit(ctx context.Context, clientID int32) error {
+func (s *mockService) ReapplyCredit(ctx context.Context, clientID int32, tx *store.Tx) error {
 	s.expectedIds = []int{int(clientID)}
 	s.lastCalled = "ReapplyCredit"
 	return s.err
