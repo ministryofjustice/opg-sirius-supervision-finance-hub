@@ -5,6 +5,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"strconv"
@@ -43,9 +44,6 @@ func (suite *IntegrationSuite) Test_processPayments() {
 		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 2;",
 	)
 
-	dispatch := &mockDispatch{}
-	s := NewService(seeder.Conn, dispatch, nil, nil, nil)
-
 	tests := []struct {
 		name                      string
 		records                   [][]string
@@ -55,6 +53,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 		expectedClientId          int
 		expectedLedgerAllocations []createdLedgerAllocation
 		expectedFailedLines       map[int]string
+		expectedDispatch          any
 		want                      error
 	}{
 		{
@@ -112,6 +111,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 				},
 			},
 			expectedFailedLines: map[int]string{},
+			expectedDispatch:    event.CreditOnAccount{ClientID: 2, CreditRemaining: 15010},
 		},
 		{
 			name: "Underpayment with multiple invoices",
@@ -182,10 +182,14 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					0,
 				},
 			},
+			expectedDispatch: event.CreditOnAccount{ClientID: 4, CreditRemaining: 30000},
 		},
 	}
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
+			dispatch := &mockDispatch{}
+			s := NewService(seeder.Conn, dispatch, nil, nil, nil)
+
 			var currentLedgerId int
 			_ = seeder.QueryRow(suite.ctx, `SELECT MAX(id) FROM ledger`).Scan(&currentLedgerId)
 
@@ -209,6 +213,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 			}
 
 			assert.Equal(t, tt.expectedLedgerAllocations, createdLedgerAllocations)
+			assert.Equal(t, tt.expectedDispatch, dispatch.event)
 		})
 	}
 }
