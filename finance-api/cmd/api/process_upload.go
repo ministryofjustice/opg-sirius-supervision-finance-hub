@@ -17,6 +17,7 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
+	"strings"
 )
 
 type Upload struct {
@@ -107,6 +108,12 @@ func (s *Server) processUploadFile(ctx context.Context, upload Upload) {
 			logger.Error(fmt.Sprintf("unable to process fulfilled refunds due to %d failed lines", len(failedLines)))
 		}
 		payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, err, failedLines)
+	} else if upload.UploadType.IsDirectUpload() {
+		err := s.service.ProcessDirectUploadReport(ctx, fmt.Sprintf("%s.csv", strings.ToLower(upload.UploadType.Key())), upload.FileBytes)
+		if err != nil {
+			logger.Error("unable to upload report due to error", "err", err)
+		}
+		payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, err, nil)
 	} else {
 		logger.Error("invalid upload type", "type", upload.UploadType)
 		payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, fmt.Errorf("invalid upload type"), map[int]string{})
