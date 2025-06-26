@@ -89,7 +89,7 @@ func (ib *invoiceBuilder) addLedgerAllocations(ilas []store.GetLedgerAllocations
 			metadata.invoice.Ledgers,
 			shared.Ledger{
 				Amount:          int(il.Amount),
-				ReceivedDate:    shared.Date{Time: il.RaisedDate.Time},
+				ReceivedDate:    shared.Date{Time: il.ReceivedDate.Time},
 				TransactionType: il.Type,
 				Status:          il.Status,
 			})
