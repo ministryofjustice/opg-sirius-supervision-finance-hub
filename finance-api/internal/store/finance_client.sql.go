@@ -65,6 +65,22 @@ func (q *Queries) GetAccountInformation(ctx context.Context, clientID int32) (Ge
 	return i, err
 }
 
+const getClientByCourtRef = `-- name: GetClientByCourtRef :one
+SELECT id AS finance_client_id, client_id FROM finance_client WHERE court_ref = $1
+`
+
+type GetClientByCourtRefRow struct {
+	FinanceClientID int32
+	ClientID        int32
+}
+
+func (q *Queries) GetClientByCourtRef(ctx context.Context, courtRef pgtype.Text) (GetClientByCourtRefRow, error) {
+	row := q.db.QueryRow(ctx, getClientByCourtRef, courtRef)
+	var i GetClientByCourtRefRow
+	err := row.Scan(&i.FinanceClientID, &i.ClientID)
+	return i, err
+}
+
 const updateClient = `-- name: UpdateClient :exec
 UPDATE finance_client SET court_ref = $1 WHERE client_id = $2
 `

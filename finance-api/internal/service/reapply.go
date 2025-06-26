@@ -12,10 +12,14 @@ import (
 	"log/slog"
 )
 
-func (s *Service) ReapplyCredit(ctx context.Context, clientID int32) error {
+func (s *Service) ReapplyCredit(ctx context.Context, clientID int32, tx *store.Tx) error {
+	if tx == nil {
+		return s.reapplyCreditTx(ctx, clientID)
+	}
+
 	var userID pgtype.Int4
 	_ = store.ToInt4(&userID, ctx.(auth.Context).User.ID)
-	creditPosition, err := s.store.GetCreditBalanceAndOldestOpenInvoice(ctx, clientID)
+	creditPosition, err := tx.GetCreditBalanceAndOldestOpenInvoice(ctx, clientID)
 
 	switch {
 	case errors.Is(err, pgx.ErrNoRows):
@@ -50,7 +54,7 @@ func (s *Service) ReapplyCredit(ctx context.Context, clientID int32) error {
 		CreatedBy: userID,
 	}
 
-	ledgerID, err := s.store.CreateLedger(ctx, ledger)
+	ledgerID, err := tx.CreateLedger(ctx, ledger)
 	if err != nil {
 		s.Logger(ctx).Error(fmt.Sprintf("Error in reapply for client %d", clientID), slog.String("err", err.Error()))
 		return err
@@ -58,14 +62,14 @@ func (s *Service) ReapplyCredit(ctx context.Context, clientID int32) error {
 
 	allocation.LedgerID = ledgerID
 
-	err = s.store.CreateLedgerAllocation(ctx, allocation)
+	err = tx.CreateLedgerAllocation(ctx, allocation)
 	if err != nil {
 		s.Logger(ctx).Error(fmt.Sprintf("Error create ledger allocation for client %d", clientID), slog.String("err", err.Error()))
 		return err
 	}
 
 	// there may still be credit on account, so repeat to find the next applicable invoice
-	return s.ReapplyCredit(ctx, clientID)
+	return s.ReapplyCredit(ctx, clientID, tx)
 }
 
 func getReapplyAmount(credit int32, outstanding int32) int32 {
@@ -74,4 +78,22 @@ func getReapplyAmount(credit int32, outstanding int32) int32 {
 	} else {
 		return credit
 	}
+}
+
+/**
+ * reapplyCreditTx is a wrapper function to supply a transaction where ReapplyCredit is called without an existing transaction
+ */
+func (s *Service) reapplyCreditTx(ctx context.Context, clientID int32) error {
+	ctx, cancelTx := s.WithCancel(ctx)
+	defer cancelTx()
+
+	tx, err := s.BeginStoreTx(ctx)
+	if err != nil {
+		return err
+	}
+	err = s.ReapplyCredit(ctx, clientID, tx)
+	if err != nil {
+		return err
+	}
+	return tx.Commit(ctx)
 }
