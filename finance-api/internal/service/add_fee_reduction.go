@@ -89,12 +89,12 @@ func (s *Service) AddFeeReduction(ctx context.Context, clientId int32, data shar
 		}
 	}
 
-	err = tx.Commit(ctx)
+	err = s.ReapplyCredit(ctx, clientId, tx)
 	if err != nil {
 		return err
 	}
 
-	return s.ReapplyCredit(ctx, clientId)
+	return tx.Commit(ctx)
 }
 
 func calculateFeeReduction(feeReductionType shared.FeeReductionType, invoiceTotal int32, invoiceFeeType string, generalSupervisionFee int32) int32 {

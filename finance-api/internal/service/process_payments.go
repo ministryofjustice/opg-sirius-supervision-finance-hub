@@ -241,6 +241,9 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 		if err != nil {
 			return err
 		}
+
+		client, _ := tx.GetClientByCourtRef(ctx, details.CourtRef)
+		return s.ReapplyCredit(ctx, client.ClientID, tx)
 	}
 
 	return nil
