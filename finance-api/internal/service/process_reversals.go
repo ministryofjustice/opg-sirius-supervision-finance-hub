@@ -24,7 +24,7 @@ func (s *Service) ProcessPaymentReversals(ctx context.Context, records [][]strin
 	var processedRecords []shared.ReversalDetails
 
 	for index, record := range records {
-		if index != 0 && record[0] != "" {
+		if index != 0 && safeRead(record, 0) != "" {
 			details := getReversalLines(ctx, record, uploadType, index, &failedLines)
 
 			if details != (shared.ReversalDetails{}) {
@@ -84,92 +84,92 @@ func getReversalLines(ctx context.Context, record []string, uploadType shared.Re
 
 	switch uploadType {
 	case shared.ReportTypeUploadMisappliedPayments:
-		paymentType = shared.ParseTransactionType(record[0])
+		paymentType = shared.ParseTransactionType(safeRead(record, 0))
 		if !paymentType.Valid() {
 			(*failedLines)[index] = validation.UploadErrorPaymentTypeParse
 			return shared.ReversalDetails{}
 		}
 
-		_ = erroredCourtRef.Scan(record[1])
-		_ = correctCourtRef.Scan(record[2])
+		_ = erroredCourtRef.Scan(safeRead(record, 1))
+		_ = correctCourtRef.Scan(safeRead(record, 2))
 
-		bd, err := time.Parse("02/01/2006", record[3])
+		bd, err := time.Parse("02/01/2006", safeRead(record, 3))
 		if err != nil {
 			(*failedLines)[index] = validation.UploadErrorDateParse
 			return shared.ReversalDetails{}
 		}
 		_ = bankDate.Scan(bd)
 
-		rd, err := time.Parse("02/01/2006", record[4])
+		rd, err := time.Parse("02/01/2006", safeRead(record, 4))
 		if err != nil {
 			(*failedLines)[index] = validation.UploadErrorDateParse
 			return shared.ReversalDetails{}
 		}
 		_ = receivedDate.Scan(rd)
 
-		amount, err = parseAmount(record[5])
+		amount, err = parseAmount(safeRead(record, 5))
 		if err != nil {
 			(*failedLines)[index] = validation.UploadErrorAmountParse
 			return shared.ReversalDetails{}
 		}
 
-		_ = pisNumber.Scan(record[6]) // will have no value for non-cheque payments
+		_ = pisNumber.Scan(safeRead(record, 6)) // will have no value for non-cheque payments
 	case shared.ReportTypeUploadDuplicatedPayments:
-		paymentType = shared.ParseTransactionType(record[0])
+		paymentType = shared.ParseTransactionType(safeRead(record, 0))
 		if !paymentType.Valid() {
 			(*failedLines)[index] = validation.UploadErrorPaymentTypeParse
 			return shared.ReversalDetails{}
 		}
 
-		_ = erroredCourtRef.Scan(record[1])
+		_ = erroredCourtRef.Scan(safeRead(record, 1))
 
-		bd, err := time.Parse("02/01/2006", record[2])
+		bd, err := time.Parse("02/01/2006", safeRead(record, 2))
 		if err != nil {
 			(*failedLines)[index] = validation.UploadErrorDateParse
 			return shared.ReversalDetails{}
 		}
 		_ = bankDate.Scan(bd)
 
-		rd, err := time.Parse("02/01/2006", record[3])
+		rd, err := time.Parse("02/01/2006", safeRead(record, 3))
 		if err != nil {
 			(*failedLines)[index] = validation.UploadErrorDateParse
 			return shared.ReversalDetails{}
 		}
 		_ = receivedDate.Scan(rd)
 
-		amount, err = parseAmount(record[4])
+		amount, err = parseAmount(safeRead(record, 4))
 		if err != nil {
 			(*failedLines)[index] = validation.UploadErrorAmountParse
 			return shared.ReversalDetails{}
 		}
 
-		_ = pisNumber.Scan(record[5]) // will have no value for non-cheque payments
+		_ = pisNumber.Scan(safeRead(record, 5)) // will have no value for non-cheque payments
 
 	case shared.ReportTypeUploadBouncedCheque:
 		paymentType = shared.TransactionTypeSupervisionChequePayment
-		_ = erroredCourtRef.Scan(record[0])
+		_ = erroredCourtRef.Scan(safeRead(record, 0))
 
-		bd, err := time.Parse("02/01/2006", record[1])
+		bd, err := time.Parse("02/01/2006", safeRead(record, 1))
 		if err != nil {
 			(*failedLines)[index] = validation.UploadErrorDateParse
 			return shared.ReversalDetails{}
 		}
 		_ = bankDate.Scan(bd)
 
-		rd, err := time.Parse("02/01/2006", record[2])
+		rd, err := time.Parse("02/01/2006", safeRead(record, 2))
 		if err != nil {
 			(*failedLines)[index] = validation.UploadErrorDateParse
 			return shared.ReversalDetails{}
 		}
 		_ = receivedDate.Scan(rd)
 
-		amount, err = parseAmount(record[3])
+		amount, err = parseAmount(safeRead(record, 3))
 		if err != nil {
 			(*failedLines)[index] = validation.UploadErrorAmountParse
 			return shared.ReversalDetails{}
 		}
 
-		_ = pisNumber.Scan(record[4])
+		_ = pisNumber.Scan(safeRead(record, 4))
 
 	default:
 		(*failedLines)[index] = validation.UploadErrorUnknownUploadType
