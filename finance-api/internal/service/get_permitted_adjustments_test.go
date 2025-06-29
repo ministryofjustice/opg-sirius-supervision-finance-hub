@@ -63,6 +63,22 @@ func (suite *IntegrationSuite) TestService_GetPermittedAdjustments() {
 		"INSERT INTO ledger_allocation VALUES (9, 8, 9, '2022-04-02T00:00:00+00:00', 5000, 'ALLOCATED', NULL, '', '2022-04-02', NULL);",
 
 		"INSERT INTO invoice_adjustment VALUES (3, 3, 9, '2022-04-02', 'FEE REDUCTION REVERSAL', 5000, 'test fee reduction reversal of all fee reductions', 'APPROVED', '2022-04-02 00:00:00', 1)",
+
+		"INSERT INTO invoice VALUES (10, 3, 3, 'AD', 'AD05761/20', '2022-04-02', '2022-04-02', 10000, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2022-04-02', 1);",
+
+		"INSERT INTO ledger VALUES (9, 'abc9', '2022-04-02T00:00:00+00:00', '', 10000, 'Write off', 'CREDIT WRITE OFF', 'CONFIRMED', 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '05/05/2022', 1);",
+		"INSERT INTO ledger_allocation VALUES (10, 9, 10, '2022-04-02T00:00:00+00:00', 10000, 'ALLOCATED', NULL, '', '2022-04-02', NULL);",
+
+		"INSERT INTO ledger VALUES (10, 'abc10', '2022-04-02T00:00:00+00:00', '', -10000, 'Write off reversal', 'WRITE OFF REVERSAL', 'CONFIRMED', 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '05/05/2022', 1);",
+		"INSERT INTO ledger_allocation VALUES (11, 10, 10, '2022-04-02T00:00:00+00:00', -10000, 'ALLOCATED', NULL, '', '2022-04-02', NULL);",
+
+		"INSERT INTO invoice VALUES (11, 3, 3, 'AD', 'AD05762/20', '2022-04-02', '2022-04-02', 10000, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2022-04-02', 1);",
+
+		"INSERT INTO ledger VALUES (11, 'abc11', '2022-04-02T00:00:00+00:00', '', 10000, 'Write off', 'CREDIT WRITE OFF', 'CONFIRMED', 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '05/05/2022', 1);",
+		"INSERT INTO ledger_allocation VALUES (12, 11, 11, '2022-04-02T00:00:00+00:00', 10000, 'ALLOCATED', NULL, '', '2022-04-02', NULL);",
+
+		"INSERT INTO ledger VALUES (12, 'abc12', '2022-04-02T00:00:00+00:00', '', -5000, 'Write off reversal', 'WRITE OFF REVERSAL', 'CONFIRMED', 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '05/05/2022', 1);",
+		"INSERT INTO ledger_allocation VALUES (13, 11, 11, '2022-04-02T00:00:00+00:00', -5000, 'ALLOCATED', NULL, '', '2022-04-02', NULL);",
 	)
 
 	Store := store.New(seeder.Conn)
@@ -152,6 +168,21 @@ func (suite *IntegrationSuite) TestService_GetPermittedAdjustments() {
 				shared.AdjustmentTypeCreditMemo,
 				shared.AdjustmentTypeDebitMemo,
 				shared.AdjustmentTypeFeeReductionReversal,
+			},
+		},
+		{
+			name: "write off fully reversed",
+			id:   10,
+			want: []shared.AdjustmentType{
+				shared.AdjustmentTypeWriteOff,
+				shared.AdjustmentTypeCreditMemo,
+			},
+		},
+		{
+			name: "write off partially reversed",
+			id:   11,
+			want: []shared.AdjustmentType{
+				shared.AdjustmentTypeWriteOffReversal,
 			},
 		},
 	}

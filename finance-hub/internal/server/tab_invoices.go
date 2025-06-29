@@ -134,7 +134,7 @@ func translate(transactionType string, status string, amount int) string {
 
 	parsedTransactionType := shared.ParseTransactionType(transactionType)
 	if parsedTransactionType != shared.TransactionTypeUnknown {
-		if amount < 0 {
+		if amount < 0 && parsedTransactionType != shared.TransactionTypeWriteOffReversal {
 			return fmt.Sprintf("%s reversal", parsedTransactionType.String())
 		}
 		return parsedTransactionType.String()
