@@ -209,6 +209,10 @@ func (u ReportUploadType) IsRefund() bool {
 	return u == ReportTypeUploadFulfilledRefunds
 }
 
+func (u ReportUploadType) IsDirectUpload() bool {
+	return u == ReportTypeUploadDebtChase
+}
+
 func (u ReportUploadType) HasHeader() bool {
 	return !slices.Contains(reportUploadNoHeaderTypes, u)
 }

@@ -31,7 +31,7 @@ func (m *MockFileStorage) PutFile(ctx context.Context, bucketName string, fileNa
 	return &m.versionId, m.err
 }
 
-func (m *MockFileStorage) StreamFile(ctx context.Context, bucketName string, fileName string, stream io.ReadCloser) (*string, error) {
+func (m *MockFileStorage) StreamFile(ctx context.Context, bucketName string, fileName string, stream io.Reader) (*string, error) {
 	m.bucketName = bucketName
 	m.filename = fileName
 	m.data = stream

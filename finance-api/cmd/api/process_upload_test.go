@@ -165,6 +165,22 @@ func Test_processUploadFile(t *testing.T) {
 			},
 			expectedServiceCall: "ProcessFulfilledRefunds",
 		},
+		{
+			name: "Known direct upload",
+			upload: Upload{
+				UploadType:   shared.ReportTypeUploadDebtChase,
+				EmailAddress: "test@email.com",
+				FileBytes:    bytes.NewReader([]byte("col1, col2\nabc,1")),
+			},
+			expectedPayload: notify.Payload{
+				EmailAddress: "test@email.com",
+				TemplateId:   notify.ProcessingSuccessTemplateId,
+				Personalisation: struct {
+					UploadType string `json:"upload_type"`
+				}{"Debt chase"},
+			},
+			expectedServiceCall: "ProcessDirectUploadReport",
+		},
 	}
 	for _, tt := range tests {
 		ctx := auth.Context{

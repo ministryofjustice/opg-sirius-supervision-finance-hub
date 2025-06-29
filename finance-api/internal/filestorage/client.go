@@ -86,7 +86,7 @@ func (c *Client) GetFileWithVersion(ctx context.Context, bucketName string, file
 	return output.Body, nil
 }
 
-func (c *Client) StreamFile(ctx context.Context, bucketName string, fileName string, stream io.ReadCloser) (*string, error) {
+func (c *Client) StreamFile(ctx context.Context, bucketName string, fileName string, stream io.Reader) (*string, error) {
 	output, err := c.uploader.Upload(ctx, &s3.PutObjectInput{
 		Bucket:               aws.String(bucketName),
 		Key:                  aws.String(fileName),
