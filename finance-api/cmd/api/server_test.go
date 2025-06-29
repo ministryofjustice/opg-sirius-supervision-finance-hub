@@ -160,6 +160,7 @@ func (s *mockService) ProcessFulfilledRefunds(ctx context.Context, records [][]s
 }
 
 func (s *mockService) ProcessDirectUploadReport(ctx context.Context, filename string, fileBytes io.Reader) error {
+	s.lastCalled = "ProcessDirectUploadReport"
 	return s.err
 }
 
