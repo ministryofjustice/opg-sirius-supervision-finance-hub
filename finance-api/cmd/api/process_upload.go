@@ -109,7 +109,7 @@ func (s *Server) processUploadFile(ctx context.Context, upload Upload) {
 		}
 		payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, err, failedLines)
 	} else if upload.UploadType.IsDirectUpload() {
-		err := s.service.ProcessDirectUploadReport(ctx, fmt.Sprintf("%s.csv", strings.ToLower(upload.UploadType.Key())), upload.FileBytes)
+		err := s.service.ProcessDirectUploadReport(ctx, fmt.Sprintf("fee-chase/%s.csv", strings.ToLower(upload.UploadType.Key())), upload.FileBytes)
 		if err != nil {
 			logger.Error("unable to upload report due to error", "err", err)
 		}
