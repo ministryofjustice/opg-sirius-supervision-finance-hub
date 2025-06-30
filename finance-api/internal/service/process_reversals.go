@@ -171,6 +171,30 @@ func getReversalLines(ctx context.Context, record []string, uploadType shared.Re
 
 		_ = pisNumber.Scan(safeRead(record, 4))
 
+	case shared.ReportTypeUploadFailedDirectDebitCollections:
+		paymentType = shared.TransactionTypeDirectDebitPayment
+		_ = erroredCourtRef.Scan(safeRead(record, 0))
+
+		bd, err := time.Parse("02/01/2006", safeRead(record, 1))
+		if err != nil {
+			(*failedLines)[index] = validation.UploadErrorDateParse
+			return shared.ReversalDetails{}
+		}
+		_ = bankDate.Scan(bd)
+
+		rd, err := time.Parse("02/01/2006", safeRead(record, 2))
+		if err != nil {
+			(*failedLines)[index] = validation.UploadErrorDateParse
+			return shared.ReversalDetails{}
+		}
+		_ = receivedDate.Scan(rd)
+
+		amount, err = parseAmount(safeRead(record, 3))
+		if err != nil {
+			(*failedLines)[index] = validation.UploadErrorAmountParse
+			return shared.ReversalDetails{}
+		}
+
 	default:
 		(*failedLines)[index] = validation.UploadErrorUnknownUploadType
 	}
@@ -185,6 +209,7 @@ func getReversalLines(ctx context.Context, record []string, uploadType shared.Re
 		ReceivedDate:    receivedDate,
 		Amount:          amount,
 		PisNumber:       pisNumber,
+		SkipBankDate:    shouldSkipBankDate(uploadType, pisNumber),
 	}
 }
 
@@ -196,6 +221,7 @@ func (s *Service) validateReversalLine(ctx context.Context, details shared.Rever
 		BankDate:     details.BankDate,
 		ReceivedDate: details.ReceivedDate,
 		PisNumber:    details.PisNumber,
+		SkipBankDate: details.SkipBankDate,
 	})
 
 	if ledgerCount == 0 {
@@ -315,4 +341,14 @@ func hasPaymentToReverse(processedRecords []shared.ReversalDetails, details shar
 		}
 	}
 	return reversals < totalPayments
+}
+
+/**
+ * shouldSkipBankDate returns true if the upload is for failed direct debit or cheque payment, as they are different
+ * transactions on OPG bank statements
+ */
+func shouldSkipBankDate(uploadType shared.ReportUploadType, pisNumber pgtype.Int4) pgtype.Bool {
+	var skip pgtype.Bool
+	_ = skip.Scan(uploadType == shared.ReportTypeUploadFailedDirectDebitCollections || pisNumber.Valid)
+	return skip
 }
