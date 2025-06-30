@@ -18,7 +18,7 @@ func (c *Client) GetUserSession(ctx context.Context) (*shared.User, error) {
 		return nil, err
 	}
 
-	defer resp.Body.Close()
+	defer unchecked(resp.Body.Close)
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		return nil, ErrUnauthorized

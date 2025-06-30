@@ -32,7 +32,7 @@ func TestServer_cancelFeeReduction(t *testing.T) {
 	_ = server.cancelFeeReduction(w, req)
 
 	res := w.Result()
-	defer res.Body.Close()
+	defer unchecked(res.Body.Close)
 
 	expected := ""
 

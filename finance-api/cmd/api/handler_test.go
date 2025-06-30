@@ -86,7 +86,7 @@ func Test_handlerFunc_ServeHTTP(t *testing.T) {
 
 			tt.f.ServeHTTP(w, r)
 			res := w.Result()
-			defer res.Body.Close()
+			defer unchecked(res.Body.Close)
 
 			assert.Equal(t, tt.statusCode, res.StatusCode)
 			assert.Equal(t, tt.body, strings.TrimSpace(w.Body.String()))

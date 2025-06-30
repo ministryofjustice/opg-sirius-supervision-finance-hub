@@ -10,7 +10,7 @@ func (s *Server) addRefund(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 
 	var refund shared.AddRefund
-	defer r.Body.Close()
+	defer unchecked(r.Body.Close)
 
 	if err := json.NewDecoder(r.Body).Decode(&refund); err != nil {
 		return err

@@ -46,7 +46,8 @@ func (c *Client) AddManualInvoice(ctx context.Context, clientId int, invoiceType
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+
+	defer unchecked(resp.Body.Close)
 
 	if resp.StatusCode == http.StatusCreated {
 		return nil

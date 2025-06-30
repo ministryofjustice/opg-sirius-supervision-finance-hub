@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-
 	"net/http"
 )
 
@@ -23,7 +22,7 @@ func (c *Client) GetAccountInformation(ctx context.Context, ClientId int) (share
 		return v, err
 	}
 
-	defer resp.Body.Close()
+	defer unchecked(resp.Body.Close)
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		return v, ErrUnauthorized

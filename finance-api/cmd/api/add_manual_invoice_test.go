@@ -41,7 +41,9 @@ func TestServer_addManualInvoice(t *testing.T) {
 	_ = server.addManualInvoice(w, req)
 
 	res := w.Result()
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(res.Body)
 	data, _ := io.ReadAll(res.Body)
 
 	expected := ""
@@ -72,7 +74,9 @@ func TestServer_addManualInvoiceNoValidationErrorsForNilFields(t *testing.T) {
 	_ = server.addManualInvoice(w, req)
 
 	res := w.Result()
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(res.Body)
 
 	expected := ""
 
@@ -184,7 +188,9 @@ func TestServer_addManualInvoiceDateErrors(t *testing.T) {
 	err := server.addFeeReduction(w, req)
 
 	res := w.Result()
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(res.Body)
 
 	var expErr apierror.ValidationError
 	assert.ErrorAs(t, err, &expErr)
@@ -216,7 +222,7 @@ func TestServer_addManualInvoice422Error(t *testing.T) {
 	err := server.addFeeReduction(w, req)
 
 	res := w.Result()
-	defer res.Body.Close()
+	defer unchecked(res.Body.Close)
 
 	var expErr apierror.ValidationError
 	assert.ErrorAs(t, err, &expErr)

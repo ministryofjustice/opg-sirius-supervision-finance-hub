@@ -104,7 +104,7 @@ func getPaymentDetails(ctx context.Context, record []string, uploadType shared.R
 
 	switch uploadType {
 	case shared.ReportTypeUploadPaymentsMOTOCard, shared.ReportTypeUploadPaymentsOnlineCard:
-		_ = courtRef.Scan(strings.SplitN(safeRead(record, 0), "-", -1)[0])
+		_ = courtRef.Scan(strings.Split(safeRead(record, 0), "-")[0])
 
 		amount, err = parseAmount(safeRead(record, 2))
 		if err != nil {

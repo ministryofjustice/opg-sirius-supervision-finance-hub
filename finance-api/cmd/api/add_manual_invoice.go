@@ -10,7 +10,7 @@ func (s *Server) addManualInvoice(w http.ResponseWriter, r *http.Request) error 
 	ctx := r.Context()
 
 	var addManualInvoice shared.AddManualInvoice
-	defer r.Body.Close()
+	defer unchecked(r.Body.Close)
 
 	if err := json.NewDecoder(r.Body).Decode(&addManualInvoice); err != nil {
 		return err

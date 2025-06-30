@@ -42,7 +42,7 @@ func TestServer_getRefunds(t *testing.T) {
 	_ = server.getRefunds(w, req)
 
 	res := w.Result()
-	defer res.Body.Close()
+	defer unchecked(res.Body.Close)
 
 	expected := `{"refunds":[{"id":1,"raisedDate":"16\/03\/2020","fulfilledDate":{"Value":"17\/04\/2020","Valid":true},"amount":123400,"status":"PENDING","notes":"Refund for client","bankDetails":{"Value":{"name":"Clint Client","account":"12345678","sortCode":"11-22-33"},"Valid":true},"createdBy":99}],"creditBalance":50}`
 
@@ -63,7 +63,7 @@ func TestServer_get_refunds_returnsEmpty(t *testing.T) {
 	_ = server.getRefunds(w, req)
 
 	res := w.Result()
-	defer res.Body.Close()
+	defer unchecked(res.Body.Close)
 
 	expected := `{"refunds":null,"creditBalance":0}`
 

@@ -70,11 +70,13 @@ func (c *Client) CopyStream(ctx context.Context, query ReportQuery) (io.ReadClos
 	pr, pw := io.Pipe()
 
 	go func() {
-		defer pw.Close()
+		defer func(pw *io.PipeWriter) {
+			_ = pw.Close()
+		}(pw)
 
 		rows, err := c.db.Query(ctx, query.GetQuery(), query.GetParams()...)
 		if err != nil {
-			pw.CloseWithError(err)
+			_ = pw.CloseWithError(err)
 			return
 		}
 		defer rows.Close()
@@ -89,7 +91,7 @@ func (c *Client) CopyStream(ctx context.Context, query ReportQuery) (io.ReadClos
 		defer writer.Flush()
 
 		if err = writer.Write(query.GetHeaders()); err != nil {
-			pw.CloseWithError(writer.Error())
+			_ = pw.CloseWithError(writer.Error())
 			return
 		}
 
@@ -105,12 +107,12 @@ func (c *Client) CopyStream(ctx context.Context, query ReportQuery) (io.ReadClos
 			return stringRow, nil
 		})
 		if err != nil {
-			pw.CloseWithError(err)
+			_ = pw.CloseWithError(err)
 			return
 		}
 		writer.Flush()
 		if err := writer.Error(); err != nil {
-			pw.CloseWithError(err)
+			_ = pw.CloseWithError(err)
 		}
 	}()
 

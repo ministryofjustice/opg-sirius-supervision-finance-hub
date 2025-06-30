@@ -59,7 +59,7 @@ func TestRequestReport(t *testing.T) {
 	}
 
 	res := w.Result()
-	defer res.Body.Close()
+	defer unchecked(res.Body.Close)
 
 	assert.Equal(t, "", w.Body.String())
 	assert.Equal(t, http.StatusCreated, w.Code)
@@ -92,7 +92,7 @@ func TestRequestReportNoEmail(t *testing.T) {
 	err := server.requestReport(w, r)
 
 	res := w.Result()
-	defer res.Body.Close()
+	defer unchecked(res.Body.Close)
 
 	expected := apierror.ValidationError{Errors: apierror.ValidationErrors{
 		"Email": {
@@ -105,7 +105,7 @@ func TestRequestReportNoEmail(t *testing.T) {
 }
 
 func TestRequestReportJournalDate(t *testing.T) {
-	os.Setenv("FINANCE_HUB_LIVE_DATE", "2024-01-01")
+	_ = os.Setenv("FINANCE_HUB_LIVE_DATE", "2024-01-01")
 	var b bytes.Buffer
 
 	ctx := auth.Context{
@@ -185,7 +185,7 @@ func TestRequestReportJournalDate(t *testing.T) {
 			}
 
 			res := w.Result()
-			defer res.Body.Close()
+			defer unchecked(res.Body.Close)
 
 			assert.Equal(t, tt.err, err)
 		})

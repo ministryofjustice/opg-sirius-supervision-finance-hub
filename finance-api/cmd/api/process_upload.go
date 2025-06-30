@@ -31,7 +31,7 @@ func (s *Server) processUpload(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 
 	var upload shared.Upload
-	defer r.Body.Close()
+	defer unchecked(r.Body.Close)
 
 	if err := json.NewDecoder(r.Body).Decode(&upload); err != nil {
 		return apierror.BadRequestError("event", "unable to parse upload", err)

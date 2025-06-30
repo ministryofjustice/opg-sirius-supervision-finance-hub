@@ -23,7 +23,7 @@ func (c *Client) GetRefunds(ctx context.Context, clientId int) (refunds shared.R
 		return refunds, err
 	}
 
-	defer resp.Body.Close()
+	defer unchecked(resp.Body.Close)
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		return refunds, ErrUnauthorized

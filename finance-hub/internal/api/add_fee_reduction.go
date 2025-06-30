@@ -45,7 +45,8 @@ func (c *Client) AddFeeReduction(ctx context.Context, clientId int, feeType stri
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+
+	defer unchecked(resp.Body.Close)
 
 	if resp.StatusCode == http.StatusCreated {
 		return nil
