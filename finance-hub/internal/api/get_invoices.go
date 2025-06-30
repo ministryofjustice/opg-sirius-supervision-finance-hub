@@ -25,7 +25,7 @@ func (c *Client) GetInvoices(ctx context.Context, clientId int) (shared.Invoices
 		return invoices, err
 	}
 
-	defer resp.Body.Close()
+	defer unchecked(resp.Body.Close)
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		return invoices, ErrUnauthorized

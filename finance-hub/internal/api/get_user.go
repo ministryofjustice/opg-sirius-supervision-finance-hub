@@ -24,7 +24,7 @@ func (c *Client) GetUser(ctx context.Context, userId int) (shared.User, error) {
 		return shared.User{}, err
 	}
 
-	defer resp.Body.Close()
+	defer unchecked(resp.Body.Close)
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		return shared.User{}, ErrUnauthorized

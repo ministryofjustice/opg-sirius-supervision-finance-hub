@@ -25,7 +25,7 @@ func (c *Client) GetInvoiceAdjustments(ctx context.Context, clientId int) (share
 		return invoiceAdjustments, err
 	}
 
-	defer resp.Body.Close()
+	defer unchecked(resp.Body.Close)
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		return invoiceAdjustments, ErrUnauthorized

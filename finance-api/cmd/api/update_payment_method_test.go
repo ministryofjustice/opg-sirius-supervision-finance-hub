@@ -27,7 +27,7 @@ func TestServer_updatePaymentMethod(t *testing.T) {
 	_ = server.updatePaymentMethod(w, req)
 
 	res := w.Result()
-	defer res.Body.Close()
+	defer unchecked(res.Body.Close)
 
 	expected := ""
 

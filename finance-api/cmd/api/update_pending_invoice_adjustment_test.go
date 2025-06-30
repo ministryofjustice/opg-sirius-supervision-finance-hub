@@ -29,7 +29,7 @@ func TestServer_updatePendingInvoiceAdjustment(t *testing.T) {
 	_ = server.updatePendingInvoiceAdjustment(w, req)
 
 	res := w.Result()
-	defer res.Body.Close()
+	defer unchecked(res.Body.Close)
 
 	expected := ""
 

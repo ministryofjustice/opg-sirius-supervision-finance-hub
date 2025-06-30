@@ -24,7 +24,7 @@ func (c *Client) GetBillingHistory(ctx context.Context, clientId int) ([]shared.
 		return billingHistory, err
 	}
 
-	defer resp.Body.Close()
+	defer unchecked(resp.Body.Close)
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		return billingHistory, ErrUnauthorized

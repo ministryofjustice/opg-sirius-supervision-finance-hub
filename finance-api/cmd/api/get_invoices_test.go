@@ -44,7 +44,7 @@ func TestServer_getInvoices(t *testing.T) {
 	_ = server.getInvoices(w, req)
 
 	res := w.Result()
-	defer res.Body.Close()
+	defer unchecked(res.Body.Close)
 
 	expected := `[{"id":1,"ref":"S203531/19","status":"","amount":12,"raisedDate":"16\/03\/2020","received":123,"outstandingBalance":0,"ledgers":[{"amount":123,"receivedDate":"11\/04\/2022","transactionType":"unknown","status":"Confirmed"}],"supervisionLevels":null}]`
 
@@ -65,7 +65,7 @@ func TestServer_getInvoices_returns_an_empty_array(t *testing.T) {
 	_ = server.getInvoices(w, req)
 
 	res := w.Result()
-	defer res.Body.Close()
+	defer unchecked(res.Body.Close)
 
 	expected := `[]`
 

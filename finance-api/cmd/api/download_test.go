@@ -26,7 +26,7 @@ func TestServer_download(t *testing.T) {
 	_ = server.download(w, r)
 
 	res := w.Result()
-	defer res.Body.Close()
+	defer unchecked(res.Body.Close)
 
 	assert.Equal(t, fileContent, w.Body.String())
 	assert.Equal(t, http.StatusOK, w.Code)
