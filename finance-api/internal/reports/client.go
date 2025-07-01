@@ -16,7 +16,7 @@ type dbClient interface {
 }
 
 type fileStorageClient interface {
-	StreamFile(ctx context.Context, bucketName string, fileName string, stream io.Reader) (*string, error)
+	StreamFile(ctx context.Context, bucketName string, fileName string, stream io.ReadCloser) (*string, error)
 }
 
 type notifyClient interface {

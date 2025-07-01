@@ -19,7 +19,7 @@ func (s *Service) ProcessDirectUploadReport(ctx context.Context, uploadType shar
 
 	filename := fmt.Sprintf("%s/%s.csv", directory, strings.ToLower(uploadType.Key()))
 
-	_, err := s.fileStorage.StreamFile(ctx, s.env.AsyncBucket, filename, fileBytes)
+	_, err := s.fileStorage.StreamFile(ctx, s.env.AsyncBucket, filename, io.NopCloser(fileBytes))
 	if err != nil {
 		return err
 	}
