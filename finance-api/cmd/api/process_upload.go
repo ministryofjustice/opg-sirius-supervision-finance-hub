@@ -70,59 +70,57 @@ func (s *Server) processUpload(w http.ResponseWriter, r *http.Request) error {
 
 func (s *Server) processUploadFile(ctx context.Context, upload Upload) {
 	var payload notify.Payload
+	var err error
 	logger := s.Logger(ctx)
 
-	csvReader := csv.NewReader(upload.FileBytes)
-
-	if upload.UploadType.HasOptionalExtraHeaders() {
-		// Avoid an error if there are more or less headers than there are columns in any row
-		csvReader.FieldsPerRecord = -1
-	}
-
-	records, err := csvReader.ReadAll()
-	if err != nil {
-		logger.Error("unable to read report", "err", err)
-		payload := createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, fmt.Errorf("unable to read report"), map[int]string{})
-		err = s.notify.Send(ctx, payload)
-		if err != nil {
-			logger.Error("unable to send notification", "err", err)
-		}
-		return
-	}
-
-	if upload.UploadType.IsPayment() {
-		failedLines, perr := s.service.ProcessPayments(ctx, records, upload.UploadType, upload.UploadDate, upload.PisNumber)
-		if perr != nil {
-			logger.Error("unable to process payments due to error", "err", perr)
-		} else if len(failedLines) > 0 {
-			logger.Error(fmt.Sprintf("unable to process payments due to %d failed lines", len(failedLines)))
-		}
-		payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, perr, failedLines)
-	} else if upload.UploadType.IsReversal() {
-		failedLines, perr := s.service.ProcessPaymentReversals(ctx, records, upload.UploadType)
-		if perr != nil {
-			logger.Error("unable to process payment reversals due to error", "err", perr)
-		} else if len(failedLines) > 0 {
-			logger.Error(fmt.Sprintf("unable to process payment reversals due to %d failed lines", len(failedLines)))
-		}
-		payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, err, failedLines)
-	} else if upload.UploadType.IsRefund() {
-		failedLines, perr := s.service.ProcessFulfilledRefunds(ctx, records, upload.UploadDate)
-		if perr != nil {
-			logger.Error("unable to process fulfilled refunds due to error", "err", perr)
-		} else if len(failedLines) > 0 {
-			logger.Error(fmt.Sprintf("unable to process fulfilled refunds due to %d failed lines", len(failedLines)))
-		}
-		payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, err, failedLines)
-	} else if upload.UploadType.IsDirectUpload() {
+	if upload.UploadType.IsDirectUpload() {
 		err := s.service.ProcessDirectUploadReport(ctx, fmt.Sprintf("fee-chase/%s.csv", strings.ToLower(upload.UploadType.Key())), upload.FileBytes)
 		if err != nil {
 			logger.Error("unable to upload report due to error", "err", err)
 		}
 		payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, err, nil)
 	} else {
-		logger.Error("invalid upload type", "type", upload.UploadType)
-		payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, fmt.Errorf("invalid upload type"), map[int]string{})
+		csvReader := csv.NewReader(upload.FileBytes)
+
+		records, err := csvReader.ReadAll()
+		if err != nil {
+			logger.Error("unable to read report", "err", err)
+			payload := createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, fmt.Errorf("unable to read report"), map[int]string{})
+			err = s.notify.Send(ctx, payload)
+			if err != nil {
+				logger.Error("unable to send notification", "err", err)
+			}
+			return
+		}
+
+		if upload.UploadType.IsPayment() {
+			failedLines, perr := s.service.ProcessPayments(ctx, records, upload.UploadType, upload.UploadDate, upload.PisNumber)
+			if perr != nil {
+				logger.Error("unable to process payments due to error", "err", perr)
+			} else if len(failedLines) > 0 {
+				logger.Error(fmt.Sprintf("unable to process payments due to %d failed lines", len(failedLines)))
+			}
+			payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, perr, failedLines)
+		} else if upload.UploadType.IsReversal() {
+			failedLines, perr := s.service.ProcessPaymentReversals(ctx, records, upload.UploadType)
+			if perr != nil {
+				logger.Error("unable to process payment reversals due to error", "err", perr)
+			} else if len(failedLines) > 0 {
+				logger.Error(fmt.Sprintf("unable to process payment reversals due to %d failed lines", len(failedLines)))
+			}
+			payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, err, failedLines)
+		} else if upload.UploadType.IsRefund() {
+			failedLines, perr := s.service.ProcessFulfilledRefunds(ctx, records, upload.UploadDate)
+			if perr != nil {
+				logger.Error("unable to process fulfilled refunds due to error", "err", perr)
+			} else if len(failedLines) > 0 {
+				logger.Error(fmt.Sprintf("unable to process fulfilled refunds due to %d failed lines", len(failedLines)))
+			}
+			payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, err, failedLines)
+		} else {
+			logger.Error("invalid upload type", "type", upload.UploadType)
+			payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, fmt.Errorf("invalid upload type"), map[int]string{})
+		}
 	}
 
 	err = s.notify.Send(ctx, payload)
