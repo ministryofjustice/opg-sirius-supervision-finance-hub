@@ -17,7 +17,6 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
-	"strings"
 )
 
 type Upload struct {
@@ -74,7 +73,7 @@ func (s *Server) processUploadFile(ctx context.Context, upload Upload) {
 	logger := s.Logger(ctx)
 
 	if upload.UploadType.IsDirectUpload() {
-		err := s.service.ProcessDirectUploadReport(ctx, fmt.Sprintf("fee-chase/%s.csv", strings.ToLower(upload.UploadType.Key())), upload.FileBytes)
+		err := s.service.ProcessDirectUploadReport(ctx, upload.UploadType, upload.FileBytes)
 		if err != nil {
 			logger.Error("unable to upload report due to error", "err", err)
 		}
