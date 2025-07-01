@@ -26,6 +26,10 @@ var reportUploadNoHeaderTypes = []ReportUploadType{
 	ReportTypeUploadDirectDebitsCollections,
 }
 
+var optionalExtraHeaders = []ReportUploadType{
+	ReportTypeUploadDebtChase,
+}
+
 type ReportUploadType int
 
 const (
@@ -217,6 +221,15 @@ func (u ReportUploadType) IsDirectUpload() bool {
 
 func (u ReportUploadType) HasHeader() bool {
 	return !slices.Contains(reportUploadNoHeaderTypes, u)
+}
+
+func (u ReportUploadType) HasOptionalExtraHeaders() bool {
+	for _, t := range optionalExtraHeaders {
+		if u == t {
+			return true
+		}
+	}
+	return false
 }
 
 func (u ReportUploadType) MarshalJSON() ([]byte, error) {

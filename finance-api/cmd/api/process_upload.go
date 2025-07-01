@@ -73,6 +73,12 @@ func (s *Server) processUploadFile(ctx context.Context, upload Upload) {
 	logger := s.Logger(ctx)
 
 	csvReader := csv.NewReader(upload.FileBytes)
+
+	if upload.UploadType.HasOptionalExtraHeaders() {
+		// Avoid an error if there are more or less headers than there are columns in any row
+		csvReader.FieldsPerRecord = -1
+	}
+
 	records, err := csvReader.ReadAll()
 	if err != nil {
 		logger.Error("unable to read report", "err", err)
