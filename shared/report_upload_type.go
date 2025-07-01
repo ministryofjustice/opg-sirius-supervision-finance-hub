@@ -20,6 +20,7 @@ var reportUploadReversalTypes = []ReportUploadType{
 	ReportTypeUploadMisappliedPayments,
 	ReportTypeUploadDuplicatedPayments,
 	ReportTypeUploadBouncedCheque,
+	ReportTypeUploadFailedDirectDebitCollections,
 }
 
 var reportUploadNoHeaderTypes = []ReportUploadType{
@@ -42,21 +43,23 @@ const (
 	ReportTypeUploadDuplicatedPayments
 	ReportTypeUploadBouncedCheque
 	ReportTypeUploadFulfilledRefunds
+	ReportTypeUploadFailedDirectDebitCollections
 )
 
 var reportTypeUploadMap = map[string]ReportUploadType{
-	"PAYMENTS_MOTO_CARD":          ReportTypeUploadPaymentsMOTOCard,
-	"PAYMENTS_ONLINE_CARD":        ReportTypeUploadPaymentsOnlineCard,
-	"PAYMENTS_OPG_BACS":           ReportTypeUploadPaymentsOPGBACS,
-	"PAYMENTS_SUPERVISION_BACS":   ReportTypeUploadPaymentsSupervisionBACS,
-	"PAYMENTS_SUPERVISION_CHEQUE": ReportTypeUploadPaymentsSupervisionCheque,
-	"DEBT_CHASE":                  ReportTypeUploadDebtChase,
-	"DEPUTY_SCHEDULE":             ReportTypeUploadDeputySchedule,
-	"DIRECT_DEBITS_COLLECTIONS":   ReportTypeUploadDirectDebitsCollections,
-	"MISAPPLIED_PAYMENTS":         ReportTypeUploadMisappliedPayments,
-	"DUPLICATED_PAYMENTS":         ReportTypeUploadDuplicatedPayments,
-	"BOUNCED_CHEQUE":              ReportTypeUploadBouncedCheque,
-	"FULFILLED_REFUNDS":           ReportTypeUploadFulfilledRefunds,
+	"PAYMENTS_MOTO_CARD":               ReportTypeUploadPaymentsMOTOCard,
+	"PAYMENTS_ONLINE_CARD":             ReportTypeUploadPaymentsOnlineCard,
+	"PAYMENTS_OPG_BACS":                ReportTypeUploadPaymentsOPGBACS,
+	"PAYMENTS_SUPERVISION_BACS":        ReportTypeUploadPaymentsSupervisionBACS,
+	"PAYMENTS_SUPERVISION_CHEQUE":      ReportTypeUploadPaymentsSupervisionCheque,
+	"DEBT_CHASE":                       ReportTypeUploadDebtChase,
+	"DEPUTY_SCHEDULE":                  ReportTypeUploadDeputySchedule,
+	"DIRECT_DEBITS_COLLECTIONS":        ReportTypeUploadDirectDebitsCollections,
+	"MISAPPLIED_PAYMENTS":              ReportTypeUploadMisappliedPayments,
+	"DUPLICATED_PAYMENTS":              ReportTypeUploadDuplicatedPayments,
+	"BOUNCED_CHEQUE":                   ReportTypeUploadBouncedCheque,
+	"FULFILLED_REFUNDS":                ReportTypeUploadFulfilledRefunds,
+	"FAILED_DIRECT_DEBITS_COLLECTIONS": ReportTypeUploadFailedDirectDebitCollections,
 }
 
 func (u ReportUploadType) String() string {
@@ -89,6 +92,8 @@ func (u ReportUploadType) Translation() string {
 		return "Payment Reversals - Bounced cheque"
 	case ReportTypeUploadFulfilledRefunds:
 		return "Fulfilled refunds"
+	case ReportTypeUploadFailedDirectDebitCollections:
+		return "Payment Reversals - Failed direct debit collections"
 	default:
 		return ""
 	}
@@ -120,6 +125,8 @@ func (u ReportUploadType) Key() string {
 		return "BOUNCED_CHEQUE"
 	case ReportTypeUploadFulfilledRefunds:
 		return "FULFILLED_REFUNDS"
+	case ReportTypeUploadFailedDirectDebitCollections:
+		return "FAILED_DIRECT_DEBITS_COLLECTIONS"
 	default:
 		return ""
 	}
@@ -147,6 +154,8 @@ func (u ReportUploadType) CSVHeaders() []string {
 		return []string{"Court reference", "Bank date", "Received date", "Amount", "PIS number"}
 	case ReportTypeUploadFulfilledRefunds:
 		return []string{"Court reference", "Amount", "Bank account name", "Bank account number", "Bank account sort code", "Created by", "Approved by"}
+	case ReportTypeUploadFailedDirectDebitCollections:
+		return []string{"Court reference", "Bank date", "Received date", "Amount"}
 	}
 
 	return []string{"Unknown report type"}
@@ -160,6 +169,8 @@ func (u ReportUploadType) Filename(date string) (string, error) {
 		return "bouncedcheque.csv", nil
 	case ReportTypeUploadDuplicatedPayments:
 		return "duplicatedpayments.csv", nil
+	case ReportTypeUploadFailedDirectDebitCollections:
+		return "faileddirectdebitcollections.csv", nil
 	}
 
 	parsedDate, err := time.Parse("2006-01-02", date)
