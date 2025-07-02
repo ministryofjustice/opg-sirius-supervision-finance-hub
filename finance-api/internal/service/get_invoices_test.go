@@ -329,3 +329,57 @@ func Test_invoiceBuilder_statuses(t *testing.T) {
 		})
 	}
 }
+
+func Test_invoiceBuilder_OrdersByIndex(t *testing.T) {
+	ib2 := &invoiceBuilder{
+		invoices:            make(map[int]*invoiceMetadata),
+		invoicePositionByID: make(map[int32]int),
+	}
+
+	// Add invoices in a non-sequential order of indices
+	ib2.invoices[5] = &invoiceMetadata{
+		invoice: &shared.Invoice{
+			Id:                 5,
+			Ref:                "REF5",
+			Amount:             5000,
+			RaisedDate:         shared.Date{Time: time.Date(2023, 5, 5, 0, 0, 0, 0, time.UTC)},
+			Status:             "Unpaid",
+			Received:           0,
+			OutstandingBalance: 5000,
+		},
+	}
+
+	ib2.invoices[2] = &invoiceMetadata{
+		invoice: &shared.Invoice{
+			Id:                 2,
+			Ref:                "REF2",
+			Amount:             2000,
+			RaisedDate:         shared.Date{Time: time.Date(2023, 2, 2, 0, 0, 0, 0, time.UTC)},
+			Status:             "Unpaid",
+			Received:           0,
+			OutstandingBalance: 2000,
+		},
+	}
+
+	ib2.invoices[8] = &invoiceMetadata{
+		invoice: &shared.Invoice{
+			Id:                 8,
+			Ref:                "REF8",
+			Amount:             8000,
+			RaisedDate:         shared.Date{Time: time.Date(2023, 8, 8, 0, 0, 0, 0, time.UTC)},
+			Status:             "Unpaid",
+			Received:           0,
+			OutstandingBalance: 8000,
+		},
+	}
+
+	result2 := ib2.Build()
+
+	assert.Equal(t, 3, len(result2))
+	assert.Equal(t, 2, result2[0].Id)
+	assert.Equal(t, "REF2", result2[0].Ref)
+	assert.Equal(t, 5, result2[1].Id)
+	assert.Equal(t, "REF5", result2[1].Ref)
+	assert.Equal(t, 8, result2[2].Id)
+	assert.Equal(t, "REF8", result2[2].Ref)
+}
