@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"io"
-	"strings"
 )
 
-func (s *Service) ProcessDirectUploadReport(ctx context.Context, uploadType shared.ReportUploadType, fileBytes io.Reader) error {
+func (s *Service) ProcessDirectUploadReport(ctx context.Context, filename string, fileBytes io.Reader, uploadType shared.ReportUploadType) error {
 	var directory string
 	switch uploadType {
 	case shared.ReportTypeUploadDebtChase:
@@ -17,9 +16,9 @@ func (s *Service) ProcessDirectUploadReport(ctx context.Context, uploadType shar
 		directory = ""
 	}
 
-	filename := fmt.Sprintf("%s/%s.csv", directory, strings.ToLower(uploadType.Key()))
+	filePath := fmt.Sprintf("%s/%s", directory, filename)
 
-	_, err := s.fileStorage.StreamFile(ctx, s.env.AsyncBucket, filename, io.NopCloser(fileBytes))
+	_, err := s.fileStorage.StreamFile(ctx, s.env.AsyncBucket, filePath, io.NopCloser(fileBytes))
 	if err != nil {
 		return err
 	}

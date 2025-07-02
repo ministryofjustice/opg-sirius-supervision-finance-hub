@@ -25,6 +25,7 @@ type Upload struct {
 	UploadDate   shared.Date
 	PisNumber    int
 	FileBytes    io.Reader
+	Filename     string
 }
 
 func (s *Server) processUpload(w http.ResponseWriter, r *http.Request) error {
@@ -58,6 +59,7 @@ func (s *Server) processUpload(w http.ResponseWriter, r *http.Request) error {
 			UploadDate:   upload.UploadDate,
 			PisNumber:    upload.PisNumber,
 			FileBytes:    bytes.NewReader(fileBytes),
+			Filename:     upload.Filename,
 		})
 	}(telemetry.LoggerFromContext(ctx))
 
@@ -73,7 +75,7 @@ func (s *Server) processUploadFile(ctx context.Context, upload Upload) {
 	logger := s.Logger(ctx)
 
 	if upload.UploadType.IsDirectUpload() {
-		err := s.service.ProcessDirectUploadReport(ctx, upload.UploadType, upload.FileBytes)
+		err := s.service.ProcessDirectUploadReport(ctx, upload.Filename, upload.FileBytes, upload.UploadType)
 		if err != nil {
 			logger.Error("unable to upload report due to error", "err", err)
 		}
