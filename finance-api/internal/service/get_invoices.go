@@ -24,6 +24,8 @@ type invoiceMetadata struct {
 }
 
 type invoiceBuilder struct {
+	// invoicePositionByID is used to map the invoice ID to the position in the invoices array
+	// This is used to add ledger allocation & supervision level data to the correct invoice whilst maintaining consistent ordering from the query
 	invoices            map[int]*invoiceMetadata
 	invoicePositionByID map[int32]int
 }
