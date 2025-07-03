@@ -34,7 +34,7 @@ func TestServer_addRefund(t *testing.T) {
 	_ = server.addRefund(w, req)
 
 	res := w.Result()
-	defer res.Body.Close()
+	defer unchecked(res.Body.Close)
 
 	expected := ""
 

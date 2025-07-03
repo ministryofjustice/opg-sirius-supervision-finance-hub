@@ -36,7 +36,7 @@ func TestServer_getInvoiceAdjustments(t *testing.T) {
 	_ = server.getInvoiceAdjustments(w, req)
 
 	res := w.Result()
-	defer res.Body.Close()
+	defer unchecked(res.Body.Close)
 
 	expected := `[{"id":1,"invoiceRef":"abc123/24","raisedDate":"16\/03\/2020","adjustmentType":"CREDIT MEMO","amount":123400,"status":"PENDING","notes":"Credit memo for invoice","createdBy":2}]`
 
@@ -57,7 +57,7 @@ func TestServer_getInvoiceAdjustments_returns_an_empty_array(t *testing.T) {
 	_ = server.getInvoiceAdjustments(w, req)
 
 	res := w.Result()
-	defer res.Body.Close()
+	defer unchecked(res.Body.Close)
 
 	expected := `[]`
 

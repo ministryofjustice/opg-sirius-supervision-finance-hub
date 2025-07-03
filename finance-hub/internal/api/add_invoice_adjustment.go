@@ -36,7 +36,8 @@ func (c *Client) AddInvoiceAdjustment(ctx context.Context, clientId int, supervi
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+
+	defer unchecked(resp.Body.Close)
 
 	if resp.StatusCode == http.StatusCreated {
 		var response shared.InvoiceReference

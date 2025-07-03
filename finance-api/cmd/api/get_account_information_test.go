@@ -27,7 +27,7 @@ func TestServer_getAccountInformation(t *testing.T) {
 	_ = server.getAccountInformation(w, req)
 
 	res := w.Result()
-	defer res.Body.Close()
+	defer unchecked(res.Body.Close)
 
 	expected := `{"outstandingBalance":12300,"creditBalance":123,"paymentMethod":"DEMANDED"}`
 

@@ -35,7 +35,7 @@ func TestServer_getFeeReductions(t *testing.T) {
 	_ = server.getFeeReductions(w, req)
 
 	res := w.Result()
-	defer res.Body.Close()
+	defer unchecked(res.Body.Close)
 
 	expected := `[{"id":1,"type":"REMISSION","startDate":"16\/03\/2020","endDate":"16\/03\/2020","dateReceived":"16\/03\/2020","status":"Active","notes":"Remission notes and its active"}]`
 

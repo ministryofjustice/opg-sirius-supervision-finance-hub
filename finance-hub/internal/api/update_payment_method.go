@@ -32,7 +32,9 @@ func (c *Client) SubmitPaymentMethod(ctx context.Context, clientId int, paymentM
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+
+	defer unchecked(resp.Body.Close)
+
 	if resp.StatusCode == http.StatusUnauthorized {
 		return ErrUnauthorized
 	}

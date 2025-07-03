@@ -32,7 +32,9 @@ func (c *Client) UpdateRefundDecision(ctx context.Context, clientID int, refundI
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+
+	defer unchecked(resp.Body.Close)
+	
 	if resp.StatusCode == http.StatusUnauthorized {
 		return ErrUnauthorized
 	}
