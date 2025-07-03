@@ -336,7 +336,6 @@ func Test_invoiceBuilder_OrdersByIndex(t *testing.T) {
 		invoicePositionByID: make(map[int32]int),
 	}
 
-	// Add invoices in a non-sequential order of indices
 	ib2.invoices[5] = &invoiceMetadata{
 		invoice: &shared.Invoice{
 			Id:                 5,
