@@ -96,8 +96,25 @@ func (suite *IntegrationSuite) Test_processReversals() {
 		"INSERT INTO ledger VALUES (12, 'test 12', '2025-01-02 15:32:10', '', 5000, 'payment 12', 'DIRECT DEBIT PAYMENT', 'CONFIRMED', 12, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
 		"INSERT INTO ledger_allocation VALUES (15, 12, 13, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
 
-		"ALTER SEQUENCE ledger_id_seq RESTART WITH 13;",
-		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 16;",
+		// failed reversal due to insufficient debt position
+		"INSERT INTO finance_client VALUES (13, 13, 'test 13', 'DEMANDED', NULL, '1313');",
+		"INSERT INTO invoice VALUES (14, 13, 13, 'AD', 'test 13 paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
+		"INSERT INTO ledger VALUES (13, 'test 13', '2025-01-02 15:32:10', '', 10000, 'payment 13', 'ONLINE CARD PAYMENT', 'CONFIRMED', 13, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
+		"INSERT INTO ledger_allocation VALUES (16, 13, 14, '2025-01-02 15:32:10', 10000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
+		"INSERT INTO ledger VALUES (14, 'test 13 - debit', '2025-01-02 15:32:10', '', -10000, 'manually reverses', 'DEBIT MEMO', 'CONFIRMED', 13, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
+		"INSERT INTO ledger_allocation VALUES (17, 14, 14, '2025-01-02 15:32:10', -10000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
+
+		// client in credit but payment being reversed only covers invoice
+		"INSERT INTO finance_client VALUES (14, 14, 'test 14', 'DEMANDED', NULL, '1414');",
+		"INSERT INTO invoice VALUES (15, 14, 14, 'AD', 'test 14 paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
+		"INSERT INTO ledger VALUES (15, 'test 14.1', '2025-01-02 15:32:10', '', 5000, 'payment 14 being reversed', 'ONLINE CARD PAYMENT', 'CONFIRMED', 14, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
+		"INSERT INTO ledger_allocation VALUES (18, 15, 15, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
+		"INSERT INTO ledger VALUES (16, 'test 14.2', '2025-01-02 15:32:10', '', 10000, '14 gone into credit', 'CREDIT MEMO', 'CONFIRMED', 14, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
+		"INSERT INTO ledger_allocation VALUES (19, 16, 15, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
+		"INSERT INTO ledger_allocation VALUES (20, 16, 15, '2025-01-02 15:32:10', -5000, 'UNAPPLIED', NULL, '', '2025-01-02', NULL);",
+
+		"ALTER SEQUENCE ledger_id_seq RESTART WITH 17;",
+		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 21;",
 	)
 
 	dispatch := &mockDispatch{}
@@ -215,9 +232,9 @@ func (suite *IntegrationSuite) Test_processReversals() {
 					ledgerStatus:     "CONFIRMED",
 					receivedDate:     time.Date(2025, 01, 02, 0, 0, 0, 0, time.UTC),
 					bankDate:         time.Date(2025, 01, 02, 0, 0, 0, 0, time.UTC),
-					allocationAmount: -10000,
-					allocationStatus: "ALLOCATED",
-					invoiceId:        pgtype.Int4{Int32: 6, Valid: true},
+					allocationAmount: 5000, // positive unapply to reverse the existing credit balance
+					allocationStatus: "UNAPPLIED",
+					invoiceId:        pgtype.Int4{},
 					financeClientId:  5,
 				},
 				{
@@ -226,9 +243,9 @@ func (suite *IntegrationSuite) Test_processReversals() {
 					ledgerStatus:     "CONFIRMED",
 					receivedDate:     time.Date(2025, 01, 02, 0, 0, 0, 0, time.UTC),
 					bankDate:         time.Date(2025, 01, 02, 0, 0, 0, 0, time.UTC),
-					allocationAmount: 5000, // positive unapply to reverse the existing credit balance
-					allocationStatus: "UNAPPLIED",
-					invoiceId:        pgtype.Int4{},
+					allocationAmount: -10000,
+					allocationStatus: "ALLOCATED",
+					invoiceId:        pgtype.Int4{Int32: 6, Valid: true},
 					financeClientId:  5,
 				},
 				{
@@ -378,6 +395,38 @@ func (suite *IntegrationSuite) Test_processReversals() {
 					allocationStatus: "ALLOCATED",
 					invoiceId:        pgtype.Int4{Int32: 13, Valid: true},
 					financeClientId:  12,
+				},
+			},
+			expectedFailedLines: map[int]string{},
+		},
+		{
+			name: "unable to reverse due to insufficient debt position",
+			records: [][]string{
+				{"Payment type", "Current (errored) court reference", "Bank date", "Received date", "Amount", "PIS number (cheque only)"},
+				{"ONLINE CARD PAYMENT", "1313", "02/01/2025", "02/01/2025", "100.00", ""},
+			},
+			uploadType: shared.ReportTypeUploadDuplicatedPayments,
+			expectedFailedLines: map[int]string{
+				1: "MAXIMUM_DEBT",
+			},
+		},
+		{
+			name: "applies reversal to credit first",
+			records: [][]string{
+				{"Payment type", "Current (errored) court reference", "Bank date", "Received date", "Amount", "PIS number (cheque only)"},
+				{"ONLINE CARD PAYMENT", "1414", "02/01/2025", "02/01/2025", "50.00", ""},
+			},
+			uploadType: shared.ReportTypeUploadDuplicatedPayments,
+			allocations: []createdReversalAllocation{
+				{
+					ledgerAmount:     -5000,
+					ledgerType:       "ONLINE CARD PAYMENT",
+					ledgerStatus:     "CONFIRMED",
+					receivedDate:     time.Date(2025, 01, 02, 0, 0, 0, 0, time.UTC),
+					bankDate:         time.Date(2025, 01, 02, 0, 0, 0, 0, time.UTC),
+					allocationAmount: 5000,
+					allocationStatus: "UNAPPLIED",
+					financeClientId:  14,
 				},
 			},
 			expectedFailedLines: map[int]string{},

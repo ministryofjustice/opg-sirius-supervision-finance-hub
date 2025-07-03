@@ -81,8 +81,66 @@ func (q *Queries) GetClientByCourtRef(ctx context.Context, courtRef pgtype.Text)
 	return i, err
 }
 
+const getCreditBalanceByCourtRef = `-- name: GetCreditBalanceByCourtRef :one
+SELECT ABS(COALESCE(SUM(la.amount), 0))::INT AS credit
+FROM finance_client fc
+         LEFT JOIN ledger l ON fc.id = l.finance_client_id
+         LEFT JOIN ledger_allocation la ON l.id = la.ledger_id
+WHERE fc.court_ref = $1
+  AND la.status IN ('UNAPPLIED', 'REAPPLIED')
+`
+
+func (q *Queries) GetCreditBalanceByCourtRef(ctx context.Context, courtRef pgtype.Text) (int32, error) {
+	row := q.db.QueryRow(ctx, getCreditBalanceByCourtRef, courtRef)
+	var credit int32
+	err := row.Scan(&credit)
+	return credit, err
+}
+
+const getReversibleBalanceByCourtRef = `-- name: GetReversibleBalanceByCourtRef :one
+WITH paid_on_invoices AS (SELECT fc.id, SUM(COALESCE(transactions.received, 0))::INT AS received
+                          FROM invoice i
+                                   JOIN finance_client fc ON fc.id = i.finance_client_id
+                                   LEFT JOIN LATERAL (
+                              SELECT SUM(la.amount) AS received
+                              FROM ledger_allocation la
+                                       JOIN ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
+                              WHERE la.status NOT IN ('PENDING', 'UN ALLOCATED')
+                                AND la.invoice_id = i.id
+                              ) transactions ON TRUE
+                          WHERE fc.court_ref = $1
+                            AND transactions.received > 0
+                          GROUP BY fc.id),
+     credit_balance AS (SELECT fc.id,
+                               ABS(COALESCE(SUM(
+                                                    CASE
+                                                        WHEN la.status IN ('UNAPPLIED', 'REAPPLIED')
+                                                            THEN la.amount
+                                                        ELSE 0
+                                                        END), 0))::INT AS credit
+                        FROM finance_client fc
+                                 LEFT JOIN ledger l ON fc.id = l.finance_client_id AND l.status = 'CONFIRMED'
+                                 LEFT JOIN ledger_allocation la ON l.id = la.ledger_id
+                        WHERE fc.court_ref = $1
+                        GROUP BY fc.id)
+SELECT COALESCE(poi.received + cb.credit, 0) AS balance
+FROM finance_client fc
+         LEFT JOIN paid_on_invoices poi ON fc.id = poi.id
+         LEFT JOIN credit_balance cb ON poi.id = cb.id
+WHERE fc.court_ref = $1
+`
+
+func (q *Queries) GetReversibleBalanceByCourtRef(ctx context.Context, courtRef pgtype.Text) (pgtype.Int4, error) {
+	row := q.db.QueryRow(ctx, getReversibleBalanceByCourtRef, courtRef)
+	var balance pgtype.Int4
+	err := row.Scan(&balance)
+	return balance, err
+}
+
 const updateClient = `-- name: UpdateClient :exec
-UPDATE finance_client SET court_ref = $1 WHERE client_id = $2
+UPDATE finance_client
+SET court_ref = $1
+WHERE client_id = $2
 `
 
 type UpdateClientParams struct {
@@ -96,7 +154,9 @@ func (q *Queries) UpdateClient(ctx context.Context, arg UpdateClientParams) erro
 }
 
 const updatePaymentMethod = `-- name: UpdatePaymentMethod :exec
-UPDATE finance_client SET payment_method = $1 WHERE client_id = $2
+UPDATE finance_client
+SET payment_method = $1
+WHERE client_id = $2
 `
 
 type UpdatePaymentMethodParams struct {
