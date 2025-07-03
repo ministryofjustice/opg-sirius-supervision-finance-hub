@@ -145,7 +145,7 @@ func (u ReportUploadType) CSVHeaders() []string {
 	case ReportTypeUploadDeputySchedule:
 		return []string{"Deputy number", "Deputy name", "Case number", "Client forename", "Client surname", "Do not invoice", "Total outstanding"}
 	case ReportTypeUploadDebtChase:
-		return []string{"Client_no", "Deputy_name", "Total_debt"}
+		return []string{"Case_no", "Client_no", "Client_title", "Client_forename", "Client_surname", "Do_not_chase", "Payment_method", "Deputy_type", "Deputy_no", "Airmail", "Deputy_title", "Deputy_Welsh", "Deputy_Large_Print", "Deputy_name", "Email", "Address1", "Address2", "Address3", "City_Town", "County", "Postcode", "Total_debt", "Invoice1", "Amount1"}
 	case ReportTypeUploadMisappliedPayments:
 		return []string{"Payment type", "Current (errored) court reference", "New (correct) court reference", "Bank date", "Received date", "Amount", "PIS number (cheque only)"}
 	case ReportTypeUploadDuplicatedPayments:
@@ -169,6 +169,8 @@ func (u ReportUploadType) Filename(date string) (string, error) {
 		return "bouncedcheque.csv", nil
 	case ReportTypeUploadDuplicatedPayments:
 		return "duplicatedpayments.csv", nil
+	case ReportTypeUploadDebtChase:
+		return "debt_FeeChase_*.csv", nil
 	case ReportTypeUploadFailedDirectDebitCollections:
 		return "faileddirectdebitcollections.csv", nil
 	}
@@ -218,6 +220,10 @@ func (u ReportUploadType) IsReversal() bool {
 
 func (u ReportUploadType) IsRefund() bool {
 	return u == ReportTypeUploadFulfilledRefunds
+}
+
+func (u ReportUploadType) IsDirectUpload() bool {
+	return u == ReportTypeUploadDebtChase
 }
 
 func (u ReportUploadType) HasHeader() bool {
