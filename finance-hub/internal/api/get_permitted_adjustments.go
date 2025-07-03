@@ -23,7 +23,7 @@ func (c *Client) GetPermittedAdjustments(ctx context.Context, clientId int, invo
 		return types, err
 	}
 
-	defer resp.Body.Close()
+	defer unchecked(resp.Body.Close)
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		return types, ErrUnauthorized

@@ -22,7 +22,7 @@ func (c *Client) GetFeeReductions(ctx context.Context, clientId int) (shared.Fee
 		return v, err
 	}
 
-	defer resp.Body.Close()
+	defer unchecked(resp.Body.Close)
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		return v, ErrUnauthorized

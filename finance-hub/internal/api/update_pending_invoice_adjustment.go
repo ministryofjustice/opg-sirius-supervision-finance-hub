@@ -32,7 +32,9 @@ func (c *Client) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId in
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+
+	defer unchecked(resp.Body.Close)
+
 	if resp.StatusCode == http.StatusUnauthorized {
 		return ErrUnauthorized
 	}

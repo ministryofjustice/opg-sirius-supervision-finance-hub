@@ -10,7 +10,7 @@ func (s *Server) cancelFeeReduction(w http.ResponseWriter, r *http.Request) erro
 	ctx := r.Context()
 
 	var cancelFeeReduction shared.CancelFeeReduction
-	defer r.Body.Close()
+	defer unchecked(r.Body.Close)
 
 	if err := json.NewDecoder(r.Body).Decode(&cancelFeeReduction); err != nil {
 		return err

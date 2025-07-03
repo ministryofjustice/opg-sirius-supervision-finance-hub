@@ -15,7 +15,7 @@ import (
 
 func (s *Server) requestReport(w http.ResponseWriter, r *http.Request) error {
 	var reportRequest shared.ReportRequest
-	defer r.Body.Close()
+	defer unchecked(r.Body.Close)
 
 	if err := json.NewDecoder(r.Body).Decode(&reportRequest); err != nil {
 		return err

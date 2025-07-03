@@ -23,7 +23,7 @@ func (c *Client) GetPersonDetails(ctx context.Context, ClientId int) (shared.Per
 		return v, err
 	}
 
-	defer resp.Body.Close()
+	defer unchecked(resp.Body.Close)
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		return v, ErrUnauthorized

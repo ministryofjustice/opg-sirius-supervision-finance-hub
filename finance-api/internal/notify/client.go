@@ -8,6 +8,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -91,7 +92,9 @@ func (c *Client) Send(ctx context.Context, payload Payload) error {
 
 	logger.Info("payload sent to notify", "templateID", payload.TemplateId)
 
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
 
 	switch resp.StatusCode {
 	case http.StatusOK:

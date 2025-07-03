@@ -32,7 +32,8 @@ func (c *Client) CancelFeeReduction(ctx context.Context, clientId int, feeReduct
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+
+	defer unchecked(resp.Body.Close)
 
 	if resp.StatusCode == http.StatusCreated {
 		return nil

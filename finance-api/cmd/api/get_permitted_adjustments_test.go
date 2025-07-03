@@ -23,7 +23,7 @@ func TestServer_getPermittedAdjustments(t *testing.T) {
 	_ = server.getPermittedAdjustments(w, req)
 
 	res := w.Result()
-	defer res.Body.Close()
+	defer unchecked(res.Body.Close)
 
 	expected := `["CREDIT MEMO","DEBIT MEMO"]`
 

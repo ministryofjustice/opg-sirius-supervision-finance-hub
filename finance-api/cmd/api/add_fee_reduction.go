@@ -10,7 +10,7 @@ func (s *Server) addFeeReduction(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 
 	var addFeeReduction shared.AddFeeReduction
-	defer r.Body.Close()
+	defer unchecked(r.Body.Close)
 
 	if err := json.NewDecoder(r.Body).Decode(&addFeeReduction); err != nil {
 		return err

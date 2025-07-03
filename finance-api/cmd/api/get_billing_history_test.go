@@ -42,7 +42,7 @@ func TestServer_getBillingHistory(t *testing.T) {
 	_ = server.getBillingHistory(w, req)
 
 	res := w.Result()
-	defer res.Body.Close()
+	defer unchecked(res.Body.Close)
 
 	expected := `[{"user":2,"date":"04\/11\/2099","event":{"adjustment_type":"CREDIT WRITE OFF","client_id":1,"notes":"","payment_breakdown":{"invoice_reference":{"id":1,"reference":"S203531/19"},"amount":12300,"status":""},"type":"INVOICE_ADJUSTMENT_PENDING"},"outstanding_balance":0,"credit_balance":0}]`
 
@@ -61,7 +61,7 @@ func TestServer_getBillingHistory_returns_an_empty_array(t *testing.T) {
 	_ = server.getBillingHistory(w, req)
 
 	res := w.Result()
-	defer res.Body.Close()
+	defer unchecked(res.Body.Close)
 
 	expected := `[]`
 

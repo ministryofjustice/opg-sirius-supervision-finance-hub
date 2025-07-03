@@ -36,7 +36,7 @@ func (c *Client) CreatePendingInvoiceAdjustmentTask(ctx context.Context, clientI
 	var body bytes.Buffer
 
 	dueDate := addWorkingDays(time.Now(), 20)
-	adjustmentTypeLabel := strings.ToLower(strings.Replace(adjustmentType, "_", " ", -1))
+	adjustmentTypeLabel := strings.ToLower(strings.ReplaceAll(adjustmentType, "_", " "))
 
 	task := shared.Task{
 		ClientId: clientId,
@@ -62,7 +62,8 @@ func (c *Client) CreatePendingInvoiceAdjustmentTask(ctx context.Context, clientI
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+
+	defer unchecked(resp.Body.Close)
 
 	if resp.StatusCode == http.StatusCreated {
 		return nil

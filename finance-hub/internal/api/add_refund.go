@@ -35,7 +35,8 @@ func (c *Client) AddRefund(ctx context.Context, clientId int, accountName string
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+
+	defer unchecked(resp.Body.Close)
 
 	if resp.StatusCode == http.StatusCreated {
 		return nil

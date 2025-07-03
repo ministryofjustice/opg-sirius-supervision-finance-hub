@@ -97,7 +97,9 @@ func migrateDb(ctx context.Context, connString string) error {
 	if err != nil {
 		return err
 	}
-	defer db.Close()
+	defer func(db *sql.DB) {
+		_ = db.Close()
+	}(db)
 
 	provider, err := goose.NewProvider(
 		goose.DialectPostgres,
