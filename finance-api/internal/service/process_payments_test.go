@@ -418,3 +418,37 @@ func Test_getPaymentDetails(t *testing.T) {
 		})
 	}
 }
+
+func Test_safeRead(t *testing.T) {
+	type args struct {
+		record []string
+		index  int
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "safe",
+			args: args{
+				record: []string{"abc"},
+				index:  0,
+			},
+			want: "abc",
+		},
+		{
+			name: "unsafe",
+			args: args{
+				record: []string{"abc"},
+				index:  1000,
+			},
+			want: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, safeRead(tt.args.record, tt.args.index), "safeRead(%v, %v)", tt.args.record, tt.args.index)
+		})
+	}
+}

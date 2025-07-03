@@ -17,15 +17,16 @@ FROM ledger l
         JOIN finance_client fc ON fc.id = l.finance_client_id
 WHERE (l.amount = $1)
  AND l.status = 'CONFIRMED'
- AND (COALESCE(l.pis_number, 0) <> 0 OR l.bankdate = $2)
- AND l.datetime::DATE = ($3::TIMESTAMP)::DATE
- AND l.type = $4
- AND fc.court_ref = $5
- AND COALESCE(l.pis_number, 0) = COALESCE($6, 0)
+ AND ($2 IS TRUE OR l.bankdate = $3)
+ AND l.datetime::DATE = ($4::TIMESTAMP)::DATE
+ AND l.type = $5
+ AND fc.court_ref = $6
+ AND COALESCE(l.pis_number, 0) = COALESCE($7, 0)
 `
 
 type CountDuplicateLedgerParams struct {
 	Amount       int32
+	SkipBankDate pgtype.Bool
 	BankDate     pgtype.Date
 	ReceivedDate pgtype.Timestamp
 	Type         string
@@ -36,6 +37,7 @@ type CountDuplicateLedgerParams struct {
 func (q *Queries) CountDuplicateLedger(ctx context.Context, arg CountDuplicateLedgerParams) (int64, error) {
 	row := q.db.QueryRow(ctx, countDuplicateLedger,
 		arg.Amount,
+		arg.SkipBankDate,
 		arg.BankDate,
 		arg.ReceivedDate,
 		arg.Type,

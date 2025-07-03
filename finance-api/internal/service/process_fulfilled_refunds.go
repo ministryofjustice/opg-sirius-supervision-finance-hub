@@ -22,7 +22,7 @@ func (s *Service) ProcessFulfilledRefunds(ctx context.Context, records [][]strin
 	}
 
 	for index, record := range records {
-		if !isHeaderRow(shared.ReportTypeUploadFulfilledRefunds, index) && record[0] != "" {
+		if !isHeaderRow(shared.ReportTypeUploadFulfilledRefunds, index) && safeRead(record, 0) != "" {
 			details := getRefundDetails(ctx, record, bankDate, index, &failedLines)
 
 			if details != (shared.FulfilledRefundDetails{}) {
@@ -68,17 +68,17 @@ func getRefundDetails(ctx context.Context, record []string, formDate shared.Date
 
 	_ = bankDate.Scan(formDate.Time)
 	_ = store.ToInt4(&uploadedBy, ctx.(auth.Context).User.ID)
-	_ = courtRef.Scan(record[0])
-	a, err := parseAmount(record[1])
+	_ = courtRef.Scan(safeRead(record, 0))
+	a, err := parseAmount(safeRead(record, 1))
 	if err != nil {
 		(*failedLines)[index] = validation.UploadErrorAmountParse
 		return shared.FulfilledRefundDetails{}
 	}
 	_ = store.ToInt4(&amount, a)
 
-	_ = accountName.Scan(record[2])
-	_ = accountNumber.Scan(record[3])
-	_ = sortCode.Scan(record[4])
+	_ = accountName.Scan(safeRead(record, 2))
+	_ = accountNumber.Scan(safeRead(record, 3))
+	_ = sortCode.Scan(safeRead(record, 4))
 
 	return shared.FulfilledRefundDetails{
 		CourtRef:      courtRef,

@@ -25,7 +25,7 @@ func (s *Service) ProcessPayments(ctx context.Context, records [][]string, uploa
 	}
 
 	for index, record := range records {
-		if !isHeaderRow(uploadType, index) && record[0] != "" {
+		if !isHeaderRow(uploadType, index) && safeRead(record, 0) != "" {
 			details := getPaymentDetails(ctx, record, uploadType, bankDate, pisNumber, index, &failedLines)
 
 			if details != (shared.PaymentDetails{}) {
@@ -104,58 +104,58 @@ func getPaymentDetails(ctx context.Context, record []string, uploadType shared.R
 
 	switch uploadType {
 	case shared.ReportTypeUploadPaymentsMOTOCard, shared.ReportTypeUploadPaymentsOnlineCard:
-		_ = courtRef.Scan(strings.SplitN(record[0], "-", -1)[0])
+		_ = courtRef.Scan(strings.SplitN(safeRead(record, 0), "-", -1)[0])
 
-		amount, err = parseAmount(record[2])
+		amount, err = parseAmount(safeRead(record, 2))
 		if err != nil {
 			(*failedLines)[index] = validation.UploadErrorAmountParse
 			return shared.PaymentDetails{}
 		}
 
-		rd, err := time.Parse("02/01/2006", record[1])
+		rd, err := time.Parse("02/01/2006", safeRead(record, 1))
 		if err != nil {
 			(*failedLines)[index] = validation.UploadErrorDateParse
 			return shared.PaymentDetails{}
 		}
 		_ = receivedDate.Scan(rd)
 	case shared.ReportTypeUploadPaymentsSupervisionBACS, shared.ReportTypeUploadPaymentsOPGBACS:
-		_ = courtRef.Scan(record[10])
+		_ = courtRef.Scan(safeRead(record, 10))
 
-		amount, err = parseAmount(record[6])
+		amount, err = parseAmount(safeRead(record, 6))
 		if err != nil {
 			(*failedLines)[index] = validation.UploadErrorAmountParse
 			return shared.PaymentDetails{}
 		}
 
-		rd, err := time.Parse("02/01/2006", record[4])
+		rd, err := time.Parse("02/01/2006", safeRead(record, 4))
 		if err != nil {
 			(*failedLines)[index] = validation.UploadErrorDateParse
 			return shared.PaymentDetails{}
 		}
 		_ = receivedDate.Scan(rd)
 	case shared.ReportTypeUploadPaymentsSupervisionCheque:
-		_ = courtRef.Scan(record[0])
+		_ = courtRef.Scan(safeRead(record, 0))
 
-		amount, err = parseAmount(record[2])
+		amount, err = parseAmount(safeRead(record, 2))
 		if err != nil {
 			(*failedLines)[index] = validation.UploadErrorAmountParse
 			return shared.PaymentDetails{}
 		}
 
-		rd, err := time.Parse("02/01/2006", record[4])
+		rd, err := time.Parse("02/01/2006", safeRead(record, 4))
 		if err != nil {
 			(*failedLines)[index] = validation.UploadErrorDateParse
 			return shared.PaymentDetails{}
 		}
 		_ = receivedDate.Scan(rd)
 	case shared.ReportTypeUploadDirectDebitsCollections:
-		_ = courtRef.Scan(strings.TrimSpace(record[1]))
-		amount, err = parseAmount(strings.TrimSpace(record[2]))
+		_ = courtRef.Scan(strings.TrimSpace(safeRead(record, 1)))
+		amount, err = parseAmount(strings.TrimSpace(safeRead(record, 2)))
 		if err != nil {
 			(*failedLines)[index] = validation.UploadErrorAmountParse
 			return shared.PaymentDetails{}
 		}
-		rd, err := time.Parse("02/01/2006", strings.TrimSpace(record[4]))
+		rd, err := time.Parse("02/01/2006", strings.TrimSpace(safeRead(record, 4)))
 		if err != nil {
 			(*failedLines)[index] = validation.UploadErrorDateParse
 			return shared.PaymentDetails{}
@@ -251,4 +251,11 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 
 func isHeaderRow(uploadType shared.ReportUploadType, index int) bool {
 	return uploadType.HasHeader() && index == 0
+}
+
+func safeRead(record []string, index int) string {
+	if index >= len(record) || index < 0 {
+		return ""
+	}
+	return record[index]
 }
