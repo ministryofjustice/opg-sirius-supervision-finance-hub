@@ -47,7 +47,7 @@
                     <td class="govuk-table__cell">{{.Status}}</td>
                     <td class="govuk-table__cell">{{.Notes}}</td>
                     <td class="govuk-table__cell">
-                        {{ if $user.IsFinanceUser }}
+                        {{ if $user.IsFinanceManager}}
                             {{ if .FeeReductionCancelAction }}
                                 <div class="moj-button-menu">
                                     <a
