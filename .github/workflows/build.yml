@@ -22,7 +22,7 @@ jobs:
       - name: Set up Go 1.24.0
         uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
         with:
-          go-version: 1.24.3
+          go-version: 1.24.4
         id: go
 
       - name: Check out code
@@ -74,7 +74,7 @@ jobs:
         run: make gosec
       - name: Upload GoSec results to GitHub Security tab
         if: ${{ always() }}
-        uses: github/codeql-action/upload-sarif@ff0a06e83cb2de871e5a09832bc6a81e7276941f # v3.28.18
+        uses: github/codeql-action/upload-sarif@39edc492dbe16b1465b0cafca41432d857bdb31a # v3.29.1
         with:
           sarif_file: 'test-results/gosec.sarif'
           category: gosec
@@ -103,7 +103,7 @@ jobs:
 
       - name: Bump Version
         id: semver_tag
-        uses: ministryofjustice/opg-github-actions/.github/actions/semver-tag@c9c5dfb290b8f614df0884928c521165ba83d630 # v3.1.4
+        uses: ministryofjustice/opg-github-actions/.github/actions/semver-tag@464975f6f9e628ffcece3db87ecb819d8d391ab6 # v3.1.6
         with:
           default_bump: minor
           releases_enabled: false
@@ -173,7 +173,7 @@ jobs:
             service_name: migrations
             build_options: --file docker/finance-migration/Dockerfile
     name: Build ${{ matrix.service_name }}
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/build-multi-architecture-image.yml@6bc0246b5cca2f4c85d06986c82a9a42643f6851 # v3.13.0
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/build-multi-architecture-image.yml@27a0f72b83c6b026fa4131230289bfbed9049cc7 # v3.15.0
     with:
       image_name: ${{ matrix.image_name }}
       artifact_name: ${{ matrix.service_name }}-multi-arch
@@ -243,7 +243,7 @@ jobs:
         run: make scan-${{ matrix.service_name }}
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@ff0a06e83cb2de871e5a09832bc6a81e7276941f # v3.28.18
+        uses: github/codeql-action/upload-sarif@39edc492dbe16b1465b0cafca41432d857bdb31a # v3.29.1
         with:
           sarif_file: 'test-results/'
           category: trivy-docker-${{ matrix.service_name }}
