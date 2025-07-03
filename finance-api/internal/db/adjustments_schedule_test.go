@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"strconv"
@@ -17,6 +18,8 @@ func (suite *IntegrationSuite) Test_adjustments_schedules() {
 	courtRef2 := "87654321"
 	courtRef3 := "33333333"
 	courtRef4 := "44444444"
+	courtRef5 := "55555555"
+	courtRef6 := "66666666"
 	general := "320.00"
 
 	// client 1
@@ -78,6 +81,18 @@ func (suite *IntegrationSuite) Test_adjustments_schedules() {
 	suite.seeder.CreateAdjustment(ctx, client4ID, invGTID, shared.AdjustmentTypeCreditMemo, 1000, "Credit added", twoDaysAgo.DatePtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invGTID, shared.AdjustmentTypeWriteOffReversal, 0, "Write off reversal", twoDaysAgo.DatePtr())
 	c := Client{suite.seeder.Conn}
+
+	// client 5 - general fee reduction reversals
+	client5ID := suite.seeder.CreateClient(ctx, "Charles", "Bingus", courtRef5, "1282")
+	inv4ID, inv4Ref := suite.seeder.CreateInvoice(ctx, client5ID, shared.InvoiceTypeS2, &general, valToPtr("2025-01-01"), nil, nil, valToPtr("GENERAL"), nil)
+	suite.seeder.CreateFeeReduction(ctx, client5ID, shared.FeeReductionTypeExemption, "2024", 2, "notes", sixMonthsAgo.Date())
+	suite.seeder.CreateAdjustment(ctx, client5ID, inv4ID, shared.AdjustmentTypeFeeReductionReversal, -1000, "fee reduction reversal", sixMonthsAgo.DatePtr())
+
+	// client 6 - minimal fee reduction reversals
+	client6ID := suite.seeder.CreateClient(ctx, "Gnarles", "Mingus", courtRef6, "1283")
+	inv5ID, inv5Ref := suite.seeder.CreateInvoice(ctx, client6ID, shared.InvoiceTypeS3, valToPtr("150"), valToPtr("2025-01-01"), nil, nil, valToPtr("MINIMAL"), nil)
+	suite.seeder.CreateFeeReduction(ctx, client6ID, shared.FeeReductionTypeExemption, "2024", 2, "notes", sixMonthsAgo.Date())
+	suite.seeder.CreateAdjustment(ctx, client6ID, inv5ID, shared.AdjustmentTypeFeeReductionReversal, -1500, "fee reduction reversal", sixMonthsAgo.DatePtr())
 
 	tests := []struct {
 		name         string
@@ -225,6 +240,46 @@ func (suite *IntegrationSuite) Test_adjustments_schedules() {
 					"Invoice reference": invS2Ref,
 					"Amount":            "320.00",
 					"Created date":      twoDaysAgo.String(),
+				},
+			},
+		},
+		{
+			name:         "general fee reduction reversal",
+			date:         shared.Date{Time: sixMonthsAgo.Date()},
+			scheduleType: shared.ScheduleTypeGeneralFeeReductions,
+			expectedRows: 3,
+			expectedData: []map[string]string{
+				{
+					"Court reference":   courtRef5,
+					"Invoice reference": inv4Ref,
+					"Amount":            "320.00",
+					"Created date":      sixMonthsAgo.String(),
+				},
+				{
+					"Court reference":   courtRef5,
+					"Invoice reference": inv4Ref,
+					"Amount":            "-10.00",
+					"Created date":      sixMonthsAgo.String(),
+				},
+			},
+		},
+		{
+			name:         "minimal fee reduction reversal",
+			date:         shared.Date{Time: sixMonthsAgo.Date()},
+			scheduleType: shared.ScheduleTypeMinimalFeeReductions,
+			expectedRows: 3,
+			expectedData: []map[string]string{
+				{
+					"Court reference":   courtRef6,
+					"Invoice reference": inv5Ref,
+					"Amount":            "150.00",
+					"Created date":      sixMonthsAgo.String(),
+				},
+				{
+					"Court reference":   courtRef6,
+					"Invoice reference": inv5Ref,
+					"Amount":            "-15.00",
+					"Created date":      sixMonthsAgo.String(),
 				},
 			},
 		},
@@ -576,6 +631,10 @@ func (suite *IntegrationSuite) Test_adjustments_schedules() {
 				Date:         &tt.date,
 				ScheduleType: &tt.scheduleType,
 			}))
+
+			for _, row := range rows {
+				fmt.Println(row)
+			}
 
 			assert.NoError(suite.T(), err)
 			assert.Equal(suite.T(), tt.expectedRows, len(rows))

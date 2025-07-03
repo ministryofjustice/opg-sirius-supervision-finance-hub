@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
@@ -24,7 +25,7 @@ func NewAdjustmentsSchedule(input AdjustmentsScheduleInput) ReportQuery {
 const AdjustmentsScheduleQuery = `SELECT
 	fc.court_ref AS "Court reference",
 	i.reference AS "Invoice reference",
-	(ABS(la.amount) / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS "Amount",
+	(CASE WHEN $5 THEN la.amount ELSE ABS(la.amount) END / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS "Amount",
 	TO_CHAR(l.created_at, 'YYYY-MM-DD') AS "Created date"
 	FROM supervision_finance.ledger l
 	    JOIN supervision_finance.ledger_allocation la ON l.id = la.ledger_id AND la.status = 'ALLOCATED'
@@ -59,6 +60,7 @@ func (a *AdjustmentsSchedule) GetParams() []any {
 		ledgerTypes      []string
 		supervisionLevel string
 		invoiceTypes     []string
+		includeNegatives = false
 	)
 	switch *a.ScheduleType {
 	case shared.ScheduleTypeGeneralFeeReductions,
@@ -78,9 +80,16 @@ func (a *AdjustmentsSchedule) GetParams() []any {
 	}
 
 	switch *a.ScheduleType {
+	case shared.ScheduleTypeGeneralFeeReductions,
+		shared.ScheduleTypeMinimalFeeReductions:
+		ledgerTypes = []string{
+			"CREDIT " + shared.TransactionTypeHardship.Key(),
+			"CREDIT " + shared.TransactionTypeExemption.Key(),
+			"CREDIT " + shared.TransactionTypeRemission.Key(),
+			shared.AdjustmentTypeFeeReductionReversal.Key(),
+		}
+		includeNegatives = true
 	case shared.ScheduleTypeADFeeReductions,
-		shared.ScheduleTypeGeneralFeeReductions,
-		shared.ScheduleTypeMinimalFeeReductions,
 		shared.ScheduleTypeGAFeeReductions,
 		shared.ScheduleTypeGSFeeReductions,
 		shared.ScheduleTypeGTFeeReductions:
@@ -190,5 +199,5 @@ func (a *AdjustmentsSchedule) GetParams() []any {
 		}
 	}
 
-	return []any{a.Date.Time.Format("2006-01-02"), ledgerTypes, supervisionLevel, invoiceTypes}
+	return []any{a.Date.Time.Format("2006-01-02"), ledgerTypes, supervisionLevel, invoiceTypes, includeNegatives}
 }
