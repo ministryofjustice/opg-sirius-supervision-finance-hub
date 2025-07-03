@@ -21,7 +21,7 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
 
 	if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeDebtPositionChanged {
 		if detail, ok := event.Detail.(shared.DebtPositionChangedEvent); ok {
-			err := s.service.ReapplyCredit(ctx, detail.ClientID)
+			err := s.service.ReapplyCredit(ctx, detail.ClientID, nil)
 			if err != nil {
 				return err
 			}
