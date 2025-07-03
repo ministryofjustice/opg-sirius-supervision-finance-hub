@@ -68,14 +68,12 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId i
 			}
 		}
 	}
-
-	err = tx.Commit(ctx)
-	if err != nil {
-		return err
-	}
-
 	if status == shared.AdjustmentStatusApproved {
-		return s.ReapplyCredit(ctx, clientId)
+		err = s.ReapplyCredit(ctx, clientId, tx)
+		if err != nil {
+			return err
+		}
 	}
-	return nil
+
+	return tx.Commit(ctx)
 }
