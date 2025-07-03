@@ -23,6 +23,7 @@ type ReversalDetails struct {
 	Amount          int32
 	CreatedBy       pgtype.Int4
 	PisNumber       pgtype.Int4
+	SkipBankDate    pgtype.Bool
 }
 
 type FulfilledRefundDetails struct {

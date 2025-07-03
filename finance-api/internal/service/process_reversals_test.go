@@ -90,8 +90,14 @@ func (suite *IntegrationSuite) Test_processReversals() {
 		"INSERT INTO ledger VALUES (11, 'test 9', '2025-01-02 15:32:10', '', 5000, 'payment 9', 'ONLINE CARD PAYMENT', 'CONFIRMED', 11, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
 		"INSERT INTO ledger_allocation VALUES (14, 11, 12, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
 
-		"ALTER SEQUENCE ledger_id_seq RESTART WITH 12;",
-		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 15;",
+		// failed direct debit collection
+		"INSERT INTO finance_client VALUES (12, 12, 'test 12', 'DEMANDED', NULL, '1212');",
+		"INSERT INTO invoice VALUES (13, 12, 12, 'AD', 'test 12 paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
+		"INSERT INTO ledger VALUES (12, 'test 12', '2025-01-02 15:32:10', '', 5000, 'payment 12', 'DIRECT DEBIT PAYMENT', 'CONFIRMED', 12, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
+		"INSERT INTO ledger_allocation VALUES (15, 12, 13, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
+
+		"ALTER SEQUENCE ledger_id_seq RESTART WITH 13;",
+		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 16;",
 	)
 
 	dispatch := &mockDispatch{}
@@ -353,6 +359,28 @@ func (suite *IntegrationSuite) Test_processReversals() {
 					financeClientId:  11,
 				},
 			},
+		},
+		{
+			name: "failed direct debit collection",
+			records: [][]string{
+				{"Court reference", "Bank date", "Received date", "Amount"},
+				{"1212", "13/11/2025", "02/01/2025", "50.00"}, // different bank date as this should not be matched on
+			},
+			uploadType: shared.ReportTypeUploadFailedDirectDebitCollections,
+			allocations: []createdReversalAllocation{
+				{
+					ledgerAmount:     -5000,
+					ledgerType:       "DIRECT DEBIT PAYMENT",
+					ledgerStatus:     "CONFIRMED",
+					receivedDate:     time.Date(2025, 01, 02, 0, 0, 0, 0, time.UTC),
+					bankDate:         time.Date(2025, 11, 13, 0, 0, 0, 0, time.UTC),
+					allocationAmount: -5000,
+					allocationStatus: "ALLOCATED",
+					invoiceId:        pgtype.Int4{Int32: 13, Valid: true},
+					financeClientId:  12,
+				},
+			},
+			expectedFailedLines: map[int]string{},
 		},
 	}
 	for _, tt := range tests {
