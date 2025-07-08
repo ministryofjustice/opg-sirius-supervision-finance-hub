@@ -19,9 +19,9 @@ func (suite *IntegrationSuite) TestService_GetInvoices() {
 		"INSERT INTO finance_client VALUES (3, 2, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO fee_reduction VALUES (1, 7, 'REMISSION', NULL, '2019-04-01'::DATE, '2020-03-31'::DATE, 'notes', FALSE, '2019-05-01'::DATE);",
 		"INSERT INTO invoice VALUES (1, 1, 7, 'S2', 'S203531/19', '2019-04-01', '2020-03-31', 32000, NULL, '2020-03-20',1, '2020-03-16', 10, NULL, NULL, '2019-06-06', 99);",
-		"INSERT INTO ledger VALUES (1, 'random1223', '2022-04-11T08:36:40+00:00', '', 12300, '', 'CREDIT REMISSION', 'CONFIRMED', 7, 1, 1, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 2);",
-		"INSERT INTO ledger_allocation VALUES (1, 1, 1, '2022-04-11T08:36:40+00:00', 12300, 'ALLOCATED', NULL, 'Notes here', '2022-04-11', NULL);",
-		"INSERT INTO ledger_allocation VALUES (2, 1, 1, '2022-04-11T08:36:40+00:00', -2300, 'UNAPPLIED', NULL, 'Notes here', '2022-04-11', NULL);",
+		"INSERT INTO ledger VALUES (1, 'random1223', '2022-04-11T00:00:00+00:00', '', 12300, '', 'CREDIT REMISSION', 'CONFIRMED', 7, 1, 1, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 2);",
+		"INSERT INTO ledger_allocation VALUES (1, 1, 1, '2022-04-11T00:00:00+00:00', 12300, 'ALLOCATED', NULL, 'Notes here', '2022-04-11', NULL);",
+		"INSERT INTO ledger_allocation VALUES (2, 1, 1, '2022-04-11T00:00:00+00:00', -2300, 'UNAPPLIED', NULL, 'Notes here', '2022-04-11', NULL);",
 		"INSERT INTO invoice_fee_range VALUES (1, 1, 'GENERAL', '2022-04-01', '2023-03-31', 32000);",
 		// this ledger and allocation should be ignored as ledger is APPROVED, not CONFIRMED (PFS-206)
 		"INSERT INTO ledger VALUES (2, 'ignore', '2022-04-11T08:36:40+00:00', '', 99999, '', 'CREDIT MEMO', 'APPROVED', 7, NULL, NULL, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 2);",
@@ -52,13 +52,13 @@ func (suite *IntegrationSuite) TestService_GetInvoices() {
 					Ledgers: []shared.Ledger{
 						{
 							Amount:          -2300,
-							ReceivedDate:    shared.NewDate("04/12/2022"),
+							ReceivedDate:    shared.NewDate("11/04/2022"),
 							TransactionType: "CREDIT REMISSION",
 							Status:          "UNAPPLIED",
 						},
 						{
 							Amount:          12300,
-							ReceivedDate:    shared.NewDate("04/12/2022"),
+							ReceivedDate:    shared.NewDate("11/04/2022"),
 							TransactionType: "CREDIT REMISSION",
 							Status:          "ALLOCATED",
 						},
@@ -328,4 +328,57 @@ func Test_invoiceBuilder_statuses(t *testing.T) {
 			assert.Equal(t, tt.status, invoices[0].Status)
 		})
 	}
+}
+
+func Test_invoiceBuilder_OrdersByIndex(t *testing.T) {
+	ib2 := &invoiceBuilder{
+		invoices:            make(map[int]*invoiceMetadata),
+		invoicePositionByID: make(map[int32]int),
+	}
+
+	ib2.invoices[5] = &invoiceMetadata{
+		invoice: &shared.Invoice{
+			Id:                 5,
+			Ref:                "REF5",
+			Amount:             5000,
+			RaisedDate:         shared.Date{Time: time.Date(2023, 5, 5, 0, 0, 0, 0, time.UTC)},
+			Status:             "Unpaid",
+			Received:           0,
+			OutstandingBalance: 5000,
+		},
+	}
+
+	ib2.invoices[2] = &invoiceMetadata{
+		invoice: &shared.Invoice{
+			Id:                 2,
+			Ref:                "REF2",
+			Amount:             2000,
+			RaisedDate:         shared.Date{Time: time.Date(2023, 2, 2, 0, 0, 0, 0, time.UTC)},
+			Status:             "Unpaid",
+			Received:           0,
+			OutstandingBalance: 2000,
+		},
+	}
+
+	ib2.invoices[8] = &invoiceMetadata{
+		invoice: &shared.Invoice{
+			Id:                 8,
+			Ref:                "REF8",
+			Amount:             8000,
+			RaisedDate:         shared.Date{Time: time.Date(2023, 8, 8, 0, 0, 0, 0, time.UTC)},
+			Status:             "Unpaid",
+			Received:           0,
+			OutstandingBalance: 8000,
+		},
+	}
+
+	result2 := ib2.Build()
+
+	assert.Equal(t, 3, len(result2))
+	assert.Equal(t, 2, result2[0].Id)
+	assert.Equal(t, "REF2", result2[0].Ref)
+	assert.Equal(t, 5, result2[1].Id)
+	assert.Equal(t, "REF5", result2[1].Ref)
+	assert.Equal(t, 8, result2[2].Id)
+	assert.Equal(t, "REF8", result2[2].Ref)
 }
