@@ -82,11 +82,11 @@ func (a *AdjustmentsSchedule) GetParams() []any {
 
 	switch *a.ScheduleType {
 	case shared.ScheduleTypeADFeeReductions,
+		shared.ScheduleTypeGeneralFeeReductions,
+		shared.ScheduleTypeMinimalFeeReductions,
 		shared.ScheduleTypeGAFeeReductions,
 		shared.ScheduleTypeGSFeeReductions,
-		shared.ScheduleTypeGTFeeReductions,
-		shared.ScheduleTypeGeneralFeeReductions,
-		shared.ScheduleTypeMinimalFeeReductions:
+		shared.ScheduleTypeGTFeeReductions:
 		ledgerTypes = []string{
 			"CREDIT " + shared.TransactionTypeHardship.Key(),
 			"CREDIT " + shared.TransactionTypeExemption.Key(),
