@@ -9,6 +9,7 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"slices"
+	"sort"
 )
 
 var (
@@ -23,13 +24,16 @@ type invoiceMetadata struct {
 }
 
 type invoiceBuilder struct {
-	invoices map[int32]*invoiceMetadata
+	// invoicePositionByID is used to map the invoice ID to the position in the invoices array
+	// This is used to add ledger allocation & supervision level data to the correct invoice whilst maintaining consistent ordering from the query
+	invoices            map[int]*invoiceMetadata
+	invoicePositionByID map[int32]int
 }
 
 func newInvoiceBuilder(invoices []store.GetInvoicesRow) *invoiceBuilder {
-	ib := invoiceBuilder{make(map[int32]*invoiceMetadata)}
-	for _, inv := range invoices {
-		ib.invoices[inv.ID] = &invoiceMetadata{
+	ib := invoiceBuilder{make(map[int]*invoiceMetadata), make(map[int32]int)}
+	for index, inv := range invoices {
+		ib.invoices[index] = &invoiceMetadata{
 			invoice: &shared.Invoice{
 				Id:                 int(inv.ID),
 				Ref:                inv.Reference,
@@ -41,17 +45,23 @@ func newInvoiceBuilder(invoices []store.GetInvoicesRow) *invoiceBuilder {
 			},
 			feeReductionType: inv.FeeReductionType,
 		}
+		ib.invoicePositionByID[inv.ID] = index
 	}
 	return &ib
 }
 
-func (ib *invoiceBuilder) IDs() []int32 {
-	return maps.Keys(ib.invoices)
+func (ib *invoiceBuilder) GetIDs() []int32 {
+	return maps.Keys(ib.invoicePositionByID)
 }
 
 func (ib *invoiceBuilder) Build() shared.Invoices {
 	var invoices shared.Invoices
-	for _, inv := range ib.invoices {
+
+	keys := maps.Keys(ib.invoices)
+	sort.Ints(keys)
+
+	for _, key := range keys {
+		inv := ib.invoices[key]
 		invoice := inv.invoice
 		var status string
 		if invoice.OutstandingBalance > 0 {
@@ -83,7 +93,7 @@ func (ib *invoiceBuilder) Build() shared.Invoices {
 func (ib *invoiceBuilder) addLedgerAllocations(ilas []store.GetLedgerAllocationsRow) {
 	writeOffReversed := false
 	for _, il := range ilas {
-		metadata := ib.invoices[il.InvoiceID.Int32]
+		metadata := ib.invoices[ib.invoicePositionByID[il.InvoiceID.Int32]]
 
 		metadata.invoice.Ledgers = append(
 			metadata.invoice.Ledgers,
@@ -112,8 +122,8 @@ func (ib *invoiceBuilder) addLedgerAllocations(ilas []store.GetLedgerAllocations
 
 func (ib *invoiceBuilder) addSupervisionLevels(supervisionLevels []store.GetSupervisionLevelsRow) {
 	for _, sl := range supervisionLevels {
-		ib.invoices[sl.InvoiceID.Int32].invoice.SupervisionLevels = append(
-			ib.invoices[sl.InvoiceID.Int32].invoice.SupervisionLevels,
+		ib.invoices[ib.invoicePositionByID[sl.InvoiceID.Int32]].invoice.SupervisionLevels = append(
+			ib.invoices[ib.invoicePositionByID[sl.InvoiceID.Int32]].invoice.SupervisionLevels,
 			shared.SupervisionLevel{
 				Level:  sl.Supervisionlevel,
 				Amount: int(sl.Amount),
@@ -130,7 +140,8 @@ func (s *Service) GetInvoices(ctx context.Context, clientId int32) (shared.Invoi
 	}
 
 	builder := newInvoiceBuilder(invoices)
-	ledgerAllocations, err := s.store.GetLedgerAllocations(ctx, builder.IDs())
+
+	ledgerAllocations, err := s.store.GetLedgerAllocations(ctx, builder.GetIDs())
 
 	if err != nil {
 		s.Logger(ctx).Error("Get ledger allocations in get invoices has an issue " + err.Error())
@@ -138,7 +149,7 @@ func (s *Service) GetInvoices(ctx context.Context, clientId int32) (shared.Invoi
 	}
 
 	builder.addLedgerAllocations(ledgerAllocations)
-	supervisionLevels, err := s.store.GetSupervisionLevels(ctx, builder.IDs())
+	supervisionLevels, err := s.store.GetSupervisionLevels(ctx, builder.GetIDs())
 
 	if err != nil {
 		s.Logger(ctx).Error("Get supervision levels in get invoices has an issue " + err.Error())
