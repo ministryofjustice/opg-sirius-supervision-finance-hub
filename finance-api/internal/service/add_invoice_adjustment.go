@@ -102,7 +102,7 @@ func (s *Service) calculateAdjustmentAmount(adjustment *shared.AddInvoiceAdjustm
 	switch adjustment.AdjustmentType {
 	case shared.AdjustmentTypeWriteOff:
 		return balance.Outstanding
-	case shared.AdjustmentTypeDebitMemo:
+	case shared.AdjustmentTypeDebitMemo, shared.AdjustmentTypeFeeReductionReversal:
 		return -adjustment.Amount
 	case shared.AdjustmentTypeWriteOffReversal:
 		if adjustment.Amount > 0 {
