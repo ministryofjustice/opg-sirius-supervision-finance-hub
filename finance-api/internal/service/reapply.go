@@ -26,16 +26,12 @@ func (s *Service) ReapplyCredit(ctx context.Context, clientID int32, tx *store.T
 
 	switch {
 	case errors.Is(err, pgx.ErrNoRows):
-		logger.Info("no credit balance or invoices found")
 		return nil
 	case err != nil:
-		logger.Error("error in fetching credit balance", "error", err)
 		return err
 	case creditPosition.Credit < 1:
-		logger.Info("client is not in credit")
 		return nil
 	case !creditPosition.InvoiceID.Valid:
-		logger.Info("no invoices to apply credit to")
 		return s.dispatch.CreditOnAccount(ctx, event.CreditOnAccount{
 			ClientID:        int(clientID),
 			CreditRemaining: int(creditPosition.Credit),
