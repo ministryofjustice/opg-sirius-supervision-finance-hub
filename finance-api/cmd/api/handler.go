@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
@@ -23,7 +24,7 @@ func (f handlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if err := f(w, r); err != nil {
 		var valErr apierror.ValidationError
-		if !errors.As(err, &valErr) {
+		if !errors.As(err, &valErr) && !errors.Is(err, context.Canceled) {
 			logger := telemetry.LoggerFromContext(r.Context())
 			logger.Error("an api error occurred", slog.String("err", err.Error()))
 		}
