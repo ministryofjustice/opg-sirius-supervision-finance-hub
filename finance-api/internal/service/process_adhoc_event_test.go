@@ -1,6 +1,9 @@
 package service
 
-import "github.com/stretchr/testify/assert"
+import (
+	"github.com/stretchr/testify/assert"
+	"time"
+)
 
 func (suite *IntegrationSuite) Test_processAdhocEvent() {
 	ctx := suite.ctx
@@ -22,6 +25,9 @@ func (suite *IntegrationSuite) Test_processAdhocEvent() {
 	s := NewService(seeder.Conn, dispatch, nil, nil, nil)
 	err := s.ProcessAdhocEvent(ctx)
 	assert.Nil(suite.T(), err)
+
+	// wait for async process
+	time.Sleep(1 * time.Second)
 
 	var (
 		amount           int
