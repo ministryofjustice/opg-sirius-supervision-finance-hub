@@ -81,8 +81,58 @@ func (q *Queries) GetClientByCourtRef(ctx context.Context, courtRef pgtype.Text)
 	return i, err
 }
 
+const getCreditBalanceByCourtRef = `-- name: GetCreditBalanceByCourtRef :one
+SELECT ABS(COALESCE(SUM(la.amount), 0))::INT AS credit
+FROM finance_client fc
+         LEFT JOIN ledger l ON fc.id = l.finance_client_id
+         LEFT JOIN ledger_allocation la ON l.id = la.ledger_id
+WHERE fc.court_ref = $1
+  AND la.status IN ('UNAPPLIED', 'REAPPLIED')
+`
+
+func (q *Queries) GetCreditBalanceByCourtRef(ctx context.Context, courtRef pgtype.Text) (int32, error) {
+	row := q.db.QueryRow(ctx, getCreditBalanceByCourtRef, courtRef)
+	var credit int32
+	err := row.Scan(&credit)
+	return credit, err
+}
+
+const getReversibleBalanceByCourtRef = `-- name: GetReversibleBalanceByCourtRef :one
+WITH ledger_data AS (
+    SELECT
+        fc.id AS client_id,
+        fc.court_ref,
+        SUM(CASE
+                WHEN la.status NOT IN ('PENDING', 'UN ALLOCATED') AND l.status = 'CONFIRMED'
+                    AND la.invoice_id IS NOT NULL THEN la.amount
+                ELSE 0
+            END) AS received,
+        SUM(CASE
+                WHEN la.status IN ('UNAPPLIED', 'REAPPLIED') AND l.status = 'CONFIRMED' THEN la.amount
+                ELSE 0
+            END) AS credit
+    FROM finance_client fc
+             LEFT JOIN ledger l ON fc.id = l.finance_client_id
+             LEFT JOIN ledger_allocation la ON l.id = la.ledger_id
+    GROUP BY fc.id, fc.court_ref
+)
+SELECT
+    COALESCE(ledger_data.received, 0)::INT + ABS(COALESCE(ledger_data.credit, 0))::INT AS balance
+FROM ledger_data
+WHERE ledger_data.court_ref = $1
+`
+
+func (q *Queries) GetReversibleBalanceByCourtRef(ctx context.Context, dollar_1 pgtype.Text) (int32, error) {
+	row := q.db.QueryRow(ctx, getReversibleBalanceByCourtRef, dollar_1)
+	var balance int32
+	err := row.Scan(&balance)
+	return balance, err
+}
+
 const updateClient = `-- name: UpdateClient :exec
-UPDATE finance_client SET court_ref = $1 WHERE client_id = $2
+UPDATE finance_client
+SET court_ref = $1
+WHERE client_id = $2
 `
 
 type UpdateClientParams struct {
@@ -96,7 +146,9 @@ func (q *Queries) UpdateClient(ctx context.Context, arg UpdateClientParams) erro
 }
 
 const updatePaymentMethod = `-- name: UpdatePaymentMethod :exec
-UPDATE finance_client SET payment_method = $1 WHERE client_id = $2
+UPDATE finance_client
+SET payment_method = $1
+WHERE client_id = $2
 `
 
 type UpdatePaymentMethodParams struct {
