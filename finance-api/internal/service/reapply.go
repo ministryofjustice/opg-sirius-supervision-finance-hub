@@ -17,18 +17,25 @@ func (s *Service) ReapplyCredit(ctx context.Context, clientID int32, tx *store.T
 		return s.reapplyCreditTx(ctx, clientID)
 	}
 
+	logger := s.Logger(ctx)
+	logger.Info(fmt.Sprintf("reapplying credit for client %d", clientID))
+
 	var userID pgtype.Int4
 	_ = store.ToInt4(&userID, ctx.(auth.Context).User.ID)
 	creditPosition, err := tx.GetCreditBalanceAndOldestOpenInvoice(ctx, clientID)
 
 	switch {
 	case errors.Is(err, pgx.ErrNoRows):
+		logger.Info("no credit balance or invoices found")
 		return nil
 	case err != nil:
+		logger.Error("error in fetching credit balance", "error", err)
 		return err
 	case creditPosition.Credit < 1:
+		logger.Info("client is not in credit")
 		return nil
 	case !creditPosition.InvoiceID.Valid:
+		logger.Info("no invoices to apply credit to")
 		return s.dispatch.CreditOnAccount(ctx, event.CreditOnAccount{
 			ClientID:        int(clientID),
 			CreditRemaining: int(creditPosition.Credit),
@@ -67,6 +74,8 @@ func (s *Service) ReapplyCredit(ctx context.Context, clientID int32, tx *store.T
 		s.Logger(ctx).Error(fmt.Sprintf("Error create ledger allocation for client %d", clientID), slog.String("err", err.Error()))
 		return err
 	}
+
+	logger.Info(fmt.Sprintf("%d credit applied to invoice %d", reapplyAmount, creditPosition.InvoiceID.Int32))
 
 	// there may still be credit on account, so repeat to find the next applicable invoice
 	return s.ReapplyCredit(ctx, clientID, tx)
