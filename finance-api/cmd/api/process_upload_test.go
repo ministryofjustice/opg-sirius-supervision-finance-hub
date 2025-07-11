@@ -210,14 +210,14 @@ func Test_formatFailedLines(t *testing.T) {
 			failedLines: map[int]string{
 				5: "DATE_PARSE_ERROR",
 				3: "CLIENT_NOT_FOUND",
-				8: "DATE_PARSE_ERROR",
-				1: "CLIENT_NOT_FOUND",
+				8: "DUPLICATE_PAYMENT",
+				1: "DUPLICATE_PAYMENT",
 			},
 			want: []string{
-				"Line 1: Could not find a client with this court reference",
+				"Line 1: Duplicate payment line",
 				"Line 3: Could not find a client with this court reference",
 				"Line 5: Unable to parse date - please use the format DD/MM/YYYY",
-				"Line 8: Unable to parse date - please use the format DD/MM/YYYY",
+				"Line 8: Duplicate payment line",
 			},
 		},
 	}

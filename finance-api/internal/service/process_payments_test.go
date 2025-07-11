@@ -140,49 +140,16 @@ func (suite *IntegrationSuite) Test_processPayments() {
 			name: "failure cases",
 			records: [][]string{
 				{"Ordercode", "Date", "Amount"},
-				{"1234567890", "01/01/2024", "50"},
+				{"1234567890", "01/01/2024", "50"}, // client not found
+				{"1234567", "01/01/2024", "100"},   // duplicate
 			},
 			paymentType:      shared.ReportTypeUploadPaymentsMOTOCard,
 			bankDate:         shared.NewDate("2024-01-01"),
 			expectedClientId: 3,
 			expectedFailedLines: map[int]string{
 				1: "CLIENT_NOT_FOUND",
+				2: "DUPLICATE_PAYMENT",
 			},
-		},
-		{
-			name: "duplicate payment",
-			records: [][]string{
-				{"Ordercode", "Date", "Amount"},
-				{"1234567", "01/05/2025", "150"},
-				{"1234567", "01/05/2025", "150"},
-			},
-			paymentType:         shared.ReportTypeUploadPaymentsMOTOCard,
-			bankDate:            shared.NewDate("2024-01-01"),
-			expectedClientId:    4,
-			expectedFailedLines: map[int]string{},
-			expectedLedgerAllocations: []createdLedgerAllocation{
-				{
-					15000,
-					"MOTO CARD PAYMENT",
-					"CONFIRMED",
-					time.Date(2025, 5, 1, 0, 0, 0, 0, time.UTC),
-					-15000,
-					"UNAPPLIED",
-					0,
-					0,
-				},
-				{
-					15000,
-					"MOTO CARD PAYMENT",
-					"CONFIRMED",
-					time.Date(2025, 5, 1, 0, 0, 0, 0, time.UTC),
-					-15000,
-					"UNAPPLIED",
-					0,
-					0,
-				},
-			},
-			expectedDispatch: event.CreditOnAccount{ClientID: 4, CreditRemaining: 30000},
 		},
 	}
 	for _, tt := range tests {

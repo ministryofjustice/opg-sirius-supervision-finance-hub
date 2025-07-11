@@ -12,4 +12,5 @@ const (
 	UploadErrorDuplicateReversal      = "DUPLICATE_REVERSAL"
 	UploadErrorRefundNotFound         = "REFUND_NOT_FOUND_OR_DUPLICATE"
 	UploadErrorMaximumDebt            = "MAXIMUM_DEBT"
+	UploadErrorDuplicatePayment       = "DUPLICATE_PAYMENT"
 )
