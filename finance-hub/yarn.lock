@@ -235,6 +235,13 @@
   dependencies:
     "@types/json-schema" "^7.0.15"
 
+"@eslint/core@^0.15.1":
+  version "0.15.1"
+  resolved "https://registry.yarnpkg.com/@eslint/core/-/core-0.15.1.tgz#d530d44209cbfe2f82ef86d6ba08760196dd3b60"
+  integrity sha512-bkOp+iumZCCbt1K1CmWf0R9pM5yKpDv+ZXtvSyQpudrI9kuFLp+bM2WOPXImuD/ceQuaa8f5pj93Y7zyECIGNA==
+  dependencies:
+    "@types/json-schema" "^7.0.15"
+
 "@eslint/eslintrc@^3.3.1":
   version "3.3.1"
   resolved "https://registry.yarnpkg.com/@eslint/eslintrc/-/eslintrc-3.3.1.tgz#e55f7f1dd400600dd066dbba349c4c0bac916964"
@@ -434,6 +441,11 @@ acorn-walk@^8.2.0:
     acorn "^8.11.0"
 
 acorn@^8.11.0, acorn@^8.15.0:
+  version "8.15.0"
+  resolved "https://registry.yarnpkg.com/acorn/-/acorn-8.15.0.tgz#a360898bc415edaac46c8241f6383975b930b816"
+  integrity sha512-NZyJarBfL7nWwIq+FDL6Zp/yHEhePMNnnJ0y3qfieCrmNvYct8uvtiV41UvlSe6apAfk0fY1FbWx+NwfmpvtTg==
+
+acorn@^8.15.0:
   version "8.15.0"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-8.15.0.tgz#a360898bc415edaac46c8241f6383975b930b816"
   integrity sha512-NZyJarBfL7nWwIq+FDL6Zp/yHEhePMNnnJ0y3qfieCrmNvYct8uvtiV41UvlSe6apAfk0fY1FbWx+NwfmpvtTg==
@@ -1217,10 +1229,10 @@ ometa@0.2.2:
   resolved "https://registry.yarnpkg.com/ometa/-/ometa-0.2.2.tgz#f53c4735ba6d56af5a46b04dfb7c4334c596d44e"
   integrity sha512-LZuoK/yjU3FvrxPjUXUlZ1bavCfBPqauA7fsNdwi+AVhRdyk2IzgP3JRnevvjzQ6fKHdUw8YISshf53FmpHrng==
 
-"opg-sirius-header@ministryofjustice/opg-sirius-header#semver:v0.46.0":
+"opg-sirius-header@ministryofjustice/opg-sirius-header#semver:v0.49.0":
   version "1.0.0"
-  uid e0b5b56745e132debca81e0163130e2f99ecf884
-  resolved "https://codeload.github.com/ministryofjustice/opg-sirius-header/tar.gz/e0b5b56745e132debca81e0163130e2f99ecf884"
+  uid "7802f0e02c83032e4bf12afafdbf8e3a2f62469d"
+  resolved "https://codeload.github.com/ministryofjustice/opg-sirius-header/tar.gz/7802f0e02c83032e4bf12afafdbf8e3a2f62469d"
   dependencies:
     "@cypress/request" "3.0.0"
     scss "^0.2.4"
