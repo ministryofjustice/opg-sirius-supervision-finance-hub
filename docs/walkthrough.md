@@ -10,6 +10,11 @@ opportunity to break out into a new service Two new microservices:
 ## `finance-hub`
 Similar approach to the other Golang “microfrontends”, with the following packages:
 
+### `auth`
+* Fetches user session from Sirius
+* Creates request-scoped JWT for authentication between services
+* XSRF middleware
+
 ### `server`
 * Contains the HTTP handlers for the API requests, which respond with HTML
 * Differs from existing implementations in two ways:
@@ -47,6 +52,8 @@ It consists of the following packages:
 * Contains the HTTP handlers for the API requests, which respond with JSON
 * Handles validation, using `go-validate` and annotations on the data transfer structs, as defined in `shared`
   * Additional validation logic and custom annotations are contained in the `validation` package
+* Parses the JWT for authentication and user information
+* Handles asynchronous requests for file uploads
 
 ### `service`
 * Business logic for the application, returning data or errors to `api` in order to be transformed into a response
@@ -57,6 +64,22 @@ It consists of the following packages:
 * SQL queries are written in the `/queries` directory and annotated with a name and arity
 * `*.sql.go` files are then generated (using `make sqlc-gen`), which contain a function for running the query, along with
   typed structs for their input and output
+
+### `db`
+* Report queries written in SQL
+
+### `reports`
+* Client for generating reports, uploading to S3, and sending email requests to Notify
+
+### `notify`
+* Client for the Notify service, used for sending emails
+
+### `filestorage`
+* Wrapper for AWS S3 client
+
+### `event`
+* AWS EventBridge client wrapper 
+* Event structs
 
 ### `testhelpers`
 * Test package that enables `testcontainers` to stand up ephemeral database instances for integration tests

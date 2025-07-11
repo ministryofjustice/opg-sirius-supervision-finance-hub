@@ -74,6 +74,20 @@ npx cypress open baseUrl=http://localhost:8888/finance
 ## Run Trivy scanning
 `make scan`
 
+## Run adhoc tasks
+To create an adhoc task to be against the service in a live environment:
+* Validate the task name in `service/process_adhoc_event.go`. If more than one adhoc task is needed, use this service to
+  conditionally handle the events by task name.
+* Add the logic to be performed in `/api/process_adhoc_event.go`.
+
+Then, in the AWS environment you wish to run the task:
+* Go to Amazon EventBridge -> Event buses
+* Select the  `<env>-supervision` event bus
+* Click "Send events"
+* Enter the "Event source" as `opg.supervision.finance.adhoc` and the "Detail type" as `finance-adhoc`
+* Enter the expected JSON into "Event detail" i.e. `{"task":"<task-name>"}`
+* Click "Send"
+
 -----
 ## Architectural Decision Records
 The major decisions made on this project are documented as ADRs in `/adrs`. The process for contributing to these is documented
