@@ -167,6 +167,20 @@ func getPaymentDetails(ctx context.Context, record []string, uploadType shared.R
 }
 
 func (s *Service) validatePaymentLine(ctx context.Context, details shared.PaymentDetails, index int, failedLines *map[int]string) bool {
+	count, _ := s.store.CountDuplicateLedger(ctx, store.CountDuplicateLedgerParams{
+		CourtRef:     details.CourtRef,
+		Amount:       details.Amount,
+		Type:         details.LedgerType.Key(),
+		BankDate:     details.BankDate,
+		ReceivedDate: details.ReceivedDate,
+		PisNumber:    details.PisNumber,
+	})
+
+	if count > 0 {
+		(*failedLines)[index] = validation.UploadErrorDuplicatePayment
+		return false
+	}
+
 	exists, _ := s.store.CheckClientExistsByCourtRef(ctx, details.CourtRef)
 
 	if !exists {
