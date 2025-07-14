@@ -17,7 +17,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	minimal := "10.00"
 
 	// one client with an invoice with a MOTO card payment, supervision BACS payment and an AD invoice with an exemption. This also creates an unapply.
-	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "11111111", "1234")
+	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "11111111", "ACTIVE")
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
 	_, _ = suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, twoMonthsAgo.StringPtr())
 
@@ -27,7 +27,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	_ = suite.seeder.CreateFeeReduction(ctx, client1ID, shared.FeeReductionTypeExemption, strconv.Itoa(yesterday.Date().Year()-1), 4, "", yesterday.Date())
 
 	// one client with an invoice with a MOTO card payment, an OPG BACS payment and an S2 invoice with an approved credit memo
-	client2ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "22222222", "4321")
+	client2ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "22222222", "ACTIVE")
 	suite.seeder.CreateOrder(ctx, client2ID, "ACTIVE")
 	invoice2ID, _ := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, &general, twoMonthsAgo.StringPtr(), nil, nil, nil, twoMonthsAgo.StringPtr())
 
@@ -37,7 +37,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	suite.seeder.CreateAdjustment(ctx, client2ID, invoice2ID, shared.AdjustmentTypeCreditMemo, -2500, "", yesterday.DatePtr())
 
 	// one client with GA invoice, direct debit payment, online card payment
-	client3ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "33333333", "2314")
+	client3ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "33333333", "ACTIVE")
 	suite.seeder.CreateOrder(ctx, client2ID, "ACTIVE")
 	_, _ = suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeGA, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, twoMonthsAgo.StringPtr())
 
@@ -45,22 +45,22 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	suite.seeder.CreatePayment(ctx, 1700, yesterday.Date(), "33333333", shared.TransactionTypeOnlineCardPayment, yesterday.Date(), 0)
 
 	// one client with two MOTO overpayments, one on a different date
-	client4ID := suite.seeder.CreateClient(ctx, "Olive", "Overpayment", "44444444", "2314")
+	client4ID := suite.seeder.CreateClient(ctx, "Olive", "Overpayment", "44444444", "ACTIVE")
 	_, _ = suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeS3, &minimal, yesterday.StringPtr(), nil, nil, nil, yesterday.StringPtr())
 	suite.seeder.CreatePayment(ctx, 10000, yesterday.Date(), "44444444", shared.TransactionTypeMotoCardPayment, yesterday.Date(), 0)
 	suite.seeder.CreatePayment(ctx, 10000, today.Date(), "44444444", shared.TransactionTypeMotoCardPayment, today.Date(), 0)
 
 	// an additional MOTO payment that is misapplied and added onto the correct client, leading to overpayment
-	client5ID := suite.seeder.CreateClient(ctx, "Ernie", "Error", "55555555", "2314")
+	client5ID := suite.seeder.CreateClient(ctx, "Ernie", "Error", "55555555", "ACTIVE")
 	_, _ = suite.seeder.CreateInvoice(ctx, client5ID, shared.InvoiceTypeS2, &general, twoMonthsAgo.StringPtr(), nil, nil, nil, twoMonthsAgo.StringPtr())
 	suite.seeder.CreatePayment(ctx, 1234, twoMonthsAgo.Date(), "55555555", shared.TransactionTypeMotoCardPayment, twoMonthsAgo.Date(), 0)
 
-	client6ID := suite.seeder.CreateClient(ctx, "Colette", "Correct", "66666666", "2314")
+	client6ID := suite.seeder.CreateClient(ctx, "Colette", "Correct", "66666666", "ACTIVE")
 	_, _ = suite.seeder.CreateInvoice(ctx, client6ID, shared.InvoiceTypeS3, &minimal, yesterday.StringPtr(), nil, nil, nil, yesterday.StringPtr())
 	suite.seeder.ReversePayment(ctx, "55555555", "66666666", "12.34", twoMonthsAgo.Date(), twoMonthsAgo.Date(), shared.TransactionTypeMotoCardPayment, yesterday.Date())
 
 	// one client with an S2 invoice, two cheques payments for the same PIS number and one cheque payment for another PIS number
-	client7ID := suite.seeder.CreateClient(ctx, "Gilgamesh", "Test", "77777777", "9999")
+	client7ID := suite.seeder.CreateClient(ctx, "Gilgamesh", "Test", "77777777", "ACTIVE")
 	suite.seeder.CreateOrder(ctx, client7ID, "ACTIVE")
 	_, _ = suite.seeder.CreateInvoice(ctx, client7ID, shared.InvoiceTypeS2, &general, twoMonthsAgo.StringPtr(), nil, nil, nil, twoMonthsAgo.StringPtr())
 

@@ -20,7 +20,7 @@ func (suite *IntegrationSuite) Test_aged_debt_by_customer() {
 	// - an active order
 	// - one written off invoice
 	// - one active invoice (today)
-	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234")
+	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "ACTIVE")
 	suite.seeder.CreateDeputy(ctx, client1ID, "Suzie", "Deputy", "LAY")
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
 	unpaidInvoiceID, _ := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, today.StringPtr(), nil, nil, nil, nil)
@@ -37,7 +37,7 @@ func (suite *IntegrationSuite) Test_aged_debt_by_customer() {
 	// - a closed order
 	// - one active invoice (2020) with hardship reduction
 	// - one active invoice (2022)
-	client2ID := suite.seeder.CreateClient(ctx, "John", "Suite", "87654321", "4321")
+	client2ID := suite.seeder.CreateClient(ctx, "John", "Suite", "87654321", "ACTIVE")
 	suite.seeder.CreateDeputy(ctx, client2ID, "Jane", "Deputy", "PRO")
 	suite.seeder.CreateOrder(ctx, client2ID, "CLOSED")
 	_ = suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeRemission, strconv.Itoa(fiveYearsAgo.Date().Year()), 2, "A reduction", fiveYearsAgo.Date())
@@ -48,7 +48,7 @@ func (suite *IntegrationSuite) Test_aged_debt_by_customer() {
 	// - a PA deputy
 	// - an active order
 	// - one active invoice (two months old)
-	client3ID := suite.seeder.CreateClient(ctx, "Billy", "Client", "23456789", "2345")
+	client3ID := suite.seeder.CreateClient(ctx, "Billy", "Client", "23456789", "ACTIVE")
 	suite.seeder.CreateDeputy(ctx, client3ID, "Local", "Authority", "PA")
 	suite.seeder.CreateOrder(ctx, client3ID, "ACTIVE")
 	suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, nil)

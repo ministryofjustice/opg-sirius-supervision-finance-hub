@@ -10,11 +10,11 @@ import (
 	"time"
 )
 
-func (s *Seeder) CreateClient(ctx context.Context, firstName string, surname string, courtRef string, sopNumber string) int32 {
+func (s *Seeder) CreateClient(ctx context.Context, firstName string, surname string, courtRef string, status string) int32 {
 	var clientId int32
-	err := s.Conn.QueryRow(ctx, "INSERT INTO public.persons (id, firstname, surname, caserecnumber, type, clientstatus) VALUES (NEXTVAL('public.persons_id_seq'), $1, $2, $3, 'actor_client', 'ACTIVE') RETURNING id", firstName, surname, courtRef).Scan(&clientId)
+	err := s.Conn.QueryRow(ctx, "INSERT INTO public.persons (id, firstname, surname, caserecnumber, type, clientstatus) VALUES (NEXTVAL('public.persons_id_seq'), $1, $2, $3, 'actor_client', $4) RETURNING id", firstName, surname, courtRef, status).Scan(&clientId)
 	assert.NoError(s.t, err, "failed to add Person: %v", err)
-	_, err = s.Conn.Exec(ctx, "INSERT INTO supervision_finance.finance_client VALUES ($1, $1, $2, 'DEMANDED', NULL, $3) RETURNING id", clientId, sopNumber, courtRef)
+	_, err = s.Conn.Exec(ctx, "INSERT INTO supervision_finance.finance_client VALUES ($1, $1, ', 'DEMANDED', NULL, $2) RETURNING id", clientId, courtRef)
 	assert.NoError(s.t, err, "failed to add FinanceClient: %v", err)
 	return clientId
 }

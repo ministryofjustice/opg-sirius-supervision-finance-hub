@@ -16,7 +16,7 @@ func (suite *IntegrationSuite) Test_invoice_adjustments() {
 	fourYearsAgo := today.Sub(4, 0, 0)
 
 	// one client with two orders, one with a credit memo:
-	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234")
+	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "ACTIVE")
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
 	_, _ = suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeGA, nil, today.StringPtr(), nil, nil, nil, nil)
 	invoiceId, client1Invoice2Ref := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, today.StringPtr(), nil, nil, nil, nil)
@@ -24,13 +24,13 @@ func (suite *IntegrationSuite) Test_invoice_adjustments() {
 	suite.seeder.CreateAdjustment(ctx, client1ID, invoiceId, shared.AdjustmentTypeCreditMemo, 10000, "£100 credit", nil)
 
 	// one client with one order and a remission:
-	client2ID := suite.seeder.CreateClient(ctx, "Barry", "Giggle", "87654321", "4321")
+	client2ID := suite.seeder.CreateClient(ctx, "Barry", "Giggle", "87654321", "ACTIVE")
 	suite.seeder.CreateOrder(ctx, client2ID, "ACTIVE")
 	_, client2Invoice2Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, valToPtr("320.00"), today.StringPtr(), nil, nil, nil, nil)
 	_ = suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeRemission, strconv.Itoa(today.Date().Year()-1), 4, "Test remission", today.Date())
 
 	// one client with a guardianship a remission:
-	client3ID := suite.seeder.CreateClient(ctx, "Edith", "Exemption", "33333333", "3333")
+	client3ID := suite.seeder.CreateClient(ctx, "Edith", "Exemption", "33333333", "ACTIVE")
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
 	_, client3InvoiceRef := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeGS, valToPtr("200.00"), today.StringPtr(), today.StringPtr(), today.StringPtr(), nil, nil)
 	_ = suite.seeder.CreateFeeReduction(ctx, client3ID, shared.FeeReductionTypeExemption, strconv.Itoa(today.Date().Year()-1), 4, "Test exemption", today.Date())

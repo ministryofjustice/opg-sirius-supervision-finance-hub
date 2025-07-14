@@ -16,13 +16,13 @@ func (suite *IntegrationSuite) Test_refunds_schedules() {
 	fourDaysAgo := today.Sub(0, 0, 4)
 
 	// refund processed
-	client1ID := suite.seeder.CreateClient(ctx, "Filly", "Fulfilled", "11111111", "1234")
+	client1ID := suite.seeder.CreateClient(ctx, "Filly", "Fulfilled", "11111111", "ACTIVE")
 	suite.seeder.CreatePayment(ctx, 15000, fourDaysAgo.Date(), "11111111", shared.TransactionTypeMotoCardPayment, fourDaysAgo.Date(), 0)
 	refund1ID := suite.seeder.CreateRefund(ctx, client1ID, "MRS F FULFILLED", "11111110", "11-11-11", fourDaysAgo.Date())
 	suite.seeder.SetRefundDecision(ctx, client1ID, refund1ID, shared.RefundStatusApproved, threeDaysAgo.Date())
 
 	// refund fulfilled
-	client2ID := suite.seeder.CreateClient(ctx, "Freddy", "Fulfilled", "66666666", "1234")
+	client2ID := suite.seeder.CreateClient(ctx, "Freddy", "Fulfilled", "66666666", "ACTIVE")
 	suite.seeder.CreatePayment(ctx, 13050, yesterday.Date(), "66666666", shared.TransactionTypeMotoCardPayment, threeDaysAgo.Date(), 0)
 	refund2ID := suite.seeder.CreateRefund(ctx, client2ID, "MR F FULFILLED", "66666660", "66-66-66", threeDaysAgo.Date())
 	suite.seeder.SetRefundDecision(ctx, client2ID, refund2ID, shared.RefundStatusApproved, threeDaysAgo.Date())

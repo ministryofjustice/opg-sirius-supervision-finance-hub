@@ -25,7 +25,7 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	// - an active order
 	// - one written off invoice
 	// - one active invoice (2024)
-	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234")
+	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "ACTIVE")
 	suite.seeder.CreateDeputy(ctx, client1ID, "Suzie", "Deputy", "LAY")
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
 	unpaidInvoiceID, c1i1Ref := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeGA, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
@@ -42,7 +42,7 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	// - a closed order
 	// - one active invoice (2020) with hardship reduction
 	// - one active invoice (2022)
-	client2ID := suite.seeder.CreateClient(ctx, "John", "Suite", "87654321", "4321")
+	client2ID := suite.seeder.CreateClient(ctx, "John", "Suite", "87654321", "ACTIVE")
 	suite.seeder.CreateDeputy(ctx, client2ID, "Jane", "Deputy", "PRO")
 	suite.seeder.CreateOrder(ctx, client2ID, "CLOSED")
 	_ = suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeRemission, strconv.Itoa(fiveYearsAgo.Date().Year()), 2, "A reduction", fiveYearsAgo.Date())
@@ -52,7 +52,7 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	// one client with:
 	// split invoice
 	i3amount := "170.00"
-	client3ID := suite.seeder.CreateClient(ctx, "Freddy", "Splitz", "11111111", "1111")
+	client3ID := suite.seeder.CreateClient(ctx, "Freddy", "Splitz", "11111111", "ACTIVE")
 	suite.seeder.CreateDeputy(ctx, client3ID, "Frank", "Deputy", "LAY")
 	suite.seeder.CreateOrder(ctx, client3ID, "ACTIVE")
 	c3i1ID, c3i1Ref := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeS2, &i3amount, oneYearAgo.StringPtr(), oneYearAgo.StringPtr(), nil, nil, nil)
@@ -62,9 +62,9 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	})
 
 	// excluded clients as out of range
-	excluded1ID := suite.seeder.CreateClient(ctx, "Too", "Early", "99999999", "9999")
+	excluded1ID := suite.seeder.CreateClient(ctx, "Too", "Early", "99999999", "ACTIVE")
 	suite.seeder.CreateInvoice(ctx, excluded1ID, shared.InvoiceTypeAD, nil, sixYearsAgo.StringPtr(), nil, nil, nil, nil)
-	excluded2ID := suite.seeder.CreateClient(ctx, "Too", "Early", "99999999", "9999")
+	excluded2ID := suite.seeder.CreateClient(ctx, "Too", "Early", "99999999", "ACTIVE")
 	suite.seeder.CreateInvoice(ctx, excluded2ID, shared.InvoiceTypeAD, nil, today.StringPtr(), nil, nil, nil, nil)
 
 	c := Client{suite.seeder.Conn}

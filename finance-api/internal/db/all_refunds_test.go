@@ -17,19 +17,19 @@ func (suite *IntegrationSuite) Test_all_refunds() {
 	aMonthAgo := today.Sub(0, 1, 0)
 
 	// refund processed
-	client1ID := suite.seeder.CreateClient(ctx, "Peter", "Processed", "11111111", "1234")
+	client1ID := suite.seeder.CreateClient(ctx, "Peter", "Processed", "11111111", "ACTIVE")
 	suite.seeder.CreatePayment(ctx, 15000, fourDaysAgo.Date(), "11111111", shared.TransactionTypeMotoCardPayment, fourDaysAgo.Date(), 0)
 	refund1ID := suite.seeder.CreateRefund(ctx, client1ID, "MR PETER PROCESSED", "11111110", "11-11-11", fourDaysAgo.Date())
 	suite.seeder.SetRefundDecision(ctx, client1ID, refund1ID, shared.RefundStatusApproved, threeDaysAgo.Date())
 
 	// refund fulfilled
-	client6ID := suite.seeder.CreateClient(ctx, "Freddy", "Fulfilled", "66666666", "1234")
+	client6ID := suite.seeder.CreateClient(ctx, "Freddy", "Fulfilled", "66666666", "ACTIVE")
 	suite.seeder.CreatePayment(ctx, 15000, yesterday.Date(), "66666666", shared.TransactionTypeMotoCardPayment, threeDaysAgo.Date(), 0)
 	refund3ID := suite.seeder.CreateRefund(ctx, client6ID, "F FULFILLED", "66666660", "66-66-66", threeDaysAgo.Date())
 	suite.seeder.SetRefundDecision(ctx, client6ID, refund3ID, shared.RefundStatusApproved, threeDaysAgo.Date())
 
 	// refund cancelled
-	client7ID := suite.seeder.CreateClient(ctx, "Conrad", "Cancelled", "77777777", "1234")
+	client7ID := suite.seeder.CreateClient(ctx, "Conrad", "Cancelled", "77777777", "ACTIVE")
 	suite.seeder.CreatePayment(ctx, 15000, yesterday.Date(), "77777777", shared.TransactionTypeMotoCardPayment, threeDaysAgo.Date(), 0)
 	refund4ID := suite.seeder.CreateRefund(ctx, client7ID, "C CANCELLED", "77777770", "77-77-77", threeDaysAgo.Date())
 	suite.seeder.SetRefundDecision(ctx, client7ID, refund4ID, shared.RefundStatusApproved, threeDaysAgo.Date())
@@ -40,23 +40,23 @@ func (suite *IntegrationSuite) Test_all_refunds() {
 	suite.seeder.SetRefundDecision(ctx, client7ID, refund4ID, shared.RefundStatusCancelled, yesterday.Date())
 
 	// refund pending
-	client2ID := suite.seeder.CreateClient(ctx, "Percival", "Pending", "22222222", "1234")
+	client2ID := suite.seeder.CreateClient(ctx, "Percival", "Pending", "22222222", "ACTIVE")
 	suite.seeder.CreatePayment(ctx, 15000, yesterday.Date(), "22222222", shared.TransactionTypeMotoCardPayment, yesterday.Date(), 0)
 	_ = suite.seeder.CreateRefund(ctx, client2ID, "DR P PENDING", "22222220", "22-22-22", yesterday.Date())
 
 	// refund approved
-	client3ID := suite.seeder.CreateClient(ctx, "April", "Approved", "33333333", "1234")
+	client3ID := suite.seeder.CreateClient(ctx, "April", "Approved", "33333333", "ACTIVE")
 	suite.seeder.CreatePayment(ctx, 15000, yesterday.Date(), "33333333", shared.TransactionTypeMotoCardPayment, yesterday.Date(), 0)
 	refund2ID := suite.seeder.CreateRefund(ctx, client3ID, "MS APRIL APPROVED", "33333330", "33-33-33", yesterday.Date())
 	suite.seeder.SetRefundDecision(ctx, client3ID, refund2ID, shared.RefundStatusApproved, today.Date())
 
 	// too old
-	client4ID := suite.seeder.CreateClient(ctx, "Oliver", "Old", "44444444", "1234")
+	client4ID := suite.seeder.CreateClient(ctx, "Oliver", "Old", "44444444", "ACTIVE")
 	suite.seeder.CreatePayment(ctx, 15000, aMonthAgo.Date(), "44444444", shared.TransactionTypeMotoCardPayment, aMonthAgo.Date(), 0)
 	_ = suite.seeder.CreateRefund(ctx, client4ID, "DR OLIVER OLD", "44444440", "44-44-44", aMonthAgo.Date())
 
 	// too young
-	client5ID := suite.seeder.CreateClient(ctx, "Yvonne", "Young", "55555555", "1234")
+	client5ID := suite.seeder.CreateClient(ctx, "Yvonne", "Young", "55555555", "ACTIVE")
 	suite.seeder.CreatePayment(ctx, 15000, today.Date(), "55555555", shared.TransactionTypeMotoCardPayment, today.Date(), 0)
 	_ = suite.seeder.CreateRefund(ctx, client5ID, "PROF Y YOUNG", "55555550", "55-55-55", today.Date())
 
