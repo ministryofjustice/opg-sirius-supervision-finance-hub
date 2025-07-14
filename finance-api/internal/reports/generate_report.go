@@ -230,6 +230,8 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 		switch *reportRequest.DebtType {
 		case shared.DebtTypeFeeChase:
 			query = db.NewFeeChase()
+		case shared.DebtTypeFinalFee:
+			query = db.NewFinalFeeDebt()
 		case shared.DebtTypeApprovedRefunds:
 			query = db.NewApprovedRefunds()
 		case shared.DebtTypeAllRefunds:
