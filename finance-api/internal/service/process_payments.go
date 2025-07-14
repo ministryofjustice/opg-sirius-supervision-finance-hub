@@ -166,6 +166,12 @@ func getPaymentDetails(ctx context.Context, record []string, uploadType shared.R
 	return shared.PaymentDetails{Amount: amount, BankDate: bankDate, CourtRef: courtRef, LedgerType: paymentType, ReceivedDate: receivedDate, CreatedBy: createdBy, PisNumber: pis}
 }
 
+/*
+Payment lines are invalid if either the payment cannot be matched to a client, or if the payment has already been processed
+(to prevent duplicates being created if the file is uploaded more than once).
+Duplicate payments within the same file will be processed due to the transaction only being committed once all lines have
+been processed, which is expected behaviour as there are legitimate reasons for a payment being duplicated, but duplicates will always appear in the same file.
+*/
 func (s *Service) validatePaymentLine(ctx context.Context, details shared.PaymentDetails, index int, failedLines *map[int]string) bool {
 	count, _ := s.store.CountDuplicateLedger(ctx, store.CountDuplicateLedgerParams{
 		CourtRef:     details.CourtRef,
