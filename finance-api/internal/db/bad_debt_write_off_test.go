@@ -20,15 +20,15 @@ func (suite *IntegrationSuite) Test_bad_debt_write_off() {
 	// one client with:
 	// - one written off invoice
 	// - one active invoice
-	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "ACTIVE")
-	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
+	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234", "ACTIVE")
+	suite.seeder.CreateOrder(ctx, client1ID)
 	_, _ = suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeGA, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
 	paidInvoiceID, c1i1Ref := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
 	suite.seeder.CreateAdjustment(ctx, client1ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 0, "Written off", nil)
 
 	// one client with two written off invoices
-	client2ID := suite.seeder.CreateClient(ctx, "John", "Suite", "87654321", "ACTIVE")
-	suite.seeder.CreateOrder(ctx, client2ID, "ACTIVE")
+	client2ID := suite.seeder.CreateClient(ctx, "John", "Suite", "87654321", "4321", "ACTIVE")
+	suite.seeder.CreateOrder(ctx, client2ID)
 	paidInvoiceID, c2i1Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeAD, nil, fourYearsAgo.StringPtr(), nil, nil, nil, nil)
 	suite.seeder.CreateAdjustment(ctx, client1ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 0, "Written off", nil)
 
@@ -36,8 +36,8 @@ func (suite *IntegrationSuite) Test_bad_debt_write_off() {
 	suite.seeder.CreateAdjustment(ctx, client1ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 0, "Written off", nil)
 
 	// one client with one unapproved write off
-	client3ID := suite.seeder.CreateClient(ctx, "John", "Suite", "87654321", "ACTIVE")
-	suite.seeder.CreateOrder(ctx, client3ID, "ACTIVE")
+	client3ID := suite.seeder.CreateClient(ctx, "John", "Suite", "87654321", "4321", "ACTIVE")
+	suite.seeder.CreateOrder(ctx, client3ID)
 	paidInvoiceID, _ = suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeAD, nil, fourYearsAgo.StringPtr(), nil, nil, nil, nil)
 	suite.seeder.CreatePendingAdjustment(ctx, client1ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 0, "Written off")
 

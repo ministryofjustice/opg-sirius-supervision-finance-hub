@@ -10,11 +10,11 @@ import (
 	"time"
 )
 
-func (s *Seeder) CreateClient(ctx context.Context, firstName string, surname string, courtRef string, status string) int32 {
+func (s *Seeder) CreateClient(ctx context.Context, firstName string, surname string, courtRef string, sopNumber string, status string) int32 {
 	var clientId int32
 	err := s.Conn.QueryRow(ctx, "INSERT INTO public.persons (id, firstname, surname, caserecnumber, type, clientstatus) VALUES (NEXTVAL('public.persons_id_seq'), $1, $2, $3, 'actor_client', $4) RETURNING id", firstName, surname, courtRef, status).Scan(&clientId)
 	assert.NoError(s.t, err, "failed to add Person: %v", err)
-	_, err = s.Conn.Exec(ctx, "INSERT INTO supervision_finance.finance_client VALUES ($1, $1, ', 'DEMANDED', NULL, $2) RETURNING id", clientId, courtRef)
+	_, err = s.Conn.Exec(ctx, "INSERT INTO supervision_finance.finance_client VALUES ($1, $1, $2, 'DEMANDED', NULL, $3) RETURNING id", clientId, sopNumber, courtRef)
 	assert.NoError(s.t, err, "failed to add FinanceClient: %v", err)
 	return clientId
 }
@@ -36,8 +36,13 @@ func (s *Seeder) CreateDeputy(ctx context.Context, clientId int32, firstName str
 	return deputyId
 }
 
-func (s *Seeder) CreateOrder(ctx context.Context, clientId int32, status string) {
-	_, err := s.Conn.Exec(ctx, "INSERT INTO public.cases VALUES (NEXTVAL('public.cases_id_seq'), $1, $2)", clientId, status)
+func (s *Seeder) CreateOrder(ctx context.Context, clientId int32) {
+	_, err := s.Conn.Exec(ctx, "INSERT INTO public.cases (id, client_id, orderstatus) VALUES (NEXTVAL('public.cases_id_seq'), $1, 'ACTIVE')", clientId)
+	assert.NoError(s.t, err, "failed to add order: %v", err)
+}
+
+func (s *Seeder) CreateClosedOrder(ctx context.Context, clientId int32, closedOn time.Time, reason string) {
+	_, err := s.Conn.Exec(ctx, "INSERT INTO public.cases VALUES (NEXTVAL('public.cases_id_seq'), $1, 'CLOSED', $2, $3)", clientId, closedOn, reason)
 	assert.NoError(s.t, err, "failed to add order: %v", err)
 }
 

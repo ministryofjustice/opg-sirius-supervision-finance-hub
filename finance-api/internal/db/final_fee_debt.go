@@ -16,20 +16,20 @@ func NewFinalFeeDebt() ReportQuery {
 	}
 }
 
-const FinalFeeDebtQuery = `SELECT cl.caserecnumber AS "Case_no",
-				cl.id AS "Client_no",
-				COALESCE(cl.salutation, '') AS "Client_title",
-				cl.firstname AS "Client_forename",
-				cl.surname AS "Client_surname",
-				mostrecentlyclosedorder.closedondate AS "Closed_date",
+const FinalFeeDebtQuery = `SELECT client.caserecnumber AS "Case_no",
+				client.id AS "Client_no",
+				COALESCE(client.salutation, '') AS "Client_title",
+				client.firstname AS "Client_forename",
+				client.surname AS "Client_surname",
+				TO_CHAR(mostrecentlyclosedorder.closedondate, 'YYYY-MM-DD') AS "Closed_date",
                 mostrecentlyclosedorder.orderclosurereason "Closure_reason",
 				CASE WHEN do_not_invoice_warning_count.count >= 1 THEN 'Yes' ELSE 'No' END  AS "Do_not_chase",
-				COALESCE(p.deputytype, '') AS "Deputy_type",
-				COALESCE(p.deputynumber::VARCHAR, '') AS "Deputy_no",
+				COALESCE(fee_payer.deputytype, '') AS "Deputy_type",
+				COALESCE(fee_payer.deputynumber::VARCHAR, '') AS "Deputy_no",
 				CASE WHEN a.isairmailrequired IS TRUE THEN 'Yes' ELSE 'No' END AS "Airmail",
-				COALESCE(p.salutation, '') AS "Deputy_title",
-				COALESCE(NULLIF(p.organisationname, ''), CONCAT(p.firstname, ' ' , p.surname)) AS "Deputy_name",
-				COALESCE(p.email, '') AS "Email",
+				COALESCE(fee_payer.salutation, '') AS "Deputy_title",
+				COALESCE(NULLIF(fee_payer.organisationname, ''), CONCAT(fee_payer.firstname, ' ' , fee_payer.surname)) AS "Deputy_name",
+				COALESCE(fee_payer.email, '') AS "Email",
 				CASE WHEN a.address_lines IS NOT NULL THEN COALESCE(a.address_lines ->> 0, '') ELSE '' END AS "Address1",
 				CASE WHEN a.address_lines IS NOT NULL THEN COALESCE(a.address_lines ->> 1, '') ELSE '' END AS "Address2",
 				CASE WHEN a.address_lines IS NOT NULL THEN COALESCE(a.address_lines ->> 2, '') ELSE '' END AS "Address3",
@@ -38,11 +38,11 @@ const FinalFeeDebtQuery = `SELECT cl.caserecnumber AS "Case_no",
 				COALESCE(a.postcode, '') AS "Postcode",
 				CONCAT('£', ABS(gi.total / 100.0)::NUMERIC(10,2)::VARCHAR(255)) AS "Total_debt",
 				gi.invoice
-        FROM public.persons cl
-                INNER JOIN supervision_finance.finance_client fc ON cl.id = fc.client_id
-                LEFT JOIN public.persons p ON cl.feepayer_id = p.id
+        FROM public.persons client
+                INNER JOIN supervision_finance.finance_client fc ON client.id = fc.client_id
+                LEFT JOIN public.persons fee_payer ON client.feepayer_id = fee_payer.id
                 LEFT JOIN LATERAL (
-                       SELECT a.* FROM public.addresses a WHERE a.person_id = p.id ORDER BY a.id DESC LIMIT 1
+                       SELECT a.* FROM public.addresses a WHERE a.person_id = fee_payer.id ORDER BY a.id DESC LIMIT 1
                 ) a ON TRUE
            , LATERAL (
             SELECT 
@@ -70,20 +70,20 @@ const FinalFeeDebtQuery = `SELECT cl.caserecnumber AS "Case_no",
             SELECT COUNT(w.id)
             FROM public.person_warning pw
             INNER JOIN public.warnings w ON pw.warning_id = w.id
-            WHERE pw.person_id = cl.id
+            WHERE pw.person_id = client.id
               AND w.systemstatus = TRUE
               AND w.warningtype = 'Do not invoice'
             ) AS do_not_invoice_warning_count
         LEFT JOIN LATERAL (
-                SELECT cases.closedondate, cases.orderclosurereason
-                FROM cases
-                WHERE p.id = cases.client_id
-                AND cases.closedondate IS NOT NULL
-                ORDER BY cases.closedondate DESC
+                SELECT c.closedondate, c.orderclosurereason
+                FROM public.cases c
+                WHERE client.id = c.client_id
+                AND c.closedondate IS NOT NULL
+                ORDER BY c.closedondate DESC
                 LIMIT 1
             ) AS mostrecentlyclosedorder ON TRUE
-            WHERE cl.type = 'actor_client'
-			AND cl.clientstatus NOT IN ('OPEN', 'ACTIVE')
+            WHERE client.type = 'actor_client'
+			AND client.clientstatus NOT IN ('OPEN', 'ACTIVE')
 			AND gi.total IS NOT NULL AND gi.total > 0;`
 
 func (f *FinalFeeDebt) GetHeaders() []string {
@@ -130,7 +130,7 @@ func (f *FinalFeeDebt) GetCallback() func(row pgx.CollectableRow) ([]string, err
 		}
 
 		for index, value := range values {
-			if index == 22 {
+			if index == 21 {
 				jsonBytes, err := json.Marshal(value)
 				if err != nil {
 					return nil, fmt.Errorf("error marshaling to JSON: %v", err)

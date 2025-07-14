@@ -13,19 +13,19 @@ func (suite *IntegrationSuite) Test_approved_refunds() {
 	yesterday := today.Sub(0, 0, 1)
 
 	// refund already processed
-	client1ID := suite.seeder.CreateClient(ctx, "Peter", "Processed", "11111111", "ACTIVE")
+	client1ID := suite.seeder.CreateClient(ctx, "Peter", "Processed", "11111111", "1234", "ACTIVE")
 	suite.seeder.CreatePayment(ctx, 15000, yesterday.Date(), "11111111", shared.TransactionTypeMotoCardPayment, today.Date(), 0)
 	refund1ID := suite.seeder.CreateRefund(ctx, client1ID, "MR PETER PROCESSED", "11111110", "11-11-11", today.Date())
 	suite.seeder.SetRefundDecision(ctx, client1ID, refund1ID, shared.RefundStatusApproved, today.Date())
 	suite.seeder.ProcessApprovedRefunds(ctx, []int32{refund1ID}, today.Date())
 
 	// refund pending
-	client2ID := suite.seeder.CreateClient(ctx, "Percival", "Pending", "22222222", "ACTIVE")
+	client2ID := suite.seeder.CreateClient(ctx, "Percival", "Pending", "22222222", "1234", "ACTIVE")
 	suite.seeder.CreatePayment(ctx, 15000, yesterday.Date(), "22222222", shared.TransactionTypeMotoCardPayment, today.Date(), 0)
 	_ = suite.seeder.CreateRefund(ctx, client2ID, "DR P PENDING", "22222220", "22-22-22", today.Date())
 
 	// refund approved
-	client3ID := suite.seeder.CreateClient(ctx, "April", "Approved", "33333333", "ACTIVE")
+	client3ID := suite.seeder.CreateClient(ctx, "April", "Approved", "33333333", "1234", "ACTIVE")
 	suite.seeder.CreatePayment(ctx, 15000, yesterday.Date(), "33333333", shared.TransactionTypeMotoCardPayment, today.Date(), 0)
 	refund2ID := suite.seeder.CreateRefund(ctx, client3ID, "MS APRIL APPROVED", "33333330", "33-33-33", today.Date())
 	suite.seeder.SetRefundDecision(ctx, client3ID, refund2ID, shared.RefundStatusApproved, today.Date())

@@ -5,23 +5,23 @@ SET SEARCH_PATH TO public;
 
 CREATE TABLE persons
 (
-    id            INTEGER NOT NULL
+    id                                           INTEGER                    NOT NULL
         PRIMARY KEY,
-    salutation                                                   varchar(255) default NULL::character varying,
-    firstname     VARCHAR(255) DEFAULT NULL,
-    surname       VARCHAR(255) DEFAULT NULL,
-    caserecnumber VARCHAR(255) DEFAULT NULL,
-    feepayer_id   INTEGER      DEFAULT NULL
+    salutation                                   VARCHAR(255) DEFAULT NULL::CHARACTER VARYING,
+    firstname                                    VARCHAR(255) DEFAULT NULL,
+    surname                                      VARCHAR(255) DEFAULT NULL,
+    caserecnumber                                VARCHAR(255) DEFAULT NULL,
+    feepayer_id                                  INTEGER      DEFAULT NULL
         CONSTRAINT fk_a25cc7d3aff282de
             REFERENCES persons,
-    deputytype    VARCHAR(255) DEFAULT NULL,
-    deputynumber                                                 integer,
-    correspondencebywelsh                                        boolean      default false not null,
-    specialcorrespondencerequirements_largeprint                 boolean      default false not null,
-    organisationname                                             varchar(255) default NULL::character varying,
-    email                                                        varchar(255) default NULL::character varying,
-    type                                                         varchar(255)               ,
-    clientstatus                                                 varchar(255) default NULL::character varying
+    deputytype                                   VARCHAR(255) DEFAULT NULL,
+    deputynumber                                 INTEGER,
+    correspondencebywelsh                        BOOLEAN      DEFAULT FALSE NOT NULL,
+    specialcorrespondencerequirements_largeprint BOOLEAN      DEFAULT FALSE NOT NULL,
+    organisationname                             VARCHAR(255) DEFAULT NULL::CHARACTER VARYING,
+    email                                        VARCHAR(255) DEFAULT NULL::CHARACTER VARYING,
+    type                                         VARCHAR(255),
+    clientstatus                                 VARCHAR(255) DEFAULT NULL::CHARACTER VARYING
 );
 
 ALTER TABLE public.persons
@@ -29,12 +29,14 @@ ALTER TABLE public.persons
 
 CREATE TABLE public.cases
 (
-    id          INTEGER NOT NULL
+    id                 INTEGER NOT NULL
         PRIMARY KEY,
-    client_id   INTEGER
+    client_id          INTEGER
         CONSTRAINT fk_1c1b038b19eb6921
             REFERENCES public.persons,
-    orderstatus VARCHAR(255) DEFAULT NULL
+    orderstatus        VARCHAR(255) DEFAULT NULL,
+    closedondate       TIMESTAMP    DEFAULT NULL,
+    orderclosurereason VARCHAR(255) DEFAULT NULL
 );
 
 CREATE INDEX cases_orderstatus_index ON public.cases (orderstatus);
@@ -43,67 +45,67 @@ CREATE INDEX idx_1c1b038b19eb6921 ON public.cases (client_id);
 
 CREATE TABLE public.assignees
 (
-    id INTEGER NOT NULL PRIMARY KEY,
-    name VARCHAR(255) DEFAULT NULL,
+    id      INTEGER NOT NULL PRIMARY KEY,
+    name    VARCHAR(255) DEFAULT NULL,
     surname VARCHAR(255) DEFAULT NULL
 );
 
-create table addresses
+CREATE TABLE addresses
 (
-    id                  integer not null
-        primary key,
-    person_id           integer
-        constraint fk_6fca7516217bbb47
-            references public.persons
-            on delete cascade,
-    address_lines       json,
-    town                varchar(255) default NULL::character varying,
-    county              varchar(255) default NULL::character varying,
-    postcode            varchar(255) default NULL::character varying,
-    isairmailrequired   boolean
+    id                INTEGER NOT NULL
+        PRIMARY KEY,
+    person_id         INTEGER
+        CONSTRAINT fk_6fca7516217bbb47
+            REFERENCES public.persons
+            ON DELETE CASCADE,
+    address_lines     JSON,
+    town              VARCHAR(255) DEFAULT NULL::CHARACTER VARYING,
+    county            VARCHAR(255) DEFAULT NULL::CHARACTER VARYING,
+    postcode          VARCHAR(255) DEFAULT NULL::CHARACTER VARYING,
+    isairmailrequired BOOLEAN
 );
 
-alter table addresses
-    owner to api;
+ALTER TABLE addresses
+    OWNER TO api;
 
-create index idx_6fca7516217bbb47
-    on addresses (person_id);
+CREATE INDEX idx_6fca7516217bbb47
+    ON addresses (person_id);
 
-create index idx_address_postcode
-    on addresses (postcode);
+CREATE INDEX idx_address_postcode
+    ON addresses (postcode);
 
-create table warnings
+CREATE TABLE warnings
 (
-    id           integer                   not null
-        primary key,
-    warningtype  varchar(255) default NULL::character varying,
-    systemstatus boolean      default true not null
+    id           INTEGER                   NOT NULL
+        PRIMARY KEY,
+    warningtype  VARCHAR(255) DEFAULT NULL::CHARACTER VARYING,
+    systemstatus BOOLEAN      DEFAULT TRUE NOT NULL
 );
 
-alter table warnings
-    owner to api;
+ALTER TABLE warnings
+    OWNER TO api;
 
-create table person_warning
+CREATE TABLE person_warning
 (
-    person_id  integer not null
-        constraint fk_62d02f4f217bbb47
-            references public.persons
-            on delete cascade,
-    warning_id integer not null
-        constraint fk_62d02f4fbff38603
-            references public.warnings
-            on delete cascade,
-    primary key (person_id, warning_id)
+    person_id  INTEGER NOT NULL
+        CONSTRAINT fk_62d02f4f217bbb47
+            REFERENCES public.persons
+            ON DELETE CASCADE,
+    warning_id INTEGER NOT NULL
+        CONSTRAINT fk_62d02f4fbff38603
+            REFERENCES public.warnings
+            ON DELETE CASCADE,
+    PRIMARY KEY (person_id, warning_id)
 );
 
-alter table person_warning
-    owner to api;
+ALTER TABLE person_warning
+    OWNER TO api;
 
-create index idx_62d02f4f217bbb47
-    on person_warning (person_id);
+CREATE INDEX idx_62d02f4f217bbb47
+    ON person_warning (person_id);
 
-create index idx_62d02f4fbff38603
-    on person_warning (warning_id);
+CREATE INDEX idx_62d02f4fbff38603
+    ON person_warning (warning_id);
 
 
 CREATE SEQUENCE public.persons_id_seq;
@@ -130,375 +132,375 @@ CREATE SCHEMA supervision_finance;
 GRANT ALL ON SCHEMA supervision_finance TO api;
 SET SEARCH_PATH TO supervision_finance;
 
-create sequence billing_period_id_seq;
+CREATE SEQUENCE billing_period_id_seq;
 
-alter sequence billing_period_id_seq owner to api;
+ALTER SEQUENCE billing_period_id_seq OWNER TO api;
 
-create sequence counter_id_seq;
+CREATE SEQUENCE counter_id_seq;
 
-alter sequence counter_id_seq owner to api;
+ALTER SEQUENCE counter_id_seq OWNER TO api;
 
-create sequence fee_reduction_id_seq;
+CREATE SEQUENCE fee_reduction_id_seq;
 
-alter sequence fee_reduction_id_seq owner to api;
+ALTER SEQUENCE fee_reduction_id_seq OWNER TO api;
 
-create sequence finance_client_id_seq;
+CREATE SEQUENCE finance_client_id_seq;
 
-alter sequence finance_client_id_seq owner to api;
+ALTER SEQUENCE finance_client_id_seq OWNER TO api;
 
-create sequence invoice_email_status_id_seq;
+CREATE SEQUENCE invoice_email_status_id_seq;
 
-alter sequence invoice_email_status_id_seq owner to api;
+ALTER SEQUENCE invoice_email_status_id_seq OWNER TO api;
 
-create sequence invoice_fee_range_id_seq;
+CREATE SEQUENCE invoice_fee_range_id_seq;
 
-alter sequence invoice_fee_range_id_seq owner to api;
+ALTER SEQUENCE invoice_fee_range_id_seq OWNER TO api;
 
-create sequence invoice_id_seq;
+CREATE SEQUENCE invoice_id_seq;
 
-alter sequence invoice_id_seq owner to api;
+ALTER SEQUENCE invoice_id_seq OWNER TO api;
 
-create sequence ledger_allocation_id_seq;
+CREATE SEQUENCE ledger_allocation_id_seq;
 
-alter sequence ledger_allocation_id_seq owner to api;
+ALTER SEQUENCE ledger_allocation_id_seq OWNER TO api;
 
-create sequence ledger_id_seq;
+CREATE SEQUENCE ledger_id_seq;
 
-alter sequence ledger_id_seq owner to api;
+ALTER SEQUENCE ledger_id_seq OWNER TO api;
 
-create sequence property_id_seq;
+CREATE SEQUENCE property_id_seq;
 
-alter sequence property_id_seq owner to api;
+ALTER SEQUENCE property_id_seq OWNER TO api;
 
-create sequence rate_id_seq;
+CREATE SEQUENCE rate_id_seq;
 
-alter sequence rate_id_seq owner to api;
+ALTER SEQUENCE rate_id_seq OWNER TO api;
 
-create sequence report_id_seq;
+CREATE SEQUENCE report_id_seq;
 
-alter sequence report_id_seq owner to api;
+ALTER SEQUENCE report_id_seq OWNER TO api;
 
-create table counter
+CREATE TABLE counter
 (
-    id      integer     not null
-        primary key,
-    key     varchar(50) not null,
-    counter integer     not null
+    id      INTEGER     NOT NULL
+        PRIMARY KEY,
+    key     VARCHAR(50) NOT NULL,
+    counter INTEGER     NOT NULL
 );
 
-alter table counter
-    owner to api;
+ALTER TABLE counter
+    OWNER TO api;
 
-create index idx_counter_key
-    on counter (key);
+CREATE INDEX idx_counter_key
+    ON counter (key);
 
-create unique index uniq_26df0c148a90aba9
-    on counter (key);
+CREATE UNIQUE INDEX uniq_26df0c148a90aba9
+    ON counter (key);
 
-create table finance_client
+CREATE TABLE finance_client
 (
-    id             integer      not null
-        primary key,
-    client_id      integer      not null,
-    sop_number     text         not null,
-    payment_method varchar(255) not null,
-    batchnumber    integer
+    id             INTEGER      NOT NULL
+        PRIMARY KEY,
+    client_id      INTEGER      NOT NULL,
+    sop_number     TEXT         NOT NULL,
+    payment_method VARCHAR(255) NOT NULL,
+    batchnumber    INTEGER
 );
 
-comment on column finance_client.payment_method is '(DC2Type:refdata)';
+COMMENT ON COLUMN finance_client.payment_method IS '(DC2Type:refdata)';
 
-alter table finance_client
-    owner to api;
+ALTER TABLE finance_client
+    OWNER TO api;
 
-create table billing_period
+CREATE TABLE billing_period
 (
-    id                integer not null
-        primary key,
-    finance_client_id integer
-        constraint fk_f586876342ac816b
-            references finance_client,
-    order_id          integer,
-    start_date        date    not null,
-    end_date          date
+    id                INTEGER NOT NULL
+        PRIMARY KEY,
+    finance_client_id INTEGER
+        CONSTRAINT fk_f586876342ac816b
+            REFERENCES finance_client,
+    order_id          INTEGER,
+    start_date        DATE    NOT NULL,
+    end_date          DATE
 );
 
-alter table billing_period
-    owner to api;
+ALTER TABLE billing_period
+    OWNER TO api;
 
-create index idx_c64d624c7a3c530d
-    on billing_period (finance_client_id);
+CREATE INDEX idx_c64d624c7a3c530d
+    ON billing_period (finance_client_id);
 
-create table fee_reduction
+CREATE TABLE fee_reduction
 (
-    id                integer                    not null
-        primary key,
-    finance_client_id integer
-        constraint fk_6ab78de42ac816b
-            references finance_client,
-    type              varchar(255)               not null,
-    evidencetype      varchar(255) default NULL::character varying,
-    startdate         date                       not null,
-    enddate           date                       not null,
-    notes             text                       not null,
-    deleted           boolean      default false not null,
-    datereceived      date
+    id                INTEGER                    NOT NULL
+        PRIMARY KEY,
+    finance_client_id INTEGER
+        CONSTRAINT fk_6ab78de42ac816b
+            REFERENCES finance_client,
+    type              VARCHAR(255)               NOT NULL,
+    evidencetype      VARCHAR(255) DEFAULT NULL::CHARACTER VARYING,
+    startdate         DATE                       NOT NULL,
+    enddate           DATE                       NOT NULL,
+    notes             TEXT                       NOT NULL,
+    deleted           BOOLEAN      DEFAULT FALSE NOT NULL,
+    datereceived      DATE
 );
 
-comment on column fee_reduction.type is '(DC2Type:refdata)';
+COMMENT ON COLUMN fee_reduction.type IS '(DC2Type:refdata)';
 
-comment on column fee_reduction.evidencetype is '(DC2Type:refdata)';
+COMMENT ON COLUMN fee_reduction.evidencetype IS '(DC2Type:refdata)';
 
-alter table fee_reduction
-    owner to api;
+ALTER TABLE fee_reduction
+    OWNER TO api;
 
-create index idx_690054cf7a3c530d
-    on fee_reduction (finance_client_id);
+CREATE INDEX idx_690054cf7a3c530d
+    ON fee_reduction (finance_client_id);
 
-create index idx_finance_client_batch_number
-    on finance_client (batchnumber);
+CREATE INDEX idx_finance_client_batch_number
+    ON finance_client (batchnumber);
 
-create table invoice
+CREATE TABLE invoice
 (
-    id                integer     not null
-        primary key,
-    person_id         integer,
-    finance_client_id integer
-        constraint fk_7df7fbe042ac816b
-            references finance_client
-            on delete cascade,
-    feetype           text        not null,
-    reference         varchar(50) not null,
-    startdate         date        not null,
-    enddate           date        not null,
-    amount            integer     not null,
-    supervisionlevel  varchar(255) default NULL::character varying,
-    confirmeddate     date,
-    batchnumber       integer,
-    raiseddate        date,
-    source            varchar(20)  default NULL::character varying,
-    scheduledfn14date date,
-    cacheddebtamount  integer
+    id                INTEGER     NOT NULL
+        PRIMARY KEY,
+    person_id         INTEGER,
+    finance_client_id INTEGER
+        CONSTRAINT fk_7df7fbe042ac816b
+            REFERENCES finance_client
+            ON DELETE CASCADE,
+    feetype           TEXT        NOT NULL,
+    reference         VARCHAR(50) NOT NULL,
+    startdate         DATE        NOT NULL,
+    enddate           DATE        NOT NULL,
+    amount            INTEGER     NOT NULL,
+    supervisionlevel  VARCHAR(255) DEFAULT NULL::CHARACTER VARYING,
+    confirmeddate     DATE,
+    batchnumber       INTEGER,
+    raiseddate        DATE,
+    source            VARCHAR(20)  DEFAULT NULL::CHARACTER VARYING,
+    scheduledfn14date DATE,
+    cacheddebtamount  INTEGER
 );
 
-comment on column invoice.amount is '(DC2Type:money)';
+COMMENT ON COLUMN invoice.amount IS '(DC2Type:money)';
 
-comment on column invoice.supervisionlevel is '(DC2Type:refdata)';
+COMMENT ON COLUMN invoice.supervisionlevel IS '(DC2Type:refdata)';
 
-comment on column invoice.cacheddebtamount is '(DC2Type:money)';
+COMMENT ON COLUMN invoice.cacheddebtamount IS '(DC2Type:money)';
 
-alter table invoice
-    owner to api;
+ALTER TABLE invoice
+    OWNER TO api;
 
-create index idx_77988f287a3c530d
-    on invoice (finance_client_id);
+CREATE INDEX idx_77988f287a3c530d
+    ON invoice (finance_client_id);
 
-create index idx_invoice_batch_number
-    on invoice (batchnumber);
+CREATE INDEX idx_invoice_batch_number
+    ON invoice (batchnumber);
 
-create unique index uniq_77988f28aea34913
-    on invoice (reference);
+CREATE UNIQUE INDEX uniq_77988f28aea34913
+    ON invoice (reference);
 
-create table invoice_email_status
+CREATE TABLE invoice_email_status
 (
-    id          integer      not null
-        primary key,
-    invoice_id  integer
-        constraint fk_64081dd12989f1fd
-            references invoice
-            on delete cascade,
-    status      varchar(255) not null,
-    templateid  varchar(255) not null,
-    createddate date
+    id          INTEGER      NOT NULL
+        PRIMARY KEY,
+    invoice_id  INTEGER
+        CONSTRAINT fk_64081dd12989f1fd
+            REFERENCES invoice
+            ON DELETE CASCADE,
+    status      VARCHAR(255) NOT NULL,
+    templateid  VARCHAR(255) NOT NULL,
+    createddate DATE
 );
 
-comment on column invoice_email_status.status is '(DC2Type:refdata)';
+COMMENT ON COLUMN invoice_email_status.status IS '(DC2Type:refdata)';
 
-comment on column invoice_email_status.templateid is '(DC2Type:refdata)';
+COMMENT ON COLUMN invoice_email_status.templateid IS '(DC2Type:refdata)';
 
-alter table invoice_email_status
-    owner to api;
+ALTER TABLE invoice_email_status
+    OWNER TO api;
 
-create index idx_d0ae32bc2989f1fd
-    on invoice_email_status (invoice_id);
+CREATE INDEX idx_d0ae32bc2989f1fd
+    ON invoice_email_status (invoice_id);
 
-create table invoice_fee_range
+CREATE TABLE invoice_fee_range
 (
-    id               integer      not null
-        primary key,
-    invoice_id       integer
-        constraint fk_36446bf82989f1fd
-            references invoice
-            on delete cascade,
-    supervisionlevel varchar(255) not null,
-    fromdate         date         not null,
-    todate           date         not null,
-    amount           integer      not null
+    id               INTEGER      NOT NULL
+        PRIMARY KEY,
+    invoice_id       INTEGER
+        CONSTRAINT fk_36446bf82989f1fd
+            REFERENCES invoice
+            ON DELETE CASCADE,
+    supervisionlevel VARCHAR(255) NOT NULL,
+    fromdate         DATE         NOT NULL,
+    todate           DATE         NOT NULL,
+    amount           INTEGER      NOT NULL
 );
 
-comment on column invoice_fee_range.supervisionlevel is '(DC2Type:refdata)';
+COMMENT ON COLUMN invoice_fee_range.supervisionlevel IS '(DC2Type:refdata)';
 
-comment on column invoice_fee_range.amount is '(DC2Type:money)';
+COMMENT ON COLUMN invoice_fee_range.amount IS '(DC2Type:money)';
 
-alter table invoice_fee_range
-    owner to api;
+ALTER TABLE invoice_fee_range
+    OWNER TO api;
 
-create index idx_5dd85a2d2989f1fd
-    on invoice_fee_range (invoice_id);
+CREATE INDEX idx_5dd85a2d2989f1fd
+    ON invoice_fee_range (invoice_id);
 
-create table ledger
+CREATE TABLE ledger
 (
-    id                integer                                      not null
-        primary key,
-    reference         varchar(50)                                  not null,
-    datetime          timestamp(0)                                 not null,
-    method            varchar(255)                                 not null,
-    amount            integer                                      not null,
-    notes             text,
-    type              varchar(255)                                 not null,
-    status            varchar(255) default NULL::character varying not null,
-    finance_client_id integer
-        constraint fk_ea14203c42ac816b
-            references finance_client
-            on delete cascade,
-    parent_id         integer
-        constraint fk_ea14203c727aca70
-            references ledger
-            on delete cascade,
-    fee_reduction_id  integer
-        constraint fk_ea14203c47b45492
-            references fee_reduction
-            on delete cascade,
-    confirmeddate     date,
-    bankdate          date,
-    batchnumber       integer,
-    bankaccount       varchar(255) default NULL::character varying,
-    source            varchar(20)  default NULL::character varying,
-    line              integer
+    id                INTEGER                                      NOT NULL
+        PRIMARY KEY,
+    reference         VARCHAR(50)                                  NOT NULL,
+    datetime          TIMESTAMP(0)                                 NOT NULL,
+    method            VARCHAR(255)                                 NOT NULL,
+    amount            INTEGER                                      NOT NULL,
+    notes             TEXT,
+    type              VARCHAR(255)                                 NOT NULL,
+    status            VARCHAR(255) DEFAULT NULL::CHARACTER VARYING NOT NULL,
+    finance_client_id INTEGER
+        CONSTRAINT fk_ea14203c42ac816b
+            REFERENCES finance_client
+            ON DELETE CASCADE,
+    parent_id         INTEGER
+        CONSTRAINT fk_ea14203c727aca70
+            REFERENCES ledger
+            ON DELETE CASCADE,
+    fee_reduction_id  INTEGER
+        CONSTRAINT fk_ea14203c47b45492
+            REFERENCES fee_reduction
+            ON DELETE CASCADE,
+    confirmeddate     DATE,
+    bankdate          DATE,
+    batchnumber       INTEGER,
+    bankaccount       VARCHAR(255) DEFAULT NULL::CHARACTER VARYING,
+    source            VARCHAR(20)  DEFAULT NULL::CHARACTER VARYING,
+    line              INTEGER
 );
 
-comment on column ledger.amount is '(DC2Type:money)';
+COMMENT ON COLUMN ledger.amount IS '(DC2Type:money)';
 
-comment on column ledger.type is '(DC2Type:refdata)';
+COMMENT ON COLUMN ledger.type IS '(DC2Type:refdata)';
 
-comment on column ledger.status is '(DC2Type:refdata)';
+COMMENT ON COLUMN ledger.status IS '(DC2Type:refdata)';
 
-comment on column ledger.bankaccount is '(DC2Type:refdata)';
+COMMENT ON COLUMN ledger.bankaccount IS '(DC2Type:refdata)';
 
-alter table ledger
-    owner to api;
+ALTER TABLE ledger
+    OWNER TO api;
 
-create index idx_85cecfb26abf21a3
-    on ledger (fee_reduction_id);
+CREATE INDEX idx_85cecfb26abf21a3
+    ON ledger (fee_reduction_id);
 
-create index idx_85cecfb2727aca70
-    on ledger (parent_id);
+CREATE INDEX idx_85cecfb2727aca70
+    ON ledger (parent_id);
 
-create index idx_85cecfb27a3c530d
-    on ledger (finance_client_id);
+CREATE INDEX idx_85cecfb27a3c530d
+    ON ledger (finance_client_id);
 
-create index idx_ledger_batch_number
-    on ledger (batchnumber);
+CREATE INDEX idx_ledger_batch_number
+    ON ledger (batchnumber);
 
-create unique index uniq_85cecfb2aea34913
-    on ledger (reference);
+CREATE UNIQUE INDEX uniq_85cecfb2aea34913
+    ON ledger (reference);
 
-create table ledger_allocation
+CREATE TABLE ledger_allocation
 (
-    id            integer      not null
-        primary key,
-    ledger_id     integer
-        constraint fk_b11e238deb264cb8
-            references ledger
-            on delete cascade,
-    invoice_id    integer
-        constraint fk_b11e238d2989f1fd
-            references invoice
-            on delete cascade,
-    datetime      timestamp(0) not null,
-    amount        integer      not null,
-    status        varchar(255) not null,
-    reference     varchar(25) default NULL::character varying,
-    notes         text,
-    allocateddate date,
-    batchnumber   integer,
-    source        varchar(20) default NULL::character varying
+    id            INTEGER      NOT NULL
+        PRIMARY KEY,
+    ledger_id     INTEGER
+        CONSTRAINT fk_b11e238deb264cb8
+            REFERENCES ledger
+            ON DELETE CASCADE,
+    invoice_id    INTEGER
+        CONSTRAINT fk_b11e238d2989f1fd
+            REFERENCES invoice
+            ON DELETE CASCADE,
+    datetime      TIMESTAMP(0) NOT NULL,
+    amount        INTEGER      NOT NULL,
+    status        VARCHAR(255) NOT NULL,
+    reference     VARCHAR(25) DEFAULT NULL::CHARACTER VARYING,
+    notes         TEXT,
+    allocateddate DATE,
+    batchnumber   INTEGER,
+    source        VARCHAR(20) DEFAULT NULL::CHARACTER VARYING
 );
 
-comment on column ledger_allocation.amount is '(DC2Type:money)';
+COMMENT ON COLUMN ledger_allocation.amount IS '(DC2Type:money)';
 
-comment on column ledger_allocation.status is '(DC2Type:refdata)';
+COMMENT ON COLUMN ledger_allocation.status IS '(DC2Type:refdata)';
 
-alter table ledger_allocation
-    owner to api;
+ALTER TABLE ledger_allocation
+    OWNER TO api;
 
-create index idx_da8212582989f1fd
-    on ledger_allocation (invoice_id);
+CREATE INDEX idx_da8212582989f1fd
+    ON ledger_allocation (invoice_id);
 
-create index idx_da821258a7b913dd
-    on ledger_allocation (ledger_id);
+CREATE INDEX idx_da821258a7b913dd
+    ON ledger_allocation (ledger_id);
 
-create index idx_ledger_allocation_batch_number
-    on ledger_allocation (batchnumber);
+CREATE INDEX idx_ledger_allocation_batch_number
+    ON ledger_allocation (batchnumber);
 
-create unique index uniq_da821258aea34913
-    on ledger_allocation (reference);
+CREATE UNIQUE INDEX uniq_da821258aea34913
+    ON ledger_allocation (reference);
 
-create table property
+CREATE TABLE property
 (
-    id    integer      not null
-        primary key,
-    key   varchar(100) not null,
-    value varchar(255) not null
+    id    INTEGER      NOT NULL
+        PRIMARY KEY,
+    key   VARCHAR(100) NOT NULL,
+    value VARCHAR(255) NOT NULL
 );
 
-alter table property
-    owner to api;
+ALTER TABLE property
+    OWNER TO api;
 
-create unique index uniq_cf11cc358a90aba9
-    on property (key);
+CREATE UNIQUE INDEX uniq_cf11cc358a90aba9
+    ON property (key);
 
-create table rate
+CREATE TABLE rate
 (
-    id        integer     not null
-        primary key,
-    type      varchar(50) not null,
-    startdate date,
-    enddate   date,
-    amount    integer     not null
+    id        INTEGER     NOT NULL
+        PRIMARY KEY,
+    type      VARCHAR(50) NOT NULL,
+    startdate DATE,
+    enddate   DATE,
+    amount    INTEGER     NOT NULL
 );
 
-comment on column rate.amount is '(DC2Type:money)';
+COMMENT ON COLUMN rate.amount IS '(DC2Type:money)';
 
-alter table rate
-    owner to api;
+ALTER TABLE rate
+    OWNER TO api;
 
-create table report
+CREATE TABLE report
 (
-    id                    integer      not null
-        primary key,
-    batchnumber           integer      not null,
-    type                  varchar(255) not null,
-    datetime              timestamp(0) not null,
-    count                 integer      not null,
-    invoicedate           timestamp(0),
-    totalamount           integer,
-    firstinvoicereference varchar(50) default NULL::character varying,
-    lastinvoicereference  varchar(50) default NULL::character varying,
-    createdbyuser_id      integer
+    id                    INTEGER      NOT NULL
+        PRIMARY KEY,
+    batchnumber           INTEGER      NOT NULL,
+    type                  VARCHAR(255) NOT NULL,
+    datetime              TIMESTAMP(0) NOT NULL,
+    count                 INTEGER      NOT NULL,
+    invoicedate           TIMESTAMP(0),
+    totalamount           INTEGER,
+    firstinvoicereference VARCHAR(50) DEFAULT NULL::CHARACTER VARYING,
+    lastinvoicereference  VARCHAR(50) DEFAULT NULL::CHARACTER VARYING,
+    createdbyuser_id      INTEGER
 );
 
-comment on column report.type is '(DC2Type:refdata)';
+COMMENT ON COLUMN report.type IS '(DC2Type:refdata)';
 
-comment on column report.totalamount is '(DC2Type:money)';
+COMMENT ON COLUMN report.totalamount IS '(DC2Type:money)';
 
-alter table report
-    owner to api;
+ALTER TABLE report
+    OWNER TO api;
 
-create index idx_819a1c8ae1f44b34
-    on report (createdbyuser_id);
+CREATE INDEX idx_819a1c8ae1f44b34
+    ON report (createdbyuser_id);
 
-create unique index uniq_819a1c8a36967d99
-    on report (batchnumber);
+CREATE UNIQUE INDEX uniq_819a1c8a36967d99
+    ON report (batchnumber);
 
 -- +goose Down
 

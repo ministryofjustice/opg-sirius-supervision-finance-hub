@@ -12,7 +12,7 @@ func (suite *IntegrationSuite) Test_fee_chase() {
 	yesterday := today.Sub(0, 0, 1)
 
 	// client 1 with 2 unpaid invoices and an unrelated warning
-	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "ACTIVE")
+	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234", "ACTIVE")
 	client1DeputyID := suite.seeder.CreateDeputy(ctx, client1ID, "Barry", "Manilow", "PRO")
 	suite.seeder.CreateAddresses(ctx, client1DeputyID, []string{"91 Fake Avenue", "Binglestone View"}, "Realton", "Nonfictionshire", "OK1 NO2", true)
 
@@ -22,7 +22,7 @@ func (suite *IntegrationSuite) Test_fee_chase() {
 	suite.seeder.CreateWarning(ctx, client1ID, "Evil guy")
 
 	// client 2 with two invoices - one fully paid, one partially paid
-	client2ID := suite.seeder.CreateClient(ctx, "Wallace", "Gromit", "87654321", "ACTIVE")
+	client2ID := suite.seeder.CreateClient(ctx, "Wallace", "Gromit", "87654321", "4321", "ACTIVE")
 	client2DeputyID := suite.seeder.CreateDeputy(ctx, client2ID, "Jeffrey", "Buckley", "PA")
 	suite.seeder.CreateAddresses(ctx, client2DeputyID, []string{"92 Fake Avenue", "Binglestone View", "Greater Gregley"}, "Blompton", "Heartwoodshire", "NO2 RLY", false)
 
@@ -32,7 +32,7 @@ func (suite *IntegrationSuite) Test_fee_chase() {
 	suite.seeder.CreatePayment(ctx, 15000, yesterday.Date(), "87654321", shared.TransactionTypeMotoCardPayment, today.Date(), 0)
 
 	// client 3 with one invoice fully paid
-	client3ID := suite.seeder.CreateClient(ctx, "Patrick", "Stewart", "87651234", "ACTIVE")
+	client3ID := suite.seeder.CreateClient(ctx, "Patrick", "Stewart", "87651234", "4312", "ACTIVE")
 	client3DeputyID := suite.seeder.CreateDeputy(ctx, client3ID, "Real", "Deputy", "PRO")
 	suite.seeder.CreateAddresses(ctx, client3DeputyID, []string{"93 Fake Avenue"}, "Blompton", "Heartwoodshire", "NO2 RLY", false)
 
@@ -41,7 +41,7 @@ func (suite *IntegrationSuite) Test_fee_chase() {
 	suite.seeder.CreatePayment(ctx, 15000, yesterday.Date(), "87651234", shared.TransactionTypeMotoCardPayment, today.Date(), 0)
 
 	// client 4 with an unpaid invoice and do not invoice warning
-	client4ID := suite.seeder.CreateClient(ctx, "Ian", "McGregor", "12348765", "ACTIVE")
+	client4ID := suite.seeder.CreateClient(ctx, "Ian", "McGregor", "12348765", "4132", "ACTIVE")
 	client4DeputyID := suite.seeder.CreateDeputy(ctx, client4ID, "Jason", "Statham", "PRO")
 	suite.seeder.CreateAddresses(ctx, client4DeputyID, []string{"94 Fake Avenue"}, "Realton", "Nonfictionshire", "OK1 NO2", true)
 

@@ -18,30 +18,30 @@ func (suite *IntegrationSuite) Test_unapplied_transactions() {
 	minimal := "10.00"
 
 	// 15.00 unapply
-	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "ACTIVE")
-	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
+	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234", "ACTIVE")
+	suite.seeder.CreateOrder(ctx, client1ID)
 	_, _ = suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, twoMonthsAgo.StringPtr())
 	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "12345678", shared.TransactionTypeMotoCardPayment, yesterday.Date(), 0)
 	_ = suite.seeder.CreateFeeReduction(ctx, client1ID, shared.FeeReductionTypeExemption, strconv.Itoa(yesterday.Date().Year()-1), 4, "", yesterday.Date())
 
 	// an existing 100.00 unapply that has 10.00 reapplied
-	client2ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "87654321", "ACTIVE")
-	suite.seeder.CreateOrder(ctx, client2ID, "ACTIVE")
+	client2ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "87654321", "4321", "ACTIVE")
+	suite.seeder.CreateOrder(ctx, client2ID)
 	_, _ = suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, &general, threeYearsAgo.StringPtr(), nil, nil, nil, threeYearsAgo.StringPtr())
 	suite.seeder.CreatePayment(ctx, 42000, threeYearsAgo.Date(), "87654321", shared.TransactionTypeOPGBACSPayment, threeYearsAgo.Date(), 0)
 	_ = suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeExemption, strconv.Itoa(threeYearsAgo.Date().Year()-1), 2, "", threeYearsAgo.Date())
 	_, _ = suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS3, &minimal, yesterday.StringPtr(), nil, nil, nil, yesterday.StringPtr())
 
 	// 12.34 unapply and reapply on the same day
-	client3ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "33333333", "ACTIVE")
-	suite.seeder.CreateOrder(ctx, client3ID, "ACTIVE")
+	client3ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "33333333", "4321", "ACTIVE")
+	suite.seeder.CreateOrder(ctx, client3ID)
 	invoiceID, _ := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeS2, &general, twoMonthsAgo.StringPtr(), nil, nil, nil, twoMonthsAgo.StringPtr())
 	suite.seeder.CreatePayment(ctx, 32000, yesterday.Date(), "33333333", shared.TransactionTypeMotoCardPayment, yesterday.Date(), 0)
 	suite.seeder.CreateAdjustment(ctx, client3ID, invoiceID, shared.AdjustmentTypeCreditMemo, 1234, "Credit memo", yesterday.DatePtr())
 	_, _ = suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeS2, &general, yesterday.StringPtr(), nil, nil, nil, yesterday.StringPtr())
 
 	// 10.00 refund
-	client4ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "44444444", "ACTIVE")
+	client4ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "44444444", "4321", "ACTIVE")
 	suite.seeder.CreatePayment(ctx, 1000, yesterday.Date(), "44444444", shared.TransactionTypeMotoCardPayment, yesterday.Date(), 0)
 	refundID := suite.seeder.CreateRefund(ctx, client4ID, "MR I TEST", "44444444", "44-44-44", yesterday.Date())
 	suite.seeder.SetRefundDecision(ctx, client4ID, refundID, shared.RefundStatusApproved, yesterday.Date())
