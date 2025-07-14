@@ -167,6 +167,8 @@ func formatFailedLines(failedLines map[int]string) []string {
 			errorMessage = "The refund could not be found - either the data does not match or the refund has been cancelled"
 		case validation.UploadErrorMaximumDebt:
 			errorMessage = "Payment could not be reversed - maximum invoice debt exceeded"
+		case validation.UploadErrorDuplicatePayment:
+			errorMessage = "Duplicate payment line"
 		}
 
 		formattedLines = append(formattedLines, fmt.Sprintf("Line %d: %s", key, errorMessage))
