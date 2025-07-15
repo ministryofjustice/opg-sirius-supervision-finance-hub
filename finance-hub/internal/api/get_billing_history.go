@@ -34,9 +34,7 @@ func (c *Client) GetBillingHistory(ctx context.Context, clientId int) ([]shared.
 		return billingHistory, newStatusError(resp)
 	}
 
-	if err = json.NewDecoder(resp.Body).Decode(&billingHistory); err != nil {
-		return billingHistory, err
-	}
+	err = json.NewDecoder(resp.Body).Decode(&billingHistory)
 
 	return billingHistory, err
 }

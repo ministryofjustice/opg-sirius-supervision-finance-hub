@@ -1,0 +1,23 @@
+{{ define "pending-adjustment-event" }}
+    <div class="moj-timeline__item">
+        <div class="moj-timeline__header">
+            <h2 class="moj-timeline__title">
+                Pending {{ printf "%v" .Event.AdjustmentType | toLower }} of £{{ toCurrency  .Event.Amount }} rejected for {{.Event.InvoiceReference.Reference}}
+            </h2>
+            <p class="moj-timeline__byline">
+                {{ printf "by %v, %v" .User .Date }}
+            </p>
+        </div>
+        <p class="moj-timeline__date">
+            {{ printf "Outstanding balance: £%v Credit balance: £%v" .OutstandingBalance .CreditBalance }}
+        </p>
+        <div class="moj-timeline__description">
+            <ul class="govuk-list govuk-list--bullet">
+                <li>
+                    <a class="govuk-link"  href="{{prefix (printf "/clients/%d/invoices" .Event.ClientId) }}">{{ .Event.InvoiceReference.Reference }}</a>
+                </li>
+                <li>{{ .Event.Notes }}</li>
+            </ul>
+        </div>
+    </div>
+{{ end }}
