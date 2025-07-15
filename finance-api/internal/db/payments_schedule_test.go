@@ -19,33 +19,33 @@ func (suite *IntegrationSuite) Test_payments_schedules() {
 	general := "320.00"
 
 	// client 1
-	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", courtRef1, "1234")
+	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", courtRef1, "1234", "ACTIVE")
 	_, inv1Ref := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeS2, &general, oneMonthAgo.StringPtr(), nil, nil, nil, nil)
 	suite.seeder.CreatePayment(ctx, 10000, yesterday.Date(), courtRef1, shared.TransactionTypeOPGBACSPayment, yesterday.Date(), 0)
 	suite.seeder.CreatePayment(ctx, 11011, today.Date(), courtRef1, shared.TransactionTypeOPGBACSPayment, yesterday.Date(), 0)
 
 	// client 2
-	client2ID := suite.seeder.CreateClient(ctx, "Alan", "Intelligence", courtRef2, "1234")
+	client2ID := suite.seeder.CreateClient(ctx, "Alan", "Intelligence", courtRef2, "1234", "ACTIVE")
 	_, inv2Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, &general, oneMonthAgo.StringPtr(), nil, nil, nil, nil)
 	suite.seeder.CreatePayment(ctx, 12022, today.Date(), courtRef2, shared.TransactionTypeOPGBACSPayment, today.Date(), 0)
 	suite.seeder.CreatePayment(ctx, 13033, today.Date(), courtRef2, shared.TransactionTypeMotoCardPayment, today.Date(), 0)
 
 	// client 3
-	client3ID := suite.seeder.CreateClient(ctx, "C", "Lient", courtRef3, "1234")
+	client3ID := suite.seeder.CreateClient(ctx, "C", "Lient", courtRef3, "1234", "ACTIVE")
 	_, inv3Ref := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeAD, nil, oneMonthAgo.StringPtr(), nil, nil, nil, nil)
 	suite.seeder.CreatePayment(ctx, 12000, today.Date(), courtRef3, shared.TransactionTypeDirectDebitPayment, today.Date(), 0)
 
 	// an online card payment that is misapplied and added onto the correct client
-	client5ID := suite.seeder.CreateClient(ctx, "Ernie", "Error", courtRef4, "2314")
+	client5ID := suite.seeder.CreateClient(ctx, "Ernie", "Error", courtRef4, "2314", "ACTIVE")
 	_, inv4Ref := suite.seeder.CreateInvoice(ctx, client5ID, shared.InvoiceTypeAD, nil, yesterday.StringPtr(), nil, nil, nil, yesterday.StringPtr())
 	suite.seeder.CreatePayment(ctx, 15000, yesterday.Date(), courtRef4, shared.TransactionTypeOnlineCardPayment, yesterday.Date(), 0)
 
-	client6ID := suite.seeder.CreateClient(ctx, "Colette", "Correct", courtRef5, "2314")
+	client6ID := suite.seeder.CreateClient(ctx, "Colette", "Correct", courtRef5, "2314", "ACTIVE")
 	_, inv5Ref := suite.seeder.CreateInvoice(ctx, client6ID, shared.InvoiceTypeS2, &general, yesterday.StringPtr(), nil, nil, nil, yesterday.StringPtr())
 	suite.seeder.ReversePayment(ctx, courtRef4, courtRef5, "150.00", yesterday.Date(), yesterday.Date(), shared.TransactionTypeOnlineCardPayment, yesterday.Date())
 
 	// cheques
-	client7ID := suite.seeder.CreateClient(ctx, "Ian", "Test", courtRef6, "1234")
+	client7ID := suite.seeder.CreateClient(ctx, "Ian", "Test", courtRef6, "1234", "ACTIVE")
 	_, inv6Ref := suite.seeder.CreateInvoice(ctx, client7ID, shared.InvoiceTypeS2, &general, oneMonthAgo.StringPtr(), nil, nil, nil, nil)
 	suite.seeder.CreatePayment(ctx, 1000, today.Date(), courtRef6, shared.TransactionTypeSupervisionChequePayment, today.Date(), 123456)
 	suite.seeder.CreatePayment(ctx, 1234, today.Date(), courtRef6, shared.TransactionTypeSupervisionChequePayment, today.Date(), 654321)

@@ -17,20 +17,20 @@ func (suite *IntegrationSuite) Test_invoices_schedules() {
 	courtRef4 := "20202020"
 
 	// client 1
-	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", courtRef1, "1234")
+	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", courtRef1, "1234", "ACTIVE")
 	_, inv1Ref := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, valToPtr("100.00"), oneMonthAgo.StringPtr(), nil, nil, nil, oneMonthAgo.StringPtr())
 	_, inv2Ref := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeSE, valToPtr("320.00"), yesterday.StringPtr(), nil, nil, valToPtr("GENERAL"), yesterday.StringPtr())
 
 	// client 2
-	client2ID := suite.seeder.CreateClient(ctx, "Alan", "Intelligence", courtRef2, "1234")
+	client2ID := suite.seeder.CreateClient(ctx, "Alan", "Intelligence", courtRef2, "1234", "ACTIVE")
 	_, inv3Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeSE, valToPtr("300.88"), yesterday.StringPtr(), nil, nil, valToPtr("GENERAL"), yesterday.StringPtr())
 
 	// client 3
-	client3ID := suite.seeder.CreateClient(ctx, "Barry", "Giggle", courtRef3, "4321")
+	client3ID := suite.seeder.CreateClient(ctx, "Barry", "Giggle", courtRef3, "4321", "ACTIVE")
 	_, inv4Ref := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeSE, valToPtr("10.00"), yesterday.StringPtr(), nil, nil, valToPtr("MINIMAL"), yesterday.StringPtr())
 
 	// client 4
-	client4ID := suite.seeder.CreateClient(ctx, "Graham", "Simpson", courtRef4, "4321")
+	client4ID := suite.seeder.CreateClient(ctx, "Graham", "Simpson", courtRef4, "4321", "ACTIVE")
 	_, adRef := suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeAD, valToPtr("100.00"), twoDaysAgo.StringPtr(), nil, nil, nil, twoDaysAgo.StringPtr())
 	_, s2Ref := suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeS2, valToPtr("100.00"), twoDaysAgo.StringPtr(), nil, nil, nil, twoDaysAgo.StringPtr())
 	_, s3Ref := suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeS3, valToPtr("100.00"), twoDaysAgo.StringPtr(), nil, nil, nil, twoDaysAgo.StringPtr())
