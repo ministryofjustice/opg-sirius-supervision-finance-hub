@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"strconv"
-	"strings"
 )
 
 func (c *Client) AddDirectDebit(accountHolder string, accountName string, sortCode string, accountNumber string) error {
@@ -31,7 +29,7 @@ func (c *Client) AddDirectDebit(accountHolder string, accountName string, sortCo
 		errors["SortCode"] = map[string]string{"len": ""}
 	}
 
-	var sortCodeIsAllZeros = isSortCodeAllZeros(sortCode)
+	var sortCodeIsAllZeros = shared.IsSortCodeAllZeros(sortCode)
 	if sortCodeIsAllZeros && len(sortCode) == 8 {
 		errors["SortCode"] = map[string]string{"valid": ""}
 	}
@@ -60,18 +58,4 @@ func (c *Client) AddDirectDebit(accountHolder string, accountName string, sortCo
 	}
 
 	return nil
-}
-
-func isSortCodeAllZeros(sortCode string) bool {
-	sortCodeWithoutDashes := strings.Split(sortCode, `-`)
-	total := 0
-	allZeros := true
-	for i := 0; i < len(sortCodeWithoutDashes); i++ {
-		convertedInt, _ := strconv.Atoi(sortCodeWithoutDashes[i])
-		if convertedInt != 0 {
-			allZeros = false
-		}
-		total += i
-	}
-	return allZeros
 }
