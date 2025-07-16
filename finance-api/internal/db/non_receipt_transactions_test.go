@@ -338,8 +338,8 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 	assert.Equal(suite.T(), fmt.Sprintf("Gen Manual credit [%s]", yesterday.Date().Format("02/01/2006")), results[23]["Line description"], "Line description - Manual credit Credit")
 
 	assert.Equal(suite.T(), "=\"0470\"", results[24]["Entity"], "Entity - Fee reduction reversal Debit")
-	assert.Equal(suite.T(), "10486000", results[24]["Cost Centre"], "Cost Centre - Fee reduction reversal Debit")
-	assert.Equal(suite.T(), "4481102107", results[24]["Account"], "Account - Fee reduction reversal Debit")
+	assert.Equal(suite.T(), "10482009", results[24]["Cost Centre"], "Cost Centre - Fee reduction reversal Debit")
+	assert.Equal(suite.T(), "4481102114", results[24]["Account"], "Account - Fee reduction reversal Debit")
 	assert.Equal(suite.T(), "=\"0000000\"", results[24]["Objective"], "Objective - Fee reduction reversal Debit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[24]["Analysis"], "Analysis - Fee reduction reversal Debit")
 	assert.Equal(suite.T(), "=\"0000\"", results[24]["Intercompany"], "Intercompany - Fee reduction reversal Debit")
