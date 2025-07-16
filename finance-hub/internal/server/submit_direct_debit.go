@@ -14,9 +14,7 @@ type SubmitDirectDebitHandler struct {
 }
 
 func (h *SubmitDirectDebitHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
-	ctx := r.Context()
 	clientID := getClientID(r)
-	fmt.Println("in handler")
 
 	var (
 		accountHolder = r.PostFormValue("accountHolder")
@@ -25,28 +23,35 @@ func (h *SubmitDirectDebitHandler) render(v AppVars, w http.ResponseWriter, r *h
 		accountNumber = r.PostFormValue("accountNumber")
 	)
 
-	fmt.Println(fmt.Sprintf("submit direct debit handler %s, %s, %s, %s", accountHolder, accountName, sortCode, accountNumber))
-	err := h.Client().AddDirectDebit(ctx, clientID, accountHolder, accountName, sortCode, accountNumber)
-
-	fmt.Println(fmt.Sprintf("submit direct debit handler ERR %s", err))
+	err := h.Client().AddDirectDebit(accountHolder, accountName, sortCode, accountNumber)
 
 	if err == nil {
 		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices?success=direct-debit", v.EnvironmentVars.Prefix, clientID))
-	} else {
-		var (
-			valErr apierror.ValidationError
-			stErr  api.StatusError
-		)
-		if errors.As(err, &valErr) {
-			data := AppVars{Errors: util.RenameErrors(valErr.Errors)}
-			w.WriteHeader(http.StatusUnprocessableEntity)
-			err = h.execute(w, r, data)
-		} else if errors.As(err, &stErr) {
-			data := AppVars{Error: stErr.Error(), Code: stErr.Code}
-			w.WriteHeader(stErr.Code)
-			err = h.execute(w, r, data)
-		}
+		return nil
 	}
 
-	return err
+	var (
+		ve    apierror.ValidationError
+		stErr api.StatusError
+		data  AppVars
+	)
+
+	switch {
+	case errors.As(err, &ve):
+		{
+
+			data = AppVars{Errors: util.RenameErrors(ve.Errors)}
+			w.WriteHeader(http.StatusUnprocessableEntity)
+		}
+	case errors.As(err, &stErr):
+		{
+			data = AppVars{Error: stErr.Error(), Code: stErr.Code}
+			w.WriteHeader(http.StatusUnprocessableEntity)
+		}
+	default:
+		data = AppVars{Error: err.Error()}
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	return h.execute(w, r, data)
 }
