@@ -63,6 +63,11 @@ type mockApiClient struct {
 	User               shared.User
 }
 
+func (m mockApiClient) AddDirectDebit(ctx context.Context, i int, s string, s2 string, s3 string, s4 string) error {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (m mockApiClient) SubmitPaymentMethod(context context.Context, i int, s string) error {
 	return m.error
 }
