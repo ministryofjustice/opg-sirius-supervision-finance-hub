@@ -47,36 +47,43 @@ func (suite *IntegrationSuite) Test_adjustments_schedules() {
 	suite.seeder.CreateAdjustment(ctx, client4ID, invADID, shared.AdjustmentTypeWriteOff, 0, "Write off", twoDaysAgo.DatePtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invADID, shared.AdjustmentTypeCreditMemo, 1000, "Credit added", twoDaysAgo.DatePtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invADID, shared.AdjustmentTypeWriteOffReversal, 0, "Write off reversal", twoDaysAgo.DatePtr())
+	suite.seeder.CreateAdjustment(ctx, client4ID, invADID, shared.AdjustmentTypeFeeReductionReversal, 500, "fee reduction reversal", twoDaysAgo.DatePtr())
 
 	invS2ID, invS2Ref := suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeS2, valToPtr("320.00"), twoDaysAgo.StringPtr(), nil, nil, nil, twoDaysAgo.StringPtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invS2ID, shared.AdjustmentTypeDebitMemo, 1000, "Debit added", twoDaysAgo.DatePtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invS2ID, shared.AdjustmentTypeWriteOff, 0, "Write off", twoDaysAgo.DatePtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invS2ID, shared.AdjustmentTypeCreditMemo, 1000, "Credit added", twoDaysAgo.DatePtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invS2ID, shared.AdjustmentTypeWriteOffReversal, 0, "Write off reversal", twoDaysAgo.DatePtr())
+	suite.seeder.CreateAdjustment(ctx, client4ID, invS2ID, shared.AdjustmentTypeFeeReductionReversal, 500, "fee reduction reversal", twoDaysAgo.DatePtr())
 
 	invS3ID, invS3Ref := suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeS3, valToPtr("10.00"), twoDaysAgo.StringPtr(), nil, nil, nil, twoDaysAgo.StringPtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invS3ID, shared.AdjustmentTypeDebitMemo, 1000, "Debit added", twoDaysAgo.DatePtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invS3ID, shared.AdjustmentTypeWriteOff, 0, "Write off", twoDaysAgo.DatePtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invS3ID, shared.AdjustmentTypeCreditMemo, 1000, "Credit added", twoDaysAgo.DatePtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invS3ID, shared.AdjustmentTypeWriteOffReversal, 0, "Write off reversal", twoDaysAgo.DatePtr())
+	suite.seeder.CreateAdjustment(ctx, client4ID, invS3ID, shared.AdjustmentTypeFeeReductionReversal, 500, "fee reduction reversal", twoDaysAgo.DatePtr())
 
 	invGAID, invGARef := suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeGA, valToPtr("200.00"), twoDaysAgo.StringPtr(), nil, nil, nil, twoDaysAgo.StringPtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invGAID, shared.AdjustmentTypeDebitMemo, 1000, "Debit added", twoDaysAgo.DatePtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invGAID, shared.AdjustmentTypeWriteOff, 0, "Write off", twoDaysAgo.DatePtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invGAID, shared.AdjustmentTypeCreditMemo, 1000, "Credit added", twoDaysAgo.DatePtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invGAID, shared.AdjustmentTypeWriteOffReversal, 0, "Write off reversal", twoDaysAgo.DatePtr())
+	suite.seeder.CreateAdjustment(ctx, client4ID, invGAID, shared.AdjustmentTypeFeeReductionReversal, 500, "fee reduction reversal", twoDaysAgo.DatePtr())
 
 	invGSID, invGSRef := suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeGS, valToPtr("100.00"), twoDaysAgo.StringPtr(), nil, nil, nil, twoDaysAgo.StringPtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invGSID, shared.AdjustmentTypeDebitMemo, 1000, "Debit added", twoDaysAgo.DatePtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invGSID, shared.AdjustmentTypeWriteOff, 0, "Write off", twoDaysAgo.DatePtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invGSID, shared.AdjustmentTypeCreditMemo, 1000, "Credit added", twoDaysAgo.DatePtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invGSID, shared.AdjustmentTypeWriteOffReversal, 0, "Write off reversal", twoDaysAgo.DatePtr())
+	suite.seeder.CreateAdjustment(ctx, client4ID, invGSID, shared.AdjustmentTypeFeeReductionReversal, 500, "fee reduction reversal", twoDaysAgo.DatePtr())
 
 	invGTID, invGTRef := suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeGT, valToPtr("100.00"), twoDaysAgo.StringPtr(), nil, nil, nil, twoDaysAgo.StringPtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invGTID, shared.AdjustmentTypeDebitMemo, 1000, "Debit added", twoDaysAgo.DatePtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invGTID, shared.AdjustmentTypeWriteOff, 0, "Write off", twoDaysAgo.DatePtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invGTID, shared.AdjustmentTypeCreditMemo, 1000, "Credit added", twoDaysAgo.DatePtr())
 	suite.seeder.CreateAdjustment(ctx, client4ID, invGTID, shared.AdjustmentTypeWriteOffReversal, 0, "Write off reversal", twoDaysAgo.DatePtr())
+	suite.seeder.CreateAdjustment(ctx, client4ID, invGTID, shared.AdjustmentTypeFeeReductionReversal, 500, "fee reduction reversal", twoDaysAgo.DatePtr())
+
 	c := Client{suite.seeder.Conn}
 
 	tests := []struct {
@@ -213,6 +220,20 @@ func (suite *IntegrationSuite) Test_adjustments_schedules() {
 				},
 			},
 		},
+		{
+			name:         "fee reduction reversal for AD invoice",
+			date:         shared.Date{Time: twoDaysAgo.Date()},
+			scheduleType: shared.ScheduleTypeADFeeReductionReversals,
+			expectedRows: 2,
+			expectedData: []map[string]string{
+				{
+					"Court reference":   courtRef4,
+					"Invoice reference": invADRef,
+					"Amount":            "-5.00",
+					"Created date":      twoDaysAgo.String(),
+				},
+			},
+		},
 		// general invoice adjustments
 		{
 			name:         "S2 invoice fee reduction",
@@ -279,7 +300,21 @@ func (suite *IntegrationSuite) Test_adjustments_schedules() {
 				{
 					"Court reference":   courtRef4,
 					"Invoice reference": invS2Ref,
-					"Amount":            "10.00",
+					"Amount":            "5.00",
+					"Created date":      twoDaysAgo.String(),
+				},
+			},
+		},
+		{
+			name:         "fee reduction reversal for general invoice",
+			date:         shared.Date{Time: twoDaysAgo.Date()},
+			scheduleType: shared.ScheduleTypeGeneralFeeReductionReversals,
+			expectedRows: 2,
+			expectedData: []map[string]string{
+				{
+					"Court reference":   courtRef4,
+					"Invoice reference": invS2Ref,
+					"Amount":            "-5.00",
 					"Created date":      twoDaysAgo.String(),
 				},
 			},
@@ -350,7 +385,21 @@ func (suite *IntegrationSuite) Test_adjustments_schedules() {
 				{
 					"Court reference":   courtRef4,
 					"Invoice reference": invS3Ref,
-					"Amount":            "10.00",
+					"Amount":            "5.00",
+					"Created date":      twoDaysAgo.String(),
+				},
+			},
+		},
+		{
+			name:         "fee reduction reversal for minimal invoice",
+			date:         shared.Date{Time: twoDaysAgo.Date()},
+			scheduleType: shared.ScheduleTypeMinimalFeeReductionReversals,
+			expectedRows: 2,
+			expectedData: []map[string]string{
+				{
+					"Court reference":   courtRef4,
+					"Invoice reference": invS3Ref,
+					"Amount":            "-5.00",
 					"Created date":      twoDaysAgo.String(),
 				},
 			},
@@ -421,7 +470,21 @@ func (suite *IntegrationSuite) Test_adjustments_schedules() {
 				{
 					"Court reference":   courtRef4,
 					"Invoice reference": invGARef,
-					"Amount":            "10.00",
+					"Amount":            "5.00",
+					"Created date":      twoDaysAgo.String(),
+				},
+			},
+		},
+		{
+			name:         "fee reduction reversal for GA invoice",
+			date:         shared.Date{Time: twoDaysAgo.Date()},
+			scheduleType: shared.ScheduleTypeGAFeeReductionReversals,
+			expectedRows: 2,
+			expectedData: []map[string]string{
+				{
+					"Court reference":   courtRef4,
+					"Invoice reference": invGARef,
+					"Amount":            "-5.00",
 					"Created date":      twoDaysAgo.String(),
 				},
 			},
@@ -492,7 +555,21 @@ func (suite *IntegrationSuite) Test_adjustments_schedules() {
 				{
 					"Court reference":   courtRef4,
 					"Invoice reference": invGSRef,
-					"Amount":            "10.00",
+					"Amount":            "5.00",
+					"Created date":      twoDaysAgo.String(),
+				},
+			},
+		},
+		{
+			name:         "fee reduction reversal for GS invoice",
+			date:         shared.Date{Time: twoDaysAgo.Date()},
+			scheduleType: shared.ScheduleTypeGSFeeReductionReversals,
+			expectedRows: 2,
+			expectedData: []map[string]string{
+				{
+					"Court reference":   courtRef4,
+					"Invoice reference": invGSRef,
+					"Amount":            "-5.00",
 					"Created date":      twoDaysAgo.String(),
 				},
 			},
@@ -563,7 +640,21 @@ func (suite *IntegrationSuite) Test_adjustments_schedules() {
 				{
 					"Court reference":   courtRef4,
 					"Invoice reference": invGTRef,
-					"Amount":            "10.00",
+					"Amount":            "5.00",
+					"Created date":      twoDaysAgo.String(),
+				},
+			},
+		},
+		{
+			name:         "fee reduction reversal for GT invoice",
+			date:         shared.Date{Time: twoDaysAgo.Date()},
+			scheduleType: shared.ScheduleTypeGTFeeReductionReversals,
+			expectedRows: 2,
+			expectedData: []map[string]string{
+				{
+					"Court reference":   courtRef4,
+					"Invoice reference": invGTRef,
+					"Amount":            "-5.00",
 					"Created date":      twoDaysAgo.String(),
 				},
 			},
