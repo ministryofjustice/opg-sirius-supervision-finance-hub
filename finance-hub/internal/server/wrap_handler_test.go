@@ -80,6 +80,7 @@ func Test_wrapHandler_status_error_handling(t *testing.T) {
 		{error: api.StatusError{Code: 403}, wantCode: 403, wantError: "  returned 403"},
 		{error: api.StatusError{Code: 404}, wantCode: 404, wantError: "  returned 404"},
 		{error: api.StatusError{Code: 500}, wantCode: 500, wantError: "  returned 500"},
+		{error: context.Canceled, wantCode: 499, wantError: "context canceled"},
 	}
 	for i, test := range tests {
 		t.Run("Scenario "+strconv.Itoa(i), func(t *testing.T) {

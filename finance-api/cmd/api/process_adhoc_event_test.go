@@ -31,13 +31,13 @@ func Test_processAdhocEvent(t *testing.T) {
 			adhocProcessName: shared.AdhocEvent{
 				Task: "unknown",
 			},
-			expectedResponse: fmt.Errorf("invalid adhoc process name: unknown"),
+			expectedResponse: fmt.Errorf("invalid adhoc process: unknown"),
 			hasError:         true,
 		},
 		{
-			name: "Negative Invoices",
+			name: "Rebalance CCB",
 			adhocProcessName: shared.AdhocEvent{
-				Task: "NegativeInvoices",
+				Task: "RebalanceCCB",
 			},
 			expectedResponse: nil,
 			hasError:         false,
