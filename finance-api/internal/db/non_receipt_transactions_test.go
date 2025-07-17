@@ -68,7 +68,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 	}))
 
 	assert.NoError(suite.T(), err)
-	//assert.Equal(suite.T(), 25, len(rows))
+	assert.Equal(suite.T(), 27, len(rows))
 
 	results := mapByHeader(rows)
 	assert.NotEmpty(suite.T(), results)
