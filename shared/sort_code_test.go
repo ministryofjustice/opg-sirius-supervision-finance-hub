@@ -10,14 +10,12 @@ func TestIsSortCodeAllZeros(t *testing.T) {
 		in       string
 		expected bool
 	}{
-		{
-			in:       "22-22-22",
-			expected: false,
-		},
-		{
-			in:       "00-00-00",
-			expected: true,
-		},
+		{in: "22-22-22", expected: false},
+		{in: "222222", expected: false},
+		{in: "00-00-00", expected: true},
+		{in: "000000", expected: true},
+		{in: "01-00-00", expected: false},
+		{in: "010000", expected: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.in, func(t *testing.T) {
