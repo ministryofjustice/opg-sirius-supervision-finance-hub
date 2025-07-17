@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
@@ -256,6 +257,13 @@ func (s *Service) validateReversalLine(ctx context.Context, details shared.Rever
 		return false
 	}
 
+	reversible, _ := s.store.GetReversibleBalanceByCourtRef(ctx, details.ErroredCourtRef)
+
+	if reversible < details.Amount {
+		(*failedLines)[index] = validation.UploadErrorMaximumDebt
+		return false
+	}
+
 	return true
 }
 
@@ -286,13 +294,37 @@ func (s *Service) ProcessReversalUploadLine(ctx context.Context, tx *store.Tx, d
 		return err
 	}
 
+	// get credit balance and apply there first
+	credit, _ := tx.GetCreditBalanceByCourtRef(ctx, details.ErroredCourtRef)
+
+	remaining := details.Amount
+
+	if credit > 0 {
+		allocationAmount := credit
+		if allocationAmount > remaining {
+			allocationAmount = remaining
+		}
+		err = tx.CreateLedgerAllocation(ctx, store.CreateLedgerAllocationParams{
+			Amount:   allocationAmount,
+			Status:   "UNAPPLIED",
+			LedgerID: ledgerID,
+		})
+		if err != nil {
+			return err
+		}
+
+		remaining -= allocationAmount
+	}
+
+	if remaining == 0 {
+		return nil
+	}
+
 	invoices, err := tx.GetInvoicesForReversalByCourtRef(ctx, details.ErroredCourtRef)
 
 	if err != nil {
 		return err
 	}
-
-	remaining := details.Amount
 
 	for _, invoice := range invoices {
 		allocationAmount := invoice.Received
@@ -320,14 +352,8 @@ func (s *Service) ProcessReversalUploadLine(ctx context.Context, tx *store.Tx, d
 	}
 
 	if remaining != 0 {
-		err = tx.CreateLedgerAllocation(ctx, store.CreateLedgerAllocationParams{
-			Amount:   remaining,
-			Status:   "UNAPPLIED",
-			LedgerID: ledgerID,
-		})
-		if err != nil {
-			return err
-		}
+		s.Logger(ctx).Error("process reversal upload line failed as amount remaining after applying to all available invoices", "amount", remaining)
+		return errors.New("unexpected error - remaining not zero")
 	}
 
 	return nil
