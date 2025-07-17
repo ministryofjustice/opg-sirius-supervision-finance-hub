@@ -1,201 +1,89 @@
 package api
 
 import (
+	"bytes"
+	"encoding/json"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"io"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSubmitDirectDebitValidationErrors(t *testing.T) {
+func TestAddDirectDebit(t *testing.T) {
+	mockClient := SetUpTest()
 	mockJWT := mockJWTClient{}
+	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""})
 
-	tests := []struct {
-		name          string
-		accountHolder string
-		accountName   string
-		sortCode      string
-		accountNumber string
-		expectedError apierror.ValidationError
-	}{
-		{
-			name:          "Empty AccountHolder Returns ValidationError",
-			accountHolder: "",
-			accountName:   "testing",
-			sortCode:      "12-34-56",
-			accountNumber: "12345678",
-			expectedError: apierror.ValidationError{Errors: apierror.ValidationErrors{"AccountHolder": map[string]string{"required": ""}}},
-		},
-		{
-			name:          "Empty AccountName Returns ValidationError",
-			accountHolder: "CLIENT",
-			accountName:   "",
-			sortCode:      "12-34-56",
-			accountNumber: "12345678",
-			expectedError: apierror.ValidationError{Errors: apierror.ValidationErrors{"AccountName": map[string]string{"required": ""}}},
-		},
-		{
-			name:          "AccountName Over 18 Characters Returns ValidationError",
-			accountHolder: "CLIENT",
-			accountName:   strings.Repeat("a", 19),
-			sortCode:      "12-34-56",
-			accountNumber: "12345678",
-			expectedError: apierror.ValidationError{Errors: apierror.ValidationErrors{"AccountName": map[string]string{"gteEighteen": ""}}},
-		},
-		{
-			name:          "Empty SortCode Returns ValidationError",
-			accountHolder: "CLIENT",
-			accountName:   "account Name",
-			sortCode:      "",
-			accountNumber: "12345678",
-			expectedError: apierror.ValidationError{Errors: apierror.ValidationErrors{"SortCode": map[string]string{"required": ""}}},
-		},
-		{
-			name:          "SortCode Not Six Characters Returns ValidationError",
-			accountHolder: "CLIENT",
-			accountName:   "account Name",
-			sortCode:      "12-34-5",
-			accountNumber: "12345678",
-			expectedError: apierror.ValidationError{Errors: apierror.ValidationErrors{"SortCode": map[string]string{"len": ""}}},
-		},
-		{
-			name:          "SortCode Six Characters All Zeros Returns ValidationError",
-			accountHolder: "CLIENT",
-			accountName:   "account Name",
-			sortCode:      "00-00-00",
-			accountNumber: "12345678",
-			expectedError: apierror.ValidationError{Errors: apierror.ValidationErrors{"SortCode": map[string]string{"valid": ""}}},
-		},
-		{
-			name:          "AccountNumber Not Eight Characters Returns ValidationError",
-			accountHolder: "CLIENT",
-			accountName:   "account Name",
-			sortCode:      "12-34-56",
-			accountNumber: "123456789",
-			expectedError: apierror.ValidationError{Errors: apierror.ValidationErrors{"AccountNumber": map[string]string{"len": ""}}},
-		},
-		{
-			name:          "Successful payload Returns Nil",
-			accountHolder: "CLIENT",
-			accountName:   "testing",
-			sortCode:      "12-34-56",
-			accountNumber: "12345678",
-			expectedError: apierror.ValidationError{},
-		},
+	jsonData := `{
+			"accountHolder": "CLIENT",
+			"name": "Mrs Account Holder",
+			"sortCode": "30-33-30",
+			"account": "12345678",
+        }`
+
+	r := io.NopCloser(bytes.NewReader([]byte(jsonData)))
+
+	GetDoFunc = func(*http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: 201,
+			Body:       r,
+		}, nil
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
-			defer svr.Close()
-
-			mockClient := SetUpTest()
-			client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""})
-			err := client.AddDirectDebit(tt.accountHolder, tt.accountName, tt.sortCode, tt.accountNumber)
-
-			if tt.expectedError.Errors != nil {
-				assert.Equal(t, tt.expectedError, err.(apierror.ValidationError))
-			} else {
-				assert.Nil(t, err)
-			}
-		})
-	}
+	err := client.AddDirectDebit(testContext(), 1, "CLIENT", "Mrs Account Holder", "30-33-30", "12345678")
+	assert.Equal(t, nil, err)
 }
 
-func TestIsSortCodeAllZeros(t *testing.T) {
-	mockJWT := mockJWTClient{}
+func TestAddDirectDebitUnauthorised(t *testing.T) {
+	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnauthorized)
+	}))
+	defer svr.Close()
 
-	tests := []struct {
-		name          string
-		accountHolder string
-		accountName   string
-		sortCode      string
-		accountNumber string
-		expectedError apierror.ValidationError
-	}{
-		{
-			name:          "Empty AccountHolder Returns ValidationError",
-			accountHolder: "",
-			accountName:   "testing",
-			sortCode:      "12-34-56",
-			accountNumber: "12345678",
-			expectedError: apierror.ValidationError{Errors: apierror.ValidationErrors{"AccountHolder": map[string]string{"required": ""}}},
-		},
-		{
-			name:          "Empty AccountName Returns ValidationError",
-			accountHolder: "CLIENT",
-			accountName:   "",
-			sortCode:      "12-34-56",
-			accountNumber: "12345678",
-			expectedError: apierror.ValidationError{Errors: apierror.ValidationErrors{"AccountName": map[string]string{"required": ""}}},
-		},
-		{
-			name:          "AccountName Over 18 Characters Returns ValidationError",
-			accountHolder: "CLIENT",
-			accountName:   strings.Repeat("a", 19),
-			sortCode:      "12-34-56",
-			accountNumber: "12345678",
-			expectedError: apierror.ValidationError{Errors: apierror.ValidationErrors{"AccountName": map[string]string{"gteEighteen": ""}}},
-		},
-		{
-			name:          "Empty SortCode Returns ValidationError",
-			accountHolder: "CLIENT",
-			accountName:   "account Name",
-			sortCode:      "",
-			accountNumber: "12345678",
-			expectedError: apierror.ValidationError{Errors: apierror.ValidationErrors{"SortCode": map[string]string{"required": ""}}},
-		},
-		{
-			name:          "SortCode Not Six Characters Returns ValidationError",
-			accountHolder: "CLIENT",
-			accountName:   "account Name",
-			sortCode:      "12-34-5",
-			accountNumber: "12345678",
-			expectedError: apierror.ValidationError{Errors: apierror.ValidationErrors{"SortCode": map[string]string{"len": ""}}},
-		},
-		{
-			name:          "SortCode Six Characters All Zeros Returns ValidationError",
-			accountHolder: "CLIENT",
-			accountName:   "account Name",
-			sortCode:      "00-00-00",
-			accountNumber: "12345678",
-			expectedError: apierror.ValidationError{Errors: apierror.ValidationErrors{"SortCode": map[string]string{"valid": ""}}},
-		},
-		{
-			name:          "AccountNumber Not Eight Characters Returns ValidationError",
-			accountHolder: "CLIENT",
-			accountName:   "account Name",
-			sortCode:      "12-34-56",
-			accountNumber: "123456789",
-			expectedError: apierror.ValidationError{Errors: apierror.ValidationErrors{"AccountNumber": map[string]string{"len": ""}}},
-		},
-		{
-			name:          "Successful payload Returns Nil",
-			accountHolder: "CLIENT",
-			accountName:   "testing",
-			sortCode:      "12-34-56",
-			accountNumber: "12345678",
-			expectedError: apierror.ValidationError{},
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
+
+	err := client.AddDirectDebit(testContext(), 1, "CLIENT", "Mrs Account Holder", "30-33-30", "12345678")
+
+	assert.Equal(t, ErrUnauthorized.Error(), err.Error())
+}
+
+func TestAddDirectDebitReturns500Error(t *testing.T) {
+	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer svr.Close()
+
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
+
+	err := client.AddDirectDebit(testContext(), 1, "CLIENT", "Mrs Account Holder", "30-33-30", "12345678")
+	assert.Equal(t, StatusError{
+		Code:   http.StatusInternalServerError,
+		URL:    svr.URL + "/clients/1/direct-debits",
+		Method: http.MethodPost,
+	}, err)
+}
+
+func TestAddDirectDebitReturnsValidationError(t *testing.T) {
+	validationErrors := apierror.ValidationError{
+		Errors: map[string]map[string]string{
+			"accountHolder": {
+				"required": "This field accountHolder needs to be looked at",
+			},
 		},
 	}
+	responseBody, _ := json.Marshal(validationErrors)
+	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		_, _ = w.Write(responseBody)
+	}))
+	defer svr.Close()
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
-			defer svr.Close()
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-			mockClient := SetUpTest()
-			client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""})
-			err := client.AddDirectDebit(tt.accountHolder, tt.accountName, tt.sortCode, tt.accountNumber)
-
-			if tt.expectedError.Errors != nil {
-				assert.Equal(t, tt.expectedError, err.(apierror.ValidationError))
-			} else {
-				assert.Nil(t, err)
-			}
-		})
-	}
+	err := client.AddDirectDebit(testContext(), 1, "CLIENT", "Mrs Account Holder", "30-33-30", "12345678")
+	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"accountHolder": map[string]string{"required": "This field accountHolder needs to be looked at"}}}
+	assert.Equal(t, expectedError, err.(apierror.ValidationError))
 }

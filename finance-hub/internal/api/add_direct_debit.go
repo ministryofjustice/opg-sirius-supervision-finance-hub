@@ -2,49 +2,16 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"net/http"
 )
 
-func (c *Client) AddDirectDebit(accountHolder string, accountName string, sortCode string, accountNumber string) error {
+func (c *Client) AddDirectDebit(ctx context.Context, clientId int, accountHolder string, accountName string, sortCode string, accountNumber string) error {
 	var body bytes.Buffer
-	errors := make(map[string]map[string]string)
-
-	if accountHolder == "" {
-		errors["AccountHolder"] = map[string]string{"required": ""}
-	}
-
-	if accountName == "" {
-		errors["AccountName"] = map[string]string{"required": ""}
-	}
-
-	if len(accountName) > 18 {
-		errors["AccountName"] = map[string]string{"gteEighteen": ""}
-	}
-
-	if sortCode == "" {
-		errors["SortCode"] = map[string]string{"required": ""}
-	} else if len(sortCode) != 8 {
-		errors["SortCode"] = map[string]string{"len": ""}
-	}
-
-	var sortCodeIsAllZeros = shared.IsSortCodeAllZeros(sortCode)
-	if sortCodeIsAllZeros && len(sortCode) == 8 {
-		errors["SortCode"] = map[string]string{"valid": ""}
-	}
-
-	if accountNumber == "" {
-		errors["AccountNumber"] = map[string]string{"required": ""}
-	} else if len(accountNumber) != 8 {
-		errors["AccountNumber"] = map[string]string{"len": ""}
-	}
-
-	if len(errors) > 0 {
-		return apierror.ValidationError{
-			Errors: errors,
-		}
-	}
 
 	err := json.NewEncoder(&body).Encode(shared.AddDirectDebit{
 		AccountHolder: accountHolder,
@@ -57,5 +24,35 @@ func (c *Client) AddDirectDebit(accountHolder string, accountName string, sortCo
 		return err
 	}
 
-	return nil
+	url := fmt.Sprintf("/clients/%d/direct-debits", clientId)
+	req, err := c.newBackendRequest(ctx, http.MethodPost, url, &body)
+
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return err
+	}
+
+	defer unchecked(resp.Body.Close)
+
+	if resp.StatusCode == http.StatusCreated {
+		return nil
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		return ErrUnauthorized
+	}
+
+	if resp.StatusCode == http.StatusUnprocessableEntity {
+		var v apierror.ValidationError
+		if err := json.NewDecoder(resp.Body).Decode(&v); err == nil && len(v.Errors) > 0 {
+			return apierror.ValidationError{Errors: v.Errors}
+		}
+	}
+
+	return newStatusError(resp)
 }

@@ -15,7 +15,7 @@ import (
 )
 
 type ApiClient interface {
-	AddDirectDebit(string, string, string, string) error
+	AddDirectDebit(context.Context, int, string, string, string, string) error
 	AddFeeReduction(context.Context, int, string, string, string, string, string) error
 	AddInvoiceAdjustment(context.Context, int, int, int, string, string, string, bool) error
 	AddManualInvoice(context.Context, int, string, *string, *string, *string, *string, *string, *string) error
