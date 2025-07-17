@@ -245,7 +245,7 @@ jobs:
     name: End of PR Workflow
     runs-on: ubuntu-latest
     if: always()
-    needs: ['test', 'test-migrations', 'golint', 'gosec', 'sqlc', 'cypress', 'create-tag', 'build']
+    needs: ['test', 'test-migrations', 'golint', 'gosec', 'sqlc', 'cypress', 'create-tag', 'build', 'push']
     steps:
       - name: End of PR Workflow
         run: |
