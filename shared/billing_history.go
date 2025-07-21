@@ -38,6 +38,8 @@ func (b *BillingHistory) UnmarshalJSON(data []byte) (err error) {
 		b.Event = new(InvoiceAdjustmentApplied)
 	case EventTypeInvoiceAdjustmentPending:
 		b.Event = new(InvoiceAdjustmentPending)
+	case EventTypeInvoiceAdjustmentRejected:
+		b.Event = new(InvoiceAdjustmentRejected)
 	case EventTypePaymentProcessed:
 		b.Event = new(PaymentProcessed)
 	case EventTypeReappliedCredit:
@@ -98,6 +100,14 @@ type InvoiceAdjustmentPending struct {
 	BaseBillingEvent
 }
 
+type InvoiceAdjustmentRejected struct {
+	AdjustmentType   AdjustmentType `json:"adjustment_type"`
+	ClientId         int            `json:"client_id"`
+	Notes            string         `json:"notes"`
+	PaymentBreakdown `json:"payment_breakdown"`
+	BaseBillingEvent
+}
+
 type TransactionEvent struct {
 	ClientId        int                `json:"client_id"`
 	TransactionType TransactionType    `json:"transaction_type"`
@@ -139,19 +149,21 @@ const (
 	EventTypeInvoiceAdjustmentApplied
 	EventTypePaymentProcessed
 	EventTypeInvoiceAdjustmentPending
+	EventTypeInvoiceAdjustmentRejected
 	EventTypeReappliedCredit
 )
 
 var eventTypeMap = map[string]BillingEventType{
-	"UNKNOWN":                    EventTypeUnknown,
-	"INVOICE_GENERATED":          EventTypeInvoiceGenerated,
-	"FEE_REDUCTION_AWARDED":      EventTypeFeeReductionAwarded,
-	"FEE_REDUCTION_CANCELLED":    EventTypeFeeReductionCancelled,
-	"FEE_REDUCTION_APPLIED":      EventTypeFeeReductionApplied,
-	"INVOICE_ADJUSTMENT_APPLIED": EventTypeInvoiceAdjustmentApplied,
-	"INVOICE_ADJUSTMENT_PENDING": EventTypeInvoiceAdjustmentPending,
-	"PAYMENT_PROCESSED":          EventTypePaymentProcessed,
-	"REAPPLIED_CREDIT":           EventTypeReappliedCredit,
+	"UNKNOWN":                     EventTypeUnknown,
+	"INVOICE_GENERATED":           EventTypeInvoiceGenerated,
+	"FEE_REDUCTION_AWARDED":       EventTypeFeeReductionAwarded,
+	"FEE_REDUCTION_CANCELLED":     EventTypeFeeReductionCancelled,
+	"FEE_REDUCTION_APPLIED":       EventTypeFeeReductionApplied,
+	"INVOICE_ADJUSTMENT_APPLIED":  EventTypeInvoiceAdjustmentApplied,
+	"INVOICE_ADJUSTMENT_PENDING":  EventTypeInvoiceAdjustmentPending,
+	"INVOICE_ADJUSTMENT_REJECTED": EventTypeInvoiceAdjustmentRejected,
+	"PAYMENT_PROCESSED":           EventTypePaymentProcessed,
+	"REAPPLIED_CREDIT":            EventTypeReappliedCredit,
 }
 
 func (b BillingEventType) String() string {
@@ -168,6 +180,8 @@ func (b BillingEventType) String() string {
 		return "INVOICE_ADJUSTMENT_APPLIED"
 	case EventTypeInvoiceAdjustmentPending:
 		return "INVOICE_ADJUSTMENT_PENDING"
+	case EventTypeInvoiceAdjustmentRejected:
+		return "INVOICE_ADJUSTMENT_REJECTED"
 	case EventTypePaymentProcessed:
 		return "PAYMENT_PROCESSED"
 	case EventTypeReappliedCredit:

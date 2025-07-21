@@ -34,6 +34,13 @@ func (s *Service) GetBillingHistory(ctx context.Context, clientID int32) ([]shar
 
 	history = append(history, processPendingAdjustments(pendingAdjustments, clientID)...)
 
+	rejectedAdjustments, err := s.store.GetRejectedInvoiceAdjustments(ctx, clientID)
+	if err != nil {
+		return nil, err
+	}
+
+	history = append(history, processRejectedAdjustments(rejectedAdjustments, clientID)...)
+
 	feEvents, err := s.store.GetFeeReductionEvents(ctx, clientID)
 	if err != nil {
 		s.Logger(ctx).Error(fmt.Sprintf("Error in getting fee reductions events in billing history for client %d", clientID), slog.String("err", err.Error()))
@@ -51,6 +58,39 @@ func (s *Service) GetBillingHistory(ctx context.Context, clientID int32) ([]shar
 	history = append(history, processLedgerAllocations(allocations, clientID)...)
 
 	return computeBillingHistory(history), nil
+}
+
+func processRejectedAdjustments(adjustments []store.GetRejectedInvoiceAdjustmentsRow, clientID int32) []historyHolder {
+	var history []historyHolder
+	for _, adjustment := range adjustments {
+
+		bh := shared.BillingHistory{
+			User: int(adjustment.UpdatedBy.Int32),
+			Date: shared.Date{Time: adjustment.UpdatedAt.Time},
+		}
+		bh.Event = shared.InvoiceAdjustmentRejected{
+			BaseBillingEvent: shared.BaseBillingEvent{
+				Type: shared.EventTypeInvoiceAdjustmentRejected,
+			},
+			AdjustmentType: shared.ParseAdjustmentType(adjustment.AdjustmentType),
+			Notes:          adjustment.Notes,
+			ClientId:       int(clientID),
+			PaymentBreakdown: shared.PaymentBreakdown{
+				InvoiceReference: shared.InvoiceEvent{
+					ID:        int(adjustment.InvoiceID),
+					Reference: adjustment.Reference,
+				},
+				Amount: int(adjustment.Amount),
+			},
+		}
+
+		history = append(history, historyHolder{
+			billingHistory:    bh,
+			balanceAdjustment: 0,
+		})
+	}
+
+	return history
 }
 
 func processPendingAdjustments(adjustments []store.GetPendingInvoiceAdjustmentsRow, clientID int32) []historyHolder {
