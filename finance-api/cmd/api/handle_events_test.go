@@ -47,7 +47,7 @@ func TestServer_handleEvents(t *testing.T) {
 			event: shared.Event{
 				Source:     "opg.supervision.finance.adhoc",
 				DetailType: "finance-adhoc",
-				Detail:     shared.AdhocEvent{Task: "NegativeInvoices"},
+				Detail:     shared.AdhocEvent{Task: "RebalanceCCB"},
 			},
 			expectedErr:     nil,
 			expectedHandler: "ProcessAdhocEvent",

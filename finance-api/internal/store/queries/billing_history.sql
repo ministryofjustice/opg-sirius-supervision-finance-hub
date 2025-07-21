@@ -8,6 +8,15 @@ FROM invoice_adjustment ia
 WHERE fc.client_id = $1
 ORDER BY ia.raised_date DESC;
 
+-- name: GetRejectedInvoiceAdjustments :many
+SELECT ia.invoice_id, i.reference, ia.adjustment_type, ia.amount, ia.notes, ia.updated_at, ia.updated_by
+FROM invoice_adjustment ia
+         JOIN invoice i ON i.id = ia.invoice_id
+         JOIN finance_client fc ON fc.id = ia.finance_client_id
+WHERE fc.client_id = $1
+AND status = 'REJECTED'
+ORDER BY ia.raised_date DESC;
+
 -- name: GetGeneratedInvoices :many
 SELECT i.id invoice_id, reference, feetype, amount, created_by, created_at
 FROM invoice i

@@ -56,5 +56,6 @@ func (h *BillingHistoryHandler) transform(ctx context.Context, in []shared.Billi
 			CreditBalance:      shared.IntToDecimalString(bh.CreditBalance),
 		})
 	}
+
 	return out
 }
