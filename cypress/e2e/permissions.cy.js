@@ -25,7 +25,7 @@ describe("Role-based permissions", () => {
         cy.setCookie("x-test-user-id", financeUser);
         cy.visit("/clients/11/invoices");
 
-        cy.contains(".moj-button-menu__item", "Edit payment method").should("exist");
+        cy.contains(".moj-button-menu__item", "Set up direct debit").should("exist");
 
         cy.contains(".moj-button-menu__item", "Add manual invoice").should("not.exist");
         cy.contains(".moj-button-menu__item", "Adjust invoice").should("exist");

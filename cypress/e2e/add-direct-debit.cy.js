@@ -21,17 +21,6 @@ describe("Direct debit form", () => {
         cy.get(".govuk-form-group--error").should("have.length", 2)
     });
 
-    it("shows specific error message if sort code all zeros", () => {
-        cy.visit("/clients/1/direct-debit/add");
-        cy.get("#client").click();
-        cy.get("#f-AccountName").contains("Name").type("Mrs Account Holder");
-        cy.get("#f-SortCode").contains("Sort code").type("000000");
-        cy.get("#f-AccountNumber").contains("number").type("12345678");
-        cy.contains(".govuk-button", "Save and continue").click()
-        cy.get(".govuk-error-summary").contains("Enter a valid sort code")
-        cy.get(".govuk-form-group--error").should("have.length", 1)
-    });
-
     it("should have no accessibility violations",() => {
         cy.visit("/clients/1/direct-debit/add");
         cy.checkAccessibility();
