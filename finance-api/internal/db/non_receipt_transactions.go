@@ -72,7 +72,13 @@ WITH transaction_type_order AS (
 			WHEN line_description LIKE 'GA Write-off reversal%' THEN 45
 			WHEN line_description LIKE 'GS Write-off reversal%' THEN 46
 			WHEN line_description LIKE 'GT Write-off reversal%' THEN 47
-			ELSE 48
+			WHEN line_description LIKE 'AD Fee reduction reversal%' THEN 48
+			WHEN line_description LIKE 'General Fee reduction reversal%' THEN 49
+			WHEN line_description LIKE 'Minimal Fee reduction reversal%' THEN 50
+			WHEN line_description LIKE 'GA Fee reduction reversal%' THEN 51
+			WHEN line_description LIKE 'GS Fee reduction reversal%' THEN 52
+			WHEN line_description LIKE 'GT Fee reduction reversal%' THEN 53
+			ELSE 54
 			END AS index
 	FROM supervision_finance.transaction_type WHERE is_receipt = FALSE
 ),

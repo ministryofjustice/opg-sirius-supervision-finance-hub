@@ -220,6 +220,27 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 				},
 				{
 					User: 1,
+					Date: shared.NewDate("2024-10-07 09:32:23"),
+					Event: shared.InvoiceAdjustmentRejected{
+						AdjustmentType: shared.AdjustmentTypeWriteOff,
+						ClientId:       1,
+						Notes:          "Writing off",
+						PaymentBreakdown: shared.PaymentBreakdown{
+							InvoiceReference: shared.InvoiceEvent{
+								ID:        9,
+								Reference: "AD000001/24",
+							},
+							Amount: 10000,
+						},
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeInvoiceAdjustmentRejected,
+						},
+					},
+					OutstandingBalance: 10000,
+					CreditBalance:      0,
+				},
+				{
+					User: 1,
 					Date: shared.NewDate("2024-10-07 09:31:44"),
 					Event: shared.InvoiceGenerated{
 						ClientId: 1,
