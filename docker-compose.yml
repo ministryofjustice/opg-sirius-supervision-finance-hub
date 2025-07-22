@@ -174,3 +174,11 @@ services:
       interval: 10s
       timeout: 10s
       retries: 50
+
+  allpay-mock:
+    image: stoplight/prism:4
+    volumes:
+      - ./allpay-mock/allpay.yaml:/openapi.yaml:ro
+    command: mock /openapi.yaml -h 0.0.0.0 --errors
+    ports:
+      - "4010:4010"
