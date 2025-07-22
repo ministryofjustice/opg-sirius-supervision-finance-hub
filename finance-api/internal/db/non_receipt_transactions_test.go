@@ -21,13 +21,15 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234")
 	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
 
-	_, _ = suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, yesterday.StringPtr())
+	invoice1ID, _ := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, yesterday.StringPtr())
 	invoice2ID, _ := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeS3, valToPtr("320.00"), threeMonthsAgo.StringPtr(), nil, nil, valToPtr("MINIMAL"), yesterday.StringPtr())
 	suite.seeder.AddFeeRanges(ctx, invoice2ID, []testhelpers.FeeRange{{SupervisionLevel: "MINIMAL", FromDate: oneYearAgo.Date(), ToDate: today.Date()}})
 	_, _ = suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeGS, valToPtr("350.00"), threeMonthsAgo.StringPtr(), nil, nil, valToPtr("GENERAL"), yesterday.StringPtr())
 
 	_ = suite.seeder.CreateFeeReduction(ctx, client1ID, shared.FeeReductionTypeExemption, strconv.Itoa(yesterday.Date().Year()-1), 2, "Test", yesterday.Date())
 	suite.seeder.CreatePayment(ctx, 1200, yesterday.Date(), "12345678", shared.TransactionTypeMotoCardPayment, yesterday.Date(), 0)
+
+	suite.seeder.CreateAdjustment(ctx, client1ID, invoice1ID, shared.AdjustmentTypeFeeReductionReversal, 500, "fee reduction reversal", yesterday.DatePtr())
 
 	// client with one AD invoice, an S2 invoice, a GA invoice, a hardship and a direct debit payment
 	client2ID := suite.seeder.CreateClient(ctx, "Barry", "Test", "87654321", "4321")
@@ -66,7 +68,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 	}))
 
 	assert.NoError(suite.T(), err)
-	assert.Equal(suite.T(), 25, len(rows))
+	assert.Equal(suite.T(), 27, len(rows))
 
 	results := mapByHeader(rows)
 	assert.NotEmpty(suite.T(), results)
@@ -334,4 +336,26 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions() {
 	assert.Equal(suite.T(), "2.00", results[23]["Debit"], "Debit - Manual credit Credit")
 	assert.Equal(suite.T(), "", results[23]["Credit"], "Credit - Manual credit Credit")
 	assert.Equal(suite.T(), fmt.Sprintf("Gen Manual credit [%s]", yesterday.Date().Format("02/01/2006")), results[23]["Line description"], "Line description - Manual credit Credit")
+
+	assert.Equal(suite.T(), "=\"0470\"", results[24]["Entity"], "Entity - Fee reduction reversal Debit")
+	assert.Equal(suite.T(), "10482009", results[24]["Cost Centre"], "Cost Centre - Fee reduction reversal Debit")
+	assert.Equal(suite.T(), "4481102114", results[24]["Account"], "Account - Fee reduction reversal Debit")
+	assert.Equal(suite.T(), "=\"0000000\"", results[24]["Objective"], "Objective - Fee reduction reversal Debit")
+	assert.Equal(suite.T(), "=\"00000000\"", results[24]["Analysis"], "Analysis - Fee reduction reversal Debit")
+	assert.Equal(suite.T(), "=\"0000\"", results[24]["Intercompany"], "Intercompany - Fee reduction reversal Debit")
+	assert.Equal(suite.T(), "=\"00000000\"", results[24]["Spare"], "Spare - Fee reduction reversal Debit")
+	assert.Equal(suite.T(), "", results[24]["Debit"], "Debit - Fee reduction reversal Debit")
+	assert.Equal(suite.T(), "5.00", results[24]["Credit"], "Credit - Fee reduction reversal Debit")
+	assert.Equal(suite.T(), fmt.Sprintf("AD Fee reduction reversal [%s]", yesterday.Date().Format("02/01/2006")), results[24]["Line description"], "Line description - Fee reduction reversal Debit")
+
+	assert.Equal(suite.T(), "=\"0470\"", results[25]["Entity"], "Entity - Fee reduction reversal Credit")
+	assert.Equal(suite.T(), "99999999", results[25]["Cost Centre"], "Cost Centre - Fee reduction reversal Credit")
+	assert.Equal(suite.T(), "1816102003", results[25]["Account"], "Account - Fee reduction reversal Credit")
+	assert.Equal(suite.T(), "=\"0000000\"", results[25]["Objective"], "Objective - Fee reduction reversal Credit")
+	assert.Equal(suite.T(), "=\"00000000\"", results[25]["Analysis"], "Analysis - Fee reduction reversal Credit")
+	assert.Equal(suite.T(), "=\"0000\"", results[25]["Intercompany"], "Intercompany - Fee reduction reversal Credit")
+	assert.Equal(suite.T(), "=\"00000000\"", results[25]["Spare"], "Spare - Fee reduction reversal Credit")
+	assert.Equal(suite.T(), "5.00", results[25]["Debit"], "Debit - Fee reduction reversal Credit")
+	assert.Equal(suite.T(), "", results[25]["Credit"], "Credit - Fee reduction reversal Credit")
+	assert.Equal(suite.T(), fmt.Sprintf("AD Fee reduction reversal [%s]", yesterday.Date().Format("02/01/2006")), results[25]["Line description"], "Line description - Fee reduction reversal Credit")
 }
