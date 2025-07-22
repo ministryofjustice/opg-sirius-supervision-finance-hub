@@ -205,7 +205,13 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 			shared.ScheduleTypeMinimalWriteOffReversals,
 			shared.ScheduleTypeGAWriteOffReversals,
 			shared.ScheduleTypeGSWriteOffReversals,
-			shared.ScheduleTypeGTWriteOffReversals:
+			shared.ScheduleTypeGTWriteOffReversals,
+			shared.ScheduleTypeADFeeReductionReversals,
+			shared.ScheduleTypeGeneralFeeReductionReversals,
+			shared.ScheduleTypeMinimalFeeReductionReversals,
+			shared.ScheduleTypeGAFeeReductionReversals,
+			shared.ScheduleTypeGSFeeReductionReversals,
+			shared.ScheduleTypeGTFeeReductionReversals:
 			query = db.NewAdjustmentsSchedule(db.AdjustmentsScheduleInput{
 				Date:         reportRequest.TransactionDate,
 				ScheduleType: reportRequest.ScheduleType,
