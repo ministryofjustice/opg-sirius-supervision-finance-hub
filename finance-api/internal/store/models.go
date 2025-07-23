@@ -47,9 +47,11 @@ type BillingPeriod struct {
 }
 
 type Case struct {
-	ID          int32
-	ClientID    pgtype.Int4
-	Orderstatus pgtype.Text
+	ID                 int32
+	ClientID           pgtype.Int4
+	Orderstatus        pgtype.Text
+	Closedondate       pgtype.Timestamp
+	Orderclosurereason pgtype.Text
 }
 
 type CostCentre struct {
