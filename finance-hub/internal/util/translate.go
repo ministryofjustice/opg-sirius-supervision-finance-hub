@@ -60,7 +60,7 @@ var validationMappings = map[string]map[string]pair{
 		"start-or-end-date": pair{"start-or-end-date", "A fee reduction already exists for the period specified"},
 	},
 	"AccountHolder": {
-		"required": pair{"AccountHolder", "Select who the account holder is"},
+		"required": pair{"AccountHolder", "Select the account holder"},
 	},
 	"AccountName": {
 		"required":    pair{"AccountName", "Enter the name on the account"},
@@ -68,6 +68,7 @@ var validationMappings = map[string]map[string]pair{
 	},
 	"SortCode": {
 		"len":      pair{"SortCode", "Sort code must consist of 6 digits in the format 00-00-00"},
+		"valid":    pair{"SortCode", "Enter a valid sort code"},
 		"required": pair{"SortCode", "Enter the sort code"},
 	},
 	"AccountNumber": {

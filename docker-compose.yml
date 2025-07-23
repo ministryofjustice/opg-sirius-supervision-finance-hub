@@ -16,6 +16,7 @@ services:
       JWT_SECRET: mysupersecrettestkeythatis128bits
       FINANCE_HUB_LIVE_DATE: 01/01/2024
       SHOW_REFUNDS: 1
+      SHOW_DIRECT_DEBITS: 1
     depends_on:
       finance-api:
         condition: service_healthy

@@ -24,15 +24,16 @@ import (
 )
 
 type Envs struct {
-	webDir          string
-	siriusURL       string
-	siriusPublicURL string
-	backendURL      string
-	prefix          string
-	port            string
-	jwtSecret       string
-	billingTeamID   int
-	showRefunds     bool
+	webDir           string
+	siriusURL        string
+	siriusPublicURL  string
+	backendURL       string
+	prefix           string
+	port             string
+	jwtSecret        string
+	billingTeamID    int
+	showRefunds      bool
+	showDirectDebits bool
 }
 
 func parseEnvs() (*Envs, error) {
@@ -63,15 +64,16 @@ func parseEnvs() (*Envs, error) {
 	}
 
 	return &Envs{
-		siriusURL:       envs["SIRIUS_URL"],
-		siriusPublicURL: envs["SIRIUS_PUBLIC_URL"],
-		prefix:          envs["PREFIX"],
-		backendURL:      envs["BACKEND_URL"],
-		jwtSecret:       envs["JWT_SECRET"],
-		billingTeamID:   billingTeamId,
-		webDir:          "web",
-		port:            envs["PORT"],
-		showRefunds:     os.Getenv("SHOW_REFUNDS") == "1",
+		siriusURL:        envs["SIRIUS_URL"],
+		siriusPublicURL:  envs["SIRIUS_PUBLIC_URL"],
+		prefix:           envs["PREFIX"],
+		backendURL:       envs["BACKEND_URL"],
+		jwtSecret:        envs["JWT_SECRET"],
+		billingTeamID:    billingTeamId,
+		webDir:           "web",
+		port:             envs["PORT"],
+		showRefunds:      os.Getenv("SHOW_REFUNDS") == "1",
+		showDirectDebits: os.Getenv("SHOW_DIRECT_DEBITS") == "1",
 	}, nil
 }
 
@@ -115,14 +117,15 @@ func run(ctx context.Context, logger *slog.Logger) error {
 	s := &http.Server{
 		Addr: ":" + envs.port,
 		Handler: server.New(logger, client, templates, server.Envs{
-			Port:            envs.port,
-			WebDir:          envs.webDir,
-			SiriusURL:       envs.siriusURL,
-			SiriusPublicURL: envs.siriusPublicURL,
-			Prefix:          envs.prefix,
-			BackendURL:      envs.backendURL,
-			BillingTeamID:   envs.billingTeamID,
-			ShowRefunds:     envs.showRefunds,
+			Port:             envs.port,
+			WebDir:           envs.webDir,
+			SiriusURL:        envs.siriusURL,
+			SiriusPublicURL:  envs.siriusPublicURL,
+			Prefix:           envs.prefix,
+			BackendURL:       envs.backendURL,
+			BillingTeamID:    envs.billingTeamID,
+			ShowRefunds:      envs.showRefunds,
+			ShowDirectDebits: envs.showDirectDebits,
 		}),
 		ReadHeaderTimeout: 10 * time.Second,
 	}
@@ -174,6 +177,9 @@ func createTemplates(envVars *Envs) map[string]*template.Template {
 		},
 		"sirius": func(s string) string {
 			return envVars.siriusPublicURL + s
+		},
+		"showDirectDebits": func() bool {
+			return envVars.showDirectDebits
 		},
 		"toCurrency": func(amount int) string {
 			return shared.IntToDecimalString(amount)
