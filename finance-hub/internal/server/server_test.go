@@ -67,6 +67,10 @@ func (m mockApiClient) AddDirectDebit(context context.Context, clientId int, acc
 	return m.error
 }
 
+func (m mockApiClient) CancelDirectDebit(context context.Context, clientId int) error {
+	return m.error
+}
+
 func (m mockApiClient) SubmitPaymentMethod(context context.Context, i int, s string) error {
 	return m.error
 }

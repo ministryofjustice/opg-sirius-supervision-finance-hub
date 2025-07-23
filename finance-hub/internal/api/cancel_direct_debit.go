@@ -22,8 +22,6 @@ func (c *Client) CancelDirectDebit(ctx context.Context, clientId int) error {
 		return err
 	}
 
-	defer unchecked(resp.Body.Close)
-
 	if resp.StatusCode == http.StatusAccepted {
 		return nil
 	}

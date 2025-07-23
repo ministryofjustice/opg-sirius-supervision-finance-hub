@@ -20,7 +20,7 @@ func (h *SubmitCancelDirectDebitHandler) render(v AppVars, w http.ResponseWriter
 	err := h.Client().CancelDirectDebit(ctx, clientID)
 
 	if err == nil {
-		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices?success=direct-debit", v.EnvironmentVars.Prefix, clientID))
+		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices?success=cancel-direct-debit", v.EnvironmentVars.Prefix, clientID))
 		return nil
 	}
 
@@ -33,7 +33,6 @@ func (h *SubmitCancelDirectDebitHandler) render(v AppVars, w http.ResponseWriter
 	switch {
 	case errors.As(err, &ve):
 		{
-
 			data = AppVars{Errors: util.RenameErrors(ve.Errors)}
 			w.WriteHeader(http.StatusUnprocessableEntity)
 		}
