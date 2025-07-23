@@ -16,6 +16,7 @@ services:
       JWT_SECRET: mysupersecrettestkeythatis128bits
       FINANCE_HUB_LIVE_DATE: 01/01/2024
       SHOW_REFUNDS: 1
+      SHOW_DIRECT_DEBITS: 1
     depends_on:
       finance-api:
         condition: service_healthy
@@ -173,3 +174,11 @@ services:
       interval: 10s
       timeout: 10s
       retries: 50
+
+  allpay-mock:
+    image: stoplight/prism:4
+    volumes:
+      - ./allpay-mock/allpay.yaml:/openapi.yaml:ro
+    command: mock /openapi.yaml -h 0.0.0.0 --errors
+    ports:
+      - "4010:4010"

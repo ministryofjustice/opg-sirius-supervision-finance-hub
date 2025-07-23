@@ -20,30 +20,30 @@ import (
 )
 
 type Service interface {
+	AddFeeReduction(ctx context.Context, clientId int32, data shared.AddFeeReduction) error
+	AddInvoiceAdjustment(ctx context.Context, clientId int32, invoiceId int32, ledgerEntry *shared.AddInvoiceAdjustmentRequest) (*shared.InvoiceReference, error)
+	AddManualInvoice(ctx context.Context, clientId int32, invoice shared.AddManualInvoice) error
+	AddRefund(ctx context.Context, clientId int32, refund shared.AddRefund) error
+	CancelFeeReduction(ctx context.Context, id int32, cancelledFeeReduction shared.CancelFeeReduction) error
+	ExpireRefunds(ctx context.Context) error
 	GetAccountInformation(ctx context.Context, id int32) (*shared.AccountInformation, error)
+	GetBillingHistory(ctx context.Context, id int32) ([]shared.BillingHistory, error)
+	GetFeeReductions(ctx context.Context, invoiceId int32) (shared.FeeReductions, error)
 	GetInvoices(ctx context.Context, clientId int32) (shared.Invoices, error)
 	GetInvoiceAdjustments(ctx context.Context, clientId int32) (shared.InvoiceAdjustments, error)
 	GetPermittedAdjustments(ctx context.Context, invoiceId int32) ([]shared.AdjustmentType, error)
 	GetRefunds(ctx context.Context, clientId int32) (shared.Refunds, error)
-	GetFeeReductions(ctx context.Context, invoiceId int32) (shared.FeeReductions, error)
-	AddInvoiceAdjustment(ctx context.Context, clientId int32, invoiceId int32, ledgerEntry *shared.AddInvoiceAdjustmentRequest) (*shared.InvoiceReference, error)
-	AddFeeReduction(ctx context.Context, clientId int32, data shared.AddFeeReduction) error
-	CancelFeeReduction(ctx context.Context, id int32, cancelledFeeReduction shared.CancelFeeReduction) error
-	UpdatePendingInvoiceAdjustment(ctx context.Context, clientId int32, adjustmentId int32, status shared.AdjustmentStatus) error
-	AddManualInvoice(ctx context.Context, clientId int32, invoice shared.AddManualInvoice) error
-	GetBillingHistory(ctx context.Context, id int32) ([]shared.BillingHistory, error)
-	ReapplyCredit(ctx context.Context, clientID int32, tx *store.Tx) error
-	UpdateClient(ctx context.Context, clientID int32, courtRef string) error
-	UpdatePaymentMethod(ctx context.Context, clientID int32, paymentMethod shared.PaymentMethod) error
 	ProcessPayments(ctx context.Context, records [][]string, uploadType shared.ReportUploadType, bankDate shared.Date, pisNumber int) (map[int]string, error)
 	ProcessAdhocEvent(ctx context.Context) error
 	ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType) (map[int]string, error)
-	AddRefund(ctx context.Context, clientId int32, refund shared.AddRefund) error
-	UpdateRefundDecision(ctx context.Context, clientId int32, refundId int32, status shared.RefundStatus) error
 	PostReportActions(ctx context.Context, report shared.ReportRequest)
 	ProcessFulfilledRefunds(ctx context.Context, records [][]string, date shared.Date) (map[int]string, error)
-	ExpireRefunds(ctx context.Context) error
 	ProcessDirectUploadReport(ctx context.Context, filename string, fileBytes io.Reader, uploadType shared.ReportUploadType) error
+	ReapplyCredit(ctx context.Context, clientID int32, tx *store.Tx) error
+	UpdateClient(ctx context.Context, clientID int32, courtRef string) error
+	UpdatePaymentMethod(ctx context.Context, clientID int32, paymentMethod shared.PaymentMethod) error
+	UpdatePendingInvoiceAdjustment(ctx context.Context, clientId int32, adjustmentId int32, status shared.AdjustmentStatus) error
+	UpdateRefundDecision(ctx context.Context, clientId int32, refundId int32, status shared.RefundStatus) error
 }
 type FileStorage interface {
 	GetFile(ctx context.Context, bucketName string, filename string) (io.ReadCloser, error)
@@ -106,27 +106,26 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 	}
 
 	authFunc("GET /clients/{clientId}", shared.RoleAny, s.getAccountInformation)
+	authFunc("GET /clients/{clientId}/billing-history", shared.RoleAny, s.getBillingHistory)
+	authFunc("GET /clients/{clientId}/fee-reductions", shared.RoleAny, s.getFeeReductions)
 	authFunc("GET /clients/{clientId}/invoices", shared.RoleAny, s.getInvoices)
 	authFunc("GET /clients/{clientId}/invoices/{invoiceId}/permitted-adjustments", shared.RoleAny, s.getPermittedAdjustments)
-	authFunc("GET /clients/{clientId}/fee-reductions", shared.RoleAny, s.getFeeReductions)
 	authFunc("GET /clients/{clientId}/invoice-adjustments", shared.RoleAny, s.getInvoiceAdjustments)
-	authFunc("GET /clients/{clientId}/billing-history", shared.RoleAny, s.getBillingHistory)
 	authFunc("GET /clients/{clientId}/refunds", shared.RoleAny, s.getRefunds)
 
+	authFunc("POST /clients/{clientId}/fee-reductions", shared.RoleFinanceUser, s.addFeeReduction)
+	authFunc("PUT /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", shared.RoleFinanceManager, s.cancelFeeReduction)
 	authFunc("POST /clients/{clientId}/invoices", shared.RoleFinanceManager, s.addManualInvoice)
 	authFunc("POST /clients/{clientId}/invoices/{invoiceId}/invoice-adjustments", shared.RoleFinanceUser, s.AddInvoiceAdjustment)
 	authFunc("PUT /clients/{clientId}/invoice-adjustments/{adjustmentId}", shared.RoleFinanceManager, s.updatePendingInvoiceAdjustment)
-	authFunc("POST /clients/{clientId}/fee-reductions", shared.RoleFinanceUser, s.addFeeReduction)
-	authFunc("PUT /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", shared.RoleFinanceManager, s.cancelFeeReduction)
 	authFunc("PUT /clients/{clientId}/payment-method", shared.RoleFinanceUser, s.updatePaymentMethod)
 	authFunc("POST /clients/{clientId}/refunds", shared.RoleFinanceUser, s.addRefund)
+	authFunc("POST /clients/{clientId}/direct-debits", shared.RoleFinanceUser, s.addDirectDebit)
 	authFunc("PUT /clients/{clientId}/refunds/{refundId}", shared.RoleFinanceManager, s.updateRefundDecision)
 
 	authFunc("GET /download", shared.RoleFinanceReporting, s.download)
 	authFunc("HEAD /download", shared.RoleFinanceReporting, s.checkDownload)
-
 	authFunc("POST /reports", shared.RoleFinanceReporting, s.requestReport)
-
 	authFunc("POST /uploads", shared.RoleFinanceReporting, s.processUpload)
 
 	// unauthenticated as request is coming from EventBridge

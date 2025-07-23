@@ -14,14 +14,26 @@
         </div>
     </div>
     {{ if .User.IsFinanceUser }}
-        <a class="govuk-button moj-button-menu__item govuk-button--secondary govuk-!-margin-top-5"
-           role="button"
-           draggable="false"
-           data-module="govuk-button"
-           hx-get="{{ prefix (printf "/clients/%s/payment-method/add" .FinanceClient.ClientId) }}"
-           hx-target="#main-content"
-           hx-push-url="{{ prefix (printf "/clients/%s/payment-method/add" .FinanceClient.ClientId) }}">
-            Edit payment method
-        </a>
+            {{ if eq showDirectDebits true }}
+                 <a class="govuk-button moj-button-menu__item govuk-button--secondary govuk-!-margin-top-5"
+                       role="button"
+                       draggable="false"
+                       data-module="govuk-button"
+                       hx-get="{{ prefix (printf "/clients/%s/direct-debit/add" .FinanceClient.ClientId) }}"
+                       hx-target="#main-content"
+                       hx-push-url="{{ prefix (printf "/clients/%s/direct-debit/add" .FinanceClient.ClientId) }}">
+                       Set up direct debit
+                </a>
+            {{ else }}
+                <a class="govuk-button moj-button-menu__item govuk-button--secondary govuk-!-margin-top-5"
+                   role="button"
+                   draggable="false"
+                   data-module="govuk-button"
+                   hx-get="{{ prefix (printf "/clients/%s/payment-method/add" .FinanceClient.ClientId) }}"
+                   hx-target="#main-content"
+                   hx-push-url="{{ prefix (printf "/clients/%s/payment-method/add" .FinanceClient.ClientId) }}">
+                   Edit payment method
+                </a>
+            {{ end }}
     {{ end }}
 {{ end }}
