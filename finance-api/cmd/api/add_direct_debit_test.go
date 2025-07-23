@@ -17,7 +17,6 @@ func TestServer_addDirectDebits(t *testing.T) {
 	var b bytes.Buffer
 
 	directDebitInfo := shared.AddDirectDebit{
-		AccountHolder: "CLIENT",
 		AccountName:   "Mrs Account Holder",
 		SortCode:      "00-10-10",
 		AccountNumber: "12345678",
@@ -46,7 +45,6 @@ func TestServer_addDirectDebitValidationErrors(t *testing.T) {
 	var b bytes.Buffer
 
 	directDebitInfo := shared.AddDirectDebit{
-		AccountHolder: "",
 		AccountName:   "",
 		SortCode:      "",
 		AccountNumber: "",
@@ -63,9 +61,6 @@ func TestServer_addDirectDebitValidationErrors(t *testing.T) {
 	err := server.addDirectDebit(w, req)
 
 	expected := apierror.ValidationError{Errors: apierror.ValidationErrors{
-		"AccountHolder": {
-			"required": "This field AccountHolder needs to be looked at required",
-		},
 		"AccountName": {
 			"required": "This field AccountName needs to be looked at required",
 		},
@@ -82,7 +77,6 @@ func TestServer_addDirectDebitValidationErrors(t *testing.T) {
 func TestServer_addDirectDebit500Error(t *testing.T) {
 	var b bytes.Buffer
 	directDebitInfo := shared.AddDirectDebit{
-		AccountHolder: "",
 		AccountName:   "",
 		SortCode:      "",
 		AccountNumber: "",
