@@ -57,7 +57,6 @@ type Envs struct {
 	Prefix           string
 	BackendURL       string
 	BillingTeamID    int
-	ShowRefunds      bool
 	ShowDirectDebits bool
 }
 
