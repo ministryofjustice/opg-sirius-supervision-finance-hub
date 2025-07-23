@@ -20,25 +20,25 @@ func (suite *IntegrationSuite) Test_adjustments_schedules() {
 	general := "320.00"
 
 	// client 1
-	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", courtRef1, "1234")
+	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", courtRef1, "1234", "ACTIVE")
 	inv1Id, inv1Ref := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeS2, &general, twoYearsAgo.StringPtr(), nil, nil, valToPtr("GENERAL"), twoYearsAgo.StringPtr())
 	_ = suite.seeder.CreateFeeReduction(ctx, client1ID, shared.FeeReductionTypeHardship, strconv.Itoa(twoYearsAgo.Sub(1, 0, 0).Date().Year()), 2, "notes", yesterday.Date())
 	suite.seeder.CreateAdjustment(ctx, client1ID, inv1Id, shared.AdjustmentTypeCreditMemo, 30000, "Credit added", nil) // unapplies should not add additional rows
 
 	// client 2
-	client2ID := suite.seeder.CreateClient(ctx, "Barry", "Giggle", courtRef2, "4321")
+	client2ID := suite.seeder.CreateClient(ctx, "Barry", "Giggle", courtRef2, "4321", "ACTIVE")
 	_ = suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeRemission, strconv.Itoa(twoYearsAgo.Date().Year()), 3, "notes", twoYearsAgo.Date())
 	_, inv2Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeAD, nil, today.StringPtr(), nil, nil, nil, nil)
 
 	// client 3
-	client3ID := suite.seeder.CreateClient(ctx, "Dani", "Debit", courtRef3, "4321")
+	client3ID := suite.seeder.CreateClient(ctx, "Dani", "Debit", courtRef3, "4321", "ACTIVE")
 	_ = suite.seeder.CreateFeeReduction(ctx, client3ID, shared.FeeReductionTypeRemission, strconv.Itoa(twoYearsAgo.Date().Year()), 3, "notes", twoYearsAgo.Date()) // fee reduction to add credit that can be debited
 	inv3Id, inv3Ref := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeAD, nil, sixMonthsAgo.StringPtr(), nil, nil, nil, sixMonthsAgo.StringPtr())
 	suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeS2, &general, sixMonthsAgo.StringPtr(), nil, nil, valToPtr("GENERAL"), nil) // ignore as not AD
 	suite.seeder.CreateAdjustment(ctx, client3ID, inv3Id, shared.AdjustmentTypeDebitMemo, 4500, "Debit added", nil)
 
 	// client 4 - fee reductions
-	client4ID := suite.seeder.CreateClient(ctx, "Alison", "Adjustments", courtRef4, "4321")
+	client4ID := suite.seeder.CreateClient(ctx, "Alison", "Adjustments", courtRef4, "4321", "ACTIVE")
 	// create fee reduction
 	_ = suite.seeder.CreateFeeReduction(ctx, client4ID, shared.FeeReductionTypeHardship, strconv.Itoa(twoYearsAgo.Date().Year()), 3, "notes", twoYearsAgo.Date())
 	// create one of each invoice
