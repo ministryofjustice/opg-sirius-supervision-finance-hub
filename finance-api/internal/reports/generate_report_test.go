@@ -384,6 +384,16 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			expectedTemplate: reportRequestedTemplateId,
 		},
 		{
+			name: "Final Fee Debt",
+			reportRequest: shared.ReportRequest{
+				ReportType: shared.ReportsTypeDebt,
+				DebtType:   toPtr(shared.DebtTypeFinalFee),
+			},
+			expectedQuery:    &db.FinalFeeDebt{ReportQuery: db.NewReportQuery(db.FinalFeeDebtQuery)},
+			expectedFilename: "debt_FinalFee_01:01:2024.csv",
+			expectedTemplate: reportRequestedTemplateId,
+		},
+		{
 			name: "Approved refunds",
 			reportRequest: shared.ReportRequest{
 				ReportType: shared.ReportsTypeDebt,
