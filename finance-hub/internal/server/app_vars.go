@@ -53,7 +53,7 @@ func NewAppVars(r *http.Request, envVars Envs) AppVars {
 			Id:       "refunds",
 			Title:    "Refunds",
 			BasePath: "/clients/" + clientId + "/refunds",
-			Show:     envVars.ShowRefunds,
+			Show:     true,
 		},
 		{
 			Id:       "billing-history",
