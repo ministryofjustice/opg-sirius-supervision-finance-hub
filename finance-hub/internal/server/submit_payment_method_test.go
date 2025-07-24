@@ -12,7 +12,6 @@ import (
 
 func TestAddPaymentMethodSuccess(t *testing.T) {
 	form := url.Values{
-		"accountHolder": {"CLIENT"},
 		"accountName":   {"account name"},
 		"sortCode":      {"123456"},
 		"accountNumber": {"12345678"},

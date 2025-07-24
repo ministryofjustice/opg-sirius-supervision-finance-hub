@@ -10,11 +10,10 @@ import (
 	"net/http"
 )
 
-func (c *Client) AddDirectDebit(ctx context.Context, clientId int, accountHolder string, accountName string, sortCode string, accountNumber string) error {
+func (c *Client) AddDirectDebit(ctx context.Context, clientId int, accountName string, sortCode string, accountNumber string) error {
 	var body bytes.Buffer
 
 	err := json.NewEncoder(&body).Encode(shared.AddDirectDebit{
-		AccountHolder: accountHolder,
 		AccountName:   accountName,
 		AccountNumber: accountNumber,
 		SortCode:      sortCode,
