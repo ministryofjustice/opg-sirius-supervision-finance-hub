@@ -9,8 +9,8 @@ import (
 )
 
 func (c *Client) CancelDirectDebit(ctx context.Context, clientId int) error {
-	url := fmt.Sprintf("/clients/%d/direct-debits/cancel", clientId)
-	req, err := c.newBackendRequest(ctx, http.MethodPost, url, nil)
+	url := fmt.Sprintf("/clients/%d/direct-debits", clientId)
+	req, err := c.newBackendRequest(ctx, http.MethodDelete, url, nil)
 
 	if err != nil {
 		return err
