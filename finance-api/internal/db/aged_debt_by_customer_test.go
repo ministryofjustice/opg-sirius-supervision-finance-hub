@@ -20,9 +20,9 @@ func (suite *IntegrationSuite) Test_aged_debt_by_customer() {
 	// - an active order
 	// - one written off invoice
 	// - one active invoice (today)
-	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234")
+	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234", "ACTIVE")
 	suite.seeder.CreateDeputy(ctx, client1ID, "Suzie", "Deputy", "LAY")
-	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
+	suite.seeder.CreateOrder(ctx, client1ID)
 	unpaidInvoiceID, _ := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, today.StringPtr(), nil, nil, nil, nil)
 	paidInvoiceID, _ := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, today.StringPtr(), nil, nil, nil, nil)
 	suite.seeder.CreateAdjustment(ctx, client1ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 0, "Written off", nil)
@@ -37,9 +37,9 @@ func (suite *IntegrationSuite) Test_aged_debt_by_customer() {
 	// - a closed order
 	// - one active invoice (2020) with hardship reduction
 	// - one active invoice (2022)
-	client2ID := suite.seeder.CreateClient(ctx, "John", "Suite", "87654321", "4321")
+	client2ID := suite.seeder.CreateClient(ctx, "John", "Suite", "87654321", "4321", "ACTIVE")
 	suite.seeder.CreateDeputy(ctx, client2ID, "Jane", "Deputy", "PRO")
-	suite.seeder.CreateOrder(ctx, client2ID, "CLOSED")
+	suite.seeder.CreateClosedOrder(ctx, client2ID, today.Date(), "")
 	_ = suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeRemission, strconv.Itoa(fiveYearsAgo.Date().Year()), 2, "A reduction", fiveYearsAgo.Date())
 	suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeAD, nil, fourYearsAgo.StringPtr(), nil, nil, nil, nil)
 	suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, &general, twoYearsAgo.StringPtr(), twoYearsAgo.StringPtr(), nil, nil, nil)
@@ -48,9 +48,9 @@ func (suite *IntegrationSuite) Test_aged_debt_by_customer() {
 	// - a PA deputy
 	// - an active order
 	// - one active invoice (two months old)
-	client3ID := suite.seeder.CreateClient(ctx, "Billy", "Client", "23456789", "2345")
+	client3ID := suite.seeder.CreateClient(ctx, "Billy", "Client", "23456789", "2345", "ACTIVE")
 	suite.seeder.CreateDeputy(ctx, client3ID, "Local", "Authority", "PA")
-	suite.seeder.CreateOrder(ctx, client3ID, "ACTIVE")
+	suite.seeder.CreateOrder(ctx, client3ID)
 	suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
 
 	c := Client{suite.seeder.Conn}

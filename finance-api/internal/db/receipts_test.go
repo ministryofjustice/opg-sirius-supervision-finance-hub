@@ -25,7 +25,7 @@ func (suite *IntegrationSuite) Test_receipts() {
 	// 50% paid with reapply
 	// 3rd invoice
 	// payment covers 2nd and 3rd invoices, with excess
-	clientID := suite.seeder.CreateClient(ctx, "Ian", "Test", courtRef1, "1234")
+	clientID := suite.seeder.CreateClient(ctx, "Ian", "Test", courtRef1, "1234", "ACTIVE")
 	_, inv1Ref := suite.seeder.CreateInvoice(ctx, clientID, shared.InvoiceTypeGA, nil, twoYearsAgo.StringPtr(), nil, nil, nil, nil)
 	suite.seeder.CreatePayment(ctx, 20000, twoYearsAgo.Date(), courtRef1, shared.TransactionTypeOPGBACSPayment, twoYearsAgo.Date(), 0)
 	_ = suite.seeder.CreateFeeReduction(ctx, clientID, shared.FeeReductionTypeRemission, strconv.Itoa(twoYearsAgo.Date().Year()-1), 2, "A reduction", twoYearsAgo.Date())
@@ -35,10 +35,10 @@ func (suite *IntegrationSuite) Test_receipts() {
 	suite.seeder.CreatePayment(ctx, 30000, oneMonthAgo.Date(), courtRef1, shared.TransactionTypeMotoCardPayment, oneMonthAgo.Date(), 0)
 
 	// misapplied payments with overpayment
-	client2ID := suite.seeder.CreateClient(ctx, "Ernie", "Error", courtRef2, "2222")
+	client2ID := suite.seeder.CreateClient(ctx, "Ernie", "Error", courtRef2, "2222", "ACTIVE")
 	_, inv4Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeAD, nil, yesterday.StringPtr(), nil, nil, nil, yesterday.StringPtr())
 	suite.seeder.CreatePayment(ctx, 15000, yesterday.Date(), courtRef2, shared.TransactionTypeOnlineCardPayment, yesterday.Date(), 0)
-	client3ID := suite.seeder.CreateClient(ctx, "Colette", "Correct", courtRef3, "3333")
+	client3ID := suite.seeder.CreateClient(ctx, "Colette", "Correct", courtRef3, "3333", "ACTIVE")
 	_, inv5Ref := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeSO, valToPtr("90.00"), yesterday.StringPtr(), nil, nil, nil, yesterday.StringPtr())
 	suite.seeder.ReversePayment(ctx, courtRef2, courtRef3, "150.00", yesterday.Date(), yesterday.Date(), shared.TransactionTypeOnlineCardPayment, yesterday.Date())
 
