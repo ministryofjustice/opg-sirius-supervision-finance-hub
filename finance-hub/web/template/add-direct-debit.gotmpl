@@ -20,27 +20,6 @@
                             hx-target="#error-summary">
                         <input type="hidden" name="CSRF" value="{{ .AppVars.XSRFToken }}"/>
 
-                        <div id="f-AccountHolder" class="govuk-form-group">
-                            <fieldset class="govuk-fieldset">
-                                <legend class="govuk-fieldset__legend">Who is the account holder</legend>
-                                <span id="error-message__AccountHolder"></span>
-                                <div class="govuk-radios" data-module="govuk-radios">
-                                    <div class="govuk-radios__item">
-                                        <input class="govuk-radios__input" id="client" name="accountHolder" type="radio" value="CLIENT">
-                                        <label class="govuk-label govuk-radios__label" for="client">
-                                            Client
-                                        </label>
-                                    </div>
-                                    <div class="govuk-radios__item">
-                                        <input class="govuk-radios__input" id="deputy" name="accountHolder" type="radio" value="DEPUTY">
-                                        <label class="govuk-label govuk-radios__label" for="deputy">
-                                            Deputy
-                                        </label>
-                                    </div>
-                                </div>
-                            </fieldset>
-                        </div>
-
                         <div id="f-AccountName" class="govuk-form-group">
                              <label class="govuk-label" for="accountName">
                                  Name on bank account

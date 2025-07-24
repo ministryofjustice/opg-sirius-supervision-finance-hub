@@ -18,7 +18,6 @@ func TestAddDirectDebit(t *testing.T) {
 	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""})
 
 	jsonData := `{
-			"accountHolder": "CLIENT",
 			"name": "Mrs Account Holder",
 			"sortCode": "30-33-30",
 			"account": "12345678",
@@ -33,7 +32,7 @@ func TestAddDirectDebit(t *testing.T) {
 		}, nil
 	}
 
-	err := client.AddDirectDebit(testContext(), 1, "CLIENT", "Mrs Account Holder", "30-33-30", "12345678")
+	err := client.AddDirectDebit(testContext(), 1, "Mrs Account Holder", "30-33-30", "12345678")
 	assert.Equal(t, nil, err)
 }
 
@@ -45,7 +44,7 @@ func TestAddDirectDebitUnauthorised(t *testing.T) {
 
 	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	err := client.AddDirectDebit(testContext(), 1, "CLIENT", "Mrs Account Holder", "30-33-30", "12345678")
+	err := client.AddDirectDebit(testContext(), 1, "Mrs Account Holder", "30-33-30", "12345678")
 
 	assert.Equal(t, ErrUnauthorized.Error(), err.Error())
 }
@@ -58,7 +57,7 @@ func TestAddDirectDebitReturns500Error(t *testing.T) {
 
 	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	err := client.AddDirectDebit(testContext(), 1, "CLIENT", "Mrs Account Holder", "30-33-30", "12345678")
+	err := client.AddDirectDebit(testContext(), 1, "Mrs Account Holder", "30-33-30", "12345678")
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/clients/1/direct-debits",
@@ -69,8 +68,8 @@ func TestAddDirectDebitReturns500Error(t *testing.T) {
 func TestAddDirectDebitReturnsValidationError(t *testing.T) {
 	validationErrors := apierror.ValidationError{
 		Errors: map[string]map[string]string{
-			"accountHolder": {
-				"required": "This field accountHolder needs to be looked at",
+			"accountName": {
+				"required": "This field accountName needs to be looked at",
 			},
 		},
 	}
@@ -83,7 +82,7 @@ func TestAddDirectDebitReturnsValidationError(t *testing.T) {
 
 	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	err := client.AddDirectDebit(testContext(), 1, "CLIENT", "Mrs Account Holder", "30-33-30", "12345678")
-	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"accountHolder": map[string]string{"required": "This field accountHolder needs to be looked at"}}}
+	err := client.AddDirectDebit(testContext(), 1, "CLIENT", "30-33-30", "12345678")
+	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"accountName": map[string]string{"required": "This field accountName needs to be looked at"}}}
 	assert.Equal(t, expectedError, err.(apierror.ValidationError))
 }
