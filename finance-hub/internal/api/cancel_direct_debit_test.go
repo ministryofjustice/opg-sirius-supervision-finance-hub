@@ -48,7 +48,7 @@ func TestCancelDirectDebitReturns500Error(t *testing.T) {
 	err := client.CancelDirectDebit(testContext(), 1)
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
-		URL:    svr.URL + "/clients/1/direct-debits/cancel",
-		Method: http.MethodPost,
+		URL:    svr.URL + "/clients/1/direct-debits",
+		Method: http.MethodDelete,
 	}, err)
 }
