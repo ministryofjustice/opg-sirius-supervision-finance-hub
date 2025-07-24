@@ -8,23 +8,32 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"net/http"
+	"regexp"
 )
 
 func (c *Client) AddDirectDebit(ctx context.Context, clientId int, accountName string, sortCode string, accountNumber string) error {
 	var body bytes.Buffer
 
-	err := json.NewEncoder(&body).Encode(shared.AddDirectDebit{
-		AccountName:   accountName,
-		AccountNumber: accountNumber,
-		SortCode:      sortCode,
-	})
-
+	// fetch client from Sirius
+	client, err := c.GetPersonDetails(ctx, clientId)
 	if err != nil {
 		return err
 	}
 
+	mandate := shared.NewCreateMandate(client, accountName, sortCode, accountNumber)
+
+	// TODO: Validate
+
+	err = json.NewEncoder(&body).Encode(mandate)
+	if err != nil {
+		return err
+	}
+
+	// TODO: Send to AllPay
 	url := fmt.Sprintf("/clients/%d/direct-debits", clientId)
 	req, err := c.newBackendRequest(ctx, http.MethodPost, url, &body)
+
+	// TODO: On success, update payment method
 
 	if err != nil {
 		return err
@@ -54,4 +63,87 @@ func (c *Client) AddDirectDebit(ctx context.Context, clientId int, accountName s
 	}
 
 	return newStatusError(resp)
+}
+
+func (c *Client) validateMandate(client shared.Person, accountName string, sortCode string, accountNumber string) (*shared.CreateMandate, *apierror.ValidationErrors) {
+	var (
+		errors apierror.ValidationErrors // map[string]map[string]string
+	)
+
+	if client.FeePayer == nil {
+		errors["FeePayer"] = map[string]string{
+			"required": "",
+		}
+	} else if client.FeePayer.Status != "Active" {
+		errors["FeePayer"] = map[string]string{
+			"inactive": "",
+		}
+	}
+
+	if client.ActiveCaseType == nil {
+		errors["ActiveOrder"] = map[string]string{
+			"required": "",
+		}
+	}
+
+	if len(errors) > 0 {
+		return nil, &errors
+	}
+
+	if accountName == "" {
+		errors["AccountName"] = map[string]string{
+			"required": "",
+		}
+	} else if len(accountName) > 18 {
+		errors["AccountName"] = map[string]string{
+			"gteEighteen": "",
+		}
+	}
+
+	if sortCode == "" {
+		errors["SortCode"] = map[string]string{
+			"required": "",
+		}
+	} else if valid, _ := regexp.MatchString(`^\d{2}-\d{2}-\d{2}$`, sortCode); !valid {
+		errors["SortCode"] = map[string]string{
+			"len": "",
+		}
+	}
+
+	if accountNumber == "" {
+		errors["AccountNumber"] = map[string]string{
+			"required": "",
+		}
+	} else if valid, _ := regexp.MatchString(`^\d{8}$`, accountName); !valid {
+		errors["SortCode"] = map[string]string{
+			"len": "",
+		}
+	}
+
+	// TODO: Validate address field length
+	// TODO: Call modulus check
+
+	if len(errors) > 0 {
+		return nil, &errors
+	}
+
+	return &shared.CreateMandate{
+		SchemeCode:      c.SchemeCode,
+		ClientReference: client.CourtRef,
+		Surname:         client.Surname,
+		Address: shared.Address{
+			Line1:    client.AddressLine1,
+			Town:     client.Town,
+			PostCode: client.PostCode,
+		},
+		BankAccount: struct {
+			BankDetails shared.AllPayBankDetails `json:"BankDetails"`
+		}{
+			BankDetails: shared.AllPayBankDetails{
+				AccountName:   accountName,
+				SortCode:      sortCode,
+				AccountNumber: accountNumber,
+			},
+		},
+	}, nil
 }
