@@ -11,18 +11,25 @@ import (
 	"regexp"
 )
 
-func (c *Client) AddDirectDebit(ctx context.Context, clientId int, accountName string, sortCode string, accountNumber string) error {
+type AccountDetails struct {
+	AccountName   string
+	AccountNumber string
+	SortCode      string
+}
+
+func (c *Client) AddDirectDebit(ctx context.Context, clientId int, details AccountDetails) error {
 	var body bytes.Buffer
 
-	// fetch client from Sirius
 	client, err := c.GetPersonDetails(ctx, clientId)
 	if err != nil {
 		return err
 	}
 
-	mandate := shared.NewCreateMandate(client, accountName, sortCode, accountNumber)
+	mandate, errors := c.validateMandate(client, details)
 
-	// TODO: Validate
+	if errors != nil {
+		return apierror.ValidationError{Errors: *errors}
+	}
 
 	err = json.NewEncoder(&body).Encode(mandate)
 	if err != nil {
@@ -65,16 +72,18 @@ func (c *Client) AddDirectDebit(ctx context.Context, clientId int, accountName s
 	return newStatusError(resp)
 }
 
-func (c *Client) validateMandate(client shared.Person, accountName string, sortCode string, accountNumber string) (*shared.CreateMandate, *apierror.ValidationErrors) {
-	var (
-		errors apierror.ValidationErrors // map[string]map[string]string
-	)
+func (c *Client) validateBankDetails(details AccountDetails) *apierror.ValidationErrors {
+	var errors apierror.ValidationErrors // map[string]map[string]string
 
-	if client.FeePayer == nil {
-		errors["FeePayer"] = map[string]string{
-			"required": "",
-		}
-	} else if client.FeePayer.Status != "Active" {
+	c.newAllPayRequest(ctx, http.MethodGet, fmt.Sprintf("/BankAccounts?sortcode=%s&accountnumber=%s", details.SortCode, details.AccountNumber), nil)
+
+	return &errors
+}
+
+func (c *Client) validateMandate(client shared.Person, details AccountDetails) (*shared.CreateMandate, *apierror.ValidationErrors) {
+	var errors apierror.ValidationErrors // map[string]map[string]string
+
+	if client.FeePayer == nil || client.FeePayer.Status != "Active" {
 		errors["FeePayer"] = map[string]string{
 			"inactive": "",
 		}
@@ -86,42 +95,61 @@ func (c *Client) validateMandate(client shared.Person, accountName string, sortC
 		}
 	}
 
+	if client.ClientStatus == nil || client.ClientStatus.Handle != "ACTIVE" {
+		errors["ClientStatus"] = map[string]string{
+			"inactive": "",
+		}
+	}
+
 	if len(errors) > 0 {
 		return nil, &errors
 	}
 
-	if accountName == "" {
+	if details.AccountName == "" {
 		errors["AccountName"] = map[string]string{
 			"required": "",
 		}
-	} else if len(accountName) > 18 {
+	} else if len(details.AccountName) > 18 {
 		errors["AccountName"] = map[string]string{
 			"gteEighteen": "",
 		}
 	}
 
-	if sortCode == "" {
+	if details.SortCode == "" {
 		errors["SortCode"] = map[string]string{
 			"required": "",
 		}
-	} else if valid, _ := regexp.MatchString(`^\d{2}-\d{2}-\d{2}$`, sortCode); !valid {
+	} else if valid, _ := regexp.MatchString(`^\d{2}-\d{2}-\d{2}$`, details.SortCode); !valid {
 		errors["SortCode"] = map[string]string{
 			"len": "",
 		}
 	}
 
-	if accountNumber == "" {
+	if details.AccountNumber == "" {
 		errors["AccountNumber"] = map[string]string{
 			"required": "",
 		}
-	} else if valid, _ := regexp.MatchString(`^\d{8}$`, accountName); !valid {
+	} else if valid, _ := regexp.MatchString(`^\d{8}$`, details.AccountName); !valid {
 		errors["SortCode"] = map[string]string{
 			"len": "",
 		}
 	}
 
-	// TODO: Validate address field length
-	// TODO: Call modulus check
+	if assertStringLessThan(client.AddressLine1, 41) {
+		errors["AddressLine1"] = map[string]string{
+			"required": "",
+		}
+	}
+	if assertStringLessThan(client.Town, 41) {
+		errors["Town"] = map[string]string{
+			"required": "",
+		}
+	}
+	if assertStringLessThan(client.PostCode, 11) {
+		errors["PostCode"] = map[string]string{
+			"required": "",
+		}
+	}
 
 	if len(errors) > 0 {
 		return nil, &errors
@@ -140,10 +168,14 @@ func (c *Client) validateMandate(client shared.Person, accountName string, sortC
 			BankDetails shared.AllPayBankDetails `json:"BankDetails"`
 		}{
 			BankDetails: shared.AllPayBankDetails{
-				AccountName:   accountName,
-				SortCode:      sortCode,
-				AccountNumber: accountNumber,
+				AccountName:   details.AccountName,
+				SortCode:      details.SortCode,
+				AccountNumber: details.AccountNumber,
 			},
 		},
 	}, nil
+}
+
+func assertStringLessThan(str string, n int) bool {
+	return len(str) > 0 && len(str) < n
 }
