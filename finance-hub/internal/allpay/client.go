@@ -7,9 +7,9 @@ import (
 )
 
 type Envs struct {
-	APIHost    string
-	APIKey     string
-	SchemeCode string
+	apiHost    string
+	apiKey     string
+	schemeCode string
 }
 
 type Client struct {
@@ -17,13 +17,13 @@ type Client struct {
 	Envs
 }
 
-func NewClient(httpClient HTTPClient, envs Envs) *Client {
+func NewClient(httpClient HTTPClient, apiHost string, apiKey string, schemeCode string) *Client {
 	return &Client{
 		http: httpClient,
 		Envs: Envs{
-			APIHost:    envs.APIHost,
-			APIKey:     envs.APIKey,
-			SchemeCode: "OPGB",
+			apiHost:    apiHost,
+			apiKey:     apiKey,
+			schemeCode: schemeCode,
 		},
 	}
 }
@@ -33,12 +33,12 @@ type HTTPClient interface {
 }
 
 func (c *Client) newRequest(ctx context.Context, method, path string, body io.Reader) (*http.Request, error) {
-	req, err := http.NewRequestWithContext(ctx, method, c.APIHost+path, body)
+	req, err := http.NewRequestWithContext(ctx, method, c.apiHost+path, body)
 	if err != nil {
 		return nil, err
 	}
 
-	req.Header.Add("Authorization", "Bearer "+c.APIKey)
+	req.Header.Add("Authorization", "Bearer "+c.apiKey)
 	req.Header.Add("Accept", "application/json")
 
 	return req, err

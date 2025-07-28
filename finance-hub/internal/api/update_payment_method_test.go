@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
@@ -12,7 +13,7 @@ import (
 func TestUpdatePaymentMethod(t *testing.T) {
 	mockClient := SetUpTest()
 	mockJWT := mockJWTClient{}
-	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""})
+	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""}, nil)
 	r := io.NopCloser(bytes.NewReader([]byte(nil)))
 
 	GetDoFunc = func(*http.Request) (*http.Response, error) {
@@ -22,7 +23,7 @@ func TestUpdatePaymentMethod(t *testing.T) {
 		}, nil
 	}
 
-	err := client.SubmitPaymentMethod(testContext(), 2, "DEMANDED")
+	err := client.updatePaymentMethod(testContext(), 2, shared.PaymentMethodDemanded)
 	assert.Equal(t, nil, err)
 }
 
@@ -32,9 +33,9 @@ func TestUpdatePaymentMethodUnauthorised(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
 
-	err := client.SubmitPaymentMethod(testContext(), 1, "DEMANDED")
+	err := client.updatePaymentMethod(testContext(), 1, shared.PaymentMethodDemanded)
 
 	assert.Equal(t, ErrUnauthorized.Error(), err.Error())
 }
@@ -45,9 +46,9 @@ func TestUpdatePaymentMethodReturns500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
 
-	err := client.SubmitPaymentMethod(testContext(), 1, "DEMANDED")
+	err := client.updatePaymentMethod(testContext(), 1, shared.PaymentMethodDemanded)
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/clients/1/payment-method",

@@ -1,7 +1,7 @@
 package shared
 
 type FeePayer struct {
-	ID     string `json:"id"`
+	ID     int    `json:"id"`
 	Status string `json:"deputyStatus"`
 }
 
