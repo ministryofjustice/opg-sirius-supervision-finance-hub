@@ -19,7 +19,6 @@ func (e ClientError) Error() string {
 type Envs struct {
 	SiriusURL  string
 	BackendURL string
-	SchemeCode string
 }
 
 type JWTClient interface {
@@ -41,7 +40,6 @@ func NewClient(httpClient HTTPClient, jwt JWTClient, envs Envs) *Client {
 		Envs: Envs{
 			SiriusURL:  envs.SiriusURL,
 			BackendURL: envs.BackendURL,
-			SchemeCode: "OPGB", // TODO: Inject from infra
 		},
 	}
 }

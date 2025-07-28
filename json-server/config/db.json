@@ -56,6 +56,10 @@
       "activeCaseType": {
         "handle": "HW",
         "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
       }
     },
     {
@@ -74,6 +78,10 @@
       "activeCaseType": {
         "handle": "HW",
         "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
       }
     },
     {
@@ -92,6 +100,10 @@
       "activeCaseType": {
         "handle": "HW",
         "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
       }
     },
     {
@@ -110,6 +122,10 @@
       "activeCaseType": {
         "handle": "HW",
         "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
       }
     },
     {
@@ -128,6 +144,10 @@
       "activeCaseType": {
         "handle": "HW",
         "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
       }
     },
     {
@@ -146,6 +166,10 @@
       "activeCaseType": {
         "handle": "HW",
         "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
       }
     },
     {
@@ -164,6 +188,10 @@
       "activeCaseType": {
         "handle": "HW",
         "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
       }
     },
     {
@@ -182,6 +210,10 @@
       "activeCaseType": {
         "handle": "HW",
         "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
       }
     },
     {
@@ -200,6 +232,10 @@
       "activeCaseType": {
         "handle": "HW",
         "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
       }
     },
     {
@@ -218,6 +254,10 @@
       "activeCaseType": {
         "handle": "HW",
         "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
       }
     },
     {
@@ -236,6 +276,10 @@
       "activeCaseType": {
         "handle": "HW",
         "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
       }
     },
     {
@@ -254,6 +298,10 @@
       "activeCaseType": {
         "handle": "HW",
         "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
       }
     },
     {
@@ -272,6 +320,10 @@
       "activeCaseType": {
         "handle": "HW",
         "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
       }
     },
     {
@@ -290,6 +342,10 @@
       "activeCaseType": {
         "handle": "HW",
         "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
       }
     },
     {
@@ -308,6 +364,10 @@
       "activeCaseType": {
         "handle": "HW",
         "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
       }
     },
     {
@@ -326,6 +386,10 @@
       "activeCaseType": {
         "handle": "HW",
         "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
       }
     },
     {
@@ -344,6 +408,10 @@
       "activeCaseType": {
         "handle": "HW",
         "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
       }
     },
     {
@@ -368,6 +436,10 @@
       "activeCaseType": {
         "handle": "HW",
         "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
       }
     }
   ],

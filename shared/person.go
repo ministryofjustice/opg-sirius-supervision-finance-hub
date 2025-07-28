@@ -5,7 +5,7 @@ type FeePayer struct {
 	Status string `json:"deputyStatus"`
 }
 
-type Order struct {
+type RefData struct {
 	Handle string `json:"handle"`
 	Label  string `json:"label"`
 }
@@ -20,5 +20,6 @@ type Person struct {
 	Town           string    `json:"town"`
 	PostCode       string    `json:"postcode"`
 	FeePayer       *FeePayer `json:"feePayer"`
-	ActiveCaseType *Order    `json:"activeCaseType"`
+	ActiveCaseType *RefData  `json:"activeCaseType"`
+	ClientStatus   *RefData  `json:"clientStatus"`
 }
