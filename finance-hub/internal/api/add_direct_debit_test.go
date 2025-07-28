@@ -32,7 +32,11 @@ func TestAddDirectDebit(t *testing.T) {
 		}, nil
 	}
 
-	err := client.AddDirectDebit(testContext(), 1, "Mrs Account Holder", "30-33-30", "12345678")
+	err := client.AddDirectDebit(testContext(), 1, AccountDetails{
+		AccountName:   "Mrs Account Holder",
+		AccountNumber: "30-33-30",
+		SortCode:      "12345678",
+	})
 	assert.Equal(t, nil, err)
 }
 
@@ -44,7 +48,11 @@ func TestAddDirectDebitUnauthorised(t *testing.T) {
 
 	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	err := client.AddDirectDebit(testContext(), 1, "Mrs Account Holder", "30-33-30", "12345678")
+	err := client.AddDirectDebit(testContext(), 1, AccountDetails{
+		AccountName:   "Mrs Account Holder",
+		AccountNumber: "30-33-30",
+		SortCode:      "12345678",
+	})
 
 	assert.Equal(t, ErrUnauthorized.Error(), err.Error())
 }
@@ -57,7 +65,11 @@ func TestAddDirectDebitReturns500Error(t *testing.T) {
 
 	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	err := client.AddDirectDebit(testContext(), 1, "Mrs Account Holder", "30-33-30", "12345678")
+	err := client.AddDirectDebit(testContext(), 1, AccountDetails{
+		AccountName:   "Mrs Account Holder",
+		AccountNumber: "30-33-30",
+		SortCode:      "12345678",
+	})
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/clients/1/direct-debits",
@@ -82,7 +94,11 @@ func TestAddDirectDebitReturnsValidationError(t *testing.T) {
 
 	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	err := client.AddDirectDebit(testContext(), 1, "CLIENT", "30-33-30", "12345678")
+	err := client.AddDirectDebit(testContext(), 1, AccountDetails{
+		AccountName:   "Mrs Account Holder",
+		AccountNumber: "30-33-30",
+		SortCode:      "12345678",
+	})
 	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"accountName": map[string]string{"required": "This field accountName needs to be looked at"}}}
 	assert.Equal(t, expectedError, err.(apierror.ValidationError))
 }
