@@ -13,7 +13,7 @@ import (
 func TestClient_GetUserSession(t *testing.T) {
 	mockClient := &MockClient{}
 	mockJwtClient := &mockJWTClient{}
-	client := NewClient(mockClient, mockJwtClient, Envs{"http://localhost:3000", ""})
+	client := NewClient(mockClient, mockJwtClient, Envs{"http://localhost:3000", ""}, nil)
 
 	json := `{
             "id": 1,
@@ -66,7 +66,7 @@ func TestClient_GetUserSession_Errors(t *testing.T) {
 			defer svr.Close()
 
 			mockJwtClient := &mockJWTClient{}
-			client := NewClient(http.DefaultClient, mockJwtClient, Envs{svr.URL, svr.URL})
+			client := NewClient(http.DefaultClient, mockJwtClient, Envs{svr.URL, svr.URL}, nil)
 
 			got, _ := client.GetUserSession(testContext())
 			assert.Equalf(t, tt.want, got, "GetUserSession()")

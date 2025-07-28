@@ -24,18 +24,11 @@ func TestModulusCheck(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	client := NewClient(ts.Client(), Envs{
-		APIHost:    ts.URL + "/",
-		APIKey:     "test123",
-		SchemeCode: "TEST",
-	})
+	client := NewClient(ts.Client(), ts.URL+"/", "test123", "TEST")
 
-	valid, err := client.ModulusCheck(testContext(), "11-22-33", "12345678")
+	err := client.ModulusCheck(testContext(), "11-22-33", "12345678")
 	if err != nil {
 		t.Errorf("Expected no error, got %v", err)
-	}
-	if !valid {
-		t.Error("Expected valid to be true")
 	}
 }
 
@@ -49,15 +42,10 @@ func TestModulusCheck_invalid(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	client := NewClient(ts.Client(), Envs{
-		APIHost:    ts.URL + "/",
-		APIKey:     "test123",
-		SchemeCode: "TEST",
-	})
+	client := NewClient(ts.Client(), ts.URL+"/", "test123", "TEST")
 
-	valid, err := client.ModulusCheck(testContext(), "11-22-33", "12345678")
+	err := client.ModulusCheck(testContext(), "11-22-33", "12345678")
 	assert.Equal(t, ErrorModulusCheckFailed, err)
-	assert.Equal(t, false, valid)
 }
 
 // if the sort code doesn't exist, AllPay still returns valid, but "DirectDebitCapable" will be false
@@ -71,15 +59,10 @@ func TestModulusCheck_sortCodeDoesNotExist(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	client := NewClient(ts.Client(), Envs{
-		APIHost:    ts.URL + "/",
-		APIKey:     "test123",
-		SchemeCode: "TEST",
-	})
+	client := NewClient(ts.Client(), ts.URL+"/", "test123", "TEST")
 
-	valid, err := client.ModulusCheck(testContext(), "11-22-33", "12345678")
+	err := client.ModulusCheck(testContext(), "11-22-33", "12345678")
 	assert.Equal(t, ErrorModulusCheckFailed, err)
-	assert.Equal(t, false, valid)
 }
 
 func TestModulusCheck_apiError(t *testing.T) {
@@ -88,13 +71,8 @@ func TestModulusCheck_apiError(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	client := NewClient(ts.Client(), Envs{
-		APIHost:    ts.URL + "/",
-		APIKey:     "test123",
-		SchemeCode: "TEST",
-	})
+	client := NewClient(ts.Client(), ts.URL+"/", "test123", "TEST")
 
-	valid, err := client.ModulusCheck(testContext(), "11-22-33", "12345678")
+	err := client.ModulusCheck(testContext(), "11-22-33", "12345678")
 	assert.Equal(t, ErrorAPI, err)
-	assert.Equal(t, false, valid)
 }
