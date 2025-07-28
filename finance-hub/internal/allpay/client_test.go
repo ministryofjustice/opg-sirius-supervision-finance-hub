@@ -27,9 +27,9 @@ func TestNewRequest(t *testing.T) {
 	client := Client{
 		http: ts.Client(),
 		Envs: Envs{
-			APIHost:    "",
-			APIKey:     "testkey",
-			SchemeCode: "",
+			apiHost:    "",
+			apiKey:     "testkey",
+			schemeCode: "",
 		},
 	}
 	_, _ = client.newRequest(context.Background(), "GET", "/", nil)

@@ -10,6 +10,8 @@ import (
 )
 
 func TestCreateMandate_Success(t *testing.T) {
+	schemeCode := "SCHEME123"
+
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			t.Errorf("Expected POST, got %s", r.Method)
@@ -22,6 +24,9 @@ func TestCreateMandate_Success(t *testing.T) {
 		if err := json.Unmarshal(body, &req); err != nil {
 			t.Errorf("Invalid JSON body: %v", err)
 		}
+		if req.SchemeCode != schemeCode {
+			t.Errorf("Expected schemeCode to be added, got %s", schemeCode)
+		}
 		w.WriteHeader(http.StatusOK)
 	}))
 	defer ts.Close()
@@ -29,13 +34,12 @@ func TestCreateMandate_Success(t *testing.T) {
 	c := &Client{
 		http: ts.Client(),
 		Envs: Envs{
-			SchemeCode: "SCHEME123",
-			APIHost:    ts.URL + "/",
+			schemeCode: schemeCode,
+			apiHost:    ts.URL + "/",
 		},
 	}
 
-	err := c.CreateMandate(testContext(), CreateMandateRequest{
-		SchemeCode:      "SCHEME123",
+	err := c.CreateMandate(testContext(), &CreateMandateRequest{
 		ClientReference: "REF123",
 		Surname:         "Doe",
 		Address: Address{
@@ -62,12 +66,12 @@ func TestCreateMandate_RequestCreationFails(t *testing.T) {
 	c := &Client{
 		http: http.DefaultClient,
 		Envs: Envs{
-			SchemeCode: "SCHEME123",
-			APIHost:    "http://[::1]:namedport/", // Invalid URL
+			schemeCode: "SCHEME123",
+			apiHost:    "http://[::1]:namedport/", // Invalid URL
 		},
 	}
 
-	err := c.CreateMandate(testContext(), CreateMandateRequest{
+	err := c.CreateMandate(testContext(), &CreateMandateRequest{
 		SchemeCode: "SCHEME123",
 	})
 	if err == nil {
@@ -84,12 +88,12 @@ func TestCreateMandate_UnexpectedStatus(t *testing.T) {
 	c := &Client{
 		http: ts.Client(),
 		Envs: Envs{
-			SchemeCode: "SCHEME123",
-			APIHost:    ts.URL + "/",
+			schemeCode: "SCHEME123",
+			apiHost:    ts.URL + "/",
 		},
 	}
 
-	err := c.CreateMandate(testContext(), CreateMandateRequest{
+	err := c.CreateMandate(testContext(), &CreateMandateRequest{
 		SchemeCode: "SCHEME123",
 	})
 	if err == nil {
@@ -110,12 +114,12 @@ func TestCreateMandate_ValidationErrorValidJSON(t *testing.T) {
 	c := &Client{
 		http: ts.Client(),
 		Envs: Envs{
-			SchemeCode: "SCHEME123",
-			APIHost:    ts.URL + "/",
+			schemeCode: "SCHEME123",
+			apiHost:    ts.URL + "/",
 		},
 	}
 
-	err := c.CreateMandate(testContext(), CreateMandateRequest{
+	err := c.CreateMandate(testContext(), &CreateMandateRequest{
 		SchemeCode: "SCHEME123",
 	})
 	var validationErr ErrorValidation

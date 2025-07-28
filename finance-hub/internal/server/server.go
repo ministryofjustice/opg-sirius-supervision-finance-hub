@@ -31,7 +31,7 @@ type ApiClient interface {
 	GetPermittedAdjustments(context.Context, int, int) ([]shared.AdjustmentType, error)
 	GetRefunds(context.Context, int) (shared.Refunds, error)
 	GetUser(context.Context, int) (shared.User, error)
-	SubmitPaymentMethod(context.Context, int, string) error
+	updatePaymentMethod(context.Context, int, string) error
 	UpdatePendingInvoiceAdjustment(context.Context, int, int, string) error
 	UpdateRefundDecision(context.Context, int, int, string) error
 }

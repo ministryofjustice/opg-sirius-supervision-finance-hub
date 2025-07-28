@@ -9,12 +9,11 @@ import (
 	"net/http"
 )
 
-// TODO: Remove as this is now called by the DD create/cancel
-func (c *Client) SubmitPaymentMethod(ctx context.Context, clientId int, paymentMethod string) error {
+func (c *Client) updatePaymentMethod(ctx context.Context, clientId int, paymentMethod shared.PaymentMethod) error {
 	var body bytes.Buffer
 
 	err := json.NewEncoder(&body).Encode(shared.UpdatePaymentMethod{
-		PaymentMethod: shared.ParsePaymentMethod(paymentMethod),
+		PaymentMethod: paymentMethod,
 	})
 
 	if err != nil {

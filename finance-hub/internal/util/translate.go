@@ -111,6 +111,9 @@ var validationMappings = map[string]map[string]pair{
 	"PostCode": {
 		"required": pair{"Address", "The client's address: Post code is required and must be 10 characters or less. This is needed to set up the Direct Debit. Please update the client address."},
 	},
+	"AccountDetails": {
+		"invalid": pair{"AccountDetails", "The account number and sort code are not a valid combination. Please check they have been input correctly."},
+	},
 }
 
 func RenameErrors(siriusError apierror.ValidationErrors) apierror.ValidationErrors {

@@ -22,7 +22,7 @@ type Address struct {
 }
 
 type CreateMandateRequest struct {
-	SchemeCode      string  `json:"SchemeCode"`
+	SchemeCode      string  `json:"schemeCode"`
 	ClientReference string  `json:"ClientReference"`
 	Surname         string  `json:"LastName"`
 	Address         Address `json:"Address"`
@@ -31,8 +31,12 @@ type CreateMandateRequest struct {
 	} `json:"BankAccount"`
 }
 
-func (c *Client) CreateMandate(ctx context.Context, data CreateMandateRequest) error {
+func (c *Client) CreateMandate(ctx context.Context, data *CreateMandateRequest) error {
 	logger := telemetry.LoggerFromContext(ctx)
+
+	// add scheme code here instead of leaking it outside the client
+	data.SchemeCode = c.schemeCode
+
 	var body bytes.Buffer
 
 	err := json.NewEncoder(&body).Encode(data)
@@ -41,7 +45,7 @@ func (c *Client) CreateMandate(ctx context.Context, data CreateMandateRequest) e
 		return err
 	}
 
-	req, err := c.newRequest(ctx, http.MethodPost, fmt.Sprintf("AllPayApi/Customers/%s/VariableMandates/Create", c.SchemeCode), &body)
+	req, err := c.newRequest(ctx, http.MethodPost, fmt.Sprintf("AllPayApi/Customers/%s/VariableMandates/Create", c.schemeCode), &body)
 
 	if err != nil {
 		logger.Error("unable to build create mandate request", "error", err)
