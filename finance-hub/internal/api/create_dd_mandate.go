@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/allpay"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
@@ -19,6 +20,7 @@ type AccountDetails struct {
 
 func (c *Client) CreateDirectDebitMandate(ctx context.Context, clientId int, details AccountDetails) error {
 	var body bytes.Buffer
+	logger := telemetry.LoggerFromContext(ctx)
 
 	client, err := c.GetPersonDetails(ctx, clientId)
 	if err != nil {
@@ -44,49 +46,30 @@ func (c *Client) CreateDirectDebitMandate(ctx context.Context, clientId int, det
 				},
 			}}
 		}
+		return err
 	}
 
 	err = c.allpayClient.CreateMandate(ctx, mandate)
 	if err != nil {
 		var ve allpay.ErrorValidation
 		if errors.As(err, &ve) {
-			// TODO: What do we do about these?
-		} else {
-			return err
+			// we validate in advance so validation errors from AllPay should never occur
+			// if they do, log them so we can investigate
+			logger.Error("validation errors returned from allpay", "errors", ve.Messages)
 		}
+		return err
 	}
 
-	err = c.updatePaymentMethod(ctx, clientId, shared.PaymentMethodDirectDebit)
+	err = c.UpdatePaymentMethod(ctx, clientId, shared.PaymentMethodDirectDebit.Key())
 	if err != nil {
-		return err // TODO: What to do here, as we've already created it in allpay!
+		logger.Error("failed to update payment method in Sirius after successful mandate creation in AllPay", "error", err)
+		return err
 	}
 	return nil
 }
 
 func (c *Client) validateMandate(client shared.Person, details AccountDetails) (*allpay.CreateMandateRequest, *apierror.ValidationErrors) {
 	vErrs := make(apierror.ValidationErrors) // map[string]map[string]string
-
-	if client.FeePayer == nil || client.FeePayer.Status != "Active" {
-		vErrs["FeePayer"] = map[string]string{
-			"inactive": "",
-		}
-	}
-
-	if client.ActiveCaseType == nil {
-		vErrs["ActiveOrder"] = map[string]string{
-			"required": "",
-		}
-	}
-
-	if client.ClientStatus == nil || client.ClientStatus.Handle != "ACTIVE" {
-		vErrs["ClientStatus"] = map[string]string{
-			"inactive": "",
-		}
-	}
-
-	if len(vErrs) > 0 {
-		return nil, &vErrs
-	}
 
 	if details.AccountName == "" {
 		vErrs["AccountName"] = map[string]string{
@@ -115,6 +98,29 @@ func (c *Client) validateMandate(client shared.Person, details AccountDetails) (
 	} else if valid, _ := regexp.MatchString(`^\d{8}$`, details.AccountNumber); !valid {
 		vErrs["AccountNumber"] = map[string]string{
 			"len": "",
+		}
+	}
+
+	// validate form fields first
+	if len(vErrs) > 0 {
+		return nil, &vErrs
+	}
+
+	if client.FeePayer == nil || client.FeePayer.Status != "Active" {
+		vErrs["FeePayer"] = map[string]string{
+			"inactive": "",
+		}
+	}
+
+	if client.ActiveCaseType == nil {
+		vErrs["ActiveOrder"] = map[string]string{
+			"required": "",
+		}
+	}
+
+	if client.ClientStatus == nil || client.ClientStatus.Handle != "ACTIVE" {
+		vErrs["ClientStatus"] = map[string]string{
+			"inactive": "",
 		}
 	}
 
