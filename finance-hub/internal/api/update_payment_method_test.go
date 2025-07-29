@@ -23,7 +23,7 @@ func TestUpdatePaymentMethod(t *testing.T) {
 		}, nil
 	}
 
-	err := client.updatePaymentMethod(testContext(), 2, shared.PaymentMethodDemanded)
+	err := client.UpdatePaymentMethod(testContext(), 2, shared.PaymentMethodDemanded.Key())
 	assert.Equal(t, nil, err)
 }
 
@@ -35,7 +35,7 @@ func TestUpdatePaymentMethodUnauthorised(t *testing.T) {
 
 	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
 
-	err := client.updatePaymentMethod(testContext(), 1, shared.PaymentMethodDemanded)
+	err := client.UpdatePaymentMethod(testContext(), 1, shared.PaymentMethodDemanded.Key())
 
 	assert.Equal(t, ErrUnauthorized.Error(), err.Error())
 }
@@ -48,7 +48,7 @@ func TestUpdatePaymentMethodReturns500Error(t *testing.T) {
 
 	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
 
-	err := client.updatePaymentMethod(testContext(), 1, shared.PaymentMethodDemanded)
+	err := client.UpdatePaymentMethod(testContext(), 1, shared.PaymentMethodDemanded.Key())
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/clients/1/payment-method",

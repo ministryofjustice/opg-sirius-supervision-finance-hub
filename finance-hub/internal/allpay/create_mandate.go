@@ -45,7 +45,7 @@ func (c *Client) CreateMandate(ctx context.Context, data *CreateMandateRequest) 
 		return err
 	}
 
-	req, err := c.newRequest(ctx, http.MethodPost, fmt.Sprintf("AllPayApi/Customers/%s/VariableMandates/Create", c.schemeCode), &body)
+	req, err := c.newRequest(ctx, http.MethodPost, fmt.Sprintf("/Customers/%s/VariableMandates/Create", c.schemeCode), &body)
 
 	if err != nil {
 		logger.Error("unable to build create mandate request", "error", err)
