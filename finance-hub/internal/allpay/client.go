@@ -33,7 +33,7 @@ type HTTPClient interface {
 }
 
 func (c *Client) newRequest(ctx context.Context, method, path string, body io.Reader) (*http.Request, error) {
-	req, err := http.NewRequestWithContext(ctx, method, c.apiHost+path, body)
+	req, err := http.NewRequestWithContext(ctx, method, c.apiHost+"/AllpayApi"+path, body)
 	if err != nil {
 		return nil, err
 	}

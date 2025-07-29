@@ -16,7 +16,7 @@ func TestCreateMandate_Success(t *testing.T) {
 		if r.Method != http.MethodPost {
 			t.Errorf("Expected POST, got %s", r.Method)
 		}
-		if r.URL.Path != "/AllPayApi/Customers/SCHEME123/VariableMandates/Create" {
+		if r.URL.Path != "/AllpayApi/Customers/SCHEME123/VariableMandates/Create" {
 			t.Errorf("Unexpected URL path: %s", r.URL.Path)
 		}
 		body, _ := io.ReadAll(r.Body)
@@ -35,7 +35,7 @@ func TestCreateMandate_Success(t *testing.T) {
 		http: ts.Client(),
 		Envs: Envs{
 			schemeCode: schemeCode,
-			apiHost:    ts.URL + "/",
+			apiHost:    ts.URL,
 		},
 	}
 
@@ -89,7 +89,7 @@ func TestCreateMandate_UnexpectedStatus(t *testing.T) {
 		http: ts.Client(),
 		Envs: Envs{
 			schemeCode: "SCHEME123",
-			apiHost:    ts.URL + "/",
+			apiHost:    ts.URL,
 		},
 	}
 
@@ -107,7 +107,7 @@ func TestCreateMandate_ValidationErrorValidJSON(t *testing.T) {
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnprocessableEntity)
-		w.Write(body)
+		_, _ = w.Write(body)
 	}))
 	defer ts.Close()
 
@@ -115,7 +115,7 @@ func TestCreateMandate_ValidationErrorValidJSON(t *testing.T) {
 		http: ts.Client(),
 		Envs: Envs{
 			schemeCode: "SCHEME123",
-			apiHost:    ts.URL + "/",
+			apiHost:    ts.URL,
 		},
 	}
 

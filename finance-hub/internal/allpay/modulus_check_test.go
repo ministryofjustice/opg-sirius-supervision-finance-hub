@@ -12,19 +12,19 @@ func TestModulusCheck(t *testing.T) {
 		if r.Method != http.MethodGet {
 			t.Errorf("Expected GET, got %s", r.Method)
 		}
-		if r.URL.RequestURI() != "/AllPayApi/BankAccounts?sortcode=11-22-33&accountnumber=12345678" {
+		if r.URL.RequestURI() != "/AllpayApi/BankAccounts?sortcode=11-22-33&accountnumber=12345678" {
 			t.Errorf("Unexpected URL path: %s", r.URL.Path)
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{
+		_, _ = w.Write([]byte(`{
             "Valid": true,
             "DirectDebitCapable": true
         }`))
 	}))
 	defer ts.Close()
 
-	client := NewClient(ts.Client(), ts.URL+"/", "test123", "TEST")
+	client := NewClient(ts.Client(), ts.URL, "test123", "TEST")
 
 	err := client.ModulusCheck(testContext(), "11-22-33", "12345678")
 	if err != nil {
@@ -35,14 +35,14 @@ func TestModulusCheck(t *testing.T) {
 func TestModulusCheck_invalid(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{
+		_, _ = w.Write([]byte(`{
             "Valid": false,
             "DirectDebitCapable": false
         }`))
 	}))
 	defer ts.Close()
 
-	client := NewClient(ts.Client(), ts.URL+"/", "test123", "TEST")
+	client := NewClient(ts.Client(), ts.URL, "test123", "TEST")
 
 	err := client.ModulusCheck(testContext(), "11-22-33", "12345678")
 	assert.Equal(t, ErrorModulusCheckFailed, err)
@@ -52,14 +52,14 @@ func TestModulusCheck_invalid(t *testing.T) {
 func TestModulusCheck_sortCodeDoesNotExist(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{
+		_, _ = w.Write([]byte(`{
             "Valid": true,
             "DirectDebitCapable": false
         }`))
 	}))
 	defer ts.Close()
 
-	client := NewClient(ts.Client(), ts.URL+"/", "test123", "TEST")
+	client := NewClient(ts.Client(), ts.URL, "test123", "TEST")
 
 	err := client.ModulusCheck(testContext(), "11-22-33", "12345678")
 	assert.Equal(t, ErrorModulusCheckFailed, err)
@@ -71,7 +71,7 @@ func TestModulusCheck_apiError(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	client := NewClient(ts.Client(), ts.URL+"/", "test123", "TEST")
+	client := NewClient(ts.Client(), ts.URL, "test123", "TEST")
 
 	err := client.ModulusCheck(testContext(), "11-22-33", "12345678")
 	assert.Equal(t, ErrorAPI, err)
