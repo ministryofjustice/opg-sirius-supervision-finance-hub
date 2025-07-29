@@ -9,24 +9,18 @@ import (
 	"net/http"
 )
 
-type SubmitDirectDebitHandler struct {
+type SubmitCancelDirectDebitHandler struct {
 	router
 }
 
-func (h *SubmitDirectDebitHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
+func (h *SubmitCancelDirectDebitHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 	clientID := getClientID(r)
 
-	var (
-		accountName   = r.PostFormValue("accountName")
-		sortCode      = r.PostFormValue("sortCode")
-		accountNumber = r.PostFormValue("accountNumber")
-	)
-
-	err := h.Client().AddDirectDebit(ctx, clientID, accountName, sortCode, accountNumber)
+	err := h.Client().CancelDirectDebit(ctx, clientID)
 
 	if err == nil {
-		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices?success=direct-debit", v.EnvironmentVars.Prefix, clientID))
+		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices?success=cancel-direct-debit", v.EnvironmentVars.Prefix, clientID))
 		return nil
 	}
 
@@ -39,7 +33,6 @@ func (h *SubmitDirectDebitHandler) render(v AppVars, w http.ResponseWriter, r *h
 	switch {
 	case errors.As(err, &ve):
 		{
-
 			data = AppVars{Errors: util.RenameErrors(ve.Errors)}
 			w.WriteHeader(http.StatusUnprocessableEntity)
 		}
