@@ -17,7 +17,7 @@ func TestModulusCheck(t *testing.T) {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{
+		_, _ = w.Write([]byte(`{
             "Valid": true,
             "DirectDebitCapable": true
         }`))
@@ -35,7 +35,7 @@ func TestModulusCheck(t *testing.T) {
 func TestModulusCheck_invalid(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{
+		_, _ = w.Write([]byte(`{
             "Valid": false,
             "DirectDebitCapable": false
         }`))
@@ -52,7 +52,7 @@ func TestModulusCheck_invalid(t *testing.T) {
 func TestModulusCheck_sortCodeDoesNotExist(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{
+		_, _ = w.Write([]byte(`{
             "Valid": true,
             "DirectDebitCapable": false
         }`))
