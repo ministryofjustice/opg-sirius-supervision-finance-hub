@@ -152,7 +152,7 @@ func TestCreateDirectDebitMandate_ModulusCheckFails(t *testing.T) {
 	defer ts.Close()
 
 	mockJWT := mockJWTClient{}
-	mockAllPay := mockAllPayClient{modulusError: allpay.ErrorModulusCheckFailed}
+	mockAllPay := mockAllPayClient{modulusError: allpay.ErrorModulusCheckFailed{}}
 	client := NewClient(ts.Client(), &mockJWT, Envs{ts.URL + "", ts.URL + ""}, &mockAllPay)
 
 	err := client.CreateDirectDebitMandate(testContext(), 1, AccountDetails{

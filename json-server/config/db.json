@@ -71,10 +71,6 @@
       "addressLine2": "Mainville",
       "town": "Mainopolis",
       "postcode": "MP1 2PM",
-      "feePayer": {
-        "id": 1,
-        "deputyStatus": "Active"
-      },
       "activeCaseType": {
         "handle": "HW",
         "label": "Health & Welfare"
