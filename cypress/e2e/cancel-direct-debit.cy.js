@@ -1,6 +1,6 @@
 describe("Direct debit form", () => {
     it("should have no accessibility violations",() => {
-        cy.visit("/clients/1/direct-debit/add");
+        cy.visit("/clients/1/direct-debit/cancel");
         cy.checkAccessibility();
     });
 

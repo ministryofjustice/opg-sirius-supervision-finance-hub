@@ -6,6 +6,7 @@ import (
 	"github.com/ministryofjustice/opg-go-common/env"
 	"github.com/ministryofjustice/opg-go-common/paginate"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/allpay"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/api"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/server"
@@ -34,6 +35,9 @@ type Envs struct {
 	billingTeamID    int
 	showRefunds      bool
 	showDirectDebits bool
+	allpayHost       string
+	allpayAPIKey     string
+	allpaySchemeCode string
 }
 
 func parseEnvs() (*Envs, error) {
@@ -45,6 +49,8 @@ func parseEnvs() (*Envs, error) {
 		"SUPERVISION_BILLING_TEAM_ID": os.Getenv("SUPERVISION_BILLING_TEAM_ID"),
 		"PORT":                        os.Getenv("PORT"),
 		"JWT_SECRET":                  os.Getenv("JWT_SECRET"),
+		"ALLPAY_HOST":                 os.Getenv("ALLPAY_HOST"),
+		"ALLPAY_API_KEY":              os.Getenv("ALLPAY_API_KEY"),
 	}
 
 	var missing []error
@@ -74,6 +80,9 @@ func parseEnvs() (*Envs, error) {
 		port:             envs["PORT"],
 		showRefunds:      os.Getenv("SHOW_REFUNDS") == "1",
 		showDirectDebits: os.Getenv("SHOW_DIRECT_DEBITS") == "1",
+		allpayHost:       envs["ALLPAY_HOST"],
+		allpayAPIKey:     envs["ALLPAY_API_KEY"],
+		allpaySchemeCode: "OPGB",
 	}, nil
 }
 
@@ -102,6 +111,8 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		return err
 	}
 
+	alllpayClient := allpay.NewClient(http.DefaultClient, envs.allpayHost, envs.allpayAPIKey, envs.allpaySchemeCode)
+
 	client := api.NewClient(
 		http.DefaultClient,
 		&auth.JWT{
@@ -110,7 +121,8 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		api.Envs{
 			SiriusURL:  envs.siriusURL,
 			BackendURL: envs.backendURL,
-		})
+		},
+		alllpayClient)
 
 	templates := createTemplates(envs)
 

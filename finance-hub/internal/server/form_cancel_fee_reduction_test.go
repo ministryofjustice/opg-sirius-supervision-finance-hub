@@ -18,13 +18,13 @@ func TestCancelFeeReduction(t *testing.T) {
 
 	appVars := AppVars{Path: "/path/"}
 
-	sut := UpdateFeeReductionHandler{ro}
+	sut := AddFeeReductionHandler{ro}
 	err := sut.render(appVars, w, r)
 
 	assert.Nil(t, err)
 	assert.True(t, ro.executed)
 
-	expected := UpdateFeeReductions{
+	expected := AddFeeReductionForm{
 		"1",
 		appVars,
 	}

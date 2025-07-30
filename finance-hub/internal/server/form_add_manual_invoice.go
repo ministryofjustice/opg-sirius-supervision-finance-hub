@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-type AddManualInvoice struct {
+type AddManualInvoiceForm struct {
 	ClientId     string
 	InvoiceTypes *[]shared.InvoiceType
 	AppVars
@@ -16,7 +16,7 @@ type AddManualInvoiceHandler struct {
 }
 
 func (h *AddManualInvoiceHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
-	data := AddManualInvoice{r.PathValue("clientId"), &shared.InvoiceTypes, v}
+	data := AddManualInvoiceForm{r.PathValue("clientId"), &shared.InvoiceTypes, v}
 
 	return h.execute(w, r, data)
 }

@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-type AddInvoiceAdjustmentVars struct {
+type AddInvoiceAdjustmentForm struct {
 	AdjustmentTypes *[]shared.AdjustmentType
 	ClientId        string
 	InvoiceId       string
@@ -26,7 +26,7 @@ func (h *AddInvoiceAdjustmentFormHandler) render(v AppVars, w http.ResponseWrite
 	if err != nil {
 		return err
 	}
-	data := AddInvoiceAdjustmentVars{&allowedAdjustments, r.PathValue("clientId"), r.PathValue("invoiceId"), v}
+	data := AddInvoiceAdjustmentForm{&allowedAdjustments, r.PathValue("clientId"), r.PathValue("invoiceId"), v}
 
 	return h.execute(w, r, data)
 }

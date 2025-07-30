@@ -26,7 +26,7 @@ func TestAddInvoiceAdjustmentForm(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, ro.executed)
 
-	expected := AddInvoiceAdjustmentVars{
+	expected := AddInvoiceAdjustmentForm{
 		&permittedAdjustments,
 		"1",
 		"9",

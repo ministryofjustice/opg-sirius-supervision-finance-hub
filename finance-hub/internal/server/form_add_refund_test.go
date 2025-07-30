@@ -23,7 +23,7 @@ func TestAddRefund(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, ro.executed)
 
-	expected := AddRefund{
+	expected := AddRefundForm{
 		"1",
 		appVars,
 	}

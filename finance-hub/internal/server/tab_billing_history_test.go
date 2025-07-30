@@ -49,7 +49,7 @@ func TestBillingHistory(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, ro.executed)
 
-	expected := &BillingHistoryVars{
+	expected := &BillingHistoryTab{
 		BillingHistory: []BillingHistory{
 			{
 				User:               "Mr Testman",

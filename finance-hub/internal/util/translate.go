@@ -93,6 +93,27 @@ var validationMappings = map[string]map[string]pair{
 	"NoCreditToRefund": {
 		"no-credit-to-refund": pair{"Amount", "Client has no credit balance to refund"},
 	},
+	"FeePayer": {
+		"inactive": pair{"FeePayer", "There is no active fee payer deputy for this client. Please check the client's record before setting up the Direct Debit."},
+	},
+	"ActiveOrder": {
+		"required": pair{"ActiveOrder", "The client has no active court order. Please check the order details before setting up the Direct Debit."},
+	},
+	"ClientStatus": {
+		"inactive": pair{"ClientStatus", "The client status is not active. Please check the client's record before setting up the Direct Debit."},
+	},
+	"AddressLine1": {
+		"required": pair{"Address", "The client's address: Line 1 is required and must be 40 characters or less. This is needed to set up the Direct Debit. Please update the client address."},
+	},
+	"Town": {
+		"required": pair{"Address", "The client's address: Town is required and must be 40 characters or less. This is needed to set up the Direct Debit. Please update the client address."},
+	},
+	"PostCode": {
+		"required": pair{"Address", "The client's address: Post code is required and must be 10 characters or less. This is needed to set up the Direct Debit. Please update the client address."},
+	},
+	"AccountDetails": {
+		"invalid": pair{"AccountDetails", "The account number and sort code are not a valid combination. Please check they have been input correctly."},
+	},
 }
 
 func RenameErrors(siriusError apierror.ValidationErrors) apierror.ValidationErrors {

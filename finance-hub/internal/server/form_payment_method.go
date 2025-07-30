@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-type PaymentMethodVars struct {
+type PaymentMethodForm struct {
 	PaymentMethod string
 	ClientId      string
 	AppVars
@@ -23,6 +23,6 @@ func (h *PaymentMethodHandler) render(v AppVars, w http.ResponseWriter, r *http.
 		return err
 	}
 
-	data := &PaymentMethodVars{financeClient.PaymentMethod, strconv.Itoa(clientID), v}
+	data := &PaymentMethodForm{financeClient.PaymentMethod, strconv.Itoa(clientID), v}
 	return h.execute(w, r, data)
 }

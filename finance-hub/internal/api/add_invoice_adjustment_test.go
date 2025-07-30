@@ -14,7 +14,7 @@ import (
 func TestAddInvoiceAdjustment(t *testing.T) {
 	mockClient := SetUpTest()
 	mockJWT := mockJWTClient{}
-	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""})
+	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""}, nil)
 
 	json := `{
 	       "reference": "01234"
@@ -39,7 +39,7 @@ func TestAddInvoiceAdjustmentUnauthorised(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
 
 	err := client.AddInvoiceAdjustment(testContext(), 2, 41, 4, "CREDIT_MEMO", "notes here", "100", false)
 
@@ -52,7 +52,7 @@ func TestAddInvoiceAdjustmentReturns500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
 
 	err := client.AddInvoiceAdjustment(testContext(), 2, 41, 4, "CREDIT_MEMO", "notes here", "100", false)
 	assert.Equal(t, StatusError{
@@ -77,7 +77,7 @@ func TestAddInvoiceAdjustmentReturnsValidationError(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
 
 	err := client.AddInvoiceAdjustment(testContext(), 2, 41, 4, "CREDIT_MEMO", "notes here", "100", false)
 	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"Field": map[string]string{"Tag": "Message"}}}
