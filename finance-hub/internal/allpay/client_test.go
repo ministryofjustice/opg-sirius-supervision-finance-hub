@@ -3,19 +3,11 @@ package allpay
 import (
 	"context"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-)
-
-type MockHttp struct {
-	DoFunc func(req *http.Request) (*http.Response, error)
-}
-
-var (
-	// GetDoFunc fetches the mock client's `Do` func. Implement this within a test to modify the client's behaviour.
-	GetDoFunc func(req *http.Request) (*http.Response, error)
 )
 
 func TestNewRequest(t *testing.T) {
@@ -32,9 +24,11 @@ func TestNewRequest(t *testing.T) {
 			schemeCode: "",
 		},
 	}
-	_, _ = client.newRequest(context.Background(), "GET", "/", nil)
+	_, _ = client.newRequest(testContext(), "GET", "/", nil)
 }
 
 func testContext() context.Context {
-	return telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("test"))
+	return auth.Context{
+		Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("test")),
+	}
 }

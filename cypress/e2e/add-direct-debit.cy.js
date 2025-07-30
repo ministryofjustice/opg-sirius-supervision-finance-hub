@@ -33,4 +33,25 @@ describe("Direct debit form", () => {
         cy.url().should("include", "/clients/1/invoices?success=direct-debit");
         cy.get(".moj-banner__message").contains("The Direct Debit has been set up");
     });
+
+    it("shows error messages from non-form data validation", () => {
+        cy.visit("/clients/2/direct-debit/add");
+        cy.get("#f-AccountName").contains("Name").type("Mrs Account Holder");
+        cy.get("#f-SortCode").contains("Sort code").type("111111");
+        cy.get("#f-AccountNumber").contains("number").type("12345678");
+        cy.contains(".govuk-button", "Save and continue").click()
+        cy.get(".govuk-error-summary").contains("There is no active fee payer deputy for this client. Please check the client's record before setting up the Direct Debit.")
+    });
+
+    it("shows error messages from api validation", () => {
+        cy.setPrefer("example=invalid");
+        cy.visit("/clients/3/direct-debit/add");
+        cy.get("#f-AccountName").contains("Name").type("Mrs Account Holder");
+        cy.get("#f-SortCode").contains("Sort code").type("111111");
+        cy.get("#f-AccountNumber").contains("number").type("12345678");
+
+        cy.contains(".govuk-button", "Save and continue").click();
+
+        cy.get(".govuk-error-summary").contains("Direct debit cannot be setup due to an unexpected response from AllPay");
+    });
 });

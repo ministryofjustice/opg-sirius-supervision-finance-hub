@@ -39,7 +39,7 @@ func (c *Client) CreateDirectDebitMandate(ctx context.Context, clientId int, det
 
 	err = c.allpayClient.ModulusCheck(ctx, details.SortCode, details.AccountNumber)
 	if err != nil {
-		if errors.Is(err, allpay.ErrorModulusCheckFailed) {
+		if errors.As(err, &allpay.ErrorModulusCheckFailed{}) {
 			return apierror.ValidationError{Errors: apierror.ValidationErrors{
 				"AccountDetails": map[string]string{
 					"invalid": "",
