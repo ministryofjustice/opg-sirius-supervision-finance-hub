@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestUpdateDirectDebit(t *testing.T) {
+func TestAddFeeReduction(t *testing.T) {
 	client := mockApiClient{}
 	ro := &mockRoute{client: client}
 
@@ -17,13 +17,13 @@ func TestUpdateDirectDebit(t *testing.T) {
 
 	appVars := AppVars{Path: "/path/"}
 
-	sut := UpdateDirectDebitHandler{ro}
+	sut := AddFeeReductionHandler{ro}
 	err := sut.render(appVars, w, r)
 
 	assert.Nil(t, err)
 	assert.True(t, ro.executed)
 
-	expected := UpdateDirectDebit{
+	expected := AddFeeReductionForm{
 		"1",
 		appVars,
 	}

@@ -9,11 +9,11 @@ import (
 	"net/http"
 )
 
-type SubmitDirectDebitHandler struct {
+type SetupDirectDebitHandler struct {
 	router
 }
 
-func (h *SubmitDirectDebitHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
+func (h *SetupDirectDebitHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 	clientID := getClientID(r)
 
