@@ -1,6 +1,6 @@
 describe("Direct debit form", () => {
     it("shows correct empty error messages for all present fields with errors", () => {
-        cy.visit("/clients/1/direct-debit/add");
+        cy.visit("/clients/1/direct-debit/setup");
         cy.contains(".govuk-button", "Save and continue").click()
         cy.get(".govuk-error-summary").contains("Enter the name on the account")
         cy.get(".govuk-error-summary").contains("Enter the account number")
@@ -9,7 +9,7 @@ describe("Direct debit form", () => {
     });
 
     it("shows correct length error messages for all present fields with errors", () => {
-        cy.visit("/clients/1/direct-debit/add");
+        cy.visit("/clients/1/direct-debit/setup");
         cy.get("#f-AccountName").contains("Name").type("Mrs Account Holder");
         cy.get("#f-SortCode").contains("Sort code").type("1");
         cy.get("#f-AccountNumber").contains("number").type("123");
@@ -20,12 +20,12 @@ describe("Direct debit form", () => {
     });
 
     it("should have no accessibility violations",() => {
-        cy.visit("/clients/1/direct-debit/add");
+        cy.visit("/clients/1/direct-debit/setup");
         cy.checkAccessibility();
     });
 
     it("redirects on success with banner", () => {
-        cy.visit("/clients/1/direct-debit/add");
+        cy.visit("/clients/1/direct-debit/setup");
         cy.get("#f-AccountName").contains("Name").type("Mrs Account Holder");
         cy.get("#f-SortCode").contains("Sort code").type("010000");
         cy.get("#f-AccountNumber").contains("number").type("12345678");
@@ -35,7 +35,7 @@ describe("Direct debit form", () => {
     });
 
     it("shows error messages from non-form data validation", () => {
-        cy.visit("/clients/2/direct-debit/add");
+        cy.visit("/clients/2/direct-debit/setup");
         cy.get("#f-AccountName").contains("Name").type("Mrs Account Holder");
         cy.get("#f-SortCode").contains("Sort code").type("111111");
         cy.get("#f-AccountNumber").contains("number").type("12345678");
@@ -45,7 +45,7 @@ describe("Direct debit form", () => {
 
     it("shows error messages from api validation", () => {
         cy.setPrefer("example=invalid");
-        cy.visit("/clients/3/direct-debit/add");
+        cy.visit("/clients/3/direct-debit/setup");
         cy.get("#f-AccountName").contains("Name").type("Mrs Account Holder");
         cy.get("#f-SortCode").contains("Sort code").type("111111");
         cy.get("#f-AccountNumber").contains("number").type("12345678");

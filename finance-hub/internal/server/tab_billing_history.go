@@ -15,7 +15,7 @@ type BillingHistory struct {
 	CreditBalance      string
 }
 
-type BillingHistoryVars struct {
+type BillingHistoryTab struct {
 	BillingHistory []BillingHistory
 	AppVars
 }
@@ -33,7 +33,7 @@ func (h *BillingHistoryHandler) render(v AppVars, w http.ResponseWriter, r *http
 		return err
 	}
 
-	data := &BillingHistoryVars{h.transform(ctx, billingHistory), v}
+	data := &BillingHistoryTab{h.transform(ctx, billingHistory), v}
 	data.selectTab("billing-history")
 	return h.execute(w, r, data)
 }
