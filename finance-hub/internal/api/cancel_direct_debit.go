@@ -1,30 +1,16 @@
 package api
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"net/http"
 )
 
-func (c *Client) AddDirectDebit(ctx context.Context, clientId int, accountName string, sortCode string, accountNumber string) error {
-	var body bytes.Buffer
-
-	err := json.NewEncoder(&body).Encode(shared.AddDirectDebit{
-		AccountName:   accountName,
-		AccountNumber: accountNumber,
-		SortCode:      sortCode,
-	})
-
-	if err != nil {
-		return err
-	}
-
+func (c *Client) CancelDirectDebit(ctx context.Context, clientId int) error {
 	url := fmt.Sprintf("/clients/%d/direct-debits", clientId)
-	req, err := c.newBackendRequest(ctx, http.MethodPost, url, &body)
+	req, err := c.newBackendRequest(ctx, http.MethodDelete, url, nil)
 
 	if err != nil {
 		return err
@@ -36,9 +22,7 @@ func (c *Client) AddDirectDebit(ctx context.Context, clientId int, accountName s
 		return err
 	}
 
-	defer unchecked(resp.Body.Close)
-
-	if resp.StatusCode == http.StatusCreated {
+	if resp.StatusCode == http.StatusAccepted {
 		return nil
 	}
 

@@ -63,7 +63,11 @@ type mockApiClient struct {
 	User               shared.User
 }
 
-func (m mockApiClient) AddDirectDebit(context context.Context, clientId int, accountHolder string, accountName string, sortCode string, accountNumber string) error {
+func (m mockApiClient) AddDirectDebit(context context.Context, clientId int, accountName string, sortCode string, accountNumber string) error {
+	return m.error
+}
+
+func (m mockApiClient) CancelDirectDebit(context context.Context, clientId int) error {
 	return m.error
 }
 

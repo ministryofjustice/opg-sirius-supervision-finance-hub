@@ -164,6 +164,8 @@ func (r route) getSuccess(req *http.Request) string {
 		return "You have cancelled the refund"
 	case "direct-debit":
 		return "The Direct Debit has been set up"
+	case "cancel-direct-debit":
+		return "The Direct Debit has been cancelled"
 	}
 	return ""
 }

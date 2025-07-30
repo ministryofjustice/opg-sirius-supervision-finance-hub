@@ -2,16 +2,14 @@ describe("Direct debit form", () => {
     it("shows correct empty error messages for all present fields with errors", () => {
         cy.visit("/clients/1/direct-debit/add");
         cy.contains(".govuk-button", "Save and continue").click()
-        cy.get(".govuk-error-summary").contains("Select the account holder")
         cy.get(".govuk-error-summary").contains("Enter the name on the account")
         cy.get(".govuk-error-summary").contains("Enter the account number")
         cy.get(".govuk-error-summary").contains("Enter the sort code")
-        cy.get(".govuk-form-group--error").should("have.length", 4)
+        cy.get(".govuk-form-group--error").should("have.length", 3)
     });
 
     it("shows correct length error messages for all present fields with errors", () => {
         cy.visit("/clients/1/direct-debit/add");
-        cy.get("#client").click();
         cy.get("#f-AccountName").contains("Name").type("Mrs Account Holder");
         cy.get("#f-SortCode").contains("Sort code").type("1");
         cy.get("#f-AccountNumber").contains("number").type("123");
@@ -28,7 +26,6 @@ describe("Direct debit form", () => {
 
     it("redirects on success with banner", () => {
         cy.visit("/clients/1/direct-debit/add");
-        cy.get("#client").click();
         cy.get("#f-AccountName").contains("Name").type("Mrs Account Holder");
         cy.get("#f-SortCode").contains("Sort code").type("010000");
         cy.get("#f-AccountNumber").contains("number").type("12345678");

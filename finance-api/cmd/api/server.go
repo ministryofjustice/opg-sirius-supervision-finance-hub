@@ -121,6 +121,7 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 	authFunc("PUT /clients/{clientId}/payment-method", shared.RoleFinanceUser, s.updatePaymentMethod)
 	authFunc("POST /clients/{clientId}/refunds", shared.RoleFinanceUser, s.addRefund)
 	authFunc("POST /clients/{clientId}/direct-debits", shared.RoleFinanceUser, s.addDirectDebit)
+	authFunc("DELETE /clients/{clientId}/direct-debits", shared.RoleFinanceUser, s.cancelDirectDebit)
 	authFunc("PUT /clients/{clientId}/refunds/{refundId}", shared.RoleFinanceManager, s.updateRefundDecision)
 
 	authFunc("GET /download", shared.RoleFinanceReporting, s.download)
