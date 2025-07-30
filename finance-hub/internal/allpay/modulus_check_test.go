@@ -45,7 +45,7 @@ func TestModulusCheck_invalid(t *testing.T) {
 	client := NewClient(ts.Client(), ts.URL, "test123", "TEST")
 
 	err := client.ModulusCheck(testContext(), "11-22-33", "12345678")
-	assert.Equal(t, ErrorModulusCheckFailed, err)
+	assert.Equal(t, ErrorModulusCheckFailed{}, err)
 }
 
 // if the sort code doesn't exist, AllPay still returns valid, but "DirectDebitCapable" will be false
@@ -62,7 +62,7 @@ func TestModulusCheck_sortCodeDoesNotExist(t *testing.T) {
 	client := NewClient(ts.Client(), ts.URL, "test123", "TEST")
 
 	err := client.ModulusCheck(testContext(), "11-22-33", "12345678")
-	assert.Equal(t, ErrorModulusCheckFailed, err)
+	assert.Equal(t, ErrorModulusCheckFailed{}, err)
 }
 
 func TestModulusCheck_apiError(t *testing.T) {
@@ -74,5 +74,5 @@ func TestModulusCheck_apiError(t *testing.T) {
 	client := NewClient(ts.Client(), ts.URL, "test123", "TEST")
 
 	err := client.ModulusCheck(testContext(), "11-22-33", "12345678")
-	assert.Equal(t, ErrorAPI, err)
+	assert.Equal(t, ErrorAPI{}, err)
 }
