@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func TestAddDirectDebitSuccess(t *testing.T) {
+func TestSetupDirectDebitSuccess(t *testing.T) {
 	form := url.Values{
 		"accountName":   {"account name"},
 		"sortCode":      {"123456"},
@@ -31,7 +31,7 @@ func TestAddDirectDebitSuccess(t *testing.T) {
 
 	appVars.EnvironmentVars.Prefix = "prefix"
 
-	sut := SubmitDirectDebitHandler{ro}
+	sut := SetupDirectDebitHandler{ro}
 
 	err := sut.render(appVars, w, r)
 
@@ -39,7 +39,7 @@ func TestAddDirectDebitSuccess(t *testing.T) {
 	assert.Equal(t, "prefix/clients/1/invoices?success=direct-debit", w.Header().Get("HX-Redirect"))
 }
 
-func TestAddDirectDebitValidationErrors(t *testing.T) {
+func TestSetupDirectDebitValidationErrors(t *testing.T) {
 	assert := assert.New(t)
 	client := &mockApiClient{}
 	ro := &mockRoute{client: client}
@@ -63,7 +63,7 @@ func TestAddDirectDebitValidationErrors(t *testing.T) {
 		Path: "/add",
 	}
 
-	sut := SubmitDirectDebitHandler{ro}
+	sut := SetupDirectDebitHandler{ro}
 	err := sut.render(appVars, w, r)
 	assert.Nil(err)
 	assert.Equal("422 Unprocessable Entity", w.Result().Status)

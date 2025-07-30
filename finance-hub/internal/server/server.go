@@ -78,10 +78,10 @@ func New(logger *slog.Logger, client *api.Client, templates map[string]*template
 	}
 
 	handleMux("GET /clients/{clientId}/billing-history", &BillingHistoryHandler{&route{client: client, tmpl: templates["billing-history.gotmpl"], partial: "billing-history"}})
-	handleMux("GET /clients/{clientId}/direct-debit/add", &UpdateDirectDebitHandler{&route{client: client, tmpl: templates["add-direct-debit.gotmpl"], partial: "add-direct-debit"}})
-	handleMux("GET /clients/{clientId}/direct-debit/cancel", &UpdateDirectDebitHandler{&route{client: client, tmpl: templates["cancel-direct-debit.gotmpl"], partial: "cancel-direct-debit"}})
+	handleMux("GET /clients/{clientId}/direct-debit/setup", &DirectDebitMandateHandler{&route{client: client, tmpl: templates["setup-direct-debit.gotmpl"], partial: "setup-direct-debit"}})
+	handleMux("GET /clients/{clientId}/direct-debit/cancel", &DirectDebitMandateHandler{&route{client: client, tmpl: templates["cancel-direct-debit.gotmpl"], partial: "cancel-direct-debit"}})
 	handleMux("GET /clients/{clientId}/fee-reductions", &FeeReductionsHandler{&route{client: client, tmpl: templates["fee-reductions.gotmpl"], partial: "fee-reductions"}})
-	handleMux("GET /clients/{clientId}/fee-reductions/add", &UpdateFeeReductionHandler{&route{client: client, tmpl: templates["add-fee-reduction.gotmpl"], partial: "add-fee-reduction"}})
+	handleMux("GET /clients/{clientId}/fee-reductions/add", &AddFeeReductionHandler{&route{client: client, tmpl: templates["add-fee-reduction.gotmpl"], partial: "add-fee-reduction"}})
 	handleMux("GET /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", &CancelFeeReductionHandler{&route{client: client, tmpl: templates["cancel-fee-reduction.gotmpl"], partial: "cancel-fee-reduction"}})
 	handleMux("GET /clients/{clientId}/invoices", &InvoicesHandler{&route{client: client, tmpl: templates["invoices.gotmpl"], partial: "invoices"}})
 	handleMux("GET /clients/{clientId}/invoices/add", &AddManualInvoiceHandler{&route{client: client, tmpl: templates["add-manual-invoice.gotmpl"], partial: "add-manual-invoice"}})
@@ -91,14 +91,14 @@ func New(logger *slog.Logger, client *api.Client, templates map[string]*template
 	handleMux("GET /clients/{clientId}/refunds/add", &AddRefundHandler{&route{client: client, tmpl: templates["add-refund.gotmpl"], partial: "add-refund"}})
 	handleMux("GET /clients/{clientId}/payment-method/add", &PaymentMethodHandler{&route{client: client, tmpl: templates["set-up-payment-method.gotmpl"], partial: "set-up-payment-method"}})
 
-	handleMux("POST /clients/{clientId}/direct-debit/add", &SubmitDirectDebitHandler{&route{client: client, tmpl: templates["add-direct-debit.gotmpl"], partial: "error-summary"}})
+	handleMux("POST /clients/{clientId}/direct-debit/setup", &SetupDirectDebitHandler{&route{client: client, tmpl: templates["setup-direct-debit.gotmpl"], partial: "error-summary"}})
 	handleMux("POST /clients/{clientId}/direct-debit/cancel", &SubmitCancelDirectDebitHandler{&route{client: client, tmpl: templates["cancel-direct-debit.gotmpl"], partial: "error-summary"}})
 	handleMux("POST /clients/{clientId}/fee-reductions/add", &SubmitFeeReductionsHandler{&route{client: client, tmpl: templates["add-fee-reduction.gotmpl"], partial: "error-summary"}})
 	handleMux("POST /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", &SubmitCancelFeeReductionsHandler{&route{client: client, tmpl: templates["cancel-fee-reduction.gotmpl"], partial: "error-summary"}})
 	handleMux("POST /clients/{clientId}/invoices", &SubmitManualInvoiceHandler{&route{client: client, tmpl: templates["add-manual-invoice.gotmpl"], partial: "error-summary"}})
 	handleMux("POST /clients/{clientId}/invoices/{invoiceId}/adjustments", &SubmitInvoiceAdjustmentHandler{&route{client: client, tmpl: templates["adjust-invoice.gotmpl"], partial: "error-summary"}})
 	handleMux("POST /clients/{clientId}/invoice-adjustments/{adjustmentId}/{adjustmentType}/{status}", &SubmitUpdatePendingInvoiceAdjustmentHandler{&route{client: client, tmpl: templates["invoice-adjustments.gotmpl"], partial: "invoice-adjustments"}})
-	handleMux("POST /clients/{clientId}/payment-method/add", &SubmitPaymentMethodHandler{&route{client: client, tmpl: templates["add-direct-debit.gotmpl"], partial: "error-summary"}})
+	handleMux("POST /clients/{clientId}/payment-method/add", &SubmitPaymentMethodHandler{&route{client: client, tmpl: templates["setup-direct-debit.gotmpl"], partial: "error-summary"}})
 	handleMux("POST /clients/{clientId}/refunds", &SubmitRefundHandler{&route{client: client, tmpl: templates["add-refund.gotmpl"], partial: "error-summary"}})
 	handleMux("POST /clients/{clientId}/refunds/{refundId}", &SubmitRefundDecisionHandler{&route{client: client, tmpl: templates["refunds.gotmpl"], partial: "refunds"}})
 
