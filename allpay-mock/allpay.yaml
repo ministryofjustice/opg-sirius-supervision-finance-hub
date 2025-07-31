@@ -3,7 +3,7 @@ info:
   title: Direct Debit Bureau API
   version: 1.0.0
 servers:
-  - url: https://ddapi.allpay.net/AllpayApi
+  - url: https://ddapi.allpay.net
     variables:
       APIHost:
         default: api.example.com
@@ -19,7 +19,7 @@ security:
   - bearerAuth: []
 
 paths:
-  /Customers/{SchemeCode}/VariableMandates/Create:
+  /AllpayApi/Customers/{SchemeCode}/VariableMandates/Create:
     post:
       summary: Create a variable mandate without a payment schedule
       parameters:
@@ -139,7 +139,7 @@ paths:
                   - 'TitleInitials must not start with a comma'
                   - 'PostCode - Only alphanumeric characters and spaces allowed'
 
-  /Customers/{SchemeCode}/{ClientRef}/{Surname}/VariableMandates:
+  /AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/VariableMandates:
     post:
       summary: Add a variable payment schedule
       parameters:
@@ -219,7 +219,7 @@ paths:
                 Messages:
                   - 'Amount is greater than £20,000,000.00'
 
-  /Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/{Date}:
+  /AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/{Date}:
     delete:
       summary: Cancel a mandate
       parameters:
@@ -265,7 +265,7 @@ paths:
                 LastName: Smith
                 ClientReference: ABC123XYZ
 
-  /Customers/{SchemeCode}/Mandates/FailedPayments/{FromDate}/{ToDate}/{Page}:
+  /AllpayApi/Customers/{SchemeCode}/Mandates/FailedPayments/{FromDate}/{ToDate}/{Page}:
     get:
       summary: Get Failed Payments
       parameters:
@@ -339,7 +339,7 @@ paths:
                       SchemeCode: XYZ001
                   TotalRecords: 1
 
-  /BankAccounts:
+  /AllpayApi/BankAccounts:
     get:
       summary: Modulus check to validate a bank account
       parameters:

@@ -13,7 +13,7 @@ import (
 func TestGetRefundsCanReturn200(t *testing.T) {
 	mockClient := SetUpTest()
 	mockJWT := mockJWTClient{}
-	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""})
+	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""}, nil)
 
 	json := `
 		{
@@ -88,7 +88,7 @@ func TestGetRefundsCanThrow500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
 
 	_, err := client.GetRefunds(testContext(), 1)
 
@@ -105,7 +105,7 @@ func TestGetRefundsUnauthorised(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
 
 	resp, err := client.GetRefunds(testContext(), 3)
 

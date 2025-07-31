@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/api"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"io"
 	"net/http"
@@ -63,7 +64,7 @@ type mockApiClient struct {
 	User               shared.User
 }
 
-func (m mockApiClient) AddDirectDebit(context context.Context, clientId int, accountName string, sortCode string, accountNumber string) error {
+func (m mockApiClient) CreateDirectDebitMandate(context context.Context, clientId int, details api.AccountDetails) error {
 	return m.error
 }
 
@@ -71,7 +72,7 @@ func (m mockApiClient) CancelDirectDebit(context context.Context, clientId int) 
 	return m.error
 }
 
-func (m mockApiClient) SubmitPaymentMethod(context context.Context, i int, s string) error {
+func (m mockApiClient) UpdatePaymentMethod(context context.Context, i int, s string) error {
 	return m.error
 }
 

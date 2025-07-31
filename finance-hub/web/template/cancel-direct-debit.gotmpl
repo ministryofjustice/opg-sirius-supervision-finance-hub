@@ -17,7 +17,8 @@
                             class="govuk-grid-column-one-third"
                             method="post"
                             hx-post="{{ prefix (printf "/clients/%s/direct-debit/cancel" .ClientId) }}"
-                            hx-target="#error-summary">
+                            hx-target="#error-summary"
+                            hx-disabled-elt="find button">
                         <input type="hidden" name="CSRF" value="{{ .AppVars.XSRFToken }}"/>
 
                         <div class="govuk-form-group">

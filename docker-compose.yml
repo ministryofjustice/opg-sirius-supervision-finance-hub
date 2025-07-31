@@ -15,6 +15,8 @@ services:
       SUPERVISION_BILLING_TEAM_ID: 41
       JWT_SECRET: mysupersecrettestkeythatis128bits
       FINANCE_HUB_LIVE_DATE: 01/01/2024
+      ALLPAY_HOST: http://allpay-mock:4010
+      ALLPAY_API_KEY: test-key
       SHOW_DIRECT_DEBITS: 1
     depends_on:
       finance-api:
