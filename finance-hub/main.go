@@ -12,6 +12,7 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"html/template"
 	"log/slog"
+	"math"
 	"net/http"
 	"os"
 	"os/signal"
@@ -180,6 +181,9 @@ func createTemplates(envVars *Envs) map[string]*template.Template {
 		},
 		"toCurrency": func(amount int) string {
 			return shared.IntToDecimalString(amount)
+		},
+		"abs": func(input int) int {
+			return int(math.Abs(float64(input)))
 		},
 	}
 

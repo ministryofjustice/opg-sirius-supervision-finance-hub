@@ -1,8 +1,13 @@
 {{ define "payment-processed-event" }}
+    {{ $isReversal := lt .Event.Amount 0}}
     <div class="moj-timeline__item">
         <div class="moj-timeline__header">
             <h2 class="moj-timeline__title">
-                {{ printf "%v received for %v" .Event.PaymentType .Event.Total }}
+                {{ if not $isReversal }}
+                    {{ printf "%v applied to %v for £%v" .Event.TransactionType (index .Event.Breakdown 0).InvoiceReference.Reference (toCurrency .Event.Amount) }}
+                {{ else }}
+                    {{ printf "%v reversal applied to %v for £%v" .Event.TransactionType (index .Event.Breakdown 0).InvoiceReference.Reference (toCurrency (abs .Event.Amount)) }}
+                {{ end }}
             </h2>
             <p class="moj-timeline__byline">
                 {{ printf "by %v, %v" .User .Date }}
@@ -15,7 +20,19 @@
             <ul class="govuk-list govuk-list--bullet">
                 {{ range .Event.Breakdown }}
                     <li>
-                        {{ printf "%v applied to %v" .Amount .InvoiceReference.Reference }}
+                        {{ if not $isReversal }}
+                            {{ if eq .InvoiceReference.Reference "" }}
+                                {{ printf "£%v unallocated" (toCurrency .Amount) }}
+                            {{ else }}
+                                {{ printf "£%v allocated to %v" (toCurrency .Amount) .InvoiceReference.Reference }}
+                            {{ end }}
+                        {{ else }}
+                            {{ if eq .InvoiceReference.Reference "" }}
+                                {{ printf "£%v reversed on account balance" (toCurrency .Amount) }}
+                            {{ else }}
+                                {{ printf "£%v reversed against %v" (toCurrency .Amount) .InvoiceReference.Reference }}
+                            {{ end }}
+                        {{ end }}
                     </li>
                 {{ end }}
             </ul>
