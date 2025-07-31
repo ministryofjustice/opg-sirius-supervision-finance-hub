@@ -1,6 +1,6 @@
 $govuk-include-default-font-face: false;
 $govuk-moj-table-background-color: #e7f2fb;
-$govuk-assets-path: "/finance/assets/";
+$govuk-assets-path: "/supervision/finance/assets/";
 
 @import "node_modules/govuk-frontend/dist/govuk/all";
 @import "node_modules/@ministryofjustice/frontend/moj/all";
