@@ -48,8 +48,6 @@ func parseEnvs() (*Envs, error) {
 		"SUPERVISION_BILLING_TEAM_ID": os.Getenv("SUPERVISION_BILLING_TEAM_ID"),
 		"PORT":                        os.Getenv("PORT"),
 		"JWT_SECRET":                  os.Getenv("JWT_SECRET"),
-		"ALLPAY_HOST":                 os.Getenv("ALLPAY_HOST"),
-		"ALLPAY_API_KEY":              os.Getenv("ALLPAY_API_KEY"),
 	}
 
 	var missing []error
@@ -78,8 +76,8 @@ func parseEnvs() (*Envs, error) {
 		webDir:           "web",
 		port:             envs["PORT"],
 		showDirectDebits: os.Getenv("SHOW_DIRECT_DEBITS") == "1",
-		allpayHost:       envs["ALLPAY_HOST"],
-		allpayAPIKey:     envs["ALLPAY_API_KEY"],
+		allpayHost:       os.Getenv("ALLPAY_HOST"),
+		allpayAPIKey:     os.Getenv("ALLPAY_API_KEY"),
 		allpaySchemeCode: "OPGB",
 	}, nil
 }
