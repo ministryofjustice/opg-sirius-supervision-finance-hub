@@ -22,7 +22,7 @@ type Address struct {
 }
 
 type CreateMandateRequest struct {
-	SchemeCode      string  `json:"schemeCode"`
+	SchemeCode      string  `json:"SchemeCode"`
 	ClientReference string  `json:"ClientReference"`
 	Surname         string  `json:"LastName"`
 	Address         Address `json:"Address"`

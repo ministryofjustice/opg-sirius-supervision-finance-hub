@@ -202,7 +202,6 @@ func TestCreateDirectDebitMandate_createMandateFails(t *testing.T) {
 		SortCode:      "30-33-30",
 	})
 	assert.Error(t, err)
-	//TODO: assert err
 }
 
 func TestCreateDirectDebitMandate_createMandateFails_validation(t *testing.T) {
