@@ -181,3 +181,13 @@ services:
     command: mock /openapi.yaml -h 0.0.0.0 --errors
     ports:
       - "4010:4010"
+
+  pact-go-tests:
+    build:
+      context: .
+      dockerfile: docker/pact/Dockerfile
+    container_name: pact-go-tests
+    volumes:
+      - .:/app
+    working_dir: /app/contracts
+    command: ["go", "test", "-v", "./"]
