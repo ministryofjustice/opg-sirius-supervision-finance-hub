@@ -199,3 +199,13 @@ services:
       dockerfile: docker/holidays-api/Dockerfile
     ports:
       - "8080:8080"
+
+  pact-go-tests:
+    build:
+      context: .
+      dockerfile: docker/pact/Dockerfile
+    container_name: pact-go-tests
+    volumes:
+      - .:/app
+    working_dir: /app/contracts
+    command: ["go", "test", "-v", "./"]
