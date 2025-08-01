@@ -2,7 +2,10 @@ package api
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"github.com/pact-foundation/pact-go/v2/consumer"
+	"github.com/pact-foundation/pact-go/v2/matchers"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
@@ -68,4 +71,49 @@ func TestPersonDetailsReturns500Error(t *testing.T) {
 		URL:    svr.URL + "/supervision-api/v1/clients/1",
 		Method: http.MethodGet,
 	}, err)
+}
+
+func TestGetPersonDetails_contract(t *testing.T) {
+	pact, err := consumer.NewV2Pact(consumer.MockHTTPProviderConfig{
+		Consumer: "supervision-payments",
+		Provider: "sirius",
+	})
+	assert.NoError(t, err)
+
+	err = pact.
+		AddInteraction().
+		Given("Client exists").
+		UponReceiving("A request for client").
+		WithRequestPathMatcher("GET", matchers.Regex("/supervision-api/v1/clients/1", `\/supervision-api\/v1\/clients\/\d+`),
+			func(b *consumer.V2RequestBuilder) {
+				b.Header("Accept", matchers.S("application/json"))
+			}).
+		WillRespondWith(200, func(b *consumer.V2ResponseBuilder) {
+			b.Header("Content-Type", matchers.S("application/json"))
+			b.JSONBody(matchers.MapMatcher{
+				"id":            matchers.Like(1),
+				"firstname":     matchers.Like("Ian"),
+				"surname":       matchers.Like("Finance"),
+				"caseRecNumber": matchers.Like("22222222"),
+			})
+		}).
+		ExecuteTest(t, func(config consumer.MockServerConfig) error {
+			client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{fmt.Sprintf("http://%s:%d", config.Host, config.Port), ""})
+
+			person, err := client.GetPersonDetails(testContext(), 1)
+			if err != nil {
+				return err
+			}
+
+			assert.EqualValues(t, shared.Person{
+				ID:        1,
+				FirstName: "Ian",
+				Surname:   "Finance",
+				CourtRef:  "22222222",
+			}, person)
+
+			return nil
+		})
+
+	assert.NoError(t, err)
 }

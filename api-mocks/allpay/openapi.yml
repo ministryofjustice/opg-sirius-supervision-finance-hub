@@ -19,6 +19,9 @@ paths:
   /AllpayApi/Customers/{SchemeCode}/VariableMandates/Create:
     post:
       summary: Create a variable mandate without a payment schedule
+      tags:
+        - post
+      operationId: createMandate
       parameters:
         - name: SchemeCode
           in: path
@@ -26,14 +29,20 @@ paths:
           schema:
             type: string
       requestBody:
-        required: true
         content:
           application/json:
             schema:
               type: object
+              required:
+                - Customer
               properties:
                 Customer:
                   type: object
+                  required:
+                    - SchemeCode
+                    - ClientReference
+                    - LastName
+                    - Address
                   properties:
                     MobileNumber:
                       type: string
@@ -43,49 +52,11 @@ paths:
                       type: string
                     Address:
                       type: object
-                      required: true
+                      required:
+                        - Line1
+                        - Town
+                        - PostCode
                       properties:
-                        Line1:
-                          type: string
-                          required: true
-                        Line2:
-                          type: string
-                        Town:
-                          type: string
-                          required: true
-                        County:
-                          type: string
-                        PostCode:
-                          type: string
-                          required: true
-                    SchemeCode:
-                      type: string
-                      required: true
-                    ClientReference:
-                      type: string
-                      required: true
-                    LastName:
-                      type: string
-                      required: true
-                BankAccount:
-                  type: object
-                  properties:
-                    BankDetails:
-                      type: object
-                      properties:
-                        AccountName:
-                          type: string
-                        SortCode:
-                          type: string
-                        AccountNumber:
-                          type: string
-                    Address:
-                      type: object
-                      properties:
-                        TitleInitials:
-                          type: string
-                        LastName:
-                          type: string
                         Line1:
                           type: string
                         Line2:
@@ -139,6 +110,9 @@ paths:
   /AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/VariableMandates:
     post:
       summary: Add a variable payment schedule
+      tags:
+        - post
+      operationId: addSchedule
       parameters:
         - name: SchemeCode
           in: path
@@ -163,20 +137,22 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - Schedules
               properties:
                 Schedules:
+                  type: array
                   items:
+                    type: object
+                    required:
+                      - Amount
+                      - ScheduleDate
                     properties:
                       Amount:
                         type: number
-                        required: true
                       ScheduleDate:
-                        format: date
                         type: string
-                        required: true
-                    type: object
-                  type: array
-                  required: true
+                        format: date
       responses:
         '200':
           description: Schedule successfully created
@@ -218,7 +194,10 @@ paths:
 
   /AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/{Date}:
     delete:
+      tags:
+        - delete
       summary: Cancel a mandate
+      operationId: cancelMandate
       parameters:
         - name: SchemeCode
           in: path
@@ -243,6 +222,7 @@ paths:
           schema:
             type: string
             format: date
+          description: ISO 8601 date (YYYY-MM-DD)
       responses:
         '200':
           description: Mandate cancelled successfully
@@ -265,6 +245,9 @@ paths:
   /AllpayApi/Customers/{SchemeCode}/Mandates/FailedPayments/{FromDate}/{ToDate}/{Page}:
     get:
       summary: Get Failed Payments
+      operationId: getFailedPayments
+      tags:
+        - get
       parameters:
         - name: SchemeCode
           in: path
@@ -277,12 +260,14 @@ paths:
           schema:
             type: string
             format: date
+            description: YYYY-MM-DD
         - name: ToDate
           in: path
           required: true
           schema:
             type: string
             format: date
+            description: YYYY-MM-DD
         - name: Page
           in: path
           required: true
@@ -307,7 +292,7 @@ paths:
                           type: string
                         CollectionDate:
                           type: string
-                          description: 'Format: DD/MM/YYYY HH:MM:SS'
+                          description: DD/MM/YYYY HH:MM:SS
                         IsRepresented:
                           type: boolean
                         LastName:
@@ -316,7 +301,7 @@ paths:
                           type: string
                         ProcessedDate:
                           type: string
-                          description: 'Format: DD/MM/YYYY HH:MM:SS'
+                          description: DD/MM/YYYY HH:MM:SS
                         ReasonCode:
                           type: string
                         SchemeCode:
@@ -339,17 +324,24 @@ paths:
   /AllpayApi/BankAccounts:
     get:
       summary: Modulus check to validate a bank account
+      operationId: validateBankAccount
+      tags:
+        - modulus-check
       parameters:
         - name: sortcode
           in: query
           required: true
           schema:
             type: string
+            example: "123456"
+          description: 6-digit UK bank sort code
         - name: accountnumber
           in: query
           required: true
           schema:
             type: string
+            example: "12345678"
+          description: 8-digit UK bank account number
       responses:
         '200':
           description: Bank account validation result
@@ -358,9 +350,18 @@ paths:
               schema:
                 oneOf:
                   - type: object
+                    required:
+                      - AccountNumber
+                      - Address
+                      - BankName
+                      - Branch
+                      - DirectDebitCapable
+                      - DirectCreditCapable
+                      - SortCode
+                      - Valid
                     properties:
                       AccountNumber:
-                        type: integer
+                        type: string
                       Address:
                         type: object
                         properties:
@@ -385,44 +386,50 @@ paths:
                       DirectCreditCapable:
                         type: boolean
                       SortCode:
-                        type: integer
+                        type: string
                       Valid:
                         type: boolean
                   - type: object
+                    required:
+                      - AccountNumber
+                      - DirectDebitCapable
+                      - DirectCreditCapable
+                      - SortCode
+                      - Valid
                     properties:
                       AccountNumber:
-                        type: integer
+                        type: string
                       DirectDebitCapable:
                         type: boolean
                       DirectCreditCapable:
                         type: boolean
                       SortCode:
-                        type: integer
+                        type: string
                       Valid:
                         type: boolean
               examples:
                 valid:
                   summary: Valid response
                   value:
-                    AccountNumber: 12345678
+                    AccountNumber: "12345678"
                     Address:
-                      Fax: 0123456789
-                      Line1: 123 Main St
-                      Line2: Suite 100
-                      Phone: 1234567890
-                      PostCode: AB12 3CD
-                      Town: Sampletown
-                    BankName: Sample Bank
-                    Branch: Sample Branch
+                      Fax: "0123456789"
+                      Line1: "123 Main St"
+                      Line2: "Suite 100"
+                      Phone: "1234567890"
+                      PostCode: "AB12 3CD"
+                      Town: "Sampletown"
+                    BankName: "Sample Bank"
+                    Branch: "Sample Branch"
                     DirectDebitCapable: true
                     DirectCreditCapable: true
-                    SortCode: 123456
+                    SortCode: "123456"
                     Valid: true
                 invalid:
                   summary: Invalid response
                   value:
-                    AccountNumber: 12345678
+                    AccountNumber: "12345678"
                     DirectDebitCapable: false
                     DirectCreditCapable: false
-                    SortCode: 123456
+                    SortCode: "123456"
                     Valid: false
