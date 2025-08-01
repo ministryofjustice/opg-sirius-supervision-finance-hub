@@ -2,7 +2,10 @@ package api
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"github.com/pact-foundation/pact-go/v2/consumer"
+	"github.com/pact-foundation/pact-go/v2/matchers"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -150,4 +153,46 @@ func TestGetUserReturns500Error(t *testing.T) {
 		URL:    svr.URL + "/supervision-api/v1/users",
 		Method: http.MethodGet,
 	}, err)
+}
+
+func TestGetUser_contract(t *testing.T) {
+	pact, err := consumer.NewV2Pact(consumer.MockHTTPProviderConfig{
+		Consumer: "supervision-payments",
+		Provider: "sirius",
+	})
+	assert.NoError(t, err)
+
+	err = pact.
+		AddInteraction().
+		Given("User exists").
+		UponReceiving("A request for users").
+		WithRequest("GET", "/supervision-api/v1/users", func(b *consumer.V2RequestBuilder) {
+			b.Header("Accept", matchers.S("application/json"))
+		}).
+		WillRespondWith(200, func(b *consumer.V2ResponseBuilder) {
+			b.Header("Content-Type", matchers.S("application/json"))
+			b.JSONBody(matchers.MapMatcher{
+				"id":          matchers.Like(1),
+				"displayName": matchers.Like("Colin Case"),
+				"roles":       matchers.EachLike("Case Manager", 1),
+			})
+		}).
+		ExecuteTest(t, func(config consumer.MockServerConfig) error {
+			client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{fmt.Sprintf("http://%s:%d", config.Host, config.Port), ""})
+
+			user, err := client.GetUser(testContext(), 1)
+			if err != nil {
+				return err
+			}
+
+			assert.EqualValues(t, shared.User{
+				ID:          1,
+				DisplayName: "Colin Case",
+				Roles:       []string{"Case Manager"},
+			}, user)
+
+			return nil
+		})
+
+	assert.NoError(t, err)
 }
