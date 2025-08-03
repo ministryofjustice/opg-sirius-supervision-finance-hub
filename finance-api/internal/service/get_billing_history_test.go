@@ -2,7 +2,6 @@ package service
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
@@ -173,6 +172,27 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 				},
 				{
 					User: 1,
+					Date: shared.NewDate("2024-10-07 09:32:23"),
+					Event: shared.InvoiceAdjustmentRejected{
+						AdjustmentType: shared.AdjustmentTypeWriteOff,
+						ClientId:       1,
+						Notes:          "Writing off",
+						PaymentBreakdown: shared.PaymentBreakdown{
+							InvoiceReference: shared.InvoiceEvent{
+								ID:        9,
+								Reference: "AD000001/24",
+							},
+							Amount: 10000,
+						},
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeInvoiceAdjustmentRejected,
+						},
+					},
+					OutstandingBalance: 5000,
+					CreditBalance:      0,
+				},
+				{
+					User: 1,
 					Date: shared.NewDate("2024-10-07 09:33:19"),
 					Event: shared.FeeReductionCancelled{
 						ReductionType:      shared.FeeReductionTypeRemission,
@@ -215,9 +235,9 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 					Date: shared.NewDate("2024-10-07 09:32:50"),
 					Event: shared.FeeReductionAwarded{
 						ReductionType: shared.FeeReductionTypeRemission,
-						StartDate:     shared.NewDate("2024-10-07"),
-						EndDate:       shared.NewDate("2024-04-01"),
-						DateReceived:  shared.NewDate("2027-03-31"),
+						StartDate:     shared.NewDate("2024-04-01"),
+						EndDate:       shared.NewDate("2027-03-31"),
+						DateReceived:  shared.NewDate("2024-10-07"),
 						Notes:         "Needs remission",
 						BaseBillingEvent: shared.BaseBillingEvent{
 							Type: shared.EventTypeFeeReductionAwarded,
@@ -242,27 +262,6 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 						},
 						BaseBillingEvent: shared.BaseBillingEvent{
 							Type: shared.EventTypeInvoiceAdjustmentPending,
-						},
-					},
-					OutstandingBalance: 10000,
-					CreditBalance:      0,
-				},
-				{
-					User: 1,
-					Date: shared.NewDate("2024-10-07 09:32:23"),
-					Event: shared.InvoiceAdjustmentRejected{
-						AdjustmentType: shared.AdjustmentTypeWriteOff,
-						ClientId:       1,
-						Notes:          "Writing off",
-						PaymentBreakdown: shared.PaymentBreakdown{
-							InvoiceReference: shared.InvoiceEvent{
-								ID:        9,
-								Reference: "AD000001/24",
-							},
-							Amount: 10000,
-						},
-						BaseBillingEvent: shared.BaseBillingEvent{
-							Type: shared.EventTypeInvoiceAdjustmentRejected,
 						},
 					},
 					OutstandingBalance: 10000,
