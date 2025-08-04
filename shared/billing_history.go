@@ -44,6 +44,8 @@ func (b *BillingHistory) UnmarshalJSON(data []byte) (err error) {
 		b.Event = new(PaymentProcessed)
 	case EventTypeReappliedCredit:
 		b.Event = new(ReappliedCredit)
+	case EventTypeRefundCreated:
+		b.Event = new(RefundCreated)
 	default:
 		b.Event = new(UnknownEvent)
 	}
@@ -122,6 +124,13 @@ type PaymentBreakdown struct {
 	Status           string       `json:"status"`
 }
 
+type RefundCreated struct {
+	ClientId int    `json:"client_id"`
+	Amount   int    `json:"amount"`
+	Notes    string `json:"notes"`
+	BaseBillingEvent
+}
+
 type InvoiceAdjustmentApplied struct {
 	TransactionEvent
 }
@@ -151,6 +160,9 @@ const (
 	EventTypeInvoiceAdjustmentPending
 	EventTypeInvoiceAdjustmentRejected
 	EventTypeReappliedCredit
+	EventTypeRefundCreated
+	EventTypeRefundStatusUpdated
+	EventTypeRefundFulfilled
 )
 
 var eventTypeMap = map[string]BillingEventType{
@@ -164,6 +176,9 @@ var eventTypeMap = map[string]BillingEventType{
 	"INVOICE_ADJUSTMENT_REJECTED": EventTypeInvoiceAdjustmentRejected,
 	"PAYMENT_PROCESSED":           EventTypePaymentProcessed,
 	"REAPPLIED_CREDIT":            EventTypeReappliedCredit,
+	"REFUND_CREATED":              EventTypeRefundCreated,
+	"REFUND_STATUS_UPDATED":       EventTypeRefundStatusUpdated,
+	"REFUND_FULFILLED":            EventTypeRefundFulfilled,
 }
 
 func (b BillingEventType) String() string {
@@ -186,6 +201,12 @@ func (b BillingEventType) String() string {
 		return "PAYMENT_PROCESSED"
 	case EventTypeReappliedCredit:
 		return "REAPPLIED_CREDIT"
+	case EventTypeRefundCreated:
+		return "REFUND_CREATED"
+	case EventTypeRefundStatusUpdated:
+		return "REFUND_STATUS_UPDATED"
+	case EventTypeRefundFulfilled:
+		return "REFUND_FULFILLED"
 	default:
 		return "UNKNOWN"
 	}

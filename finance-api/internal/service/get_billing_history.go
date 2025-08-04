@@ -57,6 +57,17 @@ func (s *Service) GetBillingHistory(ctx context.Context, clientID int32) ([]shar
 
 	history = append(history, processLedgerAllocations(allocations, clientID)...)
 
+	refunds, err := s.store.GetPendingRefundsForBillingHistory(ctx, clientID)
+	if err != nil {
+		return nil, err
+	}
+	s.Logger(ctx).Info(fmt.Sprintf("Refunds for client %d", clientID), refunds)
+	s.Logger(ctx).Info(fmt.Sprintf("BEFORE CHANGE HISTORY for client %d", clientID), history[0].billingHistory)
+
+	history = append(history, processRefundEvents(refunds, clientID)...)
+	s.Logger(ctx).Info(fmt.Sprintf("AFTER CHANGE 1 Refund for client %d", clientID), history[0].billingHistory)
+	s.Logger(ctx).Info(fmt.Sprintf("AFTER CHANGE 2 Refund for client %d", clientID), history[1].billingHistory)
+
 	return computeBillingHistory(history), nil
 }
 
@@ -148,6 +159,30 @@ func invoiceEvents(invoices []store.GetGeneratedInvoicesRow, clientID int32) []h
 		history = append(history, historyHolder{
 			billingHistory:    bh,
 			balanceAdjustment: int(inv.Amount),
+		})
+	}
+	return history
+}
+
+func processRefundEvents(refunds []store.GetPendingRefundsForBillingHistoryRow, clientID int32) []historyHolder {
+	var history []historyHolder
+	for _, re := range refunds {
+		bh := shared.BillingHistory{
+			User: int(re.CreatedBy),
+			Date: shared.Date{Time: re.CreatedAt.Time},
+		}
+		bh.Event = shared.RefundCreated{
+			BaseBillingEvent: shared.BaseBillingEvent{
+				Type: shared.EventTypeRefundCreated,
+			},
+			ClientId: int(clientID),
+			Amount:   int(re.Amount),
+			Notes:    re.Notes,
+		}
+
+		history = append(history, historyHolder{
+			billingHistory:    bh,
+			balanceAdjustment: 0,
 		})
 	}
 	return history

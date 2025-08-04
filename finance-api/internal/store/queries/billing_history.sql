@@ -60,3 +60,22 @@ FROM ledger_allocation la
          LEFT JOIN fee_reduction fr ON l.fee_reduction_id = fr.id
 WHERE fc.client_id = $1
   AND la.status NOT IN ('PENDING', 'UN ALLOCATED');
+
+-- name: GetPendingRefundsForBillingHistory :many
+SELECT r.raised_date,
+       r.amount,
+       r.decision,
+       r.notes,
+       r.created_by,
+       r.created_at,
+       r.decision_by,
+       r.decision_at,
+       r.processed_at,
+       r.cancelled_at,
+       r.fulfilled_at,
+       r.cancelled_by
+FROM refund r
+        JOIN finance_client fc ON fc.id = r.finance_client_id
+WHERE fc.client_id = $1
+AND r.decision = 'PENDING'
+ORDER BY r.created_at DESC;

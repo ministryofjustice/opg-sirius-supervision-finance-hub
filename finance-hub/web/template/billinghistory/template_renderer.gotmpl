@@ -1,4 +1,5 @@
 {{ define "template-renderer" }}
+    KATE {{.}}
     {{ if eq .Event.Type.String "INVOICE_GENERATED" }}
         {{ template "invoice-generated-event" . }}
     {{ end }}
@@ -25,6 +26,15 @@
     {{ end }}
     {{ if eq .Event.Type.String "REAPPLIED_CREDIT" }}
         {{ template "reapplied-credit-event" . }}
+    {{ end }}
+    {{ if eq .Event.Type.String "REFUND_CREATED" }}
+        {{ template "refund-created-event" . }}
+    {{ end }}
+    {{ if eq .Event.Type.String "REFUND_STATUS_UPDATED" }}
+        {{ template "refund-created-event" . }}
+    {{ end }}
+    {{ if eq .Event.Type.String "REFUND_FULFILLED" }}
+        {{ template "refund-created-event" . }}
     {{ end }}
     {{ if eq .Event.Type.String "UNKNOWN" }}
         {{ template "unknown-event" . }}
