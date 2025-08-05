@@ -228,7 +228,8 @@ func (q *Queries) GetPendingInvoiceAdjustments(ctx context.Context, clientID int
 }
 
 const getPendingRefundsForBillingHistory = `-- name: GetPendingRefundsForBillingHistory :many
-SELECT r.raised_date,
+SELECT r.id AS refund_id,
+       r.raised_date,
        r.amount,
        r.decision,
        r.notes,
@@ -243,11 +244,11 @@ SELECT r.raised_date,
 FROM refund r
         JOIN finance_client fc ON fc.id = r.finance_client_id
 WHERE fc.client_id = $1
-AND r.decision = 'PENDING'
 ORDER BY r.created_at DESC
 `
 
 type GetPendingRefundsForBillingHistoryRow struct {
+	RefundID    int32
 	RaisedDate  pgtype.Date
 	Amount      int32
 	Decision    string
@@ -272,6 +273,7 @@ func (q *Queries) GetPendingRefundsForBillingHistory(ctx context.Context, client
 	for rows.Next() {
 		var i GetPendingRefundsForBillingHistoryRow
 		if err := rows.Scan(
+			&i.RefundID,
 			&i.RaisedDate,
 			&i.Amount,
 			&i.Decision,

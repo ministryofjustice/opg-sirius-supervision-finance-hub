@@ -1,10 +1,10 @@
 {{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.BillingHistoryVars.BillingHistory*/ -}}
-{{ define "refund-created-event" }}
+{{ define "refund-fulfilled-event" }}
     <div class="moj-timeline__item">
         <div class="moj-timeline__header">
-            <h2 class="moj-timeline__title">
-                Pending refund {{ .Event.Id }} of £{{ toCurrency  .Event.Amount }} added
-            </h2>
+             <h2 class="moj-timeline__title">
+                 Refund {{ .Event.Id }} of £{{ toCurrency  .Event.Amount }} fulfilled
+             </h2>
             <p class="moj-timeline__byline">
                 {{ printf "by %v, %v" .User .Date }}
             </p>
@@ -12,8 +12,5 @@
         <p class="moj-timeline__date">
             {{ printf "Outstanding balance: £%v Credit balance: £%v" .OutstandingBalance .CreditBalance }}
         </p>
-        <div class="moj-timeline__description">
-             <li>{{ printf "Notes: %v" .Event.Notes}}</li>
-        </div>
     </div>
 {{ end }}

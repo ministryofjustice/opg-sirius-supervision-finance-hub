@@ -62,7 +62,8 @@ WHERE fc.client_id = $1
   AND la.status NOT IN ('PENDING', 'UN ALLOCATED');
 
 -- name: GetPendingRefundsForBillingHistory :many
-SELECT r.raised_date,
+SELECT r.id AS refund_id,
+       r.raised_date,
        r.amount,
        r.decision,
        r.notes,
@@ -77,5 +78,4 @@ SELECT r.raised_date,
 FROM refund r
         JOIN finance_client fc ON fc.id = r.finance_client_id
 WHERE fc.client_id = $1
-AND r.decision = 'PENDING'
 ORDER BY r.created_at DESC;
