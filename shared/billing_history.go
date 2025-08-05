@@ -32,12 +32,18 @@ func (b *BillingHistory) UnmarshalJSON(data []byte) (err error) {
 		b.Event = new(FeeReductionAwarded)
 	case EventTypeFeeReductionCancelled:
 		b.Event = new(FeeReductionCancelled)
-	case EventTypeInvoiceAdjustmentApplied, EventTypeFeeReductionApplied, EventTypePaymentProcessed, EventTypeReappliedCredit:
-		b.Event = new(TransactionEvent)
+	case EventTypeFeeReductionApplied:
+		b.Event = new(FeeReductionApplied)
+	case EventTypeInvoiceAdjustmentApplied:
+		b.Event = new(InvoiceAdjustmentApplied)
 	case EventTypeInvoiceAdjustmentPending:
 		b.Event = new(InvoiceAdjustmentPending)
 	case EventTypeInvoiceAdjustmentRejected:
 		b.Event = new(InvoiceAdjustmentRejected)
+	case EventTypePaymentProcessed:
+		b.Event = new(PaymentProcessed)
+	case EventTypeReappliedCredit:
+		b.Event = new(ReappliedCredit)
 	case EventTypeRefundCreated, EventTypeRefundCancelled, EventTypeRefundFulfilled, EventTypeRefundStatusUpdated, EventTypeRefundProcessing, EventTypeRefundApproved:
 		b.Event = new(RefundEvent)
 	default:
@@ -124,6 +130,22 @@ type RefundEvent struct {
 	Amount   int    `json:"amount"`
 	Notes    string `json:"notes"`
 	BaseBillingEvent
+}
+
+type InvoiceAdjustmentApplied struct {
+	TransactionEvent
+}
+
+type FeeReductionApplied struct {
+	TransactionEvent
+}
+
+type PaymentProcessed struct {
+	TransactionEvent
+}
+
+type ReappliedCredit struct {
+	TransactionEvent
 }
 
 type BillingEventType int
