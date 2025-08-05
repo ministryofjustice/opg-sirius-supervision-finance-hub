@@ -127,7 +127,8 @@ SELECT l.id AS ledger_id,
        la.status,
        l.amount  AS ledger_amount,
        la.amount AS allocation_amount,
-       l.datetime AS created_at,
+       l.datetime AS ledger_datetime,
+       l.created_at,
        l.created_by
 FROM ledger_allocation la
          JOIN ledger l ON l.id = la.ledger_id
@@ -146,6 +147,7 @@ type GetLedgerAllocationsForClientRow struct {
 	Status           string
 	LedgerAmount     int32
 	AllocationAmount int32
+	LedgerDatetime   pgtype.Timestamp
 	CreatedAt        pgtype.Timestamp
 	CreatedBy        pgtype.Int4
 }
@@ -167,6 +169,7 @@ func (q *Queries) GetLedgerAllocationsForClient(ctx context.Context, clientID in
 			&i.Status,
 			&i.LedgerAmount,
 			&i.AllocationAmount,
+			&i.LedgerDatetime,
 			&i.CreatedAt,
 			&i.CreatedBy,
 		); err != nil {

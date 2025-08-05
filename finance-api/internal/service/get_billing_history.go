@@ -250,8 +250,10 @@ func processLedgerAllocations(allocations []store.GetLedgerAllocationsForClientR
 					Type: shared.EventTypeReappliedCredit,
 				}
 			case event.TransactionType.IsPayment():
-				event.BaseBillingEvent = shared.BaseBillingEvent{
-					Type: shared.EventTypePaymentProcessed,
+				if allocation.Status == "ALLOCATED" {
+					event.BaseBillingEvent = shared.BaseBillingEvent{
+						Type: shared.EventTypePaymentProcessed,
+					}
 				}
 			default:
 				event.BaseBillingEvent = shared.BaseBillingEvent{
@@ -267,9 +269,13 @@ func processLedgerAllocations(allocations []store.GetLedgerAllocationsForClientR
 			lh = &historyHolder{
 				billingHistory: shared.BillingHistory{
 					User:  int(allocation.CreatedBy.Int32),
-					Date:  shared.Date{Time: allocation.CreatedAt.Time},
+					Date:  shared.Date{Time: allocation.LedgerDatetime.Time},
 					Event: event,
 				},
+			}
+
+			if event.TransactionType.IsPayment() && allocation.Status == "ALLOCATED" {
+				lh.billingHistory.Date = shared.Date{Time: allocation.CreatedAt.Time}
 			}
 		}
 
