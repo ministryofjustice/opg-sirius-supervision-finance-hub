@@ -26,7 +26,6 @@
     {{ if eq .Event.Type.String "REAPPLIED_CREDIT" }}
         {{ template "reapplied-credit-event" . }}
     {{ end }}
-{{/* no id */}}
     {{ if eq .Event.Type.String "REFUND_APPROVED" }}
         {{ template "refund-approved-event" . }}
     {{ end }}
@@ -39,7 +38,6 @@
     {{ if eq .Event.Type.String "REFUND_FULFILLED" }}
         {{ template "refund-fulfilled-event" . }}
     {{ end }}
-    {{/* no id */}}
     {{ if eq .Event.Type.String "REFUND_PROCESSING" }}
         {{ template "refund-processing-event" . }}
     {{ end }}
