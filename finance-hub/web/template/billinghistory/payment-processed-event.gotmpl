@@ -1,12 +1,16 @@
 {{ define "payment-processed-event" }}
-    {{ $isReversal := lt .Event.Amount 0}}
+    {{ $amount := .Event.Amount }}
+    {{ if eq (index .Event.Breakdown 0).Status "UNAPPLIED" }}
+        {{ $amount = toNegative (index .Event.Breakdown 0).Amount }}
+    {{ end }}
+    {{ $isReversal := lt $amount 0}}
     <div class="moj-timeline__item">
         <div class="moj-timeline__header">
             <h2 class="moj-timeline__title">
                 {{ if not $isReversal }}
-                    {{ printf "%v applied to %v for £%v" .Event.TransactionType (index .Event.Breakdown 0).InvoiceReference.Reference (toCurrency .Event.Amount) }}
+                    {{ printf "%v of £%v received" .Event.TransactionType (toCurrency $amount) }}
                 {{ else }}
-                    {{ printf "%v reversal applied to %v for £%v" .Event.TransactionType (index .Event.Breakdown 0).InvoiceReference.Reference (toCurrency (abs .Event.Amount)) }}
+                    {{ printf "%v reversal of £%v created" .Event.TransactionType  (toCurrency (toNegative $amount)) }}
                 {{ end }}
             </h2>
             <p class="moj-timeline__byline">
@@ -21,16 +25,16 @@
                 {{ range .Event.Breakdown }}
                     <li>
                         {{ if not $isReversal }}
-                            {{ if eq .InvoiceReference.Reference "" }}
-                                {{ printf "£%v unallocated" (toCurrency .Amount) }}
-                            {{ else }}
+                            {{if eq .Status "ALLOCATED" }}
                                 {{ printf "£%v allocated to %v" (toCurrency .Amount) .InvoiceReference.Reference }}
+                            {{ else }}
+                                {{ printf "£%v unallocated" (toCurrency .Amount) }}
                             {{ end }}
                         {{ else }}
-                            {{ if eq .InvoiceReference.Reference "" }}
-                                {{ printf "£%v reversed on account balance" (toCurrency .Amount) }}
-                            {{ else }}
+                            {{if eq .Status "ALLOCATED" }}
                                 {{ printf "£%v reversed against %v" (toCurrency .Amount) .InvoiceReference.Reference }}
+                            {{ else }}
+                                {{ printf "£%v reversed on account balance" (toCurrency .Amount) }}
                             {{ end }}
                         {{ end }}
                     </li>

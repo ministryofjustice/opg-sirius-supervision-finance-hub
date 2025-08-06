@@ -250,10 +250,8 @@ func processLedgerAllocations(allocations []store.GetLedgerAllocationsForClientR
 					Type: shared.EventTypeReappliedCredit,
 				}
 			case event.TransactionType.IsPayment():
-				if allocation.Status == "ALLOCATED" {
-					event.BaseBillingEvent = shared.BaseBillingEvent{
-						Type: shared.EventTypePaymentProcessed,
-					}
+				event.BaseBillingEvent = shared.BaseBillingEvent{
+					Type: shared.EventTypePaymentProcessed,
 				}
 			default:
 				event.BaseBillingEvent = shared.BaseBillingEvent{
