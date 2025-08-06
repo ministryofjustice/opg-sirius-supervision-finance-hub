@@ -58,7 +58,7 @@ func (s *Service) GetBillingHistory(ctx context.Context, clientID int32) ([]shar
 
 	history = append(history, processLedgerAllocations(allocations, clientID)...)
 
-	refunds, err := s.store.GetPendingRefundsForBillingHistory(ctx, clientID)
+	refunds, err := s.store.GetRefundsForBillingHistory(ctx, clientID)
 	if err != nil {
 		s.Logger(ctx).Error(fmt.Sprintf("Error in getting refunds in billing history for client %d", clientID), slog.String("err", err.Error()))
 		return nil, err
@@ -162,7 +162,7 @@ func invoiceEvents(invoices []store.GetGeneratedInvoicesRow, clientID int32) []h
 	return history
 }
 
-func getRefundEventTypeAndDate(refund store.GetPendingRefundsForBillingHistoryRow) (shared.BillingEventType, time.Time) {
+func getRefundEventTypeAndDate(refund store.GetRefundsForBillingHistoryRow) (shared.BillingEventType, time.Time) {
 	if refund.CancelledAt.Valid {
 		return shared.EventTypeRefundCancelled, refund.CancelledAt.Time
 	} else if refund.FulfilledAt.Valid {
@@ -181,7 +181,7 @@ func getRefundEventTypeAndDate(refund store.GetPendingRefundsForBillingHistoryRo
 	return shared.EventTypeRefundCreated, refund.CreatedAt.Time
 }
 
-func processRefundEvents(refunds []store.GetPendingRefundsForBillingHistoryRow, clientID int32) []historyHolder {
+func processRefundEvents(refunds []store.GetRefundsForBillingHistoryRow, clientID int32) []historyHolder {
 	var history []historyHolder
 	for _, re := range refunds {
 		if re.Decision != "PENDING" {

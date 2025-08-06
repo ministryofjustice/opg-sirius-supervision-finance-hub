@@ -61,7 +61,7 @@ FROM ledger_allocation la
 WHERE fc.client_id = $1
   AND la.status NOT IN ('PENDING', 'UN ALLOCATED');
 
--- name: GetPendingRefundsForBillingHistory :many
+-- name: GetRefundsForBillingHistory :many
 SELECT r.id AS refund_id,
        r.raised_date,
        r.amount,

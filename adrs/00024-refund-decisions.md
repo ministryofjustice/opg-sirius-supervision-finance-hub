@@ -29,7 +29,7 @@ The following changes have been made:
 * fulfilled_at timestamp = FULFILLED
 
 
-As the refund table does contain a link to the ledger it results in (is this true? Where is the link?), we could use the date on the ledger for the fulfilled
+As the refund table does contain a link to the ledger it results in, we could use the date on the ledger for the fulfilled
 status, but as the refunds list needs to include the fulfilled date, it makes sense to duplicate it.
 
 ## Consequences
