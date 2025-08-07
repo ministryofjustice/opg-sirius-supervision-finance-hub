@@ -9,6 +9,7 @@ import (
 	"math"
 	"slices"
 	"sort"
+	"time"
 )
 
 type historyHolder struct {
@@ -56,6 +57,14 @@ func (s *Service) GetBillingHistory(ctx context.Context, clientID int32) ([]shar
 	}
 
 	history = append(history, processLedgerAllocations(allocations, clientID)...)
+
+	refunds, err := s.store.GetRefundsForBillingHistory(ctx, clientID)
+	if err != nil {
+		s.Logger(ctx).Error(fmt.Sprintf("Error in getting refunds in billing history for client %d", clientID), slog.String("err", err.Error()))
+		return nil, err
+	}
+
+	history = append(history, processRefundEvents(refunds, clientID)...)
 
 	return computeBillingHistory(history), nil
 }
@@ -150,6 +159,78 @@ func invoiceEvents(invoices []store.GetGeneratedInvoicesRow, clientID int32) []h
 			balanceAdjustment: int(inv.Amount),
 		})
 	}
+	return history
+}
+
+func getRefundEventTypeAndDate(refund store.GetRefundsForBillingHistoryRow) (shared.BillingEventType, time.Time) {
+	if refund.CancelledAt.Valid {
+		return shared.EventTypeRefundCancelled, refund.CancelledAt.Time
+	} else if refund.FulfilledAt.Valid {
+		return shared.EventTypeRefundFulfilled, refund.FulfilledAt.Time
+	} else if refund.Decision == "REJECTED" {
+		return shared.EventTypeRefundStatusUpdated, refund.DecisionAt.Time
+	} else if refund.Decision == "APPROVED" {
+		if refund.ProcessedAt.Valid {
+			//	approved status with decision at has a date and processed at is set makes processing event
+			return shared.EventTypeRefundProcessing, refund.ProcessedAt.Time
+		} else {
+			//	approved status with decision at has a date and processed at is null
+			return shared.EventTypeRefundApproved, refund.DecisionAt.Time
+		}
+	}
+	return shared.EventTypeRefundCreated, refund.CreatedAt.Time
+}
+
+func processRefundEvents(refunds []store.GetRefundsForBillingHistoryRow, clientID int32) []historyHolder {
+	var history []historyHolder
+	for _, re := range refunds {
+		if re.Decision != "PENDING" {
+			eventType, date := getRefundEventTypeAndDate(re)
+			bh := shared.BillingHistory{
+				User: int(re.CreatedBy),
+				Date: shared.Date{Time: date},
+				Event: shared.RefundEvent{
+					Id:               int(re.RefundID),
+					ClientId:         int(clientID),
+					Amount:           int(re.Amount),
+					BaseBillingEvent: shared.BaseBillingEvent{Type: eventType},
+					Notes:            re.Notes,
+				},
+			}
+
+			//only change the balance once the refund is fulfilled
+			balanceAdjustment := 0
+			if bh.Event.GetType() == shared.EventTypeRefundFulfilled {
+				balanceAdjustment = int(re.Amount)
+			}
+
+			history = append(history, historyHolder{
+				billingHistory:    bh,
+				balanceAdjustment: balanceAdjustment,
+			})
+		}
+
+		//Also make a refund created for each refund in db (this covers the pending event)
+		createdEvent := shared.BillingHistory{
+			User: int(re.CreatedBy),
+			Date: shared.Date{Time: re.CreatedAt.Time},
+			Event: shared.RefundEvent{
+				BaseBillingEvent: shared.BaseBillingEvent{
+					Type: shared.EventTypeRefundCreated,
+				},
+				Id:       int(re.RefundID),
+				ClientId: int(clientID),
+				Amount:   int(re.Amount),
+				Notes:    re.Notes,
+			},
+		}
+
+		history = append(history, historyHolder{
+			billingHistory:    createdEvent,
+			balanceAdjustment: 0,
+		})
+	}
+
 	return history
 }
 

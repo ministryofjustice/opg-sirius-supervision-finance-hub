@@ -30,6 +30,14 @@ INSERT INTO invoice_adjustment VALUES (1, 4001, 4, '2022-12-04', 'CREDIT WRITE O
 -- billing-history
 INSERT INTO finance_client VALUES (5001, 5, 'billing-history', 'DEMANDED', null, '55555555');
 INSERT INTO invoice VALUES (5, 5, 5001, 'AD', 'AD44444/17', '2017-06-06', '2017-06-06', 10000, null, '2017-06-06', 10, '2017-06-06', null, null, null, '2017-06-06', 99);
+-- refunds
+INSERT INTO finance_client VALUES (5011, 15, 'billing-history', 'DEMANDED', null, '55555555');
+INSERT INTO invoice VALUES (15, 15, 5011, 'AD', 'AD44444/17', '2017-06-06', '2017-06-06', 10000, null, '2017-06-06', 10, '2017-06-06', null, null, null, '2017-06-06', 99);
+INSERT INTO ledger VALUES (12, 'write-off', '2024-04-11T08:36:40+00:00', '', 10000, '', 'CREDIT WRITE OFF', 'CONFIRMED', 5011);
+INSERT INTO ledger_allocation VALUES (2, 12, 15, '2022-04-11T08:36:40+00:00', 10000, 'ALLOCATED', null, null, '2022-04-11');
+-- pending refund
+INSERT INTO refund VALUES (1, 5011, '2022-04-11T08:36:40+00:00', 10000, 'PENDING', 'notes about pending refund', '2022-04-11', 1);
+
 
 -- cancel-fee-reduction
 INSERT INTO finance_client VALUES (6001, 6, 'cancel-fee-reduction', 'DEMANDED', null, '66666666');
