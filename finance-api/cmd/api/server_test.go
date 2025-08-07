@@ -24,16 +24,9 @@ type mockService struct {
 	billingHistory     []shared.BillingHistory
 	refunds            shared.Refunds
 	addRefund          shared.AddRefund
-	addDirectDebit     shared.AddDirectDebit
 	expectedIds        []int
 	lastCalled         string
 	err                error
-}
-
-func (s *mockService) AddDirectDebit(ctx context.Context, clientId int, directDebit shared.AddDirectDebit) error {
-	s.expectedIds = []int{int(clientId)}
-	s.lastCalled = "AddDirectDebit"
-	return s.err
 }
 
 func (s *mockService) ProcessAdhocEvent(ctx context.Context) error {
