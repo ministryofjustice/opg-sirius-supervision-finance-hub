@@ -227,7 +227,7 @@ func (q *Queries) GetPendingInvoiceAdjustments(ctx context.Context, clientID int
 	return items, nil
 }
 
-const getPendingRefundsForBillingHistory = `-- name: GetRefundsForBillingHistory :many
+const getRefundsForBillingHistory = `-- name: GetRefundsForBillingHistory :many
 SELECT r.id AS refund_id,
        r.raised_date,
        r.amount,
@@ -264,7 +264,7 @@ type GetRefundsForBillingHistoryRow struct {
 }
 
 func (q *Queries) GetRefundsForBillingHistory(ctx context.Context, clientID int32) ([]GetRefundsForBillingHistoryRow, error) {
-	rows, err := q.db.Query(ctx, getPendingRefundsForBillingHistory, clientID)
+	rows, err := q.db.Query(ctx, getRefundsForBillingHistory, clientID)
 	if err != nil {
 		return nil, err
 	}
