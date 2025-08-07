@@ -104,7 +104,7 @@ func (suite *IntegrationSuite) TestService_reapplyCredit_oldestFirst() {
 	assert.Nil(suite.T(), dispatch.event)
 }
 
-func (suite *IntegrationSuite) TestService_reapplyCredit_approvedLedger() {
+func (suite *IntegrationSuite) TestService_reapplyCredit_requiresApprovedLedger() {
 	ctx := suite.ctx
 	seeder := suite.cm.Seeder(ctx, suite.T())
 
