@@ -112,7 +112,7 @@ services:
       - ./finance-hub:/home/node/app
 
   sirius-db:
-    image: postgres:14-alpine
+    image: postgres:17-alpine
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
