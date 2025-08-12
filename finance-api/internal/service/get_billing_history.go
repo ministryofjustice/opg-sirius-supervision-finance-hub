@@ -181,13 +181,25 @@ func getRefundEventTypeAndDate(refund store.GetRefundsForBillingHistoryRow) (sha
 	return shared.EventTypeRefundCreated, refund.CreatedAt.Time
 }
 
+func getUserForEventType(refund store.GetRefundsForBillingHistoryRow, eventType shared.BillingEventType) int32 {
+	switch eventType {
+	case shared.EventTypeRefundCreated:
+		return refund.CreatedBy
+	case shared.EventTypeRefundCancelled:
+		return refund.CancelledBy.Int32
+	default:
+		return refund.DecisionBy.Int32
+	}
+}
+
 func processRefundEvents(refunds []store.GetRefundsForBillingHistoryRow, clientID int32) []historyHolder {
 	var history []historyHolder
 	for _, re := range refunds {
 		if re.Decision != "PENDING" {
 			eventType, date := getRefundEventTypeAndDate(re)
+			user := getUserForEventType(re, eventType)
 			bh := shared.BillingHistory{
-				User: int(re.CreatedBy),
+				User: int(user),
 				Date: shared.Date{Time: date},
 				Event: shared.RefundEvent{
 					Id:               int(re.RefundID),
@@ -198,15 +210,10 @@ func processRefundEvents(refunds []store.GetRefundsForBillingHistoryRow, clientI
 				},
 			}
 
-			//only change the balance once the refund is fulfilled
-			balanceAdjustment := 0
-			if bh.Event.GetType() == shared.EventTypeRefundFulfilled {
-				balanceAdjustment = int(re.Amount)
-			}
-
+			//never change balance as it will double count due to the ledger billing history event
 			history = append(history, historyHolder{
 				billingHistory:    bh,
-				balanceAdjustment: balanceAdjustment,
+				balanceAdjustment: 0,
 			})
 		}
 

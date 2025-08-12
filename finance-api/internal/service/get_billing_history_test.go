@@ -33,8 +33,8 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 		"INSERT INTO ledger_allocation VALUES (8,7,10,'2024-10-07 09:35:03',5000,'REAPPLIED');",
 		"INSERT INTO ledger_allocation VALUES (9,8,10,'2024-10-07 09:36:05',1000,'ALLOCATED');",
 		"INSERT INTO supervision_finance.refund values (16, 3, '2024-01-01', 234, 'REJECTED', 'rejected refund', 1, '2024-07-01', 2, '2024-07-02');",
-		"INSERT INTO supervision_finance.refund values (15, 3, '2024-01-01', 234, 'APPROVED', 'processing then cancelled refund', 1, '2024-06-01', 2, '2024-06-02', '2024-06-03', '2024-06-04', null, 2);",
-		"INSERT INTO supervision_finance.refund values (14, 3, '2024-01-01', 234, 'APPROVED', 'approved then cancelled refund', 1, '2024-05-01', 2, '2024-05-02', null, '2024-05-03', null, 2);",
+		"INSERT INTO supervision_finance.refund values (15, 3, '2024-01-01', 234, 'APPROVED', 'processing then cancelled refund', 1, '2024-06-01', 2, '2024-06-02', '2024-06-03', '2024-06-04', null, 3);",
+		"INSERT INTO supervision_finance.refund values (14, 3, '2024-01-01', 234, 'APPROVED', 'approved then cancelled refund', 1, '2024-05-01', 2, '2024-05-02', null, '2024-05-03', null, 3);",
 		"INSERT INTO supervision_finance.refund values (13, 3, '2024-01-01', 234, 'APPROVED', 'fulfilled refund', 1, '2024-04-01', 2, '2024-04-02', '2024-04-03', null, '2024-04-04');",
 		"INSERT INTO supervision_finance.refund values (12, 3, '2024-01-01', 234, 'APPROVED', 'processing refund', 1, '2024-03-01', 2, '2024-03-02', '2024-03-03');",
 		"INSERT INTO supervision_finance.refund values (10, 3, '2024-01-01', 234, 'PENDING', 'pending refund', 1, '2024-01-01', null);",
@@ -300,7 +300,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 			id:   3,
 			want: []shared.BillingHistory{
 				{
-					User: 1,
+					User: 2,
 					Date: shared.NewDate("2024-07-02"),
 					Event: shared.RefundEvent{
 						ClientId: 3,
@@ -311,7 +311,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 						},
 						Notes: "rejected refund",
 					},
-					OutstandingBalance: 234,
+					OutstandingBalance: 0,
 					CreditBalance:      0,
 				},
 				{
@@ -326,11 +326,11 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 						},
 						Notes: "rejected refund",
 					},
-					OutstandingBalance: 234,
+					OutstandingBalance: 0,
 					CreditBalance:      0,
 				},
 				{
-					User: 1,
+					User: 3,
 					Date: shared.NewDate("2024-06-04"),
 					Event: shared.RefundEvent{
 						ClientId: 3,
@@ -341,7 +341,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 						},
 						Notes: "processing then cancelled refund",
 					},
-					OutstandingBalance: 234,
+					OutstandingBalance: 0,
 					CreditBalance:      0,
 				},
 				{
@@ -356,11 +356,11 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 						},
 						Notes: "processing then cancelled refund",
 					},
-					OutstandingBalance: 234,
+					OutstandingBalance: 0,
 					CreditBalance:      0,
 				},
 				{
-					User: 1,
+					User: 3,
 					Date: shared.NewDate("2024-05-03"),
 					Event: shared.RefundEvent{
 						ClientId: 3,
@@ -371,7 +371,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 						},
 						Notes: "approved then cancelled refund",
 					},
-					OutstandingBalance: 234,
+					OutstandingBalance: 0,
 					CreditBalance:      0,
 				},
 				{
@@ -386,11 +386,11 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 						},
 						Notes: "approved then cancelled refund",
 					},
-					OutstandingBalance: 234,
+					OutstandingBalance: 0,
 					CreditBalance:      0,
 				},
 				{
-					User: 1,
+					User: 2,
 					Date: shared.NewDate("2024-04-04"),
 					Event: shared.RefundEvent{
 						ClientId: 3,
@@ -401,7 +401,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 						},
 						Notes: "fulfilled refund",
 					},
-					OutstandingBalance: 234,
+					OutstandingBalance: 0,
 					CreditBalance:      0,
 				},
 				{
@@ -420,7 +420,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 					CreditBalance:      0,
 				},
 				{
-					User: 1,
+					User: 2,
 					Date: shared.NewDate("2024-03-03"),
 					Event: shared.RefundEvent{
 						ClientId: 3,
@@ -450,7 +450,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 					CreditBalance:      0,
 				},
 				{
-					User: 1,
+					User: 2,
 					Date: shared.NewDate("2024-02-02"),
 					Event: shared.RefundEvent{
 						ClientId: 3,
@@ -1068,6 +1068,144 @@ func Test_getRefundEventTypeAndDate(t *testing.T) {
 	}
 }
 
+func Test_getUserForEventType(t *testing.T) {
+	now := time.Now()
+
+	tests := []struct {
+		name           string
+		refund         store.GetRefundsForBillingHistoryRow
+		eventType      shared.BillingEventType
+		expectedResult int32
+	}{
+		{
+			name: "Pending refund returns created user",
+			refund: store.GetRefundsForBillingHistoryRow{
+				RefundID:    1,
+				RaisedDate:  pgtype.Date{Time: now, Valid: true},
+				Amount:      23,
+				Decision:    "PENDING",
+				Notes:       "Pending timeline event",
+				CreatedAt:   pgtype.Timestamp(pgtype.Date{Time: now, Valid: true}),
+				CreatedBy:   2,
+				DecisionAt:  pgtype.Timestamp(pgtype.Date{Time: now.Add(1 * time.Hour), Valid: true}),
+				DecisionBy:  pgtype.Int4{Int32: 1, Valid: true},
+				ProcessedAt: pgtype.Timestamp{},
+				CancelledAt: pgtype.Timestamp{},
+				FulfilledAt: pgtype.Timestamp{},
+				CancelledBy: pgtype.Int4{},
+			},
+			eventType:      shared.EventTypeRefundCreated,
+			expectedResult: 2,
+		},
+		//{
+		//	name: "Rejected refund returns decision by user",
+		//	refund: store.GetRefundsForBillingHistoryRow{
+		//		RefundID:    1,
+		//		RaisedDate:  pgtype.Date{Time: now, Valid: true},
+		//		Amount:      23,
+		//		Decision:    "REJECTED",
+		//		Notes:       "Rejected timeline event",
+		//		CreatedAt:   pgtype.Timestamp(pgtype.Date{Time: now, Valid: true}),
+		//		CreatedBy:   2,
+		//		DecisionAt:  pgtype.Timestamp(pgtype.Date{Time: now.Add(24 * time.Hour), Valid: true}),
+		//		DecisionBy:  pgtype.Int4{Int32: 1, Valid: true},
+		//		ProcessedAt: pgtype.Timestamp{},
+		//		CancelledAt: pgtype.Timestamp{},
+		//		FulfilledAt: pgtype.Timestamp{},
+		//		CancelledBy: pgtype.Int4{},
+		//	},
+		//	eventType:      shared.EventTypeRefundStatusUpdated,
+		//	expectedResult: 1,
+		//},
+		//{
+		//	name: "Fulfilled refund returns decision by user",
+		//	refund: store.GetRefundsForBillingHistoryRow{
+		//		RefundID:    1,
+		//		RaisedDate:  pgtype.Date{Time: now, Valid: true},
+		//		Amount:      23,
+		//		Decision:    "APPROVED",
+		//		Notes:       "Fulfilled timeline event",
+		//		CreatedAt:   pgtype.Timestamp(pgtype.Date{Time: now, Valid: true}),
+		//		CreatedBy:   2,
+		//		DecisionAt:  pgtype.Timestamp(pgtype.Date{Time: now.Add(24 * time.Hour), Valid: true}),
+		//		DecisionBy:  pgtype.Int4{Int32: 1, Valid: true},
+		//		ProcessedAt: pgtype.Timestamp(pgtype.Date{Time: now.Add(48 * time.Hour), Valid: true}),
+		//		CancelledAt: pgtype.Timestamp{},
+		//		FulfilledAt: pgtype.Timestamp(pgtype.Date{Time: now.Add(72 * time.Hour), Valid: true}),
+		//		CancelledBy: pgtype.Int4{},
+		//	},
+		//	eventType:      shared.EventTypeRefundFulfilled,
+		//	expectedResult: 1,
+		//},
+		//{
+		//	name: "Cancelled refund - cancelled at approval stage - returns cancelled by user",
+		//	refund: store.GetRefundsForBillingHistoryRow{
+		//		RefundID:    1,
+		//		RaisedDate:  pgtype.Date{Time: now, Valid: true},
+		//		Amount:      23,
+		//		Decision:    "APPROVED",
+		//		Notes:       "Approved refund then cancelled timeline event",
+		//		CreatedAt:   pgtype.Timestamp(pgtype.Date{Time: now, Valid: true}),
+		//		CreatedBy:   2,
+		//		DecisionAt:  pgtype.Timestamp(pgtype.Date{Time: now.Add(24 * time.Hour), Valid: true}),
+		//		DecisionBy:  pgtype.Int4{Int32: 1, Valid: true},
+		//		ProcessedAt: pgtype.Timestamp(pgtype.Date{}),
+		//		CancelledAt: pgtype.Timestamp(pgtype.Date{Time: now.Add(72 * time.Hour), Valid: true}),
+		//		FulfilledAt: pgtype.Timestamp(pgtype.Date{}),
+		//		CancelledBy: pgtype.Int4{Int32: 3, Valid: true},
+		//	},
+		//	eventType:      shared.EventTypeRefundCancelled,
+		//	expectedResult: 3,
+		//},
+		//{
+		//	name: "Cancelled refund - cancelled at processing stage - returns cancelled by user",
+		//	refund: store.GetRefundsForBillingHistoryRow{
+		//		RefundID:    1,
+		//		RaisedDate:  pgtype.Date{Time: now, Valid: true},
+		//		Amount:      23,
+		//		Decision:    "APPROVED",
+		//		Notes:       "Processing then cancelled timeline event",
+		//		CreatedAt:   pgtype.Timestamp(pgtype.Date{Time: now, Valid: true}),
+		//		CreatedBy:   2,
+		//		DecisionAt:  pgtype.Timestamp(pgtype.Date{Time: now.Add(24 * time.Hour), Valid: true}),
+		//		DecisionBy:  pgtype.Int4{Int32: 1, Valid: true},
+		//		ProcessedAt: pgtype.Timestamp(pgtype.Date{Time: now.Add(48 * time.Hour), Valid: true}),
+		//		CancelledAt: pgtype.Timestamp(pgtype.Date{Time: now.Add(72 * time.Hour), Valid: true}),
+		//		FulfilledAt: pgtype.Timestamp(pgtype.Date{}),
+		//		CancelledBy: pgtype.Int4{Int32: 3, Valid: true},
+		//	},
+		//	eventType:      shared.EventTypeRefundCancelled,
+		//	expectedResult: 3,
+		//},
+		//{
+		//	name: "Approved refund returns decision by user",
+		//	refund: store.GetRefundsForBillingHistoryRow{
+		//		RefundID:    1,
+		//		RaisedDate:  pgtype.Date{Time: now, Valid: true},
+		//		Amount:      23,
+		//		Decision:    "APPROVED",
+		//		Notes:       "Approved with processing date",
+		//		CreatedAt:   pgtype.Timestamp(pgtype.Date{Time: now, Valid: true}),
+		//		CreatedBy:   2,
+		//		DecisionAt:  pgtype.Timestamp(pgtype.Date{Time: now.Add(24 * time.Hour), Valid: true}),
+		//		DecisionBy:  pgtype.Int4{Int32: 1, Valid: true},
+		//		ProcessedAt: pgtype.Timestamp(pgtype.Date{Time: now.Add(48 * time.Hour), Valid: true}),
+		//		CancelledAt: pgtype.Timestamp(pgtype.Date{}),
+		//		FulfilledAt: pgtype.Timestamp(pgtype.Date{}),
+		//		CancelledBy: pgtype.Int4{},
+		//	},
+		//	eventType:      shared.EventTypeRefundApproved,
+		//	expectedResult: 1,
+		//},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actualUser := getUserForEventType(tt.refund, tt.eventType)
+			assert.Equalf(t, tt.expectedResult, actualUser, "processLedgerAllocations(%v, %v)", tt.expectedResult, actualUser)
+		})
+	}
+}
+
 func Test_processRefundEventsCreatesCorrectBillingHistoryEvents(t *testing.T) {
 	now := time.Now()
 	refunds := []store.GetRefundsForBillingHistoryRow{
@@ -1129,7 +1267,7 @@ func Test_processRefundEventsCreatesCorrectBillingHistoryEvents(t *testing.T) {
 			ProcessedAt: pgtype.Timestamp(pgtype.Date{}),
 			CancelledAt: pgtype.Timestamp(pgtype.Date{Time: now.Add(72 * time.Hour), Valid: true}),
 			FulfilledAt: pgtype.Timestamp(pgtype.Date{}),
-			CancelledBy: pgtype.Int4{Int32: 2, Valid: true},
+			CancelledBy: pgtype.Int4{Int32: 3, Valid: true},
 		},
 		{
 			RefundID:    4,
@@ -1144,7 +1282,7 @@ func Test_processRefundEventsCreatesCorrectBillingHistoryEvents(t *testing.T) {
 			ProcessedAt: pgtype.Timestamp(pgtype.Date{Time: now.Add(48 * time.Hour), Valid: true}),
 			CancelledAt: pgtype.Timestamp(pgtype.Date{Time: now.Add(72 * time.Hour), Valid: true}),
 			FulfilledAt: pgtype.Timestamp(pgtype.Date{}),
-			CancelledBy: pgtype.Int4{Int32: 2, Valid: true},
+			CancelledBy: pgtype.Int4{Int32: 3, Valid: true},
 		},
 		{
 			RefundID:    3,
@@ -1159,7 +1297,7 @@ func Test_processRefundEventsCreatesCorrectBillingHistoryEvents(t *testing.T) {
 			ProcessedAt: pgtype.Timestamp(pgtype.Date{Time: now.Add(48 * time.Hour), Valid: true}),
 			CancelledAt: pgtype.Timestamp(pgtype.Date{}),
 			FulfilledAt: pgtype.Timestamp(pgtype.Date{}),
-			CancelledBy: pgtype.Int4{Int32: 2, Valid: true},
+			CancelledBy: pgtype.Int4{},
 		},
 		{
 			RefundID:    2,
@@ -1174,7 +1312,7 @@ func Test_processRefundEventsCreatesCorrectBillingHistoryEvents(t *testing.T) {
 			ProcessedAt: pgtype.Timestamp(pgtype.Date{}),
 			CancelledAt: pgtype.Timestamp(pgtype.Date{}),
 			FulfilledAt: pgtype.Timestamp(pgtype.Date{}),
-			CancelledBy: pgtype.Int4{Int32: 2, Valid: true},
+			CancelledBy: pgtype.Int4{},
 		},
 	}
 
@@ -1196,7 +1334,7 @@ func Test_processRefundEventsCreatesCorrectBillingHistoryEvents(t *testing.T) {
 		},
 		{
 			billingHistory: shared.BillingHistory{
-				User: 2,
+				User: 1,
 				Date: shared.Date{Time: now.Add(24 * time.Hour)},
 				Event: shared.RefundEvent{
 					Id:               7,
@@ -1226,7 +1364,7 @@ func Test_processRefundEventsCreatesCorrectBillingHistoryEvents(t *testing.T) {
 		},
 		{
 			billingHistory: shared.BillingHistory{
-				User: 2,
+				User: 1,
 				Date: shared.Date{Time: now.Add(72 * time.Hour)},
 				Event: shared.RefundEvent{
 					Id:               6,
@@ -1237,7 +1375,7 @@ func Test_processRefundEventsCreatesCorrectBillingHistoryEvents(t *testing.T) {
 				},
 				OutstandingBalance: 0,
 			},
-			balanceAdjustment: 44,
+			balanceAdjustment: 0,
 		},
 		{
 			billingHistory: shared.BillingHistory{
@@ -1256,7 +1394,7 @@ func Test_processRefundEventsCreatesCorrectBillingHistoryEvents(t *testing.T) {
 		},
 		{
 			billingHistory: shared.BillingHistory{
-				User: 2,
+				User: 3,
 				Date: shared.Date{Time: now.Add(72 * time.Hour)},
 				Event: shared.RefundEvent{
 					Id:               5,
@@ -1286,7 +1424,7 @@ func Test_processRefundEventsCreatesCorrectBillingHistoryEvents(t *testing.T) {
 		},
 		{
 			billingHistory: shared.BillingHistory{
-				User: 2,
+				User: 3,
 				Date: shared.Date{Time: now.Add(72 * time.Hour)},
 				Event: shared.RefundEvent{
 					Id:               4,
@@ -1316,7 +1454,7 @@ func Test_processRefundEventsCreatesCorrectBillingHistoryEvents(t *testing.T) {
 		},
 		{
 			billingHistory: shared.BillingHistory{
-				User: 2,
+				User: 1,
 				Date: shared.Date{Time: now.Add(48 * time.Hour)},
 				Event: shared.RefundEvent{
 					Id:               3,
@@ -1346,7 +1484,7 @@ func Test_processRefundEventsCreatesCorrectBillingHistoryEvents(t *testing.T) {
 		},
 		{
 			billingHistory: shared.BillingHistory{
-				User: 2,
+				User: 1,
 				Date: shared.Date{Time: now.Add(24 * time.Hour)},
 				Event: shared.RefundEvent{
 					Id:               2,
