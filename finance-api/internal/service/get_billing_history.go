@@ -192,7 +192,7 @@ func getUserForEventType(refund store.GetRefundsForBillingHistoryRow, eventType 
 	}
 }
 
-func makeEvent(refund store.GetRefundsForBillingHistoryRow, user int32, eventType shared.BillingEventType, date time.Time, clientID int32) shared.BillingHistory {
+func makeEvent(refund store.GetRefundsForBillingHistoryRow, user int32, eventType shared.BillingEventType, date time.Time, clientID int32, history []historyHolder) []historyHolder {
 	bh := shared.BillingHistory{
 		User: int(user),
 		Date: shared.Date{Time: date},
@@ -204,7 +204,12 @@ func makeEvent(refund store.GetRefundsForBillingHistoryRow, user int32, eventTyp
 			Notes:            refund.Notes,
 		},
 	}
-	return bh
+	//never change balance as it will double count due to the ledger billing history event
+	history = append(history, historyHolder{
+		billingHistory:    bh,
+		balanceAdjustment: 0,
+	})
+	return history
 }
 
 func processRefundEvents(refunds []store.GetRefundsForBillingHistoryRow, clientID int32) []historyHolder {
@@ -213,53 +218,23 @@ func processRefundEvents(refunds []store.GetRefundsForBillingHistoryRow, clientI
 		if re.Decision != "PENDING" {
 			eventType, date := getRefundEventTypeAndDate(re)
 			user := getUserForEventType(re, eventType)
-			bh := makeEvent(re, user, eventType, date, clientID)
+			history = makeEvent(re, user, eventType, date, clientID, history)
 
-			//never change balance as it will double count due to the ledger billing history event
-			history = append(history, historyHolder{
-				billingHistory:    bh,
-				balanceAdjustment: 0,
-			})
-
-			if eventType == shared.EventTypeRefundFulfilled {
+			if eventType == shared.EventTypeRefundFulfilled || eventType == shared.EventTypeRefundCancelled {
 				//	ensure there is a second timeline event for the approved and processing events
-				bh := makeEvent(re, re.DecisionBy.Int32, shared.EventTypeRefundProcessing, re.ProcessedAt.Time, clientID)
-				history = append(history, historyHolder{
-					billingHistory:    bh,
-					balanceAdjustment: 0,
-				})
-
-				bh = makeEvent(re, re.DecisionBy.Int32, shared.EventTypeRefundApproved, re.DecisionAt.Time, clientID)
-				history = append(history, historyHolder{
-					billingHistory:    bh,
-					balanceAdjustment: 0,
-				})
+				if re.ProcessedAt.Valid {
+					history = makeEvent(re, re.DecisionBy.Int32, shared.EventTypeRefundProcessing, re.ProcessedAt.Time, clientID, history)
+				}
+				history = makeEvent(re, re.DecisionBy.Int32, shared.EventTypeRefundApproved, re.DecisionAt.Time, clientID, history)
 			}
 
-			if eventType == shared.EventTypeRefundCancelled {
-				//	check if it required a processing event
-				if re.ProcessedAt.Valid {
-					bh := makeEvent(re, re.DecisionBy.Int32, shared.EventTypeRefundProcessing, re.ProcessedAt.Time, clientID)
-					history = append(history, historyHolder{
-						billingHistory:    bh,
-						balanceAdjustment: 0,
-					})
-				}
-
-				bh = makeEvent(re, re.DecisionBy.Int32, shared.EventTypeRefundApproved, re.DecisionAt.Time, clientID)
-				history = append(history, historyHolder{
-					billingHistory:    bh,
-					balanceAdjustment: 0,
-				})
+			if eventType == shared.EventTypeRefundProcessing {
+				history = makeEvent(re, re.DecisionBy.Int32, shared.EventTypeRefundApproved, re.DecisionAt.Time, clientID, history)
 			}
 		}
-		// for all refunds ensure that there is a refund created event
-		bh := makeEvent(re, re.CreatedBy, shared.EventTypeRefundCreated, re.CreatedAt.Time, clientID)
-		history = append(history, historyHolder{
-			billingHistory:    bh,
-			balanceAdjustment: 0,
-		})
 
+		// for all refunds ensure that there is a refund created event
+		history = makeEvent(re, re.CreatedBy, shared.EventTypeRefundCreated, re.CreatedAt.Time, clientID, history)
 	}
 
 	return history
