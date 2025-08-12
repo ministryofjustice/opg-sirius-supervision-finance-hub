@@ -105,40 +105,6 @@ func (q *Queries) CreatePendingInvoiceAdjustment(ctx context.Context, arg Create
 	return invoicereference, err
 }
 
-const getAdjustmentForDecision = `-- name: GetAdjustmentForDecision :one
-SELECT ia.amount,
-       ia.adjustment_type,
-       ia.finance_client_id,
-       ia.invoice_id,
-       (i.amount - COALESCE(SUM(la.amount), 0))::INT outstanding
-FROM invoice_adjustment ia
-         JOIN invoice i ON ia.invoice_id = i.id
-         LEFT JOIN ledger_allocation la ON i.id = la.invoice_id AND la.status NOT IN ('PENDING', 'UN ALLOCATED')
-WHERE ia.id = $1
-GROUP BY ia.amount, ia.adjustment_type, ia.finance_client_id, ia.invoice_id, i.amount
-`
-
-type GetAdjustmentForDecisionRow struct {
-	Amount          int32
-	AdjustmentType  string
-	FinanceClientID int32
-	InvoiceID       int32
-	Outstanding     int32
-}
-
-func (q *Queries) GetAdjustmentForDecision(ctx context.Context, id int32) (GetAdjustmentForDecisionRow, error) {
-	row := q.db.QueryRow(ctx, getAdjustmentForDecision, id)
-	var i GetAdjustmentForDecisionRow
-	err := row.Scan(
-		&i.Amount,
-		&i.AdjustmentType,
-		&i.FinanceClientID,
-		&i.InvoiceID,
-		&i.Outstanding,
-	)
-	return i, err
-}
-
 const getInvoiceAdjustments = `-- name: GetInvoiceAdjustments :many
 SELECT ia.id,
        i.reference AS invoice_ref,
@@ -204,8 +170,9 @@ WHERE ia.id = $1
 RETURNING ia.amount, ia.adjustment_type, ia.finance_client_id, ia.invoice_id,
     (SELECT (i.amount - COALESCE(SUM(la.amount), 0)) outstanding
      FROM invoice i
-              LEFT JOIN ledger_allocation la
-                        ON i.id = la.invoice_id AND la.status NOT IN ('PENDING', 'UN ALLOCATED')
+              LEFT JOIN ledger_allocation la ON i.id = la.invoice_id
+              AND la.status NOT IN ('PENDING', 'UN ALLOCATED')
+              AND la.ledger_id IN (SELECT id FROM ledger WHERE status = 'CONFIRMED')
      WHERE i.id = ia.invoice_id
      GROUP BY i.amount)::INT AS outstanding
 `
