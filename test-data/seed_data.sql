@@ -83,7 +83,7 @@ INSERT INTO ledger VALUES (6, 'refund-credit', '2024-04-11T08:36:40+00:00', '', 
 INSERT INTO ledger_allocation VALUES (6, 6, NULL, '2024-04-11T08:36:40+00:00', 13000, 'ALLOCATED', null, 'refund-credit', '2024-04-11', null);
 INSERT INTO ledger_allocation VALUES (7, 6, NULL, '2024-04-11T08:36:40+00:00', -3000, 'UNAPPLIED', null, 'refund-credit', '2024-04-11', null);
 
-INSERT INTO refund VALUES (1, 14001, '2025-06-01', 12340, 'APPROVED', 'Fulfilled refund', 1, '2025-06-01 00:00:00', 2, '2025-06-06 00:00:00', '2025-06-06 00:00:00', NULL, '2025-06-06 00:00:00');
+INSERT INTO refund VALUES (1, 14001, '2025-06-01', 12340, 'APPROVED', 'Fulfilled refund', 1, '2025-06-01 00:00:00', 2, '2025-06-02 00:00:00', '2025-06-03 00:00:00', NULL, '2025-06-06 00:00:00');
 INSERT INTO refund VALUES (2, 14001, '2024-05-01', 12341, 'PENDING', 'Pending refund', 1, '2024-05-01 00:00:00', NULL, NULL);
 INSERT INTO refund VALUES (3, 14001, '2023-04-01', 12342, 'APPROVED', 'Approved refund', 1, '2023-04-02 00:00:00', 2, '2023-04-06 00:00:00');
 INSERT INTO refund VALUES (4, 14001, '2022-03-01', 12343, 'REJECTED', 'Rejected refund', 1, '2022-03-02 00:00:00', 2, '2022-03-06 00:00:00');
