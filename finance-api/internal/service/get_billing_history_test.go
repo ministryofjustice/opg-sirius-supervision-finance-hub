@@ -1152,8 +1152,8 @@ func Test_getRefundEventTypeAndDate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			actualEventType, actualDate := getRefundEventTypeAndDate(tt.refund)
-			assert.Equalf(t, tt.wantEventType, actualEventType, "processLedgerAllocations(%v, %v)", tt.wantEventType, actualEventType)
-			assert.Equalf(t, tt.wantEventDate, actualDate, "processLedgerAllocations(%v, %v)", tt.wantEventDate, actualDate)
+			assert.Equalf(t, tt.wantEventType, actualEventType, "getRefundEventType(%v, %v)", tt.wantEventType, actualEventType)
+			assert.Equalf(t, tt.wantEventDate, actualDate, "getRefundEventDate(%v, %v)", tt.wantEventDate, actualDate)
 		})
 	}
 }
@@ -1291,7 +1291,140 @@ func Test_getUserForEventType(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			actualUser := getUserForEventType(tt.refund, tt.eventType)
-			assert.Equalf(t, tt.expectedResult, actualUser, "processLedgerAllocations(%v, %v)", tt.expectedResult, actualUser)
+			assert.Equalf(t, tt.expectedResult, actualUser, "getUserForEventType(%v, %v)", tt.expectedResult, actualUser)
+		})
+	}
+}
+
+func Test_makeEvent(t *testing.T) {
+	now := time.Now()
+
+	tests := []struct {
+		name           string
+		refund         store.GetRefundsForBillingHistoryRow
+		user           int32
+		eventType      shared.BillingEventType
+		date           time.Time
+		clientID       int32
+		history        []historyHolder
+		expectedResult []historyHolder
+	}{
+		{
+			name: "Add event to empty history holder",
+			refund: store.GetRefundsForBillingHistoryRow{
+				RefundID:    1,
+				RaisedDate:  pgtype.Date{Time: now, Valid: true},
+				Amount:      23,
+				Decision:    "PENDING",
+				Notes:       "Pending timeline event",
+				CreatedAt:   pgtype.Timestamp(pgtype.Date{Time: now, Valid: true}),
+				CreatedBy:   2,
+				DecisionAt:  pgtype.Timestamp(pgtype.Date{Time: now.Add(1 * time.Hour), Valid: true}),
+				DecisionBy:  pgtype.Int4{Int32: 1, Valid: true},
+				ProcessedAt: pgtype.Timestamp{},
+				CancelledAt: pgtype.Timestamp{},
+				FulfilledAt: pgtype.Timestamp{},
+				CancelledBy: pgtype.Int4{},
+			},
+			user:      11,
+			eventType: shared.EventTypeRefundCreated,
+			date:      now,
+			clientID:  45,
+			history:   []historyHolder{},
+			expectedResult: []historyHolder{
+				{
+					billingHistory: shared.BillingHistory{
+						User: 11,
+						Date: shared.Date{Time: now},
+						Event: shared.RefundEvent{
+							Id:               1,
+							ClientId:         45,
+							Amount:           23,
+							Notes:            "Pending timeline event",
+							BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundCreated},
+						},
+						OutstandingBalance: 0,
+					},
+					balanceAdjustment: 0,
+				},
+			},
+		},
+		{
+			name: "Add event to history holder with existing event",
+			refund: store.GetRefundsForBillingHistoryRow{
+				RefundID:    1,
+				RaisedDate:  pgtype.Date{Time: now.Add(1 * time.Hour), Valid: true},
+				Amount:      55,
+				Decision:    "APPROVED",
+				Notes:       "Newer timeline event",
+				CreatedAt:   pgtype.Timestamp(pgtype.Date{Time: now.Add(1 * time.Hour), Valid: true}),
+				CreatedBy:   2,
+				DecisionAt:  pgtype.Timestamp(pgtype.Date{Time: now.Add(12 * time.Hour), Valid: true}),
+				DecisionBy:  pgtype.Int4{Int32: 1, Valid: true},
+				ProcessedAt: pgtype.Timestamp{},
+				CancelledAt: pgtype.Timestamp{},
+				FulfilledAt: pgtype.Timestamp{},
+				CancelledBy: pgtype.Int4{},
+			},
+			user:      22,
+			eventType: shared.EventTypeRefundProcessing,
+			date:      now,
+			clientID:  66,
+			history: []historyHolder{
+				{
+					billingHistory: shared.BillingHistory{
+						User: 11,
+						Date: shared.Date{Time: now},
+						Event: shared.RefundEvent{
+							Id:               1,
+							ClientId:         45,
+							Amount:           23,
+							Notes:            "Existing timeline event",
+							BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundStatusUpdated},
+						},
+						OutstandingBalance: 0,
+					},
+					balanceAdjustment: 0,
+				},
+			},
+			expectedResult: []historyHolder{
+				{
+					billingHistory: shared.BillingHistory{
+						User: 11,
+						Date: shared.Date{Time: now},
+						Event: shared.RefundEvent{
+							Id:               1,
+							ClientId:         45,
+							Amount:           23,
+							Notes:            "Existing timeline event",
+							BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundStatusUpdated},
+						},
+						OutstandingBalance: 0,
+					},
+					balanceAdjustment: 0,
+				},
+				{
+					billingHistory: shared.BillingHistory{
+						User: 22,
+						Date: shared.Date{Time: now},
+						Event: shared.RefundEvent{
+							Id:               1,
+							ClientId:         66,
+							Amount:           55,
+							Notes:            "Newer timeline event",
+							BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundProcessing},
+						},
+						OutstandingBalance: 0,
+					},
+					balanceAdjustment: 0,
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actualEvent := makeEvent(tt.refund, tt.user, tt.eventType, tt.date, tt.clientID, tt.history)
+			assert.Equalf(t, tt.expectedResult, actualEvent, "makeEvent(%v, %v)", tt.expectedResult, actualEvent)
 		})
 	}
 }
