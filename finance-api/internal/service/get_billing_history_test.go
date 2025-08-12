@@ -25,10 +25,12 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 		"INSERT INTO ledger VALUES (5,'09799ea2-5f8f-4ecb-8200-f021ab96def1','2024-10-07 09:32:50','',5000,'Credit due to approved remission','CREDIT REMISSION','CONFIRMED',1,NULL,5,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);",
 		"INSERT INTO ledger VALUES (6,'6e469827-fff7-4c22-a2e2-8b7d3580350c','2024-10-07 09:34:44','',5000,'Credit due to approved credit memo','CREDIT MEMO','CONFIRMED',1,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);",
 		"INSERT INTO ledger VALUES (7,'babda0f7-2f07-4b85-a991-7d45be9474e2','2024-10-07 09:35:03','',5000,'Excess credit applied to invoice','CREDIT REAPPLY','CONFIRMED',1,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);",
+		"INSERT INTO ledger VALUES (8,'13b3851c-2e7d-43d0-86ad-86ffca586f57','2024-10-07 09:36:05','',1000,'Moto payment','MOTO CARD PAYMENT','CONFIRMED',1,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2024-10-07 09:36:05',1);",
 		"INSERT INTO ledger_allocation VALUES (5,5,9,'2024-10-07 09:32:50',5000,'ALLOCATED');",
 		"INSERT INTO ledger_allocation VALUES (6,6,9,'2024-10-07 09:34:44',10000,'ALLOCATED');",
 		"INSERT INTO ledger_allocation VALUES (7,6,9,'2024-10-07 09:34:44',-5000,'UNAPPLIED',NULL,'Unapplied funds as a result of applying credit memo');",
 		"INSERT INTO ledger_allocation VALUES (8,7,10,'2024-10-07 09:35:03',5000,'REAPPLIED');",
+		"INSERT INTO ledger_allocation VALUES (9,8,10,'2024-10-07 09:36:05',1000,'ALLOCATED');",
 	)
 
 	Store := store.New(seeder.Conn)
@@ -43,6 +45,32 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 			name: "returns all events that match the client id",
 			id:   1,
 			want: []shared.BillingHistory{
+				{
+					User: 1,
+					Date: shared.NewDate("2024-10-07 09:36:05"),
+					Event: shared.PaymentProcessed{
+						TransactionEvent: shared.TransactionEvent{
+							ClientId:        1,
+							TransactionType: shared.TransactionTypeMotoCardPayment,
+							Amount:          1000,
+							Breakdown: []shared.PaymentBreakdown{
+								{
+									InvoiceReference: shared.InvoiceEvent{
+										ID:        10,
+										Reference: "AD000002/24",
+									},
+									Amount: 1000,
+									Status: "ALLOCATED",
+								},
+							},
+							BaseBillingEvent: shared.BaseBillingEvent{
+								Type: shared.EventTypePaymentProcessed,
+							},
+						},
+					},
+					OutstandingBalance: 4000,
+					CreditBalance:      0,
+				},
 				{
 					User: 1,
 					Date: shared.NewDate("2024-10-07 09:35:03"),
@@ -144,6 +172,27 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 				},
 				{
 					User: 1,
+					Date: shared.NewDate("2024-10-07 09:32:23"),
+					Event: shared.InvoiceAdjustmentRejected{
+						AdjustmentType: shared.AdjustmentTypeWriteOff,
+						ClientId:       1,
+						Notes:          "Writing off",
+						PaymentBreakdown: shared.PaymentBreakdown{
+							InvoiceReference: shared.InvoiceEvent{
+								ID:        9,
+								Reference: "AD000001/24",
+							},
+							Amount: 10000,
+						},
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeInvoiceAdjustmentRejected,
+						},
+					},
+					OutstandingBalance: 5000,
+					CreditBalance:      0,
+				},
+				{
+					User: 1,
 					Date: shared.NewDate("2024-10-07 09:33:19"),
 					Event: shared.FeeReductionCancelled{
 						ReductionType:      shared.FeeReductionTypeRemission,
@@ -186,9 +235,9 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 					Date: shared.NewDate("2024-10-07 09:32:50"),
 					Event: shared.FeeReductionAwarded{
 						ReductionType: shared.FeeReductionTypeRemission,
-						StartDate:     shared.NewDate("2024-10-07"),
-						EndDate:       shared.NewDate("2024-04-01"),
-						DateReceived:  shared.NewDate("2027-03-31"),
+						StartDate:     shared.NewDate("2024-04-01"),
+						EndDate:       shared.NewDate("2027-03-31"),
+						DateReceived:  shared.NewDate("2024-10-07"),
 						Notes:         "Needs remission",
 						BaseBillingEvent: shared.BaseBillingEvent{
 							Type: shared.EventTypeFeeReductionAwarded,
@@ -213,27 +262,6 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 						},
 						BaseBillingEvent: shared.BaseBillingEvent{
 							Type: shared.EventTypeInvoiceAdjustmentPending,
-						},
-					},
-					OutstandingBalance: 10000,
-					CreditBalance:      0,
-				},
-				{
-					User: 1,
-					Date: shared.NewDate("2024-10-07 09:32:23"),
-					Event: shared.InvoiceAdjustmentRejected{
-						AdjustmentType: shared.AdjustmentTypeWriteOff,
-						ClientId:       1,
-						Notes:          "Writing off",
-						PaymentBreakdown: shared.PaymentBreakdown{
-							InvoiceReference: shared.InvoiceEvent{
-								ID:        9,
-								Reference: "AD000001/24",
-							},
-							Amount: 10000,
-						},
-						BaseBillingEvent: shared.BaseBillingEvent{
-							Type: shared.EventTypeInvoiceAdjustmentRejected,
 						},
 					},
 					OutstandingBalance: 10000,
@@ -285,7 +313,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 			marshalledWant, _ := json.Marshal(&tt.want)
 			marshalledGot, _ := json.Marshal(got)
 
-			var data1, data2 map[string]interface{}
+			var data1, data2 any
 
 			_ = json.Unmarshal(marshalledWant, &data1)
 			_ = json.Unmarshal(marshalledGot, &data2)
@@ -548,7 +576,7 @@ func Test_processLedgerAllocations(t *testing.T) {
 					Status:           "ALLOCATED",
 					LedgerAmount:     5000,
 					AllocationAmount: 10000,
-					CreatedAt: pgtype.Timestamp{
+					LedgerDatetime: pgtype.Timestamp{
 						Time:  now,
 						Valid: true,
 					},
@@ -565,7 +593,7 @@ func Test_processLedgerAllocations(t *testing.T) {
 					Status:           "UNAPPLIED",
 					LedgerAmount:     5000,
 					AllocationAmount: -5000,
-					CreatedAt: pgtype.Timestamp{
+					LedgerDatetime: pgtype.Timestamp{
 						Time:  now,
 						Valid: true,
 					},
@@ -624,7 +652,7 @@ func Test_processLedgerAllocations(t *testing.T) {
 					Status:           "REAPPLIED",
 					LedgerAmount:     5000,
 					AllocationAmount: 5000,
-					CreatedAt: pgtype.Timestamp{
+					LedgerDatetime: pgtype.Timestamp{
 						Time:  now,
 						Valid: true,
 					},
