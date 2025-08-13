@@ -101,3 +101,9 @@ loaded. To avoid this, you can force event listeners to register on every HTMX l
 `htmx.onLoad` function.
 
 HTMX also includes a range of utility functions that can be used in place of more unwieldy native DOM functions.
+
+-----
+## AllPay API
+AllPay is OPG's Direct Debit broker, and we will be using their API for creating and cancelling mandates, issuing payment
+schedules, and querying failed payments. To enable us to do so in development without hitting their API, we use Prism to
+run a simple mock based off an OpenAPI specification.

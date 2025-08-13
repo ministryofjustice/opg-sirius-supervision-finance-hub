@@ -15,8 +15,8 @@ import (
 )
 
 type ApiClient interface {
-	AddDirectDebit(context.Context, int, string, string, string) error
-  CancelDirectDebit(context.Context, int) error
+	CreateDirectDebitMandate(context.Context, int, api.AccountDetails) error
+	CancelDirectDebit(context.Context, int) error
 	AddFeeReduction(context.Context, int, string, string, string, string, string) error
 	AddInvoiceAdjustment(context.Context, int, int, int, string, string, string, bool) error
 	AddManualInvoice(context.Context, int, string, *string, *string, *string, *string, *string, *string) error
@@ -31,7 +31,7 @@ type ApiClient interface {
 	GetPermittedAdjustments(context.Context, int, int) ([]shared.AdjustmentType, error)
 	GetRefunds(context.Context, int) (shared.Refunds, error)
 	GetUser(context.Context, int) (shared.User, error)
-	SubmitPaymentMethod(context.Context, int, string) error
+	UpdatePaymentMethod(context.Context, int, string) error
 	UpdatePendingInvoiceAdjustment(context.Context, int, int, string) error
 	UpdateRefundDecision(context.Context, int, int, string) error
 }

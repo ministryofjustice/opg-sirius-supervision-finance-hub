@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/allpay"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
 	"io"
 	"net/http"
@@ -25,19 +26,29 @@ type JWTClient interface {
 	CreateJWT(ctx context.Context) string
 }
 
+type AllPay interface {
+	CreateMandate(ctx context.Context, data *allpay.CreateMandateRequest) error
+	ModulusCheck(ctx context.Context, sortCode string, accountNumber string) error
+}
+
 type Client struct {
-	http   HTTPClient
-	caches *Caches
-	jwt    JWTClient
+	http         HTTPClient
+	caches       *Caches
+	jwt          JWTClient
+	allpayClient AllPay
 	Envs
 }
 
-func NewClient(httpClient HTTPClient, jwt JWTClient, envs Envs) *Client {
+func NewClient(httpClient HTTPClient, jwt JWTClient, envs Envs, allpayClient AllPay) *Client {
 	return &Client{
-		http:   httpClient,
-		caches: newCaches(),
-		jwt:    jwt,
-		Envs:   envs,
+		http:         httpClient,
+		caches:       newCaches(),
+		jwt:          jwt,
+		allpayClient: allpayClient,
+		Envs: Envs{
+			SiriusURL:  envs.SiriusURL,
+			BackendURL: envs.BackendURL,
+		},
 	}
 }
 
