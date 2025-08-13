@@ -26,6 +26,24 @@
     {{ if eq .Event.Type.String "REAPPLIED_CREDIT" }}
         {{ template "reapplied-credit-event" . }}
     {{ end }}
+    {{ if eq .Event.Type.String "REFUND_APPROVED" }}
+        {{ template "refund-approved-event" . }}
+    {{ end }}
+    {{ if eq .Event.Type.String "REFUND_CREATED" }}
+        {{ template "refund-created-event" . }}
+    {{ end }}
+    {{ if eq .Event.Type.String "REFUND_CANCELLED" }}
+        {{ template "refund-cancelled-event" . }}
+    {{ end }}
+    {{ if eq .Event.Type.String "REFUND_FULFILLED" }}
+        {{ template "refund-fulfilled-event" . }}
+    {{ end }}
+    {{ if eq .Event.Type.String "REFUND_PROCESSING" }}
+        {{ template "refund-processing-event" . }}
+    {{ end }}
+    {{ if eq .Event.Type.String "REFUND_STATUS_UPDATED" }}
+        {{ template "refund-rejected-event" . }}
+    {{ end }}
     {{ if eq .Event.Type.String "UNKNOWN" }}
         {{ template "unknown-event" . }}
     {{ end }}
