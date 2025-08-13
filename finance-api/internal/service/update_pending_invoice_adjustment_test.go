@@ -1,6 +1,9 @@
 package service
 
 import (
+	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -148,6 +151,68 @@ func (suite *IntegrationSuite) TestService_UpdatePendingInvoiceAdjustment() {
 			} else {
 				assert.NotEqual(t, 0, adjusted.ledgerId) // asserts ledgerId is set
 			}
+		})
+	}
+}
+
+func (suite *IntegrationSuite) Test_setAdjustmentDecision_LinkedToNonConfirmedLedgerDoesNotApplyInvoiceReduction() {
+	{
+		ctx := suite.ctx
+		seeder := suite.cm.Seeder(ctx, suite.T())
+
+		seeder.SeedData(
+			"INSERT INTO finance_client VALUES (1, 1, '1234', 'DEMANDED', NULL);",
+			"INSERT INTO invoice VALUES (1, 1, 1, 'S2', 'reject', '2019-04-01', '2020-03-31', 12300, NULL, '2020-03-20',1, '2020-03-16', 10, NULL, NULL, '2019-06-06', NULL);",
+			"INSERT INTO ledger VALUES (NEXTVAL('ledger_id_seq'), 'fully-paid', '2022-04-11T00:00:00+00:00', '', 12300, '', 'CARD PAYMENT', 'APPROVED', 1, NULL, NULL, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 2);",
+			"INSERT INTO invoice_adjustment VALUES (NEXTVAL('invoice_adjustment_id_seq'), 1, 1, '2024-01-01', 'CREDIT MEMO', '5000', 'reject me', 'PENDING', '2022-04-11T00:00:00+00:00', 1, null, null, CURRVAL('ledger_id_seq'));",
+			"INSERT INTO ledger_allocation VALUES (1, CURRVAL('ledger_id_seq'), 1, '2024-01-01 15:30:27', 10000, 'ALLOCATED', NULL, '', '2024-01-01', NULL)",
+		)
+
+		s := NewService(seeder.Conn, nil, nil, nil, nil)
+		suite.T().Run("test", func(t *testing.T) {
+			tx, _ := s.BeginStoreTx(ctx)
+			var updatedBy pgtype.Int4
+			_ = store.ToInt4(&updatedBy, ctx.(auth.Context).User.ID)
+
+			adjustment, _ := tx.SetAdjustmentDecision(ctx, store.SetAdjustmentDecisionParams{
+				ID: 1, Status: "ALLOCATED", UpdatedBy: updatedBy,
+			})
+
+			assert.Equal(suite.T(), int32(1), adjustment.InvoiceID)
+			assert.Equal(suite.T(), int32(12300), adjustment.Outstanding)
+			assert.Equal(suite.T(), int32(1), adjustment.FinanceClientID)
+			assert.Equal(suite.T(), int32(5000), adjustment.Amount)
+		})
+	}
+}
+
+func (suite *IntegrationSuite) Test_setAdjustmentDecision_LinkedToConfirmedLedgerAppliesInvoiceReduction() {
+	{
+		ctx := suite.ctx
+		seeder := suite.cm.Seeder(ctx, suite.T())
+
+		seeder.SeedData(
+			"INSERT INTO finance_client VALUES (1, 1, '1234', 'DEMANDED', NULL);",
+			"INSERT INTO invoice VALUES (1, 1, 1, 'S2', 'reject', '2019-04-01', '2020-03-31', 12300, NULL, '2020-03-20',1, '2020-03-16', 10, NULL, NULL, '2019-06-06', NULL);",
+			"INSERT INTO ledger VALUES (NEXTVAL('ledger_id_seq'), 'fully-paid', '2022-04-11T00:00:00+00:00', '', 12300, '', 'CARD PAYMENT', 'CONFIRMED', 1, NULL, NULL, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 2);",
+			"INSERT INTO invoice_adjustment VALUES (NEXTVAL('invoice_adjustment_id_seq'), 1, 1, '2024-01-01', 'CREDIT MEMO', '5000', 'reject me', 'CONFIRMED', '2022-04-11T00:00:00+00:00', 1, null, null, CURRVAL('ledger_id_seq'));",
+			"INSERT INTO ledger_allocation VALUES (1, CURRVAL('ledger_id_seq'), 1, '2024-01-01 15:30:27', 10000, 'ALLOCATED', NULL, '', '2024-01-01', NULL)",
+		)
+
+		s := NewService(seeder.Conn, nil, nil, nil, nil)
+		suite.T().Run("test", func(t *testing.T) {
+			tx, _ := s.BeginStoreTx(ctx)
+			var updatedBy pgtype.Int4
+			_ = store.ToInt4(&updatedBy, ctx.(auth.Context).User.ID)
+
+			adjustment, _ := tx.SetAdjustmentDecision(ctx, store.SetAdjustmentDecisionParams{
+				ID: 1, Status: "ALLOCATED", UpdatedBy: updatedBy,
+			})
+
+			assert.Equal(suite.T(), int32(1), adjustment.InvoiceID)
+			assert.Equal(suite.T(), int32(2300), adjustment.Outstanding)
+			assert.Equal(suite.T(), int32(1), adjustment.FinanceClientID)
+			assert.Equal(suite.T(), int32(5000), adjustment.Amount)
 		})
 	}
 }

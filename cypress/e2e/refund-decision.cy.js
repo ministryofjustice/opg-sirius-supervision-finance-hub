@@ -22,4 +22,18 @@ describe("Refunds tab", () => {
         cy.get("@rejectRow").contains("Rejected");
         cy.get(".moj-banner__message").contains("You have rejected the refund");
     });
+
+    it("cancels a refund", () => {
+        cy.visit("/clients/18/refunds");
+
+        cy.get("table#refunds > tbody")
+            .contains("Cancel me").parent("tr").as("cancelRow");
+
+        cy.get("@cancelRow")
+            .find(".form-button-menu")
+            .contains("Cancel").click();
+
+        cy.get("@cancelRow").contains("Cancel");
+        cy.get(".moj-banner__message").contains("You have cancelled the refund");
+    });
 });
