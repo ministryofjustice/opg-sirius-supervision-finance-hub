@@ -1296,7 +1296,7 @@ func Test_getUserForEventType(t *testing.T) {
 	}
 }
 
-func Test_makeEvent(t *testing.T) {
+func Test_makeRefundEvent(t *testing.T) {
 	now := time.Now()
 
 	tests := []struct {
@@ -1423,8 +1423,8 @@ func Test_makeEvent(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actualEvent := makeEvent(tt.refund, tt.user, tt.eventType, tt.date, tt.clientID, tt.history)
-			assert.Equalf(t, tt.expectedResult, actualEvent, "makeEvent(%v, %v)", tt.expectedResult, actualEvent)
+			actualEvent := makeRefundEvent(tt.refund, tt.user, tt.eventType, tt.date, tt.clientID, tt.history)
+			assert.Equalf(t, tt.expectedResult, actualEvent, "makeRefundEvent(%v, %v)", tt.expectedResult, actualEvent)
 		})
 	}
 }

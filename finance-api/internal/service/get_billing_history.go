@@ -169,14 +169,12 @@ func getRefundEventTypeAndDate(refund store.GetRefundsForBillingHistoryRow) (sha
 		return shared.EventTypeRefundFulfilled, refund.FulfilledAt.Time
 	} else if refund.Decision == "REJECTED" {
 		return shared.EventTypeRefundStatusUpdated, refund.DecisionAt.Time
+	} else if refund.ProcessedAt.Valid {
+		//	approved status with decision at has a date and processed at is set makes processing event
+		return shared.EventTypeRefundProcessing, refund.ProcessedAt.Time
 	} else if refund.Decision == "APPROVED" {
-		if refund.ProcessedAt.Valid {
-			//	approved status with decision at has a date and processed at is set makes processing event
-			return shared.EventTypeRefundProcessing, refund.ProcessedAt.Time
-		} else {
-			//	approved status with decision at has a date and processed at is null
-			return shared.EventTypeRefundApproved, refund.DecisionAt.Time
-		}
+		//	approved status with decision at has a date and processed at is null
+		return shared.EventTypeRefundApproved, refund.DecisionAt.Time
 	}
 	return shared.EventTypeRefundCreated, refund.CreatedAt.Time
 }
@@ -192,7 +190,7 @@ func getUserForEventType(refund store.GetRefundsForBillingHistoryRow, eventType 
 	}
 }
 
-func makeEvent(refund store.GetRefundsForBillingHistoryRow, user int32, eventType shared.BillingEventType, date time.Time, clientID int32, history []historyHolder) []historyHolder {
+func makeRefundEvent(refund store.GetRefundsForBillingHistoryRow, user int32, eventType shared.BillingEventType, date time.Time, clientID int32, history []historyHolder) []historyHolder {
 	bh := shared.BillingHistory{
 		User: int(user),
 		Date: shared.Date{Time: date},
@@ -215,26 +213,26 @@ func makeEvent(refund store.GetRefundsForBillingHistoryRow, user int32, eventTyp
 func processRefundEvents(refunds []store.GetRefundsForBillingHistoryRow, clientID int32) []historyHolder {
 	var history []historyHolder
 	for _, re := range refunds {
+		// for all refunds ensure that there is a refund created event - this is done in the final makeRefundEvent
 		if re.Decision != "PENDING" {
 			eventType, date := getRefundEventTypeAndDate(re)
 			user := getUserForEventType(re, eventType)
-			history = makeEvent(re, user, eventType, date, clientID, history)
+			history = makeRefundEvent(re, user, eventType, date, clientID, history)
 
 			if eventType == shared.EventTypeRefundFulfilled || eventType == shared.EventTypeRefundCancelled {
 				//	ensure there is a second timeline event for the approved and processing events
 				if re.ProcessedAt.Valid {
-					history = makeEvent(re, re.DecisionBy.Int32, shared.EventTypeRefundProcessing, re.ProcessedAt.Time, clientID, history)
+					history = makeRefundEvent(re, re.DecisionBy.Int32, shared.EventTypeRefundProcessing, re.ProcessedAt.Time, clientID, history)
 				}
-				history = makeEvent(re, re.DecisionBy.Int32, shared.EventTypeRefundApproved, re.DecisionAt.Time, clientID, history)
+				history = makeRefundEvent(re, re.DecisionBy.Int32, shared.EventTypeRefundApproved, re.DecisionAt.Time, clientID, history)
 			}
 
 			if eventType == shared.EventTypeRefundProcessing {
-				history = makeEvent(re, re.DecisionBy.Int32, shared.EventTypeRefundApproved, re.DecisionAt.Time, clientID, history)
+				history = makeRefundEvent(re, re.DecisionBy.Int32, shared.EventTypeRefundApproved, re.DecisionAt.Time, clientID, history)
 			}
 		}
 
-		// for all refunds ensure that there is a refund created event
-		history = makeEvent(re, re.CreatedBy, shared.EventTypeRefundCreated, re.CreatedAt.Time, clientID, history)
+		history = makeRefundEvent(re, re.CreatedBy, shared.EventTypeRefundCreated, re.CreatedAt.Time, clientID, history)
 	}
 
 	return history
