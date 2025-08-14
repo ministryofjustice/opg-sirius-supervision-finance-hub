@@ -14,7 +14,7 @@ import (
 func TestGetUser_cacheHit(t *testing.T) {
 	mockClient := SetUpTest()
 	mockJWT := mockJWTClient{}
-	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", "http://localhost:8181"}, nil)
+	client := NewClient(mockClient, &mockJWT, Envs{SiriusURL: "http://localhost:3000", BackendURL: "http://localhost:8181"}, nil)
 
 	user := shared.User{
 		ID:          1,
@@ -34,7 +34,7 @@ func TestGetUser_cacheHit(t *testing.T) {
 func TestGetUser_cacheRefresh(t *testing.T) {
 	mockClient := SetUpTest()
 	mockJWT := mockJWTClient{}
-	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", "http://localhost:8181"}, nil)
+	client := NewClient(mockClient, &mockJWT, Envs{SiriusURL: "http://localhost:3000", BackendURL: "http://localhost:8181"}, nil)
 
 	json := `[
 				{
@@ -96,7 +96,7 @@ func TestGetUser_cacheRefresh(t *testing.T) {
 func TestGetUser_cacheMiss(t *testing.T) {
 	mockClient := SetUpTest()
 	mockJWT := mockJWTClient{}
-	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", "http://localhost:8181"}, nil)
+	client := NewClient(mockClient, &mockJWT, Envs{SiriusURL: "http://localhost:3000", BackendURL: "http://localhost:8181"}, nil)
 
 	json := `[]`
 
@@ -131,7 +131,7 @@ func TestGetUserReturnsUnauthorisedClientError(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{SiriusURL: svr.URL, BackendURL: svr.URL}, nil)
 	_, err := client.GetUser(testContext(), 1)
 	assert.Equal(t, ErrUnauthorized, err)
 }
@@ -142,7 +142,7 @@ func TestGetUserReturns500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{SiriusURL: svr.URL, BackendURL: svr.URL}, nil)
 
 	_, err := client.GetUser(testContext(), 1)
 	assert.Equal(t, StatusError{

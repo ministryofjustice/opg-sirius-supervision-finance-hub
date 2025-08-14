@@ -37,6 +37,7 @@ type Envs struct {
 	allpayHost       string
 	allpayAPIKey     string
 	allpaySchemeCode string
+	holidayAPIURL    string
 }
 
 func parseEnvs() (*Envs, error) {
@@ -76,9 +77,10 @@ func parseEnvs() (*Envs, error) {
 		webDir:           "web",
 		port:             envs["PORT"],
 		showDirectDebits: os.Getenv("SHOW_DIRECT_DEBITS") == "1",
-		allpayHost:       os.Getenv("ALLPAY_HOST"),
+		allpayHost:       os.Getenv("ALLPAY_HOST"), // TODO: Move these to checked values once Direct Debits is ready for production
 		allpayAPIKey:     os.Getenv("ALLPAY_API_KEY"),
 		allpaySchemeCode: "OPGB",
+		holidayAPIURL:    os.Getenv("HOLIDAY_API_URL"),
 	}, nil
 }
 
@@ -115,8 +117,9 @@ func run(ctx context.Context, logger *slog.Logger) error {
 			Secret: envs.jwtSecret,
 		},
 		api.Envs{
-			SiriusURL:  envs.siriusURL,
-			BackendURL: envs.backendURL,
+			SiriusURL:     envs.siriusURL,
+			BackendURL:    envs.backendURL,
+			HolidayAPIURL: envs.holidayAPIURL,
 		},
 		alllpayClient)
 

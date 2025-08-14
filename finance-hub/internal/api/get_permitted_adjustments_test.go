@@ -14,7 +14,7 @@ import (
 func TestGetPermittedAdjustments(t *testing.T) {
 	mockClient := SetUpTest()
 	mockJWT := mockJWTClient{}
-	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", "http://localhost:8181"}, nil)
+	client := NewClient(mockClient, &mockJWT, Envs{SiriusURL: "http://localhost:3000", BackendURL: "http://localhost:8181"}, nil)
 
 	json := `["CREDIT MEMO","DEBIT MEMO"]`
 
@@ -40,7 +40,7 @@ func TestGetPermittedAdjustmentsReturnsUnauthorisedClientError(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{SiriusURL: svr.URL, BackendURL: svr.URL}, nil)
 	_, err := client.GetPermittedAdjustments(testContext(), 1, 2)
 	assert.Equal(t, ErrUnauthorized, err)
 }
@@ -51,7 +51,7 @@ func TestGetPermittedAdjustmentsReturns500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{SiriusURL: svr.URL, BackendURL: svr.URL}, nil)
 
 	_, err := client.GetPermittedAdjustments(testContext(), 1, 2)
 	assert.Equal(t, StatusError{
