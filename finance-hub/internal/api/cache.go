@@ -12,7 +12,8 @@ const (
 )
 
 type Caches struct {
-	users *cache.Cache
+	users    *cache.Cache
+	holidays *cache.Cache
 }
 
 func newCaches() *Caches {
@@ -23,8 +24,13 @@ func newCaches() *Caches {
 		Roles:       nil,
 	}
 	_ = users.Add("0", &placeholder, cache.NoExpiration)
+
+	holidays := cache.New(defaultExpiration, defaultExpiration)
+	// unreachable cached value used for triggering cache refresh
+	_ = holidays.Add("refresh", true, defaultExpiration)
 	return &Caches{
-		users: users,
+		users:    users,
+		holidays: holidays,
 	}
 }
 
@@ -50,4 +56,21 @@ func (c Caches) updateUsers(users []shared.User) {
 	for _, user := range users {
 		_ = c.users.Add(strconv.Itoa(int(user.ID)), &user, defaultExpiration)
 	}
+}
+
+func (c Caches) updateHolidays(holidays []Holiday) {
+	for _, holiday := range holidays {
+		_ = c.holidays.Add(holiday.Date, true, defaultExpiration)
+	}
+}
+
+func (c Caches) isHoliday(d time.Time) bool {
+	_, b := c.holidays.Get(d.Format("2006-01-02"))
+	return b
+}
+
+// shouldRefreshHolidays returns true if the default value has expired
+func (c Caches) shouldRefreshHolidays() bool {
+	_, b := c.holidays.Get("refresh")
+	return !b
 }

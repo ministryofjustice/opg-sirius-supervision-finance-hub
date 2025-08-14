@@ -15,7 +15,7 @@ import (
 func TestAddFeeReduction(t *testing.T) {
 	mockClient := SetUpTest()
 	mockJWT := mockJWTClient{}
-	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""}, nil)
+	client := NewClient(mockClient, &mockJWT, Envs{SiriusURL: "http://localhost:3000"}, nil)
 
 	json := `{
 			"id":                "1",
@@ -45,7 +45,7 @@ func TestAddFeeReductionUnauthorised(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{SiriusURL: svr.URL, BackendURL: svr.URL}, nil)
 
 	err := client.AddFeeReduction(testContext(), 1, "remission", "2025", "3", "15/02/2024", "Fee remission note for one award")
 
@@ -58,7 +58,7 @@ func TestFeeReductionReturns500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{SiriusURL: svr.URL, BackendURL: svr.URL}, nil)
 
 	err := client.AddFeeReduction(testContext(), 1, "remission", "2025", "3", "15/02/2024", "Fee remission note for one award")
 	assert.Equal(t, StatusError{
@@ -74,7 +74,7 @@ func TestFeeReductionReturnsBadRequestError(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{SiriusURL: svr.URL, BackendURL: svr.URL}, nil)
 
 	err := client.AddFeeReduction(testContext(), 1, "remission", "2025", "3", "15/02/2024", "Fee remission note for one award")
 	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"Overlap": map[string]string{"start-or-end-date": ""}}}
@@ -96,7 +96,7 @@ func TestFeeReductionReturnsValidationError(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{SiriusURL: svr.URL, BackendURL: svr.URL}, nil)
 
 	err := client.AddFeeReduction(testContext(), 0, "", "", "", "", "")
 	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"DateReceived": map[string]string{"date-in-the-past": "This field DateReceived needs to be looked at date-in-the-past"}}}

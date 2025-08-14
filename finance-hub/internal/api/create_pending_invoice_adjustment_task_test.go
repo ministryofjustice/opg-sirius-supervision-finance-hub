@@ -14,59 +14,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAddWorkingDays(t *testing.T) {
-	var (
-		startDate    time.Time
-		expectedDate time.Time
-	)
-	tests := []struct {
-		name         string
-		startDate    string
-		expectedDate string
-		workDays     int
-	}{
-		{
-			name:         "Start on weekday, end within working week",
-			startDate:    "2024-06-04",
-			expectedDate: "2024-06-07",
-			workDays:     3,
-		},
-		{
-			name:         "Start on weekday, end on following working week",
-			startDate:    "2024-06-03",
-			expectedDate: "2024-06-11",
-			workDays:     6,
-		},
-		{
-			name:         "Start on saturday, end on following working week",
-			startDate:    "2024-06-01",
-			expectedDate: "2024-06-10",
-			workDays:     6,
-		},
-		{
-			name:         "Start on sunday, end on following working week",
-			startDate:    "2024-06-02",
-			expectedDate: "2024-06-10",
-			workDays:     6,
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			startDate, _ = time.Parse("2006-01-02", test.startDate)
-			expectedDate, _ = time.Parse("2006-01-02", test.expectedDate)
-
-			assert.Equal(t, expectedDate, addWorkingDays(startDate, test.workDays))
-		})
-	}
-}
-
 func TestCreatePendingInvoiceAdjustmentTask(t *testing.T) {
 	mockClient := SetUpTest()
 	mockJWT := mockJWTClient{}
-	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""}, nil)
+	client := NewClient(mockClient, &mockJWT, Envs{SiriusURL: "http://localhost:3000"}, nil)
 
-	dueDate := addWorkingDays(time.Now(), 20).Format("02/01/2006")
+	dueDate, _ := client.addWorkingDays(testContext(), time.Now(), 20)
 
 	json := fmt.Sprintf(
 		`{
@@ -75,7 +28,7 @@ func TestCreatePendingInvoiceAdjustmentTask(t *testing.T) {
 			"dueDate": "%s",
 			"assigneeId": "41",
 			"description": "Pending credit memo added to 4 requires manager approval"
-        }`, dueDate)
+        }`, dueDate.Format("02/01/2006"))
 
 	r := io.NopCloser(bytes.NewReader([]byte(json)))
 
@@ -96,7 +49,7 @@ func TestCreatePendingInvoiceAdjustmentTaskUnauthorised(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{SiriusURL: svr.URL, BackendURL: svr.URL}, nil)
 
 	err := client.CreatePendingInvoiceAdjustmentTask(testContext(), 2, 41, "4", "CREDIT_MEMO")
 
@@ -109,7 +62,7 @@ func TestCreatePendingInvoiceAdjustmentTaskReturns500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{SiriusURL: svr.URL, BackendURL: svr.URL}, nil)
 
 	err := client.CreatePendingInvoiceAdjustmentTask(testContext(), 2, 41, "4", "CREDIT_MEMO")
 	assert.Equal(t, StatusError{
@@ -134,7 +87,7 @@ func TestCreatePendingInvoiceAdjustmentTaskReturnsValidationError(t *testing.T) 
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{SiriusURL: svr.URL, BackendURL: svr.URL}, nil)
 
 	err := client.CreatePendingInvoiceAdjustmentTask(testContext(), 2, 41, "4", "CREDIT_MEMO")
 	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"Field": map[string]string{"Tag": "Message"}}}

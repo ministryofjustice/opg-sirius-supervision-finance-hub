@@ -12,30 +12,10 @@ import (
 	"time"
 )
 
-func addWorkingDays(date time.Time, days int) time.Time {
-	for {
-		if days == 0 {
-			return date
-		}
-
-		date = date.AddDate(0, 0, 1)
-
-		if date.Weekday() == time.Saturday {
-			date = date.AddDate(0, 0, 2)
-			return addWorkingDays(date, days-1)
-		} else if date.Weekday() == time.Sunday {
-			date = date.AddDate(0, 0, 1)
-			return addWorkingDays(date, days-1)
-		}
-
-		days--
-	}
-}
-
 func (c *Client) CreatePendingInvoiceAdjustmentTask(ctx context.Context, clientId int, supervisionBillingTeamId int, invoiceRef string, adjustmentType string) error {
 	var body bytes.Buffer
 
-	dueDate := addWorkingDays(time.Now(), 20)
+	dueDate, _ := c.addWorkingDays(ctx, time.Now(), 20)
 	adjustmentTypeLabel := strings.ToLower(strings.ReplaceAll(adjustmentType, "_", " "))
 
 	task := shared.Task{

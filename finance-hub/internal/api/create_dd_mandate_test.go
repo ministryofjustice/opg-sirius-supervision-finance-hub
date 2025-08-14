@@ -61,7 +61,7 @@ func TestCreateDirectDebitMandate(t *testing.T) {
 
 	mockJWT := mockJWTClient{}
 	mockAllPay := mockAllPayClient{}
-	client := NewClient(ts.Client(), &mockJWT, Envs{ts.URL + "", ts.URL + ""}, &mockAllPay)
+	client := NewClient(ts.Client(), &mockJWT, Envs{SiriusURL: ts.URL, BackendURL: ts.URL}, &mockAllPay)
 
 	err := client.CreateDirectDebitMandate(testContext(), 1, AccountDetails{
 		AccountName:   "Mrs Account Holder",
@@ -82,7 +82,7 @@ func TestCreateDirectDebitMandate_GetPersonDetailsFails(t *testing.T) {
 
 	mockJWT := mockJWTClient{}
 	mockAllPay := mockAllPayClient{}
-	client := NewClient(ts.Client(), &mockJWT, Envs{ts.URL + "", ts.URL + ""}, &mockAllPay)
+	client := NewClient(ts.Client(), &mockJWT, Envs{SiriusURL: ts.URL, BackendURL: ts.URL}, &mockAllPay)
 
 	err := client.CreateDirectDebitMandate(testContext(), 1, AccountDetails{
 		AccountName:   "Mrs Account Holder",
@@ -114,7 +114,7 @@ func TestCreateDirectDebitMandate_ValidationFails(t *testing.T) {
 
 	mockJWT := mockJWTClient{}
 	mockAllPay := mockAllPayClient{}
-	client := NewClient(ts.Client(), &mockJWT, Envs{ts.URL + "", ts.URL + ""}, &mockAllPay)
+	client := NewClient(ts.Client(), &mockJWT, Envs{SiriusURL: ts.URL, BackendURL: ts.URL}, &mockAllPay)
 
 	err := client.CreateDirectDebitMandate(testContext(), 1, AccountDetails{
 		AccountName:   "Mrs Account Holder",
@@ -154,7 +154,7 @@ func TestCreateDirectDebitMandate_ModulusCheckFails(t *testing.T) {
 
 	mockJWT := mockJWTClient{}
 	mockAllPay := mockAllPayClient{modulusError: allpay.ErrorModulusCheckFailed{}}
-	client := NewClient(ts.Client(), &mockJWT, Envs{ts.URL + "", ts.URL + ""}, &mockAllPay)
+	client := NewClient(ts.Client(), &mockJWT, Envs{SiriusURL: ts.URL, BackendURL: ts.URL}, &mockAllPay)
 
 	err := client.CreateDirectDebitMandate(testContext(), 1, AccountDetails{
 		AccountName:   "Mrs Account Holder",
@@ -200,7 +200,7 @@ func TestCreateDirectDebitMandate_createMandateFails(t *testing.T) {
 
 	mockJWT := mockJWTClient{}
 	mockAllPay := mockAllPayClient{createMandateError: errors.New("server error")}
-	client := NewClient(ts.Client(), &mockJWT, Envs{ts.URL + "", ts.URL + ""}, &mockAllPay)
+	client := NewClient(ts.Client(), &mockJWT, Envs{SiriusURL: ts.URL, BackendURL: ts.URL}, &mockAllPay)
 
 	err := client.CreateDirectDebitMandate(testContext(), 1, AccountDetails{
 		AccountName:   "Mrs Account Holder",
@@ -240,7 +240,7 @@ func TestCreateDirectDebitMandate_createMandateFails_validation(t *testing.T) {
 
 	mockJWT := mockJWTClient{}
 	mockAllPay := mockAllPayClient{createMandateError: allpay.ErrorValidation{Messages: []string{"TitleInitials must not start with a comma", "PostCode - Only alphanumeric characters and spaces allowed"}}}
-	client := NewClient(ts.Client(), &mockJWT, Envs{ts.URL + "", ts.URL + ""}, &mockAllPay)
+	client := NewClient(ts.Client(), &mockJWT, Envs{SiriusURL: ts.URL, BackendURL: ts.URL}, &mockAllPay)
 
 	logHandler := TestLogHandler{}
 	err := client.CreateDirectDebitMandate(testContextWithLogger(&logHandler), 1, AccountDetails{
@@ -290,7 +290,7 @@ func TestCreateDirectDebitMandate_updatePaymentMethodFails(t *testing.T) {
 
 	mockJWT := mockJWTClient{}
 	mockAllPay := mockAllPayClient{}
-	client := NewClient(ts.Client(), &mockJWT, Envs{ts.URL + "", ts.URL + ""}, &mockAllPay)
+	client := NewClient(ts.Client(), &mockJWT, Envs{SiriusURL: ts.URL, BackendURL: ts.URL}, &mockAllPay)
 
 	logHandler := TestLogHandler{}
 	err := client.CreateDirectDebitMandate(testContextWithLogger(&logHandler), 1, AccountDetails{

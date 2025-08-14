@@ -18,6 +18,7 @@ services:
       ALLPAY_HOST: http://allpay-mock:4010
       ALLPAY_API_KEY: test-key
       SHOW_DIRECT_DEBITS: 1
+      HOLIDAYS_API_URL: http://holidays-api-mock:8080
     depends_on:
       finance-api:
         condition: service_healthy
@@ -179,7 +180,12 @@ services:
   allpay-mock:
     image: stoplight/prism:4
     volumes:
-      - ./allpay-mock/allpay.yaml:/openapi.yaml:ro
+      - ./api-mocks/allpay/openapi.yaml:/openapi.yaml:ro
     command: mock /openapi.yaml -h 0.0.0.0 --errors
     ports:
       - "4010:4010"
+
+  holidays-api-mock:
+    build: ./api-mocks/holidays-api
+    ports:
+      - "8080:8080"
