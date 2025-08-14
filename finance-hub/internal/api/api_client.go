@@ -18,8 +18,9 @@ func (e ClientError) Error() string {
 }
 
 type Envs struct {
-	SiriusURL  string
-	BackendURL string
+	SiriusURL     string
+	BackendURL    string
+	HolidayAPIURL string
 }
 
 type JWTClient interface {
@@ -47,8 +48,9 @@ func NewClient(httpClient HTTPClient, jwt JWTClient, envs Envs, allpayClient All
 		jwt:          jwt,
 		allpayClient: allpayClient,
 		Envs: Envs{
-			SiriusURL:  envs.SiriusURL,
-			BackendURL: envs.BackendURL,
+			SiriusURL:     envs.SiriusURL,
+			BackendURL:    envs.BackendURL,
+			HolidayAPIURL: envs.HolidayAPIURL,
 		},
 	}
 }
@@ -90,6 +92,17 @@ func (c *Client) newSessionRequest(ctx context.Context) (*http.Request, error) {
 
 	addCookiesFromContext(ctx, req)
 	req.Header.Add("OPG-Bypass-Membrane", "1")
+
+	return req, err
+}
+
+func (c *Client) newHolidayRequest(ctx context.Context) (*http.Request, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.HolidayAPIURL, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Accept", "application/json")
 
 	return req, err
 }
