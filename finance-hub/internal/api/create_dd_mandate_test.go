@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"errors"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/allpay"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"golang.org/x/exp/maps"
@@ -161,7 +162,12 @@ func TestCreateDirectDebitMandate_ModulusCheckFails(t *testing.T) {
 		SortCode:      "30-33-30",
 	})
 	assert.Error(t, err)
-	// TODO: Assert validation
+	expected := apierror.ValidationError{Errors: apierror.ValidationErrors{
+		"AccountDetails": map[string]string{
+			"invalid": "",
+		},
+	}}
+	assert.Equal(t, expected, err)
 }
 
 func TestCreateDirectDebitMandate_createMandateFails(t *testing.T) {

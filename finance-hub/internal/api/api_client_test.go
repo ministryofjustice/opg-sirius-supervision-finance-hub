@@ -38,6 +38,8 @@ type mockAllPayClient struct {
 	modulusError        error
 	createMandateCalled bool
 	createMandateError  error
+	cancelMandateCalled bool
+	cancelMandateError  error
 }
 
 func (m *mockAllPayClient) ModulusCheck(ctx context.Context, sortCode string, accountNumber string) error {
@@ -48,6 +50,11 @@ func (m *mockAllPayClient) ModulusCheck(ctx context.Context, sortCode string, ac
 func (m *mockAllPayClient) CreateMandate(ctx context.Context, data *allpay.CreateMandateRequest) error {
 	m.createMandateCalled = true
 	return m.createMandateError
+}
+
+func (m *mockAllPayClient) CancelMandate(ctx context.Context, data *allpay.CancelMandateRequest) error {
+	m.cancelMandateCalled = true
+	return m.cancelMandateError
 }
 
 func TestClientError(t *testing.T) {

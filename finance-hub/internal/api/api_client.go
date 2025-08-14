@@ -27,6 +27,7 @@ type JWTClient interface {
 }
 
 type AllPay interface {
+	CancelMandate(ctx context.Context, data *allpay.CancelMandateRequest) error
 	CreateMandate(ctx context.Context, data *allpay.CreateMandateRequest) error
 	ModulusCheck(ctx context.Context, sortCode string, accountNumber string) error
 }

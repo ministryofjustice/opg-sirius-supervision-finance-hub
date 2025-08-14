@@ -68,7 +68,7 @@ func (m mockApiClient) CreateDirectDebitMandate(context context.Context, clientI
 	return m.error
 }
 
-func (m mockApiClient) CancelDirectDebit(context context.Context, clientId int) error {
+func (m mockApiClient) CancelDirectDebitMandate(context context.Context, clientId int) error {
 	return m.error
 }
 
