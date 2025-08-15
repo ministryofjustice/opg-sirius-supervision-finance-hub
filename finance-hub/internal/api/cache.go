@@ -62,6 +62,9 @@ func (c Caches) updateHolidays(holidays []Holiday) {
 	for _, holiday := range holidays {
 		_ = c.holidays.Add(holiday.Date, true, defaultExpiration)
 	}
+
+	// add the refresh trigger back in
+	c.holidays.Set("refresh", true, defaultExpiration)
 }
 
 func (c Caches) isHoliday(d time.Time) bool {

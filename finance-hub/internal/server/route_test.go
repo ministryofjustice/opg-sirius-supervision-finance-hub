@@ -101,7 +101,7 @@ func TestRoute_fullPage(t *testing.T) {
 
 func TestRoute_error(t *testing.T) {
 	client := mockApiClient{}
-	client.error = errors.New("it broke")
+	client.error = map[string]error{"GetAccountInformation": errors.New("it broke")}
 	template := &mockTemplate{}
 
 	w := httptest.NewRecorder()
