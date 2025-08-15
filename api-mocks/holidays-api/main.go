@@ -9,5 +9,5 @@ func main() {
 		http.ServeFile(w, r, "bank-holidays.json")
 	})
 
-	_ = http.ListenAndServe(":8080", nil)
+	_ = http.ListenAndServe(":8080", nil) // #nosec G114 -- Tests only
 }

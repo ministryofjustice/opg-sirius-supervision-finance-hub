@@ -19,7 +19,7 @@ type holidayApiResponse struct {
 	} `json:"england-and-wales"`
 }
 
-func (c *Client) GetHolidays(ctx context.Context) ([]Holiday, error) {
+func (c *Client) getHolidays(ctx context.Context) ([]Holiday, error) {
 	logger := telemetry.LoggerFromContext(ctx)
 	req, err := c.newHolidayRequest(ctx)
 
@@ -62,7 +62,7 @@ func (c *Client) addWorkingDays(ctx context.Context, d time.Time, n int) (time.T
 	if c.caches.shouldRefreshHolidays() {
 		logger := telemetry.LoggerFromContext(ctx)
 		logger.Info("refreshing holidays cache via API")
-		holidays, err := c.GetHolidays(ctx)
+		holidays, err := c.getHolidays(ctx)
 		if err != nil {
 			logger.Error("error in refreshing holidays cache via API", "error", err)
 			return time.Time{}, err
@@ -80,5 +80,27 @@ func (c *Client) addWorkingDays(ctx context.Context, d time.Time, n int) (time.T
 			}
 		}
 		n--
+	}
+}
+
+func (c *Client) lastWorkingDayOfMonth(ctx context.Context, d time.Time) (time.Time, error) {
+	if c.caches.shouldRefreshHolidays() {
+		logger := telemetry.LoggerFromContext(ctx)
+		logger.Info("refreshing holidays cache via API")
+		holidays, err := c.getHolidays(ctx)
+		if err != nil {
+			logger.Error("error in refreshing holidays cache via API", "error", err)
+			return time.Time{}, err
+		}
+		c.caches.updateHolidays(holidays)
+	}
+
+	d = time.Date(d.Year(), d.Month()+1, 0, 0, 0, 0, 0, time.UTC) // day 0 will underflow to the end of the previous month
+
+	for {
+		if b := c.caches.isHoliday(d); !b {
+			return d, nil
+		}
+		d = d.AddDate(0, 0, -1)
 	}
 }
