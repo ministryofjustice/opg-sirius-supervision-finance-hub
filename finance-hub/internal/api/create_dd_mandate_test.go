@@ -72,6 +72,25 @@ func TestCreateDirectDebitMandate(t *testing.T) {
 
 	assert.True(t, mockAllPay.modulusCalled)
 	assert.True(t, mockAllPay.createMandateCalled)
+	expected := allpay.CreateMandateRequest{
+		ClientReference: "11111111",
+		Surname:         "Holder",
+		Address: allpay.Address{
+			Line1:    "1 Main Street",
+			Town:     "Mainopolis",
+			PostCode: "MP1 2PM",
+		},
+		BankAccount: struct {
+			BankDetails allpay.BankDetails `json:"BankDetails"`
+		}{
+			BankDetails: allpay.BankDetails{
+				AccountName:   "Mrs Account Holder",
+				SortCode:      "30-33-30",
+				AccountNumber: "12345678",
+			},
+		},
+	}
+	assert.Equal(t, &expected, mockAllPay.data.(*allpay.CreateMandateRequest))
 }
 
 func TestCreateDirectDebitMandate_GetPersonDetailsFails(t *testing.T) {

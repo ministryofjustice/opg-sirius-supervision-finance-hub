@@ -20,6 +20,7 @@ type mockService struct {
 	cancelFeeReduction *shared.CancelFeeReduction
 	ledger             *shared.AddInvoiceAdjustmentRequest
 	manualInvoice      *shared.AddManualInvoice
+	outstandingBalance int32
 	adjustmentTypes    []shared.AdjustmentType
 	billingHistory     []shared.BillingHistory
 	refunds            shared.Refunds
@@ -86,6 +87,12 @@ func (s *mockService) GetAccountInformation(ctx context.Context, id int32) (*sha
 	s.expectedIds = []int{int(id)}
 	s.lastCalled = "GetAccountInformation"
 	return s.accountInfo, s.err
+}
+
+func (s *mockService) GetPendingOutstandingBalance(ctx context.Context, id int32) (int32, error) {
+	s.expectedIds = []int{int(id)}
+	s.lastCalled = "GetPendingOutstandingBalance"
+	return s.outstandingBalance, s.err
 }
 
 func (s *mockService) GetInvoices(ctx context.Context, id int32) (shared.Invoices, error) {
