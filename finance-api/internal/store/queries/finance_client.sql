@@ -43,7 +43,6 @@ SELECT EXISTS (SELECT 1 FROM finance_client WHERE court_ref = $1);
 -- name: GetClientByCourtRef :one
 SELECT id AS finance_client_id, client_id FROM finance_client WHERE court_ref = $1;
 
-
 -- name: GetReversibleBalanceByCourtRef :one
 WITH ledger_data AS (
     SELECT
@@ -68,7 +67,6 @@ SELECT
 FROM ledger_data
 WHERE ledger_data.court_ref = $1;
 
-
 -- name: GetCreditBalanceByCourtRef :one
 SELECT ABS(COALESCE(SUM(la.amount), 0))::INT AS credit
 FROM finance_client fc
@@ -76,3 +74,17 @@ FROM finance_client fc
          LEFT JOIN ledger_allocation la ON l.id = la.ledger_id
 WHERE fc.court_ref = $1
   AND la.status IN ('UNAPPLIED', 'REAPPLIED');
+
+-- name: GetPendingOutstandingBalance :one
+WITH transactions AS (SELECT fc.id, SUM(la.amount)::INT AS amount
+FROM finance_client fc
+         LEFT JOIN ledger l ON fc.id = l.finance_client_id AND l.status = 'CONFIRMED'
+                               LEFT JOIN ledger_allocation la ON l.id = la.ledger_id AND ((la.status = 'ALLOCATED') OR
+                                                                                          (la.status IN ('UNAPPLIED', 'REAPPLIED') AND la.invoice_id IS NOT NULL))
+WHERE fc.client_id = $1
+                      GROUP BY fc.id)
+SELECT COALESCE(SUM(i.amount), 0)::INT - t.amount
+FROM finance_client fc
+         JOIN transactions t ON fc.id = t.id
+         LEFT JOIN invoice i ON fc.id = i.finance_client_id
+GROUP BY t.amount;

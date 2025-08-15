@@ -93,7 +93,7 @@ func TestInvoice(t *testing.T) {
 
 func TestInvoiceErrors(t *testing.T) {
 	client := mockApiClient{}
-	client.error = errors.New("this has failed")
+	client.error = map[string]error{"GetInvoices": errors.New("this has failed")}
 	ro := &mockRoute{client: client}
 
 	w := httptest.NewRecorder()
