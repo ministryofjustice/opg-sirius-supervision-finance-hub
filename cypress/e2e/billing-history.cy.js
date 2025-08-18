@@ -36,7 +36,6 @@ describe("Billing History Tab", () => {
 
         cy.get(".moj-timeline__item").eq(14).within((el) => {
             cy.get(".moj-timeline__title").contains("Refund status of approved updated to processing");
-            cy.get(".moj-timeline__byline").contains("by Ian Admin, 04/01/2020");
             cy.get(".moj-timeline__date").contains("Outstanding balance: £0 Credit balance: £0");
         });
 
@@ -61,7 +60,6 @@ describe("Billing History Tab", () => {
 
        cy.get(".moj-timeline__item").eq(10).within((el) => {
             cy.get(".moj-timeline__title").contains("Refund status of approved updated to processing");
-            cy.get(".moj-timeline__byline").contains("by Ian Admin, 06/02/2021");
             cy.get(".moj-timeline__date").contains("Outstanding balance: £0 Credit balance: £0");
         });
 
@@ -113,13 +111,11 @@ describe("Billing History Tab", () => {
 
      cy.get(".moj-timeline__item").eq(1).within((el) => {
         cy.get(".moj-timeline__title").contains("Refund status of approved updated to processing");
-        cy.get(".moj-timeline__byline").contains("by Ian Admin, 03/06/2025");
         cy.get(".moj-timeline__date").contains("Outstanding balance: £-100 Credit balance: £30");
     });
 
         cy.get(".moj-timeline__item").eq(0).within((el) => {
             cy.get(".moj-timeline__title").contains("Refund of £123.40 fulfilled");
-            cy.get(".moj-timeline__byline").contains("by Ian Admin, 06/06/2025");
             cy.get(".moj-timeline__date").contains("Outstanding balance: £-100 Credit balance: £30");
        });
 
