@@ -177,7 +177,7 @@ services:
       retries: 50
 
   allpay-mock:
-    image: stoplight/prism:4
+    image: stoplight/prism:5
     volumes:
       - ./allpay-mock/allpay.yaml:/openapi.yaml:ro
     command: mock /openapi.yaml -h 0.0.0.0 --errors
