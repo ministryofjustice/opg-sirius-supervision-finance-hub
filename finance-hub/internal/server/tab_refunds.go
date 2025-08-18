@@ -26,7 +26,7 @@ type BankDetails struct {
 }
 
 type RefundsTab struct {
-	Refunds       []Refund
+	Refunds       Refunds
 	ShowAddRefund bool
 	ClientId      string
 	AppVars

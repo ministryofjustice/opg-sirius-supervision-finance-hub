@@ -11,7 +11,7 @@ import (
 func TestCancelDirectDebit(t *testing.T) {
 	mockClient := SetUpTest()
 	mockJWT := mockJWTClient{}
-	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""})
+	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""}, nil)
 
 	GetDoFunc = func(*http.Request) (*http.Response, error) {
 		return &http.Response{
@@ -30,7 +30,7 @@ func TestCancelDirectDebitUnauthorised(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
 
 	err := client.CancelDirectDebit(testContext(), 1)
 
@@ -43,7 +43,7 @@ func TestCancelDirectDebitReturns500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
 
 	err := client.CancelDirectDebit(testContext(), 1)
 	assert.Equal(t, StatusError{

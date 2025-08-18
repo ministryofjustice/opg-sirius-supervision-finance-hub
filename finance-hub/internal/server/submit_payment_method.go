@@ -21,7 +21,7 @@ func (h *SubmitPaymentMethodHandler) render(v AppVars, w http.ResponseWriter, r 
 		paymentMethod = r.PostFormValue("paymentMethod")
 	)
 
-	err := h.Client().SubmitPaymentMethod(ctx, clientID, paymentMethod)
+	err := h.Client().UpdatePaymentMethod(ctx, clientID, paymentMethod)
 
 	if err == nil {
 		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices?success=payment-method", v.EnvironmentVars.Prefix, clientID))

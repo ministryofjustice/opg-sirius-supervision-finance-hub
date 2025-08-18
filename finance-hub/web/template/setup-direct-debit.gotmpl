@@ -1,10 +1,10 @@
-{{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.UpdateManualInvoiceHandler*/ -}}
+{{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.DirectDebitMandateForm*/ -}}
 {{ template "page" . }}
 
 {{ define "title" }}Set up Direct Debit{{ end }}
 
 {{ define "main-content" }}
-    {{ block "add-direct-debit" .Data }}
+    {{ block "setup-direct-debit" .Data }}
         <div class="govuk-grid-row govuk-!-margin-top-5">
             <div class="govuk-grid-column-full">
                 <header>
@@ -13,11 +13,12 @@
                 <div id="error-summary"></div>
                 <div class="govuk-grid-row">
                     <form
-                            id="add-direct-debit-form"
+                            id="setup-direct-debit-form"
                             class="govuk-grid-column-one-third"
                             method="post"
-                            hx-post="{{ prefix (printf "/clients/%s/direct-debit/add" .ClientId) }}"
-                            hx-target="#error-summary">
+                            hx-post="{{ prefix (printf "/clients/%s/direct-debit/setup" .ClientId) }}"
+                            hx-target="#error-summary"
+                            hx-disabled-elt="find button">
                         <input type="hidden" name="CSRF" value="{{ .AppVars.XSRFToken }}"/>
 
                         <div id="f-AccountName" class="govuk-form-group">
