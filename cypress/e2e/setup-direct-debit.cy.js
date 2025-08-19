@@ -1,6 +1,20 @@
 describe("Direct debit form", () => {
+    it("navigates to and redirects on success with banner", () => {
+        cy.visit("/clients/1/invoices");
+        cy.contains('[data-cy="payment-method"]', "Demanded");
+        cy.contains(".govuk-button", "Set up direct debit").click();
+        cy.url().should("include", "/clients/1/direct-debit/setup");
+        cy.get("#f-AccountName").contains("Name").type("Mrs Account Holder");
+        cy.get("#f-SortCode").contains("Sort code").type("010000");
+        cy.get("#f-AccountNumber").contains("number").type("12345678");
+        cy.contains(".govuk-button", "Save and continue").click()
+        cy.url().should("include", "/clients/1/invoices?success=direct-debit");
+        cy.get(".moj-banner__message").contains("The Direct Debit has been set up");
+        cy.contains('[data-cy="payment-method"]', "Direct Debit");
+    });
+
     it("shows correct empty error messages for all present fields with errors", () => {
-        cy.visit("/clients/1/direct-debit/setup");
+        cy.visit("/clients/2/direct-debit/setup");
         cy.contains(".govuk-button", "Save and continue").click()
         cy.get(".govuk-error-summary").contains("Enter the name on the account")
         cy.get(".govuk-error-summary").contains("Enter the account number")
@@ -9,7 +23,7 @@ describe("Direct debit form", () => {
     });
 
     it("shows correct length error messages for all present fields with errors", () => {
-        cy.visit("/clients/1/direct-debit/setup");
+        cy.visit("/clients/2/direct-debit/setup");
         cy.get("#f-AccountName").contains("Name").type("Mrs Account Holder");
         cy.get("#f-SortCode").contains("Sort code").type("1");
         cy.get("#f-AccountNumber").contains("number").type("123");
@@ -20,18 +34,8 @@ describe("Direct debit form", () => {
     });
 
     it("should have no accessibility violations",() => {
-        cy.visit("/clients/1/direct-debit/setup");
+        cy.visit("/clients/2/direct-debit/setup");
         cy.checkAccessibility();
-    });
-
-    it("redirects on success with banner", () => {
-        cy.visit("/clients/1/direct-debit/setup");
-        cy.get("#f-AccountName").contains("Name").type("Mrs Account Holder");
-        cy.get("#f-SortCode").contains("Sort code").type("010000");
-        cy.get("#f-AccountNumber").contains("number").type("12345678");
-        cy.contains(".govuk-button", "Save and continue").click()
-        cy.url().should("include", "/clients/1/invoices?success=direct-debit");
-        cy.get(".moj-banner__message").contains("The Direct Debit has been set up");
     });
 
     it("shows error messages from non-form data validation", () => {
