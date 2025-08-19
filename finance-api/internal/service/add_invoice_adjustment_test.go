@@ -20,7 +20,7 @@ func (suite *IntegrationSuite) TestService_AddInvoiceAdjustment() {
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (1, 1, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO invoice VALUES (1, 1, 1, 'S2', 'S204642/19', '2022-04-02', '2022-04-02', 32000, NULL, NULL, NULL, NULL, NULL, NULL, 0, '2022-04-02', 1);",
-		"INSERT INTO ledger VALUES (1, 'abc1', '2022-04-02T00:00:00+00:00', '', 22000, 'Initial payment', 'UNKNOWN DEBIT', 'CONFIRMED', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '05/05/2022', 1);",
+		"INSERT INTO ledger VALUES (1, 'abc1', '2022-04-02T00:00:00+00:00', '', 22000, 'Initial payment', 'UNKNOWN DEBIT', 'CONFIRMED', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2022-05-05', 1, NULL, '2022-05-05');",
 		"ALTER SEQUENCE ledger_id_seq RESTART WITH 2;",
 		"INSERT INTO ledger_allocation VALUES (1, 1, 1, '2022-04-02T00:00:00+00:00', 22000, 'ALLOCATED', NULL, '', '2022-04-02', NULL);",
 		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 2;",

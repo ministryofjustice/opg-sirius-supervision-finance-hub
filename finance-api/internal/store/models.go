@@ -173,12 +173,13 @@ type Ledger struct {
 	Bankdate        pgtype.Date
 	Batchnumber     pgtype.Int4
 	// (DC2Type:refdata)
-	Bankaccount pgtype.Text
-	Source      pgtype.Text
-	Line        pgtype.Int4
-	CreatedAt   pgtype.Timestamp
-	CreatedBy   pgtype.Int4
-	PisNumber   pgtype.Int4
+	Bankaccount       pgtype.Text
+	Source            pgtype.Text
+	Line              pgtype.Int4
+	CreatedAt         pgtype.Timestamp
+	CreatedBy         pgtype.Int4
+	PisNumber         pgtype.Int4
+	GeneralLedgerDate pgtype.Date
 }
 
 type LedgerAllocation struct {

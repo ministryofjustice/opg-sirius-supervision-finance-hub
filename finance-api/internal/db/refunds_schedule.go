@@ -24,7 +24,7 @@ const RefundsScheduleQuery = `SELECT
 	fc.court_ref AS "Court reference",
 	(ABS(la.amount) / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS "Amount",
 	TO_CHAR(l.bankdate, 'YYYY-MM-DD') AS "Bank date",
-	TO_CHAR(l.created_at, 'YYYY-MM-DD') AS "Fulfilled (create) date"
+	TO_CHAR(l.general_ledger_date, 'YYYY-MM-DD') AS "Fulfilled (create) date"
 	FROM supervision_finance.ledger l
 	    JOIN supervision_finance.ledger_allocation la ON l.id = la.ledger_id
 	    JOIN supervision_finance.finance_client fc ON fc.id = l.finance_client_id

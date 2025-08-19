@@ -28,7 +28,7 @@ const PaymentsScheduleQuery = `SELECT
 	((CASE WHEN la.status = 'UNAPPLIED' THEN -la.amount ELSE la.amount END) / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS "Amount",
 	TO_CHAR(l.datetime, 'YYYY-MM-DD') AS "Payment date",
 	TO_CHAR(l.bankdate, 'YYYY-MM-DD') AS "Bank date",
-	TO_CHAR(l.created_at, 'YYYY-MM-DD') AS "Create date"
+	TO_CHAR(l.general_ledger_date, 'YYYY-MM-DD') AS "Create date"
 	FROM supervision_finance.ledger_allocation la
 	JOIN supervision_finance.ledger l ON la.ledger_id = l.id
 	LEFT JOIN supervision_finance.invoice i ON i.id = la.invoice_id

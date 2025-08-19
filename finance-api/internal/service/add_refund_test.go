@@ -16,7 +16,7 @@ func (suite *IntegrationSuite) TestService_AddRefund() {
 
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (24, 2401, '1234', 'DEMANDED', NULL);",
-		"INSERT INTO ledger VALUES (1, 'overpayment', '2024-01-02 15:32:10', '', 5000, 'payment 1', 'MOTO CARD PAYMENT', 'CONFIRMED', 24, NULL, NULL, NULL, '2024-01-01', NULL, NULL, NULL, NULL, '2020-05-05', 1);",
+		"INSERT INTO ledger VALUES (1, 'overpayment', '2024-01-02 15:32:10', '', 5000, 'payment 1', 'MOTO CARD PAYMENT', 'CONFIRMED', 24, NULL, NULL, NULL, '2024-01-01', NULL, NULL, NULL, NULL, '2020-05-05', 1, NULL, '2020-05-05');",
 		"INSERT INTO ledger_allocation VALUES (1, 1, NULL, '2024-01-02 15:32:10', -5000, 'UNAPPLIED', NULL, '', '2024-01-01', NULL);",
 	)
 
@@ -76,9 +76,9 @@ func (suite *IntegrationSuite) TestService_AddRefund_noCreditToRefund() {
 
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (24, 24, '1234', 'DEMANDED', NULL);",
-		"INSERT INTO ledger VALUES (1, 'overpayment', '2024-01-02 15:32:10', '', 5000, 'payment 1', 'MOTO CARD PAYMENT', 'CONFIRMED', 24, NULL, NULL, NULL, '2024-01-01', NULL, NULL, NULL, NULL, '2020-05-05', 1);",
+		"INSERT INTO ledger VALUES (1, 'overpayment', '2024-01-02 15:32:10', '', 5000, 'payment 1', 'MOTO CARD PAYMENT', 'CONFIRMED', 24, NULL, NULL, NULL, '2024-01-01', NULL, NULL, NULL, NULL, '2020-05-05', 1, NULL, '2020-05-05');",
 		"INSERT INTO ledger_allocation VALUES (1, 1, NULL, '2024-01-02 15:32:10', -5000, 'UNAPPLIED', NULL, '', '2024-01-01', NULL);",
-		"INSERT INTO ledger VALUES (2, 'existing refund', '2024-01-02 15:32:10', '', 5000, 'refund 1', 'MOTO CARD PAYMENT', 'CONFIRMED', 24, NULL, NULL, NULL, '2024-01-01', NULL, NULL, NULL, NULL, '2020-05-05', 1);",
+		"INSERT INTO ledger VALUES (2, 'existing refund', '2024-01-02 15:32:10', '', 5000, 'refund 1', 'MOTO CARD PAYMENT', 'CONFIRMED', 24, NULL, NULL, NULL, '2024-01-01', NULL, NULL, NULL, NULL, '2020-05-05', 1, NULL, '2020-05-05');",
 		"INSERT INTO ledger_allocation VALUES (2, 2, NULL, '2024-01-02 15:32:10', 5000, 'REAPPLIED', NULL, '', '2024-01-01', NULL);",
 	)
 

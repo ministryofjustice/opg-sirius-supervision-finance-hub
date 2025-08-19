@@ -6,6 +6,7 @@ WITH total_credit AS (SELECT fc.id                                 AS finance_cl
                                LEFT JOIN ledger_allocation la ON l.id = la.ledger_id
                       WHERE fc.client_id = $1
                         AND la.status IN ('UNAPPLIED', 'REAPPLIED')
+                        AND l.general_ledger_date <= NOW()
                       GROUP BY fc.id),
      oldest_unpaid AS (SELECT i.finance_client_id,
                               i.id                                   AS invoice_id,
@@ -13,7 +14,7 @@ WITH total_credit AS (SELECT fc.id                                 AS finance_cl
                        FROM invoice i
                                 LEFT JOIN ledger_allocation la
                                           ON i.id = la.invoice_id AND la.status NOT IN ('PENDING', 'UN ALLOCATED')
-                                          AND la.ledger_id IN (SELECT id FROM ledger WHERE status = 'CONFIRMED')
+                                          AND la.ledger_id IN (SELECT id FROM ledger WHERE status = 'CONFIRMED' AND general_ledger_date >= NOW())
                        WHERE i.finance_client_id = (SELECT fc.id
                                                     FROM finance_client fc
                                                     WHERE fc.client_id = $1)

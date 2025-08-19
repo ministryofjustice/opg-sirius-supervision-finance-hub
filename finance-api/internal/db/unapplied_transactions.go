@@ -31,7 +31,7 @@ WITH transactions AS (
 		JOIN supervision_finance.ledger l ON l.id = la.ledger_id
 		LEFT JOIN supervision_finance.invoice i ON la.invoice_id = i.id
 		CROSS JOIN (SELECT 1 AS n UNION ALL SELECT 2) n
-		WHERE l.created_at::DATE = $1
+		WHERE l.general_ledger_date = $1
 		AND la.status IN ('UNAPPLIED', 'REAPPLIED')
 		GROUP BY n
 		),

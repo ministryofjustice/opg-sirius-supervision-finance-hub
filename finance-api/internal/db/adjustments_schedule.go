@@ -25,7 +25,7 @@ const AdjustmentsScheduleQuery = `SELECT
 	fc.court_ref AS "Court reference",
 	i.reference AS "Invoice reference",
 	(CASE WHEN $5 THEN la.amount ELSE ABS(la.amount) END / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS "Amount",
-	TO_CHAR(l.created_at, 'YYYY-MM-DD') AS "Created date"
+	TO_CHAR(l.general_ledger_date, 'YYYY-MM-DD') AS "Created date"
 	FROM supervision_finance.ledger l
 	    JOIN supervision_finance.ledger_allocation la ON l.id = la.ledger_id AND la.status = 'ALLOCATED'
 	    JOIN supervision_finance.finance_client fc ON fc.id = l.finance_client_id
@@ -37,7 +37,7 @@ const AdjustmentsScheduleQuery = `SELECT
 			ORDER BY id DESC
 			LIMIT 1
 		) sl ON TRUE
-	WHERE l.created_at::DATE = $1
+	WHERE l.general_ledger_date = $1
 	  AND l.type = ANY($2)
 	  AND (
 		  ($3 = '' AND sl.supervision_level IS NULL)

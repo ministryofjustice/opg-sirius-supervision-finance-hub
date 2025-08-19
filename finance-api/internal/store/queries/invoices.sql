@@ -58,7 +58,7 @@ WITH allocations AS (SELECT la.invoice_id,
                             la.datetime AS received_date,
                             l.type,
                             la.status,
-                            la.datetime AS created_at,
+                            la.datetime AS created_at, -- TODO: wrong and duplicated above?
                             la.id       AS ledger_allocation_id
                      FROM ledger_allocation la
                               JOIN ledger l ON la.ledger_id = l.id
@@ -89,19 +89,20 @@ ORDER BY todate DESC;
 -- name: GetInvoiceBalanceDetails :one
 WITH ledger_sums AS (SELECT la.invoice_id,
                             SUM(CASE
-                                    WHEN l.status = 'CONFIRMED' AND l.type = 'CREDIT WRITE OFF' AND
+                                    WHEN l.type = 'CREDIT WRITE OFF' AND
                                          la.status = 'ALLOCATED' THEN la.amount
                                     ELSE 0 END) AS write_off_amount,
                             SUM(CASE
-                                    WHEN l.status = 'CONFIRMED' AND l.type = 'WRITE OFF REVERSAL' AND
+                                    WHEN l.type = 'WRITE OFF REVERSAL' AND
                                          la.status = 'ALLOCATED' THEN la.amount
                                     ELSE 0 END) AS write_off_reversal_amount,
                             SUM(CASE
-                                    WHEN l.status = 'CONFIRMED' AND la.status NOT IN ('PENDING', 'UN ALLOCATED')
+                                    WHEN la.status NOT IN ('PENDING', 'UN ALLOCATED')
                                         THEN la.amount
                                     ELSE 0 END) AS received
                      FROM ledger_allocation la
                               JOIN ledger l ON la.ledger_id = l.id
+                     WHERE l.status = 'CONFIRMED' AND l.general_ledger_date >= NOW()
                      GROUP BY la.invoice_id)
 SELECT i.amount::INT                                                                          AS initial,
        i.amount - COALESCE(ls.received, 0)::INT                                               AS outstanding,
@@ -135,7 +136,7 @@ FROM invoice i
          LEFT JOIN LATERAL (
     SELECT SUM(la.amount) AS received
     FROM ledger_allocation la
-             JOIN ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
+             JOIN ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED' AND l.general_ledger_date >= NOW()
     WHERE la.status NOT IN ('PENDING', 'UN ALLOCATED')
       AND la.invoice_id = i.id
     ) transactions ON TRUE

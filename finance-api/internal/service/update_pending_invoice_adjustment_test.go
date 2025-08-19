@@ -24,14 +24,14 @@ func (suite *IntegrationSuite) TestService_UpdatePendingInvoiceAdjustment() {
 
 		"INSERT INTO finance_client VALUES (3, 3, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO invoice VALUES (3, 3, 3, 'S2', 'overpaid', '2019-04-01', '2020-03-31', 12300, NULL, '2020-03-20',1, '2020-03-16', 10, NULL, NULL, '2019-06-06', NULL);",
-		"INSERT INTO ledger VALUES (NEXTVAL('ledger_id_seq'), 'existing', '2022-04-11T00:00:00+00:00', '', 10300, '', 'CARD PAYMENT', 'CONFIRMED', 3, NULL, NULL, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 2);",
+		"INSERT INTO ledger VALUES (NEXTVAL('ledger_id_seq'), 'existing', '2022-04-11T00:00:00+00:00', '', 10300, '', 'CARD PAYMENT', 'CONFIRMED', 3, NULL, NULL, '2022-04-11', '2022-04-12', 1254, '', '', 1, '2022-05-05', 2, NULL, '2022-05-05');",
 		"INSERT INTO ledger_allocation VALUES (NEXTVAL('ledger_allocation_id_seq'), 1, 3, '2022-04-11T00:00:00+00:00', 10300, 'ALLOCATED', NULL, 'Notes here', '2022-04-11', NULL);",
 		"INSERT INTO invoice_adjustment VALUES (NEXTVAL('invoice_adjustment_id_seq'), 3, 3, '2024-01-01', 'CREDIT MEMO', '5000', 'approve me', 'PENDING', '2024-01-01', 1)",
 
 		"INSERT INTO finance_client VALUES (4, 4, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO invoice VALUES (4, 4, 4, 'S2', 'paid', '2019-04-01', '2020-03-31', 12300, NULL, '2020-03-20',1, '2020-03-16', 10, NULL, NULL, '2019-06-06', NULL);",
 		"INSERT INTO invoice VALUES (5, 4, 4, 'S2', 'unpaid', '2019-04-01', '2020-03-31', 12300, NULL, '2020-03-20',1, '2020-03-16', 10, NULL, NULL, '2019-06-06', NULL);",
-		"INSERT INTO ledger VALUES (NEXTVAL('ledger_id_seq'), 'fully-paid', '2022-04-11T00:00:00+00:00', '', 12300, '', 'CARD PAYMENT', 'CONFIRMED', 4, NULL, NULL, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 2);",
+		"INSERT INTO ledger VALUES (NEXTVAL('ledger_id_seq'), 'fully-paid', '2022-04-11T00:00:00+00:00', '', 12300, '', 'CARD PAYMENT', 'CONFIRMED', 4, NULL, NULL, '2022-04-11', '2022-04-12', 1254, '', '', 1, '2022-05-05', 2, NULL, '2022-05-05');",
 		"INSERT INTO ledger_allocation VALUES (NEXTVAL('ledger_allocation_id_seq'), 2, 4, '2022-04-11T00:00:00+00:00', 12300, 'ALLOCATED', NULL, 'Notes here', '2022-04-11', NULL);",
 		"INSERT INTO invoice_adjustment VALUES (NEXTVAL('invoice_adjustment_id_seq'), 4, 4, '2024-01-01', 'CREDIT MEMO', '5000', 'approve me', 'PENDING', '2024-01-01', 1)",
 
@@ -163,7 +163,7 @@ func (suite *IntegrationSuite) Test_setAdjustmentDecision_LinkedToNonConfirmedLe
 		seeder.SeedData(
 			"INSERT INTO finance_client VALUES (1, 1, '1234', 'DEMANDED', NULL);",
 			"INSERT INTO invoice VALUES (1, 1, 1, 'S2', 'reject', '2019-04-01', '2020-03-31', 12300, NULL, '2020-03-20',1, '2020-03-16', 10, NULL, NULL, '2019-06-06', NULL);",
-			"INSERT INTO ledger VALUES (NEXTVAL('ledger_id_seq'), 'fully-paid', '2022-04-11T00:00:00+00:00', '', 12300, '', 'CARD PAYMENT', 'APPROVED', 1, NULL, NULL, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 2);",
+			"INSERT INTO ledger VALUES (NEXTVAL('ledger_id_seq'), 'fully-paid', '2022-04-11T00:00:00+00:00', '', 12300, '', 'CARD PAYMENT', 'APPROVED', 1, NULL, NULL, '2022-04-11', '2022-04-12', 1254, '', '', 1, '2022-05-05', 2, NULL, '2022-05-05');",
 			"INSERT INTO invoice_adjustment VALUES (NEXTVAL('invoice_adjustment_id_seq'), 1, 1, '2024-01-01', 'CREDIT MEMO', '5000', 'reject me', 'PENDING', '2022-04-11T00:00:00+00:00', 1, null, null, CURRVAL('ledger_id_seq'));",
 			"INSERT INTO ledger_allocation VALUES (1, CURRVAL('ledger_id_seq'), 1, '2024-01-01 15:30:27', 10000, 'ALLOCATED', NULL, '', '2024-01-01', NULL)",
 		)
@@ -194,7 +194,7 @@ func (suite *IntegrationSuite) Test_setAdjustmentDecision_LinkedToConfirmedLedge
 		seeder.SeedData(
 			"INSERT INTO finance_client VALUES (1, 1, '1234', 'DEMANDED', NULL);",
 			"INSERT INTO invoice VALUES (1, 1, 1, 'S2', 'reject', '2019-04-01', '2020-03-31', 12300, NULL, '2020-03-20',1, '2020-03-16', 10, NULL, NULL, '2019-06-06', NULL);",
-			"INSERT INTO ledger VALUES (NEXTVAL('ledger_id_seq'), 'fully-paid', '2022-04-11T00:00:00+00:00', '', 12300, '', 'CARD PAYMENT', 'CONFIRMED', 1, NULL, NULL, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 2);",
+			"INSERT INTO ledger VALUES (NEXTVAL('ledger_id_seq'), 'fully-paid', '2022-04-11T00:00:00+00:00', '', 12300, '', 'CARD PAYMENT', 'CONFIRMED', 1, NULL, NULL, '2022-04-11', '2022-04-12', 1254, '', '', 1, '2022-05-05', 2, NULL, '2022-05-05');",
 			"INSERT INTO invoice_adjustment VALUES (NEXTVAL('invoice_adjustment_id_seq'), 1, 1, '2024-01-01', 'CREDIT MEMO', '5000', 'reject me', 'CONFIRMED', '2022-04-11T00:00:00+00:00', 1, null, null, CURRVAL('ledger_id_seq'));",
 			"INSERT INTO ledger_allocation VALUES (1, CURRVAL('ledger_id_seq'), 1, '2024-01-01 15:30:27', 10000, 'ALLOCATED', NULL, '', '2024-01-01', NULL)",
 		)

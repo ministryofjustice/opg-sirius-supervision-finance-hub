@@ -1,6 +1,6 @@
 -- name: CreateLedger :one
 INSERT INTO ledger (id, datetime, finance_client_id, amount, notes, type, status, fee_reduction_id, created_at,
-                    created_by, reference, method)
+                    created_by, reference, method, general_ledger_date)
 SELECT NEXTVAL('ledger_id_seq'),
        NOW(),
        fc.id,
@@ -12,14 +12,15 @@ SELECT NEXTVAL('ledger_id_seq'),
        NOW(),
        @created_by,
        gen_random_uuid(),
-       ''
+       '',
+       NOW()
 FROM finance_client fc
 WHERE client_id = $1
 RETURNING id;
 
 -- name: CreateLedgerForCourtRef :one
 INSERT INTO ledger (id, datetime, bankdate, finance_client_id, amount, notes, type, status, created_at, created_by,
-                    reference, method, pis_number)
+                    reference, method, pis_number, general_ledger_date)
 SELECT NEXTVAL('ledger_id_seq'),
        @received_date,
        @bank_date,
@@ -32,7 +33,8 @@ SELECT NEXTVAL('ledger_id_seq'),
        @created_by,
        gen_random_uuid(),
        '',
-       @pis_number
+       @pis_number,
+       NOW()
 FROM finance_client fc
 WHERE court_ref = @court_ref
 RETURNING id;

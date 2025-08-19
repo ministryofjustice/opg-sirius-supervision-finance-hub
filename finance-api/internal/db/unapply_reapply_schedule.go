@@ -25,12 +25,12 @@ const UnapplyReapplyScheduleQuery = `SELECT
 	fc.court_ref AS "Court reference",
 	i.reference AS "Invoice reference",
 	(ABS(la.amount) / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS "Amount",
-	TO_CHAR(l.created_at, 'YYYY-MM-DD') AS "Created date"
+	TO_CHAR(l.general_ledger_date, 'YYYY-MM-DD') AS "Created date"
 	FROM supervision_finance.ledger l
 	    JOIN supervision_finance.ledger_allocation la ON l.id = la.ledger_id
 	    JOIN supervision_finance.finance_client fc ON fc.id = l.finance_client_id
 	    JOIN supervision_finance.invoice i ON i.id = la.invoice_id
-	WHERE l.created_at::DATE = $1 AND la.status = $2;
+	WHERE l.general_ledger_date = $1 AND la.status = $2;
 `
 
 func (u *UnapplyReapplySchedule) GetHeaders() []string {

@@ -29,7 +29,7 @@ func (suite *IntegrationSuite) Test_processReversals() {
 		"INSERT INTO finance_client VALUES (1, 1, 'test 1', 'DEMANDED', NULL, '1111');",
 		"INSERT INTO finance_client VALUES (2, 2, 'test 1 - replacement', 'DEMANDED', NULL, '2222');",
 		"INSERT INTO invoice VALUES (1, 1, 1, 'AD', 'test 1 paid', '2023-04-01', '2025-03-31', 15000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
-		"INSERT INTO ledger VALUES (1, 'client-1-reverse-me', '2024-01-02 15:32:10', '', 1000, 'payment 1', 'MOTO CARD PAYMENT', 'CONFIRMED', 1, NULL, NULL, NULL, '2024-01-01', NULL, NULL, NULL, NULL, '2020-05-05', 1);",
+		"INSERT INTO ledger VALUES (1, 'client-1-reverse-me', '2024-01-02 15:32:10', '', 1000, 'payment 1', 'MOTO CARD PAYMENT', 'CONFIRMED', 1, NULL, NULL, NULL, '2024-01-01', NULL, NULL, NULL, NULL, '2020-05-05', 1, NULL, '2020-05-05');",
 		"INSERT INTO ledger_allocation VALUES (1, 1, 1, '2024-01-02 15:32:10', 1000, 'ALLOCATED', NULL, '', '2024-01-01', NULL);",
 		"INSERT INTO invoice VALUES (2, 2, 2, 'AD', 'test 1 replacement unpaid', '2023-04-01', '2025-03-31', 15000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 
@@ -39,11 +39,11 @@ func (suite *IntegrationSuite) Test_processReversals() {
 		"INSERT INTO invoice VALUES (3, 3, 3, 'AD', 'test 2 paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 		"INSERT INTO invoice VALUES (4, 3, 3, 'AD', 'test 2 partially paid with payment', '2023-05-01', '2025-04-01', 10000, NULL, '2024-04-01', NULL, '2024-04-01', NULL, NULL, NULL, '2024-04-01 00:00:00', '99');",
 		"INSERT INTO invoice VALUES (5, 3, 3, 'AD', 'test 2 unpaid with payment', '2023-06-01', '2025-05-01', 10000, NULL, '2025-05-01', NULL, '2025-05-01', NULL, NULL, NULL, '2025-05-01 00:00:00', '99');",
-		"INSERT INTO ledger VALUES (2, 'test 2', '2025-01-02 15:32:10', '', 15000, 'payment 2', 'ONLINE CARD PAYMENT', 'CONFIRMED', 3, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
+		"INSERT INTO ledger VALUES (2, 'test 2', '2025-01-02 15:32:10', '', 15000, 'payment 2', 'ONLINE CARD PAYMENT', 'CONFIRMED', 3, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1, NULL,  '2025-01-02');",
 		"INSERT INTO ledger_allocation VALUES (2, 2, 3, '2025-01-02 15:32:10', 10000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
 		"INSERT INTO ledger_allocation VALUES (3, 2, 4, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
 		// second payment received after the payment being reversed
-		"INSERT INTO ledger VALUES (3, 'test 2 - second payment', '2025-01-03 15:32:10', '', 10000, 'payment 2 - not reversed', 'MOTO CARD PAYMENT', 'CONFIRMED', 3, NULL, NULL, NULL, '2025-01-03', NULL, NULL, NULL, NULL, '2025-01-03', 1);",
+		"INSERT INTO ledger VALUES (3, 'test 2 - second payment', '2025-01-03 15:32:10', '', 10000, 'payment 2 - not reversed', 'MOTO CARD PAYMENT', 'CONFIRMED', 3, NULL, NULL, NULL, '2025-01-03', NULL, NULL, NULL, NULL, '2025-01-03', 1, NULL,  '2025-01-03');",
 		"INSERT INTO ledger_allocation VALUES (4, 3, 4, '2025-01-03 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-03', NULL);",
 		"INSERT INTO ledger_allocation VALUES (5, 3, 5, '2025-01-03 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-03', NULL);",
 
@@ -51,7 +51,7 @@ func (suite *IntegrationSuite) Test_processReversals() {
 		"INSERT INTO finance_client VALUES (5, 5, 'test 3', 'DEMANDED', NULL, '5555');",
 		"INSERT INTO finance_client VALUES (6, 6, 'test 3 - replacement', 'DEMANDED', NULL, '6666');",
 		"INSERT INTO invoice VALUES (6, 5, 5, 'AD', 'test 3 paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
-		"INSERT INTO ledger VALUES (4, 'test 3', '2025-01-02 15:32:10', '', 15000, 'payment 3', 'ONLINE CARD PAYMENT', 'CONFIRMED', 5, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
+		"INSERT INTO ledger VALUES (4, 'test 3', '2025-01-02 15:32:10', '', 15000, 'payment 3', 'ONLINE CARD PAYMENT', 'CONFIRMED', 5, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1, NULL,  '2025-01-02');",
 		"INSERT INTO ledger_allocation VALUES (6, 4, 6, '2025-01-02 15:32:10', 10000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
 		"INSERT INTO ledger_allocation VALUES (7, 4, NULL, '2025-01-02 15:32:10', -5000, 'UNAPPLIED', NULL, '', '2025-01-02', NULL);",
 		"INSERT INTO invoice VALUES (7, 6, 6, 'AD', 'test 3 replacement', '2023-04-01', '2025-03-31', 15000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
@@ -65,51 +65,51 @@ func (suite *IntegrationSuite) Test_processReversals() {
 		// duplicate payment
 		"INSERT INTO finance_client VALUES (8, 8, 'test 4', 'DEMANDED', NULL, '8888');",
 		"INSERT INTO invoice VALUES (9, 8, 8, 'AD', 'test 4 paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
-		"INSERT INTO ledger VALUES (6, 'test 4', '2025-01-02 15:32:10', '', 5000, 'payment 4', 'ONLINE CARD PAYMENT', 'CONFIRMED', 8, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
+		"INSERT INTO ledger VALUES (6, 'test 4', '2025-01-02 15:32:10', '', 5000, 'payment 4', 'ONLINE CARD PAYMENT', 'CONFIRMED', 8, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1, NULL,  '2025-01-02');",
 		"INSERT INTO ledger_allocation VALUES (9, 6, 9, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
 
 		// invalid duplicate reversal, same reversal in previous upload
 		"INSERT INTO finance_client VALUES (9, 9, 'test 5', 'DEMANDED', NULL, '9999');",
 		"INSERT INTO invoice VALUES (10, 9, 9, 'AD', 'test 5 paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
-		"INSERT INTO ledger VALUES (7, 'test 5', '2025-01-02 15:32:10', '', 5000, 'payment 5', 'ONLINE CARD PAYMENT', 'CONFIRMED', 9, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
+		"INSERT INTO ledger VALUES (7, 'test 5', '2025-01-02 15:32:10', '', 5000, 'payment 5', 'ONLINE CARD PAYMENT', 'CONFIRMED', 9, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1, NULL,  '2025-01-02');",
 		"INSERT INTO ledger_allocation VALUES (10, 7, 10, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
-		"INSERT INTO ledger VALUES (8, 'test 7', '2025-01-02 15:32:10', '', -5000, 'payment 7', 'ONLINE CARD PAYMENT', 'CONFIRMED', 9, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
+		"INSERT INTO ledger VALUES (8, 'test 7', '2025-01-02 15:32:10', '', -5000, 'payment 7', 'ONLINE CARD PAYMENT', 'CONFIRMED', 9, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1, NULL,  '2025-01-02');",
 		"INSERT INTO ledger_allocation VALUES (11, 8, 10, '2025-01-02 15:32:10', -5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
 
 		// invalid duplicate reversal, same reversal in upload
 		"INSERT INTO finance_client VALUES (10, 10, 'test 6', 'DEMANDED', NULL, '1010');",
 		"INSERT INTO invoice VALUES (11, 10, 10, 'AD', 'test 6 paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
-		"INSERT INTO ledger VALUES (9, 'test 6', '2025-01-02 15:32:10', '', 5000, 'payment 6', 'ONLINE CARD PAYMENT', 'CONFIRMED', 10, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
+		"INSERT INTO ledger VALUES (9, 'test 6', '2025-01-02 15:32:10', '', 5000, 'payment 6', 'ONLINE CARD PAYMENT', 'CONFIRMED', 10, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1, NULL,  '2025-01-02');",
 		"INSERT INTO ledger_allocation VALUES (12, 9, 11, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
 
 		// valid duplicate reversal for duplicate payment upload
 		"INSERT INTO finance_client VALUES (11, 11, 'test 8', 'DEMANDED', NULL, '1011');",
 		"INSERT INTO invoice VALUES (12, 11, 11, 'AD', 'test 8 paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
-		"INSERT INTO ledger VALUES (10, 'test 8', '2025-01-02 15:32:10', '', 5000, 'payment 8', 'ONLINE CARD PAYMENT', 'CONFIRMED', 11, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
+		"INSERT INTO ledger VALUES (10, 'test 8', '2025-01-02 15:32:10', '', 5000, 'payment 8', 'ONLINE CARD PAYMENT', 'CONFIRMED', 11, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1, NULL,  '2025-01-02');",
 		"INSERT INTO ledger_allocation VALUES (13, 10, 12, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
-		"INSERT INTO ledger VALUES (11, 'test 9', '2025-01-02 15:32:10', '', 5000, 'payment 9', 'ONLINE CARD PAYMENT', 'CONFIRMED', 11, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
+		"INSERT INTO ledger VALUES (11, 'test 9', '2025-01-02 15:32:10', '', 5000, 'payment 9', 'ONLINE CARD PAYMENT', 'CONFIRMED', 11, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1, NULL,  '2025-01-02');",
 		"INSERT INTO ledger_allocation VALUES (14, 11, 12, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
 
 		// failed direct debit collection
 		"INSERT INTO finance_client VALUES (12, 12, 'test 12', 'DEMANDED', NULL, '1212');",
 		"INSERT INTO invoice VALUES (13, 12, 12, 'AD', 'test 12 paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
-		"INSERT INTO ledger VALUES (12, 'test 12', '2025-01-02 15:32:10', '', 5000, 'payment 12', 'DIRECT DEBIT PAYMENT', 'CONFIRMED', 12, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
+		"INSERT INTO ledger VALUES (12, 'test 12', '2025-01-02 15:32:10', '', 5000, 'payment 12', 'DIRECT DEBIT PAYMENT', 'CONFIRMED', 12, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1, NULL,  '2025-01-02');",
 		"INSERT INTO ledger_allocation VALUES (15, 12, 13, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
 
 		// failed reversal due to insufficient debt position
 		"INSERT INTO finance_client VALUES (13, 13, 'test 13', 'DEMANDED', NULL, '1313');",
 		"INSERT INTO invoice VALUES (14, 13, 13, 'AD', 'test 13 paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
-		"INSERT INTO ledger VALUES (13, 'test 13', '2025-01-02 15:32:10', '', 10000, 'payment 13', 'ONLINE CARD PAYMENT', 'CONFIRMED', 13, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
+		"INSERT INTO ledger VALUES (13, 'test 13', '2025-01-02 15:32:10', '', 10000, 'payment 13', 'ONLINE CARD PAYMENT', 'CONFIRMED', 13, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1, NULL,  '2025-01-02');",
 		"INSERT INTO ledger_allocation VALUES (16, 13, 14, '2025-01-02 15:32:10', 10000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
-		"INSERT INTO ledger VALUES (14, 'test 13 - debit', '2025-01-02 15:32:10', '', -10000, 'manually reverses', 'DEBIT MEMO', 'CONFIRMED', 13, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
+		"INSERT INTO ledger VALUES (14, 'test 13 - debit', '2025-01-02 15:32:10', '', -10000, 'manually reverses', 'DEBIT MEMO', 'CONFIRMED', 13, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1, NULL,  '2025-01-02');",
 		"INSERT INTO ledger_allocation VALUES (17, 14, 14, '2025-01-02 15:32:10', -10000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
 
 		// client in credit but payment being reversed only covers invoice
 		"INSERT INTO finance_client VALUES (14, 14, 'test 14', 'DEMANDED', NULL, '1414');",
 		"INSERT INTO invoice VALUES (15, 14, 14, 'AD', 'test 14 paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
-		"INSERT INTO ledger VALUES (15, 'test 14.1', '2025-01-02 15:32:10', '', 5000, 'payment 14 being reversed', 'ONLINE CARD PAYMENT', 'CONFIRMED', 14, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
+		"INSERT INTO ledger VALUES (15, 'test 14.1', '2025-01-02 15:32:10', '', 5000, 'payment 14 being reversed', 'ONLINE CARD PAYMENT', 'CONFIRMED', 14, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1, NULL,  '2025-01-02');",
 		"INSERT INTO ledger_allocation VALUES (18, 15, 15, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
-		"INSERT INTO ledger VALUES (16, 'test 14.2', '2025-01-02 15:32:10', '', 10000, '14 gone into credit', 'CREDIT MEMO', 'CONFIRMED', 14, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
+		"INSERT INTO ledger VALUES (16, 'test 14.2', '2025-01-02 15:32:10', '', 10000, '14 gone into credit', 'CREDIT MEMO', 'CONFIRMED', 14, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1, NULL,  '2025-01-02');",
 		"INSERT INTO ledger_allocation VALUES (19, 16, 15, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
 		"INSERT INTO ledger_allocation VALUES (20, 16, 15, '2025-01-02 15:32:10', -5000, 'UNAPPLIED', NULL, '', '2025-01-02', NULL);",
 

@@ -14,7 +14,7 @@ import (
 const createLedgerForAdjustment = `-- name: CreateLedgerForAdjustment :one
 WITH created AS (
     INSERT INTO ledger (id, datetime, finance_client_id, amount, notes, type, status, fee_reduction_id, created_at,
-                        created_by, reference, method)
+                        created_by, reference, method, general_ledger_date)
         SELECT NEXTVAL('ledger_id_seq'),
                NOW(),
                fc.id,
@@ -26,7 +26,8 @@ WITH created AS (
                NOW(),
                $7,
                gen_random_uuid(),
-               ''
+               '',
+               NOW()
         FROM finance_client fc
         WHERE client_id = $1
         RETURNING id)

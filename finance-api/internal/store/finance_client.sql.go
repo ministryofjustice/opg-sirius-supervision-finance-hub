@@ -39,7 +39,7 @@ WITH balances AS (SELECT fc.id,
                                                   ELSE 0
                                                   END), 0))::INT AS credit
                   FROM finance_client fc
-                           LEFT JOIN ledger l ON fc.id = l.finance_client_id AND l.status = 'CONFIRMED'
+                           LEFT JOIN ledger l ON fc.id = l.finance_client_id AND l.status = 'CONFIRMED' AND l.general_ledger_date >= NOW()
                            LEFT JOIN ledger_allocation la ON l.id = la.ledger_id
                   WHERE fc.client_id = $1
                   GROUP BY fc.id)
@@ -87,6 +87,7 @@ FROM finance_client fc
          LEFT JOIN ledger l ON fc.id = l.finance_client_id
          LEFT JOIN ledger_allocation la ON l.id = la.ledger_id
 WHERE fc.court_ref = $1
+  AND l.status = 'CONFIRMED' AND l.general_ledger_date <= NOW()
   AND la.status IN ('UNAPPLIED', 'REAPPLIED')
 `
 
@@ -107,7 +108,7 @@ SELECT COALESCE(SUM(
                             ELSE 0
                             END), 0)::INT
 FROM finance_client fc
-         LEFT JOIN ledger l ON fc.id = l.finance_client_id AND l.status = 'CONFIRMED'
+         LEFT JOIN ledger l ON fc.id = l.finance_client_id AND l.status = 'CONFIRMED' AND l.general_ledger_date <= NOW()
          LEFT JOIN ledger_allocation la ON l.id = la.ledger_id
 WHERE fc.client_id = $1
 GROUP BY fc.id
@@ -126,16 +127,16 @@ WITH ledger_data AS (
         fc.id AS client_id,
         fc.court_ref,
         SUM(CASE
-                WHEN la.status NOT IN ('PENDING', 'UN ALLOCATED') AND l.status = 'CONFIRMED'
+                WHEN la.status NOT IN ('PENDING', 'UN ALLOCATED')
                     AND la.invoice_id IS NOT NULL THEN la.amount
                 ELSE 0
             END) AS received,
         SUM(CASE
-                WHEN la.status IN ('UNAPPLIED', 'REAPPLIED') AND l.status = 'CONFIRMED' THEN la.amount
+                WHEN la.status IN ('UNAPPLIED', 'REAPPLIED') THEN la.amount
                 ELSE 0
             END) AS credit
     FROM finance_client fc
-             LEFT JOIN ledger l ON fc.id = l.finance_client_id
+             LEFT JOIN ledger l ON fc.id = l.finance_client_id AND l.status = 'CONFIRMED' AND l.general_ledger_date <= NOW()
              LEFT JOIN ledger_allocation la ON l.id = la.ledger_id
     GROUP BY fc.id, fc.court_ref
 )

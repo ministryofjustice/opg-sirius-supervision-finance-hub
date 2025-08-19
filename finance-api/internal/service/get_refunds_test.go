@@ -13,7 +13,7 @@ func (suite *IntegrationSuite) TestService_GetRefunds() {
 
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (1, 10, 'findme', 'DEMANDED', 1)",
-		"INSERT INTO ledger VALUES (1, 'abc1', '2022-04-02T00:00:00+00:00', '', 10000, 'Write off', 'CREDIT WRITE OFF', 'CONFIRMED', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '05/05/2022', 1);",
+		"INSERT INTO ledger VALUES (1, 'abc1', '2022-04-02T00:00:00+00:00', '', 10000, 'Write off', 'CREDIT WRITE OFF', 'CONFIRMED', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2022-05-05', 1, NULL, '2022-05-05');",
 		"INSERT INTO ledger_allocation VALUES (1, 1, NULL, '2022-04-02T00:00:00+00:00', -10000, 'UNAPPLIED', NULL, '', '2022-04-02', NULL);",
 		"INSERT INTO refund VALUES (1, 1, '2019-01-11', 10000, 'PENDING', 'A pending refund', 99, '2025-06-01 00:00:00')",
 		"INSERT INTO refund VALUES (2, 1, '2019-01-02', 11100, 'APPROVED', 'An approved refund', 99, '2025-06-01 00:00:00', 99, '2025-06-02 00:00:00')",
@@ -27,11 +27,11 @@ func (suite *IntegrationSuite) TestService_GetRefunds() {
 		"INSERT INTO bank_details VALUES (3, 5, 'Clint Client', '32345678', '11-22-33');",
 
 		"INSERT INTO finance_client VALUES (2, 2, 'nocredit', 'DEMANDED', 2)",
-		"INSERT INTO ledger VALUES (2, 'abc2', '2022-04-02T00:00:00+00:00', '', 50, 'Write off 2', 'CREDIT WRITE OFF', 'CONFIRMED', 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '05/05/2022', 1);",
+		"INSERT INTO ledger VALUES (2, 'abc2', '2022-04-02T00:00:00+00:00', '', 50, 'Write off 2', 'CREDIT WRITE OFF', 'CONFIRMED', 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2022-05-05', 1, NULL, '2022-05-05');",
 		"INSERT INTO ledger_allocation VALUES (2, 2, NULL, '2022-04-02T00:00:00+00:00', 50, 'ALLOCATED', NULL, '', '2022-04-02', NULL);",
 
 		"INSERT INTO finance_client VALUES (3, 3, 'norefunds', 'DEMANDED', 3)",
-		"INSERT INTO ledger VALUES (3, 'abc3', '2022-04-02T00:00:00+00:00', '', 50, 'Write off 3', 'CREDIT WRITE OFF', 'CONFIRMED', 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '05/05/2022', 1);",
+		"INSERT INTO ledger VALUES (3, 'abc3', '2022-04-02T00:00:00+00:00', '', 50, 'Write off 3', 'CREDIT WRITE OFF', 'CONFIRMED', 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2022-05-05', 1, NULL, '2022-05-05');",
 		"INSERT INTO ledger_allocation VALUES (3, 3, NULL, '2022-04-02T00:00:00+00:00', -50, 'UNAPPLIED', NULL, '', '2022-04-02', NULL);",
 
 		"INSERT INTO finance_client VALUES (4, 4, 'dontfindme', 'DEMANDED', 4)",

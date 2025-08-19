@@ -28,7 +28,7 @@ SELECT ABS(COALESCE(SUM(
                                 ELSE 0
                                 END), 0))::INT AS credit
 FROM finance_client fc
-         LEFT JOIN ledger l ON fc.id = l.finance_client_id AND l.status = 'CONFIRMED'
+         LEFT JOIN ledger l ON fc.id = l.finance_client_id AND l.status = 'CONFIRMED' AND l.general_ledger_date <= NOW()
          LEFT JOIN ledger_allocation la ON l.id = la.ledger_id
 WHERE fc.client_id = $1;
 

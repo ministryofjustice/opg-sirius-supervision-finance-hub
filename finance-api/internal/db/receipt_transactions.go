@@ -49,7 +49,7 @@ ledger_totals AS (
         INNER JOIN transaction_type_order tto ON tt.id = tto.id
         WHERE tt.ledger_type = l.type AND tto.index IS NOT NULL
     ) tt ON TRUE
-    WHERE l.created_at::DATE = $1
+    WHERE l.general_ledger_date = $1
     GROUP BY tt.line_description, tt.index, l.type, l.pis_number, l.bankdate
 ),
 allocation_totals AS (
@@ -78,7 +78,7 @@ allocation_totals AS (
 		INNER JOIN transaction_type_order tto ON tt.id = tto.id
 		WHERE tt.ledger_type = l.type AND tto.index IS NOT NULL
 	) tt ON TRUE
-	WHERE l.created_at::DATE = $1
+	WHERE l.general_ledger_date = $1
 	GROUP BY tt.line_description, tt.index, l.bankdate, l.type, l.pis_number
 ),
 transaction_rows AS (

@@ -51,7 +51,7 @@ func (q *Queries) CountDuplicateLedger(ctx context.Context, arg CountDuplicateLe
 
 const createLedger = `-- name: CreateLedger :one
 INSERT INTO ledger (id, datetime, finance_client_id, amount, notes, type, status, fee_reduction_id, created_at,
-                    created_by, reference, method)
+                    created_by, reference, method, general_ledger_date)
 SELECT NEXTVAL('ledger_id_seq'),
        NOW(),
        fc.id,
@@ -63,7 +63,8 @@ SELECT NEXTVAL('ledger_id_seq'),
        NOW(),
        $7,
        gen_random_uuid(),
-       ''
+       '',
+       NOW()
 FROM finance_client fc
 WHERE client_id = $1
 RETURNING id
@@ -96,7 +97,7 @@ func (q *Queries) CreateLedger(ctx context.Context, arg CreateLedgerParams) (int
 
 const createLedgerForCourtRef = `-- name: CreateLedgerForCourtRef :one
 INSERT INTO ledger (id, datetime, bankdate, finance_client_id, amount, notes, type, status, created_at, created_by,
-                    reference, method, pis_number)
+                    reference, method, pis_number, general_ledger_date)
 SELECT NEXTVAL('ledger_id_seq'),
        $1,
        $2,
@@ -109,7 +110,8 @@ SELECT NEXTVAL('ledger_id_seq'),
        $7,
        gen_random_uuid(),
        '',
-       $8
+       $8,
+       NOW()
 FROM finance_client fc
 WHERE court_ref = $9
 RETURNING id

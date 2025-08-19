@@ -127,7 +127,7 @@ SELECT l.id AS ledger_id,
        la.status,
        l.amount  AS ledger_amount,
        la.amount AS allocation_amount,
-       l.datetime AS created_at,
+       l.datetime AS created_at, -- TODO: Is datetime right here?
        l.created_by
 FROM ledger_allocation la
          JOIN ledger l ON l.id = la.ledger_id
