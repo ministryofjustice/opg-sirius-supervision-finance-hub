@@ -79,7 +79,7 @@ services:
         condition: service_healthy
 
   go-lint:
-    image: golangci/golangci-lint:v2.2.1
+    image: golangci/golangci-lint:v2.4.0
     working_dir: /go/src/app
     volumes:
       - ./:/go/src/app
@@ -161,7 +161,7 @@ services:
     command: "up"
 
   localstack:
-    image: localstack/localstack:4.6
+    image: localstack/localstack:4.7
     volumes:
       - "./scripts/localstack/init:/etc/localstack/init/ready.d"
       - "./scripts/localstack/files:/scripts/files"
@@ -177,7 +177,7 @@ services:
       retries: 50
 
   allpay-mock:
-    image: stoplight/prism:4
+    image: stoplight/prism:5
     volumes:
       - ./allpay-mock/allpay.yaml:/openapi.yaml:ro
     command: mock /openapi.yaml -h 0.0.0.0 --errors
