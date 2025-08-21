@@ -28,6 +28,13 @@ type mockService struct {
 	expectedIds        []int
 	called             []string
 	errs               map[string]error
+	lastCalledParams   []interface{}
+}
+
+func (s *mockService) AddCollectedPayments(ctx context.Context, date time.Time) error {
+	s.called = append(s.called, "AddCollectedPayments")
+	s.lastCalledParams = []interface{}{date}
+	return s.errs["AddCollectedPayments"]
 }
 
 func (s *mockService) ProcessAdhocEvent(ctx context.Context) error {
