@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"net/http"
 	"time"
+
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 )
 
 type Holiday struct {

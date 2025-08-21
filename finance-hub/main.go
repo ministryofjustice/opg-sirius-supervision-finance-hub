@@ -3,14 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"github.com/ministryofjustice/opg-go-common/env"
-	"github.com/ministryofjustice/opg-go-common/paginate"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/allpay"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/api"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/server"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"html/template"
 	"log/slog"
 	"net/http"
@@ -22,6 +14,15 @@ import (
 	"syscall"
 	"time"
 	"unicode"
+
+	"github.com/ministryofjustice/opg-go-common/env"
+	"github.com/ministryofjustice/opg-go-common/paginate"
+	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/allpay"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/api"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/server"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
 type Envs struct {
@@ -49,6 +50,7 @@ func parseEnvs() (*Envs, error) {
 		"SUPERVISION_BILLING_TEAM_ID": os.Getenv("SUPERVISION_BILLING_TEAM_ID"),
 		"PORT":                        os.Getenv("PORT"),
 		"JWT_SECRET":                  os.Getenv("JWT_SECRET"),
+		"HOLIDAY_API_URL":             os.Getenv("HOLIDAY_API_URL"),
 	}
 
 	var missing []error
@@ -80,7 +82,7 @@ func parseEnvs() (*Envs, error) {
 		allpayHost:       os.Getenv("ALLPAY_HOST"), // TODO: Move these to checked values once Direct Debits is ready for production
 		allpayAPIKey:     os.Getenv("ALLPAY_API_KEY"),
 		allpaySchemeCode: "OPGB",
-		holidayAPIURL:    os.Getenv("HOLIDAY_API_URL"),
+		holidayAPIURL:    envs["HOLIDAY_API_URL"],
 	}, nil
 }
 

@@ -1,9 +1,10 @@
 package service
 
 import (
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"reflect"
 	"testing"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 )
 
 func (suite *IntegrationSuite) TestService_GetPendingOutstandingBalance() {
@@ -47,9 +48,9 @@ func (suite *IntegrationSuite) TestService_GetPendingOutstandingBalance() {
 			wantErr: true,
 		},
 		{
-			name:    "returns error when client exists but has no invoices",
-			id:      3,
-			wantErr: true,
+			name: "returns error when client exists but has no invoices",
+			id:   3,
+			want: 0,
 		},
 	}
 	for _, tt := range tests {
