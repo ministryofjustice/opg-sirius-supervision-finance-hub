@@ -101,7 +101,7 @@ func (m mockApiClient) UpdatePendingInvoiceAdjustment(context context.Context, i
 }
 
 func (m mockApiClient) AddInvoiceAdjustment(context.Context, int, int, int, string, string, string, bool) error {
-	return m.error["AddInvoiceAdjustment"]
+	return m.error["addInvoiceAdjustment"]
 }
 
 func (m mockApiClient) CancelFeeReduction(context context.Context, i int, i2 int, s string) error {

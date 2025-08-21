@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/allpay"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"net/http"
 	"time"
 )
@@ -63,7 +64,14 @@ func (c *Client) CreateDirectDebitSchedule(ctx context.Context, clientId int) er
 		return err
 	}
 
-	// TODO: create direct debit ledgers for collection date
+	err = c.recordPendingCollection(ctx, clientId, shared.PendingCollection{
+		Amount:         balance,
+		CollectionDate: shared.Date{Time: date},
+	})
+	if err != nil {
+		logger.Error("failed to create pending collection in Sirius after successful schedule instruction in AllPay", "error", err)
+		return err
+	}
 	return nil
 }
 
@@ -91,4 +99,38 @@ func (c *Client) getPendingOutstandingBalance(ctx context.Context, clientId int)
 
 	err = json.NewDecoder(resp.Body).Decode(&v)
 	return v, err
+}
+
+func (c *Client) recordPendingCollection(ctx context.Context, clientId int, data shared.PendingCollection) error {
+	var body bytes.Buffer
+
+	err := json.NewEncoder(&body).Encode(data)
+	if err != nil {
+		return err
+	}
+
+	url := fmt.Sprintf("/clients/%d/pending-collections", clientId)
+	req, err := c.newBackendRequest(ctx, http.MethodPost, url, &body)
+
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return err
+	}
+
+	defer unchecked(resp.Body.Close)
+
+	if resp.StatusCode == http.StatusCreated {
+		return nil
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		return ErrUnauthorized
+	}
+
+	return newStatusError(resp)
 }

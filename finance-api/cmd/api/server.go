@@ -45,6 +45,7 @@ type Service interface {
 	UpdatePendingInvoiceAdjustment(ctx context.Context, clientId int32, adjustmentId int32, status shared.AdjustmentStatus) error
 	UpdateRefundDecision(ctx context.Context, clientId int32, refundId int32, status shared.RefundStatus) error
 	GetPendingOutstandingBalance(ctx context.Context, clientId int32) (int32, error)
+	AddPendingCollection(ctx context.Context, clientId int32, data shared.PendingCollection) error
 }
 type FileStorage interface {
 	GetFile(ctx context.Context, bucketName string, filename string) (io.ReadCloser, error)
@@ -118,11 +119,12 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 	authFunc("POST /clients/{clientId}/fee-reductions", shared.RoleFinanceUser, s.addFeeReduction)
 	authFunc("PUT /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", shared.RoleFinanceManager, s.cancelFeeReduction)
 	authFunc("POST /clients/{clientId}/invoices", shared.RoleFinanceManager, s.addManualInvoice)
-	authFunc("POST /clients/{clientId}/invoices/{invoiceId}/invoice-adjustments", shared.RoleFinanceUser, s.AddInvoiceAdjustment)
+	authFunc("POST /clients/{clientId}/invoices/{invoiceId}/invoice-adjustments", shared.RoleFinanceUser, s.addInvoiceAdjustment)
 	authFunc("PUT /clients/{clientId}/invoice-adjustments/{adjustmentId}", shared.RoleFinanceManager, s.updatePendingInvoiceAdjustment)
 	authFunc("PUT /clients/{clientId}/payment-method", shared.RoleFinanceUser, s.updatePaymentMethod)
 	authFunc("POST /clients/{clientId}/refunds", shared.RoleFinanceUser, s.addRefund)
 	authFunc("PUT /clients/{clientId}/refunds/{refundId}", shared.RoleFinanceManager, s.updateRefundDecision)
+	authFunc("POST /clients/{clientId}/pending-collections", shared.RoleFinanceUser, s.addPendingCollection)
 
 	authFunc("GET /download", shared.RoleFinanceReporting, s.download)
 	authFunc("HEAD /download", shared.RoleFinanceReporting, s.checkDownload)
