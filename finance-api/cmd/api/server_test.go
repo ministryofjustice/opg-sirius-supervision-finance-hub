@@ -3,11 +3,12 @@ package api
 import (
 	"bytes"
 	"context"
+	"io"
+	"time"
+
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"io"
-	"time"
 )
 
 type mockService struct {
@@ -27,7 +28,14 @@ type mockService struct {
 	addRefund          shared.AddRefund
 	expectedIds        []int
 	lastCalled         string
+	lastCalledParams   []interface{}
 	err                error
+}
+
+func (s *mockService) AddCollectedPayments(ctx context.Context, date time.Time) error {
+	s.lastCalled = "AddCollectedPayments"
+	s.lastCalledParams = []interface{}{date}
+	return s.err
 }
 
 func (s *mockService) ProcessAdhocEvent(ctx context.Context) error {
