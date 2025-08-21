@@ -20,6 +20,7 @@ import (
 )
 
 type Service interface {
+	AddCollectedPayments(ctx context.Context, date time.Time) error
 	AddFeeReduction(ctx context.Context, clientId int32, data shared.AddFeeReduction) error
 	AddInvoiceAdjustment(ctx context.Context, clientId int32, invoiceId int32, ledgerEntry *shared.AddInvoiceAdjustmentRequest) (*shared.InvoiceReference, error)
 	AddManualInvoice(ctx context.Context, clientId int32, invoice shared.AddManualInvoice) error
