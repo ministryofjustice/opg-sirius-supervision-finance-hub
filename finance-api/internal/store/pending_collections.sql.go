@@ -38,3 +38,53 @@ func (q *Queries) CreatePendingCollection(ctx context.Context, arg CreatePending
 	)
 	return err
 }
+
+const getPendingCollectionsForDate = `-- name: GetPendingCollectionsForDate :many
+SELECT pc.id, pc.amount, fc.court_ref
+FROM pending_collection pc
+         JOIN supervision_finance.finance_client fc ON fc.id = pc.finance_client_id
+WHERE pc.collection_date = $1::DATE
+  AND pc.ledger_id IS NULL
+`
+
+type GetPendingCollectionsForDateRow struct {
+	ID       int32
+	Amount   int32
+	CourtRef pgtype.Text
+}
+
+func (q *Queries) GetPendingCollectionsForDate(ctx context.Context, dateCollected pgtype.Date) ([]GetPendingCollectionsForDateRow, error) {
+	rows, err := q.db.Query(ctx, getPendingCollectionsForDate, dateCollected)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPendingCollectionsForDateRow
+	for rows.Next() {
+		var i GetPendingCollectionsForDateRow
+		if err := rows.Scan(&i.ID, &i.Amount, &i.CourtRef); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const markPendingCollectionAsCollected = `-- name: MarkPendingCollectionAsCollected :exec
+UPDATE pending_collection
+SET ledger_id = $1
+WHERE id = $2
+`
+
+type MarkPendingCollectionAsCollectedParams struct {
+	LedgerID pgtype.Int4
+	ID       int32
+}
+
+func (q *Queries) MarkPendingCollectionAsCollected(ctx context.Context, arg MarkPendingCollectionAsCollectedParams) error {
+	_, err := q.db.Exec(ctx, markPendingCollectionAsCollected, arg.LedgerID, arg.ID)
+	return err
+}
