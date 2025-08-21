@@ -75,8 +75,8 @@ func (c *Client) CreateDirectDebitSchedule(ctx context.Context, clientId int) er
 	return nil
 }
 
-func (c *Client) getPendingOutstandingBalance(ctx context.Context, clientId int) (int, error) {
-	var v int
+func (c *Client) getPendingOutstandingBalance(ctx context.Context, clientId int) (int32, error) {
+	var v int32
 	req, err := c.newBackendRequest(ctx, http.MethodGet, fmt.Sprintf("/clients/%d/balance/pending", clientId), nil)
 	if err != nil {
 		return v, err

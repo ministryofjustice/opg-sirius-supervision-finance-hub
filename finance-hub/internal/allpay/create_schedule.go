@@ -5,14 +5,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"net/http"
 	"time"
+
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 )
 
 type schedule struct {
 	Date          string `json:"ScheduleDate"`
-	Amount        int    `json:"Amount"`
+	Amount        int32  `json:"Amount"`
 	Frequency     string `json:"Frequency"`
 	TotalPayments int    `json:"TotalPayments"`
 }
@@ -25,7 +26,7 @@ type CreateScheduleInput struct {
 	ClientRef string
 	Surname   string
 	Date      time.Time
-	Amount    int
+	Amount    int32
 }
 
 func (c *Client) CreateSchedule(ctx context.Context, data CreateScheduleInput) error {

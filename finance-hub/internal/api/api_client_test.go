@@ -2,19 +2,19 @@ package api
 
 import (
 	"context"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/allpay"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
 	"log/slog"
 	"net/http"
 	"testing"
+
+	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/allpay"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
 
 	"github.com/stretchr/testify/assert"
 )
 
 type MockClient struct {
 	DoFunc func(req *http.Request) (*http.Response, error)
-	cache  *Caches
 }
 
 var (
@@ -87,7 +87,7 @@ func TestStatusError(t *testing.T) {
 }
 
 func SetUpTest() *MockClient {
-	mockClient := &MockClient{cache: newCaches()}
+	mockClient := &MockClient{}
 	return mockClient
 }
 

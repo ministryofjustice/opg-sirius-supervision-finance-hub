@@ -2,13 +2,13 @@ package api
 
 import (
 	"fmt"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/allpay"
-	"github.com/patrickmn/go-cache"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/allpay"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateDirectDebitSchedule(t *testing.T) {
@@ -29,6 +29,20 @@ func TestCreateDirectDebitSchedule(t *testing.T) {
 		case "/clients/1/pending-collections":
 			pendingCollectionsCalled = true
 			w.WriteHeader(http.StatusCreated)
+		case "/holidays.json":
+			_, _ = w.Write([]byte(`{
+			  "england-and-wales": {
+				"division": "england-and-wales",
+				"events": [
+				  {
+					"title": "New Year’s Day",
+					"date": "2024-01-01",
+					"notes": "",
+					"bunting": true
+				  }
+				]
+			  }
+			}`))
 		default:
 			t.Errorf("Unexpected path: %s", r.URL.Path)
 		}
@@ -37,7 +51,7 @@ func TestCreateDirectDebitSchedule(t *testing.T) {
 
 	mockJWT := mockJWTClient{}
 	mockAllPay := mockAllPayClient{}
-	client := NewClient(ts.Client(), &mockJWT, Envs{SiriusURL: ts.URL, BackendURL: ts.URL}, &mockAllPay)
+	client := NewClient(ts.Client(), &mockJWT, Envs{SiriusURL: ts.URL, BackendURL: ts.URL, HolidayAPIURL: ts.URL + "/holidays.json"}, &mockAllPay)
 
 	ctx := testContext()
 	err := client.CreateDirectDebitSchedule(ctx, 1)
@@ -134,7 +148,6 @@ func TestCreateDirectDebitSchedule_AddWorkingDaysFailed(t *testing.T) {
 	mockJWT := mockJWTClient{}
 	mockAllPay := mockAllPayClient{}
 	client := NewClient(ts.Client(), &mockJWT, Envs{SiriusURL: ts.URL, BackendURL: ts.URL}, &mockAllPay)
-	client.caches.holidays = cache.New(defaultExpiration, defaultExpiration) // set to empty cache so it fails when trying to refresh
 
 	ctx := testContext()
 	err := client.CreateDirectDebitSchedule(ctx, 1)
@@ -156,6 +169,20 @@ func TestCreateDirectDebitSchedule_CreateScheduleFailed(t *testing.T) {
 		case "/clients/1/balance/pending":
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write([]byte(`10000`))
+		case "/holidays.json":
+			_, _ = w.Write([]byte(`{
+			  "england-and-wales": {
+				"division": "england-and-wales",
+				"events": [
+				  {
+					"title": "New Year’s Day",
+					"date": "2024-01-01",
+					"notes": "",
+					"bunting": true
+				  }
+				]
+			  }
+			}`))
 		default:
 			t.Errorf("Unexpected path: %s", r.URL.Path)
 		}
@@ -166,7 +193,7 @@ func TestCreateDirectDebitSchedule_CreateScheduleFailed(t *testing.T) {
 	mockAllPay := mockAllPayClient{
 		createScheduleError: fmt.Errorf("createScheduleError"),
 	}
-	client := NewClient(ts.Client(), &mockJWT, Envs{SiriusURL: ts.URL, BackendURL: ts.URL}, &mockAllPay)
+	client := NewClient(ts.Client(), &mockJWT, Envs{SiriusURL: ts.URL, BackendURL: ts.URL, HolidayAPIURL: ts.URL + "/holidays.json"}, &mockAllPay)
 
 	ctx := testContext()
 	err := client.CreateDirectDebitSchedule(ctx, 1)
@@ -193,6 +220,20 @@ func TestCreateDirectDebitSchedule_pendingCollectionsFailed(t *testing.T) {
 		case "/clients/1/pending-collections":
 			pendingCollectionsCalled = true
 			w.WriteHeader(http.StatusInternalServerError)
+		case "/holidays.json":
+			_, _ = w.Write([]byte(`{
+			  "england-and-wales": {
+				"division": "england-and-wales",
+				"events": [
+				  {
+					"title": "New Year’s Day",
+					"date": "2024-01-01",
+					"notes": "",
+					"bunting": true
+				  }
+				]
+			  }
+			}`))
 		default:
 			t.Errorf("Unexpected path: %s", r.URL.Path)
 		}
@@ -201,7 +242,7 @@ func TestCreateDirectDebitSchedule_pendingCollectionsFailed(t *testing.T) {
 
 	mockJWT := mockJWTClient{}
 	mockAllPay := mockAllPayClient{}
-	client := NewClient(ts.Client(), &mockJWT, Envs{SiriusURL: ts.URL, BackendURL: ts.URL}, &mockAllPay)
+	client := NewClient(ts.Client(), &mockJWT, Envs{SiriusURL: ts.URL, BackendURL: ts.URL, HolidayAPIURL: ts.URL + "/holidays.json"}, &mockAllPay)
 
 	logHandler := TestLogHandler{}
 	err := client.CreateDirectDebitSchedule(testContextWithLogger(&logHandler), 1)

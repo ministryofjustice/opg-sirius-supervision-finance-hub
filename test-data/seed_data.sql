@@ -137,6 +137,10 @@ INSERT INTO ledger_allocation VALUES (16, 12, 14, '2024-05-11T08:39:40+00:00', 7
 INSERT INTO ledger VALUES (13, 'moto payment reversal', '2024-05-11T08:39:40+00:00', '', -7000, '', 'MOTO CARD PAYMENT', 'CONFIRMED', 20001, null, null, '11/04/2042', '12/04/2024', 1, '', '', 1, '05/11/2024 12:05:34', 2);
 INSERT INTO ledger_allocation VALUES (17, 13, 14, '2024-05-11T08:39:40+00:00', -7000, 'ALLOCATED', null, 'moto-payment', '2024-05-11', null);
 
+-- create direct debit mandate/schedule
+INSERT INTO finance_client VALUES (20001, 20, 'createdirectdebit', 'DEMANDED', null, '20202020');
+INSERT INTO invoice VALUES (15, 20, 20001, 'AD', 'AD202020/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-04-10T08:36:40+00:00', 99);
+
 -- TEST CLIENT DATA: Add data for default client here
 
 -- UPDATE SEQUENCES
@@ -148,3 +152,4 @@ SELECT setval('ledger_id_seq', (SELECT MAX(id) FROM ledger));
 SELECT setval('ledger_allocation_id_seq', (SELECT MAX(id) FROM ledger_allocation));
 SELECT setval('invoice_fee_range_id_seq', (SELECT MAX(id) FROM invoice_fee_range));
 SELECT setval('refund_id_seq', (SELECT MAX(id) FROM refund));
+SELECT setval('supervision_finance.pending_collection_id_seq', (SELECT MAX(id) FROM pending_collection));

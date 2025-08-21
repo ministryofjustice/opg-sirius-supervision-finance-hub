@@ -1,10 +1,11 @@
 package api
 
 import (
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"github.com/patrickmn/go-cache"
 	"strconv"
 	"time"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"github.com/patrickmn/go-cache"
 )
 
 const (
@@ -26,8 +27,6 @@ func newCaches() *Caches {
 	_ = users.Add("0", &placeholder, cache.NoExpiration)
 
 	holidays := cache.New(defaultExpiration, defaultExpiration)
-	// unreachable cached value used for triggering cache refresh
-	_ = holidays.Add("refresh", true, defaultExpiration)
 	return &Caches{
 		users:    users,
 		holidays: holidays,
@@ -63,7 +62,7 @@ func (c Caches) updateHolidays(holidays []Holiday) {
 		_ = c.holidays.Add(holiday.Date, true, defaultExpiration)
 	}
 
-	// add the refresh trigger back in
+	// unreachable cached value used for triggering cache refresh
 	c.holidays.Set("refresh", true, defaultExpiration)
 }
 
