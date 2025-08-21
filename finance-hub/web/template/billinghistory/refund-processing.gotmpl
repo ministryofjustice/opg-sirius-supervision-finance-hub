@@ -1,0 +1,15 @@
+{{ define "refund-processing-event" }}
+    <div class="moj-timeline__item">
+        <div class="moj-timeline__header">
+              <h2 class="moj-timeline__title">
+                  Refund status of approved updated to processing
+              </h2>
+            <p class="moj-timeline__byline">
+                {{ printf "by %v, %v" .User .Date }}
+            </p>
+        </div>
+        <p class="moj-timeline__date">
+            {{ printf "Outstanding balance: £%v Credit balance: £%v" .OutstandingBalance .CreditBalance }}
+        </p>
+    </div>
+{{ end }}
