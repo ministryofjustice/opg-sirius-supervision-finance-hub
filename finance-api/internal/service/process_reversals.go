@@ -47,7 +47,7 @@ func (s *Service) ProcessPaymentReversals(ctx context.Context, records [][]strin
 				processedRecords = append(processedRecords, details)
 
 				if uploadType == shared.ReportTypeUploadMisappliedPayments {
-					err = s.ProcessPaymentsUploadLine(ctx, tx, shared.PaymentDetails{
+					_, err = s.ProcessPaymentsUploadLine(ctx, tx, shared.PaymentDetails{
 						Amount:       details.Amount,
 						BankDate:     details.BankDate,
 						CourtRef:     details.CorrectCourtRef,

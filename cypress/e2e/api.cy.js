@@ -138,4 +138,42 @@ describe('API Tests', () => {
                  .first().contains("Closed");
          });
      });
+
+     describe('Direct Debit events', () => {
+         it('creates ledgers for payments that have passed their collection date', () => {
+             cy.visit("/clients/21/invoices");
+             cy.get("table#invoices > tbody").contains("AD212121/24")
+                 .parentsUntil("tr").siblings()
+                 .first().contains("Unpaid");
+
+             const event = {
+                 source: "opg.supervision.infra",
+                 "detail-type": "scheduled-event",
+                 detail: {
+                     trigger: "direct-debit-collection",
+                     override: {
+                         date: "2025-08-01"
+                     }
+                 }
+             };
+
+             cy.request({
+                 method: 'POST',
+                 url: `${apiUrl}/events`,
+                 body: event,
+                 headers: {
+                     Authorization: `Bearer test`
+                 }
+             }).then((response) => {
+                 expect(response.status).to.eq(200);
+             });
+
+             cy.wait(1000); // async process so give it a second to complete
+
+             cy.visit("/clients/21/invoices");
+             cy.get("table#invoices > tbody").contains("AD212121/24")
+                 .parentsUntil("tr").siblings()
+                 .first().contains("Closed");
+         })
+     })
 });

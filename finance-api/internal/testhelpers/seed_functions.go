@@ -194,7 +194,7 @@ func (s *Seeder) CreatePayment(ctx context.Context, amount int32, bankDate time.
 	err = s.Conn.QueryRow(ctx, "SELECT COALESCE(MAX(id), 0) FROM supervision_finance.ledger").Scan(&latestLedgerId)
 	assert.NoError(s.t, err, "failed to find latest ledger id: %v", err)
 
-	err = s.Service.ProcessPaymentsUploadLine(ctx, tx, payment)
+	_, err = s.Service.ProcessPaymentsUploadLine(ctx, tx, payment)
 	assert.NoError(s.t, err, "payment not processed: %v", err)
 
 	err = tx.Commit(ctx)
