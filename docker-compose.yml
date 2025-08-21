@@ -18,7 +18,7 @@ services:
       ALLPAY_HOST: http://allpay-mock:4010
       ALLPAY_API_KEY: test-key
       SHOW_DIRECT_DEBITS: 1
-      HOLIDAY_API_URL: http://holidays-api-mock:8080
+      HOLIDAY_API_URL: http://holidays-api-mock:8080/bank-holidays.json
     depends_on:
       finance-api:
         condition: service_healthy
@@ -186,6 +186,8 @@ services:
       - "4010:4010"
 
   holidays-api-mock:
-    build: ./api-mocks/holidays-api
+    build:
+      context: .
+      dockerfile: docker/holidays-api/Dockerfile
     ports:
       - "8080:8080"
