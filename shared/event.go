@@ -6,14 +6,16 @@ import (
 )
 
 const (
-	EventSourceSirius             = "opg.supervision.sirius"
-	EventSourceFinanceAdhoc       = "opg.supervision.finance.adhoc"
-	EventSourceInfra              = "opg.supervision.infra"
-	DetailTypeFinanceAdhoc        = "finance-adhoc"
-	DetailTypeDebtPositionChanged = "debt-position-changed"
-	DetailTypeClientCreated       = "client-created"
-	DetailTypeFinanceAdminUpload  = "finance-admin-upload"
-	DetailTypeScheduledEvent      = "scheduled-event"
+	EventSourceSirius                   = "opg.supervision.sirius"
+	EventSourceFinanceAdhoc             = "opg.supervision.finance.adhoc"
+	EventSourceInfra                    = "opg.supervision.infra"
+	DetailTypeFinanceAdhoc              = "finance-adhoc"
+	DetailTypeDebtPositionChanged       = "debt-position-changed"
+	DetailTypeClientCreated             = "client-created"
+	DetailTypeFinanceAdminUpload        = "finance-admin-upload"
+	DetailTypeScheduledEvent            = "scheduled-event"
+	ScheduledEventRefundExpiry          = "refund-expiry"
+	ScheduledEventDirectDebitCollection = "direct-debit-collection"
 )
 
 type Event struct {
@@ -97,5 +99,40 @@ type AdhocEvent struct {
 }
 
 type ScheduledEvent struct {
-	Trigger string `json:"trigger"`
+	Trigger  string      `json:"trigger"`
+	Override interface{} `json:"override"`
+}
+
+func (e *ScheduledEvent) UnmarshalJSON(data []byte) error {
+	type tmp ScheduledEvent // avoids infinite recursion
+	if err := json.Unmarshal(data, (*tmp)(e)); err != nil {
+		return err
+	}
+
+	var raw struct {
+		Override json.RawMessage `json:"override"`
+	}
+
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	switch e.Trigger {
+	case ScheduledEventDirectDebitCollection:
+		var override ScheduledDirectDebitCollectionOverride
+		if err := json.Unmarshal(raw.Override, &override); err != nil {
+			return err
+		}
+		e.Override = override
+	case ScheduledEventRefundExpiry:
+		e.Override = nil
+	default:
+		return fmt.Errorf("unknown override type: %s", e.Override)
+	}
+
+	return nil
+}
+
+type ScheduledDirectDebitCollectionOverride struct {
+	Date Date `json:"date"`
 }
