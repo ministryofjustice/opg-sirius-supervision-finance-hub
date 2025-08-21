@@ -76,7 +76,7 @@ WHERE fc.court_ref = $1
   AND la.status IN ('UNAPPLIED', 'REAPPLIED');
 
 -- name: GetPendingOutstandingBalance :one
-WITH transactions AS (SELECT fc.id, SUM(la.amount)::INT AS amount
+WITH transactions AS (SELECT fc.id, COALESCE(SUM(la.amount), 0)::INT AS amount
 FROM finance_client fc
          LEFT JOIN ledger l ON fc.id = l.finance_client_id AND l.status = 'CONFIRMED'
                                LEFT JOIN ledger_allocation la ON l.id = la.ledger_id AND ((la.status = 'ALLOCATED') OR
