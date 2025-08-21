@@ -80,7 +80,7 @@ func TestAddTaskValidationErrors(t *testing.T) {
 		},
 	}
 
-	client.error = map[string]error{"AddInvoiceAdjustment": apierror.ValidationError{
+	client.error = map[string]error{"addInvoiceAdjustment": apierror.ValidationError{
 		Errors: validationErrors,
 	}}
 
@@ -104,7 +104,7 @@ func TestAddTaskBadRequest(t *testing.T) {
 	client := &mockApiClient{}
 	ro := &mockRoute{client: client}
 
-	client.error = map[string]error{"AddInvoiceAdjustment": *apierror.BadRequestError("Amount", "Too high", nil)}
+	client.error = map[string]error{"addInvoiceAdjustment": *apierror.BadRequestError("Amount", "Too high", nil)}
 
 	w := httptest.NewRecorder()
 	r, _ := http.NewRequest(http.MethodPost, "/adjustments", nil)

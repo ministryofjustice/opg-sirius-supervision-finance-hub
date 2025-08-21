@@ -134,7 +134,7 @@ func (s *mockService) UpdateRefundDecision(ctx context.Context, clientId int32, 
 func (s *mockService) AddInvoiceAdjustment(ctx context.Context, clientId int32, invoiceId int32, ledgerEntry *shared.AddInvoiceAdjustmentRequest) (*shared.InvoiceReference, error) {
 	s.ledger = ledgerEntry
 	s.expectedIds = []int{int(clientId), int(invoiceId)}
-	s.lastCalled = "AddInvoiceAdjustment"
+	s.lastCalled = "addInvoiceAdjustment"
 	return s.invoiceReference, s.err
 }
 
@@ -178,6 +178,11 @@ func (s *mockService) PostReportActions(ctx context.Context, reportType shared.R
 
 func (s *mockService) ExpireRefunds(ctx context.Context) error {
 	s.lastCalled = "ExpireRefunds"
+	return s.err
+}
+
+func (s *mockService) AddPendingCollection(ctx context.Context, clientId int32, data shared.PendingCollection) error {
+	s.lastCalled = "AddPendingCollection"
 	return s.err
 }
 
