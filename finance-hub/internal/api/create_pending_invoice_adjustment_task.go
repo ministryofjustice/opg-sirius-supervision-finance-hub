@@ -5,17 +5,23 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
 func (c *Client) CreatePendingInvoiceAdjustmentTask(ctx context.Context, clientId int, supervisionBillingTeamId int, invoiceRef string, adjustmentType string) error {
 	var body bytes.Buffer
 
-	dueDate, _ := c.addWorkingDays(ctx, time.Now(), 20)
+	dueDate, err := c.addWorkingDays(ctx, time.Now(), 20)
+	if err != nil {
+		telemetry.LoggerFromContext(ctx).Error("unable to create pending invoice adjustment task due to error in calculating due date", "error", err)
+		return err
+	}
 	adjustmentTypeLabel := strings.ToLower(strings.ReplaceAll(adjustmentType, "_", " "))
 
 	task := shared.Task{
@@ -26,7 +32,7 @@ func (c *Client) CreatePendingInvoiceAdjustmentTask(ctx context.Context, clientI
 		Notes:    fmt.Sprintf("Pending %s added to %s requires manager approval", adjustmentTypeLabel, invoiceRef),
 	}
 
-	err := json.NewEncoder(&body).Encode(task)
+	err = json.NewEncoder(&body).Encode(task)
 	if err != nil {
 		return err
 	}
