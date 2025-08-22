@@ -1,9 +1,10 @@
 {{ define "payment-processed-event" }}
+    {{ $isReversal := false }}
     {{ $amount := .Event.Amount }}
-    {{ if eq (index .Event.Breakdown 0).Status "UNAPPLIED" }}
-        {{ $amount = toNegative (index .Event.Breakdown 0).Amount }}
+    {{ if not (eq (index .Event.Breakdown 0).Status "UNAPPLIED") }}
+        {{ $isReversal = lt $amount 0}}
     {{ end }}
-    {{ $isReversal := lt $amount 0}}
+
     <div class="moj-timeline__item">
         <div class="moj-timeline__header">
             <h2 class="moj-timeline__title">
