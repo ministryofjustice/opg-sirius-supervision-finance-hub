@@ -17,7 +17,7 @@ func (h *SubmitCancelDirectDebitHandler) render(v AppVars, w http.ResponseWriter
 	ctx := r.Context()
 	clientID := getClientID(r)
 
-	err := h.Client().CancelDirectDebit(ctx, clientID)
+	err := h.Client().CancelDirectDebitMandate(ctx, clientID)
 
 	if err == nil {
 		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices?success=cancel-direct-debit", v.EnvironmentVars.Prefix, clientID))
