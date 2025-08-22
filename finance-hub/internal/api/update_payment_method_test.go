@@ -13,7 +13,7 @@ import (
 func TestUpdatePaymentMethod(t *testing.T) {
 	mockClient := SetUpTest()
 	mockJWT := mockJWTClient{}
-	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""}, nil)
+	client := NewClient(mockClient, &mockJWT, Envs{SiriusURL: "http://localhost:3000"}, nil)
 	r := io.NopCloser(bytes.NewReader([]byte(nil)))
 
 	GetDoFunc = func(*http.Request) (*http.Response, error) {
@@ -33,7 +33,7 @@ func TestUpdatePaymentMethodUnauthorised(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{SiriusURL: svr.URL, BackendURL: svr.URL}, nil)
 
 	err := client.UpdatePaymentMethod(testContext(), 1, shared.PaymentMethodDemanded.Key())
 
@@ -46,7 +46,7 @@ func TestUpdatePaymentMethodReturns500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{SiriusURL: svr.URL, BackendURL: svr.URL}, nil)
 
 	err := client.UpdatePaymentMethod(testContext(), 1, shared.PaymentMethodDemanded.Key())
 	assert.Equal(t, StatusError{

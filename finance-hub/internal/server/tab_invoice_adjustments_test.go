@@ -60,7 +60,7 @@ func TestPendingInvoiceAdjustments(t *testing.T) {
 
 func TestPendingInvoiceAdjustments_Errors(t *testing.T) {
 	client := mockApiClient{}
-	client.error = errors.New("this has failed")
+	client.error = map[string]error{"GetInvoiceAdjustments": errors.New("this has failed")}
 	ro := &mockRoute{client: client}
 
 	w := httptest.NewRecorder()

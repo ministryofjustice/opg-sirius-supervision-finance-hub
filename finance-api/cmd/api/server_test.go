@@ -20,6 +20,7 @@ type mockService struct {
 	cancelFeeReduction *shared.CancelFeeReduction
 	ledger             *shared.AddInvoiceAdjustmentRequest
 	manualInvoice      *shared.AddManualInvoice
+	outstandingBalance int32
 	adjustmentTypes    []shared.AdjustmentType
 	billingHistory     []shared.BillingHistory
 	refunds            shared.Refunds
@@ -88,6 +89,12 @@ func (s *mockService) GetAccountInformation(ctx context.Context, id int32) (*sha
 	return s.accountInfo, s.err
 }
 
+func (s *mockService) GetPendingOutstandingBalance(ctx context.Context, id int32) (int32, error) {
+	s.expectedIds = []int{int(id)}
+	s.lastCalled = "GetPendingOutstandingBalance"
+	return s.outstandingBalance, s.err
+}
+
 func (s *mockService) GetInvoices(ctx context.Context, id int32) (shared.Invoices, error) {
 	s.expectedIds = []int{int(id)}
 	s.lastCalled = "GetInvoices"
@@ -127,7 +134,7 @@ func (s *mockService) UpdateRefundDecision(ctx context.Context, clientId int32, 
 func (s *mockService) AddInvoiceAdjustment(ctx context.Context, clientId int32, invoiceId int32, ledgerEntry *shared.AddInvoiceAdjustmentRequest) (*shared.InvoiceReference, error) {
 	s.ledger = ledgerEntry
 	s.expectedIds = []int{int(clientId), int(invoiceId)}
-	s.lastCalled = "AddInvoiceAdjustment"
+	s.lastCalled = "addInvoiceAdjustment"
 	return s.invoiceReference, s.err
 }
 
@@ -171,6 +178,11 @@ func (s *mockService) PostReportActions(ctx context.Context, reportType shared.R
 
 func (s *mockService) ExpireRefunds(ctx context.Context) error {
 	s.lastCalled = "ExpireRefunds"
+	return s.err
+}
+
+func (s *mockService) AddPendingCollection(ctx context.Context, clientId int32, data shared.PendingCollection) error {
+	s.lastCalled = "AddPendingCollection"
 	return s.err
 }
 

@@ -3,14 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"github.com/ministryofjustice/opg-go-common/env"
-	"github.com/ministryofjustice/opg-go-common/paginate"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/allpay"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/api"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/server"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"html/template"
 	"log/slog"
 	"net/http"
@@ -22,6 +14,15 @@ import (
 	"syscall"
 	"time"
 	"unicode"
+
+	"github.com/ministryofjustice/opg-go-common/env"
+	"github.com/ministryofjustice/opg-go-common/paginate"
+	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/allpay"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/api"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/server"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
 type Envs struct {
@@ -37,6 +38,7 @@ type Envs struct {
 	allpayHost       string
 	allpayAPIKey     string
 	allpaySchemeCode string
+	holidayAPIURL    string
 }
 
 func parseEnvs() (*Envs, error) {
@@ -48,6 +50,7 @@ func parseEnvs() (*Envs, error) {
 		"SUPERVISION_BILLING_TEAM_ID": os.Getenv("SUPERVISION_BILLING_TEAM_ID"),
 		"PORT":                        os.Getenv("PORT"),
 		"JWT_SECRET":                  os.Getenv("JWT_SECRET"),
+		"HOLIDAY_API_URL":             os.Getenv("HOLIDAY_API_URL"),
 	}
 
 	var missing []error
@@ -76,9 +79,10 @@ func parseEnvs() (*Envs, error) {
 		webDir:           "web",
 		port:             envs["PORT"],
 		showDirectDebits: os.Getenv("SHOW_DIRECT_DEBITS") == "1",
-		allpayHost:       os.Getenv("ALLPAY_HOST"),
+		allpayHost:       os.Getenv("ALLPAY_HOST"), // TODO: Move these to checked values once Direct Debits is ready for production
 		allpayAPIKey:     os.Getenv("ALLPAY_API_KEY"),
 		allpaySchemeCode: "OPGB",
+		holidayAPIURL:    envs["HOLIDAY_API_URL"],
 	}, nil
 }
 
@@ -115,8 +119,9 @@ func run(ctx context.Context, logger *slog.Logger) error {
 			Secret: envs.jwtSecret,
 		},
 		api.Envs{
-			SiriusURL:  envs.siriusURL,
-			BackendURL: envs.backendURL,
+			SiriusURL:     envs.siriusURL,
+			BackendURL:    envs.backendURL,
+			HolidayAPIURL: envs.holidayAPIURL,
 		},
 		alllpayClient)
 

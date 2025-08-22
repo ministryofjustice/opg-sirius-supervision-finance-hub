@@ -50,9 +50,39 @@ func TestSetupDirectDebitValidationErrors(t *testing.T) {
 		},
 	}
 
-	client.error = apierror.ValidationError{
+	client.error = map[string]error{"CreateDirectDebitMandate": apierror.ValidationError{
 		Errors: validationErrors,
+	}}
+
+	w := httptest.NewRecorder()
+	r, _ := http.NewRequest(http.MethodPost, "/add", nil)
+	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	r.SetPathValue("clientId", "1")
+
+	appVars := AppVars{
+		Path: "/add",
 	}
+
+	sut := SetupDirectDebitHandler{ro}
+	err := sut.render(appVars, w, r)
+	assert.Nil(err)
+	assert.Equal("422 Unprocessable Entity", w.Result().Status)
+}
+
+func TestSetupDirect_failToCreateSchedule(t *testing.T) {
+	assert := assert.New(t)
+	client := &mockApiClient{}
+	ro := &mockRoute{client: client}
+
+	validationErrors := apierror.ValidationErrors{
+		"SortCode": {
+			"required": "Sort code must be provided",
+		},
+	}
+
+	client.error = map[string]error{"CreateDirectDebitSchedule": apierror.ValidationError{
+		Errors: validationErrors,
+	}}
 
 	w := httptest.NewRecorder()
 	r, _ := http.NewRequest(http.MethodPost, "/add", nil)

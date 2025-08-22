@@ -36,7 +36,7 @@ build-dev:
 	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml build --parallel finance-hub finance-api yarn
 
 build-all:
-	docker compose build --parallel finance-hub finance-api finance-migration json-server cypress sirius-db allpay-mock
+	docker compose build --parallel finance-hub finance-api finance-migration json-server cypress sirius-db allpay-mock holidays-api-mock
 
 scan: scan-api scan-hub scan-migrations
 scan-api: setup-directories
@@ -79,7 +79,7 @@ start-and-seed:
 	$(MAKE) build-migrations
 	$(MAKE) migrate
 	docker compose exec sirius-db psql -U user -d finance -a -f ./seed_data.sql
-	docker compose up -d localstack json-server allpay-mock
+	docker compose up -d localstack json-server allpay-mock holidays-api-mock
 
 test-migrations:
 	docker compose pull finance-migration

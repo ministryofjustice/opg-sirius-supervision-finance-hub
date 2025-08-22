@@ -78,7 +78,7 @@ func TestRefunds(t *testing.T) {
 
 func TestRefunds_Errors(t *testing.T) {
 	client := mockApiClient{}
-	client.error = errors.New("this has failed")
+	client.error = map[string]error{"GetRefunds": errors.New("this has failed")}
 	ro := &mockRoute{client: client}
 
 	w := httptest.NewRecorder()

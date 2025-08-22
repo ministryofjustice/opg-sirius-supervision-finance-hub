@@ -57,7 +57,7 @@ func TestCancelDirectDebitMandate(t *testing.T) {
 
 	mockJWT := mockJWTClient{}
 	mockAllPay := mockAllPayClient{}
-	client := NewClient(ts.Client(), &mockJWT, Envs{ts.URL + "", ts.URL + ""}, &mockAllPay)
+	client := NewClient(ts.Client(), &mockJWT, Envs{SiriusURL: ts.URL, BackendURL: ts.URL}, &mockAllPay)
 
 	err := client.CancelDirectDebitMandate(testContext(), 1)
 	assert.Equal(t, nil, err)
@@ -73,7 +73,7 @@ func TestCancelDirectDebitMandate_GetPersonDetailsFails(t *testing.T) {
 
 	mockJWT := mockJWTClient{}
 	mockAllPay := mockAllPayClient{}
-	client := NewClient(ts.Client(), &mockJWT, Envs{ts.URL + "", ts.URL + ""}, &mockAllPay)
+	client := NewClient(ts.Client(), &mockJWT, Envs{SiriusURL: ts.URL, BackendURL: ts.URL}, &mockAllPay)
 
 	err := client.CancelDirectDebitMandate(testContext(), 1)
 	assert.Error(t, err)
@@ -109,7 +109,7 @@ func TestCancelDirectDebitMandate_CancelMandateFails(t *testing.T) {
 
 	mockJWT := mockJWTClient{}
 	mockAllPay := mockAllPayClient{createMandateError: errors.New("server error")}
-	client := NewClient(ts.Client(), &mockJWT, Envs{ts.URL + "", ts.URL + ""}, &mockAllPay)
+	client := NewClient(ts.Client(), &mockJWT, Envs{SiriusURL: ts.URL, BackendURL: ts.URL}, &mockAllPay)
 
 	err := client.CancelDirectDebitMandate(testContext(), 1)
 	assert.Error(t, err)
@@ -152,7 +152,7 @@ func TestCancelDirectDebitMandate_updatePaymentMethodFails(t *testing.T) {
 
 	mockJWT := mockJWTClient{}
 	mockAllPay := mockAllPayClient{}
-	client := NewClient(ts.Client(), &mockJWT, Envs{ts.URL + "", ts.URL + ""}, &mockAllPay)
+	client := NewClient(ts.Client(), &mockJWT, Envs{SiriusURL: ts.URL, BackendURL: ts.URL}, &mockAllPay)
 
 	logHandler := TestLogHandler{}
 	err := client.CancelDirectDebitMandate(testContextWithLogger(&logHandler), 1)
