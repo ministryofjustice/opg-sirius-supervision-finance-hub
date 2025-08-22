@@ -9,6 +9,7 @@ import (
 	"math"
 	"slices"
 	"sort"
+	"time"
 )
 
 type historyHolder struct {
@@ -56,6 +57,14 @@ func (s *Service) GetBillingHistory(ctx context.Context, clientID int32) ([]shar
 	}
 
 	history = append(history, processLedgerAllocations(allocations, clientID)...)
+
+	refunds, err := s.store.GetRefundsForBillingHistory(ctx, clientID)
+	if err != nil {
+		s.Logger(ctx).Error(fmt.Sprintf("Error in getting refunds in billing history for client %d", clientID), slog.String("err", err.Error()))
+		return nil, err
+	}
+
+	history = append(history, processRefundEvents(refunds, clientID)...)
 
 	return computeBillingHistory(history), nil
 }
@@ -150,6 +159,82 @@ func invoiceEvents(invoices []store.GetGeneratedInvoicesRow, clientID int32) []h
 			balanceAdjustment: int(inv.Amount),
 		})
 	}
+	return history
+}
+
+func getRefundEventTypeAndDate(refund store.GetRefundsForBillingHistoryRow) (shared.BillingEventType, time.Time) {
+	if refund.CancelledAt.Valid {
+		return shared.EventTypeRefundCancelled, refund.CancelledAt.Time
+	} else if refund.FulfilledAt.Valid {
+		return shared.EventTypeRefundFulfilled, refund.FulfilledAt.Time
+	} else if refund.Decision == "REJECTED" {
+		return shared.EventTypeRefundStatusUpdated, refund.DecisionAt.Time
+	} else if refund.ProcessedAt.Valid {
+		//	approved status with decision at has a date and processed at is set makes processing event
+		return shared.EventTypeRefundProcessing, refund.ProcessedAt.Time
+	} else if refund.Decision == "APPROVED" {
+		//	approved status with decision at has a date and processed at is null
+		return shared.EventTypeRefundApproved, refund.DecisionAt.Time
+	}
+	return shared.EventTypeRefundCreated, refund.CreatedAt.Time
+}
+
+func getUserForEventType(refund store.GetRefundsForBillingHistoryRow, eventType shared.BillingEventType) int32 {
+	switch eventType {
+	case shared.EventTypeRefundCreated:
+		return refund.CreatedBy
+	case shared.EventTypeRefundCancelled:
+		return refund.CancelledBy.Int32
+	default:
+		return refund.DecisionBy.Int32
+	}
+}
+
+func makeRefundEvent(refund store.GetRefundsForBillingHistoryRow, user int32, eventType shared.BillingEventType, date time.Time, clientID int32, history []historyHolder) []historyHolder {
+	bh := shared.BillingHistory{
+		User: int(user),
+		Date: shared.Date{Time: date},
+		Event: shared.RefundEvent{
+			Id:               int(refund.RefundID),
+			ClientId:         int(clientID),
+			Amount:           int(refund.Amount),
+			BaseBillingEvent: shared.BaseBillingEvent{Type: eventType},
+			Notes:            refund.Notes,
+		},
+	}
+	//never change balance as it will double count due to the ledger billing history event
+	history = append(history, historyHolder{
+		billingHistory:    bh,
+		balanceAdjustment: 0,
+	})
+	return history
+}
+
+func processRefundEvents(refunds []store.GetRefundsForBillingHistoryRow, clientID int32) []historyHolder {
+	var history []historyHolder
+	for _, re := range refunds {
+		// for all refunds ensure that there is a refund created event - this is done in the final makeRefundEvent
+		if re.Decision != "PENDING" {
+			eventType, date := getRefundEventTypeAndDate(re)
+			user := getUserForEventType(re, eventType)
+			history = makeRefundEvent(re, user, eventType, date, clientID, history)
+
+			if eventType == shared.EventTypeRefundFulfilled || eventType == shared.EventTypeRefundCancelled {
+				//	ensure there is a second timeline event for the approved and processing events
+				if re.ProcessedAt.Valid {
+					history = makeRefundEvent(re, re.DecisionBy.Int32, shared.EventTypeRefundProcessing, re.ProcessedAt.Time, clientID, history)
+				}
+				history = makeRefundEvent(re, re.DecisionBy.Int32, shared.EventTypeRefundApproved, re.DecisionAt.Time, clientID, history)
+			}
+
+			if eventType == shared.EventTypeRefundProcessing {
+				history = makeRefundEvent(re, re.DecisionBy.Int32, shared.EventTypeRefundApproved, re.DecisionAt.Time, clientID, history)
+			}
+		}
+
+		history = makeRefundEvent(re, re.CreatedBy, shared.EventTypeRefundCreated, re.CreatedAt.Time, clientID, history)
+	}
+
 	return history
 }
 
