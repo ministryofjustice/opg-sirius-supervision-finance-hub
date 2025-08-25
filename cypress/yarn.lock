@@ -18,11 +18,11 @@
   integrity sha512-D2hP9eA+Sqx1kBZgzxZh0y1trbuU+JoDkiEwqhQ36nodYqJwyEIhPSdMNd7lOm/4io72luTPWH20Yda0xOuUow==
 
 "@babel/parser@^7.27.2":
-  version "7.28.0"
-  resolved "https://registry.yarnpkg.com/@babel/parser/-/parser-7.28.0.tgz#979829fbab51a29e13901e5a80713dbcb840825e"
-  integrity sha512-jVZGvOxOuNSsuQuLRTh13nU0AogFlw32w/MT+LV6D3sP5WdbW61E77RnkbaO2dUvmPAYrBDJXGn5gGS6tH4j8g==
+  version "7.28.3"
+  resolved "https://registry.yarnpkg.com/@babel/parser/-/parser-7.28.3.tgz#d2d25b814621bca5fe9d172bc93792547e7a2a71"
+  integrity sha512-7+Ey1mAgYqFAx2h0RuoxcQT5+MlG3GTV0TQrgr7/ZliKsm/MNDxVVutlWaziMq7wJNAz8MTqz55XLpWvva6StA==
   dependencies:
-    "@babel/types" "^7.28.0"
+    "@babel/types" "^7.28.2"
 
 "@babel/plugin-syntax-jsx@^7.27.1":
   version "7.27.1"
@@ -31,7 +31,7 @@
   dependencies:
     "@babel/helper-plugin-utils" "^7.27.1"
 
-"@babel/types@^7.28.0":
+"@babel/types@^7.28.2":
   version "7.28.2"
   resolved "https://registry.yarnpkg.com/@babel/types/-/types-7.28.2.tgz#da9db0856a9a88e0a13b019881d7513588cf712b"
   integrity sha512-ruv7Ae4J5dUYULmeXw1gmb7rYRz57OWCPM57pHojnLq/3Z1CK2lNSLTCVjxVk1F/TZHwOZZrOWi0ur95BbLxNQ==
@@ -102,9 +102,9 @@
     fastq "^1.6.0"
 
 "@types/node@*":
-  version "24.2.1"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-24.2.1.tgz#83e41543f0a518e006594bb394e2cd961de56727"
-  integrity sha512-DRh5K+ka5eJic8CjH7td8QpYEV6Zo10gfRkjHCO3weqZHWDtAaSTFtl4+VMqOJ4N5jcuhZ9/l+yy8rVgw7BQeQ==
+  version "24.3.0"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-24.3.0.tgz#89b09f45cb9a8ee69466f18ee5864e4c3eb84dec"
+  integrity sha512-aPTXCrfwnDLj4VvXrm+UUCQjNEvJgNA8s5F1cvwQU+3KNltTOkBm1j30uNLyqqPNe7gE3KFzImYoZEfLhp4Yow==
   dependencies:
     undici-types "~7.10.0"
 
@@ -692,9 +692,9 @@ fill-range@^7.1.1:
     to-regex-range "^5.0.1"
 
 find-test-names@^1.28.18:
-  version "1.29.17"
-  resolved "https://registry.yarnpkg.com/find-test-names/-/find-test-names-1.29.17.tgz#b56eeb72beda1f85f0c9bea2f97a96fac274ef4b"
-  integrity sha512-JyZJ1EqH6+3/eXtViY7A79BTggAmcKu0rmXu89oJPobwbk8MmFhVz06sF1L2r6TLT7477iVtCmftBQ0pl2K/kg==
+  version "1.29.18"
+  resolved "https://registry.yarnpkg.com/find-test-names/-/find-test-names-1.29.18.tgz#b219f26fcbdffe1b77603ad12b0322e2bf4b1360"
+  integrity sha512-PmM4NQiyVVuM2t0FFoCDiliMppVYtIKFIEK1S2E9n+STDG/cpyXiKq5s2XQdF7AnQBeUftBdH5iEs3FUAgjfKA==
   dependencies:
     "@babel/parser" "^7.27.2"
     "@babel/plugin-syntax-jsx" "^7.27.1"
@@ -947,9 +947,9 @@ isstream@~0.1.2:
   integrity sha512-Yljz7ffyPbrLpLngrMtZ7NduUgVvi6wG9RJ9IUcyCd59YQ911PBJphODUcbOVbqYfxe1wuYf/LJ8PauMRwsM/g==
 
 jose@^6.0.10:
-  version "6.0.12"
-  resolved "https://registry.yarnpkg.com/jose/-/jose-6.0.12.tgz#56253d94d46bd784addc4bde3691c323552fe7e4"
-  integrity sha512-T8xypXs8CpmiIi78k0E+Lk7T2zlK4zDyg+o1CZ4AkOHgDg98ogdP2BeZ61lTFKFyoEwJ9RgAgN+SdM3iPgNonQ==
+  version "6.0.13"
+  resolved "https://registry.yarnpkg.com/jose/-/jose-6.0.13.tgz#078563b07e9ab82f0ea6922eca589041e8278a22"
+  integrity sha512-Yms4GpbmdANamS51kKK6w4hRlKx8KTxbWyAAKT/MhUMtqbIqh5mb2HjhTNUbk7TFL8/MBB5zWSDohL7ed4k/UA==
 
 jsbn@~0.1.0:
   version "0.1.1"
