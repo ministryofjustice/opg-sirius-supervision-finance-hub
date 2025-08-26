@@ -262,7 +262,7 @@ func processLedgerAllocations(allocations []store.GetLedgerAllocationsForClientR
 			// the allocated amounts should equal the total transaction for the event
 			if allocation.Status != "UNAPPLIED" {
 				event.Amount += int(allocation.AllocationAmount)
-			} else {
+			} else if event.TransactionType.IsPayment() {
 				event.Amount -= int(allocation.AllocationAmount)
 			}
 
@@ -274,7 +274,7 @@ func processLedgerAllocations(allocations []store.GetLedgerAllocationsForClientR
 				},
 			}
 
-			if event.TransactionType.IsPayment() && (allocation.Status == "ALLOCATED" || allocation.Status == "UNAPPLIED") {
+			if event.TransactionType.IsPayment() {
 				lh.billingHistory.Date = shared.Date{Time: allocation.CreatedAt.Time}
 			}
 		}
