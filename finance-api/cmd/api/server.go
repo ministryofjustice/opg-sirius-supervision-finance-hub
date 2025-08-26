@@ -125,7 +125,7 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 	authFunc("GET /download", shared.RoleFinanceReporting, s.download)
 	authFunc("HEAD /download", shared.RoleFinanceReporting, s.checkDownload)
 	authFunc("POST /reports", shared.RoleFinanceReporting, s.requestReport)
-	authFunc("POST /uploads", shared.RoleFinanceReporting, s.processUpload)
+	authFunc("POST /uploads", shared.RoleFinanceManager, s.processUpload)
 
 	// unauthenticated as request is coming from EventBridge
 	eventFunc := func(pattern string, h handlerFunc) {
