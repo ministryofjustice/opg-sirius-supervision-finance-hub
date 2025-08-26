@@ -230,6 +230,76 @@ func (q *Queries) GetPendingInvoiceAdjustments(ctx context.Context, clientID int
 	return items, nil
 }
 
+const getRefundsForBillingHistory = `-- name: GetRefundsForBillingHistory :many
+SELECT r.id AS refund_id,
+       r.raised_date,
+       r.amount,
+       r.decision,
+       r.notes,
+       r.created_by,
+       r.created_at,
+       r.decision_by,
+       r.decision_at,
+       r.processed_at,
+       r.cancelled_at,
+       r.fulfilled_at,
+       r.cancelled_by
+FROM refund r
+        JOIN finance_client fc ON fc.id = r.finance_client_id
+WHERE fc.client_id = $1
+ORDER BY r.created_at DESC
+`
+
+type GetRefundsForBillingHistoryRow struct {
+	RefundID    int32
+	RaisedDate  pgtype.Date
+	Amount      int32
+	Decision    string
+	Notes       string
+	CreatedBy   int32
+	CreatedAt   pgtype.Timestamp
+	DecisionBy  pgtype.Int4
+	DecisionAt  pgtype.Timestamp
+	ProcessedAt pgtype.Timestamp
+	CancelledAt pgtype.Timestamp
+	FulfilledAt pgtype.Timestamp
+	CancelledBy pgtype.Int4
+}
+
+func (q *Queries) GetRefundsForBillingHistory(ctx context.Context, clientID int32) ([]GetRefundsForBillingHistoryRow, error) {
+	rows, err := q.db.Query(ctx, getRefundsForBillingHistory, clientID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetRefundsForBillingHistoryRow
+	for rows.Next() {
+		var i GetRefundsForBillingHistoryRow
+		if err := rows.Scan(
+			&i.RefundID,
+			&i.RaisedDate,
+			&i.Amount,
+			&i.Decision,
+			&i.Notes,
+			&i.CreatedBy,
+			&i.CreatedAt,
+			&i.DecisionBy,
+			&i.DecisionAt,
+			&i.ProcessedAt,
+			&i.CancelledAt,
+			&i.FulfilledAt,
+			&i.CancelledBy,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getRejectedInvoiceAdjustments = `-- name: GetRejectedInvoiceAdjustments :many
 SELECT ia.invoice_id, i.reference, ia.adjustment_type, ia.amount, ia.notes, ia.updated_at, ia.updated_by
 FROM invoice_adjustment ia
