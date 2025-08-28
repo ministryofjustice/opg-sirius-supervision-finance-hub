@@ -60,7 +60,7 @@ func (c *Client) CreateDirectDebitSchedule(ctx context.Context, clientId int) er
 			// we validate in advance so validation errors from AllPay should never occur
 			// if they do, log them so we can investigate
 			logger.Error("validation errors returned from allpay", "errors", ve.Messages)
-			c.CreateDirectDebitScheduleFailedTask(ctx, client.ID)
+			_ = c.CreateDirectDebitScheduleFailedTask(ctx, client.ID)
 		}
 		return err
 	}

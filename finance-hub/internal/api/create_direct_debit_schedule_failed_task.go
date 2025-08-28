@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -19,7 +18,7 @@ func (c *Client) CreateDirectDebitScheduleFailedTask(ctx context.Context, client
 		ClientId: clientId,
 		Type:     "FDSC",
 		DueDate:  shared.Date{Time: time.Now()},
-		Notes:    fmt.Sprintf("The creation of a direct debit collection schedule for this client has failed"),
+		Notes:    "The creation of a direct debit collection schedule for this client has failed",
 	}
 
 	err := json.NewEncoder(&body).Encode(task)
