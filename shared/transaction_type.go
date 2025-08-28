@@ -1,8 +1,20 @@
 package shared
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"slices"
+)
 
 type TransactionType int
+
+var paymentTransactionTypes = []TransactionType{
+	TransactionTypeMotoCardPayment,
+	TransactionTypeOnlineCardPayment,
+	TransactionTypeSupervisionBACSPayment,
+	TransactionTypeOPGBACSPayment,
+	TransactionTypeDirectDebitPayment,
+	TransactionTypeSupervisionChequePayment,
+}
 
 const (
 	TransactionTypeUnknown TransactionType = iota
@@ -119,6 +131,10 @@ func (t TransactionType) Key() string {
 	default:
 		return ""
 	}
+}
+
+func (u TransactionType) IsPayment() bool {
+	return slices.Contains(paymentTransactionTypes, u)
 }
 
 func (t TransactionType) Valid() bool {
