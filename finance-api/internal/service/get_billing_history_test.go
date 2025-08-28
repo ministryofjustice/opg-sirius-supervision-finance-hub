@@ -26,12 +26,14 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 		"INSERT INTO ledger VALUES (5,'09799ea2-5f8f-4ecb-8200-f021ab96def1','2024-10-07 09:32:50','',5000,'Credit due to approved remission','CREDIT REMISSION','CONFIRMED',1,NULL,5,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);",
 		"INSERT INTO ledger VALUES (6,'6e469827-fff7-4c22-a2e2-8b7d3580350c','2024-10-07 09:34:44','',5000,'Credit due to approved credit memo','CREDIT MEMO','CONFIRMED',1,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);",
 		"INSERT INTO ledger VALUES (7,'babda0f7-2f07-4b85-a991-7d45be9474e2','2024-10-07 09:35:03','',5000,'Excess credit applied to invoice','CREDIT REAPPLY','CONFIRMED',1,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);",
-		"INSERT INTO ledger VALUES (8,'13b3851c-2e7d-43d0-86ad-86ffca586f57','2024-10-07 09:36:05','',1000,'Moto payment','MOTO CARD PAYMENT','CONFIRMED',1,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);",
+		"INSERT INTO ledger VALUES (8,'13b3851c-2e7d-43d0-86ad-86ffca586f57','2024-10-07 09:36:05','',1000,'Moto payment','MOTO CARD PAYMENT','CONFIRMED',1,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2024-10-07 09:36:05',1);",
+
 		"INSERT INTO ledger_allocation VALUES (5,5,9,'2024-10-07 09:32:50',5000,'ALLOCATED');",
 		"INSERT INTO ledger_allocation VALUES (6,6,9,'2024-10-07 09:34:44',10000,'ALLOCATED');",
 		"INSERT INTO ledger_allocation VALUES (7,6,9,'2024-10-07 09:34:44',-5000,'UNAPPLIED',NULL,'Unapplied funds as a result of applying credit memo');",
 		"INSERT INTO ledger_allocation VALUES (8,7,10,'2024-10-07 09:35:03',5000,'REAPPLIED');",
 		"INSERT INTO ledger_allocation VALUES (9,8,10,'2024-10-07 09:36:05',1000,'ALLOCATED');",
+
 		"INSERT INTO supervision_finance.refund values (16, 3, '2024-01-01', 234, 'REJECTED', 'rejected refund', 1, '2024-07-01', 2, '2024-07-02');",
 		"INSERT INTO supervision_finance.refund values (15, 3, '2024-01-01', 234, 'APPROVED', 'processing then cancelled refund', 1, '2024-06-01', 2, '2024-06-02', '2024-06-03', '2024-06-04', null, 3);",
 		"INSERT INTO supervision_finance.refund values (14, 3, '2024-01-01', 234, 'APPROVED', 'approved then cancelled refund', 1, '2024-05-01', 2, '2024-05-02', null, '2024-05-03', null, 3);",
@@ -72,7 +74,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 								},
 							},
 							BaseBillingEvent: shared.BaseBillingEvent{
-								Type: shared.EventTypeUnknown,
+								Type: shared.EventTypePaymentProcessed,
 							},
 						},
 					},
@@ -875,7 +877,7 @@ func Test_processLedgerAllocations(t *testing.T) {
 					Status:           "ALLOCATED",
 					LedgerAmount:     5000,
 					AllocationAmount: 10000,
-					CreatedAt: pgtype.Timestamp{
+					LedgerDatetime: pgtype.Timestamp{
 						Time:  now,
 						Valid: true,
 					},
@@ -892,7 +894,7 @@ func Test_processLedgerAllocations(t *testing.T) {
 					Status:           "UNAPPLIED",
 					LedgerAmount:     5000,
 					AllocationAmount: -5000,
-					CreatedAt: pgtype.Timestamp{
+					LedgerDatetime: pgtype.Timestamp{
 						Time:  now,
 						Valid: true,
 					},
@@ -951,7 +953,7 @@ func Test_processLedgerAllocations(t *testing.T) {
 					Status:           "REAPPLIED",
 					LedgerAmount:     5000,
 					AllocationAmount: 5000,
-					CreatedAt: pgtype.Timestamp{
+					LedgerDatetime: pgtype.Timestamp{
 						Time:  now,
 						Valid: true,
 					},

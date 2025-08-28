@@ -334,23 +334,33 @@ func processLedgerAllocations(allocations []store.GetLedgerAllocationsForClientR
 				event.BaseBillingEvent = shared.BaseBillingEvent{
 					Type: shared.EventTypeReappliedCredit,
 				}
+			case event.TransactionType.IsPayment():
+				event.BaseBillingEvent = shared.BaseBillingEvent{
+					Type: shared.EventTypePaymentProcessed,
+				}
 			default:
 				event.BaseBillingEvent = shared.BaseBillingEvent{
 					Type: shared.EventTypeUnknown,
 				}
 			}
 
-			// the allocated amounts should equal the total transaction for the event, excluding unapplies
+			// the allocated amounts should equal the total transaction for the event
 			if allocation.Status != "UNAPPLIED" {
 				event.Amount += int(allocation.AllocationAmount)
+			} else if event.TransactionType.IsPayment() {
+				event.Amount -= int(allocation.AllocationAmount)
 			}
 
 			lh = &historyHolder{
 				billingHistory: shared.BillingHistory{
 					User:  int(allocation.CreatedBy.Int32),
-					Date:  shared.Date{Time: allocation.CreatedAt.Time},
+					Date:  shared.Date{Time: allocation.LedgerDatetime.Time},
 					Event: event,
 				},
+			}
+
+			if event.TransactionType.IsPayment() {
+				lh.billingHistory.Date = shared.Date{Time: allocation.CreatedAt.Time}
 			}
 		}
 
@@ -358,7 +368,9 @@ func processLedgerAllocations(allocations []store.GetLedgerAllocationsForClientR
 		case "ALLOCATED":
 			lh.balanceAdjustment -= int(allocation.AllocationAmount)
 		case "UNAPPLIED":
-			lh.balanceAdjustment -= int(allocation.AllocationAmount)
+			if !event.TransactionType.IsPayment() {
+				lh.balanceAdjustment -= int(allocation.AllocationAmount)
+			}
 			lh.creditAdjustment -= int(allocation.AllocationAmount)
 		case "REAPPLIED":
 			lh.balanceAdjustment -= int(allocation.AllocationAmount)
