@@ -214,6 +214,8 @@ func TestCreateDirectDebitSchedule_pendingCollectionsFailed(t *testing.T) {
 			  "surname": "Holder",
 			  "caseRecNumber": "11111111"
 			}`))
+		case "/supervision-api/v1/tasks":
+			w.WriteHeader(http.StatusCreated)
 		case "/clients/1/balance/pending":
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write([]byte(`10000`))
