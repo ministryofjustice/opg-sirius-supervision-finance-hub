@@ -196,6 +196,9 @@ func createTemplates(envVars *Envs) map[string]*template.Template {
 		"toCurrency": func(amount int) string {
 			return shared.IntToDecimalString(amount)
 		},
+		"toNegative": func(input int) int {
+			return -input
+		},
 	}
 
 	templateDirPath := filepath.Clean(envVars.webDir + "/template")
