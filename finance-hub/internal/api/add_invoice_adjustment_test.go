@@ -1,33 +1,48 @@
 package api
 
 import (
-	"bytes"
 	"encoding/json"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
-	"github.com/stretchr/testify/assert"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestAddInvoiceAdjustment(t *testing.T) {
-	mockClient := SetUpTest()
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/clients/2/invoices/4/invoice-adjustments":
+			w.WriteHeader(http.StatusCreated)
+			_, _ = w.Write([]byte(`{
+	       		"reference": "01234"
+	   		}`))
+		case "/supervision-api/v1/tasks":
+			w.WriteHeader(http.StatusCreated)
+		case "/holidays.json":
+			_, _ = w.Write([]byte(`{
+			  "england-and-wales": {
+				"division": "england-and-wales",
+				"events": [
+				  {
+					"title": "New Year’s Day",
+					"date": "2024-01-01",
+					"notes": "",
+					"bunting": true
+				  }
+				]
+			  }
+			}`))
+			w.WriteHeader(http.StatusOK)
+		default:
+			t.Errorf("Unexpected path: %s", r.URL.Path)
+		}
+	}))
+	defer ts.Close()
+
 	mockJWT := mockJWTClient{}
-	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""}, nil)
-
-	json := `{
-	       "reference": "01234"
-	   }`
-
-	r := io.NopCloser(bytes.NewReader([]byte(json)))
-
-	GetDoFunc = func(*http.Request) (*http.Response, error) {
-		return &http.Response{
-			StatusCode: 201,
-			Body:       r,
-		}, nil
-	}
+	client := NewClient(ts.Client(), &mockJWT, Envs{SiriusURL: ts.URL, BackendURL: ts.URL, HolidayAPIURL: ts.URL + "/holidays.json"}, nil)
 
 	err := client.AddInvoiceAdjustment(testContext(), 2, 41, 4, "CREDIT_MEMO", "notes here", "100", false)
 	assert.Equal(t, nil, err)
@@ -39,7 +54,7 @@ func TestAddInvoiceAdjustmentUnauthorised(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{SiriusURL: svr.URL, BackendURL: svr.URL}, nil)
 
 	err := client.AddInvoiceAdjustment(testContext(), 2, 41, 4, "CREDIT_MEMO", "notes here", "100", false)
 
@@ -52,7 +67,7 @@ func TestAddInvoiceAdjustmentReturns500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{SiriusURL: svr.URL, BackendURL: svr.URL}, nil)
 
 	err := client.AddInvoiceAdjustment(testContext(), 2, 41, 4, "CREDIT_MEMO", "notes here", "100", false)
 	assert.Equal(t, StatusError{
@@ -77,7 +92,7 @@ func TestAddInvoiceAdjustmentReturnsValidationError(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{SiriusURL: svr.URL, BackendURL: svr.URL}, nil)
 
 	err := client.AddInvoiceAdjustment(testContext(), 2, 41, 4, "CREDIT_MEMO", "notes here", "100", false)
 	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"Field": map[string]string{"Tag": "Message"}}}

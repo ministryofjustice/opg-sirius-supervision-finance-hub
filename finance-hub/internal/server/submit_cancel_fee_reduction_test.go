@@ -50,9 +50,9 @@ func TestCancelFeeReductionValidationErrors(t *testing.T) {
 		},
 	}
 
-	client.error = apierror.ValidationError{
+	client.error = map[string]error{"CancelFeeReduction": apierror.ValidationError{
 		Errors: validationErrors,
-	}
+	}}
 
 	w := httptest.NewRecorder()
 	r, _ := http.NewRequest(http.MethodPost, "/add", nil)

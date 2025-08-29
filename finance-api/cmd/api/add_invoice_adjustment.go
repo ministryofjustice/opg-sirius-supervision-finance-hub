@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func (s *Server) AddInvoiceAdjustment(w http.ResponseWriter, r *http.Request) error {
+func (s *Server) addInvoiceAdjustment(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 
 	clientId, err := s.getPathID(r, "clientId")
