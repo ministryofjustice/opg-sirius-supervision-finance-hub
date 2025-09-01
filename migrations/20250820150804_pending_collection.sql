@@ -5,6 +5,7 @@ CREATE TABLE pending_collection
     finance_client_id INT       NOT NULL REFERENCES finance_client (id),
     collection_date   DATE      NOT NULL,
     amount            INT       NOT NULL,
+    status            VARCHAR   NOT NULL,
     ledger_id         INT,
     created_at        TIMESTAMP NOT NULL,
     created_by        INT       NOT NULL

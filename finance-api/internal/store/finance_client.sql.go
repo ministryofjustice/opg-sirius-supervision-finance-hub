@@ -104,12 +104,18 @@ FROM finance_client fc
                                LEFT JOIN ledger_allocation la ON l.id = la.ledger_id AND ((la.status = 'ALLOCATED') OR
                                                                                           (la.status IN ('UNAPPLIED', 'REAPPLIED') AND la.invoice_id IS NOT NULL))
 WHERE fc.client_id = $1
-                      GROUP BY fc.id)
-SELECT COALESCE(SUM(i.amount), 0)::INT - t.amount
+                      GROUP BY fc.id),
+    existing_pending_collections AS (SELECT fc.id, COALESCE(SUM(pc.amount), 0)::INT AS amount
+                FROM finance_client fc
+                LEFT JOIN pending_collection pc ON fc.id = pc.finance_client_id AND pc.status = 'PENDING'
+                WHERE fc.client_id = $1
+                                     GROUP BY fc.id)
+SELECT COALESCE(SUM(i.amount), 0)::INT - t.amount - epc.amount
 FROM finance_client fc
          JOIN transactions t ON fc.id = t.id
+         JOIN existing_pending_collections epc ON fc.id = epc.id
          LEFT JOIN invoice i ON fc.id = i.finance_client_id
-GROUP BY t.amount
+GROUP BY t.amount, epc.amount
 `
 
 func (q *Queries) GetPendingOutstandingBalance(ctx context.Context, clientID int32) (int32, error) {

@@ -13,8 +13,8 @@ func (suite *IntegrationSuite) TestService_GetPendingOutstandingBalance() {
 	futureDate := seeder.Today().Add(0, 0, 1)
 
 	seeder.SeedData(
-		"INSERT INTO finance_client VALUES (1, 1, 'sop123', 'DEMANDED', NULL)",
-		"INSERT INTO finance_client VALUES (3, 3, 'sop123', 'DEMANDED', NULL)",
+		"INSERT INTO finance_client VALUES (1, 1, 'sop123', 'DIRECT DEBIT', NULL)",
+		"INSERT INTO finance_client VALUES (3, 3, 'sop123', 'DIRECT DEBIT', NULL)",
 		"INSERT INTO invoice VALUES (1, 1, 1, 'S2', 'Paid in full', '2019-04-01', '2020-03-31', 32000, NULL, '2020-03-20',1, '2020-03-16', 10, NULL, 0, '2019-06-06', 99);",
 		"INSERT INTO invoice VALUES (2, 1, 1, 'S2', 'Paid with unapply', '2020-04-01', '2021-03-31', 32000, NULL, '2020-03-20',1, '2020-03-16', 10, NULL, 0, '2019-06-06', 99);",
 		"INSERT INTO invoice VALUES (3, 1, 1, 'S2', 'Unpaid', '2020-04-01', '2021-03-31', 27000, NULL, '2020-03-20',1, '2020-03-16', 10, NULL, 0, '2019-06-06', 99);",
@@ -28,6 +28,15 @@ func (suite *IntegrationSuite) TestService_GetPendingOutstandingBalance() {
 		"INSERT INTO ledger_allocation VALUES (4, 3, 2, '2022-04-11T08:36:40+00:00', -10000, 'UNAPPLIED', NULL, 'Unapplied allocation', '2022-04-11', NULL);",
 		"INSERT INTO ledger_allocation VALUES (5, 3, NULL, '2022-04-11T08:36:40+00:00', 1000000, 'PENDING', NULL, 'Ignore me', '2022-04-11', NULL);",
 		"INSERT INTO ledger_allocation VALUES (6, 4, NULL, '2022-04-11T08:36:40+00:00', 5000, 'REAPPLIED', NULL, 'Refund', '2022-04-11', NULL);",
+
+		"INSERT INTO finance_client VALUES (4, 4, 'sop123', 'DIRECT DEBIT', NULL)",
+		"INSERT INTO invoice VALUES (4, 4, 4, 'S2', 'Unpaid with pending collection', '2019-04-01', '2020-03-31', 32000, NULL, '2020-03-20',1, '2020-03-16', 10, NULL, 0, '2019-06-06', 99);",
+		"INSERT INTO invoice VALUES (5, 4, 4, 'AD', 'Unpaid with no pending collection', '2019-04-01', '2020-03-31', 10000, NULL, '2020-03-20',1, '2020-03-16', 10, NULL, 0, '2019-06-06', 99);",
+		"INSERT INTO invoice VALUES (6, 4, 4, 'AD', 'Paid with collected collection', '2019-04-01', '2020-03-31', 10000, NULL, '2020-03-20',1, '2020-03-16', 10, NULL, 0, '2019-06-06', 99);",
+		"INSERT INTO pending_collection VALUES (1, 4, '2025-01-31', 32000, 'PENDING', NULL, '2025-01-01', 9)",
+		"INSERT INTO pending_collection VALUES (2, 4, '2025-01-31', 10000, 'COLLECTED', NULL, '2025-01-01', 9)",
+		"INSERT INTO ledger VALUES (5, 'Collected collection', '2022-04-11T08:36:40+00:00', '', 10000, '', 'DIRECT DEBIT', 'CONFIRMED', 4, NULL, NULL, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 2);",
+		"INSERT INTO ledger_allocation VALUES (7, 5, NULL, '2022-04-11T08:36:40+00:00', 10000, 'ALLOCATED', NULL, 'paid DD', '2022-04-11', NULL);",
 	)
 
 	Store := store.New(seeder)
@@ -48,9 +57,14 @@ func (suite *IntegrationSuite) TestService_GetPendingOutstandingBalance() {
 			wantErr: true,
 		},
 		{
-			name: "returns error when client exists but has no invoices",
+			name: "returns zero when client exists but has no invoices",
 			id:   3,
 			want: 0,
+		},
+		{
+			name: "takes account of existing pending collections",
+			id:   4,
+			want: 10000,
 		},
 	}
 	for _, tt := range tests {

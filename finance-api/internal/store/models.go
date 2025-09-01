@@ -202,6 +202,7 @@ type PendingCollection struct {
 	FinanceClientID int32
 	CollectionDate  pgtype.Date
 	Amount          int32
+	Status          string
 	LedgerID        pgtype.Int4
 	CreatedAt       pgtype.Timestamp
 	CreatedBy       int32
