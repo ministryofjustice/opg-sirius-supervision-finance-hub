@@ -1,11 +1,12 @@
 package service
 
 import (
+	"time"
+
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"time"
 )
 
 func (suite *IntegrationSuite) TestService_AddPendingCollection() {
@@ -37,7 +38,7 @@ func (suite *IntegrationSuite) TestService_AddPendingCollection() {
 	date, _ := time.Parse("2006-01-02", "2022-04-02")
 	expected := store.PendingCollection{
 		ID:              1,
-		FinanceClientID: 1,
+		FinanceClientID: pgtype.Int4{Int32: 1, Valid: true},
 		Amount:          52000,
 		CollectionDate:  pgtype.Date{Time: date, Valid: true},
 	}

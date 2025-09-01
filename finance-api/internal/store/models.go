@@ -199,7 +199,7 @@ type LedgerAllocation struct {
 
 type PendingCollection struct {
 	ID              int32
-	FinanceClientID int32
+	FinanceClientID pgtype.Int4
 	CollectionDate  pgtype.Date
 	Amount          int32
 	Status          string
