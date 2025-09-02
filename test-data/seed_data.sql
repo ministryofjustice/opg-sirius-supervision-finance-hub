@@ -138,8 +138,8 @@ INSERT INTO ledger VALUES (13, 'moto payment reversal', '2024-05-11T08:39:40+00:
 INSERT INTO ledger_allocation VALUES (17, 13, 14, '2024-05-11T08:39:40+00:00', -7000, 'ALLOCATED', null, 'moto-payment', '2024-05-11', null);
 
 -- create direct debit mandate/schedule
-INSERT INTO finance_client VALUES (20001, 20, 'createdirectdebit', 'DEMANDED', null, '20202020');
-INSERT INTO invoice VALUES (15, 20, 20001, 'AD', 'AD202020/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-04-10T08:36:40+00:00', 99);
+INSERT INTO finance_client VALUES (20002, 21, 'createdirectdebit', 'DEMANDED', null, '20202020');
+INSERT INTO invoice VALUES (16, 21, 20002, 'AD', 'AD202020/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-04-10T08:36:40+00:00', 99);
 
 -- TEST CLIENT DATA: Add data for default client here
 

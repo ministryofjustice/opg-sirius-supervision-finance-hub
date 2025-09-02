@@ -75,34 +75,37 @@ WHERE fc.court_ref = $1
   AND la.status IN ('UNAPPLIED', 'REAPPLIED');
 
 -- name: GetPendingOutstandingBalance :one
-WITH client_invoice AS (
-    SELECT finance_client_id, SUM(amount) AS debt
-    FROM invoice
-    WHERE finance_client_id = $1
-    GROUP BY finance_client_id
+WITH
+    finance_client_id AS (
+        SELECT id FROM finance_client WHERE client_id = $1 LIMIT 1
+    ),
+    debt AS (
+    SELECT fc.id, SUM(i.amount) AS debt
+    FROM finance_client_id fc
+        LEFT JOIN invoice i ON fc.id = i.finance_client_id
+    GROUP BY fc.id
 ),
-     client_pending AS (
-         SELECT finance_client_id, SUM(amount) AS pending
-         FROM pending_collection
-         WHERE finance_client_id = $1 AND status = 'PENDING'
-         GROUP BY finance_client_id
+     pending AS (
+         SELECT fc.id, SUM(pc.amount) AS pending
+         FROM pending_collection pc
+                  JOIN finance_client_id fc ON pc.finance_client_id = fc.id
+         WHERE status = 'PENDING'
+         GROUP BY fc.id
      ),
-     client_credit AS (
-         SELECT l.finance_client_id, SUM(la.amount) AS credit
+     credit AS (
+         SELECT fc.id, SUM(la.amount) AS credit
          FROM ledger l
                   JOIN ledger_allocation la ON l.id = la.ledger_id
-         WHERE l.finance_client_id = $1
-           AND l.status = 'CONFIRMED'
+                  JOIN finance_client_id fc ON l.finance_client_id = fc.id
+         WHERE l.status = 'CONFIRMED'
            AND (
              la.status = 'ALLOCATED' OR
              (la.status IN ('UNAPPLIED', 'REAPPLIED') AND la.invoice_id IS NOT NULL)
              )
-         GROUP BY l.finance_client_id
+         GROUP BY fc.id
      )
 SELECT
-    (COALESCE(i.debt, 0) - COALESCE(c.credit, 0) - COALESCE(p.pending, 0))::INT
-FROM finance_client fc
-         LEFT JOIN client_invoice i ON i.finance_client_id = fc.id
-         LEFT JOIN client_credit c ON c.finance_client_id = fc.id
-         LEFT JOIN client_pending p ON p.finance_client_id = fc.id
-WHERE fc.id = $1;
+    (COALESCE(d.debt, 0) - COALESCE(c.credit, 0) - COALESCE(p.pending, 0))::INT
+FROM debt d
+         LEFT JOIN credit c ON c.id = d.id
+         LEFT JOIN pending p ON p.id = d.id;

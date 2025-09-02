@@ -1,9 +1,9 @@
 describe("Direct debit form", () => {
     it("navigates to and redirects on success with banner", () => {
-        cy.visit("/clients/20/invoices");
+        cy.visit("/clients/21/invoices");
         cy.contains('[data-cy="payment-method"]', "Demanded");
         cy.contains(".govuk-button", "Set up direct debit").click();
-        cy.url().should("include", "/clients/20/direct-debit/setup");
+        cy.url().should("include", "/clients/21/direct-debit/setup");
         cy.get("#f-AccountName").contains("Name").type("Mrs Account Holder");
         cy.get("#f-SortCode").contains("Sort code").type("010000");
         cy.get("#f-AccountNumber").contains("number").type("12345678");
