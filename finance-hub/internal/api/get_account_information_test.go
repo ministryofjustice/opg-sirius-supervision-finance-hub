@@ -14,7 +14,7 @@ import (
 func TestGetAccountInformation(t *testing.T) {
 	mockClient := SetUpTest()
 	mockJWT := mockJWTClient{}
-	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""}, nil)
+	client := NewClient(mockClient, &mockJWT, Envs{SiriusURL: "http://localhost:3000"}, nil)
 
 	json := `{
             "outstandingBalance": 2222,
@@ -48,7 +48,7 @@ func TestGetAccountInformationReturnsUnauthorisedClientError(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{SiriusURL: svr.URL, BackendURL: svr.URL}, nil)
 	_, err := client.GetAccountInformation(testContext(), 2)
 	assert.Equal(t, ErrUnauthorized, err)
 }
@@ -59,7 +59,7 @@ func TestAccountInformationReturns500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{SiriusURL: svr.URL, BackendURL: svr.URL}, nil)
 
 	_, err := client.GetAccountInformation(testContext(), 1)
 	assert.Equal(t, StatusError{

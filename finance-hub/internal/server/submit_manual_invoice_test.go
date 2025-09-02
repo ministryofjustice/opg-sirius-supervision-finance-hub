@@ -57,9 +57,9 @@ func TestSubmitManualInvoiceValidationErrors(t *testing.T) {
 		},
 	}
 
-	client.error = apierror.ValidationError{
+	client.error = map[string]error{"AddManualInvoice": apierror.ValidationError{
 		Errors: validationErrors,
-	}
+	}}
 
 	w := httptest.NewRecorder()
 	r, _ := http.NewRequest(http.MethodPost, "/invoices", nil)
