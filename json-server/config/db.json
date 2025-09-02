@@ -429,6 +429,28 @@
       "caseRecNumber": "20202020"
     },
     {
+      "id": 21,
+      "firstname": "Derek",
+      "surname": "Direct",
+      "caseRecNumber": "20202020",
+      "addressLine1": "1 Main Street",
+      "addressLine2": "Mainville",
+      "town": "Mainopolis",
+      "postcode": "MP1 2PM",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
       "id": 99,
       "firstname": "Nelly",
       "surname": "Nullman",
@@ -449,29 +471,8 @@
         "handle": "ACTIVE",
         "label": "Active"
       }
-    },
-    {
-      "id": 20,
-      "firstname": "Derek",
-      "surname": "Direct",
-      "caseRecNumber": "20202020",
-      "addressLine1": "1 Main Street",
-      "addressLine2": "Mainville",
-      "town": "Mainopolis",
-      "postcode": "MP1 2PM",
-      "feePayer": {
-        "id": 1,
-        "deputyStatus": "Active"
-      },
-      "activeCaseType": {
-        "handle": "HW",
-        "label": "Health & Welfare"
-      },
-      "clientStatus": {
-        "handle": "ACTIVE",
-        "label": "Active"
-      }
     }
   ],
-  "notify": []
+  "notify": [],
+  "tasks": []
 }

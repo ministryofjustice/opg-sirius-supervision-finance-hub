@@ -2,7 +2,7 @@
  * Read-only middleware to prevent the db.json being modified
  */
 module.exports = (req, res, next) => {
-    if (!req.url.startsWith("/supervision-api")) {
+    if (req.url.startsWith("/notify")) {
         // allows json-server to mock services other than Sirius
         return next();
     }
