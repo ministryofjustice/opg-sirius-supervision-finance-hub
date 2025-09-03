@@ -7,16 +7,17 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"io"
+	"log/slog"
+	"net/http"
+	"slices"
+
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"io"
-	"log/slog"
-	"net/http"
-	"slices"
 )
 
 type Upload struct {
@@ -48,11 +49,8 @@ func (s *Server) processUpload(w http.ResponseWriter, r *http.Request) error {
 	logger.Info(fmt.Sprintf("processing %s upload", upload.UploadType))
 
 	go func(logger *slog.Logger) {
-		ctx := telemetry.ContextWithLogger(context.Background(), logger)
-		ctx = auth.Context{
-			Context: ctx,
-			User:    r.Context().(auth.Context).User,
-		}
+		ctx := s.copyCtx(r)
+		ctx.(auth.Context).WithContext(telemetry.ContextWithLogger(context.Background(), logger))
 		s.processUploadFile(ctx, Upload{
 			UploadType:   upload.UploadType,
 			EmailAddress: upload.EmailAddress,

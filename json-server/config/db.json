@@ -429,6 +429,28 @@
       "caseRecNumber": "20202020"
     },
     {
+      "id": 21,
+      "firstname": "Derek",
+      "surname": "Direct",
+      "caseRecNumber": "20202020",
+      "addressLine1": "1 Main Street",
+      "addressLine2": "Mainville",
+      "town": "Mainopolis",
+      "postcode": "MP1 2PM",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
       "id": 99,
       "firstname": "Nelly",
       "surname": "Nullman",
@@ -451,12 +473,6 @@
       }
     }
   ],
-  "tasks": {
-    "personId": 1,
-    "type": "FPIA",
-    "dueDate": "15/09/2025",
-    "assigneeId": 41,
-    "description": "Pending credit memo added to AD000001/24 requires manager approval"
-  },
-  "notify": []
+  "notify": [],
+  "tasks": []
 }

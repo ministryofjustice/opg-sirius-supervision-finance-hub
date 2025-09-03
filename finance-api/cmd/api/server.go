@@ -177,6 +177,7 @@ func (s *Server) copyCtx(r *http.Request) context.Context {
 	return auth.Context{
 		Context: copyCtx,
 		User:    r.Context().(auth.Context).User,
+		Cookies: r.Cookies(),
 	}
 }
 

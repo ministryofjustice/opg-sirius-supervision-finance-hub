@@ -4,6 +4,8 @@ import (
 	"context"
 	"io"
 	"net/http"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 )
 
 type Envs struct {
@@ -40,12 +42,11 @@ func (c *Client) newRequest(ctx context.Context, method, path string, body io.Re
 
 	req.Header.Add("Authorization", "Bearer "+c.apiKey)
 	req.Header.Add("Accept", "application/json")
-	// TODO: Fix for testing
-	//for _, c := range ctx.(auth.Context).Cookies {
-	//	if c.Name == "x-test-prefer" && c.Value != "" { // used for testing
-	//		req.Header.Add("Prefer", c.Value)
-	//	}
-	//}
+	for _, c := range ctx.(auth.Context).Cookies {
+		if c.Name == "x-test-prefer" && c.Value != "" { // used for testing
+			req.Header.Add("Prefer", c.Value)
+		}
+	}
 
 	return req, err
 }
