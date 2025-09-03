@@ -3,11 +3,12 @@ package api
 import (
 	"bytes"
 	"context"
+	"io"
+	"time"
+
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"io"
-	"time"
 )
 
 type mockService struct {
@@ -171,6 +172,16 @@ func (s *mockService) PostReportActions(ctx context.Context, reportType shared.R
 
 func (s *mockService) ExpireRefunds(ctx context.Context) error {
 	s.lastCalled = "ExpireRefunds"
+	return s.err
+}
+
+func (s *mockService) CancelDirectDebitMandate(ctx context.Context, id int32, cancelMandate shared.CancelMandate) error {
+	s.lastCalled = "CancelDirectDebitMandate"
+	return s.err
+}
+
+func (s *mockService) CreateDirectDebitMandate(ctx context.Context, id int32, createMandate shared.CreateMandate) error {
+	s.lastCalled = "CreateDirectDebitMandate"
 	return s.err
 }
 

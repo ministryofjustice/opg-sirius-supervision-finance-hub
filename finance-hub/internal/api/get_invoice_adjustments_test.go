@@ -13,7 +13,7 @@ import (
 func TestGetInvoiceAdjustmentsCanReturn200(t *testing.T) {
 	mockClient := SetUpTest()
 	mockJWT := mockJWTClient{}
-	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""}, nil)
+	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""})
 
 	json := `
 	[
@@ -62,7 +62,7 @@ func TestGetInvoiceAdjustmentsCanThrow500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
 	_, err := client.GetInvoiceAdjustments(testContext(), 1)
 
@@ -79,7 +79,7 @@ func TestGetInvoiceAdjustmentsUnauthorised(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
 	resp, err := client.GetInvoiceAdjustments(testContext(), 3)
 

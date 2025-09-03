@@ -3,11 +3,12 @@ package api
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -15,7 +16,7 @@ import (
 func TestAddRefund(t *testing.T) {
 	mockClient := SetUpTest()
 	mockJWT := mockJWTClient{}
-	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""}, nil)
+	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""})
 
 	json := `{
 			"accountName":      "Reginald Refund",
@@ -43,7 +44,7 @@ func TestAddRefundUnauthorised(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
 	err := client.AddRefund(testContext(), 1, "Reginald Refund", "12345678", "11-22-33", "")
 
@@ -56,7 +57,7 @@ func TestAddRefundReturns500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
 	err := client.AddRefund(testContext(), 1, "Reginald Refund", "12345678", "11-22-33", "")
 	assert.Equal(t, StatusError{
@@ -81,7 +82,7 @@ func TestAddRefundReturnsValidationError(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
 	err := client.AddRefund(testContext(), 1, "Reginald Refund", "12345678", "11-22-33", "")
 	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"accountNumber": map[string]string{"tooLong": "AccountNumber number must by 8 digits"}}}

@@ -4,8 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"net/http"
+
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 )
 
 type modulusCheckResponse struct {

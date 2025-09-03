@@ -4,12 +4,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"fmt"
+	"net/http"
+
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/allpay"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"regexp"
 )
 
 type AccountDetails struct {
@@ -20,91 +19,79 @@ type AccountDetails struct {
 
 func (c *Client) CreateDirectDebitMandate(ctx context.Context, clientId int, details AccountDetails) error {
 	var body bytes.Buffer
-	logger := telemetry.LoggerFromContext(ctx)
 
 	client, err := c.GetPersonDetails(ctx, clientId)
 	if err != nil {
 		return err
 	}
 
-	mandate, errs := c.validateMandate(client, details)
-	if errs != nil {
-		return apierror.ValidationError{Errors: *errs}
+	errs := c.validateActiveClient(client)
+	if len(errs) > 0 {
+		return apierror.ValidationError{Errors: errs}
 	}
 
-	err = json.NewEncoder(&body).Encode(mandate)
+	err = json.NewEncoder(&body).Encode(shared.CreateMandate{
+		ClientReference: client.CourtRef,
+		Surname:         client.Surname,
+		Address: shared.Address{
+			Line1:    client.AddressLine1,
+			Town:     client.Town,
+			PostCode: client.PostCode,
+		},
+		BankAccount: struct {
+			BankDetails shared.AllPayBankDetails `json:"bankDetails"`
+		}{
+			BankDetails: shared.AllPayBankDetails{
+				AccountName:   details.AccountName,
+				SortCode:      details.SortCode,
+				AccountNumber: details.AccountNumber,
+			},
+		},
+	})
 	if err != nil {
 		return err
 	}
 
-	err = c.allpayClient.ModulusCheck(ctx, details.SortCode, details.AccountNumber)
+	req, err := c.newBackendRequest(ctx, http.MethodPost, fmt.Sprintf("/clients/%d/direct-debit", clientId), &body)
+
 	if err != nil {
-		if errors.As(err, &allpay.ErrorModulusCheckFailed{}) {
-			return apierror.ValidationError{Errors: apierror.ValidationErrors{
-				"AccountDetails": map[string]string{
-					"invalid": "",
-				},
-			}}
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return err
+	}
+
+	defer unchecked(resp.Body.Close)
+
+	if resp.StatusCode == http.StatusCreated {
+		return nil
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		return ErrUnauthorized
+	}
+
+	if resp.StatusCode == http.StatusUnprocessableEntity {
+		var v apierror.ValidationError
+		if err := json.NewDecoder(resp.Body).Decode(&v); err == nil && len(v.Errors) > 0 {
+			return apierror.ValidationError{Errors: v.Errors}
 		}
-		return err
+		return newStatusError(resp)
 	}
 
-	err = c.allpayClient.CreateMandate(ctx, mandate)
-	if err != nil {
-		var ve allpay.ErrorValidation
-		if errors.As(err, &ve) {
-			// we validate in advance so validation errors from AllPay should never occur
-			// if they do, log them so we can investigate
-			logger.Error("validation errors returned from allpay", "errors", ve.Messages)
-		}
-		return err
+	if resp.StatusCode == http.StatusBadRequest {
+		// TODO: Mod validation here
+		return apierror.ValidationError{Errors: apierror.ValidationErrors{"AccountDetails": {"invalid": ""}}}
 	}
 
-	err = c.UpdatePaymentMethod(ctx, clientId, shared.PaymentMethodDirectDebit.Key())
-	if err != nil {
-		logger.Error("failed to update payment method in Sirius after successful mandate creation in AllPay", "error", err)
-		return err
-	}
-	return nil
+	return newStatusError(resp)
 }
 
-func (c *Client) validateMandate(client shared.Person, details AccountDetails) (*allpay.CreateMandateRequest, *apierror.ValidationErrors) {
+func (c *Client) validateActiveClient(client shared.Person) apierror.ValidationErrors {
 	vErrs := make(apierror.ValidationErrors) // map[string]map[string]string
-
-	if details.AccountName == "" {
-		vErrs["AccountName"] = map[string]string{
-			"required": "",
-		}
-	} else if len(details.AccountName) > 18 {
-		vErrs["AccountName"] = map[string]string{
-			"gteEighteen": "",
-		}
-	}
-
-	if details.SortCode == "" {
-		vErrs["SortCode"] = map[string]string{
-			"required": "",
-		}
-	} else if valid, _ := regexp.MatchString(`^\d{2}-\d{2}-\d{2}$`, details.SortCode); !valid {
-		vErrs["SortCode"] = map[string]string{
-			"len": "",
-		}
-	}
-
-	if details.AccountNumber == "" {
-		vErrs["AccountNumber"] = map[string]string{
-			"required": "",
-		}
-	} else if valid, _ := regexp.MatchString(`^\d{8}$`, details.AccountNumber); !valid {
-		vErrs["AccountNumber"] = map[string]string{
-			"len": "",
-		}
-	}
-
-	// validate form fields first
-	if len(vErrs) > 0 {
-		return nil, &vErrs
-	}
 
 	if client.FeePayer == nil || client.FeePayer.Status != "Active" {
 		vErrs["FeePayer"] = map[string]string{
@@ -124,46 +111,5 @@ func (c *Client) validateMandate(client shared.Person, details AccountDetails) (
 		}
 	}
 
-	if !assertStringLessThan(client.AddressLine1, 41) {
-		vErrs["AddressLine1"] = map[string]string{
-			"required": "",
-		}
-	}
-	if !assertStringLessThan(client.Town, 41) {
-		vErrs["Town"] = map[string]string{
-			"required": "",
-		}
-	}
-	if !assertStringLessThan(client.PostCode, 11) {
-		vErrs["PostCode"] = map[string]string{
-			"required": "",
-		}
-	}
-
-	if len(vErrs) > 0 {
-		return nil, &vErrs
-	}
-
-	return &allpay.CreateMandateRequest{
-		ClientReference: client.CourtRef,
-		Surname:         client.Surname,
-		Address: allpay.Address{
-			Line1:    client.AddressLine1,
-			Town:     client.Town,
-			PostCode: client.PostCode,
-		},
-		BankAccount: struct {
-			BankDetails allpay.BankDetails `json:"BankDetails"`
-		}{
-			BankDetails: allpay.BankDetails{
-				AccountName:   details.AccountName,
-				SortCode:      details.SortCode,
-				AccountNumber: details.AccountNumber,
-			},
-		},
-	}, nil
-}
-
-func assertStringLessThan(str string, n int) bool {
-	return len(str) > 0 && len(str) < n
+	return vErrs
 }
