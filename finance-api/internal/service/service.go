@@ -49,6 +49,10 @@ type GovUKClient interface {
 	NextWorkingDayOnOrAfterX(ctx context.Context, date time.Time, dayOfMonth int) (time.Time, error)
 }
 
+type GovUKClient interface {
+	AddWorkingDays(ctx context.Context, d time.Time, n int) (time.Time, error)
+}
+
 type Env struct {
 	AsyncBucket string
 }
