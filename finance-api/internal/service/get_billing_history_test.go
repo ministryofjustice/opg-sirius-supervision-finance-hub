@@ -16,6 +16,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (1,1,1234,'DEMANDED',NULL);",
+		"INSERT INTO finance_client VALUES (3,3, 12345,'DEMANDED',NULL);",
 		"INSERT INTO invoice VALUES (9,1,1,'AD','AD000001/24','2024-10-07','2024-10-07',10000,NULL,'2024-10-07',NULL,'2024-10-07','Created manually',NULL,NULL,'2024-10-07 09:31:44',1);",
 		"INSERT INTO invoice VALUES (10,1,1,'AD','AD000002/24','2024-10-07','2024-10-07',10000,NULL,'2024-10-07',NULL,'2024-10-07','Created manually',NULL,NULL,'2024-10-07 09:35:03',1);",
 		"INSERT INTO invoice_adjustment VALUES (4,1,9,'2024-10-07','CREDIT WRITE OFF',10000,'Writing off','REJECTED','2024-10-07 09:32:23',1,'2024-10-07 09:33:24',1)",
@@ -25,10 +26,21 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 		"INSERT INTO ledger VALUES (5,'09799ea2-5f8f-4ecb-8200-f021ab96def1','2024-10-07 09:32:50','',5000,'Credit due to approved remission','CREDIT REMISSION','CONFIRMED',1,NULL,5,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);",
 		"INSERT INTO ledger VALUES (6,'6e469827-fff7-4c22-a2e2-8b7d3580350c','2024-10-07 09:34:44','',5000,'Credit due to approved credit memo','CREDIT MEMO','CONFIRMED',1,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);",
 		"INSERT INTO ledger VALUES (7,'babda0f7-2f07-4b85-a991-7d45be9474e2','2024-10-07 09:35:03','',5000,'Excess credit applied to invoice','CREDIT REAPPLY','CONFIRMED',1,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1);",
+		"INSERT INTO ledger VALUES (8,'13b3851c-2e7d-43d0-86ad-86ffca586f57','2024-10-07 09:36:05','',1000,'Moto payment','MOTO CARD PAYMENT','CONFIRMED',1,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2024-10-07 09:36:05',1);",
+
 		"INSERT INTO ledger_allocation VALUES (5,5,9,'2024-10-07 09:32:50',5000,'ALLOCATED');",
 		"INSERT INTO ledger_allocation VALUES (6,6,9,'2024-10-07 09:34:44',10000,'ALLOCATED');",
 		"INSERT INTO ledger_allocation VALUES (7,6,9,'2024-10-07 09:34:44',-5000,'UNAPPLIED',NULL,'Unapplied funds as a result of applying credit memo');",
 		"INSERT INTO ledger_allocation VALUES (8,7,10,'2024-10-07 09:35:03',5000,'REAPPLIED');",
+		"INSERT INTO ledger_allocation VALUES (9,8,10,'2024-10-07 09:36:05',1000,'ALLOCATED');",
+
+		"INSERT INTO supervision_finance.refund values (16, 3, '2024-01-01', 234, 'REJECTED', 'rejected refund', 1, '2024-07-01', 2, '2024-07-02');",
+		"INSERT INTO supervision_finance.refund values (15, 3, '2024-01-01', 234, 'APPROVED', 'processing then cancelled refund', 1, '2024-06-01', 2, '2024-06-02', '2024-06-03', '2024-06-04', null, 3);",
+		"INSERT INTO supervision_finance.refund values (14, 3, '2024-01-01', 234, 'APPROVED', 'approved then cancelled refund', 1, '2024-05-01', 2, '2024-05-02', null, '2024-05-03', null, 3);",
+		"INSERT INTO supervision_finance.refund values (13, 3, '2024-01-01', 234, 'APPROVED', 'fulfilled refund', 1, '2024-04-01', 2, '2024-04-02', '2024-04-03', null, '2024-04-04');",
+		"INSERT INTO supervision_finance.refund values (12, 3, '2024-01-01', 234, 'APPROVED', 'processing refund', 1, '2024-03-01', 2, '2024-03-02', '2024-03-03');",
+		"INSERT INTO supervision_finance.refund values (10, 3, '2024-01-01', 234, 'PENDING', 'pending refund', 1, '2024-01-01', null);",
+		"INSERT INTO supervision_finance.refund values (11, 3, '2024-01-01', 234, 'APPROVED', 'approved refund', 1, '2024-02-01', 2, '2024-02-02');",
 	)
 
 	Store := store.New(seeder.Conn)
@@ -43,6 +55,32 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 			name: "returns all events that match the client id",
 			id:   1,
 			want: []shared.BillingHistory{
+				{
+					User: 1,
+					Date: shared.NewDate("2024-10-07 09:36:05"),
+					Event: shared.PaymentProcessed{
+						TransactionEvent: shared.TransactionEvent{
+							ClientId:        1,
+							TransactionType: shared.TransactionTypeMotoCardPayment,
+							Amount:          1000,
+							Breakdown: []shared.PaymentBreakdown{
+								{
+									InvoiceReference: shared.InvoiceEvent{
+										ID:        10,
+										Reference: "AD000002/24",
+									},
+									Amount: 1000,
+									Status: "ALLOCATED",
+								},
+							},
+							BaseBillingEvent: shared.BaseBillingEvent{
+								Type: shared.EventTypePaymentProcessed,
+							},
+						},
+					},
+					OutstandingBalance: 4000,
+					CreditBalance:      0,
+				},
 				{
 					User: 1,
 					Date: shared.NewDate("2024-10-07 09:35:03"),
@@ -144,6 +182,27 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 				},
 				{
 					User: 1,
+					Date: shared.NewDate("2024-10-07 09:32:23"),
+					Event: shared.InvoiceAdjustmentRejected{
+						AdjustmentType: shared.AdjustmentTypeWriteOff,
+						ClientId:       1,
+						Notes:          "Writing off",
+						PaymentBreakdown: shared.PaymentBreakdown{
+							InvoiceReference: shared.InvoiceEvent{
+								ID:        9,
+								Reference: "AD000001/24",
+							},
+							Amount: 10000,
+						},
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeInvoiceAdjustmentRejected,
+						},
+					},
+					OutstandingBalance: 5000,
+					CreditBalance:      0,
+				},
+				{
+					User: 1,
 					Date: shared.NewDate("2024-10-07 09:33:19"),
 					Event: shared.FeeReductionCancelled{
 						ReductionType:      shared.FeeReductionTypeRemission,
@@ -186,9 +245,9 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 					Date: shared.NewDate("2024-10-07 09:32:50"),
 					Event: shared.FeeReductionAwarded{
 						ReductionType: shared.FeeReductionTypeRemission,
-						StartDate:     shared.NewDate("2024-10-07"),
-						EndDate:       shared.NewDate("2024-04-01"),
-						DateReceived:  shared.NewDate("2027-03-31"),
+						StartDate:     shared.NewDate("2024-04-01"),
+						EndDate:       shared.NewDate("2027-03-31"),
+						DateReceived:  shared.NewDate("2024-10-07"),
 						Notes:         "Needs remission",
 						BaseBillingEvent: shared.BaseBillingEvent{
 							Type: shared.EventTypeFeeReductionAwarded,
@@ -220,27 +279,6 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 				},
 				{
 					User: 1,
-					Date: shared.NewDate("2024-10-07 09:32:23"),
-					Event: shared.InvoiceAdjustmentRejected{
-						AdjustmentType: shared.AdjustmentTypeWriteOff,
-						ClientId:       1,
-						Notes:          "Writing off",
-						PaymentBreakdown: shared.PaymentBreakdown{
-							InvoiceReference: shared.InvoiceEvent{
-								ID:        9,
-								Reference: "AD000001/24",
-							},
-							Amount: 10000,
-						},
-						BaseBillingEvent: shared.BaseBillingEvent{
-							Type: shared.EventTypeInvoiceAdjustmentRejected,
-						},
-					},
-					OutstandingBalance: 10000,
-					CreditBalance:      0,
-				},
-				{
-					User: 1,
 					Date: shared.NewDate("2024-10-07 09:31:44"),
 					Event: shared.InvoiceGenerated{
 						ClientId: 1,
@@ -255,6 +293,297 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 						},
 					},
 					OutstandingBalance: 10000,
+					CreditBalance:      0,
+				},
+			},
+		},
+		{
+			name: "returns correct refund events",
+			id:   3,
+			want: []shared.BillingHistory{
+				{
+					User: 2,
+					Date: shared.NewDate("2024-07-02"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       16,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundStatusUpdated,
+						},
+						Notes: "rejected refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 1,
+					Date: shared.NewDate("2024-07-01"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       16,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundCreated,
+						},
+						Notes: "rejected refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 3,
+					Date: shared.NewDate("2024-06-04"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       15,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundCancelled,
+						},
+						Notes: "processing then cancelled refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 2,
+					Date: shared.NewDate("2024-06-03"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       15,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundProcessing,
+						},
+						Notes: "processing then cancelled refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 2,
+					Date: shared.NewDate("2024-06-02"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       15,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundApproved,
+						},
+						Notes: "processing then cancelled refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 1,
+					Date: shared.NewDate("2024-06-01"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       15,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundCreated,
+						},
+						Notes: "processing then cancelled refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 3,
+					Date: shared.NewDate("2024-05-03"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       14,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundCancelled,
+						},
+						Notes: "approved then cancelled refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 2,
+					Date: shared.NewDate("2024-05-02"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       14,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundApproved,
+						},
+						Notes: "approved then cancelled refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 1,
+					Date: shared.NewDate("2024-05-01"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       14,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundCreated,
+						},
+						Notes: "approved then cancelled refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 2,
+					Date: shared.NewDate("2024-04-04"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       13,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundFulfilled,
+						},
+						Notes: "fulfilled refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 2,
+					Date: shared.NewDate("2024-04-03"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       13,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundProcessing,
+						},
+						Notes: "fulfilled refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 2,
+					Date: shared.NewDate("2024-04-02"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       13,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundApproved,
+						},
+						Notes: "fulfilled refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 1,
+					Date: shared.NewDate("2024-04-01"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       13,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundCreated,
+						},
+						Notes: "fulfilled refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 2,
+					Date: shared.NewDate("2024-03-03"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       12,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundProcessing,
+						},
+						Notes: "processing refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 2,
+					Date: shared.NewDate("2024-03-02"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       12,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundApproved,
+						},
+						Notes: "processing refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 1,
+					Date: shared.NewDate("2024-03-01"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       12,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundCreated,
+						},
+						Notes: "processing refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 2,
+					Date: shared.NewDate("2024-02-02"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       11,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundApproved,
+						},
+						Notes: "approved refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 1,
+					Date: shared.NewDate("2024-02-01"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       11,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundCreated,
+						},
+						Notes: "approved refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 1,
+					Date: shared.NewDate("2024-01-01"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       10,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundCreated,
+						},
+						Notes: "pending refund",
+					},
+					OutstandingBalance: 0,
 					CreditBalance:      0,
 				},
 			},
@@ -285,7 +614,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 			marshalledWant, _ := json.Marshal(&tt.want)
 			marshalledGot, _ := json.Marshal(got)
 
-			var data1, data2 map[string]interface{}
+			var data1, data2 any
 
 			_ = json.Unmarshal(marshalledWant, &data1)
 			_ = json.Unmarshal(marshalledGot, &data2)
@@ -548,7 +877,7 @@ func Test_processLedgerAllocations(t *testing.T) {
 					Status:           "ALLOCATED",
 					LedgerAmount:     5000,
 					AllocationAmount: 10000,
-					CreatedAt: pgtype.Timestamp{
+					LedgerDatetime: pgtype.Timestamp{
 						Time:  now,
 						Valid: true,
 					},
@@ -565,7 +894,7 @@ func Test_processLedgerAllocations(t *testing.T) {
 					Status:           "UNAPPLIED",
 					LedgerAmount:     5000,
 					AllocationAmount: -5000,
-					CreatedAt: pgtype.Timestamp{
+					LedgerDatetime: pgtype.Timestamp{
 						Time:  now,
 						Valid: true,
 					},
@@ -624,7 +953,7 @@ func Test_processLedgerAllocations(t *testing.T) {
 					Status:           "REAPPLIED",
 					LedgerAmount:     5000,
 					AllocationAmount: 5000,
-					CreatedAt: pgtype.Timestamp{
+					LedgerDatetime: pgtype.Timestamp{
 						Time:  now,
 						Valid: true,
 					},
@@ -670,4 +999,835 @@ func Test_processLedgerAllocations(t *testing.T) {
 			assert.Equalf(t, tt.want, processLedgerAllocations(tt.allocations, tt.clientID), "processLedgerAllocations(%v, %v)", tt.allocations, tt.clientID)
 		})
 	}
+}
+
+func Test_getRefundEventTypeAndDate(t *testing.T) {
+	now := time.Now()
+
+	tests := []struct {
+		name          string
+		refund        store.GetRefundsForBillingHistoryRow
+		wantEventType shared.BillingEventType
+		wantEventDate time.Time
+	}{
+		{
+			name: "Pending refund returns refund created and raised date",
+			refund: store.GetRefundsForBillingHistoryRow{
+				RefundID:    1,
+				RaisedDate:  pgtype.Date{Time: now, Valid: true},
+				Amount:      23,
+				Decision:    "PENDING",
+				Notes:       "Pending timeline event",
+				CreatedAt:   pgtype.Timestamp(pgtype.Date{Time: now, Valid: true}),
+				CreatedBy:   2,
+				DecisionAt:  pgtype.Timestamp(pgtype.Date{Time: now.Add(1 * time.Hour), Valid: true}),
+				DecisionBy:  pgtype.Int4{Int32: 1, Valid: true},
+				ProcessedAt: pgtype.Timestamp{},
+				CancelledAt: pgtype.Timestamp{},
+				FulfilledAt: pgtype.Timestamp{},
+				CancelledBy: pgtype.Int4{},
+			},
+			wantEventType: shared.EventTypeRefundCreated,
+			wantEventDate: now,
+		},
+		{
+			name: "Rejected refund returns refund status updated and decision at date",
+			refund: store.GetRefundsForBillingHistoryRow{
+				RefundID:    1,
+				RaisedDate:  pgtype.Date{Time: now, Valid: true},
+				Amount:      23,
+				Decision:    "REJECTED",
+				Notes:       "Rejected timeline event",
+				CreatedAt:   pgtype.Timestamp(pgtype.Date{Time: now, Valid: true}),
+				CreatedBy:   2,
+				DecisionAt:  pgtype.Timestamp(pgtype.Date{Time: now.Add(24 * time.Hour), Valid: true}),
+				DecisionBy:  pgtype.Int4{Int32: 1, Valid: true},
+				ProcessedAt: pgtype.Timestamp{},
+				CancelledAt: pgtype.Timestamp{},
+				FulfilledAt: pgtype.Timestamp{},
+				CancelledBy: pgtype.Int4{},
+			},
+			wantEventType: shared.EventTypeRefundStatusUpdated,
+			wantEventDate: now.Add(24 * time.Hour),
+		},
+		{
+			name: "Fulfilled refund returns refund fulfilled and fulfilled at date",
+			refund: store.GetRefundsForBillingHistoryRow{
+				RefundID:    1,
+				RaisedDate:  pgtype.Date{Time: now, Valid: true},
+				Amount:      23,
+				Decision:    "APPROVED",
+				Notes:       "Fulfilled timeline event",
+				CreatedAt:   pgtype.Timestamp(pgtype.Date{Time: now, Valid: true}),
+				CreatedBy:   2,
+				DecisionAt:  pgtype.Timestamp(pgtype.Date{Time: now.Add(24 * time.Hour), Valid: true}),
+				DecisionBy:  pgtype.Int4{Int32: 1, Valid: true},
+				ProcessedAt: pgtype.Timestamp(pgtype.Date{Time: now.Add(48 * time.Hour), Valid: true}),
+				CancelledAt: pgtype.Timestamp{},
+				FulfilledAt: pgtype.Timestamp(pgtype.Date{Time: now.Add(72 * time.Hour), Valid: true}),
+				CancelledBy: pgtype.Int4{},
+			},
+			wantEventType: shared.EventTypeRefundFulfilled,
+			wantEventDate: now.Add(72 * time.Hour),
+		},
+		{
+			name: "Cancelled refund - cancelled at approval stage - returns refund cancelled and cancelled at date",
+			refund: store.GetRefundsForBillingHistoryRow{
+				RefundID:    1,
+				RaisedDate:  pgtype.Date{Time: now, Valid: true},
+				Amount:      23,
+				Decision:    "APPROVED",
+				Notes:       "Approved refund then cancelled timeline event",
+				CreatedAt:   pgtype.Timestamp(pgtype.Date{Time: now, Valid: true}),
+				CreatedBy:   2,
+				DecisionAt:  pgtype.Timestamp(pgtype.Date{Time: now.Add(24 * time.Hour), Valid: true}),
+				DecisionBy:  pgtype.Int4{Int32: 1, Valid: true},
+				ProcessedAt: pgtype.Timestamp(pgtype.Date{}),
+				CancelledAt: pgtype.Timestamp(pgtype.Date{Time: now.Add(72 * time.Hour), Valid: true}),
+				FulfilledAt: pgtype.Timestamp(pgtype.Date{}),
+				CancelledBy: pgtype.Int4{Int32: 2, Valid: true},
+			},
+			wantEventType: shared.EventTypeRefundCancelled,
+			wantEventDate: now.Add(72 * time.Hour),
+		},
+		{
+			name: "Cancelled refund - cancelled at processing stage - returns refund cancelled and cancelled at date",
+			refund: store.GetRefundsForBillingHistoryRow{
+				RefundID:    1,
+				RaisedDate:  pgtype.Date{Time: now, Valid: true},
+				Amount:      23,
+				Decision:    "APPROVED",
+				Notes:       "Processing then cancelled timeline event",
+				CreatedAt:   pgtype.Timestamp(pgtype.Date{Time: now, Valid: true}),
+				CreatedBy:   2,
+				DecisionAt:  pgtype.Timestamp(pgtype.Date{Time: now.Add(24 * time.Hour), Valid: true}),
+				DecisionBy:  pgtype.Int4{Int32: 1, Valid: true},
+				ProcessedAt: pgtype.Timestamp(pgtype.Date{Time: now.Add(48 * time.Hour), Valid: true}),
+				CancelledAt: pgtype.Timestamp(pgtype.Date{Time: now.Add(72 * time.Hour), Valid: true}),
+				FulfilledAt: pgtype.Timestamp(pgtype.Date{}),
+				CancelledBy: pgtype.Int4{Int32: 2, Valid: true},
+			},
+			wantEventType: shared.EventTypeRefundCancelled,
+			wantEventDate: now.Add(72 * time.Hour),
+		},
+		{
+			name: "Approved refund with processed at date returns refund processing and processing date",
+			refund: store.GetRefundsForBillingHistoryRow{
+				RefundID:    1,
+				RaisedDate:  pgtype.Date{Time: now, Valid: true},
+				Amount:      23,
+				Decision:    "APPROVED",
+				Notes:       "Approved timeline event (with processing date)",
+				CreatedAt:   pgtype.Timestamp(pgtype.Date{Time: now, Valid: true}),
+				CreatedBy:   2,
+				DecisionAt:  pgtype.Timestamp(pgtype.Date{Time: now.Add(24 * time.Hour), Valid: true}),
+				DecisionBy:  pgtype.Int4{Int32: 1, Valid: true},
+				ProcessedAt: pgtype.Timestamp(pgtype.Date{Time: now.Add(48 * time.Hour), Valid: true}),
+				CancelledAt: pgtype.Timestamp(pgtype.Date{}),
+				FulfilledAt: pgtype.Timestamp(pgtype.Date{}),
+				CancelledBy: pgtype.Int4{Int32: 2, Valid: true},
+			},
+			wantEventType: shared.EventTypeRefundProcessing,
+			wantEventDate: now.Add(48 * time.Hour),
+		},
+		{
+			name: "Approved refund without processed at date returns refund approved and decision at date",
+			refund: store.GetRefundsForBillingHistoryRow{
+				RefundID:    1,
+				RaisedDate:  pgtype.Date{Time: now, Valid: true},
+				Amount:      23,
+				Decision:    "APPROVED",
+				Notes:       "Approved timeline event (without processing date)",
+				CreatedAt:   pgtype.Timestamp(pgtype.Date{Time: now, Valid: true}),
+				CreatedBy:   2,
+				DecisionAt:  pgtype.Timestamp(pgtype.Date{Time: now.Add(24 * time.Hour), Valid: true}),
+				DecisionBy:  pgtype.Int4{Int32: 1, Valid: true},
+				ProcessedAt: pgtype.Timestamp(pgtype.Date{}),
+				CancelledAt: pgtype.Timestamp(pgtype.Date{}),
+				FulfilledAt: pgtype.Timestamp(pgtype.Date{}),
+				CancelledBy: pgtype.Int4{Int32: 2, Valid: true},
+			},
+			wantEventType: shared.EventTypeRefundApproved,
+			wantEventDate: now.Add(24 * time.Hour),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actualEventType, actualDate := getRefundEventTypeAndDate(tt.refund)
+			assert.Equalf(t, tt.wantEventType, actualEventType, "getRefundEventType(%v, %v)", tt.wantEventType, actualEventType)
+			assert.Equalf(t, tt.wantEventDate, actualDate, "getRefundEventDate(%v, %v)", tt.wantEventDate, actualDate)
+		})
+	}
+}
+
+func Test_getUserForEventType(t *testing.T) {
+	now := time.Now()
+
+	tests := []struct {
+		name           string
+		refund         store.GetRefundsForBillingHistoryRow
+		eventType      shared.BillingEventType
+		expectedResult int32
+	}{
+		{
+			name: "Pending refund returns created user",
+			refund: store.GetRefundsForBillingHistoryRow{
+				RefundID:    1,
+				RaisedDate:  pgtype.Date{Time: now, Valid: true},
+				Amount:      23,
+				Decision:    "PENDING",
+				Notes:       "Pending timeline event",
+				CreatedAt:   pgtype.Timestamp(pgtype.Date{Time: now, Valid: true}),
+				CreatedBy:   2,
+				DecisionAt:  pgtype.Timestamp(pgtype.Date{Time: now.Add(1 * time.Hour), Valid: true}),
+				DecisionBy:  pgtype.Int4{Int32: 1, Valid: true},
+				ProcessedAt: pgtype.Timestamp{},
+				CancelledAt: pgtype.Timestamp{},
+				FulfilledAt: pgtype.Timestamp{},
+				CancelledBy: pgtype.Int4{},
+			},
+			eventType:      shared.EventTypeRefundCreated,
+			expectedResult: 2,
+		},
+		{
+			name: "Rejected refund returns decision by user",
+			refund: store.GetRefundsForBillingHistoryRow{
+				RefundID:    1,
+				RaisedDate:  pgtype.Date{Time: now, Valid: true},
+				Amount:      23,
+				Decision:    "REJECTED",
+				Notes:       "Rejected timeline event",
+				CreatedAt:   pgtype.Timestamp(pgtype.Date{Time: now, Valid: true}),
+				CreatedBy:   2,
+				DecisionAt:  pgtype.Timestamp(pgtype.Date{Time: now.Add(24 * time.Hour), Valid: true}),
+				DecisionBy:  pgtype.Int4{Int32: 1, Valid: true},
+				ProcessedAt: pgtype.Timestamp{},
+				CancelledAt: pgtype.Timestamp{},
+				FulfilledAt: pgtype.Timestamp{},
+				CancelledBy: pgtype.Int4{},
+			},
+			eventType:      shared.EventTypeRefundStatusUpdated,
+			expectedResult: 1,
+		},
+		{
+			name: "Fulfilled refund returns decision by user",
+			refund: store.GetRefundsForBillingHistoryRow{
+				RefundID:    1,
+				RaisedDate:  pgtype.Date{Time: now, Valid: true},
+				Amount:      23,
+				Decision:    "APPROVED",
+				Notes:       "Fulfilled timeline event",
+				CreatedAt:   pgtype.Timestamp(pgtype.Date{Time: now, Valid: true}),
+				CreatedBy:   2,
+				DecisionAt:  pgtype.Timestamp(pgtype.Date{Time: now.Add(24 * time.Hour), Valid: true}),
+				DecisionBy:  pgtype.Int4{Int32: 1, Valid: true},
+				ProcessedAt: pgtype.Timestamp(pgtype.Date{Time: now.Add(48 * time.Hour), Valid: true}),
+				CancelledAt: pgtype.Timestamp{},
+				FulfilledAt: pgtype.Timestamp(pgtype.Date{Time: now.Add(72 * time.Hour), Valid: true}),
+				CancelledBy: pgtype.Int4{},
+			},
+			eventType:      shared.EventTypeRefundFulfilled,
+			expectedResult: 1,
+		},
+		{
+			name: "Cancelled refund - cancelled at approval stage - returns cancelled by user",
+			refund: store.GetRefundsForBillingHistoryRow{
+				RefundID:    1,
+				RaisedDate:  pgtype.Date{Time: now, Valid: true},
+				Amount:      23,
+				Decision:    "APPROVED",
+				Notes:       "Approved refund then cancelled timeline event",
+				CreatedAt:   pgtype.Timestamp(pgtype.Date{Time: now, Valid: true}),
+				CreatedBy:   2,
+				DecisionAt:  pgtype.Timestamp(pgtype.Date{Time: now.Add(24 * time.Hour), Valid: true}),
+				DecisionBy:  pgtype.Int4{Int32: 1, Valid: true},
+				ProcessedAt: pgtype.Timestamp(pgtype.Date{}),
+				CancelledAt: pgtype.Timestamp(pgtype.Date{Time: now.Add(72 * time.Hour), Valid: true}),
+				FulfilledAt: pgtype.Timestamp(pgtype.Date{}),
+				CancelledBy: pgtype.Int4{Int32: 3, Valid: true},
+			},
+			eventType:      shared.EventTypeRefundCancelled,
+			expectedResult: 3,
+		},
+		{
+			name: "Cancelled refund - cancelled at processing stage - returns cancelled by user",
+			refund: store.GetRefundsForBillingHistoryRow{
+				RefundID:    1,
+				RaisedDate:  pgtype.Date{Time: now, Valid: true},
+				Amount:      23,
+				Decision:    "APPROVED",
+				Notes:       "Processing then cancelled timeline event",
+				CreatedAt:   pgtype.Timestamp(pgtype.Date{Time: now, Valid: true}),
+				CreatedBy:   2,
+				DecisionAt:  pgtype.Timestamp(pgtype.Date{Time: now.Add(24 * time.Hour), Valid: true}),
+				DecisionBy:  pgtype.Int4{Int32: 1, Valid: true},
+				ProcessedAt: pgtype.Timestamp(pgtype.Date{Time: now.Add(48 * time.Hour), Valid: true}),
+				CancelledAt: pgtype.Timestamp(pgtype.Date{Time: now.Add(72 * time.Hour), Valid: true}),
+				FulfilledAt: pgtype.Timestamp(pgtype.Date{}),
+				CancelledBy: pgtype.Int4{Int32: 3, Valid: true},
+			},
+			eventType:      shared.EventTypeRefundCancelled,
+			expectedResult: 3,
+		},
+		{
+			name: "Approved refund returns decision by user",
+			refund: store.GetRefundsForBillingHistoryRow{
+				RefundID:    1,
+				RaisedDate:  pgtype.Date{Time: now, Valid: true},
+				Amount:      23,
+				Decision:    "APPROVED",
+				Notes:       "Approved timeline event (with processing date)",
+				CreatedAt:   pgtype.Timestamp(pgtype.Date{Time: now, Valid: true}),
+				CreatedBy:   2,
+				DecisionAt:  pgtype.Timestamp(pgtype.Date{Time: now.Add(24 * time.Hour), Valid: true}),
+				DecisionBy:  pgtype.Int4{Int32: 1, Valid: true},
+				ProcessedAt: pgtype.Timestamp(pgtype.Date{Time: now.Add(48 * time.Hour), Valid: true}),
+				CancelledAt: pgtype.Timestamp(pgtype.Date{}),
+				FulfilledAt: pgtype.Timestamp(pgtype.Date{}),
+				CancelledBy: pgtype.Int4{},
+			},
+			eventType:      shared.EventTypeRefundApproved,
+			expectedResult: 1,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actualUser := getUserForEventType(tt.refund, tt.eventType)
+			assert.Equalf(t, tt.expectedResult, actualUser, "getUserForEventType(%v, %v)", tt.expectedResult, actualUser)
+		})
+	}
+}
+
+func Test_makeRefundEvent(t *testing.T) {
+	now := time.Now()
+
+	tests := []struct {
+		name           string
+		refund         store.GetRefundsForBillingHistoryRow
+		user           int32
+		eventType      shared.BillingEventType
+		date           time.Time
+		clientID       int32
+		history        []historyHolder
+		expectedResult []historyHolder
+	}{
+		{
+			name: "Add event to empty history holder",
+			refund: store.GetRefundsForBillingHistoryRow{
+				RefundID:    1,
+				RaisedDate:  pgtype.Date{Time: now, Valid: true},
+				Amount:      23,
+				Decision:    "PENDING",
+				Notes:       "Pending timeline event",
+				CreatedAt:   pgtype.Timestamp(pgtype.Date{Time: now, Valid: true}),
+				CreatedBy:   2,
+				DecisionAt:  pgtype.Timestamp(pgtype.Date{Time: now.Add(1 * time.Hour), Valid: true}),
+				DecisionBy:  pgtype.Int4{Int32: 1, Valid: true},
+				ProcessedAt: pgtype.Timestamp{},
+				CancelledAt: pgtype.Timestamp{},
+				FulfilledAt: pgtype.Timestamp{},
+				CancelledBy: pgtype.Int4{},
+			},
+			user:      11,
+			eventType: shared.EventTypeRefundCreated,
+			date:      now,
+			clientID:  45,
+			history:   []historyHolder{},
+			expectedResult: []historyHolder{
+				{
+					billingHistory: shared.BillingHistory{
+						User: 11,
+						Date: shared.Date{Time: now},
+						Event: shared.RefundEvent{
+							Id:               1,
+							ClientId:         45,
+							Amount:           23,
+							Notes:            "Pending timeline event",
+							BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundCreated},
+						},
+						OutstandingBalance: 0,
+					},
+					balanceAdjustment: 0,
+				},
+			},
+		},
+		{
+			name: "Add event to history holder with existing event",
+			refund: store.GetRefundsForBillingHistoryRow{
+				RefundID:    1,
+				RaisedDate:  pgtype.Date{Time: now.Add(1 * time.Hour), Valid: true},
+				Amount:      55,
+				Decision:    "APPROVED",
+				Notes:       "Newer timeline event",
+				CreatedAt:   pgtype.Timestamp(pgtype.Date{Time: now.Add(1 * time.Hour), Valid: true}),
+				CreatedBy:   2,
+				DecisionAt:  pgtype.Timestamp(pgtype.Date{Time: now.Add(12 * time.Hour), Valid: true}),
+				DecisionBy:  pgtype.Int4{Int32: 1, Valid: true},
+				ProcessedAt: pgtype.Timestamp{},
+				CancelledAt: pgtype.Timestamp{},
+				FulfilledAt: pgtype.Timestamp{},
+				CancelledBy: pgtype.Int4{},
+			},
+			user:      22,
+			eventType: shared.EventTypeRefundProcessing,
+			date:      now,
+			clientID:  66,
+			history: []historyHolder{
+				{
+					billingHistory: shared.BillingHistory{
+						User: 11,
+						Date: shared.Date{Time: now},
+						Event: shared.RefundEvent{
+							Id:               1,
+							ClientId:         45,
+							Amount:           23,
+							Notes:            "Existing timeline event",
+							BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundStatusUpdated},
+						},
+						OutstandingBalance: 0,
+					},
+					balanceAdjustment: 0,
+				},
+			},
+			expectedResult: []historyHolder{
+				{
+					billingHistory: shared.BillingHistory{
+						User: 11,
+						Date: shared.Date{Time: now},
+						Event: shared.RefundEvent{
+							Id:               1,
+							ClientId:         45,
+							Amount:           23,
+							Notes:            "Existing timeline event",
+							BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundStatusUpdated},
+						},
+						OutstandingBalance: 0,
+					},
+					balanceAdjustment: 0,
+				},
+				{
+					billingHistory: shared.BillingHistory{
+						User: 22,
+						Date: shared.Date{Time: now},
+						Event: shared.RefundEvent{
+							Id:               1,
+							ClientId:         66,
+							Amount:           55,
+							Notes:            "Newer timeline event",
+							BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundProcessing},
+						},
+						OutstandingBalance: 0,
+					},
+					balanceAdjustment: 0,
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actualEvent := makeRefundEvent(tt.refund, tt.user, tt.eventType, tt.date, tt.clientID, tt.history)
+			assert.Equalf(t, tt.expectedResult, actualEvent, "makeRefundEvent(%v, %v)", tt.expectedResult, actualEvent)
+		})
+	}
+}
+
+func Test_processRefundEventsCreatesCorrectBillingHistoryEvents(t *testing.T) {
+	now := time.Now()
+	refunds := []store.GetRefundsForBillingHistoryRow{
+		{
+			RefundID:    8,
+			RaisedDate:  pgtype.Date{Time: now, Valid: true},
+			Amount:      23,
+			Decision:    "PENDING",
+			Notes:       "Pending timeline event",
+			CreatedAt:   pgtype.Timestamp(pgtype.Date{Time: now, Valid: true}),
+			CreatedBy:   2,
+			DecisionAt:  pgtype.Timestamp(pgtype.Date{Time: now.Add(1 * time.Hour), Valid: true}),
+			DecisionBy:  pgtype.Int4{Int32: 1, Valid: true},
+			ProcessedAt: pgtype.Timestamp{},
+			CancelledAt: pgtype.Timestamp{},
+			FulfilledAt: pgtype.Timestamp{},
+			CancelledBy: pgtype.Int4{},
+		},
+		{
+			RefundID:    7,
+			RaisedDate:  pgtype.Date{Time: now, Valid: true},
+			Amount:      33,
+			Decision:    "REJECTED",
+			Notes:       "Rejected timeline event",
+			CreatedAt:   pgtype.Timestamp(pgtype.Date{Time: now, Valid: true}),
+			CreatedBy:   2,
+			DecisionAt:  pgtype.Timestamp(pgtype.Date{Time: now.Add(24 * time.Hour), Valid: true}),
+			DecisionBy:  pgtype.Int4{Int32: 1, Valid: true},
+			ProcessedAt: pgtype.Timestamp{},
+			CancelledAt: pgtype.Timestamp{},
+			FulfilledAt: pgtype.Timestamp{},
+			CancelledBy: pgtype.Int4{},
+		},
+		{
+			RefundID:    6,
+			RaisedDate:  pgtype.Date{Time: now, Valid: true},
+			Amount:      44,
+			Decision:    "APPROVED",
+			Notes:       "Fulfilled timeline event",
+			CreatedAt:   pgtype.Timestamp(pgtype.Date{Time: now, Valid: true}),
+			CreatedBy:   2,
+			DecisionAt:  pgtype.Timestamp(pgtype.Date{Time: now.Add(24 * time.Hour), Valid: true}),
+			DecisionBy:  pgtype.Int4{Int32: 1, Valid: true},
+			ProcessedAt: pgtype.Timestamp(pgtype.Date{Time: now.Add(48 * time.Hour), Valid: true}),
+			CancelledAt: pgtype.Timestamp{},
+			FulfilledAt: pgtype.Timestamp(pgtype.Date{Time: now.Add(72 * time.Hour), Valid: true}),
+			CancelledBy: pgtype.Int4{},
+		},
+		{
+			RefundID:    5,
+			RaisedDate:  pgtype.Date{Time: now, Valid: true},
+			Amount:      54,
+			Decision:    "APPROVED",
+			Notes:       "Cancelled timeline event (after being approved)",
+			CreatedAt:   pgtype.Timestamp(pgtype.Date{Time: now, Valid: true}),
+			CreatedBy:   2,
+			DecisionAt:  pgtype.Timestamp(pgtype.Date{Time: now.Add(24 * time.Hour), Valid: true}),
+			DecisionBy:  pgtype.Int4{Int32: 1, Valid: true},
+			ProcessedAt: pgtype.Timestamp(pgtype.Date{}),
+			CancelledAt: pgtype.Timestamp(pgtype.Date{Time: now.Add(72 * time.Hour), Valid: true}),
+			FulfilledAt: pgtype.Timestamp(pgtype.Date{}),
+			CancelledBy: pgtype.Int4{Int32: 3, Valid: true},
+		},
+		{
+			RefundID:    4,
+			RaisedDate:  pgtype.Date{Time: now, Valid: true},
+			Amount:      55,
+			Decision:    "APPROVED",
+			Notes:       "Cancelled timeline event (after being in processing)",
+			CreatedAt:   pgtype.Timestamp(pgtype.Date{Time: now, Valid: true}),
+			CreatedBy:   2,
+			DecisionAt:  pgtype.Timestamp(pgtype.Date{Time: now.Add(24 * time.Hour), Valid: true}),
+			DecisionBy:  pgtype.Int4{Int32: 1, Valid: true},
+			ProcessedAt: pgtype.Timestamp(pgtype.Date{Time: now.Add(48 * time.Hour), Valid: true}),
+			CancelledAt: pgtype.Timestamp(pgtype.Date{Time: now.Add(72 * time.Hour), Valid: true}),
+			FulfilledAt: pgtype.Timestamp(pgtype.Date{}),
+			CancelledBy: pgtype.Int4{Int32: 3, Valid: true},
+		},
+		{
+			RefundID:    3,
+			RaisedDate:  pgtype.Date{Time: now, Valid: true},
+			Amount:      66,
+			Decision:    "APPROVED",
+			Notes:       "Approved timeline event (with processing date)",
+			CreatedAt:   pgtype.Timestamp(pgtype.Date{Time: now, Valid: true}),
+			CreatedBy:   2,
+			DecisionAt:  pgtype.Timestamp(pgtype.Date{Time: now.Add(24 * time.Hour), Valid: true}),
+			DecisionBy:  pgtype.Int4{Int32: 1, Valid: true},
+			ProcessedAt: pgtype.Timestamp(pgtype.Date{Time: now.Add(48 * time.Hour), Valid: true}),
+			CancelledAt: pgtype.Timestamp(pgtype.Date{}),
+			FulfilledAt: pgtype.Timestamp(pgtype.Date{}),
+			CancelledBy: pgtype.Int4{},
+		},
+		{
+			RefundID:    2,
+			RaisedDate:  pgtype.Date{Time: now, Valid: true},
+			Amount:      67,
+			Decision:    "APPROVED",
+			Notes:       "Approved timeline event (without processing date)",
+			CreatedAt:   pgtype.Timestamp(pgtype.Date{Time: now, Valid: true}),
+			CreatedBy:   2,
+			DecisionAt:  pgtype.Timestamp(pgtype.Date{Time: now.Add(24 * time.Hour), Valid: true}),
+			DecisionBy:  pgtype.Int4{Int32: 1, Valid: true},
+			ProcessedAt: pgtype.Timestamp(pgtype.Date{}),
+			CancelledAt: pgtype.Timestamp(pgtype.Date{}),
+			FulfilledAt: pgtype.Timestamp(pgtype.Date{}),
+			CancelledBy: pgtype.Int4{},
+		},
+	}
+
+	expected := []historyHolder{
+		{
+			billingHistory: shared.BillingHistory{
+				User: 2,
+				Date: shared.Date{Time: now},
+				Event: shared.RefundEvent{
+					Id:               8,
+					ClientId:         33,
+					Amount:           23,
+					Notes:            "Pending timeline event",
+					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundCreated},
+				},
+				OutstandingBalance: 0,
+			},
+			balanceAdjustment: 0,
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				User: 1,
+				Date: shared.Date{Time: now.Add(24 * time.Hour)},
+				Event: shared.RefundEvent{
+					Id:               7,
+					ClientId:         33,
+					Amount:           33,
+					Notes:            "Rejected timeline event",
+					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundStatusUpdated},
+				},
+				OutstandingBalance: 0,
+			},
+			balanceAdjustment: 0,
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				User: 2,
+				Date: shared.Date{Time: now},
+				Event: shared.RefundEvent{
+					Id:               7,
+					ClientId:         33,
+					Amount:           33,
+					Notes:            "Rejected timeline event",
+					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundCreated},
+				},
+				OutstandingBalance: 0,
+			},
+			balanceAdjustment: 0,
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				User: 1,
+				Date: shared.Date{Time: now.Add(72 * time.Hour)},
+				Event: shared.RefundEvent{
+					Id:               6,
+					ClientId:         33,
+					Amount:           44,
+					Notes:            "Fulfilled timeline event",
+					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundFulfilled},
+				},
+				OutstandingBalance: 0,
+			},
+			balanceAdjustment: 0,
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				User: 1,
+				Date: shared.Date{Time: now.Add(48 * time.Hour)},
+				Event: shared.RefundEvent{
+					Id:               6,
+					ClientId:         33,
+					Amount:           44,
+					Notes:            "Fulfilled timeline event",
+					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundProcessing},
+				},
+				OutstandingBalance: 0,
+			},
+			balanceAdjustment: 0,
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				User: 1,
+				Date: shared.Date{Time: now.Add(24 * time.Hour)},
+				Event: shared.RefundEvent{
+					Id:               6,
+					ClientId:         33,
+					Amount:           44,
+					Notes:            "Fulfilled timeline event",
+					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundApproved},
+				},
+				OutstandingBalance: 0,
+			},
+			balanceAdjustment: 0,
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				User: 2,
+				Date: shared.Date{Time: now},
+				Event: shared.RefundEvent{
+					Id:               6,
+					ClientId:         33,
+					Amount:           44,
+					Notes:            "Fulfilled timeline event",
+					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundCreated},
+				},
+				OutstandingBalance: 0,
+			},
+			balanceAdjustment: 0,
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				User: 3,
+				Date: shared.Date{Time: now.Add(72 * time.Hour)},
+				Event: shared.RefundEvent{
+					Id:               5,
+					ClientId:         33,
+					Amount:           54,
+					Notes:            "Cancelled timeline event (after being approved)",
+					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundCancelled},
+				},
+				OutstandingBalance: 0,
+			},
+			balanceAdjustment: 0,
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				User: 1,
+				Date: shared.Date{Time: now.Add(24 * time.Hour)},
+				Event: shared.RefundEvent{
+					Id:               5,
+					ClientId:         33,
+					Amount:           54,
+					Notes:            "Cancelled timeline event (after being approved)",
+					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundApproved},
+				},
+				OutstandingBalance: 0,
+			},
+			balanceAdjustment: 0,
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				User: 2,
+				Date: shared.Date{Time: now},
+				Event: shared.RefundEvent{
+					Id:               5,
+					ClientId:         33,
+					Amount:           54,
+					Notes:            "Cancelled timeline event (after being approved)",
+					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundCreated},
+				},
+				OutstandingBalance: 0,
+			},
+			balanceAdjustment: 0,
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				User: 3,
+				Date: shared.Date{Time: now.Add(72 * time.Hour)},
+				Event: shared.RefundEvent{
+					Id:               4,
+					ClientId:         33,
+					Amount:           55,
+					Notes:            "Cancelled timeline event (after being in processing)",
+					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundCancelled},
+				},
+				OutstandingBalance: 0,
+			},
+			balanceAdjustment: 0,
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				User: 1,
+				Date: shared.Date{Time: now.Add(48 * time.Hour)},
+				Event: shared.RefundEvent{
+					Id:               4,
+					ClientId:         33,
+					Amount:           55,
+					Notes:            "Cancelled timeline event (after being in processing)",
+					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundProcessing},
+				},
+				OutstandingBalance: 0,
+			},
+			balanceAdjustment: 0,
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				User: 1,
+				Date: shared.Date{Time: now.Add(24 * time.Hour)},
+				Event: shared.RefundEvent{
+					Id:               4,
+					ClientId:         33,
+					Amount:           55,
+					Notes:            "Cancelled timeline event (after being in processing)",
+					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundApproved},
+				},
+				OutstandingBalance: 0,
+			},
+			balanceAdjustment: 0,
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				User: 2,
+				Date: shared.Date{Time: now},
+				Event: shared.RefundEvent{
+					Id:               4,
+					ClientId:         33,
+					Amount:           55,
+					Notes:            "Cancelled timeline event (after being in processing)",
+					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundCreated},
+				},
+				OutstandingBalance: 0,
+			},
+			balanceAdjustment: 0,
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				User: 1,
+				Date: shared.Date{Time: now.Add(48 * time.Hour)},
+				Event: shared.RefundEvent{
+					Id:               3,
+					ClientId:         33,
+					Amount:           66,
+					Notes:            "Approved timeline event (with processing date)",
+					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundProcessing},
+				},
+				OutstandingBalance: 0,
+			},
+			balanceAdjustment: 0,
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				User: 1,
+				Date: shared.Date{Time: now.Add(24 * time.Hour)},
+				Event: shared.RefundEvent{
+					Id:               3,
+					ClientId:         33,
+					Amount:           66,
+					Notes:            "Approved timeline event (with processing date)",
+					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundApproved},
+				},
+				OutstandingBalance: 0,
+			},
+			balanceAdjustment: 0,
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				User: 2,
+				Date: shared.Date{Time: now},
+				Event: shared.RefundEvent{
+					Id:               3,
+					ClientId:         33,
+					Amount:           66,
+					Notes:            "Approved timeline event (with processing date)",
+					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundCreated},
+				},
+				OutstandingBalance: 0,
+			},
+			balanceAdjustment: 0,
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				User: 1,
+				Date: shared.Date{Time: now.Add(24 * time.Hour)},
+				Event: shared.RefundEvent{
+					Id:               2,
+					ClientId:         33,
+					Amount:           67,
+					Notes:            "Approved timeline event (without processing date)",
+					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundApproved},
+				},
+				OutstandingBalance: 0,
+			},
+			balanceAdjustment: 0,
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				User: 2,
+				Date: shared.Date{Time: now},
+				Event: shared.RefundEvent{
+					Id:               2,
+					ClientId:         33,
+					Amount:           67,
+					Notes:            "Approved timeline event (without processing date)",
+					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundCreated},
+				},
+				OutstandingBalance: 0,
+			},
+			balanceAdjustment: 0,
+		},
+	}
+
+	assert.Equalf(t, expected, processRefundEvents(refunds, 33), "processRefundEvents(%v)", refunds)
 }

@@ -9,7 +9,8 @@ import (
 	"net/http"
 )
 
-func (c *Client) SubmitPaymentMethod(ctx context.Context, clientId int, paymentMethod string) error {
+// TODO: rename to updatePaymentMethod once Direct Debits are live and feature flag removed
+func (c *Client) UpdatePaymentMethod(ctx context.Context, clientId int, paymentMethod string) error {
 	var body bytes.Buffer
 
 	err := json.NewEncoder(&body).Encode(shared.UpdatePaymentMethod{

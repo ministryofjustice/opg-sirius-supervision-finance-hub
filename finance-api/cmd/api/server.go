@@ -120,14 +120,12 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 	authFunc("PUT /clients/{clientId}/invoice-adjustments/{adjustmentId}", shared.RoleFinanceManager, s.updatePendingInvoiceAdjustment)
 	authFunc("PUT /clients/{clientId}/payment-method", shared.RoleFinanceUser, s.updatePaymentMethod)
 	authFunc("POST /clients/{clientId}/refunds", shared.RoleFinanceUser, s.addRefund)
-	authFunc("POST /clients/{clientId}/direct-debits", shared.RoleFinanceUser, s.addDirectDebit)
-	authFunc("DELETE /clients/{clientId}/direct-debits", shared.RoleFinanceUser, s.cancelDirectDebit)
 	authFunc("PUT /clients/{clientId}/refunds/{refundId}", shared.RoleFinanceManager, s.updateRefundDecision)
 
 	authFunc("GET /download", shared.RoleFinanceReporting, s.download)
 	authFunc("HEAD /download", shared.RoleFinanceReporting, s.checkDownload)
 	authFunc("POST /reports", shared.RoleFinanceReporting, s.requestReport)
-	authFunc("POST /uploads", shared.RoleFinanceReporting, s.processUpload)
+	authFunc("POST /uploads", shared.RoleFinanceManager, s.processUpload)
 
 	// unauthenticated as request is coming from EventBridge
 	eventFunc := func(pattern string, h handlerFunc) {

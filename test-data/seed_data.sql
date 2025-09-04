@@ -83,12 +83,12 @@ INSERT INTO ledger VALUES (6, 'refund-credit', '2024-04-11T08:36:40+00:00', '', 
 INSERT INTO ledger_allocation VALUES (6, 6, NULL, '2024-04-11T08:36:40+00:00', 13000, 'ALLOCATED', null, 'refund-credit', '2024-04-11', null);
 INSERT INTO ledger_allocation VALUES (7, 6, NULL, '2024-04-11T08:36:40+00:00', -3000, 'UNAPPLIED', null, 'refund-credit', '2024-04-11', null);
 
-INSERT INTO refund VALUES (1, 14001, '2025-06-01', 12340, 'APPROVED', 'Fulfilled refund', 1, '2025-06-01 00:00:00', 1, '2025-06-06 00:00:00', '2025-06-06 00:00:00', NULL, '2025-06-06 00:00:00');
-INSERT INTO refund VALUES (2, 14001, '2024-06-01', 12341, 'PENDING', 'Pending refund', 1, '2025-06-01 00:00:00', NULL, NULL);
-INSERT INTO refund VALUES (3, 14001, '2023-06-01', 12342, 'APPROVED', 'Approved refund', 1, '2024-06-01 00:00:00', 1, '2024-06-06 00:00:00');
-INSERT INTO refund VALUES (4, 14001, '2022-06-01', 12343, 'REJECTED', 'Rejected refund', 1, '2023-06-01 00:00:00', 1, '2023-06-06 00:00:00');
-INSERT INTO refund VALUES (5, 14001, '2021-06-01', 12344, 'APPROVED', 'Processing refund', 1, '2022-06-01 00:00:00', 1, '2022-06-06 00:00:00', '2025-06-06 00:00:00');
-INSERT INTO refund VALUES (6, 14001, '2020-06-01', 12345, 'APPROVED', 'Cancelled refund', 2, '2021-06-01 00:00:00', 1, '2021-06-06 00:00:00', '2025-06-06 00:00:00', '2025-06-06 00:00:00');
+INSERT INTO refund VALUES (1, 14001, '2025-06-01', 12340, 'APPROVED', 'Fulfilled refund', 1, '2025-06-01 00:00:00', 2, '2025-06-02 00:00:00', '2025-06-03 00:00:00', NULL, '2025-06-06 00:00:00');
+INSERT INTO refund VALUES (2, 14001, '2024-05-01', 12341, 'PENDING', 'Pending refund', 1, '2024-05-01 00:00:00', NULL, NULL);
+INSERT INTO refund VALUES (3, 14001, '2023-04-01', 12342, 'APPROVED', 'Approved refund', 1, '2023-04-02 00:00:00', 2, '2023-04-06 00:00:00');
+INSERT INTO refund VALUES (4, 14001, '2022-03-01', 12343, 'REJECTED', 'Rejected refund', 1, '2022-03-02 00:00:00', 2, '2022-03-06 00:00:00');
+INSERT INTO refund VALUES (5, 14001, '2021-02-01', 12344, 'APPROVED', 'Processing refund', 1, '2021-02-02 00:00:00', 2, '2021-02-03 00:00:00', '2021-02-06 00:00:00');
+INSERT INTO refund VALUES (6, 14001, '2020-01-01', 12345, 'APPROVED', 'Cancelled refund', 1, '2020-01-02 00:00:00', 2, '2020-01-03 00:00:00', '2020-01-04 00:00:00', '2020-01-06 00:00:00', null, 2);
 INSERT INTO bank_details VALUES (1, 2, 'Reginald Refund', '12345678', '11-22-33');
 INSERT INTO bank_details VALUES (2, 3, 'Reginald Refund', '12345678', '11-22-33');
 
@@ -119,6 +119,23 @@ INSERT INTO bank_details VALUES (4, 8, 'Donny Decisions', '12345678', '11-22-33'
 -- cancel refund
 INSERT INTO finance_client VALUES (18001, 18, 'cancelrefund', 'DEMANDED', null, '18181818');
 INSERT INTO refund VALUES (9, 18001, '2021-06-01', 12344, 'APPROVED', 'Cancel me', 1, '2022-06-01 00:00:00', 1, '2022-06-06 00:00:00', '2025-06-06 00:00:00');
+
+-- cancel direct debit
+INSERT INTO finance_client VALUES (19001, 19, 'canceldirectdebit', 'DIRECT DEBIT', null, '19191919');
+
+-- billing history payments
+INSERT INTO finance_client VALUES (20001, 20, 'paymentevents', 'DEMANDED', null, '20202020');
+INSERT INTO invoice VALUES (14, 20, 20001, 'AD', 'AD16162/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-04-10T08:36:40+00:00', 2);
+INSERT INTO invoice VALUES (15, 20, 20001, 'AD', 'AD16163/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-05-11T12:01:59+00:00', 2);
+INSERT INTO ledger VALUES (10, 'moto payment', '2024-05-11T08:36:40+00:00', '', 13000, '', 'MOTO CARD PAYMENT', 'CONFIRMED', 20001, null, null, '11/04/2042', '12/04/2024', 1, '', '', 1, '05/11/2024 12:01:58', 2);
+INSERT INTO ledger_allocation VALUES (13, 10, 14, '2024-05-11T08:36:40+00:00', 10000, 'ALLOCATED', null, 'moto-payment', '2024-05-11', null);
+INSERT INTO ledger_allocation VALUES (14, 10, 14, '2024-05-11T08:36:40+00:00', -3000, 'UNAPPLIED', null, 'moto-payment', '2024-05-11', null);
+INSERT INTO ledger VALUES (11, 'reapply', '2024-05-11T12:02:41+00:00', '', 3000, '', 'CREDIT REAPPLY', 'CONFIRMED', 20001, null, null, '11/04/2042', '12/04/2024', 1, '', '', 1, '05/11/2024 12:02:00', 2);
+INSERT INTO ledger_allocation VALUES (15, 11, 15, '2024-05-11T08:36:41+00:00', 3000, 'REAPPLIED', null, 'moto-payment', '2024-05-11', null);
+INSERT INTO ledger VALUES (12, 'moto payment 2', '2024-05-11T08:39:40+00:00', '', 7000, '', 'MOTO CARD PAYMENT', 'CONFIRMED', 20001, null, null, '11/04/2042', '12/04/2024', 1, '', '', 1, '05/11/2024 12:05:34', 2);
+INSERT INTO ledger_allocation VALUES (16, 12, 14, '2024-05-11T08:39:40+00:00', 7000, 'ALLOCATED', null, 'moto-payment', '2024-05-11', null);
+INSERT INTO ledger VALUES (13, 'moto payment reversal', '2024-05-11T08:39:40+00:00', '', -7000, '', 'MOTO CARD PAYMENT', 'CONFIRMED', 20001, null, null, '11/04/2042', '12/04/2024', 1, '', '', 1, '05/11/2024 12:05:34', 2);
+INSERT INTO ledger_allocation VALUES (17, 13, 14, '2024-05-11T08:39:40+00:00', -7000, 'ALLOCATED', null, 'moto-payment', '2024-05-11', null);
 
 -- TEST CLIENT DATA: Add data for default client here
 
