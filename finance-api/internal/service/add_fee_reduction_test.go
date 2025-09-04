@@ -23,7 +23,7 @@ func addFeeReductionSetup(seeder *testhelpers.Seeder) (*Service, shared.AddFeeRe
 		Notes:         "Testing",
 	}
 
-	s := NewService(seeder.Conn, nil, nil, nil, nil, nil)
+	s := NewService(seeder.Conn, nil, nil, nil, nil, nil, nil)
 
 	return s, params
 }

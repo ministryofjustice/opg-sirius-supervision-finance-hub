@@ -5,6 +5,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -42,6 +43,10 @@ type AllpayClient interface {
 	ModulusCheck(ctx context.Context, sortCode string, accountNumber string) error
 }
 
+type GovUKClient interface {
+	AddWorkingDays(ctx context.Context, d time.Time, n int) (time.Time, error)
+}
+
 type Env struct {
 	AsyncBucket string
 }
@@ -52,6 +57,7 @@ type Service struct {
 	fileStorage FileStorage
 	notify      NotifyClient
 	allpay      AllpayClient
+	govUK       GovUKClient
 	tx          TX
 	env         *Env
 }
@@ -60,13 +66,14 @@ type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-func NewService(conn *pgxpool.Pool, dispatch Dispatch, fileStorage FileStorage, notify NotifyClient, allpay AllpayClient, env *Env) *Service {
+func NewService(conn *pgxpool.Pool, dispatch Dispatch, fileStorage FileStorage, notify NotifyClient, allpay AllpayClient, govUK GovUKClient, env *Env) *Service {
 	return &Service{
 		store:       store.New(conn),
 		dispatch:    dispatch,
 		fileStorage: fileStorage,
 		notify:      notify,
 		allpay:      allpay,
+		govUK:       govUK,
 		tx:          conn,
 		env:         env,
 	}

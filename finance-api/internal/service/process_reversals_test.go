@@ -118,7 +118,7 @@ func (suite *IntegrationSuite) Test_processReversals() {
 	)
 
 	dispatch := &mockDispatch{}
-	s := NewService(seeder.Conn, dispatch, nil, nil, nil, nil)
+	s := NewService(seeder.Conn, dispatch, nil, nil, nil, nil, nil)
 
 	tests := []struct {
 		name                string

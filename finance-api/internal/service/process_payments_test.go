@@ -155,7 +155,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
 			dispatch := &mockDispatch{}
-			s := NewService(seeder.Conn, dispatch, nil, nil, nil, nil)
+			s := NewService(seeder.Conn, dispatch, nil, nil, nil, nil, nil)
 
 			var currentLedgerId int
 			_ = seeder.QueryRow(suite.ctx, `SELECT MAX(id) FROM ledger`).Scan(&currentLedgerId)
