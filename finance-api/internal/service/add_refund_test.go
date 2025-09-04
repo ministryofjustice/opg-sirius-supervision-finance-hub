@@ -12,7 +12,7 @@ func (suite *IntegrationSuite) TestService_AddRefund() {
 	ctx := suite.ctx
 	seeder := suite.cm.Seeder(ctx, suite.T())
 	dispatch := &mockDispatch{}
-	s := NewService(seeder.Conn, dispatch, nil, nil, nil, nil)
+	s := NewService(seeder.Conn, dispatch, nil, nil, nil, nil, nil)
 
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (24, 2401, '1234', 'DEMANDED', NULL);",
@@ -72,7 +72,7 @@ func (suite *IntegrationSuite) TestService_AddRefund() {
 func (suite *IntegrationSuite) TestService_AddRefund_noCreditToRefund() {
 	ctx := suite.ctx
 	seeder := suite.cm.Seeder(ctx, suite.T())
-	s := NewService(seeder.Conn, nil, nil, nil, nil, nil)
+	s := NewService(seeder.Conn, nil, nil, nil, nil, nil, nil)
 
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (24, 24, '1234', 'DEMANDED', NULL);",

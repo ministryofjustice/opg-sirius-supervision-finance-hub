@@ -22,6 +22,7 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/filestorage"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/govuk"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/reports"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/service"
@@ -56,6 +57,7 @@ type Envs struct {
 	allpayHost         string
 	allpayAPIKey       string
 	allpaySchemeCode   string
+	holidayAPIURL      string
 }
 
 func parseEnvs() (*Envs, error) {
@@ -126,6 +128,7 @@ func parseEnvs() (*Envs, error) {
 		allpayHost:         os.Getenv("ALLPAY_HOST"),    // TODO: move to checked values once live
 		allpayAPIKey:       os.Getenv("ALLPAY_API_KEY"), // TODO: move to checked values once live
 		allpaySchemeCode:   "OPGB",
+		holidayAPIURL:      os.Getenv("HOLIDAY_API_URL"),
 	}, nil
 }
 
@@ -174,8 +177,9 @@ func run(ctx context.Context, logger *slog.Logger) error {
 
 	notifyClient := notify.NewClient(envs.notifyKey, envs.notifyUrl)
 	allpayClient := allpay.NewClient(http.DefaultClient, envs.allpayHost, envs.allpayAPIKey, envs.allpaySchemeCode)
+	govUKClient := govuk.NewClient(http.DefaultClient, envs.holidayAPIURL)
 
-	Service := service.NewService(dbPool, eventClient, fileStorageClient, notifyClient, allpayClient, &service.Env{
+	Service := service.NewService(dbPool, eventClient, fileStorageClient, notifyClient, allpayClient, govUKClient, &service.Env{
 		AsyncBucket: envs.asyncBucket,
 	})
 

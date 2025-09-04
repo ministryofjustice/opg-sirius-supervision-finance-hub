@@ -29,7 +29,7 @@ func (suite *IntegrationSuite) Test_processFulfilledRefunds() {
 	)
 
 	dispatch := &mockDispatch{}
-	s := NewService(seeder.Conn, dispatch, nil, nil, nil, nil)
+	s := NewService(seeder.Conn, dispatch, nil, nil, nil, nil, nil)
 
 	records := [][]string{
 		{"Court reference", "Amount", "Bank account name", "Bank account number", "Bank account sort code", "Created by", "Approved by"},

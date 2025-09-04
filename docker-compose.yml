@@ -54,6 +54,7 @@ services:
       EVENT_BRIDGE_API_KEY: test
       ALLPAY_HOST: http://allpay-mock:4010
       ALLPAY_API_KEY: test-key
+      HOLIDAYS_API_URL: http://holidays-api-mock:8080
     depends_on:
       sirius-db:
         condition: service_healthy
