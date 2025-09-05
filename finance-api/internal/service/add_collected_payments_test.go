@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -69,7 +70,7 @@ func (suite *IntegrationSuite) Test_AddCollectedPayments() {
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
 			dispatch := &mockDispatch{}
-			s := NewService(seeder.Conn, dispatch, nil, nil, nil)
+			s := &Service{store: store.New(seeder.Conn), dispatch: dispatch, tx: seeder.Conn}
 
 			err := s.AddCollectedPayments(suite.ctx, tt.collectionDate)
 			assert.Equal(t, tt.expectedErr, err)

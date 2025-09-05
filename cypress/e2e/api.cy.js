@@ -20,6 +20,7 @@ describe('API Tests', () => {
                 cy.request({
                     method: 'DELETE',
                     url: `${jsonServerUrl}/clean/${item.id}`,
+                    failOnStatusCode: false
                 });
             });
         });
@@ -144,8 +145,8 @@ describe('API Tests', () => {
 
      describe('Direct Debit events', () => {
          it('creates ledgers for payments that have passed their collection date', () => {
-             cy.visit("/clients/21/invoices");
-             cy.get("table#invoices > tbody").contains("AD212121/24")
+             cy.visit("/clients/22/invoices");
+             cy.get("table#invoices > tbody").contains("AD222200/24")
                  .parentsUntil("tr").siblings()
                  .first().contains("Unpaid");
 
@@ -173,8 +174,8 @@ describe('API Tests', () => {
 
              cy.wait(1000); // async process so give it a second to complete
 
-             cy.visit("/clients/21/invoices");
-             cy.get("table#invoices > tbody").contains("AD212121/24")
+             cy.visit("/clients/22/invoices");
+             cy.get("table#invoices > tbody").contains("AD222200/24")
                  .parentsUntil("tr").siblings()
                  .first().contains("Closed");
          })
