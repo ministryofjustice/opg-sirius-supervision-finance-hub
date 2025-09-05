@@ -13,6 +13,8 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
+const billingDay = 24
+
 func (s *Service) CreateDirectDebitSchedule(ctx context.Context, clientID int32, data shared.CreateSchedule) error {
 	logger := s.Logger(ctx)
 
@@ -40,7 +42,7 @@ func (s *Service) CreateDirectDebitSchedule(ctx context.Context, clientID int32,
 		return err
 	}
 
-	date, _ = s.govUK.LastWorkingDayOfMonth(ctx, date) // no need to check error here as it would have failed earlier
+	date, _ = s.govUK.NextWorkingDayOnOrAfterX(ctx, date, billingDay) // no need to check error here as it would have failed earlier
 
 	var collectionDate pgtype.Date
 	_ = collectionDate.Scan(date)
