@@ -180,7 +180,14 @@ services:
   allpay-mock:
     image: stoplight/prism:5
     volumes:
-      - ./allpay-mock/allpay.yaml:/openapi.yaml:ro
+      - ./api-mocks/allpay/openapi.yaml:/openapi.yaml:ro
     command: mock /openapi.yaml -h 0.0.0.0 --errors
     ports:
       - "4010:4010"
+
+  holidays-api-mock:
+    build:
+      context: .
+      dockerfile: docker/holidays-api/Dockerfile
+    ports:
+      - "8080:8080"
