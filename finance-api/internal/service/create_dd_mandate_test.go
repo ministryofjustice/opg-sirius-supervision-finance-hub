@@ -30,8 +30,10 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitMandate() {
 	}
 
 	err := s.CreateDirectDebitMandate(ctx, 11, shared.CreateMandate{
-		ClientReference: "11111111",
-		Surname:         "Holder",
+		AllPayCustomer: shared.AllPayCustomer{
+			ClientReference: "11111111",
+			Surname:         "Holder",
+		},
 		Address: shared.Address{
 			Line1:    "1 Main Street",
 			Town:     "Mainopolis",
@@ -83,8 +85,10 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitMandate_modulusCheck
 	}
 
 	err := s.CreateDirectDebitMandate(ctx, 1, shared.CreateMandate{
-		ClientReference: "11111111",
-		Surname:         "Holder",
+		AllPayCustomer: shared.AllPayCustomer{
+			ClientReference: "11111111",
+			Surname:         "Holder",
+		},
 		Address: shared.Address{
 			Line1:    "1 Main Street",
 			Town:     "Mainopolis",
@@ -139,8 +143,10 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitMandate_createMandat
 	}
 
 	err := s.CreateDirectDebitMandate(ctx, 1, shared.CreateMandate{
-		ClientReference: "11111111",
-		Surname:         "Holder",
+		AllPayCustomer: shared.AllPayCustomer{
+			ClientReference: "11111111",
+			Surname:         "Holder",
+		},
 		Address: shared.Address{
 			Line1:    "1 Main Street",
 			Town:     "Mainopolis",

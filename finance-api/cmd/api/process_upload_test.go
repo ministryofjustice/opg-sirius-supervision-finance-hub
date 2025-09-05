@@ -5,15 +5,16 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 func Test_processUpload(t *testing.T) {
@@ -68,11 +69,6 @@ func Test_processUpload(t *testing.T) {
 }
 
 func Test_processUploadFile(t *testing.T) {
-	notifyClient := &mockNotify{}
-	service := &mockService{}
-
-	server := NewServer(service, nil, nil, notifyClient, nil, nil, nil)
-
 	tests := []struct {
 		name                string
 		upload              Upload
@@ -183,14 +179,23 @@ func Test_processUploadFile(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		notifyClient := &mockNotify{}
+		service := &mockService{}
+
+		server := NewServer(service, nil, nil, notifyClient, nil, nil, nil)
+
 		ctx := auth.Context{
 			Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test")),
 			User:    &shared.User{ID: 1},
 		}
 
 		server.processUploadFile(ctx, tt.upload)
-		assert.Equal(t, tt.expectedPayload, notifyClient.payload)
-		assert.Equal(t, tt.expectedServiceCall, service.lastCalled)
+		assert.Equal(t, tt.expectedPayload, notifyClient.payload, tt.name)
+		if tt.expectedServiceCall != "" {
+			assert.Equal(t, tt.expectedServiceCall, service.called[0], tt.name)
+		} else {
+			assert.Len(t, service.called, 0, tt.name)
+		}
 	}
 }
 

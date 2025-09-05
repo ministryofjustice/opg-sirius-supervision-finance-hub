@@ -1,5 +1,10 @@
 package shared
 
+type AllPayCustomer struct {
+	Surname         string `json:"Surname" validate:"required"`
+	ClientReference string `json:"ClientReference" validate:"required"`
+}
+
 type AllPayBankDetails struct {
 	AccountName   string `json:"accountName" validate:"required,lte=18"`
 	SortCode      string `json:"sortCode" validate:"required,len=8"`
@@ -13,15 +18,17 @@ type Address struct {
 }
 
 type CreateMandate struct {
-	ClientReference string  `json:"clientReference" validate:"required"`
-	Surname         string  `json:"lastName" validate:"required"`
-	Address         Address `json:"address"`
-	BankAccount     struct {
+	AllPayCustomer
+	Address     Address `json:"address"`
+	BankAccount struct {
 		BankDetails AllPayBankDetails `json:"bankDetails"`
 	} `json:"bankAccount"`
 }
 
 type CancelMandate struct {
-	Surname  string `json:"Surname" validate:"required"`
-	CourtRef string `json:"CourtRef" validate:"required"`
+	AllPayCustomer
+}
+
+type CreateSchedule struct {
+	AllPayCustomer
 }

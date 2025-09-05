@@ -48,7 +48,7 @@ func TestServer_UpdateRefundDecision500Error(t *testing.T) {
 
 	validator, _ := validation.New()
 
-	mock := &mockService{err: errors.New("Something is wrong")}
+	mock := &mockService{errs: map[string]error{"UpdateRefundDecision": errors.New("something is wrong")}}
 	server := NewServer(mock, nil, nil, nil, nil, validator, nil)
 	err := server.updateRefundDecision(w, req)
 

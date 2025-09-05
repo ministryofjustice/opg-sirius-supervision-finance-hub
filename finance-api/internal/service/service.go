@@ -41,10 +41,12 @@ type AllpayClient interface {
 	CancelMandate(ctx context.Context, data *allpay.CancelMandateRequest) error
 	CreateMandate(ctx context.Context, data *allpay.CreateMandateRequest) error
 	ModulusCheck(ctx context.Context, sortCode string, accountNumber string) error
+	CreateSchedule(ctx context.Context, data *allpay.CreateScheduleInput) error
 }
 
 type GovUKClient interface {
 	AddWorkingDays(ctx context.Context, d time.Time, n int) (time.Time, error)
+	LastWorkingDayOfMonth(ctx context.Context, d time.Time) (time.Time, error)
 }
 
 type Env struct {

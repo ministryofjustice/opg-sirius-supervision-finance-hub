@@ -21,8 +21,10 @@ func (c *Client) CancelDirectDebitMandate(ctx context.Context, clientId int) err
 	}
 
 	err = json.NewEncoder(&body).Encode(&shared.CancelMandate{
-		CourtRef: client.CourtRef,
-		Surname:  client.Surname,
+		AllPayCustomer: shared.AllPayCustomer{
+			ClientReference: client.CourtRef,
+			Surname:         client.Surname,
+		},
 	})
 	if err != nil {
 		return err

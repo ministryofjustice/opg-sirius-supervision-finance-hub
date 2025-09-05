@@ -1,14 +1,15 @@
 package api
 
 import (
-	"github.com/jackc/pgx/v5"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestServer_getBillingHistory(t *testing.T) {
@@ -75,7 +76,7 @@ func TestServer_getBillingHistory_error(t *testing.T) {
 	req.SetPathValue("clientId", "1")
 	w := httptest.NewRecorder()
 
-	mock := &mockService{err: pgx.ErrTooManyRows}
+	mock := &mockService{errs: map[string]error{"GetBillingHistory": pgx.ErrTooManyRows}}
 	server := NewServer(mock, nil, nil, nil, nil, nil, nil)
 	err := server.getBillingHistory(w, req)
 

@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 func TestServer_updatePendingInvoiceAdjustment(t *testing.T) {
@@ -48,7 +49,7 @@ func TestServer_updatePendingInvoiceAdjustment500Error(t *testing.T) {
 
 	validator, _ := validation.New()
 
-	mock := &mockService{err: errors.New("Something is wrong")}
+	mock := &mockService{errs: map[string]error{"UpdatePendingInvoiceAdjustment": errors.New("something is wrong")}}
 	server := NewServer(mock, nil, nil, nil, nil, validator, nil)
 	err := server.updatePendingInvoiceAdjustment(w, req)
 
@@ -66,7 +67,7 @@ func TestServer_updatePendingInvoiceAdjustmentValidationError(t *testing.T) {
 
 	validator, _ := validation.New()
 
-	mock := &mockService{err: errors.New("Something is wrong")}
+	mock := &mockService{errs: map[string]error{"UpdatePendingInvoiceAdjustment": errors.New("something is wrong")}}
 	server := NewServer(mock, nil, nil, nil, nil, validator, nil)
 	err := server.updatePendingInvoiceAdjustment(w, req)
 

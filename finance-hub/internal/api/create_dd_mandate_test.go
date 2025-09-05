@@ -49,8 +49,10 @@ func TestCreateDirectDebitMandate(t *testing.T) {
 				t.Errorf("Invalid JSON body: %v", err)
 			}
 			assert.EqualValues(t, shared.CreateMandate{
-				ClientReference: "11111111",
-				Surname:         "Holder",
+				AllPayCustomer: shared.AllPayCustomer{
+					ClientReference: "11111111",
+					Surname:         "Holder",
+				},
 				Address: shared.Address{
 					Line1:    "1 Main Street",
 					Town:     "Mainopolis",
