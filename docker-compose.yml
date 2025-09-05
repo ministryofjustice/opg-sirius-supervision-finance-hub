@@ -52,7 +52,7 @@ services:
       OPG_NOTIFY_API_KEY: test
       OPG_SUPERVISION_SYSTEM_USER_ID: 1
       EVENT_BRIDGE_API_KEY: test
-      ALLPAY_HOST: http://allpay-mock:4010
+      ALLPAY_HOST: http://allpay-mock:8080
       ALLPAY_API_KEY: test-key
       HOLIDAYS_API_URL: http://holidays-api-mock:8080/bank-holidays.json
     depends_on:
@@ -178,12 +178,19 @@ services:
       retries: 50
 
   allpay-mock:
-    image: stoplight/prism:5
-    volumes:
-      - ./api-mocks/allpay/openapi.yaml:/openapi.yaml:ro
-    command: mock /openapi.yaml -h 0.0.0.0 --errors
+    build:
+      context: .
+      dockerfile: docker/allpay/Dockerfile
     ports:
-      - "4010:4010"
+      - "4010:8080"
+    volumes:
+      - ./api-mocks/allpay:/opt/imposter/config
+    healthcheck:
+      test: [ "CMD", "imposter", "list", "-x" ]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+
 
   holidays-api-mock:
     build:

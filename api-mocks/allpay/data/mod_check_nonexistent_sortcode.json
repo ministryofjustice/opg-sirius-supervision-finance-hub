@@ -1,0 +1,7 @@
+{
+  "AccountNumber": 12345678,
+  "DirectDebitCapable": false,
+  "DirectCreditCapable": false,
+  "SortCode": 123456,
+  "Valid": true
+}

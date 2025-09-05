@@ -11,14 +11,12 @@ import (
 
 type Context struct {
 	context.Context
-	User    *shared.User
-	Cookies []*http.Cookie
+	User *shared.User
 }
 
 func NewContext(r *http.Request) Context {
 	return Context{
 		Context: r.Context(),
-		Cookies: r.Cookies(),
 	}
 }
 
@@ -26,7 +24,6 @@ func (c Context) WithContext(ctx context.Context) Context {
 	return Context{
 		Context: ctx,
 		User:    c.User,
-		Cookies: c.Cookies,
 	}
 }
 
