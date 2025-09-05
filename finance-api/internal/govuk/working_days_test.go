@@ -172,3 +172,54 @@ func TestNextWorkingDayOnOrAfterX(t *testing.T) {
 		}
 	}
 }
+
+func TestNextWorkingDayOnOrAfterX(t *testing.T) {
+	client := &Client{
+		caches: newCaches(),
+	}
+	client.caches.updateHolidays([]Holiday{{"2025-01-24"}, {"2025-01-25"}})
+	X := 24
+
+	tests := []struct {
+		name     string
+		date     time.Time
+		expected time.Time
+	}{
+		{
+			name:     "before X",
+			date:     time.Date(2024, 12, 10, 0, 0, 0, 0, time.UTC),
+			expected: time.Date(2024, 12, X, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			name:     "on X",
+			date:     time.Date(2024, 12, X, 0, 0, 0, 0, time.UTC),
+			expected: time.Date(2024, 12, X, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			name:     "after X",
+			date:     time.Date(2025, 1, 25, 0, 0, 0, 0, time.UTC),
+			expected: time.Date(2025, 2, X, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			name:     "on X with working days",
+			date:     time.Date(2025, 1, X, 0, 0, 0, 0, time.UTC),
+			expected: time.Date(2025, 1, 26, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			name:     "after X on working days",
+			date:     time.Date(2024, 12, 25, 0, 0, 0, 0, time.UTC),
+			expected: time.Date(2025, 1, 26, 0, 0, 0, 0, time.UTC),
+		},
+	}
+
+	for _, tt := range tests {
+		result, err := client.NextWorkingDayOnOrAfterX(testContext(), tt.date, X)
+		if err != nil {
+			t.Fatalf("NextWorkingDayOnOrAfterX returned error: %v", err)
+		}
+
+		if !result.Equal(tt.expected) {
+			t.Errorf("NextWorkingDayOnOrAfterX:%s = %v; want %v", tt.name, result, tt.expected)
+		}
+	}
+}
