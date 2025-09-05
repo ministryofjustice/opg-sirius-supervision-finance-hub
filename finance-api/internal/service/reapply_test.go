@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -33,7 +34,7 @@ func (suite *IntegrationSuite) TestService_reapplyCredit_noInvoices() {
 		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 3;",
 	)
 	dispatch := &mockDispatch{}
-	s := NewService(seeder.Conn, dispatch, nil, nil, nil, nil, nil)
+	s := Service{store: store.New(seeder.Conn), dispatch: dispatch, tx: seeder.Conn}
 	err := s.ReapplyCredit(ctx, 1, nil)
 	assert.Nil(suite.T(), err)
 
@@ -68,7 +69,7 @@ func (suite *IntegrationSuite) TestService_reapplyCredit_oldestFirst() {
 		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 3;",
 	)
 	dispatch := &mockDispatch{}
-	s := NewService(seeder.Conn, dispatch, nil, nil, nil, nil, nil)
+	s := Service{store: store.New(seeder.Conn), dispatch: dispatch, tx: seeder.Conn}
 	err := s.ReapplyCredit(ctx, 1, nil)
 	assert.Nil(suite.T(), err)
 
@@ -121,7 +122,7 @@ func (suite *IntegrationSuite) TestService_reapplyCredit_requiresApprovedLedger(
 		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 3;",
 	)
 	dispatch := &mockDispatch{}
-	s := NewService(seeder.Conn, dispatch, nil, nil, nil, nil, nil)
+	s := Service{store: store.New(seeder.Conn), dispatch: dispatch, tx: seeder.Conn}
 	err := s.ReapplyCredit(ctx, 1, nil)
 	assert.Nil(suite.T(), err)
 
