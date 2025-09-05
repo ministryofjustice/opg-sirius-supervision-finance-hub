@@ -2,15 +2,17 @@ package service
 
 import (
 	"context"
+	"strconv"
+	"testing"
+	"time"
+
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"strconv"
-	"testing"
-	"time"
 )
 
 type createdLedgerAllocation struct {
@@ -155,7 +157,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
 			dispatch := &mockDispatch{}
-			s := NewService(seeder.Conn, dispatch, nil, nil, nil, nil, nil)
+			s := Service{store: store.New(seeder.Conn), dispatch: dispatch, tx: seeder.Conn}
 
 			var currentLedgerId int
 			_ = seeder.QueryRow(suite.ctx, `SELECT MAX(id) FROM ledger`).Scan(&currentLedgerId)

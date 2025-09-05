@@ -122,46 +122,6 @@ func TestAddWorkingDays_cache_refresh(t *testing.T) {
 	}
 }
 
-func TestLastWorkingDayOfMonth(t *testing.T) {
-	client := &Client{
-		caches: newCaches(),
-	}
-	client.caches.updateHolidays([]Holiday{{"2025-12-31"}})
-
-	tests := []struct {
-		name     string
-		date     time.Time
-		expected time.Time
-	}{
-		{
-			name:     "december",
-			date:     time.Date(2025, 12, 10, 0, 0, 0, 0, time.UTC),
-			expected: time.Date(2025, 12, 30, 0, 0, 0, 0, time.UTC),
-		},
-		{
-			name:     "january",
-			date:     time.Date(2025, 1, 17, 0, 0, 0, 0, time.UTC),
-			expected: time.Date(2025, 1, 31, 0, 0, 0, 0, time.UTC),
-		},
-		{
-			name:     "endOfMonth",
-			date:     time.Date(2025, 1, 31, 0, 0, 0, 0, time.UTC),
-			expected: time.Date(2025, 1, 31, 0, 0, 0, 0, time.UTC),
-		},
-	}
-
-	for _, tt := range tests {
-		result, err := client.LastWorkingDayOfMonth(testContext(), tt.date)
-		if err != nil {
-			t.Fatalf("lastWorkingDayOfMonth returned error: %v", err)
-		}
-
-		if !result.Equal(tt.expected) {
-			t.Errorf("lastWorkingDayOfMonth:%s = %v; want %v", tt.name, result, tt.expected)
-		}
-	}
-}
-
 func TestNextWorkingDayOnOrAfterX(t *testing.T) {
 	client := &Client{
 		caches: newCaches(),

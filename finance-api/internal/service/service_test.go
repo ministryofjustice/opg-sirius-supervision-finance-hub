@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/allpay"
@@ -75,26 +76,51 @@ func (m *mockDispatch) RefundAdded(ctx context.Context, event event.RefundAdded)
 }
 
 type mockAllpay struct {
-	called []string
-	errs   map[string]error
+	called           []string
+	errs             map[string]error
+	lastCalledParams []interface{}
 }
 
 func (m *mockAllpay) CancelMandate(ctx context.Context, data *allpay.CancelMandateRequest) error {
 	m.called = append(m.called, "CancelMandate")
+	m.lastCalledParams = []interface{}{data}
 	return m.errs["CancelMandate"]
 }
 
 func (m *mockAllpay) CreateMandate(ctx context.Context, data *allpay.CreateMandateRequest) error {
 	m.called = append(m.called, "CreateMandate")
+	m.lastCalledParams = []interface{}{data}
 	return m.errs["CreateMandate"]
 }
 
 func (m *mockAllpay) ModulusCheck(ctx context.Context, sortCode string, accountNumber string) error {
 	m.called = append(m.called, "ModulusCheck")
+	m.lastCalledParams = []interface{}{sortCode, accountNumber}
 	return m.errs["ModulusCheck"]
 }
 
 func (m *mockAllpay) CreateSchedule(ctx context.Context, data *allpay.CreateScheduleInput) error {
 	m.called = append(m.called, "CreateSchedule")
+	m.lastCalledParams = []interface{}{data}
 	return m.errs["CreateSchedule"]
+}
+
+type mockGovUK struct {
+	called         []string
+	errs           map[string]error
+	nWorkingDays   int
+	Xday           int
+	nextWorkingDay time.Time
+}
+
+func (m *mockGovUK) AddWorkingDays(ctx context.Context, d time.Time, n int) (time.Time, error) {
+	m.called = append(m.called, "AddWorkingDays")
+	m.nWorkingDays = n
+	return time.Time{}, m.errs["AddWorkingDays"]
+}
+
+func (m *mockGovUK) NextWorkingDayOnOrAfterX(ctx context.Context, date time.Time, dayOfMonth int) (time.Time, error) {
+	m.called = append(m.called, "NextWorkingDayOnOrAfterX")
+	m.Xday = dayOfMonth
+	return m.nextWorkingDay, m.errs["NextWorkingDayOnOrAfterX"]
 }

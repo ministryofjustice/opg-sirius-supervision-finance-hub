@@ -7,6 +7,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/testhelpers"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
@@ -23,7 +24,7 @@ func addFeeReductionSetup(seeder *testhelpers.Seeder) (*Service, shared.AddFeeRe
 		Notes:         "Testing",
 	}
 
-	s := NewService(seeder.Conn, nil, nil, nil, nil, nil, nil)
+	s := &Service{store: store.New(seeder.Conn), tx: seeder.Conn}
 
 	return s, params
 }

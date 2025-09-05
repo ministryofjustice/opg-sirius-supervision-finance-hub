@@ -1,8 +1,10 @@
 package service
 
 import (
-	"github.com/stretchr/testify/assert"
 	"time"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
+	"github.com/stretchr/testify/assert"
 )
 
 func (suite *IntegrationSuite) Test_processAdhocEvent() {
@@ -22,7 +24,7 @@ func (suite *IntegrationSuite) Test_processAdhocEvent() {
 		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 3;",
 	)
 	dispatch := &mockDispatch{}
-	s := NewService(seeder.Conn, dispatch, nil, nil, nil, nil, nil)
+	s := Service{store: store.New(seeder.Conn), dispatch: dispatch, tx: seeder.Conn}
 	err := s.ProcessAdhocEvent(ctx)
 	assert.Nil(suite.T(), err)
 

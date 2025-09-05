@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -33,7 +34,7 @@ func (suite *IntegrationSuite) Test_expireRefunds() {
 		"INSERT INTO bank_details VALUES (6, 6, 'MR IAN TEST', '11111111', '11-11-11');",
 	)
 
-	s := NewService(seeder.Conn, nil, nil, nil, nil, nil, nil)
+	s := Service{store: store.New(seeder.Conn)}
 
 	suite.T().Run("ExpireRefunds", func(t *testing.T) {
 		err := s.ExpireRefunds(ctx)

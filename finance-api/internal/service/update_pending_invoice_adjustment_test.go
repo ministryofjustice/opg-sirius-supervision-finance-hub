@@ -1,12 +1,13 @@
 package service
 
 import (
+	"testing"
+
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func (suite *IntegrationSuite) TestService_UpdatePendingInvoiceAdjustment() {
@@ -41,7 +42,7 @@ func (suite *IntegrationSuite) TestService_UpdatePendingInvoiceAdjustment() {
 	)
 
 	dispatch := &mockDispatch{}
-	s := NewService(seeder.Conn, dispatch, nil, nil, nil, nil, nil)
+	s := Service{store: store.New(seeder.Conn), dispatch: dispatch, tx: seeder.Conn}
 
 	type args struct {
 		clientId     int32
@@ -168,7 +169,7 @@ func (suite *IntegrationSuite) Test_setAdjustmentDecision_LinkedToNonConfirmedLe
 			"INSERT INTO ledger_allocation VALUES (1, CURRVAL('ledger_id_seq'), 1, '2024-01-01 15:30:27', 10000, 'ALLOCATED', NULL, '', '2024-01-01', NULL)",
 		)
 
-		s := NewService(seeder.Conn, nil, nil, nil, nil, nil, nil)
+		s := Service{store: store.New(seeder.Conn), tx: seeder.Conn}
 		suite.T().Run("test", func(t *testing.T) {
 			tx, _ := s.BeginStoreTx(ctx)
 			var updatedBy pgtype.Int4
@@ -199,7 +200,7 @@ func (suite *IntegrationSuite) Test_setAdjustmentDecision_LinkedToConfirmedLedge
 			"INSERT INTO ledger_allocation VALUES (1, CURRVAL('ledger_id_seq'), 1, '2024-01-01 15:30:27', 10000, 'ALLOCATED', NULL, '', '2024-01-01', NULL)",
 		)
 
-		s := NewService(seeder.Conn, nil, nil, nil, nil, nil, nil)
+		s := Service{store: store.New(seeder.Conn), tx: seeder.Conn}
 		suite.T().Run("test", func(t *testing.T) {
 			tx, _ := s.BeginStoreTx(ctx)
 			var updatedBy pgtype.Int4
