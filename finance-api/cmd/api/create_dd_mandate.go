@@ -9,6 +9,7 @@ import (
 
 func (s *Server) createDirectDebitMandate(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
+	logger := s.Logger(ctx)
 
 	var createMandate shared.CreateMandate
 	defer unchecked(r.Body.Close)
@@ -22,11 +23,6 @@ func (s *Server) createDirectDebitMandate(w http.ResponseWriter, r *http.Request
 	if len(validationError.Errors) != 0 {
 		return validationError
 	}
-	//TODO:
-	// modulus check
-	// return 400
-	// create mandate
-	// create schedule
 
 	clientId, err := s.getPathID(r, "clientId")
 	if err != nil {
@@ -34,6 +30,12 @@ func (s *Server) createDirectDebitMandate(w http.ResponseWriter, r *http.Request
 	}
 
 	if err := s.service.CreateDirectDebitMandate(ctx, clientId, createMandate); err != nil {
+		logger.Error("creating mandate in createDirectDebitMandate failed", "err", err)
+		return err
+	}
+
+	if err := s.service.CreateDirectDebitSchedule(ctx, clientId, shared.CreateSchedule{AllPayCustomer: createMandate.AllPayCustomer}); err != nil {
+		logger.Error("creating schedule in createDirectDebitMandate failed", "err", err)
 		return err
 	}
 

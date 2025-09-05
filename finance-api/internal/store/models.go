@@ -197,6 +197,17 @@ type LedgerAllocation struct {
 	Source        pgtype.Text
 }
 
+type PendingCollection struct {
+	ID              int32
+	FinanceClientID int32
+	CollectionDate  pgtype.Date
+	Amount          int32
+	Status          string
+	LedgerID        pgtype.Int4
+	CreatedAt       pgtype.Timestamp
+	CreatedBy       int32
+}
+
 type Person struct {
 	ID                                          int32
 	Salutation                                  pgtype.Text

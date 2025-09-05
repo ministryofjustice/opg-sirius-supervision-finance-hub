@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestServer_updatePaymentMethod(t *testing.T) {
@@ -45,7 +46,7 @@ func TestServer_updatePaymentMethod500Error(t *testing.T) {
 
 	validator, _ := validation.New()
 
-	mock := &mockService{err: errors.New("Something is wrong")}
+	mock := &mockService{errs: map[string]error{"UpdatePaymentMethod": errors.New("something is wrong")}}
 	server := NewServer(mock, nil, nil, nil, nil, validator, nil)
 	err := server.updatePaymentMethod(w, req)
 

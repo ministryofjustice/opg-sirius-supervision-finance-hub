@@ -17,8 +17,10 @@ func TestServer_cancelDirectDebitMandate(t *testing.T) {
 	var b bytes.Buffer
 
 	data := shared.CancelMandate{
-		Surname:  "Nameson",
-		CourtRef: "1234567T",
+		AllPayCustomer: shared.AllPayCustomer{
+			Surname:         "Nameson",
+			ClientReference: "1234567T",
+		},
 	}
 	_ = json.NewEncoder(&b).Encode(data)
 	req := httptest.NewRequest(http.MethodDelete, "/clients/1/direct-debit", &b)
@@ -35,15 +37,17 @@ func TestServer_cancelDirectDebitMandate(t *testing.T) {
 	defer unchecked(res.Body.Close)
 
 	assert.Equal(t, http.StatusNoContent, w.Code)
-	assert.Equal(t, "CancelDirectDebitMandate", mock.lastCalled)
+	assert.Equal(t, "CancelDirectDebitMandate", mock.called[0])
 }
 
 func TestServer_cancelDirectDebitMandate_500Error(t *testing.T) {
 	var b bytes.Buffer
 
 	data := shared.CancelMandate{
-		Surname:  "Nameson",
-		CourtRef: "1234567T",
+		AllPayCustomer: shared.AllPayCustomer{
+			Surname:         "Nameson",
+			ClientReference: "1234567T",
+		},
 	}
 	_ = json.NewEncoder(&b).Encode(data)
 	req := httptest.NewRequest(http.MethodDelete, "/clients/1/direct-debit", &b)
@@ -52,7 +56,7 @@ func TestServer_cancelDirectDebitMandate_500Error(t *testing.T) {
 
 	validator, _ := validation.New()
 
-	mock := &mockService{err: errors.New("something is wrong")}
+	mock := &mockService{errs: map[string]error{"CancelDirectDebitMandate": errors.New("something is wrong")}}
 	server := NewServer(mock, nil, nil, nil, nil, validator, nil)
 	err := server.cancelDirectDebitMandate(w, req)
 

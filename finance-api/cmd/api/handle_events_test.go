@@ -3,15 +3,16 @@ package api
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestServer_handleEvents(t *testing.T) {
@@ -94,7 +95,11 @@ func TestServer_handleEvents(t *testing.T) {
 			} else {
 				assert.Nil(t, err)
 			}
-			assert.Equal(t, test.expectedHandler, mock.lastCalled)
+			if test.expectedHandler != "" {
+				assert.Equal(t, test.expectedHandler, mock.called[0])
+			} else {
+				assert.Len(t, mock.called, 0)
+			}
 		})
 	}
 }

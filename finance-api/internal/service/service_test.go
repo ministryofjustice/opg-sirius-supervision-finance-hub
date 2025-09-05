@@ -93,3 +93,8 @@ func (m *mockAllpay) ModulusCheck(ctx context.Context, sortCode string, accountN
 	m.called = append(m.called, "ModulusCheck")
 	return m.errs["ModulusCheck"]
 }
+
+func (m *mockAllpay) CreateSchedule(ctx context.Context, data *allpay.CreateScheduleInput) error {
+	m.called = append(m.called, "CreateSchedule")
+	return m.errs["CreateSchedule"]
+}

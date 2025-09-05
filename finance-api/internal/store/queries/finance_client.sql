@@ -68,7 +68,6 @@ SELECT
 FROM ledger_data
 WHERE ledger_data.court_ref = $1;
 
-
 -- name: GetCreditBalanceByCourtRef :one
 SELECT ABS(COALESCE(SUM(la.amount), 0))::INT AS credit
 FROM finance_client fc

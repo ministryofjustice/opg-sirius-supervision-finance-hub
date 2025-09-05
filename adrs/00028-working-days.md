@@ -13,9 +13,9 @@ we need a mechanism to obtain these dates in order to be able to make the instru
 
 ## Decision
 
-There are a number of libraries and APIs we could use but the simplest is to use the Gov.uk Bank Holidays API. This requires
-no authentication, serves simple JSON, and is reliably updated. We can improve performance by caching the data, and for that
-we can utilise our existing in-memory caching used for storing user data. 
+There are a number of libraries and APIs we could use but the simplest is to use the [Gov.uk Bank Holidays API]((https://www.gov.uk/bank-holidays.json)). 
+This requires no authentication, serves simple JSON, and is reliably updated. We can improve performance by caching the 
+data, and for that we can utilise our existing in-memory caching used for storing user data. 
 
 ## Consequences
 

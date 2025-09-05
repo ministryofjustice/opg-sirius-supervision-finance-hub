@@ -31,7 +31,7 @@ func (s *Service) CancelDirectDebitMandate(ctx context.Context, id int32, cancel
 
 	// update allpay
 	err = s.allpay.CancelMandate(ctx, &allpay.CancelMandateRequest{
-		ClientReference: cancelMandate.CourtRef,
+		ClientReference: cancelMandate.ClientReference,
 		Surname:         cancelMandate.Surname,
 	})
 
