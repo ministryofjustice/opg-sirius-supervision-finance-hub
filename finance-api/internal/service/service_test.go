@@ -2,14 +2,16 @@ package service
 
 import (
 	"context"
+	"net/http"
+	"testing"
+
 	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/allpay"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/testhelpers"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/suite"
-	"net/http"
-	"testing"
 )
 
 type IntegrationSuite struct {
@@ -70,4 +72,24 @@ func (m *mockDispatch) CreditOnAccount(ctx context.Context, event event.CreditOn
 func (m *mockDispatch) RefundAdded(ctx context.Context, event event.RefundAdded) error {
 	m.event = event
 	return nil
+}
+
+type mockAllpay struct {
+	called []string
+	errs   map[string]error
+}
+
+func (m *mockAllpay) CancelMandate(ctx context.Context, data *allpay.CancelMandateRequest) error {
+	m.called = append(m.called, "CancelMandate")
+	return m.errs["CancelMandate"]
+}
+
+func (m *mockAllpay) CreateMandate(ctx context.Context, data *allpay.CreateMandateRequest) error {
+	m.called = append(m.called, "CreateMandate")
+	return m.errs["CreateMandate"]
+}
+
+func (m *mockAllpay) ModulusCheck(ctx context.Context, sortCode string, accountNumber string) error {
+	m.called = append(m.called, "ModulusCheck")
+	return m.errs["ModulusCheck"]
 }

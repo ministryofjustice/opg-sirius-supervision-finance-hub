@@ -22,7 +22,7 @@ func (suite *IntegrationSuite) TestService_UpdateRefundDecision() {
 		"INSERT INTO bank_details VALUES (3, 3, 'Clint Client', '12345678', '11-22-33');",
 	)
 
-	s := NewService(seeder.Conn, nil, nil, nil, nil)
+	s := NewService(seeder.Conn, nil, nil, nil, nil, nil)
 
 	type args struct {
 		clientId int32

@@ -3,9 +3,10 @@ package allpay
 import (
 	"context"
 	"fmt"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"net/http"
 	"time"
+
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 )
 
 type CancelMandateRequest struct {

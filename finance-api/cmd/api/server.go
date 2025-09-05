@@ -2,6 +2,12 @@ package api
 
 import (
 	"context"
+	"io"
+	"log/slog"
+	"net/http"
+	"strconv"
+	"time"
+
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/ministryofjustice/opg-go-common/securityheaders"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
@@ -12,11 +18,6 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	"io"
-	"log/slog"
-	"net/http"
-	"strconv"
-	"time"
 )
 
 type Service interface {
@@ -44,6 +45,8 @@ type Service interface {
 	UpdatePaymentMethod(ctx context.Context, clientID int32, paymentMethod shared.PaymentMethod) error
 	UpdatePendingInvoiceAdjustment(ctx context.Context, clientId int32, adjustmentId int32, status shared.AdjustmentStatus) error
 	UpdateRefundDecision(ctx context.Context, clientId int32, refundId int32, status shared.RefundStatus) error
+	CreateDirectDebitMandate(ctx context.Context, id int32, createMandate shared.CreateMandate) error
+	CancelDirectDebitMandate(ctx context.Context, id int32, cancelMandate shared.CancelMandate) error
 }
 type FileStorage interface {
 	GetFile(ctx context.Context, bucketName string, filename string) (io.ReadCloser, error)
@@ -121,6 +124,8 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 	authFunc("PUT /clients/{clientId}/payment-method", shared.RoleFinanceUser, s.updatePaymentMethod)
 	authFunc("POST /clients/{clientId}/refunds", shared.RoleFinanceUser, s.addRefund)
 	authFunc("PUT /clients/{clientId}/refunds/{refundId}", shared.RoleFinanceManager, s.updateRefundDecision)
+	authFunc("POST /clients/{clientId}/direct-debit", shared.RoleFinanceUser, s.createDirectDebitMandate)
+	authFunc("DELETE /clients/{clientId}/direct-debit", shared.RoleFinanceUser, s.cancelDirectDebitMandate)
 
 	authFunc("GET /download", shared.RoleFinanceReporting, s.download)
 	authFunc("HEAD /download", shared.RoleFinanceReporting, s.checkDownload)
@@ -172,6 +177,7 @@ func (s *Server) copyCtx(r *http.Request) context.Context {
 	return auth.Context{
 		Context: copyCtx,
 		User:    r.Context().(auth.Context).User,
+		Cookies: r.Cookies(),
 	}
 }
 

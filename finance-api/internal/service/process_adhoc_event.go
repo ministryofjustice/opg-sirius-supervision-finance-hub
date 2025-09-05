@@ -3,9 +3,10 @@ package service
 import (
 	"context"
 	"fmt"
+	"log/slog"
+
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
-	"log/slog"
 )
 
 func (s *Service) ProcessAdhocEvent(ctx context.Context) error {
@@ -13,10 +14,7 @@ func (s *Service) ProcessAdhocEvent(ctx context.Context) error {
 	go func(logger *slog.Logger) {
 		logger.Info("RebalanceCCB: process adhoc event")
 		funcCtx := telemetry.ContextWithLogger(context.Background(), logger)
-		funcCtx = auth.Context{
-			Context: funcCtx,
-			User:    ctx.(auth.Context).User,
-		}
+		funcCtx = ctx.(auth.Context).WithContext(funcCtx)
 		clientIDs, err := s.store.GetClientsWithCredit(funcCtx)
 		if err != nil {
 			logger.Error("RebalanceCCB: unable to fetch clients", "error", err)

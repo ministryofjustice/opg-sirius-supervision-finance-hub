@@ -1,12 +1,15 @@
 package service
 
 import (
+	"errors"
+	"testing"
+	"time"
+
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/testhelpers"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"testing"
-	"time"
 )
 
 func addFeeReductionSetup(seeder *testhelpers.Seeder) (*Service, shared.AddFeeReduction) {
@@ -20,7 +23,7 @@ func addFeeReductionSetup(seeder *testhelpers.Seeder) (*Service, shared.AddFeeRe
 		Notes:         "Testing",
 	}
 
-	s := NewService(seeder.Conn, nil, nil, nil, nil)
+	s := NewService(seeder.Conn, nil, nil, nil, nil, nil)
 
 	return s, params
 }
@@ -140,10 +143,13 @@ func (suite *IntegrationSuite) TestService_AddFeeReductionOverlap() {
 
 			err := s.AddFeeReduction(suite.ctx, 23, params)
 			if err != nil {
-				assert.Equalf(t, "overlap", err.Error(), "StartYear %s has an overlap", tc.startYear)
-				return
+				var e apierror.BadRequest
+				if errors.As(err, &e) {
+					assert.Equal(suite.T(), "overlap", e.Reason)
+				} else {
+					suite.T().Error("error is not of type BadRequest")
+				}
 			}
-			t.Error("Overlap was expected")
 		})
 	}
 }

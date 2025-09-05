@@ -1,0 +1,72 @@
+package service
+
+import (
+	"context"
+	"fmt"
+	"log/slog"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/allpay"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+)
+
+func (s *Service) CreateDirectDebitMandate(ctx context.Context, id int32, createMandate shared.CreateMandate) error {
+	bankDetails := createMandate.BankAccount.BankDetails
+	err := s.allpay.ModulusCheck(ctx, bankDetails.SortCode, bankDetails.AccountNumber)
+	if err != nil {
+		return apierror.BadRequestError("ModulusCheck", "Failed", err)
+	}
+
+	ctx, cancelTx := s.WithCancel(ctx)
+	defer cancelTx()
+
+	tx, err := s.BeginStoreTx(ctx)
+	if err != nil {
+		return err
+	}
+
+	// update payment method first, in case this fails
+	err = tx.UpdatePaymentMethod(ctx, store.UpdatePaymentMethodParams{
+		PaymentMethod: shared.PaymentMethodDirectDebit.Key(),
+		ClientID:      id,
+	})
+	if err != nil {
+		return err
+	}
+
+	err = s.allpay.CreateMandate(ctx, &allpay.CreateMandateRequest{
+		ClientReference: createMandate.ClientReference,
+		Surname:         createMandate.Surname,
+		Address: allpay.Address{
+			Line1:    createMandate.Address.Line1,
+			Town:     createMandate.Address.Town,
+			PostCode: createMandate.Address.PostCode,
+		},
+		BankAccount: struct {
+			BankDetails allpay.BankDetails `json:"BankDetails"`
+		}{
+			BankDetails: allpay.BankDetails{
+				AccountName:   bankDetails.AccountName,
+				SortCode:      bankDetails.SortCode,
+				AccountNumber: bankDetails.AccountNumber,
+			},
+		},
+	})
+
+	if err != nil {
+		s.Logger(ctx).Error(fmt.Sprintf("Error creating mandate with allpay, rolling back payment method change for client : %d", id), slog.String("err", err.Error()))
+		return err
+	}
+
+	err = s.dispatch.PaymentMethodChanged(ctx, event.PaymentMethod{
+		ClientID:      int(id),
+		PaymentMethod: shared.PaymentMethodDirectDebit,
+	})
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
+}

@@ -22,7 +22,7 @@ func (suite *IntegrationSuite) Test_processAdhocEvent() {
 		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 3;",
 	)
 	dispatch := &mockDispatch{}
-	s := NewService(seeder.Conn, dispatch, nil, nil, nil)
+	s := NewService(seeder.Conn, dispatch, nil, nil, nil, nil)
 	err := s.ProcessAdhocEvent(ctx)
 	assert.Nil(suite.T(), err)
 

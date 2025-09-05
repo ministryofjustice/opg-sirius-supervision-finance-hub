@@ -40,7 +40,7 @@ func (suite *IntegrationSuite) TestService_GetRefunds() {
 		"INSERT INTO finance_client VALUES (99, 99, 'empty', 'DEMANDED', 99)",
 	)
 
-	s := NewService(seeder.Conn, nil, nil, nil, nil)
+	s := NewService(seeder.Conn, nil, nil, nil, nil, nil)
 
 	fulfilledDate := "2026-06-05"
 

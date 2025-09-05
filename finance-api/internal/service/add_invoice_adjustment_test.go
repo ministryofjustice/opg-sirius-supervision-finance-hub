@@ -26,7 +26,7 @@ func (suite *IntegrationSuite) TestService_AddInvoiceAdjustment() {
 		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 2;",
 	)
 
-	s := NewService(seeder.Conn, nil, nil, nil, nil)
+	s := NewService(seeder.Conn, nil, nil, nil, nil, nil)
 
 	testCases := []struct {
 		name      string

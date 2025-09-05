@@ -1,13 +1,18 @@
 package api
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
+
 	"github.com/ministryofjustice/opg-go-common/telemetry"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/allpay"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
 func (c *Client) CancelDirectDebitMandate(ctx context.Context, clientId int) error {
+	var body bytes.Buffer
 	logger := telemetry.LoggerFromContext(ctx)
 
 	client, err := c.GetPersonDetails(ctx, clientId)
@@ -15,18 +20,32 @@ func (c *Client) CancelDirectDebitMandate(ctx context.Context, clientId int) err
 		return err
 	}
 
-	err = c.allpayClient.CancelMandate(ctx, &allpay.CancelMandateRequest{
-		ClientReference: client.CourtRef,
-		Surname:         client.Surname,
+	err = json.NewEncoder(&body).Encode(&shared.CancelMandate{
+		CourtRef: client.CourtRef,
+		Surname:  client.Surname,
 	})
 	if err != nil {
 		return err
 	}
 
-	err = c.UpdatePaymentMethod(ctx, clientId, shared.PaymentMethodDemanded.Key())
+	req, err := c.newBackendRequest(ctx, http.MethodDelete, fmt.Sprintf("/clients/%d/direct-debit", clientId), &body)
+
 	if err != nil {
-		logger.Error("failed to update payment method in Sirius after successful mandate cancellation in AllPay", "error", err)
 		return err
 	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return err
+	}
+
+	defer unchecked(resp.Body.Close)
+
+	if resp.StatusCode != http.StatusNoContent {
+		logger.Error("cancel mandate request returned unexpected status code", "status", resp.Status)
+		return newStatusError(resp)
+	}
+
 	return nil
 }
