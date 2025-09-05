@@ -43,3 +43,15 @@ SELECT
 FROM debt d
          LEFT JOIN credit c ON c.id = d.id
          LEFT JOIN pending p ON p.id = d.id;
+
+-- name: GetPendingCollectionsForDate :many
+SELECT pc.id, pc.amount, fc.court_ref
+FROM pending_collection pc
+         JOIN supervision_finance.finance_client fc ON fc.id = pc.finance_client_id
+WHERE pc.collection_date = @date_collected::DATE
+  AND pc.status = 'PENDING';
+
+-- name: MarkPendingCollectionAsCollected :exec
+UPDATE pending_collection
+SET ledger_id = @ledger_id, status = 'COLLECTED'
+WHERE id = @id;
