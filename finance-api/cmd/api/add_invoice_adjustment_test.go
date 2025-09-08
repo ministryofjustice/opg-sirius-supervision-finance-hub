@@ -3,14 +3,15 @@ package api
 import (
 	"bytes"
 	"errors"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestServer_AddInvoiceAdjustment(t *testing.T) {
@@ -65,9 +66,9 @@ func TestServer_AddInvoiceAdjustment(t *testing.T) {
 			req.SetPathValue("invoiceId", "2")
 			w := httptest.NewRecorder()
 
-			mock := &mockService{err: tt.err, expectedIds: []int{1, 2}}
+			mock := &mockService{errs: map[string]error{"addInvoiceAdjustment": tt.err}, expectedIds: []int{1, 2}}
 			server := NewServer(mock, nil, nil, nil, nil, validator, nil)
-			err := server.AddInvoiceAdjustment(w, req)
+			err := server.addInvoiceAdjustment(w, req)
 
 			assert.Equal(t, 1, mock.expectedIds[0])
 			assert.Equal(t, 2, mock.expectedIds[1])

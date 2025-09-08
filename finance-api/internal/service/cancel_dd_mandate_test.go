@@ -29,8 +29,10 @@ func (suite *IntegrationSuite) TestService_CancelDirectDebitMandate() {
 	}
 
 	err := s.CancelDirectDebitMandate(ctx, 11, shared.CancelMandate{
-		Surname:  "Nameson",
-		CourtRef: "1234567T",
+		AllPayCustomer: shared.AllPayCustomer{
+			ClientReference: "1234567T",
+			Surname:         "Nameson",
+		},
 	})
 	assert.NoError(suite.T(), err)
 
@@ -69,8 +71,10 @@ func (suite *IntegrationSuite) TestService_CancelDirectDebitMandate_fails() {
 	}
 
 	err := s.CancelDirectDebitMandate(ctx, 11, shared.CancelMandate{
-		Surname:  "Nameson",
-		CourtRef: "1234567T",
+		AllPayCustomer: shared.AllPayCustomer{
+			ClientReference: "1234567T",
+			Surname:         "Nameson",
+		},
 	})
 	assert.Error(suite.T(), err)
 

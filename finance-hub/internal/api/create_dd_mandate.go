@@ -31,8 +31,10 @@ func (c *Client) CreateDirectDebitMandate(ctx context.Context, clientId int, det
 	}
 
 	err = json.NewEncoder(&body).Encode(shared.CreateMandate{
-		ClientReference: client.CourtRef,
-		Surname:         client.Surname,
+		AllPayCustomer: shared.AllPayCustomer{
+			ClientReference: client.CourtRef,
+			Surname:         client.Surname,
+		},
 		Address: shared.Address{
 			Line1:    client.AddressLine1,
 			Town:     client.Town,

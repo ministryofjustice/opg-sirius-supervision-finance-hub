@@ -4,15 +4,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestServer_addManualInvoice(t *testing.T) {
@@ -183,7 +184,7 @@ func TestServer_addManualInvoiceDateErrors(t *testing.T) {
 
 	validator, _ := validation.New()
 
-	mock := &mockService{manualInvoice: manualInvoiceInfo, err: apierror.BadRequestsError([]string{"RaisedDateForAnInvoice", "StartDate", "EndDate"})}
+	mock := &mockService{manualInvoice: manualInvoiceInfo, errs: map[string]error{"AddFeeReduction": apierror.BadRequestsError([]string{"RaisedDateForAnInvoice", "StartDate", "EndDate"})}}
 	server := NewServer(mock, nil, nil, nil, nil, validator, nil)
 	err := server.addFeeReduction(w, req)
 
@@ -217,7 +218,7 @@ func TestServer_addManualInvoice422Error(t *testing.T) {
 
 	validator, _ := validation.New()
 
-	mock := &mockService{manualInvoice: manualInvoiceInfo, err: errors.New("something is wrong")}
+	mock := &mockService{manualInvoice: manualInvoiceInfo, errs: map[string]error{"AddFeeReduction": errors.New("something is wrong")}}
 	server := NewServer(mock, nil, nil, nil, nil, validator, nil)
 	err := server.addFeeReduction(w, req)
 

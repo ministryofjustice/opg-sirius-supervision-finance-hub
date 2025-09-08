@@ -54,6 +54,7 @@ services:
       EVENT_BRIDGE_API_KEY: test
       ALLPAY_HOST: http://allpay-mock:4010
       ALLPAY_API_KEY: test-key
+      HOLIDAYS_API_URL: http://holidays-api-mock:8080/bank-holidays.json
     depends_on:
       sirius-db:
         condition: service_healthy
@@ -179,7 +180,14 @@ services:
   allpay-mock:
     image: stoplight/prism:5
     volumes:
-      - ./allpay-mock/allpay.yaml:/openapi.yaml:ro
+      - ./api-mocks/allpay/openapi.yaml:/openapi.yaml:ro
     command: mock /openapi.yaml -h 0.0.0.0 --errors
     ports:
       - "4010:4010"
+
+  holidays-api-mock:
+    build:
+      context: .
+      dockerfile: docker/holidays-api/Dockerfile
+    ports:
+      - "8080:8080"

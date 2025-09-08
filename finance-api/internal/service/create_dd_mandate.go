@@ -12,7 +12,7 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
-func (s *Service) CreateDirectDebitMandate(ctx context.Context, id int32, createMandate shared.CreateMandate) error {
+func (s *Service) CreateDirectDebitMandate(ctx context.Context, clientID int32, createMandate shared.CreateMandate) error {
 	bankDetails := createMandate.BankAccount.BankDetails
 	err := s.allpay.ModulusCheck(ctx, bankDetails.SortCode, bankDetails.AccountNumber)
 	if err != nil {
@@ -30,7 +30,7 @@ func (s *Service) CreateDirectDebitMandate(ctx context.Context, id int32, create
 	// update payment method first, in case this fails
 	err = tx.UpdatePaymentMethod(ctx, store.UpdatePaymentMethodParams{
 		PaymentMethod: shared.PaymentMethodDirectDebit.Key(),
-		ClientID:      id,
+		ClientID:      clientID,
 	})
 	if err != nil {
 		return err
@@ -56,12 +56,12 @@ func (s *Service) CreateDirectDebitMandate(ctx context.Context, id int32, create
 	})
 
 	if err != nil {
-		s.Logger(ctx).Error(fmt.Sprintf("Error creating mandate with allpay, rolling back payment method change for client : %d", id), slog.String("err", err.Error()))
+		s.Logger(ctx).Error(fmt.Sprintf("Error creating mandate with allpay, rolling back payment method change for client : %d", clientID), slog.String("err", err.Error()))
 		return err
 	}
 
 	err = s.dispatch.PaymentMethodChanged(ctx, event.PaymentMethod{
-		ClientID:      int(id),
+		ClientID:      int(clientID),
 		PaymentMethod: shared.PaymentMethodDirectDebit,
 	})
 	if err != nil {
