@@ -3,15 +3,16 @@ package service
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"slices"
+	"strconv"
+	"time"
+
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"log/slog"
-	"slices"
-	"strconv"
-	"time"
 )
 
 func (s *Service) AddFeeReduction(ctx context.Context, clientId int32, data shared.AddFeeReduction) error {
@@ -43,13 +44,11 @@ func (s *Service) AddFeeReduction(ctx context.Context, clientId int32, data shar
 		CreatedBy:    createdBy,
 	}
 
-	ctx, cancelTx := s.WithCancel(ctx)
-	defer cancelTx()
-
 	tx, err := s.BeginStoreTx(ctx)
 	if err != nil {
 		return err
 	}
+	defer tx.Rollback(ctx)
 
 	feeReduction, err := tx.AddFeeReduction(ctx, feeReductionParams)
 	if err != nil {
