@@ -33,7 +33,7 @@ func (s *Service) ProcessPayments(ctx context.Context, records [][]string, uploa
 					continue
 				}
 
-				err := s.ProcessPaymentsUploadLine(ctx, tx, details)
+				_, err := s.ProcessPaymentsUploadLine(ctx, tx, details)
 				if err != nil {
 					return nil, err
 				}
@@ -197,9 +197,9 @@ func (s *Service) validatePaymentLine(ctx context.Context, details shared.Paymen
 	return true
 }
 
-func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, details shared.PaymentDetails) error {
+func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, details shared.PaymentDetails) (int32, error) {
 	if details.Amount == 0 {
-		return nil
+		return 0, nil
 	}
 
 	params := store.CreateLedgerForCourtRefParams{
@@ -215,13 +215,13 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 	ledgerID, err := tx.CreateLedgerForCourtRef(ctx, params)
 
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	invoices, err := tx.GetUnpaidInvoicesByCourtRef(ctx, details.CourtRef)
 
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	remaining := details.Amount
@@ -242,7 +242,7 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 			LedgerID:  ledgerID,
 		})
 		if err != nil {
-			return err
+			return 0, err
 		}
 
 		remaining -= allocationAmount
@@ -259,14 +259,14 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 		})
 
 		if err != nil {
-			return err
+			return 0, err
 		}
 
 		client, _ := tx.GetClientByCourtRef(ctx, details.CourtRef)
-		return s.ReapplyCredit(ctx, client.ClientID, tx)
+		return ledgerID, s.ReapplyCredit(ctx, client.ClientID, tx)
 	}
 
-	return nil
+	return ledgerID, nil
 }
 
 func isHeaderRow(uploadType shared.ReportUploadType, index int) bool {

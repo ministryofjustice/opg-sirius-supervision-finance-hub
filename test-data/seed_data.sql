@@ -138,8 +138,13 @@ INSERT INTO ledger VALUES (13, 'moto payment reversal', '2024-05-11T08:39:40+00:
 INSERT INTO ledger_allocation VALUES (17, 13, 14, '2024-05-11T08:39:40+00:00', -7000, 'ALLOCATED', null, 'moto-payment', '2024-05-11', null);
 
 -- create direct debit mandate/schedule
-INSERT INTO finance_client VALUES (20002, 21, 'createdirectdebit', 'DEMANDED', null, '20202020');
-INSERT INTO invoice VALUES (16, 21, 20002, 'AD', 'AD202020/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-04-10T08:36:40+00:00', 99);
+INSERT INTO finance_client VALUES (21001, 21, 'createdirectdebit', 'DEMANDED', null, '20202020');
+INSERT INTO invoice VALUES (16, 21, 21001, 'AD', 'AD202020/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-04-10T08:36:40+00:00', 99);
+
+-- create ledger for pending collection (event)
+INSERT INTO finance_client VALUES (22001, 22, 'pendingcollection', 'DIRECT DEBIT', null, '21212121');
+INSERT INTO invoice VALUES (17, 22, 22001, 'AD', 'AD222200/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-04-10T08:36:40+00:00', 99);
+INSERT INTO pending_collection VALUES (1, 22001, '2025-08-01', 10000, 'PENDING', NULL, '2025-08-21', 1);
 
 -- TEST CLIENT DATA: Add data for default client here
 
@@ -152,3 +157,4 @@ SELECT setval('ledger_id_seq', (SELECT MAX(id) FROM ledger));
 SELECT setval('ledger_allocation_id_seq', (SELECT MAX(id) FROM ledger_allocation));
 SELECT setval('invoice_fee_range_id_seq', (SELECT MAX(id) FROM invoice_fee_range));
 SELECT setval('refund_id_seq', (SELECT MAX(id) FROM refund));
+SELECT setval('pending_collection_id_seq', (SELECT MAX(id) FROM pending_collection));

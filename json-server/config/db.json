@@ -451,6 +451,28 @@
       }
     },
     {
+      "id": 22,
+      "firstname": "Ceri",
+      "surname": "Collections",
+      "caseRecNumber": "21212121",
+      "addressLine1": "1 Main Street",
+      "addressLine2": "Mainville",
+      "town": "Mainopolis",
+      "postcode": "MP1 2PM",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
       "id": 99,
       "firstname": "Nelly",
       "surname": "Nullman",
