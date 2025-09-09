@@ -12,13 +12,11 @@ import (
 )
 
 func (s *Service) CancelDirectDebitMandate(ctx context.Context, id int32, cancelMandate shared.CancelMandate) error {
-	ctx, cancelTx := s.WithCancel(ctx)
-	defer cancelTx()
-
 	tx, err := s.BeginStoreTx(ctx)
 	if err != nil {
 		return err
 	}
+	defer tx.Rollback(ctx)
 
 	// update payment method first, in case this fails
 	err = tx.UpdatePaymentMethod(ctx, store.UpdatePaymentMethodParams{

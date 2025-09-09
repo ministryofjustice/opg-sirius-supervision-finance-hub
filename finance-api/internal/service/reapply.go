@@ -4,12 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
-	"log/slog"
 )
 
 func (s *Service) ReapplyCredit(ctx context.Context, clientID int32, tx *store.Tx) error {
@@ -89,13 +90,12 @@ func getReapplyAmount(credit int32, outstanding int32) int32 {
  * reapplyCreditTx is a wrapper function to supply a transaction where ReapplyCredit is called without an existing transaction
  */
 func (s *Service) reapplyCreditTx(ctx context.Context, clientID int32) error {
-	ctx, cancelTx := s.WithCancel(ctx)
-	defer cancelTx()
-
 	tx, err := s.BeginStoreTx(ctx)
 	if err != nil {
 		return err
 	}
+	defer tx.Rollback(ctx)
+
 	err = s.ReapplyCredit(ctx, clientID, tx)
 	if err != nil {
 		return err

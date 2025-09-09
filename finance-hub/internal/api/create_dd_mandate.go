@@ -85,8 +85,17 @@ func (c *Client) CreateDirectDebitMandate(ctx context.Context, clientId int, det
 	}
 
 	if resp.StatusCode == http.StatusBadRequest {
-		// TODO: Mod validation here
-		return apierror.ValidationError{Errors: apierror.ValidationErrors{"AccountDetails": {"invalid": ""}}}
+		var e apierror.BadRequest
+		err := json.NewDecoder(resp.Body).Decode(&e)
+		if err != nil {
+			return newStatusError(resp)
+		}
+		switch e.Field {
+		case "ModulusCheck":
+			return apierror.ValidationError{Errors: apierror.ValidationErrors{"AccountDetails": {"invalid": ""}}}
+		case "Allpay":
+			return apierror.ValidationError{Errors: apierror.ValidationErrors{"Allpay": {"invalid": ""}}}
+		}
 	}
 
 	return newStatusError(resp)

@@ -114,6 +114,9 @@ var validationMappings = map[string]map[string]pair{
 	"AccountDetails": {
 		"invalid": pair{"AccountDetails", "The account number and sort code are not a valid combination. Please check they have been input correctly."},
 	},
+	"Allpay": {
+		"invalid": pair{"Allpay", "Direct debit cannot be setup due to an unexpected response from AllPay Please try again later."},
+	},
 }
 
 func RenameErrors(siriusError apierror.ValidationErrors) apierror.ValidationErrors {

@@ -34,14 +34,12 @@ func (s *Service) AddCollectedPayments(ctx context.Context, date time.Time) erro
 		return nil
 	}
 
-	ctx, cancelTx := s.WithCancel(ctx)
-	defer cancelTx()
-
 	tx, err := s.BeginStoreTx(ctx)
 	if err != nil {
 		logger.Error("unable to begin store transaction", "error", err)
 		return err
 	}
+	defer tx.Rollback(ctx)
 
 	for _, pc := range pendingCollections {
 		payment := shared.PaymentDetails{

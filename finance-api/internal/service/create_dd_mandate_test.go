@@ -162,7 +162,13 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitMandate_createMandat
 			},
 		},
 	})
-	assert.Error(suite.T(), err)
+	var e *apierror.BadRequest
+	if errors.As(err, &e) {
+		assert.Equal(suite.T(), "Allpay", e.Field)
+		assert.Equal(suite.T(), "Failed", e.Reason)
+	} else {
+		suite.T().Error("error is not of type BadRequest")
+	}
 	assert.EqualValues(suite.T(), allpayMock.called, []string{"ModulusCheck", "CreateMandate"})
 
 	rows := seeder.QueryRow(ctx, "SELECT payment_method FROM supervision_finance.finance_client WHERE id = 1")

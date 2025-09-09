@@ -3,12 +3,12 @@ describe("Direct debit form", () => {
         cy.visit("/clients/22/invoices");
         cy.contains('[data-cy="payment-method"]', "Demanded");
         cy.contains(".govuk-button", "Set up direct debit").click();
-        cy.url().should("include", "/clients/21/direct-debit/setup");
+        cy.url().should("include", "/clients/22/direct-debit/setup");
         cy.get("#f-AccountName").contains("Name").type("Mrs Account Holder");
         cy.get("#f-SortCode").contains("Sort code").type("010000");
         cy.get("#f-AccountNumber").contains("number").type("12345678");
         cy.contains(".govuk-button", "Save and continue").click()
-        cy.url().should("include", "/clients/21/invoices?success=direct-debit");
+        cy.url().should("include", "/clients/22/invoices?success=direct-debit");
         cy.get(".moj-banner__message").contains("The Direct Debit has been set up");
         cy.contains('[data-cy="payment-method"]', "Direct Debit");
     });
