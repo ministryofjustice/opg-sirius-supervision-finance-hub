@@ -3,15 +3,16 @@ package service
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"log/slog"
-	"strconv"
-	"strings"
-	"time"
 )
 
 func processInvoiceData(data shared.AddManualInvoice) shared.AddManualInvoice {
@@ -42,13 +43,11 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int32, data sha
 		return apierror.ValidationError{Errors: validationErrors}
 	}
 
-	ctx, cancelTx := s.WithCancel(ctx)
-	defer cancelTx()
-
 	tx, err := s.BeginStoreTx(ctx)
 	if err != nil {
 		return err
 	}
+	defer tx.Rollback(ctx)
 
 	counter, err := tx.GetInvoiceCounter(ctx, strconv.Itoa(data.StartDate.Value.Time.Year())+"InvoiceNumber")
 	if err != nil {

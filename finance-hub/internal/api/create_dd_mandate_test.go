@@ -171,6 +171,10 @@ func TestCreateDirectDebitMandate_ModulusCheckFails(t *testing.T) {
 			}`))
 		case "/clients/1/direct-debit":
 			w.WriteHeader(http.StatusBadRequest)
+			_, _ = w.Write([]byte(`{
+			  "field": "ModulusCheck",
+			  "reason": "Failed",
+			}`))
 		default:
 			t.Errorf("Unexpected path: %s", r.URL.Path)
 		}
@@ -188,6 +192,62 @@ func TestCreateDirectDebitMandate_ModulusCheckFails(t *testing.T) {
 	assert.Error(t, err)
 	expected := apierror.ValidationError{Errors: apierror.ValidationErrors{
 		"AccountDetails": map[string]string{
+			"invalid": "",
+		},
+	}}
+	assert.Equal(t, expected, err)
+}
+
+func TestCreateDirectDebitMandate_AllpayFails(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/supervision-api/v1/clients/1":
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{
+			  "id": 1,
+			  "firstname": "Account",
+			  "surname": "Holder",
+			  "caseRecNumber": "11111111",
+			  "addressLine1": "1 Main Street",
+			  "addressLine2": "Mainville",
+			  "town": "Mainopolis",
+			  "postcode": "MP1 2PM",
+			  "feePayer": {
+				"id": 1,
+				"deputyStatus": "Active"
+			  },
+			  "activeCaseType": {
+				"handle": "HW",
+				"label": "Health & Welfare"
+			  },
+			  "clientStatus": {
+				"handle": "ACTIVE",
+				"label": "Active"
+			  }
+			}`))
+		case "/clients/1/direct-debit":
+			w.WriteHeader(http.StatusBadRequest)
+			_, _ = w.Write([]byte(`{
+			  "field": "Allpay",
+			  "reason": "Failed",
+			}`))
+		default:
+			t.Errorf("Unexpected path: %s", r.URL.Path)
+		}
+	}))
+	defer ts.Close()
+
+	mockJWT := mockJWTClient{}
+	client := NewClient(ts.Client(), &mockJWT, Envs{ts.URL + "", ts.URL + ""})
+
+	err := client.CreateDirectDebitMandate(testContext(), 1, AccountDetails{
+		AccountName:   "Mrs Account Holder",
+		AccountNumber: "12345678",
+		SortCode:      "30-33-30",
+	})
+	assert.Error(t, err)
+	expected := apierror.ValidationError{Errors: apierror.ValidationErrors{
+		"Allpay": map[string]string{
 			"invalid": "",
 		},
 	}}

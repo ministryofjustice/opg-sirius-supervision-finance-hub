@@ -11,7 +11,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/allpay"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
@@ -94,9 +93,4 @@ func (s *Service) BeginStoreTx(ctx context.Context) (*store.Tx, error) {
 
 func (s *Service) Logger(ctx context.Context) *slog.Logger {
 	return telemetry.LoggerFromContext(ctx)
-}
-
-func (*Service) WithCancel(ctx context.Context) (context.Context, context.CancelFunc) {
-	cancelCtx, cancelTx := context.WithCancel(ctx)
-	return ctx.(auth.Context).WithContext(cancelCtx), cancelTx
 }
