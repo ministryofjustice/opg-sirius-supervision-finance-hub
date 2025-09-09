@@ -436,9 +436,9 @@
     },
     {
       "id": 22,
-      "firstname": "Derek",
-      "surname": "Direct",
-      "caseRecNumber": "22222222",
+      "firstname": "Ceri",
+      "surname": "Collections",
+      "caseRecNumber": "21212121",
       "addressLine1": "1 Main Street",
       "addressLine2": "Mainville",
       "town": "Mainopolis",
@@ -461,28 +461,6 @@
       "firstname": "Derek",
       "surname": "Direct_allpay_mandate_validation",
       "caseRecNumber": "23232323",
-      "addressLine1": "1 Main Street",
-      "addressLine2": "Mainville",
-      "town": "Mainopolis",
-      "postcode": "MP1 2PM",
-      "feePayer": {
-        "id": 1,
-        "deputyStatus": "Active"
-      },
-      "activeCaseType": {
-        "handle": "HW",
-        "label": "Health & Welfare"
-      },
-      "clientStatus": {
-        "handle": "ACTIVE",
-        "label": "Active"
-      }
-    },
-    {
-      "id": 22,
-      "firstname": "Ceri",
-      "surname": "Collections",
-      "caseRecNumber": "21212121",
       "addressLine1": "1 Main Street",
       "addressLine2": "Mainville",
       "town": "Mainopolis",
