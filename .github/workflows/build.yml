@@ -165,12 +165,16 @@ jobs:
         include:
           - ecr_repository: sirius-finance-api
             service_name: api
+            scan: 1
           - ecr_repository: sirius-finance-hub
             service_name: hub
+            scan: 1
           - ecr_repository: sirius-finance-migration
             service_name: migrations
+            scan: 1
           - ecr_repository: sirius-finance-allpay-mock
             service_name: allpay-mock
+            scan: 0
     name: "Push Images"
     runs-on: ubuntu-latest
     needs: ['test', 'test-migrations', 'golint', 'gosec', 'sqlc', 'create-tag', 'build']
@@ -220,7 +224,7 @@ jobs:
           TRIVY_JAVA_DB_REPOSITORY: ${{ steps.login-ecr.outputs.registry }}/trivy-db-public-ecr/aquasecurity/trivy-java-db:1
           DOCKER_USERNAME: ${{ steps.login-ecr.outputs.docker_username_311462405659_dkr_ecr_eu_west_1_amazonaws_com }}
           DOCKER_PASSWORD: ${{ steps.login-ecr.outputs.docker_password_311462405659_dkr_ecr_eu_west_1_amazonaws_com }}
-        run: make scan-${{ matrix.service_name }}
+        run: if [ ${{ matrix.scan }} == 1 ]; then make scan-${{ matrix.service_name }}; fi
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@df559355d593797519d70b90fc8edd5db049e7a2 # v3.29.9

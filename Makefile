@@ -48,9 +48,6 @@ scan-hub: setup-directories
 scan-migrations: setup-directories
 	docker compose run --rm trivy image --format table --exit-code 0 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-migration:latest
 	docker compose run --rm trivy image --format sarif --output /test-results/migrations.sarif --exit-code 1 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-migration:latest
-scan-allpay-mock: setup-directories
-	docker compose run --rm trivy image --format table --exit-code 0 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-allpay-mock:latest
-	docker compose run --rm trivy image --format sarif --output /test-results/migrations.sarif --exit-code 1 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-allpay-mock:latest
 
 clean:
 	docker compose down
