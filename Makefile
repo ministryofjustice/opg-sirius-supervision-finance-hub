@@ -36,7 +36,7 @@ build-dev:
 	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml build --parallel finance-hub finance-api yarn
 
 build-all:
-	docker compose build --parallel finance-hub finance-api finance-migration json-server cypress sirius-db allpay-mock holidays-api-mock
+	docker compose build --parallel finance-hub finance-api finance-migration json-server cypress sirius-db allpay-mock allpay-mock-imposter holidays-api-mock
 
 scan: scan-api scan-hub scan-migrations
 scan-api: setup-directories

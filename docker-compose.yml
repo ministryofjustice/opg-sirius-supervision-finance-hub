@@ -84,7 +84,7 @@ services:
     working_dir: /go/src/app
     volumes:
       - ./:/go/src/app
-      - ./.cache/golangci-lint/v2.2.1:/root/.cache
+      - ./.cache/golangci-lint/v2.4.0:/root/.cache
     command: golangci-lint run -v --timeout 5m
 
   gosec:
@@ -184,6 +184,21 @@ services:
     command: mock /openapi.yaml -h 0.0.0.0 --errors
     ports:
       - "4010:4010"
+
+  allpay-mock-imposter:
+    image: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-allpay-mock:latest
+    build:
+      context: .
+      dockerfile: docker/allpay/Dockerfile
+    ports:
+      - "4010:8080"
+    volumes:
+      - ./api-mocks/allpay:/opt/imposter/config
+    healthcheck:
+      test: [ "CMD", "imposter", "list", "-x" ]
+      interval: 15s
+      timeout: 10s
+      retries: 3
 
   holidays-api-mock:
     build:

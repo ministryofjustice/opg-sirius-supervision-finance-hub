@@ -3,11 +3,8 @@ info:
   title: Direct Debit Bureau API
   version: 1.0.0
 servers:
-  - url: https://ddapi.allpay.net
-    variables:
-      APIHost:
-        default: api.example.com
-        description: The API host
+  - url: http://localhost:4010
+    description: Local Imposter server
 
 components:
   securitySchemes:
@@ -108,13 +105,13 @@ paths:
                 type: object
                 properties:
                   SchemeCode:
-                    type: integer
+                    type: string
                   LastName:
                     type: string
                   ClientReference:
                     type: string
               example:
-                SchemeCode: 123456
+                SchemeCode: OPGB
                 LastName: Smith
                 ClientReference: ABC123XYZ
         '422':
@@ -182,7 +179,7 @@ paths:
                   required: true
       responses:
         '200':
-          description: Mandate successfully created
+          description: Schedule successfully created
           content:
             application/json:
               schema:

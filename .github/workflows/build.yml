@@ -147,6 +147,9 @@ jobs:
           - image_name: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-migration
             service_name: migrations
             build_options: --file docker/finance-migration/Dockerfile
+          - image_name: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-allpay-mock
+            service_name: allpay-mock
+            build_options: --file docker/allpay/Dockerfile
     name: Build ${{ matrix.service_name }}
     uses: ministryofjustice/opg-github-workflows/.github/workflows/build-multi-architecture-image.yml@27a0f72b83c6b026fa4131230289bfbed9049cc7 # v3.15.0
     with:
@@ -166,6 +169,8 @@ jobs:
             service_name: hub
           - ecr_repository: sirius-finance-migration
             service_name: migrations
+          - ecr_repository: sirius-finance-allpay-mock
+            service_name: allpay-mock
     name: "Push Images"
     runs-on: ubuntu-latest
     needs: ['test', 'test-migrations', 'golint', 'gosec', 'sqlc', 'create-tag', 'build']
