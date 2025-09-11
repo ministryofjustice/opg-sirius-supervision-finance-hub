@@ -18,13 +18,11 @@ const billingDay = 24
 func (s *Service) CreateDirectDebitSchedule(ctx context.Context, clientID int32, data shared.CreateSchedule) error {
 	logger := s.Logger(ctx)
 
-	ctx, cancelTx := s.WithCancel(ctx)
-	defer cancelTx()
-
 	tx, err := s.BeginStoreTx(ctx)
 	if err != nil {
 		return err
 	}
+	defer tx.Rollback(ctx)
 
 	balance, err := tx.GetPendingOutstandingBalance(ctx, clientID)
 	if err != nil {
