@@ -9,7 +9,6 @@ declare global {
             checkAccessibility(): Chainable<JQuery<HTMLElement>>
             setUser(id: string): Chainable<JQuery<HTMLElement>>
             generateJWT(user: any): Promise<string>
-            setPrefer(prefer: string): Promise<string>
         }
     }
     interface User {
@@ -48,11 +47,6 @@ Cypress.Commands.add("checkAccessibility", () => {
 
 Cypress.Commands.add("setUser", (id: string) => {
     cy.setCookie("x-test-user-id", id);
-});
-
-// prefer headers are used to indicate to Prism which example response should be returned
-Cypress.Commands.add("setPrefer", (prefer: string) => {
-    cy.setCookie("x-test-prefer", prefer);
 });
 
 Cypress.Commands.add('generateJWT', (user: User) => {

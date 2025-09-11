@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+
 	"github.com/jackc/pgx/v5"
 )
 
@@ -20,4 +21,8 @@ func NewTx(tx pgx.Tx) *Tx {
 
 func (s *Tx) Commit(ctx context.Context) error {
 	return s.tx.Commit(ctx)
+}
+
+func (s *Tx) Rollback(ctx context.Context) {
+	_ = s.tx.Rollback(ctx)
 }

@@ -19,13 +19,11 @@ func (s *Service) CreateDirectDebitMandate(ctx context.Context, clientID int32, 
 		return apierror.BadRequestError("ModulusCheck", "Failed", err)
 	}
 
-	ctx, cancelTx := s.WithCancel(ctx)
-	defer cancelTx()
-
 	tx, err := s.BeginStoreTx(ctx)
 	if err != nil {
 		return err
 	}
+	defer tx.Rollback(ctx)
 
 	// update payment method first, in case this fails
 	err = tx.UpdatePaymentMethod(ctx, store.UpdatePaymentMethodParams{
@@ -57,7 +55,7 @@ func (s *Service) CreateDirectDebitMandate(ctx context.Context, clientID int32, 
 
 	if err != nil {
 		s.Logger(ctx).Error(fmt.Sprintf("Error creating mandate with allpay, rolling back payment method change for client : %d", clientID), slog.String("err", err.Error()))
-		return err
+		return apierror.BadRequestError("Allpay", "Failed", err)
 	}
 
 	err = s.dispatch.PaymentMethodChanged(ctx, event.PaymentMethod{
