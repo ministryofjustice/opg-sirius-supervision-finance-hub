@@ -160,7 +160,8 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitSchedule_createSched
 	collectionDate, _ := time.Parse("2006-01-02", "2022-04-02")
 	allpayMock := &mockAllpay{errs: map[string]error{"CreateSchedule": errors.New("CreateSchedule error")}}
 	govUKMock := &mockGovUK{nextWorkingDay: collectionDate}
-	s := Service{store: store.New(seeder.Conn), allpay: allpayMock, govUK: govUKMock, tx: seeder.Conn}
+	dispatchMock := &mockDispatch{}
+	s := Service{store: store.New(seeder.Conn), allpay: allpayMock, govUK: govUKMock, tx: seeder.Conn, dispatch: dispatchMock}
 
 	err := s.CreateDirectDebitSchedule(ctx, 11, shared.CreateSchedule{
 		AllPayCustomer: shared.AllPayCustomer{

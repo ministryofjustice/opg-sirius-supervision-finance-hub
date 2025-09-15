@@ -23,6 +23,7 @@ type TX interface {
 type Dispatch interface {
 	CreditOnAccount(ctx context.Context, event event.CreditOnAccount) error
 	PaymentMethodChanged(ctx context.Context, event event.PaymentMethod) error
+	DirectDebitScheduleFailed(ctx context.Context, event event.DirectDebitScheduleFailed) error
 	RefundAdded(ctx context.Context, event event.RefundAdded) error
 }
 
