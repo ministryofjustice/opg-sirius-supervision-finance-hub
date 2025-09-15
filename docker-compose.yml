@@ -56,6 +56,10 @@ services:
       ALLPAY_API_KEY: test-key
       HOLIDAYS_API_URL: http://holidays-api-mock:8080/bank-holidays.json
     depends_on:
+      allpay-mock:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
       sirius-db:
         condition: service_healthy
 
