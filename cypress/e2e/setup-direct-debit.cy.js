@@ -66,6 +66,6 @@ describe("Direct debit form", () => {
 
         cy.contains(".govuk-button", "Save and continue").click();
 
-        cy.get(".govuk-error-summary").contains("Direct debit cannot be setup due to an unexpected response from AllPay");
+        cy.get(".govuk-error-summary").contains("Direct debit cannot be setup due to an unexpected response from AllPay.");
     });
 });
