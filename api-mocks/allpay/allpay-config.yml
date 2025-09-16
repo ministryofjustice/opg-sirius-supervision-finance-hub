@@ -25,7 +25,7 @@ resources:
     method: post
     requestBody:
       jsonPath: $.LastName
-      value: allpay_schedule_fail
+      value: allpay_mandate_fail
       operator: contains
     response:
       statusCode: 400
