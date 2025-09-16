@@ -9,7 +9,10 @@ describe('API Tests', () => {
     const notifyUrl = `${jsonServerUrl}/v2/notifications/email`;
     const generateReportSuccessTemplateId = "bade69e4-0eb1-4896-a709-bd8f8371a629";
     const processingSuccessTemplateId = "8c85cf6c-695f-493a-a25f-77b4fb5f6a8e";
-
+    const user = {
+        id: 2,
+        roles: ['Finance Reporting']
+    };
     // removes all notify emails from json-server to prevent them getting committed
     after(() => {
         cy.request({
@@ -27,7 +30,6 @@ describe('API Tests', () => {
     })
 
     describe('Report generation', () => {
-        const user = {id: 2, roles: ['Finance Reporting']};
 
         it('should generate and upload a report', () => {
             const reportRequest = {
@@ -66,7 +68,6 @@ describe('API Tests', () => {
         });
 
         it('should handle report validation errors', () => {
-            const user = {id: 2, roles: ['Finance Reporting']};
             const reportRequest = {
                 ReportType: 'AccountsReceivable',
                 AccountsReceivableType: 'AgedDebt',
@@ -93,11 +94,6 @@ describe('API Tests', () => {
 
      describe('Payment processing', () => {
          it('processes payment file from API', () => {
-              const user = {
-                     id: 2,
-                     roles: ['Finance Manager']
-                 };
-
              cy.visit("/clients/13/invoices");
              cy.get("table#invoices > tbody").contains("AD33333/24")
                  .parentsUntil("tr").siblings()
