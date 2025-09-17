@@ -15,29 +15,35 @@ import (
 
 const billingDay = 24
 
-func (s *Service) CreateDirectDebitSchedule(ctx context.Context, clientID int32, data shared.CreateSchedule) error {
+type PendingCollection struct {
+	Amount         int32
+	CollectionDate time.Time
+}
+
+func (s *Service) CreateDirectDebitSchedule(ctx context.Context, clientID int32, data shared.CreateSchedule) (PendingCollection, error) {
+	var pc PendingCollection
 	logger := s.Logger(ctx)
 
 	tx, err := s.BeginStoreTx(ctx)
 	if err != nil {
-		return err
+		return pc, err
 	}
 	defer tx.Rollback(ctx)
 
 	balance, err := tx.GetPendingOutstandingBalance(ctx, clientID)
 	if err != nil {
 		logger.Error("failed to create schedule due to error in fetching outstanding balance", "error", err)
-		return err
+		return pc, err
 	}
 	if balance < 1 {
 		logger.Info(fmt.Sprintf("skipping direct debit schedule creation for client %d as there is no balance outstanding", clientID), "balance", balance)
-		return nil
+		return pc, nil
 	}
 
 	date, err := s.govUK.AddWorkingDays(ctx, time.Now().UTC(), 14)
 	if err != nil {
 		logger.Error("failed to create schedule due to error in calculating working days", "error", err)
-		return err
+		return pc, err
 	}
 
 	date, _ = s.govUK.NextWorkingDayOnOrAfterX(ctx, date, billingDay) // no need to check error here as it would have failed earlier
@@ -53,7 +59,7 @@ func (s *Service) CreateDirectDebitSchedule(ctx context.Context, clientID int32,
 	})
 	if err != nil {
 		logger.Error("failed to create pending collection for direct debit schedule, aborting", "error", err)
-		return err
+		return pc, err
 	}
 
 	err = s.allpay.CreateSchedule(ctx, &allpay.CreateScheduleInput{
@@ -69,7 +75,9 @@ func (s *Service) CreateDirectDebitSchedule(ctx context.Context, clientID int32,
 			// if they do, log them so we can investigate
 			logger.Error("validation errors returned from allpay", "errors", ve.Messages)
 		}
-		return err
+		return pc, err
 	}
-	return tx.Commit(ctx)
+	pc.Amount = balance
+	pc.CollectionDate = collectionDate.Time
+	return pc, tx.Commit(ctx)
 }
