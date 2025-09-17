@@ -44,7 +44,7 @@ describe("Direct debit form", () => {
         cy.get("#f-SortCode").contains("Sort code").type("111111");
         cy.get("#f-AccountNumber").contains("number").type("12345678");
         cy.contains(".govuk-button", "Save and continue").click()
-        cy.get(".govuk-error-summary").contains("There is no active fee payer deputy for this client. Please check the client's record before setting up the Direct Debit.")
+        cy.get(".govuk-error-summary").contains("There is no active fee payer deputy for this client.")
     });
 
     it("shows error message for modulus check failure", () => {
@@ -55,7 +55,7 @@ describe("Direct debit form", () => {
 
         cy.contains(".govuk-button", "Save and continue").click();
 
-        cy.get(".govuk-error-summary").contains("The account number and sort code are not a valid combination. Please check they have been input correctly.");
+        cy.get(".govuk-error-summary").contains("The account number and sort code are not a valid combination.");
     });
 
     it("shows error message for api failure", () => {
@@ -66,6 +66,6 @@ describe("Direct debit form", () => {
 
         cy.contains(".govuk-button", "Save and continue").click();
 
-        cy.get(".govuk-error-summary").contains("Direct debit cannot be setup due to an unexpected response from AllPay");
+        cy.get(".govuk-error-summary").contains("Direct debit cannot be setup due to an unexpected response from AllPay.");
     });
 });

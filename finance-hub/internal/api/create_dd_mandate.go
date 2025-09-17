@@ -122,5 +122,17 @@ func (c *Client) validateActiveClient(client shared.Person) apierror.ValidationE
 		}
 	}
 
+	if !assertNotEmptyStringLessThan(client.AddressLine1, 41) ||
+		!assertNotEmptyStringLessThan(client.Town, 41) ||
+		!assertNotEmptyStringLessThan(client.PostCode, 11) {
+		vErrs["AccountHolderAddress"] = map[string]string{
+			"required": "",
+		}
+	}
+
 	return vErrs
+}
+
+func assertNotEmptyStringLessThan(str string, n int) bool {
+	return len(str) > 0 && len(str) < n
 }
