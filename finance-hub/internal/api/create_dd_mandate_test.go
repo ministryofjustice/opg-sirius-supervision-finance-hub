@@ -419,6 +419,36 @@ func TestValidateMandate(t *testing.T) {
 		assert.Equal(t, "inactive", maps.Keys((errs)["ClientStatus"])[0])
 	})
 
+	t.Run("missing address line 1", func(t *testing.T) {
+		client := validClient
+		client.AddressLine1 = ""
+		errs := c.validateActiveClient(client)
+
+		assert.NotNil(t, errs)
+		assert.Equal(t, 1, len(maps.Keys(errs)))
+		assert.Equal(t, "required", maps.Keys((errs)["AccountHolderAddress"])[0])
+	})
+
+	t.Run("town too long", func(t *testing.T) {
+		client := validClient
+		client.Town = "Llanfairpwllgwyngyllgogerychwyrndrobwllllantysiliogogogoch"
+		errs := c.validateActiveClient(client)
+
+		assert.NotNil(t, errs)
+		assert.Equal(t, 1, len(maps.Keys(errs)))
+		assert.Equal(t, "required", maps.Keys((errs)["AccountHolderAddress"])[0])
+	})
+
+	t.Run("postcode missing", func(t *testing.T) {
+		client := validClient
+		client.PostCode = ""
+		errs := c.validateActiveClient(client)
+
+		assert.NotNil(t, errs)
+		assert.Equal(t, 1, len(maps.Keys(errs)))
+		assert.Equal(t, "required", maps.Keys((errs)["AccountHolderAddress"])[0])
+	})
+
 	t.Run("return multiple errors", func(t *testing.T) {
 		client := validClient
 		client.ClientStatus = &shared.RefData{Handle: "INACTIVE"}
