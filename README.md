@@ -62,6 +62,7 @@ To seed this data, add the inserts to `/test-data.sql`.
 `make test`
 
 ## Run the Cypress tests
+`make build-all`
 `make cypress`
 
 Or to run interactively:

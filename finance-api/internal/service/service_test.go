@@ -75,6 +75,11 @@ func (m *mockDispatch) RefundAdded(ctx context.Context, event event.RefundAdded)
 	return nil
 }
 
+func (m *mockDispatch) DirectDebitScheduleFailed(ctx context.Context, event event.DirectDebitScheduleFailed) error {
+	m.event = event
+	return nil
+}
+
 type mockAllpay struct {
 	called           []string
 	errs             map[string]error

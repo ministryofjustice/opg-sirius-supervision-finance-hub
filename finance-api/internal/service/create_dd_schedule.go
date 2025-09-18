@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -68,6 +69,12 @@ func (s *Service) CreateDirectDebitSchedule(ctx context.Context, clientID int32,
 			// we validate in advance so validation errors from AllPay should never occur
 			// if they do, log them so we can investigate
 			logger.Error("validation errors returned from allpay", "errors", ve.Messages)
+		}
+		dispatchErr := s.dispatch.DirectDebitScheduleFailed(ctx, event.DirectDebitScheduleFailed{
+			ClientID: int(clientID),
+		})
+		if dispatchErr != nil {
+			return dispatchErr
 		}
 		return err
 	}
