@@ -481,7 +481,7 @@
     {
       "id": 24,
       "firstname": "Odin",
-      "surname": "Direct_allpay_mandate_fail",
+      "surname": "allpay_mandate_fail",
       "caseRecNumber": "23232333",
       "addressLine1": "123 Fake Street",
       "addressLine2": "Mainville",
