@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -21,9 +22,9 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitSchedule() {
 	)
 
 	collectionDate, _ := time.Parse("2006-01-02", "2022-04-02")
-	allpayMock := &mockAllpay{}
+	allPayMock := &mockAllpay{}
 	govUKMock := &mockGovUK{nextWorkingDay: collectionDate}
-	s := Service{store: store.New(seeder.Conn), allpay: allpayMock, govUK: govUKMock, tx: seeder.Conn}
+	s := Service{store: store.New(seeder.Conn), allpay: allPayMock, govUK: govUKMock, tx: seeder.Conn}
 
 	err := s.CreateDirectDebitSchedule(ctx, 11, shared.CreateSchedule{
 		AllPayCustomer: shared.AllPayCustomer{
@@ -57,13 +58,13 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitSchedule() {
 	assert.NoError(suite.T(), govUKMock.errs["AddWorkingDays"])
 	assert.NoError(suite.T(), govUKMock.errs["NextWorkingDayOnOrAfterX"])
 
-	assert.Equal(suite.T(), "CreateSchedule", allpayMock.called[0])
+	assert.Equal(suite.T(), "CreateSchedule", allPayMock.called[0])
 	assert.Equal(suite.T(), &allpay.CreateScheduleInput{
 		ClientRef: "1234567T",
 		Surname:   "Scheduleson",
 		Date:      collectionDate,
 		Amount:    10000,
-	}, allpayMock.lastCalledParams[0])
+	}, allPayMock.lastCalledParams[0])
 }
 
 func (suite *IntegrationSuite) TestService_CreateDirectDebitSchedule_pendingBalanceFails() {
@@ -74,9 +75,9 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitSchedule_pendingBala
 		"INSERT INTO finance_client VALUES (1, 11, '1234', 'DIRECT DEBIT', NULL);",
 	)
 
-	allpayMock := &mockAllpay{}
+	allPayMock := &mockAllpay{}
 	govUKMock := &mockGovUK{}
-	s := Service{store: store.New(seeder.Conn), allpay: allpayMock, govUK: govUKMock, tx: seeder.Conn}
+	s := Service{store: store.New(seeder.Conn), allpay: allPayMock, govUK: govUKMock, tx: seeder.Conn}
 
 	err := s.CreateDirectDebitSchedule(ctx, 99, shared.CreateSchedule{
 		AllPayCustomer: shared.AllPayCustomer{
@@ -90,7 +91,7 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitSchedule_pendingBala
 	var c int
 	_ = seeder.QueryRow(ctx, "SELECT COUNT(*) FROM pending_collection").Scan(&c)
 	assert.Equal(suite.T(), 0, c)
-	assert.Len(suite.T(), allpayMock.called, 0)
+	assert.Len(suite.T(), allPayMock.called, 0)
 }
 
 func (suite *IntegrationSuite) TestService_CreateDirectDebitSchedule_noPendingBalance() {
@@ -101,9 +102,9 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitSchedule_noPendingBa
 		"INSERT INTO finance_client VALUES (1, 11, '1234', 'DIRECT DEBIT', NULL);",
 	)
 
-	allpayMock := &mockAllpay{}
+	allPayMock := &mockAllpay{}
 	govUKMock := &mockGovUK{}
-	s := Service{store: store.New(seeder.Conn), allpay: allpayMock, govUK: govUKMock, tx: seeder.Conn}
+	s := Service{store: store.New(seeder.Conn), allpay: allPayMock, govUK: govUKMock, tx: seeder.Conn}
 
 	err := s.CreateDirectDebitSchedule(ctx, 11, shared.CreateSchedule{
 		AllPayCustomer: shared.AllPayCustomer{
@@ -117,7 +118,7 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitSchedule_noPendingBa
 	var c int
 	_ = seeder.QueryRow(ctx, "SELECT COUNT(*) FROM pending_collection").Scan(&c)
 	assert.Equal(suite.T(), 0, c)
-	assert.Len(suite.T(), allpayMock.called, 0)
+	assert.Len(suite.T(), allPayMock.called, 0)
 }
 
 func (suite *IntegrationSuite) TestService_CreateDirectDebitSchedule_workingDayFails() {
@@ -129,9 +130,9 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitSchedule_workingDayF
 		"INSERT INTO invoice VALUES (1, 11, 1, 'S2', 'S200123/24', '2024-01-01', '2025-03-31', 10000, NULL, '2024-01-01', NULL, '2024-01-01')",
 	)
 
-	allpayMock := &mockAllpay{}
+	allPayMock := &mockAllpay{}
 	govUKMock := &mockGovUK{errs: map[string]error{"AddWorkingDays": errors.New("AddWorkingDays error")}}
-	s := Service{store: store.New(seeder.Conn), allpay: allpayMock, govUK: govUKMock, tx: seeder.Conn}
+	s := Service{store: store.New(seeder.Conn), allpay: allPayMock, govUK: govUKMock, tx: seeder.Conn}
 
 	err := s.CreateDirectDebitSchedule(ctx, 11, shared.CreateSchedule{
 		AllPayCustomer: shared.AllPayCustomer{
@@ -145,7 +146,7 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitSchedule_workingDayF
 	var c int
 	_ = seeder.QueryRow(ctx, "SELECT COUNT(*) FROM pending_collection").Scan(&c)
 	assert.Equal(suite.T(), 0, c)
-	assert.Len(suite.T(), allpayMock.called, 0)
+	assert.Len(suite.T(), allPayMock.called, 0)
 }
 
 func (suite *IntegrationSuite) TestService_CreateDirectDebitSchedule_createScheduleFails() {
@@ -158,10 +159,10 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitSchedule_createSched
 	)
 
 	collectionDate, _ := time.Parse("2006-01-02", "2022-04-02")
-	allpayMock := &mockAllpay{errs: map[string]error{"CreateSchedule": errors.New("CreateSchedule error")}}
+	allPayMock := &mockAllpay{errs: map[string]error{"CreateSchedule": errors.New("CreateSchedule error")}}
 	govUKMock := &mockGovUK{nextWorkingDay: collectionDate}
 	dispatchMock := &mockDispatch{}
-	s := Service{store: store.New(seeder.Conn), allpay: allpayMock, govUK: govUKMock, tx: seeder.Conn, dispatch: dispatchMock}
+	s := Service{store: store.New(seeder.Conn), allpay: allPayMock, govUK: govUKMock, tx: seeder.Conn, dispatch: dispatchMock}
 
 	err := s.CreateDirectDebitSchedule(ctx, 11, shared.CreateSchedule{
 		AllPayCustomer: shared.AllPayCustomer{
@@ -171,7 +172,8 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitSchedule_createSched
 	})
 
 	assert.Error(suite.T(), err)
-	assert.Equal(suite.T(), "CreateSchedule", allpayMock.called[0])
+	assert.Equal(suite.T(), "CreateSchedule", allPayMock.called[0])
+	assert.Equal(suite.T(), 11, dispatchMock.event.(event.DirectDebitScheduleFailed).ClientID)
 
 	var c int
 	_ = seeder.QueryRow(ctx, "SELECT COUNT(*) FROM pending_collection").Scan(&c)
