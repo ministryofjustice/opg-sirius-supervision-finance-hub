@@ -116,7 +116,7 @@ INSERT INTO refund VALUES (8, 17001, '2024-06-01', 12341, 'PENDING', 'Reject me'
 INSERT INTO bank_details VALUES (3, 7, 'Donny Decisions', '12345678', '11-22-33');
 INSERT INTO bank_details VALUES (4, 8, 'Donny Decisions', '12345678', '11-22-33');
 
--- cancel refund
+-- cancel a processed refund
 INSERT INTO finance_client VALUES (18001, 18, 'cancelrefund', 'DEMANDED', null, '18181818');
 INSERT INTO refund VALUES (9, 18001, '2021-06-01', 12344, 'APPROVED', 'Cancel me', 1, '2022-06-01 00:00:00', 1, '2022-06-06 00:00:00', '2025-06-06 00:00:00');
 
@@ -149,6 +149,11 @@ INSERT INTO invoice VALUES (17, 22, 22001, 'AD', 'AD222200/24', '2024-04-01', '2
 -- failed direct debit allpay validation
 INSERT INTO finance_client VALUES (23001, 23, 'allpayvalidation', 'DIRECT DEBIT', null, '23232300');
 INSERT INTO invoice VALUES (18, 23, 23001, 'AD', 'AD232300/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-04-10T08:36:40+00:00', 99);
+
+-- cancel an approved refund
+INSERT INTO finance_client VALUES (24001, 24, 'cancelapprovedrefund', 'DEMANDED', null, '24242400');
+INSERT INTO refund VALUES (10, 24001, '2021-06-01', 12344, 'APPROVED', 'Cancel me', 1, '2022-06-01 00:00:00', 1, '2022-06-06 00:00:00');
+
 
 -- TEST CLIENT DATA: Add data for default client here
 
