@@ -479,6 +479,12 @@
       }
     },
     {
+      "id": 24,
+      "firstname": "Annie",
+      "surname": "Approved",
+      "caseRecNumber": "24242400"
+    },
+    {
       "id": 99,
       "firstname": "Nelly",
       "surname": "Nullman",
@@ -534,6 +540,14 @@
       "assigneeId": 41,
       "description": "Pending debit memo added to AD03532/24 requires manager approval",
       "id": 4
+    },
+    {
+      "personId": 1,
+      "type": "FPIA",
+      "dueDate": "17/10/2025",
+      "assigneeId": 41,
+      "description": "Pending credit write off added to AD000001/25 requires manager approval",
+      "id": 5
     }
   ]
 }

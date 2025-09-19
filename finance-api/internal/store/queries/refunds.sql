@@ -131,4 +131,4 @@ UPDATE refund
 SET cancelled_at = NOW(), cancelled_by = @cancelled_by
 WHERE id = @refund_id
   AND finance_client_id = (SELECT id FROM finance_client WHERE client_id = @client_id)
-  AND processed_at IS NOT NULL AND fulfilled_at IS NULL;
+  AND fulfilled_at IS NULL;
