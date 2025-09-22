@@ -16,7 +16,7 @@ UPDATE refund
 SET cancelled_at = NOW(), cancelled_by = $1
 WHERE id = $2
   AND finance_client_id = (SELECT id FROM finance_client WHERE client_id = $3)
-  AND processed_at IS NOT NULL AND fulfilled_at IS NULL
+  AND fulfilled_at IS NULL
 `
 
 type CancelRefundParams struct {

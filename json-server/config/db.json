@@ -480,10 +480,54 @@
     },
     {
       "id": 24,
+      "firstname": "Gertrude",
+      "surname": "allpay_schedule_fail",
+      "caseRecNumber": "23232300",
+      "addressLine1": "1 Arbol Street",
+      "addressLine2": "Townville",
+      "town": "Mainopolis",
+      "postcode": "MP1 2PM",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
+      "id": 25,
       "firstname": "Odin",
-      "surname": "allpay_mandate_fail",
+      "surname": "allpay_schedule_fail",
       "caseRecNumber": "23232333",
       "addressLine1": "123 Fake Street",
+      "addressLine2": "Mainville",
+      "town": "Springfield",
+      "postcode": "S1 1FF",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
+      "id": 26,
+      "firstname": "Thor",
+      "surname": "allpay_schedule_validation",
+      "caseRecNumber": "23232333",
+      "addressLine1": "321 Fake Street",
       "addressLine2": "Mainville",
       "town": "Springfield",
       "postcode": "S1 1FF",
@@ -556,6 +600,14 @@
       "assigneeId": 41,
       "description": "Pending debit memo added to AD03532/24 requires manager approval",
       "id": 4
+    },
+    {
+      "personId": 1,
+      "type": "FPIA",
+      "dueDate": "17/10/2025",
+      "assigneeId": 41,
+      "description": "Pending credit write off added to AD000001/25 requires manager approval",
+      "id": 5
     }
   ]
 }
