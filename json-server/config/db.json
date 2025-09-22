@@ -480,6 +480,12 @@
     },
     {
       "id": 24,
+      "firstname": "Annie",
+      "surname": "Approved",
+      "caseRecNumber": "24242400"
+    },
+    {
+      "id": 25,
       "firstname": "Odin",
       "surname": "allpay_mandate_fail",
       "caseRecNumber": "23232333",
@@ -501,7 +507,7 @@
       }
     },
     {
-      "id": 25,
+      "id": 26,
       "firstname": "Marina",
       "surname": "allpay_schedule_fail",
       "caseRecNumber": "23232333",
@@ -523,7 +529,7 @@
       }
     },
     {
-      "id": 26,
+      "id": 27,
       "firstname": "Gomez",
       "surname": "allpay_schedule_validation",
       "caseRecNumber": "23232333",
