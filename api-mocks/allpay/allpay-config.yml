@@ -39,20 +39,16 @@ resources:
 
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/VariableMandates"
     method: post
-    requestBody:
-      jsonPath: $.LastName
-      value: allpay_schedule_validation
-      operator: contains
+    pathParams:
+       Surname: allpay_schedule_validation
     response:
       statusCode: 422
       file: data/validation.json
 
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/VariableMandates"
     method: post
-    requestBody:
-      jsonPath: $.LastName
-      value: allpay_schedule_fail
-      operator: contains
+    pathParams:
+      Surname: allpay_schedule_fail
     response:
       statusCode: 400
       content: "Bad Request - Please check the format of your body request"
