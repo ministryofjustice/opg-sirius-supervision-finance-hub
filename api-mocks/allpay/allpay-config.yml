@@ -15,7 +15,7 @@ resources:
     method: post
     requestBody:
       jsonPath: $.LastName
-      value: allpay_mandate_validation
+      value: allpay_schedule_fail
       operator: contains
     response:
       statusCode: 422
@@ -25,11 +25,11 @@ resources:
     method: post
     requestBody:
       jsonPath: $.LastName
-        value: allpay_mandate_fail
-        operator: contains
-      response:
-        statusCode: 400
-        content: "Bad Request - Please check the format of your body request"
+      value: allpay_mandate_validation
+      operator: contains
+    response:
+      statusCode: 400
+      content: "Bad Request - Please check the format of your body request"
 
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/VariableMandates"
     method: post
@@ -41,7 +41,7 @@ resources:
     method: post
     requestBody:
       jsonPath: $.LastName
-      value: allpay_schedule_validation
+      value: allpay_schedule_fail
       operator: contains
     response:
       statusCode: 422
