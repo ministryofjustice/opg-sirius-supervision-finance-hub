@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"time"
 
@@ -76,7 +77,7 @@ func (s *Service) CreateDirectDebitSchedule(ctx context.Context, clientID int32,
 		if dispatchErr != nil {
 			return dispatchErr
 		}
-		return err
+		return apierror.BadRequestError("Allpay", "Failed", err)
 	}
 	return tx.Commit(ctx)
 }
