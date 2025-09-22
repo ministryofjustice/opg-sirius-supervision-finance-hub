@@ -501,6 +501,50 @@
       }
     },
     {
+      "id": 25,
+      "firstname": "Marina",
+      "surname": "allpay_schedule_fail",
+      "caseRecNumber": "23232333",
+      "addressLine1": "321 Fake Street",
+      "addressLine2": "",
+      "town": "Pueblo",
+      "postcode": "P1 1FF",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
+      "id": 26,
+      "firstname": "Gomez",
+      "surname": "allpay_schedule_validation",
+      "caseRecNumber": "23232333",
+      "addressLine1": "333 Fake Street",
+      "addressLine2": "",
+      "town": "Pueblo",
+      "postcode": "P1 1FF",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
       "id": 99,
       "firstname": "Nelly",
       "surname": "Nullman",
@@ -556,6 +600,14 @@
       "assigneeId": 41,
       "description": "Pending debit memo added to AD03532/24 requires manager approval",
       "id": 4
+    },
+    {
+      "personId": 1,
+      "type": "FPIA",
+      "dueDate": "17/10/2025",
+      "assigneeId": 41,
+      "description": "Pending credit write off added to AD000001/25 requires manager approval",
+      "id": 5
     }
   ]
 }
