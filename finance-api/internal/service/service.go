@@ -42,6 +42,7 @@ type AllpayClient interface {
 	CreateMandate(ctx context.Context, data *allpay.CreateMandateRequest) error
 	ModulusCheck(ctx context.Context, sortCode string, accountNumber string) error
 	CreateSchedule(ctx context.Context, data *allpay.CreateScheduleInput) error
+	FetchFailedPayments(ctx context.Context, input allpay.FetchFailedPaymentsInput) (allpay.FailedPayments, error)
 }
 
 type GovUKClient interface {

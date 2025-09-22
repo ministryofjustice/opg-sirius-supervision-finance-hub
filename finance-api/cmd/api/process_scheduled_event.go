@@ -20,10 +20,16 @@ func (s *Server) processScheduledEvent(ctx context.Context, event shared.Schedul
 		return s.service.ExpireRefunds(ctx)
 	case scheduledEventDirectDebitCollection:
 		collectionDate := time.Now().UTC().Truncate(24 * time.Hour)
-		if detail, ok := event.Override.(shared.ScheduledDirectDebitCollectionOverride); ok {
+		if detail, ok := event.Override.(shared.DateOverride); ok {
 			collectionDate = detail.Date.Time.UTC().Truncate(24 * time.Hour)
 		}
 		return s.service.AddCollectedPayments(ctx, collectionDate)
+	case shared.ScheduledEventFailedCollections:
+		collectionDate := time.Now().UTC().Truncate(24 * time.Hour)
+		if detail, ok := event.Override.(shared.DateOverride); ok {
+			collectionDate = detail.Date.Time.UTC().Truncate(24 * time.Hour)
+		}
+		return s.service.ProcessFailedDirectDebitCollections(ctx, collectionDate)
 	default:
 		return fmt.Errorf("invalid scheduled event trigger: %s", event.Trigger)
 	}
