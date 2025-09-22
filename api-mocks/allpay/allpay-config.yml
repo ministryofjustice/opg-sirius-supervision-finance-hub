@@ -41,7 +41,7 @@ resources:
     method: post
     requestBody:
       jsonPath: $.LastName
-      value: allpay_schedule_fail
+      value: allpay_mandate_validation
       operator: contains
     response:
       statusCode: 422
