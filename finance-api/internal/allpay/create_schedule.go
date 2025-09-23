@@ -74,7 +74,6 @@ func (c *Client) CreateSchedule(ctx context.Context, data *CreateScheduleInput) 
 		}
 
 		logger.Error("create schedule request returned validation errors", "errors", ve)
-		return ve
 	}
 
 	if resp.StatusCode != http.StatusOK {
