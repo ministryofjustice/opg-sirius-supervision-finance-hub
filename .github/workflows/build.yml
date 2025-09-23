@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Set up Go 1.24.0
-        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
         with:
           go-version: 1.25.0
         id: go
@@ -113,7 +113,7 @@ jobs:
         with:
           fetch-depth: '0'
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
+        uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
@@ -203,7 +203,7 @@ jobs:
           docker load -i /tmp/images/${{ matrix.service_name }}-multi-arch.tar
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
+        uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
@@ -233,17 +233,11 @@ jobs:
         with:
           sarif_file: 'test-results/'
           category: trivy-docker-${{ matrix.service_name }}
-      - name: Extract branch name
-        run: |
-          if [ "${{ github.head_ref }}" == "" ]; then
-            echo BRANCH_NAME=main >> $GITHUB_ENV
-          else
-            echo BRANCH_NAME=${{ github.head_ref }} >> $GITHUB_ENV
-          fi
       - name: Push Container
         run: |
           docker tag 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/${{ matrix.ecr_repository }}:latest 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/${{ matrix.ecr_repository }}:$TAG
-          if [ $BRANCH_NAME == "main" ]; then
+          if ${{ github.ref_name == 'main' }}
+          then
             docker tag 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/${{ matrix.ecr_repository }}:latest 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/${{ matrix.ecr_repository }}:main-$TAG
             docker tag 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/${{ matrix.ecr_repository }}:latest 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/${{ matrix.ecr_repository }}:main-$TAG-$TIMESTAMP
             # We want all of the tags pushed
@@ -277,7 +271,7 @@ jobs:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
+        uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
