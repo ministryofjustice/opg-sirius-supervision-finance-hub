@@ -27,7 +27,7 @@ describe("Refunds tab", () => {
         cy.visit("/clients/18/refunds");
 
         cy.get("table#refunds > tbody")
-            .contains("Cancel me").parent("tr").as("cancelRow");
+            .contains("Cancel me 1").parent("tr").as("cancelRow");
 
         cy.get("@cancelRow")
             .find(".form-button-menu")
@@ -41,7 +41,7 @@ describe("Refunds tab", () => {
         cy.visit("/clients/24/refunds");
 
         cy.get("table#refunds > tbody")
-            .contains("Cancel me").parent("tr").as("cancelRow");
+            .contains("Cancel me 2").parent("tr").as("cancelRow");
 
         cy.get("@cancelRow")
             .find(".form-button-menu")
