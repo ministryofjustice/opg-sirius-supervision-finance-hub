@@ -36,7 +36,7 @@ func (s *Server) createDirectDebitMandate(w http.ResponseWriter, r *http.Request
 
 	if err := s.service.CreateDirectDebitSchedule(ctx, clientId, shared.CreateSchedule{AllPayCustomer: createMandate.AllPayCustomer}); err != nil {
 		logger.Error("creating schedule in createDirectDebitMandate failed", "err", err)
-		return err
+		// Confirmed with business they do not want an error message returned even if the schedule fails
 	}
 
 	w.WriteHeader(http.StatusCreated)
