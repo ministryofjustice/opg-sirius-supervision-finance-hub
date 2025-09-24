@@ -106,7 +106,7 @@ WITH ledger_sums AS (SELECT la.invoice_id,
 SELECT i.amount::INT                                                                          AS initial,
        i.amount - COALESCE(ls.received, 0)::INT                                               AS outstanding,
        i.feetype,
-    COALESCE(ls.write_off_amount, 0)::INT + COALESCE(ls.write_off_reversal_amount, 0)::INT AS write_off_amount
+       COALESCE(ls.write_off_amount, 0)::INT + COALESCE(ls.write_off_reversal_amount, 0)::INT AS write_off_amount
 FROM invoice i
          LEFT JOIN ledger_sums ls ON ls.invoice_id = i.id
 WHERE i.id = @invoice_id;
@@ -121,8 +121,8 @@ SELECT (SELECT COALESCE(SUM(amount), 0)
         FROM ledger l
                  JOIN ledger_allocation la ON l.id = la.ledger_id
         WHERE la.invoice_id = @invoice_id
+          AND la.status = 'ALLOCATED'
           AND l.fee_reduction_id IS NOT NULL) AS fee_reduction_total;
-
 
 -- name: GetInvoiceBalancesForFeeReductionRange :many
 SELECT i.id,
