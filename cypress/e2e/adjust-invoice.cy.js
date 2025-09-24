@@ -99,6 +99,19 @@ describe("Adjust invoice form", () => {
         cy.get(".moj-banner__message").contains("Manual debit successfully created");
     });
 
+    it("adds a fee reduction reversal", () => {
+        cy.visit("/clients/4/invoices/5/adjustments");
+
+        cy.get("#f-AdjustmentType").contains(".govuk-radios__item", "Fee reduction reversal").click();
+        cy.get("#f-AdjustmentNotes").type("Reversing fee reduction");
+        cy.get("#f-Amount").type("100");
+        cy.contains(".govuk-button", "Save and continue").click();
+
+        // navigation and success message
+        cy.url().should("include", "clients/4/invoices?success=invoice-adjustment[FEE%20REDUCTION%20REVERSAL]");
+        cy.get(".moj-banner__message").contains("Fee reduction reversal successfully created");
+    });
+
     it("should have no accessibility violations",() => {
         cy.visit("/clients/4/invoices/3/adjustments");
         cy.checkAccessibility();
