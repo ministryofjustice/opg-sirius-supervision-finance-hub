@@ -16,12 +16,18 @@ var paymentTransactionTypes = []TransactionType{
 	TransactionTypeSupervisionChequePayment,
 }
 
+var reversalTransactionTypes = []TransactionType{
+	TransactionTypeFeeReductionReversal,
+	TransactionTypeWriteOffReversal,
+}
+
 const (
 	TransactionTypeUnknown TransactionType = iota
 	TransactionTypeWriteOff
 	TransactionTypeCreditMemo
 	TransactionTypeDebitMemo
 	TransactionTypeWriteOffReversal
+	TransactionTypeFeeReductionReversal
 	TransactionTypeExemption
 	TransactionTypeHardship
 	TransactionTypeRemission
@@ -41,9 +47,13 @@ var TransactionTypeMap = map[string]TransactionType{
 	"CREDIT MEMO":                TransactionTypeCreditMemo,
 	"DEBIT MEMO":                 TransactionTypeDebitMemo,
 	"WRITE OFF REVERSAL":         TransactionTypeWriteOffReversal,
+	"FEE REDUCTION REVERSAL":     TransactionTypeFeeReductionReversal,
 	"EXEMPTION":                  TransactionTypeExemption,
+	"CREDIT EXEMPTION":           TransactionTypeExemption,
 	"HARDSHIP":                   TransactionTypeHardship,
+	"CREDIT HARDSHIP":            TransactionTypeHardship,
 	"REMISSION":                  TransactionTypeRemission,
+	"CREDIT REMISSION":           TransactionTypeRemission,
 	"CREDIT REAPPLY":             TransactionTypeReapply,
 	"MOTO CARD PAYMENT":          TransactionTypeMotoCardPayment,
 	"ONLINE CARD PAYMENT":        TransactionTypeOnlineCardPayment,
@@ -65,6 +75,8 @@ func (t TransactionType) String() string {
 		return "Debit memo"
 	case TransactionTypeWriteOffReversal:
 		return "Write off reversal"
+	case TransactionTypeFeeReductionReversal:
+		return "Fee reduction reversal"
 	case TransactionTypeExemption:
 		return "Exemption"
 	case TransactionTypeHardship:
@@ -104,6 +116,8 @@ func (t TransactionType) Key() string {
 		return "DEBIT MEMO"
 	case TransactionTypeWriteOffReversal:
 		return "WRITE OFF REVERSAL"
+	case TransactionTypeFeeReductionReversal:
+		return "FEE REDUCTION REVERSAL"
 	case TransactionTypeExemption:
 		return "EXEMPTION"
 	case TransactionTypeHardship:
@@ -135,6 +149,10 @@ func (t TransactionType) Key() string {
 
 func (u TransactionType) IsPayment() bool {
 	return slices.Contains(paymentTransactionTypes, u)
+}
+
+func (u TransactionType) IsReversalType() bool {
+	return slices.Contains(reversalTransactionTypes, u)
 }
 
 func (t TransactionType) Valid() bool {
