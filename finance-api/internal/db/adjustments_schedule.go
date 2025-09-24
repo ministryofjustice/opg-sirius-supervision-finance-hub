@@ -135,7 +135,7 @@ func (a *AdjustmentsSchedule) GetParams() []any {
 		shared.ScheduleTypeGSFeeReductionReversals,
 		shared.ScheduleTypeGTFeeReductionReversals:
 		ledgerTypes = []string{
-			shared.AdjustmentTypeFeeReductionReversal.Key(),
+			shared.TransactionTypeFeeReductionReversal.Key(),
 		}
 		includeNegatives = true
 	default:
