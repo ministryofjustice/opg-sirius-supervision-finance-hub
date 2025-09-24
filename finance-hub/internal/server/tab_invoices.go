@@ -2,13 +2,14 @@ package server
 
 import (
 	"fmt"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 	"math"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 type Invoices []Invoice
@@ -134,7 +135,7 @@ func translate(transactionType string, status string, amount int) string {
 
 	parsedTransactionType := shared.ParseTransactionType(transactionType)
 	if parsedTransactionType != shared.TransactionTypeUnknown {
-		if amount < 0 && parsedTransactionType != shared.TransactionTypeWriteOffReversal {
+		if amount < 0 && !parsedTransactionType.IsReversalType() { // don't need to rename reversal types
 			return fmt.Sprintf("%s reversal", parsedTransactionType.String())
 		}
 		return parsedTransactionType.String()
