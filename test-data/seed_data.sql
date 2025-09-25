@@ -118,7 +118,7 @@ INSERT INTO bank_details VALUES (4, 8, 'Donny Decisions', '12345678', '11-22-33'
 
 -- cancel a processed refund
 INSERT INTO finance_client VALUES (18001, 18, 'cancelrefund', 'DEMANDED', null, '18181818');
-INSERT INTO refund VALUES (9, 18001, '2021-06-01', 12344, 'APPROVED', 'Cancel me', 1, '2022-06-01 00:00:00', 1, '2022-06-06 00:00:00', '2025-06-06 00:00:00');
+INSERT INTO refund VALUES (9, 18001, '2021-06-01', 12344, 'APPROVED', 'Cancel me 1', 1, '2022-06-01 00:00:00', 1, '2022-06-06 00:00:00', '2025-06-06 00:00:00');
 
 -- cancel direct debit
 INSERT INTO finance_client VALUES (19001, 19, 'canceldirectdebit', 'DIRECT DEBIT', null, '19191919');
@@ -149,11 +149,15 @@ INSERT INTO invoice VALUES (17, 22, 22001, 'AD', 'AD222200/24', '2024-04-01', '2
 -- failed direct debit allpay validation
 INSERT INTO finance_client VALUES (23001, 23, 'allpayvalidation', 'DIRECT DEBIT', null, '23232300');
 INSERT INTO invoice VALUES (18, 23, 23001, 'AD', 'AD232300/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-04-10T08:36:40+00:00', 99);
+INSERT INTO finance_client VALUES (23003, 25, 'allpayvalidation', 'DIRECT DEBIT', null, '23232301');
+INSERT INTO invoice VALUES (19, 25, 23003, 'AD', 'AD2323003/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-04-10T08:36:40+00:00', 99);
+INSERT INTO finance_client VALUES (23004, 26, 'allpayvalidation', 'DIRECT DEBIT', null, '23232302');
+INSERT INTO invoice VALUES (20, 26, 23004, 'AD', 'AD2323004/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-04-10T08:36:40+00:00', 99);
+
 
 -- cancel an approved refund
 INSERT INTO finance_client VALUES (24001, 24, 'cancelapprovedrefund', 'DEMANDED', null, '24242400');
-INSERT INTO refund VALUES (10, 24001, '2021-06-01', 12344, 'APPROVED', 'Cancel me', 1, '2022-06-01 00:00:00', 1, '2022-06-06 00:00:00');
-
+INSERT INTO refund VALUES (12, 24001, '2021-06-01', 11122, 'APPROVED', 'Cancel me 2', 2, '2022-06-01 00:00:00', 1, '2022-06-06 00:00:00');
 
 -- TEST CLIENT DATA: Add data for default client here
 
