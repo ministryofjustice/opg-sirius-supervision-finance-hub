@@ -44,14 +44,13 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId i
 		})
 
 		ledgerID, err := tx.CreateLedgerForAdjustment(ctx, store.CreateLedgerForAdjustmentParams{
-			ClientID:       ledger.ClientID,
-			Amount:         ledger.Amount,
-			Notes:          ledger.Notes,
-			Type:           ledger.Type,
-			Status:         ledger.Status,
-			FeeReductionID: ledger.FeeReductionID,
-			CreatedBy:      ledger.CreatedBy,
-			ID:             adjustmentId,
+			ClientID:  ledger.ClientID,
+			Amount:    ledger.Amount,
+			Notes:     ledger.Notes,
+			Type:      ledger.Type,
+			Status:    ledger.Status,
+			CreatedBy: ledger.CreatedBy,
+			ID:        adjustmentId,
 		})
 		if err != nil {
 			s.Logger(ctx).Error(fmt.Sprintf("Error creating ledger for adjustment with id of %d for client %d", adjustmentId, clientId), slog.String("err", err.Error()))
