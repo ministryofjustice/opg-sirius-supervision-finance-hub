@@ -62,8 +62,8 @@ func (s *Service) validateFailedCollectionLine(ctx context.Context, logger *slog
 		notes          pgtype.Text
 	)
 
-	cd, _ := time.Parse("2006-01-02", payment.CollectionDate)
-	pd, _ := time.Parse("2006-01-02", payment.ProcessedDate)
+	cd, _ := time.Parse("02/01/2006 15:04:05", payment.CollectionDate)
+	pd, _ := time.Parse("02/01/2006 15:04:05", payment.ProcessedDate)
 
 	_ = courtRef.Scan(payment.ClientReference)
 	_ = store.ToInt4(&createdBy, ctx.(auth.Context).User.ID)

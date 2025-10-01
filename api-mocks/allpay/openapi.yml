@@ -277,12 +277,14 @@ paths:
           schema:
             type: string
             format: date
+            description: 'Format: YYYY-MM-DD'
         - name: ToDate
           in: path
           required: true
           schema:
             type: string
             format: date
+            description: 'Format: YYYY-MM-DD'
         - name: Page
           in: path
           required: true

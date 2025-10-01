@@ -18,7 +18,7 @@ func TestFetchFailedPayments_Success(t *testing.T) {
 		if r.Method != http.MethodGet {
 			t.Errorf("Expected GET, got %s", r.Method)
 		}
-		if !strings.Contains(r.URL.Path, "/AllpayApi/Customers/SCHEME123/Mandates/FailedPayments") {
+		if !strings.Contains(r.URL.Path, "/AllpayApi/Customers/SCHEME123/Mandates/FailedPayments/2025-05-10/2025-05-20") {
 			t.Errorf("Unexpected URL path: %s", r.URL.Path)
 		}
 		w.WriteHeader(http.StatusOK)
@@ -78,9 +78,12 @@ func TestFetchFailedPayments_Success(t *testing.T) {
 		},
 	}
 
+	from, _ := time.Parse("2006-01-02", "2025-05-10")
+	to, _ := time.Parse("2006-01-02", "2025-05-20")
+
 	fp, err := c.FetchFailedPayments(testContext(), FetchFailedPaymentsInput{
-		To:   time.Time{},
-		From: time.Time{},
+		To:   to,
+		From: from,
 	})
 	if err != nil {
 		t.Errorf("Expected no error, got %v", err)
