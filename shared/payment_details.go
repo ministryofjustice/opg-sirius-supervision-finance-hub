@@ -24,6 +24,7 @@ type ReversalDetails struct {
 	CreatedBy       pgtype.Int4
 	PisNumber       pgtype.Int4
 	SkipBankDate    pgtype.Bool
+	Notes           pgtype.Text
 }
 
 type FulfilledRefundDetails struct {

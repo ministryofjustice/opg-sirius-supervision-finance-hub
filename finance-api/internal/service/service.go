@@ -47,6 +47,7 @@ type AllpayClient interface {
 
 type GovUKClient interface {
 	AddWorkingDays(ctx context.Context, d time.Time, n int) (time.Time, error)
+	SubWorkingDays(ctx context.Context, d time.Time, n int) (time.Time, error)
 	NextWorkingDayOnOrAfterX(ctx context.Context, date time.Time, dayOfMonth int) (time.Time, error)
 }
 
