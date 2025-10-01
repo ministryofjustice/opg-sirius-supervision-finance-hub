@@ -70,7 +70,7 @@ resources:
       content: "Bad Request - Please check the format of your body request"
 
   - path: "/AllpayApi/Customers/{SchemeCode}/Mandates/FailedPayments/{FromDate}/{ToDate}/{Page}"
-    method: post
+    method: get
     pathParams:
       Page: 1
     response:
@@ -78,7 +78,7 @@ resources:
       file: data/failed_payments_page_1.json
 
   - path: "/AllpayApi/Customers/{SchemeCode}/Mandates/FailedPayments/{FromDate}/{ToDate}/{Page}"
-    method: post
+    method: get
     pathParams:
       Page: 2
     response:
@@ -87,6 +87,8 @@ resources:
 
   - path: "/AllpayApi/Customers/{SchemeCode}/Mandates/FailedPayments/{FromDate}/{ToDate}/{Page}"
     method: get
+    pathParams:
+      Page: 3
     response:
       statusCode: 200
       file: data/failed_payments_page_3.json

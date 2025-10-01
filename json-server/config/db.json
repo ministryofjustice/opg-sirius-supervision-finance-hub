@@ -488,7 +488,7 @@
       "id": 25,
       "firstname": "Odin",
       "surname": "allpay_mandate_fail",
-      "caseRecNumber": "23232333",
+      "caseRecNumber": "25252500",
       "addressLine1": "123 Fake Street",
       "addressLine2": "Mainville",
       "town": "Springfield",
@@ -510,7 +510,7 @@
       "id": 26,
       "firstname": "Marina",
       "surname": "allpay_schedule_fail",
-      "caseRecNumber": "23232333",
+      "caseRecNumber": "26262600",
       "addressLine1": "321 Fake Street",
       "addressLine2": "",
       "town": "Pueblo",
@@ -532,7 +532,29 @@
       "id": 27,
       "firstname": "Gomez",
       "surname": "allpay_schedule_validation",
-      "caseRecNumber": "23232333",
+      "caseRecNumber": "27272700",
+      "addressLine1": "333 Fake Street",
+      "addressLine2": "",
+      "town": "Pueblo",
+      "postcode": "P1 1FF",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
+      "id": 28,
+      "firstname": "Felicity",
+      "surname": "Failed-Payments",
+      "caseRecNumber": "28282800",
       "addressLine1": "333 Fake Street",
       "addressLine2": "",
       "town": "Pueblo",

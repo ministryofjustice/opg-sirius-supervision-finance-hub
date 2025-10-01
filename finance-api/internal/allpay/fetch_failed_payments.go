@@ -49,7 +49,7 @@ func (c *Client) FetchFailedPayments(ctx context.Context, input FetchFailedPayme
 func (c *Client) fetchFailedPaymentsForPage(ctx context.Context, input FetchFailedPaymentsInput, page int) (*FailedPaymentsOutput, error) {
 	logger := telemetry.LoggerFromContext(ctx)
 
-	req, err := c.newRequest(ctx, http.MethodGet, fmt.Sprintf("/Customers/%s/Mandates/FailedPayments/%s/%s/%d", c.schemeCode, input.From, input.To, page), nil)
+	req, err := c.newRequest(ctx, http.MethodGet, fmt.Sprintf("/Customers/%s/Mandates/FailedPayments/%s/%s/%d", c.schemeCode, input.From.Format("2006-01-02"), input.To.Format("2006-01-02"), page), nil)
 
 	if err != nil {
 		logger.Error("unable to build failed payments request", "error", err)
