@@ -133,16 +133,16 @@ INSERT INTO finance_client VALUES (19001, 19, 'canceldirectdebit', 'DIRECT DEBIT
 -- billing history payments
 INSERT INTO finance_client VALUES (20001, 20, 'paymentevents', 'DEMANDED', null, '20202020');
 INSERT INTO invoice VALUES (15, 20, 20001, 'AD', 'AD16162/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-04-10T08:36:40+00:00', 2);
-INSERT INTO invoice VALUES (16, 20, 20001, 'AD', 'AD16163/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-05-11T12:01:59+00:00', 2);
-INSERT INTO ledger VALUES (12, 'moto payment', '2024-05-11T08:36:40+00:00', '', 13000, '', 'MOTO CARD PAYMENT', 'CONFIRMED', 20001, null, null, '2024-04-11', '2024-04-12', 1, '', '', 1, '2024-11-05 12:01:58', 2);
+INSERT INTO invoice VALUES (16, 20, 20001, 'AD', 'AD16163/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-05-12T12:01:59+00:00', 2);
+INSERT INTO ledger VALUES (12, 'moto payment', '2024-05-11T08:36:40+00:00', '', 13000, '', 'MOTO CARD PAYMENT', 'CONFIRMED', 20001, null, null, '2024-04-11', '2024-04-12', 1, '', '', 1, '2024-05-11 12:01:58', 2);
 INSERT INTO ledger_allocation VALUES (15, 12, 15, '2024-05-11T08:36:40+00:00', 10000, 'ALLOCATED', null, 'moto-payment', '2024-05-11', null);
 INSERT INTO ledger_allocation VALUES (16, 12, 15, '2024-05-11T08:36:40+00:00', -3000, 'UNAPPLIED', null, 'moto-payment', '2024-05-11', null);
-INSERT INTO ledger VALUES (13, 'reapply', '2024-05-11T12:02:41+00:00', '', 3000, '', 'CREDIT REAPPLY', 'CONFIRMED', 20001, null, null, '2024-04-11', '2024-04-12', 1, '', '', 1, '2024-11-05 12:02:00', 2);
-INSERT INTO ledger_allocation VALUES (17, 13, 16, '2024-05-11T08:36:41+00:00', 3000, 'REAPPLIED', null, 'moto-payment', '2024-05-11', null);
-INSERT INTO ledger VALUES (14, 'moto payment 2', '2024-05-11T08:39:40+00:00', '', 7000, '', 'MOTO CARD PAYMENT', 'CONFIRMED', 20001, null, null, '2024-04-11', '2024-04-12', 1, '', '', 1, '2024-11-05 12:05:34', 2);
-INSERT INTO ledger_allocation VALUES (18, 14, 15, '2024-05-11T08:39:40+00:00', 7000, 'ALLOCATED', null, 'moto-payment', '2024-05-11', null);
-INSERT INTO ledger VALUES (15, 'moto payment reversal', '2024-05-11T08:39:40+00:00', '', -7000, '', 'MOTO CARD PAYMENT', 'CONFIRMED', 20001, null, null, '2024-04-11', '2024-04-12', 1, '', '', 1, '2024-11-05 12:05:34', 2);
-INSERT INTO ledger_allocation VALUES (19, 15, 15, '2024-05-11T08:39:40+00:00', -7000, 'ALLOCATED', null, 'moto-payment', '2024-05-11', null);
+INSERT INTO ledger VALUES (13, 'reapply', '2024-05-12T12:02:41+00:00', '', 3000, '', 'CREDIT REAPPLY', 'CONFIRMED', 20001, null, null, '2024-04-12', '2024-04-12', 1, '', '', 1, '2024-05-12 12:02:00', 2);
+INSERT INTO ledger_allocation VALUES (17, 13, 16, '2024-05-12T08:36:41+00:00', 3000, 'REAPPLIED', null, 'moto-payment', '2024-05-12', null);
+INSERT INTO ledger VALUES (14, 'moto payment 2', '2024-05-13T08:39:40+00:00', '', 7000, '', 'MOTO CARD PAYMENT', 'CONFIRMED', 20001, null, null, '2024-04-11', '2024-04-12', 1, '', '', 1, '2024-05-13 12:05:34', 2);
+INSERT INTO ledger_allocation VALUES (18, 14, 15, '2024-05-13T08:39:40+00:00', 7000, 'ALLOCATED', null, 'moto-payment', '2024-05-13', null);
+INSERT INTO ledger VALUES (15, 'moto payment reversal', '2024-05-14T08:36:40+00:00', '', -7000, '', 'MOTO CARD PAYMENT', 'CONFIRMED', 20001, null, null, '2024-04-11', '2024-04-12', 1, '', '', 1, '2024-05-14 12:05:34', 2);
+INSERT INTO ledger_allocation VALUES (19, 15, 15, '2024-05-14T08:36:40+00:00', -7000, 'ALLOCATED', null, 'moto-payment', '2024-05-14', null);
 
 -- create ledger for pending collection (event)
 INSERT INTO finance_client VALUES (21001, 21, 'pendingcollection', 'DIRECT DEBIT', null, '21212100');
