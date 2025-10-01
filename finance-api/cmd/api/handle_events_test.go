@@ -44,6 +44,16 @@ func TestServer_handleEvents(t *testing.T) {
 			expectedHandler: "UpdateClient",
 		},
 		{
+			name: "client made inactive event",
+			event: shared.Event{
+				Source:     "opg.supervision.sirius",
+				DetailType: "client-made-inactive",
+				Detail:     shared.ClientMadeInactiveEvent{ClientID: 1, CourtRef: "12345678", Surname: "Smith"},
+			},
+			expectedErr:     nil,
+			expectedHandler: "CancelDirectDebitMandate",
+		},
+		{
 			name: "adhoc event",
 			event: shared.Event{
 				Source:     "opg.supervision.finance.adhoc",
