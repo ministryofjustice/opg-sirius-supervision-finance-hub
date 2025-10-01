@@ -18,7 +18,7 @@ type FetchFailedPaymentsInput struct {
 type FailedPayments []FailedPayment
 
 type FailedPayment struct {
-	Amount          int    `json:"Amount"`
+	Amount          int32  `json:"Amount"`
 	ClientReference string `json:"ClientReference"`
 	CollectionDate  string `json:"CollectionDate"`
 	ProcessedDate   string `json:"ProcessedDate"`

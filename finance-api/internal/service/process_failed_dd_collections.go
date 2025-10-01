@@ -71,7 +71,7 @@ func (s *Service) validateFailedCollectionLine(ctx context.Context, logger *slog
 	_ = collectionTime.Scan(cd)
 	_ = processedDate.Scan(pd)
 	_ = processedTime.Scan(pd)
-	amount = int32(payment.Amount)
+	amount = payment.Amount
 	_ = notes.Scan(payment.ReasonCode)
 
 	ledgerCount, _ := s.store.CountDuplicateLedger(ctx, store.CountDuplicateLedgerParams{
