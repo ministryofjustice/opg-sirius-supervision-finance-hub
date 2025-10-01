@@ -2,18 +2,36 @@ package service
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/allpay"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
-func (s *Service) ProcessFailedDirectDebitCollections(ctx context.Context, date time.Time) error {
+func (s *Service) ProcessFailedDirectDebitCollections(ctx context.Context, collectionDate time.Time) error {
 	logger := s.Logger(ctx)
+
+	fromDate, err := s.govUK.AddWorkingDays(ctx, collectionDate, 7)
+	if err != nil {
+		return err
+	}
+
+	payments, err := s.allpay.FetchFailedPayments(ctx, allpay.FetchFailedPaymentsInput{
+		To:   collectionDate,
+		From: fromDate,
+	})
+	if err != nil {
+		return err
+	}
+
+	if len(payments) == 0 {
+		logger.Info("no failed payments for collection date", "collectionDate", collectionDate)
+		return nil
+	}
 
 	tx, err := s.BeginStoreTx(ctx)
 	if err != nil {
@@ -21,82 +39,74 @@ func (s *Service) ProcessFailedDirectDebitCollections(ctx context.Context, date 
 	}
 	defer tx.Rollback(ctx)
 
-	payments, err := s.allpay.FetchFailedPayments(ctx, allpay.FetchFailedPaymentsInput{
-		To:   date,
-		From: date,
-	})
-	if err != nil {
-		return err
-	}
-
-	// TODO: Remove duplicates?
-
 	for _, payment := range payments {
-		var (
-			courtRef       pgtype.Text
-			collectionDate pgtype.Date
-			collectionTime pgtype.Timestamp
-			createdBy      pgtype.Int4
-		)
-
-		_ = courtRef.Scan(payment.ClientReference)
-		_ = store.ToInt4(&createdBy, ctx.(auth.Context).User.ID)
-		_ = collectionDate.Scan(payment.CollectionDate)
-		_ = collectionTime.Scan(payment.CollectionDate)
-
-		details := shared.ReversalDetails{
-			PaymentType:     shared.TransactionTypeDirectDebitPayment,
-			ErroredCourtRef: courtRef,
-			BankDate:        collectionDate,
-			ReceivedDate:    collectionTime, // TODO: Does this need to be the processedDate?
-			Amount:          int32(payment.Amount),
-			CreatedBy:       createdBy,
-			SkipBankDate:    pgtype.Bool{Bool: true, Valid: true},
+		details := s.validateFailedCollectionLine(ctx, logger, payment)
+		if details != nil {
+			err = s.ProcessReversalUploadLine(ctx, tx, *details)
+			logger.Error("process failed direct debit collections", "error", err)
 		}
-
-		// TODO: Does this need validating? - yes
-
-		err = s.ProcessReversalUploadLine(ctx, tx, details)
-		logger.Error("process failed direct debit collections", "error", err) // TODO: Need to work out how to alert on these errors
 	}
 
-	return nil
+	return tx.Commit(ctx)
 }
 
-func (s *Service) validateFailedCollectionLine(ctx context.Context, details shared.ReversalDetails, uploadType shared.ReportUploadType, processedRecords []shared.ReversalDetails, index int, failedLines *map[int]string) bool {
+func (s *Service) validateFailedCollectionLine(ctx context.Context, logger *slog.Logger, payment allpay.FailedPayment) *shared.ReversalDetails {
+	var (
+		courtRef       pgtype.Text
+		collectionDate pgtype.Date
+		collectionTime pgtype.Timestamp
+		processedDate  pgtype.Date
+		processedTime  pgtype.Timestamp
+		createdBy      pgtype.Int4
+		amount         int32
+		notes          pgtype.Text
+	)
+
+	cd, _ := time.Parse("2006-01-02", payment.CollectionDate)
+	pd, _ := time.Parse("2006-01-02", payment.ProcessedDate)
+
+	_ = courtRef.Scan(payment.ClientReference)
+	_ = store.ToInt4(&createdBy, ctx.(auth.Context).User.ID)
+	_ = collectionDate.Scan(cd)
+	_ = collectionTime.Scan(cd)
+	_ = processedDate.Scan(pd)
+	_ = processedTime.Scan(pd)
+	amount = int32(payment.Amount)
+	_ = notes.Scan(payment.ReasonCode)
+
 	ledgerCount, _ := s.store.CountDuplicateLedger(ctx, store.CountDuplicateLedgerParams{
-		CourtRef:     details.ErroredCourtRef,
-		Amount:       details.Amount,
-		Type:         details.PaymentType.Key(),
-		BankDate:     details.BankDate,
-		ReceivedDate: details.ReceivedDate,
-		PisNumber:    details.PisNumber,
-		SkipBankDate: details.SkipBankDate,
+		CourtRef:     courtRef,
+		Amount:       amount,
+		Type:         shared.TransactionTypeDirectDebitPayment.Key(),
+		BankDate:     collectionDate,
+		ReceivedDate: collectionTime,
 	})
 
 	if ledgerCount == 0 {
-		(*failedLines)[index] = validation.UploadErrorNoMatchedPayment
-		return false
+		logger.Error("unable to match failed collection to original direct debit payment", "courtRef", courtRef, "collectionDate", collectionDate)
+		return nil
 	}
 
 	reversalCount, _ := s.store.CountDuplicateLedger(ctx, store.CountDuplicateLedgerParams{
-		CourtRef:     details.ErroredCourtRef,
-		Amount:       -details.Amount,
-		Type:         details.PaymentType.Key(),
-		BankDate:     details.BankDate,
-		ReceivedDate: details.ReceivedDate,
-		PisNumber:    details.PisNumber,
+		CourtRef:     courtRef,
+		Amount:       -amount,
+		Type:         shared.TransactionTypeDirectDebitPayment.Key(),
+		BankDate:     processedDate,
+		ReceivedDate: processedTime,
 	})
 
 	if reversalCount >= ledgerCount {
-		(*failedLines)[index] = validation.UploadErrorDuplicateReversal
-		return false
+		logger.Info("failed direct debit collection already reversed", "courtRef", courtRef, "collectionDate", collectionDate)
+		return nil
 	}
 
-	if !hasPaymentToReverse(processedRecords, details, int(ledgerCount)) { // TODO: Not needed if duplicates removed?
-		(*failedLines)[index] = validation.UploadErrorDuplicateReversal
-		return false
+	return &shared.ReversalDetails{
+		PaymentType:     shared.TransactionTypeDirectDebitPayment,
+		ErroredCourtRef: courtRef,
+		BankDate:        processedDate,
+		ReceivedDate:    processedTime,
+		Amount:          amount,
+		CreatedBy:       createdBy,
+		Notes:           notes,
 	}
-
-	return true
 }

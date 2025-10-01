@@ -288,6 +288,7 @@ func (s *Service) ProcessReversalUploadLine(ctx context.Context, tx *store.Tx, d
 		BankDate:     details.BankDate,
 		ReceivedDate: details.ReceivedDate,
 		PisNumber:    details.PisNumber,
+		Notes:        details.Notes,
 	})
 
 	if err != nil {
