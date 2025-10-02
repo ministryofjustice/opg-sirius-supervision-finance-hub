@@ -56,17 +56,31 @@ resources:
       content: "Bad Request - Please check the format of your body request"
 
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/{Date}"
-    method: post
+    method: delete
     response:
       statusCode: 200
       file: data/success.json
 
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/{Date}"
-    method: post
+    method: delete
     requestBody:
       jsonPath: $.LastName
       value: allpay_cancel_fail
       operator: contains
+    response:
+      statusCode: 400
+      content: "Bad Request - Please check the format of your body request"
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/{Date}/{Amount}"
+    method: delete
+    response:
+      statusCode: 200
+      file: data/success.json
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/{Date}/{Amount}"
+    method: delete
+    pathParams:
+      Surname: allpay_remove_schedule_validation
     response:
       statusCode: 400
       content: "Bad Request - Please check the format of your body request"

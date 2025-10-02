@@ -243,9 +243,63 @@ paths:
           schema:
             type: string
             format: date
+          description: 'Format: YY-MM-DD'
       responses:
         '200':
           description: Mandate cancelled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  SchemeCode:
+                    type: integer
+                  LastName:
+                    type: string
+                  ClientReference:
+                    type: string
+              example:
+                SchemeCode: 123456
+                LastName: Smith
+                ClientReference: ABC123XYZ
+
+  /AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/Schedule/{Date}/{Amount}:
+    delete:
+      summary: Remove a schedule component
+      parameters:
+        - name: SchemeCode
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: ClientRef
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Base64-encoded client reference
+        - name: Surname
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Base64-encoded surname
+        - name: Date
+          in: path
+          required: true
+          schema:
+            type: string
+            format: date
+          description: 'Format: YY-MM-DD'
+        - name: Amount
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 'Value in pence'
+      responses:
+        '200':
+          description: Schedule component removed successfully
           content:
             application/json:
               schema:
@@ -277,12 +331,14 @@ paths:
           schema:
             type: string
             format: date
+          description: 'Format: YY-MM-DD'
         - name: ToDate
           in: path
           required: true
           schema:
             type: string
             format: date
+          description: 'Format: YY-MM-DD'
         - name: Page
           in: path
           required: true
