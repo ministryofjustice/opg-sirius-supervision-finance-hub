@@ -19,7 +19,7 @@ func TestCreateSchedule_Success(t *testing.T) {
 		if r.Method != http.MethodPost {
 			t.Errorf("Expected POST, got %s", r.Method)
 		}
-		if r.URL.Path != "/AllpayApi/Customers/SCHEME123/REF123/Doe/VariableMandates" {
+		if r.URL.Path != "/AllpayApi/Customers/SCHEME123/UkVGMTIz/RG9l/VariableMandates" {
 			t.Errorf("Unexpected URL path: %s", r.URL.Path)
 		}
 		body, _ := io.ReadAll(r.Body)
@@ -51,10 +51,10 @@ func TestCreateSchedule_Success(t *testing.T) {
 	}
 
 	err := c.CreateSchedule(testContext(), &CreateScheduleInput{
-		ClientRef: "REF123",
-		Surname:   "Doe",
-		Date:      time.Time{},
-		Amount:    12345,
+		ClientReference: "REF123",
+		Surname:         "Doe",
+		Date:            time.Time{},
+		Amount:          12345,
 	})
 	if err != nil {
 		t.Errorf("Expected no error, got %v", err)
@@ -71,10 +71,10 @@ func TestCreateSchedule_RequestCreationFails(t *testing.T) {
 	}
 
 	err := c.CreateSchedule(testContext(), &CreateScheduleInput{
-		ClientRef: "REF123",
-		Surname:   "Doe",
-		Date:      time.Time{},
-		Amount:    12345,
+		ClientReference: "REF123",
+		Surname:         "Doe",
+		Date:            time.Time{},
+		Amount:          12345,
 	})
 	if err == nil {
 		t.Error("Expected error due to request creation failure")
@@ -96,10 +96,10 @@ func TestCreateSchedule_UnexpectedStatus(t *testing.T) {
 	}
 
 	err := c.CreateSchedule(testContext(), &CreateScheduleInput{
-		ClientRef: "REF123",
-		Surname:   "Doe",
-		Date:      time.Time{},
-		Amount:    12345,
+		ClientReference: "REF123",
+		Surname:         "Doe",
+		Date:            time.Time{},
+		Amount:          12345,
 	})
 	if err == nil {
 		t.Error("Expected error due to unexpected status code")
@@ -125,10 +125,10 @@ func TestCreateSchedule_ValidationErrorValidJSON(t *testing.T) {
 	}
 
 	err := c.CreateSchedule(testContext(), &CreateScheduleInput{
-		ClientRef: "REF123",
-		Surname:   "Doe",
-		Date:      time.Time{},
-		Amount:    12345,
+		ClientReference: "REF123",
+		Surname:         "Doe",
+		Date:            time.Time{},
+		Amount:          12345,
 	})
 	var validationErr ErrorValidation
 	if !errors.As(err, &validationErr) {

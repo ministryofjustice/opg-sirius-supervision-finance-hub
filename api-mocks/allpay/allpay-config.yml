@@ -40,7 +40,8 @@ resources:
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/VariableMandates"
     method: post
     pathParams:
-       Surname: allpay_schedule_validation
+      # allpay_mandate_validation
+       Surname: YWxscGF5X21hbmRhdGVfdmFsaWRhdGlvbg==
     response:
       statusCode: 422
       file: data/validation.json
@@ -48,7 +49,8 @@ resources:
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/VariableMandates"
     method: post
     pathParams:
-      Surname: allpay_schedule_fail
+      # allpay_schedule_fail
+      Surname: YWxscGF5X3NjaGVkdWxlX2ZhaWw=
     response:
       statusCode: 400
       content: "Bad Request - Please check the format of your body request"
