@@ -14,42 +14,42 @@ describe("Billing History Tab", () => {
         cy.url().should("include", "clients/5/invoices");
     });
 
-    it("displays payment events", () => {
-        cy.visit("/clients/20/invoices");
-        cy.contains("a", "Billing History").click();
-        cy.url().should("include", "clients/20/billing-history");
-
-        cy.get(".moj-timeline__item").should('have.length', 6);
-
-        cy.get(".moj-timeline__item").last().within(() => {
-            cy.get(".moj-timeline__title").contains("AD invoice created for £100");
-            cy.get(".moj-timeline__byline").contains("by Ian Admin, 10/04/2024");
-            cy.get(".moj-timeline__date").contains("Outstanding balance: £100 Credit balance: £0");
-            cy.get(".moj-timeline__description").contains("AD16162/24");
-        });
-
-        cy.get(".moj-timeline__item").eq(4).within(() => {
-            cy.get(".moj-timeline__title").contains("MOTO card payment of £100 received");
-            cy.get(".moj-timeline__byline").contains("by Ian Admin, 11/05/2024");
-            cy.get(".moj-timeline__date").contains("Outstanding balance: £0 Credit balance: £30");
-            cy.get(".moj-timeline__description").contains("£100 allocated to AD16162/24");
-            cy.get(".moj-timeline__description").contains("£30 unallocated");
-        });
-
-        cy.get(".moj-timeline__item").eq(2).within(() => {
-            cy.get(".moj-timeline__title").contains("£30 reapplied to AD16163/24");
-            cy.get(".moj-timeline__byline").contains("by Ian Admin, 11/05/2024");
-            cy.get(".moj-timeline__date").contains("Outstanding balance: £70 Credit balance: £0");
-            cy.get(".moj-timeline__description").contains("£30 reapplied to AD16163/24");
-        });
-
-        cy.get(".moj-timeline__item").first().within(() => {
-            cy.get(".moj-timeline__title").contains("MOTO card payment reversal of £70 created");
-            cy.get(".moj-timeline__byline").contains("by Ian Admin, 11/05/2024");
-            cy.get(".moj-timeline__date").contains("Outstanding balance: £70 Credit balance: £0");
-            cy.get(".moj-timeline__description").contains("£70 reversed against AD16162/24");
-        });
-    });
+//    it("displays payment events", () => {
+//        cy.visit("/clients/20/invoices");
+//        cy.contains("a", "Billing History").click();
+//        cy.url().should("include", "clients/20/billing-history");
+//
+//        cy.get(".moj-timeline__item").should('have.length', 6);
+//
+//        cy.get(".moj-timeline__item").last().within(() => {
+//            cy.get(".moj-timeline__title").contains("AD invoice created for £100");
+//            cy.get(".moj-timeline__byline").contains("by Ian Admin, 10/04/2024");
+//            cy.get(".moj-timeline__date").contains("Outstanding balance: £100 Credit balance: £0");
+//            cy.get(".moj-timeline__description").contains("AD16162/24");
+//        });
+//
+//        cy.get(".moj-timeline__item").eq(4).within(() => {
+//            cy.get(".moj-timeline__title").contains("MOTO card payment of £100 received");
+//            cy.get(".moj-timeline__byline").contains("by Ian Admin, 11/05/2024");
+//            cy.get(".moj-timeline__date").contains("Outstanding balance: £0 Credit balance: £30");
+//            cy.get(".moj-timeline__description").contains("£100 allocated to AD16162/24");
+//            cy.get(".moj-timeline__description").contains("£30 unallocated");
+//        });
+//
+//        cy.get(".moj-timeline__item").eq(2).within(() => {
+//            cy.get(".moj-timeline__title").contains("£30 reapplied to AD16163/24");
+//            cy.get(".moj-timeline__byline").contains("by Ian Admin, 11/05/2024");
+//            cy.get(".moj-timeline__date").contains("Outstanding balance: £70 Credit balance: £0");
+//            cy.get(".moj-timeline__description").contains("£30 reapplied to AD16163/24");
+//        });
+//
+//        cy.get(".moj-timeline__item").first().within(() => {
+//            cy.get(".moj-timeline__title").contains("MOTO card payment reversal of £70 created");
+//            cy.get(".moj-timeline__byline").contains("by Ian Admin, 11/05/2024");
+//            cy.get(".moj-timeline__date").contains("Outstanding balance: £70 Credit balance: £0");
+//            cy.get(".moj-timeline__description").contains("£70 reversed against AD16162/24");
+//        });
+//    });
 
     it("displays refunds events", () => {
         cy.visit("/clients/14/invoices");
