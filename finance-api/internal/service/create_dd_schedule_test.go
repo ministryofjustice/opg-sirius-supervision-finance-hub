@@ -65,10 +65,10 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitSchedule() {
 
 	assert.Equal(suite.T(), "CreateSchedule", allPayMock.called[0])
 	assert.Equal(suite.T(), &allpay.CreateScheduleInput{
-		ClientRef: "1234567T",
-		Surname:   "Scheduleson",
-		Date:      collectionDate,
-		Amount:    10000,
+		ClientReference: "1234567T",
+		Surname:         "Scheduleson",
+		Date:            collectionDate,
+		Amount:          10000,
 	}, allPayMock.lastCalledParams[0])
 }
 
