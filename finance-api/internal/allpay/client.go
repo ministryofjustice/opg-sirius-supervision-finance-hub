@@ -12,6 +12,11 @@ type Envs struct {
 	schemeCode string
 }
 
+type ClientDetails struct {
+	ClientReference string
+	Surname         string
+}
+
 type Client struct {
 	http HTTPClient
 	Envs

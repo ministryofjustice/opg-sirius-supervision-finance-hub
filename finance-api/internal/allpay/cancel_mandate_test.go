@@ -30,7 +30,7 @@ func TestCancelMandate_Success(t *testing.T) {
 		},
 	}
 
-	err := c.CancelMandate(testContext(), &CancelMandateRequest{
+	err := c.CancelMandate(testContext(), &ClientDetails{
 		ClientReference: "12345678",
 		Surname:         "Cancelman",
 	})
@@ -48,7 +48,7 @@ func TestCancelMandate_RequestCreationFails(t *testing.T) {
 		},
 	}
 
-	err := c.CancelMandate(testContext(), &CancelMandateRequest{
+	err := c.CancelMandate(testContext(), &ClientDetails{
 		ClientReference: "12345678",
 		Surname:         "Cancelman",
 	})
@@ -71,7 +71,7 @@ func TestCancelMandate_UnexpectedStatus(t *testing.T) {
 		},
 	}
 
-	err := c.CancelMandate(testContext(), &CancelMandateRequest{
+	err := c.CancelMandate(testContext(), &ClientDetails{
 		ClientReference: "12345678",
 		Surname:         "Cancelman",
 	})

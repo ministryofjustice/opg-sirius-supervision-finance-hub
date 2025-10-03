@@ -86,7 +86,7 @@ type mockAllpay struct {
 	lastCalledParams []interface{}
 }
 
-func (m *mockAllpay) CancelMandate(ctx context.Context, data *allpay.CancelMandateRequest) error {
+func (m *mockAllpay) CancelMandate(ctx context.Context, data *allpay.ClientDetails) error {
 	m.called = append(m.called, "CancelMandate")
 	m.lastCalledParams = []interface{}{data}
 	return m.errs["CancelMandate"]
