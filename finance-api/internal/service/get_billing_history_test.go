@@ -993,6 +993,81 @@ func Test_processLedgerAllocations(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "Payment",
+			allocations: []store.GetLedgerAllocationsForClientRow{
+				{
+					LedgerID:         1,
+					InvoiceID:        pgtype.Int4{Int32: 4, Valid: true},
+					Reference:        pgtype.Text{String: "def1/24", Valid: true},
+					Type:             "OPG BACS PAYMENT",
+					Status:           "CONFIRMED",
+					LedgerAmount:     5000,
+					AllocationAmount: 1000,
+					LedgerDatetime: pgtype.Timestamp{
+						Time:  now,
+						Valid: true,
+					},
+					CreatedBy: pgtype.Int4{
+						Int32: 3,
+						Valid: true,
+					},
+				},
+				{
+					LedgerID:         1,
+					InvoiceID:        pgtype.Int4{Int32: 5, Valid: true},
+					Reference:        pgtype.Text{String: "def2/24", Valid: true},
+					Type:             "OPG BACS PAYMENT",
+					Status:           "CONFIRMED",
+					LedgerAmount:     5000,
+					AllocationAmount: 4000,
+					LedgerDatetime: pgtype.Timestamp{
+						Time:  now,
+						Valid: true,
+					},
+					CreatedBy: pgtype.Int4{
+						Int32: 3,
+						Valid: true,
+					},
+				},
+			},
+			clientID: 99,
+			want: []historyHolder{
+				{
+					billingHistory: shared.BillingHistory{
+						User: 3,
+						Event: shared.TransactionEvent{
+							ClientId:        99,
+							TransactionType: shared.TransactionTypeOPGBACSPayment,
+							Amount:          5000,
+							Breakdown: []shared.PaymentBreakdown{
+								{
+									InvoiceReference: shared.InvoiceEvent{
+										ID:        4,
+										Reference: "def1/24",
+									},
+									Amount: 1000,
+									Status: "CONFIRMED",
+								},
+								{
+									InvoiceReference: shared.InvoiceEvent{
+										ID:        5,
+										Reference: "def2/24",
+									},
+									Amount: 4000,
+									Status: "CONFIRMED",
+								},
+							},
+							BaseBillingEvent: shared.BaseBillingEvent{
+								Type: shared.EventTypePaymentProcessed,
+							},
+						},
+					},
+					balanceAdjustment: 0,
+					creditAdjustment:  0,
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1830,4 +1905,126 @@ func Test_processRefundEventsCreatesCorrectBillingHistoryEvents(t *testing.T) {
 	}
 
 	assert.Equalf(t, expected, processRefundEvents(refunds, 33), "processRefundEvents(%v)", refunds)
+}
+
+func Test_calculateTotalAmountForPaymentEvents(t *testing.T) {
+
+	tests := []struct {
+		name  string
+		event shared.TransactionEvent
+		want  int
+	}{
+		{
+			name: "No payment breakdown",
+			event: shared.TransactionEvent{
+				ClientId:        98,
+				TransactionType: shared.TransactionTypeOPGBACSPayment,
+				Amount:          0,
+				Breakdown: []shared.PaymentBreakdown{
+					{
+						InvoiceReference: shared.InvoiceEvent{},
+						Amount:           0,
+						Status:           "",
+					},
+				},
+				BaseBillingEvent: shared.BaseBillingEvent{},
+			},
+			want: 0,
+		},
+		{
+			name: "1 item in breakdown",
+			event: shared.TransactionEvent{
+				ClientId:        98,
+				TransactionType: shared.TransactionTypeOPGBACSPayment,
+				Amount:          2222,
+				Breakdown: []shared.PaymentBreakdown{
+					{
+						InvoiceReference: shared.InvoiceEvent{
+							ID:        4,
+							Reference: "def1/24",
+						},
+						Amount: 2222,
+						Status: "CONFIRMED",
+					},
+				},
+				BaseBillingEvent: shared.BaseBillingEvent{
+					Type: shared.EventTypePaymentProcessed,
+				},
+			},
+			want: 2222,
+		},
+		{
+			name: "2 items in breakdown",
+			event: shared.TransactionEvent{
+				ClientId:        98,
+				TransactionType: shared.TransactionTypeOPGBACSPayment,
+				Amount:          5000,
+				Breakdown: []shared.PaymentBreakdown{
+					{
+						InvoiceReference: shared.InvoiceEvent{
+							ID:        4,
+							Reference: "def1/24",
+						},
+						Amount: 1000,
+						Status: "CONFIRMED",
+					},
+					{
+						InvoiceReference: shared.InvoiceEvent{
+							ID:        5,
+							Reference: "def2/24",
+						},
+						Amount: 4000,
+						Status: "CONFIRMED",
+					},
+				},
+				BaseBillingEvent: shared.BaseBillingEvent{
+					Type: shared.EventTypePaymentProcessed,
+				},
+			},
+			want: 5000,
+		},
+		{
+			name: "3 items in breakdown",
+			event: shared.TransactionEvent{
+				ClientId:        98,
+				TransactionType: shared.TransactionTypeOPGBACSPayment,
+				Amount:          5432,
+				Breakdown: []shared.PaymentBreakdown{
+					{
+						InvoiceReference: shared.InvoiceEvent{
+							ID:        4,
+							Reference: "def1/24",
+						},
+						Amount: 1000,
+						Status: "CONFIRMED",
+					},
+					{
+						InvoiceReference: shared.InvoiceEvent{
+							ID:        5,
+							Reference: "def2/24",
+						},
+						Amount: 2430,
+						Status: "CONFIRMED",
+					},
+					{
+						InvoiceReference: shared.InvoiceEvent{
+							ID:        6,
+							Reference: "def2/24",
+						},
+						Amount: 2002,
+						Status: "CONFIRMED",
+					},
+				},
+				BaseBillingEvent: shared.BaseBillingEvent{
+					Type: shared.EventTypePaymentProcessed,
+				},
+			},
+			want: 5432,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, calculateTotalAmountForPaymentEvents(tt.event), "calculateTotalAmountForPaymentEvents(%v)", tt.event)
+		})
+	}
 }
