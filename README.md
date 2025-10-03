@@ -104,7 +104,23 @@ loaded. To avoid this, you can force event listeners to register on every HTMX l
 HTMX also includes a range of utility functions that can be used in place of more unwieldy native DOM functions.
 
 -----
-## AllPay API
-AllPay is OPG's Direct Debit broker, and we will be using their API for creating and cancelling mandates, issuing payment
-schedules, and querying failed payments. To enable us to do so in development without hitting their API, we use Prism to
-run a simple mock based off an OpenAPI specification.
+## Mock APIs
+This service integrates with multiple APIs, and we have a number of different approaches to mock responses.
+
+### Sirius
+Sirius endpoints are mocked using [json-server](https://github.com/typicode/json-server). This is a simple Express app that
+reads responses from a JSON file. The config files are located in `/json-server`, with routes specified in `routes.json`
+and the data in `db.json`. Additional middleware can be written in JS to intercept requests.
+
+### Allpay
+The Allpay Direct Debit API is mocked using [imposter](https://docs.imposter.sh/). This applies a config to an OpenAPI spec
+and responds with a file or string based on request data. Config files are located in `/api-mocks/allpay`.
+
+Note that Allpay requires client reference and surname path parameters in the URL to be base64 encoded, as these strings 
+may include invalid characters (e.g. whitespace, reserved symbols). When the mock switches response based on a path parameter,
+the value will need to be the base64 encoded string, with the actual value included as a comment in the line above.
+
+### Bank Holiday API
+We use the GovUK bank holidays endpoint in order to calculate working days. This is just a JSON file, but to avoid calling
+this repeatedly during testing, there is a simple Go file to serve it instead, located in `/api-mocks/holidays-api`. The
+`bank-holidays.json` file contains all dates from 2024-2027, and this can be manually updates as new dates are available.
