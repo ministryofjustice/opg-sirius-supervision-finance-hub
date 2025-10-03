@@ -10,12 +10,7 @@ import (
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 )
 
-type CancelMandateRequest struct {
-	ClientReference string
-	Surname         string
-}
-
-func (c *Client) CancelMandate(ctx context.Context, data *CancelMandateRequest) error {
+func (c *Client) CancelMandate(ctx context.Context, data *ClientDetails) error {
 	logger := telemetry.LoggerFromContext(ctx)
 
 	today := time.Now().Format("2006-01-02")

@@ -80,7 +80,8 @@ resources:
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/{Date}/{Amount}"
     method: delete
     pathParams:
-      Surname: allpay_remove_schedule_validation
+      # allpay_remove_schedule_validation
+      Surname: YWxscGF5X3JlbW92ZV9zY2hlZHVsZV92YWxpZGF0aW9u
     response:
       statusCode: 400
       content: "Bad Request - Please check the format of your body request"
