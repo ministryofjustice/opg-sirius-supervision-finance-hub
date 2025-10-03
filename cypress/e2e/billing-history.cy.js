@@ -29,7 +29,7 @@ describe("Billing History Tab", () => {
         });
 
         cy.get(".moj-timeline__item").eq(4).within(() => {
-            cy.get(".moj-timeline__title").contains("MOTO card payment of £100 received");
+            cy.get(".moj-timeline__title").contains("MOTO card payment of £130 received");
             cy.get(".moj-timeline__byline").contains("by Ian Admin, 11/05/2024");
             cy.get(".moj-timeline__date").contains("Outstanding balance: £0 Credit balance: £30");
             cy.get(".moj-timeline__description").contains("£100 allocated to AD16162/24");
