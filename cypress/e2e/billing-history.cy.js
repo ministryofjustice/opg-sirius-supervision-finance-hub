@@ -36,16 +36,31 @@ describe("Billing History Tab", () => {
             cy.get(".moj-timeline__description").contains("£30 unallocated");
         });
 
+
+        cy.get(".moj-timeline__item").eq(3).within(() => {
+            cy.get(".moj-timeline__title").contains("AD invoice created for £100");
+            cy.get(".moj-timeline__byline").contains("by Ian Admin, 12/05/2024");
+            cy.get(".moj-timeline__date").contains("Outstanding balance: £100 Credit balance: £30");
+            cy.get(".moj-timeline__description").contains("AD16163/24");
+        });
+
         cy.get(".moj-timeline__item").eq(2).within(() => {
             cy.get(".moj-timeline__title").contains("£30 reapplied to AD16163/24");
-            cy.get(".moj-timeline__byline").contains("by Ian Admin, 11/05/2024");
+            cy.get(".moj-timeline__byline").contains("by Ian Admin, 12/05/2024");
             cy.get(".moj-timeline__date").contains("Outstanding balance: £70 Credit balance: £0");
             cy.get(".moj-timeline__description").contains("£30 reapplied to AD16163/24");
         });
 
+        cy.get(".moj-timeline__item").eq(1).within(() => {
+            cy.get(".moj-timeline__title").contains("MOTO card payment of £70 received");
+            cy.get(".moj-timeline__byline").contains("by Ian Admin, 13/05/2024");
+            cy.get(".moj-timeline__date").contains("Outstanding balance: £0 Credit balance: £0");
+            cy.get(".moj-timeline__description").contains("£70 allocated to AD16162/24");
+        });
+
         cy.get(".moj-timeline__item").first().within(() => {
             cy.get(".moj-timeline__title").contains("MOTO card payment reversal of £70 created");
-            cy.get(".moj-timeline__byline").contains("by Ian Admin, 11/05/2024");
+            cy.get(".moj-timeline__byline").contains("by Ian Admin, 14/05/2024");
             cy.get(".moj-timeline__date").contains("Outstanding balance: £70 Credit balance: £0");
             cy.get(".moj-timeline__description").contains("£70 reversed against AD16162/24");
         });

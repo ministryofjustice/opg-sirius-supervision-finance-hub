@@ -85,6 +85,31 @@ func (c *Client) AddWorkingDays(ctx context.Context, d time.Time, n int) (time.T
 	}
 }
 
+func (c *Client) SubWorkingDays(ctx context.Context, d time.Time, n int) (time.Time, error) {
+	if c.caches.shouldRefreshHolidays() {
+		logger := telemetry.LoggerFromContext(ctx)
+		logger.Info("refreshing holidays cache via API")
+		holidays, err := c.getHolidays(ctx)
+		if err != nil {
+			logger.Error("error in refreshing holidays cache via API", "error", err)
+			return time.Time{}, err
+		}
+		c.caches.updateHolidays(holidays)
+	}
+	for {
+		if n == 0 {
+			return d, nil
+		}
+		for {
+			d = d.AddDate(0, 0, -1)
+			if c.isWorkingDay(d) {
+				break
+			}
+		}
+		n--
+	}
+}
+
 // NextWorkingDayOnOrAfterX will return the next available working day after date on or after dayOfMonth
 func (c *Client) NextWorkingDayOnOrAfterX(ctx context.Context, date time.Time, dayOfMonth int) (time.Time, error) {
 	if c.caches.shouldRefreshHolidays() {

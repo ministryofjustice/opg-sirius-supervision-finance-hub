@@ -209,6 +209,7 @@ func getReversalLines(ctx context.Context, record []string, uploadType shared.Re
 		ReceivedDate:    receivedDate,
 		Amount:          amount,
 		PisNumber:       pisNumber,
+		CreatedBy:       createdBy,
 		SkipBankDate:    shouldSkipBankDate(uploadType, pisNumber),
 	}
 }
@@ -287,6 +288,7 @@ func (s *Service) ProcessReversalUploadLine(ctx context.Context, tx *store.Tx, d
 		BankDate:     details.BankDate,
 		ReceivedDate: details.ReceivedDate,
 		PisNumber:    details.PisNumber,
+		Notes:        details.Notes,
 	})
 
 	if err != nil {

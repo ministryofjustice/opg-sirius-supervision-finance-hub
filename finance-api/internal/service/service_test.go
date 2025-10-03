@@ -82,6 +82,7 @@ func (m *mockDispatch) DirectDebitScheduleFailed(ctx context.Context, event even
 
 type mockAllpay struct {
 	called           []string
+	failedPayments   allpay.FailedPayments
 	errs             map[string]error
 	lastCalledParams []interface{}
 }
@@ -110,18 +111,31 @@ func (m *mockAllpay) CreateSchedule(ctx context.Context, data *allpay.CreateSche
 	return m.errs["CreateSchedule"]
 }
 
+func (m *mockAllpay) FetchFailedPayments(ctx context.Context, input allpay.FetchFailedPaymentsInput) (allpay.FailedPayments, error) {
+	m.called = append(m.called, "FetchFailedPayments")
+	m.lastCalledParams = []interface{}{input}
+	return m.failedPayments, m.errs["FetchFailedPayments"]
+}
+
 type mockGovUK struct {
 	called         []string
 	errs           map[string]error
 	nWorkingDays   int
 	Xday           int
+	workingDay     time.Time
 	nextWorkingDay time.Time
 }
 
 func (m *mockGovUK) AddWorkingDays(ctx context.Context, d time.Time, n int) (time.Time, error) {
 	m.called = append(m.called, "AddWorkingDays")
 	m.nWorkingDays = n
-	return time.Time{}, m.errs["AddWorkingDays"]
+	return m.workingDay, m.errs["AddWorkingDays"]
+}
+
+func (m *mockGovUK) SubWorkingDays(ctx context.Context, d time.Time, n int) (time.Time, error) {
+	m.called = append(m.called, "SubWorkingDays")
+	m.nWorkingDays = n
+	return m.workingDay, m.errs["SubWorkingDays"]
 }
 
 func (m *mockGovUK) NextWorkingDayOnOrAfterX(ctx context.Context, date time.Time, dayOfMonth int) (time.Time, error) {
