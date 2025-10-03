@@ -305,7 +305,7 @@ func processLedgerAllocations(allocations []store.GetLedgerAllocationsForClientR
 				},
 			)
 			if event.Type == shared.EventTypePaymentProcessed {
-				eventAmount := calculateTotalAmount(event)
+				eventAmount := calculateTotalAmountForPaymentEvents(event)
 				event.Amount = eventAmount
 			}
 			lh.billingHistory.Event = event
@@ -392,7 +392,7 @@ func processLedgerAllocations(allocations []store.GetLedgerAllocationsForClientR
 	return history
 }
 
-func calculateTotalAmount(events shared.TransactionEvent) int {
+func calculateTotalAmountForPaymentEvents(events shared.TransactionEvent) int {
 	amount := 0
 	for _, breakdownAmount := range events.Breakdown {
 		amount += breakdownAmount.Amount
