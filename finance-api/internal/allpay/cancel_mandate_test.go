@@ -15,7 +15,7 @@ func TestCancelMandate_Success(t *testing.T) {
 			t.Errorf("Expected DELETE, got %s", r.Method)
 		}
 		today := time.Now().Format("2006-01-02")
-		if r.URL.Path != "/AllpayApi/Customers/SCHEME123/12345678/Cancelman/Mandates/"+today {
+		if r.URL.Path != "/AllpayApi/Customers/SCHEME123/MTIzNDU2Nzg=/Q2FuY2VsbWFu/Mandates/"+today {
 			t.Errorf("Unexpected URL path: %s", r.URL.Path)
 		}
 		w.WriteHeader(http.StatusOK)

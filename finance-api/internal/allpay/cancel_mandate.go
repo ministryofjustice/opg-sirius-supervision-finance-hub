@@ -2,6 +2,7 @@ package allpay
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"time"
@@ -19,7 +20,13 @@ func (c *Client) CancelMandate(ctx context.Context, data *CancelMandateRequest) 
 
 	today := time.Now().Format("2006-01-02")
 
-	req, err := c.newRequest(ctx, http.MethodDelete, fmt.Sprintf("/Customers/%s/%s/%s/Mandates/%s", c.schemeCode, data.ClientReference, data.Surname, today), nil)
+	req, err := c.newRequest(ctx, http.MethodDelete,
+		fmt.Sprintf("/Customers/%s/%s/%s/Mandates/%s",
+			c.schemeCode,
+			base64.StdEncoding.EncodeToString([]byte(data.ClientReference)),
+			base64.StdEncoding.EncodeToString([]byte(data.Surname)),
+			today,
+		), nil)
 
 	if err != nil {
 		logger.Error("unable to build cancel mandate request", "error", err)
