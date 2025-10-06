@@ -85,7 +85,9 @@ func (c *Client) AddWorkingDays(ctx context.Context, d time.Time, n int) (time.T
 	}
 }
 
-// NextWorkingDayOnOrAfterX will return the next available working day after date on or after dayOfMonth
+// NextWorkingDayOnOrAfterX will return the next available working day on or after dayOfMonth from date. e.g. if dayOfMonth
+// is 24 and is a working day, the date returned will be 24th of date's current month if that date has not passed, otherwise
+// the 24th of the next month.
 func (c *Client) NextWorkingDayOnOrAfterX(ctx context.Context, date time.Time, dayOfMonth int) (time.Time, error) {
 	if c.caches.shouldRefreshHolidays() {
 		logger := telemetry.LoggerFromContext(ctx)
@@ -105,7 +107,7 @@ func (c *Client) NextWorkingDayOnOrAfterX(ctx context.Context, date time.Time, d
 	date = time.Date(date.Year(), date.Month(), dayOfMonth, 0, 0, 0, 0, time.UTC)
 
 	for {
-		if b := c.caches.isHoliday(date); !b {
+		if b := c.isWorkingDay(date); b {
 			return date, nil
 		}
 		date = date.AddDate(0, 0, 1)
