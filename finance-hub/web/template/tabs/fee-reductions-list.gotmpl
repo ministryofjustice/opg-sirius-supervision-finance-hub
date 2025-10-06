@@ -12,7 +12,8 @@
                         data-module="govuk-button"
                         hx-get="{{ prefix (printf "/clients/%s/fee-reductions/add" .ClientId) }}"
                         hx-target="#main-content"
-                        hx-push-url="{{ prefix (printf "/clients/%s/fee-reductions/add" .ClientId) }}">
+                        hx-push-url="{{ prefix (printf "/clients/%s/fee-reductions/add" .ClientId) }}"
+                >
                     Award a fee reduction
                 </a>
             </div>

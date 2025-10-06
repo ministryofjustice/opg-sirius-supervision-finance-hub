@@ -110,7 +110,10 @@
                             <button class="govuk-button" data-module="govuk-button">
                                 Save and continue
                             </button>
-                            <a class="govuk-link"  href="{{ prefix (printf "/clients/%s/fee-reductions" .ClientId) }}">Cancel</a>
+                            <a class="govuk-link"
+                               href="{{ prefix (printf "/clients/%s/fee-reductions" .ClientId) }}">
+                                Cancel
+                            </a>
                         </div>
                     </form>
                 </div>
