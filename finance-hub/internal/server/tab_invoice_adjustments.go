@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"math"
 	"net/http"
@@ -41,7 +42,7 @@ func (h *InvoiceAdjustmentsHandler) render(v AppVars, w http.ResponseWriter, r *
 
 	data := &InvoiceAdjustmentsTab{InvoiceAdjustments: h.transform(ia), ClientId: strconv.Itoa(clientID), AppVars: v}
 	data.selectTab("invoice-adjustments")
-
+	fmt.Printf("in invoice-adjustments render")
 	return h.execute(w, r, data)
 }
 

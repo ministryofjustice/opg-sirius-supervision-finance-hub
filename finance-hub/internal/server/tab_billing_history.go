@@ -2,8 +2,10 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"golang.org/x/exp/rand"
 	"net/http"
 )
 
@@ -35,6 +37,9 @@ func (h *BillingHistoryHandler) render(v AppVars, w http.ResponseWriter, r *http
 
 	data := &BillingHistoryTab{h.transform(ctx, billingHistory), v}
 	data.selectTab("billing-history")
+
+	data.EnvironmentVars.ShowDirectDebitButton = rand.Int()
+	fmt.Printf("in billing history render %d", data.EnvironmentVars.ShowDirectDebitButton)
 	return h.execute(w, r, data)
 }
 

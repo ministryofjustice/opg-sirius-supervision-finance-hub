@@ -51,14 +51,15 @@ type HtmxHandler interface {
 }
 
 type Envs struct {
-	Port             string
-	WebDir           string
-	SiriusURL        string
-	SiriusPublicURL  string
-	Prefix           string
-	BackendURL       string
-	BillingTeamID    int
-	ShowDirectDebits bool
+	Port                  string
+	WebDir                string
+	SiriusURL             string
+	SiriusPublicURL       string
+	Prefix                string
+	BackendURL            string
+	BillingTeamID         int
+	ShowDirectDebits      bool
+	ShowDirectDebitButton int
 }
 
 func New(logger *slog.Logger, client *api.Client, templates map[string]*template.Template, envs Envs) http.Handler {

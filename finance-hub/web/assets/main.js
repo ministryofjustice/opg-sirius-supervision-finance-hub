@@ -19,6 +19,17 @@ document.body.addEventListener('htmx:beforeOnLoad', function (evt) {
     });
 });
 
+htmx.findAll(".moj-sub-navigation__link").forEach((element) => {
+   console.log("trigger the event")
+   element.addEventListener("click", () => htmx.toggleClass(htmx.find("#show-direct-debit-button"), "hide"));
+});
+
+document.body.addEventListener('htmx:configRequest', function(evt) {
+    console.log("EVENT IS WORKING!")
+    htmx.toggleClass(htmx.find("#show-direct-debit-button"), "hide");
+});
+
+
 // adding event listeners inside the onLoad function will ensure they are re-added to partial content when loaded back in
 htmx.onLoad(content => {
     initAll();
@@ -26,6 +37,11 @@ htmx.onLoad(content => {
     htmx.findAll(content, ".summary").forEach((element => {
         htmx.on(`#${element.id}`, "click", () => htmx.toggleClass(htmx.find(`#${element.id}-reveal`), "hide"));
     }));
+
+   htmx.findAll(".moj-sub-navigation__link").forEach((element) => {
+       console.log("trigger the event")
+       element.addEventListener("someOtherKnownMethod", () => htmx.toggleClass(htmx.find("#show-direct-debit-button"), "hide"));
+   });
 
     htmx.findAll(".show-amount-field").forEach((element) => {
         element.addEventListener("click", () => htmx.removeClass(htmx.find("#amount-field"), "hide"));
@@ -47,8 +63,11 @@ htmx.onLoad(content => {
         element.addEventListener("change", (event) => {
             if (event.target.checked) {
                 htmx.removeClass(htmx.find("#amount-field"), "hide");
+                htmx.removeClass(htmx.find("#show-direct-debit-button"), "hide");
+
             } else {
                 htmx.addClass(htmx.find("#amount-field"), "hide");
+                htmx.addClass(htmx.find("#show-direct-debit-button"), "hide");
             }
         });
     });

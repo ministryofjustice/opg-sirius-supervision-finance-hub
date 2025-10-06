@@ -66,6 +66,8 @@ func (h *InvoicesHandler) render(v AppVars, w http.ResponseWriter, r *http.Reque
 
 	data := &InvoicesVars{h.transform(invoices, clientID), strconv.Itoa(clientID), v}
 	data.selectTab("invoices")
+	fmt.Printf("in invoices render")
+
 	return h.execute(w, r, data)
 }
 
