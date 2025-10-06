@@ -4,6 +4,12 @@ describe("Direct debit form", () => {
         cy.checkAccessibility();
     });
 
+    it("should not show direct debit button when viewing the cancel direct debit form",() => {
+        cy.visit("/clients/19/direct-debit/cancel");
+        cy.get("#direct-debit-button").should('exist');
+        cy.get("#direct-debit-button").should('not.be.visible');
+    });
+
     it("redirects on success with banner", () => {
         cy.visit("/clients/19/invoices");
         cy.contains('[data-cy="payment-method"]', "Direct Debit");
