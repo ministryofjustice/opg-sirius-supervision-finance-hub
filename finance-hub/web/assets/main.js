@@ -20,26 +20,21 @@ document.body.addEventListener('htmx:beforeOnLoad', function (evt) {
 });
 
 function showOrHideDirectDebitButton(currentUrl) {
-  showDirectDebitButton = true;
   if (
       currentUrl.includes("/add") ||
       currentUrl.includes("/adjustments") ||
       currentUrl.includes("/cancel") ||
       currentUrl.includes("/setup")
   ) {
-      showDirectDebitButton = false;
-  }
-
-  if (showDirectDebitButton) {
-      htmx.removeClass(htmx.find("#show-direct-debit-button"), "hide");
+     htmx.addClass(htmx.find("#direct-debit-button"), "hide");
   } else {
-      htmx.addClass(htmx.find("#show-direct-debit-button"), "hide");
+     htmx.removeClass(htmx.find("#direct-debit-button"), "hide");
   }
 }
 
-document.body.addEventListener('htmx:configRequest', function(evt) {
-    currentUrl = evt.detail.path;
-    return showOrHideDirectDebitButton(currentUrl)
+
+document.body.addEventListener('htmx:afterOnLoad', function(evt) {
+    return showOrHideDirectDebitButton(evt.detail.path)
 });
 
 // adding event listeners inside the onLoad function will ensure they are re-added to partial content when loaded back in
@@ -50,9 +45,8 @@ htmx.onLoad(content => {
         htmx.on(`#${element.id}`, "click", () => htmx.toggleClass(htmx.find(`#${element.id}-reveal`), "hide"));
     }));
 
-   htmx.findAll("#show-direct-debit-button").forEach((element => {
-        currentUrl = window.location.href;
-        return showOrHideDirectDebitButton(currentUrl)
+   htmx.findAll("#direct-debit-button").forEach((element => {
+        return showOrHideDirectDebitButton(window.location.href)
     }));
 
     htmx.findAll(".show-amount-field").forEach((element) => {
