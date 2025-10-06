@@ -25,16 +25,15 @@ import (
 )
 
 type Envs struct {
-	webDir                string
-	siriusURL             string
-	siriusPublicURL       string
-	backendURL            string
-	prefix                string
-	port                  string
-	jwtSecret             string
-	billingTeamID         int
-	showDirectDebits      bool
-	showDirectDebitButton int
+	webDir           string
+	siriusURL        string
+	siriusPublicURL  string
+	backendURL       string
+	prefix           string
+	port             string
+	jwtSecret        string
+	billingTeamID    int
+	showDirectDebits bool
 }
 
 func parseEnvs() (*Envs, error) {
@@ -176,9 +175,6 @@ func createTemplates(envVars *Envs) map[string]*template.Template {
 		},
 		"showDirectDebits": func() bool {
 			return envVars.showDirectDebits
-		},
-		"showDirectDebitButton": func() int {
-			return envVars.showDirectDebitButton
 		},
 		"toCurrency": func(amount int) string {
 			return shared.IntToDecimalString(amount)

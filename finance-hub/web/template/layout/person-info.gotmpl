@@ -14,41 +14,40 @@
         </div>
     </div>
     {{ if .User.IsFinanceUser }}
-        <div class="hide show-direct-debit-button"
-             id="show-direct-debit-button">
-                {{ if eq showDirectDebits true }}
-                    {{ if eq .FinanceClient.PaymentMethod "Demanded" }}
-                         <a class="govuk-button moj-button-menu__item govuk-button--secondary govuk-!-margin-top-5"
-                               role="button"
-                               draggable="false"
-                               data-module="govuk-button"
-                               hx-get="{{ prefix (printf "/clients/%s/direct-debit/setup" .FinanceClient.ClientId) }}"
-                               hx-target="#main-content"
-                               hx-push-url="{{ prefix (printf "/clients/%s/direct-debit/setup" .FinanceClient.ClientId) }}">
-                               Set up direct debit
-                        </a>
-                     {{ else if eq .FinanceClient.PaymentMethod "Direct Debit"}}
-                        <a class="govuk-button moj-button-menu__item govuk-button--secondary govuk-!-margin-top-5"
+        <div id="show-direct-debit-button" class="">
+            {{ if eq showDirectDebits true }}
+                {{ if eq .FinanceClient.PaymentMethod "Demanded" }}
+                     <a class="govuk-button moj-button-menu__item govuk-button--secondary govuk-!-margin-top-5"
                            role="button"
                            draggable="false"
                            data-module="govuk-button"
-                           hx-get="{{ prefix (printf "/clients/%s/direct-debit/cancel" .FinanceClient.ClientId) }}"
+                           hx-get="{{ prefix (printf "/clients/%s/direct-debit/setup" .FinanceClient.ClientId) }}"
                            hx-target="#main-content"
-                           hx-push-url="{{ prefix (printf "/clients/%s/direct-debit/cancel" .FinanceClient.ClientId) }}">
-                            Cancel direct debit
-                        </a>
-                     {{ end }}
-                {{ else }}
+                           hx-push-url="{{ prefix (printf "/clients/%s/direct-debit/setup" .FinanceClient.ClientId) }}">
+                           Set up direct debit
+                    </a>
+                 {{ else if eq .FinanceClient.PaymentMethod "Direct Debit"}}
                     <a class="govuk-button moj-button-menu__item govuk-button--secondary govuk-!-margin-top-5"
                        role="button"
                        draggable="false"
                        data-module="govuk-button"
-                       hx-get="{{ prefix (printf "/clients/%s/payment-method/add" .FinanceClient.ClientId) }}"
+                       hx-get="{{ prefix (printf "/clients/%s/direct-debit/cancel" .FinanceClient.ClientId) }}"
                        hx-target="#main-content"
-                       hx-push-url="{{ prefix (printf "/clients/%s/payment-method/add" .FinanceClient.ClientId) }}">
-                       Edit payment method
+                       hx-push-url="{{ prefix (printf "/clients/%s/direct-debit/cancel" .FinanceClient.ClientId) }}">
+                        Cancel direct debit
                     </a>
-                {{ end }}
+                 {{ end }}
+            {{ else }}
+                <a class="govuk-button moj-button-menu__item govuk-button--secondary govuk-!-margin-top-5"
+                   role="button"
+                   draggable="false"
+                   data-module="govuk-button"
+                   hx-get="{{ prefix (printf "/clients/%s/payment-method/add" .FinanceClient.ClientId) }}"
+                   hx-target="#main-content"
+                   hx-push-url="{{ prefix (printf "/clients/%s/payment-method/add" .FinanceClient.ClientId) }}">
+                   Edit payment method
+                </a>
+            {{ end }}
         </div>
     {{ end }}
 {{ end }}

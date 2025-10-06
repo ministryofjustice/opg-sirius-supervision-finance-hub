@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -43,8 +42,6 @@ func (h *FeeReductionsHandler) render(v AppVars, w http.ResponseWriter, r *http.
 
 	data := &FeeReductionsTab{h.transform(feeReductions), strconv.Itoa(clientID), v}
 	data.selectTab("fee-reductions")
-	fmt.Printf("in fee reductions render")
-
 	return h.execute(w, r, data)
 }
 
