@@ -20,19 +20,21 @@ document.body.addEventListener('htmx:beforeOnLoad', function (evt) {
 });
 
 document.body.addEventListener('htmx:configRequest', function(evt) {
-    console.log("Event 10");
-    console.log(evt);
-    console.log(evt.detail);
-    console.log(evt.detail.path);
     currentUrl = evt.detail.path;
-    console.log(currentUrl.includes("invoice"));
+    showDirectDebitButton = true;
+    if (
+        currentUrl.includes("/add") ||
+        currentUrl.includes("/adjustments") ||
+        currentUrl.includes("/cancel") ||
+        currentUrl.includes("/setup")
+    ) {
+        showDirectDebitButton = false;
+    }
 
-    if (currentUrl.includes("invoice")) {
-        console.log("Hide button");
-        htmx.addClass(htmx.find("#show-direct-debit-button"), "hide");
-    } else {
-        console.log("Show button");
+    if (showDirectDebitButton) {
         htmx.removeClass(htmx.find("#show-direct-debit-button"), "hide");
+    } else {
+        htmx.addClass(htmx.find("#show-direct-debit-button"), "hide");
     }
 });
 
