@@ -1,23 +1,24 @@
 package allpay
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 )
 
-func TestCancelMandate_Success(t *testing.T) {
+func TestRemoveScheduledPayment_Success(t *testing.T) {
 	schemeCode := "SCHEME123"
 
 	date := time.Now()
+	amount := int32(12345)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodDelete {
 			t.Errorf("Expected DELETE, got %s", r.Method)
 		}
-		today := date.Format("2006-01-02")
-		if r.URL.Path != "/AllpayApi/Customers/SCHEME123/MTIzNDU2Nzg=/Q2FuY2VsbWFu/Mandates/"+today {
+		if r.URL.Path != fmt.Sprintf("/AllpayApi/Customers/SCHEME123/MTIzNDU2Nzg=/Q2FuY2VsbWFu/Mandates/Schedule/%s/%d", date.Format("2006-01-02"), amount) {
 			t.Errorf("Unexpected URL path: %s", r.URL.Path)
 		}
 		w.WriteHeader(http.StatusOK)
@@ -32,8 +33,9 @@ func TestCancelMandate_Success(t *testing.T) {
 		},
 	}
 
-	err := c.CancelMandate(testContext(), &CancelMandateRequest{
-		ClosureDate: date,
+	err := c.RemoveScheduledPayment(testContext(), &RemoveScheduledPaymentRequest{
+		CollectionDate: date,
+		Amount:         amount,
 		ClientDetails: ClientDetails{
 			ClientReference: "12345678",
 			Surname:         "Cancelman",
@@ -44,7 +46,7 @@ func TestCancelMandate_Success(t *testing.T) {
 	}
 }
 
-func TestCancelMandate_RequestCreationFails(t *testing.T) {
+func TestRemoveScheduledPayment_RequestCreationFails(t *testing.T) {
 	c := &Client{
 		http: http.DefaultClient,
 		Envs: Envs{
@@ -53,8 +55,9 @@ func TestCancelMandate_RequestCreationFails(t *testing.T) {
 		},
 	}
 
-	err := c.CancelMandate(testContext(), &CancelMandateRequest{
-		ClosureDate: time.Now(),
+	err := c.RemoveScheduledPayment(testContext(), &RemoveScheduledPaymentRequest{
+		CollectionDate: time.Now(),
+		Amount:         12345,
 		ClientDetails: ClientDetails{
 			ClientReference: "12345678",
 			Surname:         "Cancelman",
@@ -65,7 +68,7 @@ func TestCancelMandate_RequestCreationFails(t *testing.T) {
 	}
 }
 
-func TestCancelMandate_UnexpectedStatus(t *testing.T) {
+func TestRemoveScheduledPayment_UnexpectedStatus(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusCreated)
 	}))
@@ -79,8 +82,9 @@ func TestCancelMandate_UnexpectedStatus(t *testing.T) {
 		},
 	}
 
-	err := c.CancelMandate(testContext(), &CancelMandateRequest{
-		ClosureDate: time.Now(),
+	err := c.RemoveScheduledPayment(testContext(), &RemoveScheduledPaymentRequest{
+		CollectionDate: time.Now(),
+		Amount:         12345,
 		ClientDetails: ClientDetails{
 			ClientReference: "12345678",
 			Surname:         "Cancelman",

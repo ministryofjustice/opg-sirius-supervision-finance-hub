@@ -129,6 +129,9 @@ INSERT INTO refund VALUES (9, 18001, '2021-06-01', 12344, 'APPROVED', 'Cancel me
 
 -- cancel direct debit
 INSERT INTO finance_client VALUES (19001, 19, 'canceldirectdebit', 'DIRECT DEBIT', null, '19191919');
+INSERT INTO pending_collection VALUES (1, 19001, now()::DATE - 1, 10000, 'COLLECTED', NULL, '2025-06-01 00:00:00', 1);
+INSERT INTO pending_collection VALUES (2, 19001, now()::DATE + 1, 10000, 'PENDING', NULL, '2025-06-01 00:00:00', 1);
+INSERT INTO pending_collection VALUES (3, 19001, now()::DATE + 10, 10000, 'PENDING', NULL, '2025-06-01 00:00:00', 1);
 
 -- billing history payments
 INSERT INTO finance_client VALUES (20001, 20, 'paymentevents', 'DEMANDED', null, '20202020');
@@ -160,7 +163,6 @@ INSERT INTO finance_client VALUES (23003, 25, 'allpayvalidation', 'DIRECT DEBIT'
 INSERT INTO invoice VALUES (20, 25, 23003, 'AD', 'AD2323003/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-04-10T08:36:40+00:00', 99);
 INSERT INTO finance_client VALUES (23004, 26, 'allpayvalidation', 'DIRECT DEBIT', null, '23232302');
 INSERT INTO invoice VALUES (21, 26, 23004, 'AD', 'AD2323004/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-04-10T08:36:40+00:00', 99);
-
 
 -- cancel an approved refund
 INSERT INTO finance_client VALUES (24001, 24, 'cancelapprovedrefund', 'DEMANDED', null, '24242400');
