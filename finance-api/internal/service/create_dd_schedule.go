@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
-	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/allpay"
@@ -59,10 +60,12 @@ func (s *Service) CreateDirectDebitSchedule(ctx context.Context, clientID int32,
 	}
 
 	err = s.allpay.CreateSchedule(ctx, &allpay.CreateScheduleInput{
-		ClientReference: data.ClientReference,
-		Surname:         data.Surname,
-		Date:            date,
-		Amount:          balance,
+		ClientDetails: allpay.ClientDetails{
+			ClientReference: data.ClientReference,
+			Surname:         data.Surname,
+		},
+		Date:   date,
+		Amount: balance,
 	})
 	if err != nil {
 		var ve allpay.ErrorValidation
