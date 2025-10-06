@@ -19,7 +19,8 @@ document.body.addEventListener('htmx:beforeOnLoad', function (evt) {
     });
 });
 
-function showOrHideDirectDebitButton(currentUrl) {
+function showOrHideDirectDebitButton() {
+  currentUrl = window.location.href;
   if (
       currentUrl.includes("/add") ||
       currentUrl.includes("/adjustments") ||
@@ -34,7 +35,7 @@ function showOrHideDirectDebitButton(currentUrl) {
 
 
 document.body.addEventListener('htmx:afterOnLoad', function(evt) {
-    return showOrHideDirectDebitButton(evt.detail.path)
+    return showOrHideDirectDebitButton()
 });
 
 // adding event listeners inside the onLoad function will ensure they are re-added to partial content when loaded back in
@@ -46,7 +47,7 @@ htmx.onLoad(content => {
     }));
 
    htmx.findAll("#direct-debit-button").forEach((element => {
-        return showOrHideDirectDebitButton(window.location.href)
+        return showOrHideDirectDebitButton()
     }));
 
     htmx.findAll(".show-amount-field").forEach((element) => {
