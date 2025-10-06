@@ -37,7 +37,8 @@ function showOrHideDirectDebitButton(currentUrl) {
   }
 }
 
-document.body.addEventListener('htmx:configRequest', function(evt) {
+
+document.body.addEventListener('htmx:afterOnLoad', function(evt) {
     currentUrl = evt.detail.path;
     return showOrHideDirectDebitButton(currentUrl)
 });
