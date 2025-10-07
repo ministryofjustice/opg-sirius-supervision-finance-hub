@@ -123,4 +123,10 @@ describe("Adjust invoice form", () => {
         cy.visit("/clients/4/invoices/3/adjustments");
         cy.checkAccessibility();
     });
+
+   it("should not show direct debit button when viewing the adjust invoice form",() => {
+        cy.visit("/clients/4/invoices/3/adjustments");
+        cy.get("#direct-debit-button").should('exist');
+        cy.get("#direct-debit-button").should('not.be.visible');
+    });
 });

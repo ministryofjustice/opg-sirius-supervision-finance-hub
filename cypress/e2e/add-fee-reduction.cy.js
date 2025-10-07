@@ -44,4 +44,10 @@ describe("Add fee reduction form", () => {
         cy.visit("/clients/2/fee-reductions/add");
         cy.checkAccessibility();
     });
+
+    it("should not show direct debit button when viewing the add fee reduction form",() => {
+        cy.visit("/clients/2/fee-reductions/add");
+        cy.get("#direct-debit-button").should('exist');
+        cy.get("#direct-debit-button").should('not.be.visible');
+    });
 });
