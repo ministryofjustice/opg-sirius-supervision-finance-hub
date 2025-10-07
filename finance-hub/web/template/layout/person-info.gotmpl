@@ -14,6 +14,7 @@
         </div>
     </div>
     {{ if .User.IsFinanceUser }}
+        <div id="direct-debit-button">
             {{ if eq showDirectDebits true }}
                 {{ if eq .FinanceClient.PaymentMethod "Demanded" }}
                      <a class="govuk-button moj-button-menu__item govuk-button--secondary govuk-!-margin-top-5"
@@ -47,5 +48,6 @@
                    Edit payment method
                 </a>
             {{ end }}
+        </div>
     {{ end }}
 {{ end }}
