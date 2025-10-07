@@ -59,10 +59,10 @@ func (s *Service) CreateDirectDebitSchedule(ctx context.Context, clientID int32,
 	}
 
 	err = s.allpay.CreateSchedule(ctx, &allpay.CreateScheduleInput{
-		ClientRef: data.ClientReference,
-		Surname:   data.Surname,
-		Date:      date,
-		Amount:    balance,
+		ClientReference: data.ClientReference,
+		Surname:         data.Surname,
+		Date:            date,
+		Amount:          balance,
 	})
 	if err != nil {
 		var ve allpay.ErrorValidation

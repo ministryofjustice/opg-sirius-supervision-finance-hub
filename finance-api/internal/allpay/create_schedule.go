@@ -3,6 +3,7 @@ package allpay
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -23,10 +24,10 @@ type createScheduleRequest struct {
 }
 
 type CreateScheduleInput struct {
-	ClientRef string
-	Surname   string
-	Date      time.Time
-	Amount    int32
+	ClientReference string
+	Surname         string
+	Date            time.Time
+	Amount          int32
 }
 
 func (c *Client) CreateSchedule(ctx context.Context, data *CreateScheduleInput) error {
@@ -49,7 +50,12 @@ func (c *Client) CreateSchedule(ctx context.Context, data *CreateScheduleInput) 
 		return err
 	}
 
-	req, err := c.newRequest(ctx, http.MethodPost, fmt.Sprintf("/Customers/%s/%s/%s/VariableMandates", c.schemeCode, data.ClientRef, data.Surname), &body)
+	req, err := c.newRequest(ctx, http.MethodPost,
+		fmt.Sprintf("/Customers/%s/%s/%s/VariableMandates",
+			c.schemeCode,
+			base64.StdEncoding.EncodeToString([]byte(data.ClientReference)),
+			base64.StdEncoding.EncodeToString([]byte(data.Surname)),
+		), &body)
 
 	if err != nil {
 		logger.Error("unable to build create schedule request", "error", err)
