@@ -11,6 +11,28 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const checkPendingCollection = `-- name: CheckPendingCollection :one
+SELECT pc.id
+FROM pending_collection pc
+WHERE pc.collection_date = $1::DATE
+    AND pc.amount = $2
+    AND pc.finance_client_id = $3
+    AND pc.status = 'PENDING'
+`
+
+type CheckPendingCollectionParams struct {
+	DateCollected   pgtype.Date
+	Amount          int32
+	FinanceClientID pgtype.Int4
+}
+
+func (q *Queries) CheckPendingCollection(ctx context.Context, arg CheckPendingCollectionParams) (int32, error) {
+	row := q.db.QueryRow(ctx, checkPendingCollection, arg.DateCollected, arg.Amount, arg.FinanceClientID)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
+}
+
 const createPendingCollection = `-- name: CreatePendingCollection :exec
 INSERT INTO pending_collection (id, finance_client_id, collection_date, amount, status, created_at, created_by)
 VALUES (NEXTVAL('pending_collection_id_seq'),

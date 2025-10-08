@@ -51,6 +51,14 @@ FROM pending_collection pc
 WHERE pc.collection_date = @date_collected::DATE
   AND pc.status = 'PENDING';
 
+-- name: CheckPendingCollection :one
+SELECT pc.id
+FROM pending_collection pc
+WHERE pc.collection_date = @date_collected::DATE
+    AND pc.amount = @amount
+    AND pc.finance_client_id = @finance_client_id
+    AND pc.status = 'PENDING';
+
 -- name: MarkPendingCollectionAsCollected :exec
 UPDATE pending_collection
 SET ledger_id = @ledger_id, status = 'COLLECTED'
