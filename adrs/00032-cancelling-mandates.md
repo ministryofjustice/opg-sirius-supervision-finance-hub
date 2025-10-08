@@ -1,4 +1,4 @@
-# 31. Cancelling Direct Debit Mandates
+# 32. Cancelling Direct Debit Mandates
 
 Date: 2025-10-06
 

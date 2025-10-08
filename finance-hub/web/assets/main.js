@@ -7,9 +7,9 @@ import("htmx-ext-response-targets");
 document.body.className += ' js-enabled' + ('noModule' in HTMLScriptElement.prototype ? ' govuk-frontend-supported' : '');
 initAll();
 
-window.htmx = htmx
+window.htmx = htmx;
 htmx.logAll();
-htmx.config.responseHandling = [{code:".*", swap: true}]
+htmx.config.responseHandling = [{code:".*", swap: true}];
 
 // some events will need to occur before the new content is loaded, so register them here on the document itself
 document.body.addEventListener('htmx:beforeOnLoad', function (evt) {
@@ -20,7 +20,7 @@ document.body.addEventListener('htmx:beforeOnLoad', function (evt) {
 });
 
 function showOrHideDirectDebitButton() {
-  currentUrl = window.location.href;
+  const currentUrl = window.location.href;
   if (
       currentUrl.includes("/add") ||
       currentUrl.includes("/adjustments") ||
@@ -35,7 +35,7 @@ function showOrHideDirectDebitButton() {
 
 
 document.body.addEventListener('htmx:afterOnLoad', function(evt) {
-    return showOrHideDirectDebitButton()
+    return showOrHideDirectDebitButton();
 });
 
 // adding event listeners inside the onLoad function will ensure they are re-added to partial content when loaded back in
@@ -47,7 +47,7 @@ htmx.onLoad(content => {
     }));
 
    htmx.findAll("#direct-debit-button").forEach((element => {
-        return showOrHideDirectDebitButton()
+        return showOrHideDirectDebitButton();
     }));
 
     htmx.findAll(".show-amount-field").forEach((element) => {
@@ -108,56 +108,57 @@ htmx.onLoad(content => {
             elements.forEach(element => {
                 htmx.addClass(element, 'hide');
             });
-            document.querySelector('#amount-field-input #amount').setAttribute("disabled", "true")
-            document.querySelector('#start-date-field-input #startDate').setAttribute("disabled", "true")
-            document.querySelector('#end-date-field-input #endDate').setAttribute("disabled", "true")
-            document.querySelector('#raised-date-field-input #raisedDate').setAttribute("disabled", "true")
-            document.querySelector('#raised-year-field-input #raisedYear').setAttribute("disabled", "true")
-            document.querySelector('#supervision-level-field-input #supervisionLevel').setAttribute("disabled", "true")
+            document.querySelector('#amount-field-input #amount').setAttribute("disabled", "true");
+            document.querySelector('#start-date-field-input #startDate').setAttribute("disabled", "true");
+            document.querySelector('#end-date-field-input #endDate').setAttribute("disabled", "true");
+            document.querySelector('#raised-date-field-input #raisedDate').setAttribute("disabled", "true");
+            document.querySelector('#raised-year-field-input #raisedYear').setAttribute("disabled", "true");
+            document.querySelector('#supervision-level-field-input #supervisionLevel').setAttribute("disabled", "true");
             const form = document.querySelector('form');
             const invoiceTypeSelect = document.getElementById('invoice-type');
-            const invoiceTypeSelectValue = invoiceTypeSelect.value
+            const invoiceTypeSelectValue = invoiceTypeSelect.value;
             form.reset();
-            invoiceTypeSelect.value =  invoiceTypeSelectValue
+            invoiceTypeSelect.value =  invoiceTypeSelectValue;
             switch (invoiceTypeSelect.value) {
                 case "AD":
                 case "GA":
-                    htmx.removeClass(htmx.find("#raised-date-field-input"), "hide")
-                    document.querySelector('#raised-date-field-input #raisedDate').removeAttribute("disabled")
+                    htmx.removeClass(htmx.find("#raised-date-field-input"), "hide");
+                    document.querySelector('#raised-date-field-input #raisedDate').removeAttribute("disabled");
                     break;
                 case "S2":
                 case "S3":
                 case "B2":
                 case "B3":
-                    htmx.removeClass(htmx.find("#amount-field-input"), "hide")
-                    document.querySelector('#amount-field-input #amount').removeAttribute("disabled")
-                    htmx.removeClass(htmx.find("#raised-year-field-input"), "hide")
-                    document.getElementById('raisedDateDay').defaultValue = 31
-                    document.getElementById('raisedDateMonth').defaultValue = 3
-                    document.querySelector('#raised-year-field-input #raisedYear').removeAttribute("disabled")
-                    htmx.removeClass(htmx.find("#start-date-field-input"), "hide")
-                    document.querySelector('#start-date-field-input #startDate').removeAttribute("disabled")
+                    htmx.removeClass(htmx.find("#amount-field-input"), "hide");
+                    document.querySelector('#amount-field-input #amount').removeAttribute("disabled");
+                    htmx.removeClass(htmx.find("#raised-year-field-input"), "hide");
+                    document.getElementById('raisedDateDay').defaultValue = 31;
+                    document.getElementById('raisedDateMonth').defaultValue = 3;
+                    document.querySelector('#raised-year-field-input #raisedYear').removeAttribute("disabled");
+                    htmx.removeClass(htmx.find("#start-date-field-input"), "hide");
+                    document.querySelector('#start-date-field-input #startDate').removeAttribute("disabled");
                     break;
                 case "SF":
                 case "SE":
                 case "SO":
-                    htmx.removeClass(htmx.find("#supervision-level-field-input"), "hide")
-                    document.querySelector('#supervision-level-field-input #supervisionLevel').removeAttribute("disabled")
+                    htmx.removeClass(htmx.find("#supervision-level-field-input"), "hide");
+                    document.querySelector('#supervision-level-field-input #supervisionLevel').removeAttribute("disabled");
+                    break;
                 case "GS":
                 case "GT":
-                    htmx.removeClass(htmx.find("#amount-field-input"), "hide")
-                    document.querySelector('#amount-field-input #amount').removeAttribute("disabled")
-                    htmx.removeClass(htmx.find("#raised-date-field-input"), "hide")
-                    document.querySelector('#raised-date-field-input #raisedDate').removeAttribute("disabled")
-                    htmx.removeClass(htmx.find("#start-date-field-input"), "hide")
-                    document.querySelector('#start-date-field-input #startDate').removeAttribute("disabled")
-                    htmx.removeClass(htmx.find("#end-date-field-input"), "hide")
-                    document.querySelector('#end-date-field-input #endDate').removeAttribute("disabled")
+                    htmx.removeClass(htmx.find("#amount-field-input"), "hide");
+                    document.querySelector('#amount-field-input #amount').removeAttribute("disabled");
+                    htmx.removeClass(htmx.find("#raised-date-field-input"), "hide");
+                    document.querySelector('#raised-date-field-input #raisedDate').removeAttribute("disabled");
+                    htmx.removeClass(htmx.find("#start-date-field-input"), "hide");
+                    document.querySelector('#start-date-field-input #startDate').removeAttribute("disabled");
+                    htmx.removeClass(htmx.find("#end-date-field-input"), "hide");
+                    document.querySelector('#end-date-field-input #endDate').removeAttribute("disabled");
                     break;
                 default:
                     break;
             }
-        }, false)
+        }, false);
     });
 
     // validation errors are loaded in as a partial, with oob-swaps for the field error messages,

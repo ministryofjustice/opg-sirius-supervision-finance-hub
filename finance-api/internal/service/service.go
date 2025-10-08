@@ -42,13 +42,12 @@ type AllpayClient interface {
 	CreateMandate(ctx context.Context, data *allpay.CreateMandateRequest) error
 	ModulusCheck(ctx context.Context, sortCode string, accountNumber string) error
 	CreateSchedule(ctx context.Context, data *allpay.CreateScheduleInput) error
-	FetchFailedPayments(ctx context.Context, input allpay.FetchFailedPaymentsInput) (allpay.FailedPayments, error)
+	FetchFailedPayments(ctx context.Context, data allpay.FetchFailedPaymentsInput) (allpay.FailedPayments, error)
 	RemoveScheduledPayment(ctx context.Context, data *allpay.RemoveScheduledPaymentRequest) error
 }
 
 type GovUKClient interface {
 	AddWorkingDays(ctx context.Context, d time.Time, n int) (time.Time, error)
-	SubWorkingDays(ctx context.Context, d time.Time, n int) (time.Time, error)
 	NextWorkingDayOnOrAfterX(ctx context.Context, date time.Time, dayOfMonth int) (time.Time, error)
 }
 
