@@ -88,9 +88,9 @@ SELECT CONCAT(p.firstname, ' ', p.surname)                 AS "Customer name",
        CASE
            WHEN NOW() > oi.due_date AND oi.age < 1 THEN oi.outstanding
            ELSE '0' END                                      AS "0-1 years",
-       CASE WHEN oi.age BETWEEN 1 AND 2 THEN oi.outstanding ELSE '0' END AS "1-2 years",
-       CASE WHEN oi.age BETWEEN 2 AND 3 THEN oi.outstanding ELSE '0' END AS "2-3 years",
-       CASE WHEN oi.age BETWEEN 3 AND 5 THEN oi.outstanding ELSE '0' END AS "3-5 years",
+       CASE WHEN oi.age > 1 AND oi.age <= 2 THEN oi.outstanding ELSE '0' END AS "1-2 years",
+       CASE WHEN oi.age > 2 AND oi.age <= 3 THEN oi.outstanding ELSE '0' END AS "2-3 years",
+       CASE WHEN oi.age > 3 AND oi.age <= 5 THEN oi.outstanding ELSE '0' END AS "3-5 years",
        CASE WHEN oi.age > 5 THEN oi.outstanding ELSE '0' END AS "5+ years",
        CASE
            WHEN apc.age < 2 THEN '="0-1"'
