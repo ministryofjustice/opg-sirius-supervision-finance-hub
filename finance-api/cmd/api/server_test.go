@@ -197,6 +197,12 @@ func (s *mockService) CreateDirectDebitSchedule(ctx context.Context, clientID in
 	return s.errs["CreateDirectDebitSchedule"]
 }
 
+func (s *mockService) ProcessFailedDirectDebitCollections(ctx context.Context, date time.Time) error {
+	s.called = append(s.called, "ProcessFailedDirectDebitCollections")
+	s.lastCalledParams = []interface{}{date}
+	return s.errs["ProcessFailedDirectDebitCollections"]
+}
+
 type mockFileStorage struct {
 	versionId  string
 	bucketname string

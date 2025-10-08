@@ -2,7 +2,7 @@
   "FailedPayments": [
     {
       "Amount": 12345,
-      "ClientReference": "ABC123XYZ",
+      "ClientReference": "ignoreme",
       "CollectionDate": "20/05/2016 00:00:00",
       "IsRepresented": true,
       "LastName": "Jones",
@@ -13,7 +13,7 @@
     },
     {
       "Amount": 12345,
-      "ClientReference": "ABC123XYZ",
+      "ClientReference": "ignoreme",
       "CollectionDate": "20/05/2016 00:00:00",
       "IsRepresented": true,
       "LastName": "Jones",
@@ -24,7 +24,29 @@
     },
     {
       "Amount": 12345,
-      "ClientReference": "ABC123XYZ",
+      "ClientReference": "ignoreme",
+      "CollectionDate": "20/05/2016 00:00:00",
+      "IsRepresented": true,
+      "LastName": "Jones",
+      "Line1": "Flat 2",
+      "ProcessedDate": "20/05/2016 00:00:00",
+      "ReasonCode": "BACS 0 : Refer to payer",
+      "SchemeCode": "OPGB"
+    },
+    {
+      "Amount": 6000,
+      "ClientReference": "28282800",
+      "CollectionDate": "30/09/2025 00:00:00",
+      "IsRepresented": true,
+      "LastName": "Jones",
+      "Line1": "Flat 2",
+      "ProcessedDate": "03/10/2025 00:00:00",
+      "ReasonCode": "BACS 0 : Refer to payer",
+      "SchemeCode": "OPGB"
+    },
+    {
+      "Amount": 12345,
+      "ClientReference": "ignoreme",
       "CollectionDate": "20/05/2016 00:00:00",
       "IsRepresented": true,
       "LastName": "Jones",
@@ -35,29 +57,7 @@
     },
     {
       "Amount": 12345,
-      "ClientReference": "ABC123XYZ",
-      "CollectionDate": "20/05/2016 00:00:00",
-      "IsRepresented": true,
-      "LastName": "Jones",
-      "Line1": "Flat 2",
-      "ProcessedDate": "20/05/2016 00:00:00",
-      "ReasonCode": "BACS 0 : Refer to payer",
-      "SchemeCode": "OPGB"
-    },
-    {
-      "Amount": 12345,
-      "ClientReference": "ABC123XYZ",
-      "CollectionDate": "20/05/2016 00:00:00",
-      "IsRepresented": true,
-      "LastName": "Jones",
-      "Line1": "Flat 2",
-      "ProcessedDate": "20/05/2016 00:00:00",
-      "ReasonCode": "BACS 0 : Refer to payer",
-      "SchemeCode": "OPGB"
-    },
-    {
-      "Amount": 12345,
-      "ClientReference": "ABC123XYZ",
+      "ClientReference": "ignoreme",
       "CollectionDate": "20/05/2016 00:00:00",
       "IsRepresented": true,
       "LastName": "Jones",
