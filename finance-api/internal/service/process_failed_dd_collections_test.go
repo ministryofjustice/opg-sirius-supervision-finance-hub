@@ -50,8 +50,11 @@ func (suite *IntegrationSuite) Test_ProcessFailedDirectDebitCollections() {
 	)
 
 	allpayMock := &mockAllpay{}
-	collectionDate, _ := time.Parse("2006-01-02", "2025-09-01")
-	govUKMock := &mockGovUK{workingDay: collectionDate.AddDate(0, 0, -10)}
+	fromDate, _ := time.Parse("2006-01-02", "2025-09-01")
+	toDate := time.Date(fromDate.Year(), fromDate.Month(), fromDate.Day()+8, 0, 0, 0, 0, time.UTC) // 7 working days + 1 non-working
+	govUKMock := &mockGovUK{NonWorkingDays: []time.Time{
+		time.Date(fromDate.Year(), fromDate.Month(), fromDate.Day()+7, 0, 0, 0, 0, time.UTC),
+	}}
 	s := Service{store: store.New(seeder.Conn), allpay: allpayMock, govUK: govUKMock, tx: seeder.Conn}
 
 	tests := []struct {
@@ -153,12 +156,12 @@ func (suite *IntegrationSuite) Test_ProcessFailedDirectDebitCollections() {
 			var currentLedgerId int
 			_ = seeder.QueryRow(suite.ctx, `SELECT MAX(id) FROM ledger`).Scan(&currentLedgerId)
 
-			err := s.ProcessFailedDirectDebitCollections(suite.ctx, collectionDate)
+			err := s.ProcessFailedDirectDebitCollections(suite.ctx, fromDate)
 
 			assert.Equal(t, tt.want, err)
 			assert.Equal(t, allpay.FetchFailedPaymentsInput{
-				To:   collectionDate,
-				From: collectionDate.AddDate(0, 0, -10),
+				To:   toDate,
+				From: fromDate,
 			}, allpayMock.lastCalledParams[0])
 
 			var allocations []createdReversalAllocation
