@@ -50,6 +50,7 @@ type Service interface {
 	CancelDirectDebitMandate(ctx context.Context, id int32, cancelMandate shared.CancelMandate) error
 	CreateDirectDebitSchedule(ctx context.Context, clientID int32, data shared.CreateSchedule) error
 	CreateDirectDebitScheduleForInvoice(ctx context.Context, clientID int32, data shared.CreateScheduleForInvoice) error
+	ProcessFailedDirectDebitCollections(ctx context.Context, date time.Time) error
 }
 type FileStorage interface {
 	GetFile(ctx context.Context, bucketName string, filename string) (io.ReadCloser, error)

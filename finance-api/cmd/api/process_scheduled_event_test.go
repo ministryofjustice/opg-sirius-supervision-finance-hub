@@ -52,13 +52,36 @@ func Test_processScheduledEvent(t *testing.T) {
 			name: "Direct Debit Collection with override",
 			event: shared.ScheduledEvent{
 				Trigger: "direct-debit-collection",
-				Override: shared.ScheduledDirectDebitCollectionOverride{
+				Override: shared.DateOverride{
 					Date: shared.NewDate("2022-04-02"),
 				},
 			},
 			expectedResponse:     nil,
 			hasError:             false,
 			expectedFunctionCall: "AddCollectedPayments",
+			expectedParams:       []interface{}{time.Date(2022, 4, 2, 0, 0, 0, 0, time.UTC)},
+		},
+		{
+			name: "Failed Direct Debit Collection",
+			event: shared.ScheduledEvent{
+				Trigger: "failed-direct-debit-collections",
+			},
+			expectedResponse:     nil,
+			hasError:             false,
+			expectedFunctionCall: "ProcessFailedDirectDebitCollections",
+			expectedParams:       []interface{}{time.Now().UTC().Truncate(24 * time.Hour)},
+		},
+		{
+			name: "Failed Direct Debit Collection with override",
+			event: shared.ScheduledEvent{
+				Trigger: "failed-direct-debit-collections",
+				Override: shared.DateOverride{
+					Date: shared.NewDate("2022-04-02"),
+				},
+			},
+			expectedResponse:     nil,
+			hasError:             false,
+			expectedFunctionCall: "ProcessFailedDirectDebitCollections",
 			expectedParams:       []interface{}{time.Date(2022, 4, 2, 0, 0, 0, 0, time.UTC)},
 		},
 	}
@@ -70,7 +93,7 @@ func Test_processScheduledEvent(t *testing.T) {
 
 		service := &mockService{}
 		server := NewServer(service, nil, nil, nil, nil, nil, nil)
-		
+
 		err := server.processScheduledEvent(ctx, tt.event)
 		if tt.hasError {
 			assert.Error(t, err, tt.name)

@@ -17,6 +17,7 @@ const (
 	DetailTypeScheduledEvent            = "scheduled-event"
 	ScheduledEventRefundExpiry          = "refund-expiry"
 	ScheduledEventDirectDebitCollection = "direct-debit-collection"
+	ScheduledEventFailedCollections     = "failed-direct-debit-collections"
 )
 
 type Event struct {
@@ -132,8 +133,8 @@ func (e *ScheduledEvent) UnmarshalJSON(data []byte) error {
 	}
 
 	switch e.Trigger {
-	case ScheduledEventDirectDebitCollection:
-		var override ScheduledDirectDebitCollectionOverride
+	case ScheduledEventDirectDebitCollection, ScheduledEventFailedCollections:
+		var override DateOverride
 		if err := json.Unmarshal(raw.Override, &override); err != nil {
 			return err
 		}
@@ -147,6 +148,6 @@ func (e *ScheduledEvent) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-type ScheduledDirectDebitCollectionOverride struct {
+type DateOverride struct {
 	Date Date `json:"date"`
 }
