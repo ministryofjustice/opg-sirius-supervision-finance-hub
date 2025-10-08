@@ -26,6 +26,20 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
 				return err
 			}
 		}
+	} else if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeDirectDebitInvoiceCreated {
+		if detail, ok := event.Detail.(shared.DirectDebitInvoiceCreatedEvent); ok {
+			allPayCustomer := shared.AllPayCustomer{
+				Surname:         detail.Surname,
+				ClientReference: detail.CourtRef,
+			}
+			err := s.service.CreateDirectDebitScheduleForInvoice(ctx, detail.ClientID, shared.CreateScheduleForInvoice{
+				CreateSchedule: shared.CreateSchedule{AllPayCustomer: allPayCustomer},
+				InvoiceId:      detail.InvoiceId,
+			})
+			if err != nil {
+				return err
+			}
+		}
 	} else if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeClientCreated {
 		if detail, ok := event.Detail.(shared.ClientCreatedEvent); ok {
 			err := s.service.UpdateClient(ctx, detail.ClientID, detail.CourtRef)

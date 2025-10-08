@@ -197,6 +197,11 @@ func (s *mockService) CreateDirectDebitSchedule(ctx context.Context, clientID in
 	return s.errs["CreateDirectDebitSchedule"]
 }
 
+func (s *mockService) CreateDirectDebitScheduleForInvoice(ctx context.Context, clientID int32, data shared.CreateScheduleForInvoice) error {
+	s.called = append(s.called, "CreateDirectDebitScheduleForInvoice")
+	return s.errs["CreateDirectDebitScheduleForInvoice"]
+}
+
 type mockFileStorage struct {
 	versionId  string
 	bucketname string
