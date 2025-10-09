@@ -21,7 +21,6 @@ type createdReversalAllocation struct {
 	allocationStatus string
 	invoiceId        pgtype.Int4
 	financeClientId  int
-	notes            string
 	pisNumber        int
 }
 
