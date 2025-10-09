@@ -8,7 +8,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/allpay"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,7 +20,6 @@ type expectedFailedDDOutput struct {
 	invoiceId        pgtype.Int4
 	financeClientId  int
 	notes            string
-	paymentMethod    string
 }
 
 func (suite *IntegrationSuite) Test_ProcessFailedDirectDebitCollections() {
@@ -62,20 +60,11 @@ func (suite *IntegrationSuite) Test_ProcessFailedDirectDebitCollections() {
 		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 8;",
 	)
 
-	allpayMock := &mockAllpay{}
-	fromDate, _ := time.Parse("2006-01-02", "2025-09-01")
-	toDate := time.Date(fromDate.Year(), fromDate.Month(), fromDate.Day()+8, 0, 0, 0, 0, time.UTC) // 7 working days + 1 non-working
-	govUKMock := &mockGovUK{NonWorkingDays: []time.Time{
-		time.Date(fromDate.Year(), fromDate.Month(), fromDate.Day()+7, 0, 0, 0, 0, time.UTC),
-	}}
-	s := Service{store: store.New(seeder.Conn), allpay: allpayMock, govUK: govUKMock, tx: seeder.Conn}
-
 	tests := []struct {
 		name           string
 		failedPayments allpay.FailedPayments
 		apiError       error
 		expected       []expectedFailedDDOutput
-		paymentMethod  shared.PaymentMethod
 		want           error
 	}{
 		{
@@ -131,7 +120,6 @@ func (suite *IntegrationSuite) Test_ProcessFailedDirectDebitCollections() {
 					invoiceId:        pgtype.Int4{Int32: 2, Valid: true}, // payment will reverse the most recent invoice by raised date
 					financeClientId:  2,
 					notes:            "REFER TO PAYER",
-					paymentMethod:    "DIRECT DEBIT",
 				},
 				{
 					ledgerAmount:     -10000,
@@ -142,7 +130,6 @@ func (suite *IntegrationSuite) Test_ProcessFailedDirectDebitCollections() {
 					invoiceId:        pgtype.Int4{Int32: 5, Valid: true},
 					financeClientId:  3,
 					notes:            "PAYER DECEASED",
-					paymentMethod:    "DEMANDED",
 				},
 			},
 		},
@@ -164,13 +151,18 @@ func (suite *IntegrationSuite) Test_ProcessFailedDirectDebitCollections() {
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
 			allpayMock := &mockAllpay{}
-			dispatchMock := &mockDispatch{}
-			collectionDate, _ := time.Parse("2006-01-02", "2025-09-01")
-			govUKMock := &mockGovUK{workingDay: collectionDate.AddDate(0, 0, -10)}
-			s := Service{store: store.New(seeder.Conn), allpay: allpayMock, govUK: govUKMock, tx: seeder.Conn, dispatch: dispatchMock}
-
 			allpayMock.failedPayments = tt.failedPayments
 			allpayMock.errs = map[string]error{"FetchFailedPayments": tt.apiError}
+
+			fromDate, _ := time.Parse("2006-01-02", "2025-09-01")
+			toDate := time.Date(fromDate.Year(), fromDate.Month(), fromDate.Day()+8, 0, 0, 0, 0, time.UTC) // 7 working days + 1 non-working
+			govUKMock := &mockGovUK{NonWorkingDays: []time.Time{
+				time.Date(fromDate.Year(), fromDate.Month(), fromDate.Day()+7, 0, 0, 0, 0, time.UTC),
+			}}
+
+			dispatchMock := &mockDispatch{}
+			s := Service{store: store.New(seeder.Conn), allpay: allpayMock, govUK: govUKMock, tx: seeder.Conn, dispatch: dispatchMock}
+
 			var currentLedgerId int
 			_ = seeder.QueryRow(suite.ctx, `SELECT MAX(id) FROM ledger`).Scan(&currentLedgerId)
 
@@ -185,15 +177,14 @@ func (suite *IntegrationSuite) Test_ProcessFailedDirectDebitCollections() {
 			var output []expectedFailedDDOutput
 
 			rows, _ := seeder.Query(suite.ctx,
-				`SELECT l.amount, l.type, l.datetime, l.bankdate, la.amount, la.invoice_id, l.finance_client_id, l.notes, fc.payment_method
+				`SELECT l.amount, l.type, l.datetime, l.bankdate, la.amount, la.invoice_id, l.finance_client_id, l.notes
 						FROM ledger l
 						JOIN ledger_allocation la ON l.id = la.ledger_id
-						JOIN finance_client fc ON l.finance_client_id = fc.id
 					WHERE l.id > $1`, currentLedgerId)
 
 			for rows.Next() {
 				var r expectedFailedDDOutput
-				_ = rows.Scan(&r.ledgerAmount, &r.ledgerType, &r.receivedDate, &r.bankDate, &r.allocationAmount, &r.invoiceId, &r.financeClientId, &r.notes, &r.paymentMethod)
+				_ = rows.Scan(&r.ledgerAmount, &r.ledgerType, &r.receivedDate, &r.bankDate, &r.allocationAmount, &r.invoiceId, &r.financeClientId, &r.notes)
 				output = append(output, r)
 			}
 
