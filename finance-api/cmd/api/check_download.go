@@ -16,7 +16,14 @@ func (s *Server) checkDownload(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	exists := s.fileStorage.FileExists(ctx, s.envs.ReportsBucket, downloadRequest.Key, downloadRequest.VersionId)
+	var exists bool
+
+	if downloadRequest.Key == "Fee_Accrual.csv" {
+		exists = s.fileStorage.FileExists(ctx, s.envs.ReportsBucket, downloadRequest.Key)
+	} else {
+		exists = s.fileStorage.FileExistsWithVersion(ctx, s.envs.ReportsBucket, downloadRequest.Key, downloadRequest.VersionId)
+	}
+
 	if !exists {
 		return apierror.NotFound{}
 	}

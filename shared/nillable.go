@@ -1,8 +1,24 @@
 package shared
 
+import "github.com/jackc/pgx/v5/pgtype"
+
 type Nillable[T any] struct {
 	Value T
 	Valid bool
+}
+
+func NewNillable[T any](v *T) Nillable[T] {
+	return Nillable[T]{
+		Value: *v,
+		Valid: v != nil,
+	}
+}
+
+func TransformNillablePgDate(v pgtype.Date) Nillable[Date] {
+	return Nillable[Date]{
+		Value: Date{Time: v.Time},
+		Valid: v.Valid,
+	}
 }
 
 func TransformNillableDate(stringPointer *string) Nillable[Date] {
@@ -27,10 +43,10 @@ func TransformNillableString(stringPointer *string) Nillable[string] {
 	return transformedNillable
 }
 
-func TransformNillableInt(stringPointer *string) Nillable[int] {
-	var transformedNillableInt Nillable[int]
+func TransformNillableInt(stringPointer *string) Nillable[int32] {
+	var transformedNillableInt Nillable[int32]
 	if stringPointer != nil {
-		transformedNillableInt = Nillable[int]{
+		transformedNillableInt = Nillable[int32]{
 			Value: DecimalStringToInt(*stringPointer),
 			Valid: true,
 		}

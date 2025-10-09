@@ -1,8 +1,8 @@
-describe("Pending Invoice Adjustments", () => {
+describe("Invoice Adjustments", () => {
     it("displays table and content", () => {
-        cy.visit("/clients/10/pending-invoice-adjustments");
+        cy.visit("/clients/10/invoice-adjustments");
 
-        cy.get("table#pending-invoice-adjustments > thead > tr")
+        cy.get("table#invoice-adjustments > thead > tr")
             .children()
             .first().contains("Invoice")
             .next().contains("Date raised")
@@ -12,7 +12,7 @@ describe("Pending Invoice Adjustments", () => {
             .next().contains("Status")
             .next().contains("Actions");
 
-        cy.get("table#pending-invoice-adjustments > tbody")
+        cy.get("table#invoice-adjustments > tbody")
             .contains("AD10101/24").parent("tr").as("row");
 
         cy.get("@row")
@@ -25,16 +25,41 @@ describe("Pending Invoice Adjustments", () => {
             .next().contains("Pending");
 
         cy.get("@row")
-            .find(".moj-button-menu")
-            .first().contains("Approve")
-            .next().contains("Reject")
-            .click();
+            .find(".form-button-menu")
+            .within(() => {
+                cy.contains("button", "Approve");
+                cy.contains("button", "Reject");
+            });
+    });
 
-        cy.url().should("include", "/pending-invoice-adjustments?success=rejected-invoice-adjustment[CREDIT]");
+    it("hides approve button where the adjustment was created by the user", () => {
+        cy.setUser("4");
+        cy.visit("/clients/10/invoice-adjustments");
+
+        cy.get("table#invoice-adjustments > tbody")
+            .contains("AD10101/24").parent("tr")
+            .find(".form-button-menu")
+            .within(() => {
+                cy.contains("button", "Approve").should("not.be.visible");
+                cy.contains("button", "Reject");
+            });
+    });
+
+    it("successfully rejects adjustment", () => {
+        cy.visit("/clients/10/invoice-adjustments");
+
+        cy.get("table#invoice-adjustments > tbody")
+            .contains("AD10101/24").parent("tr")
+            .find(".form-button-menu")
+            .within(() => {
+                cy.contains("button", "Reject").click();
+            });
+
+        cy.url().should("include", "/invoice-adjustments?success=rejected-invoice-adjustment[CREDIT]");
 
         cy.get(".moj-banner__message").contains("You have rejected the credit");
 
-        cy.get("table#pending-invoice-adjustments > tbody > tr")
+        cy.get("table#invoice-adjustments > tbody > tr")
             .first()
             .children()
             .last()
@@ -42,14 +67,14 @@ describe("Pending Invoice Adjustments", () => {
     });
 
     it("shows correct success message", () => {
-        cy.visit("/clients/10/pending-invoice-adjustments?success=approved-invoice-adjustment[DEBIT]");
+        cy.visit("/clients/10/invoice-adjustments?success=approved-invoice-adjustment[DEBIT]");
         cy.get(".moj-banner__message").contains("You have approved the debit");
-        cy.visit("/clients/10/pending-invoice-adjustments?success=rejected-invoice-adjustment[WRITE OFF]");
+        cy.visit("/clients/10/invoice-adjustments?success=rejected-invoice-adjustment[WRITE OFF]");
         cy.get(".moj-banner__message").contains("You have rejected the write off");
     });
 
     it("should have no accessibility violations",() => {
-        cy.visit("/clients/10/pending-invoice-adjustments");
+        cy.visit("/clients/10/invoice-adjustments");
         cy.checkAccessibility();
     });
 });

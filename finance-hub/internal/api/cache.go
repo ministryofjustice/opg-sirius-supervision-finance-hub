@@ -17,8 +17,8 @@ type Caches struct {
 
 func newCaches() *Caches {
 	users := cache.New(defaultExpiration, defaultExpiration)
-	placeholder := shared.Assignee{
-		Id:          0,
+	placeholder := shared.User{
+		ID:          0,
 		DisplayName: "Unknown User",
 		Roles:       nil,
 	}
@@ -28,10 +28,10 @@ func newCaches() *Caches {
 	}
 }
 
-func (c Caches) getUser(id int) (*shared.Assignee, bool) {
+func (c Caches) getUser(id int) (*shared.User, bool) {
 	get, b := c.users.Get(strconv.Itoa(id))
 	if b {
-		return get.(*shared.Assignee), true
+		return get.(*shared.User), true
 	} else {
 		return nil, false
 	}
@@ -39,15 +39,15 @@ func (c Caches) getUser(id int) (*shared.Assignee, bool) {
 
 // getAndSetPlaceholder gets the placeholder user and adds it for the id. This prevents subsequent cache requests for the
 // same value forcing a cache refresh.
-func (c Caches) getAndSetPlaceholder(id int) *shared.Assignee {
+func (c Caches) getAndSetPlaceholder(id int) *shared.User {
 	u, _ := c.users.Get("0")
-	placeholder := u.(*shared.Assignee)
+	placeholder := u.(*shared.User)
 	_ = c.users.Add(strconv.Itoa(id), placeholder, defaultExpiration)
-	return u.(*shared.Assignee)
+	return u.(*shared.User)
 }
 
-func (c Caches) updateUsers(users []shared.Assignee) {
+func (c Caches) updateUsers(users []shared.User) {
 	for _, user := range users {
-		_ = c.users.Add(strconv.Itoa(user.Id), &user, defaultExpiration)
+		_ = c.users.Add(strconv.Itoa(int(user.ID)), &user, defaultExpiration)
 	}
 }

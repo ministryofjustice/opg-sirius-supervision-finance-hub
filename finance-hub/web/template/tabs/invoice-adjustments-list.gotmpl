@@ -1,0 +1,69 @@
+{{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.InvoiceAdjustmentsTab*/ -}}
+{{ define "invoice-adjustments-list" }}
+    <header>
+        <h1 class="govuk-heading-l  govuk-!-margin-bottom-0  govuk-!-margin-top-0">Invoice Adjustments</h1>
+    </header>
+    <table id="invoice-adjustments" class="govuk-table">
+        <thead class="govuk-table__head">
+        <tr class="govuk-table__row">
+            <th scope="col" data-cy="invoice" class="govuk-table__header">Invoice</th>
+            <th scope="col" data-cy="raised" class="govuk-table__header">Date raised</th>
+            <th scope="col" data-cy="type" class="govuk-table__header">Adjustment type</th>
+            <th scope="col" data-cy="amount" class="govuk-table__header">Adjustment amount</th>
+            <th scope="col" data-cy="notes" class="govuk-table__header">Notes</th>
+            <th scope="col" data-cy="status" class="govuk-table__header">Status</th>
+            <th scope="col" data-cy="actions" class="govuk-table__header">Actions</th>
+        </tr>
+        </thead>
+        {{ if eq (len .InvoiceAdjustments) 0 }}
+            <tr class="govuk-table__row">
+                <td colspan="100%" class="govuk-table__cell govuk-table__cell--no-data">There are no invoice
+                    adjustments
+                </td>
+            </tr>
+        {{ else }}
+            {{ $clientId := .ClientId }}
+            {{ $user := .User }}
+            {{ $xsrfToken := .AppVars.XSRFToken }}
+            {{ range .InvoiceAdjustments }}
+                <tbody class="govuk-table__body">
+                <tr>
+                    <td class="govuk-table__cell">{{.Invoice}}</td>
+                    <td class="govuk-table__cell">{{.DateRaised}}</td>
+                    <td class="govuk-table__cell">{{.AdjustmentType}}</td>
+                    <td class="govuk-table__cell">£{{.AdjustmentAmount}}</td>
+                    <td class="govuk-table__cell">{{.Notes}}</td>
+                    <td class="govuk-table__cell">{{.Status}}</td>
+                    <td class="govuk-table__cell">
+                        {{ if $user.IsFinanceManager }}
+                            {{ if eq .Status "Pending"}}
+                                <div class="form-button-menu">
+                                    <form method="post"
+                                          hx-post="{{ prefix (printf "/clients/%s/invoice-adjustments/%s/%s/approved" $clientId .Id .AdjustmentType) }}"
+                                          hx-disabled-elt="find button">
+                                        <input type="hidden" name="CSRF" value="{{ $xsrfToken }}"/>
+                                        <button class="govuk-button moj-button-menu__item govuk-button--secondary {{ if eq $user.ID .CreatedBy }}invisible{{end}}"
+                                                type="submit">
+                                            Approve
+                                        </button>
+                                    </form>
+
+                                    <form method="post"
+                                          hx-post="{{ prefix (printf "/clients/%s/invoice-adjustments/%s/%s/rejected" $clientId .Id .AdjustmentType) }}"
+                                          hx-disabled-elt="find button">
+                                        <input type="hidden" name="CSRF" value="{{ $xsrfToken }}"/>
+                                        <button class="govuk-button moj-button-menu__item govuk-button--secondary"
+                                                type="submit">
+                                            Reject
+                                        </button>
+                                    </form>
+                                </div>
+                            {{ end }}
+                        {{ end}}
+                    </td>
+                </tr>
+                </tbody>
+            {{end }}
+        {{ end }}
+    </table>
+{{ end }}

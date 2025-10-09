@@ -1,4 +1,4 @@
-{{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.AdjustInvoice*/ -}}
+{{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.AddInvoiceAdjustmentForm*/ -}}
 {{ template "page" . }}
 
 {{ define "title" }}Adjust invoice{{ end }}
@@ -15,24 +15,27 @@
                 <div id="error-summary"></div>
                 <div class="govuk-grid-row">
                     <form
-                        id="adjust-invoice-form"
-                        class="govuk-grid-column-one-third"
-                        method="post"
-                        hx-post="{{ prefix (printf "/clients/%s/invoices/%s/adjustments" .ClientId .InvoiceId) }}"
-                        hx-target="#error-summary">
+                            id="adjust-invoice-form"
+                            class="govuk-grid-column-one-third"
+                            method="post"
+                            hx-post="{{ prefix (printf "/clients/%s/invoices/%s/adjustments" .ClientId .InvoiceId) }}"
+                            hx-target="#error-summary"
+                            hx-disabled-elt="find button">
                         <input
                                 type="hidden"
-                                name="xsrfToken"
+                                name="CSRF"
                                 value="{{ .XSRFToken }}"/>
 
                         <div id="f-AdjustmentType" class="govuk-form-group">
                             <fieldset class="govuk-fieldset">
-                                <legend class="govuk-fieldset__legend" id="adjustmentType">Choose an adjustment type</legend>
+                                <legend class="govuk-fieldset__legend" id="adjustmentType">Choose an adjustment type
+                                </legend>
                                 <span id="error-message__AdjustmentType"></span>
                                 <div class="govuk-radios" data-module="govuk-radios">
                                     {{ range .AdjustmentTypes }}
                                         <div class="govuk-radios__item">
-                                            <input class="govuk-radios__input {{ if .AmountRequired }}show{{else}}hide{{ end }}-input-field" id="{{.Key}}" name="adjustmentType"
+                                            <input class="govuk-radios__input {{ if .AmountRequired }}show{{else}}hide{{ end }}-amount-field {{ if .CanOverride }}show{{else}}hide{{ end }}-manager-override-field"
+                                                   id="{{.Key}}" name="adjustmentType"
                                                    type="radio" value="{{.Key}}">
                                             <label class="govuk-label govuk-radios__label"
                                                    for="{{.Key}}">{{.Translation}}</label>
@@ -47,20 +50,33 @@
                                     Reason for the adjustment
                                 </label>
                                 <span id="error-message__AdjustmentNotes"></span>
-                                <textarea class="govuk-textarea govuk-js-character-count" id="notes" name="notes" rows="10" aria-describedby="f-2-note-info notes-hint"></textarea>
+                                <textarea class="govuk-textarea govuk-js-character-count" id="notes" name="notes"
+                                          rows="10" aria-describedby="f-2-note-info notes-hint"></textarea>
                             </div>
                             <div id="notes-info" class="govuk-hint govuk-character-count__message" aria-live="polite">
                                 You have 1,000 characters remaining
                             </div>
                         </div>
-                        <div class="hide" id="field-input">
+                        {{ if .User.IsFinanceManager }}
+                            <div class="hide" id="manager-override-field">
+                                <div id="f-manager-override" class="govuk-form-group govuk-checkboxes govuk-checkboxes--small">
+                                    <div class="govuk-checkboxes__item filter__checkbox">
+                                        <input class="govuk-checkboxes__input" id="manager-override" name="manager-override" type="checkbox" value="true" />
+                                        <label class="govuk-label govuk-checkboxes__label" for="manager-override">Manager Override</label>
+                                    </div>
+                                </div>
+                            </div>
+                        {{ end }}
+                        <div class="hide" id="amount-field">
                             <div class="govuk-form-group" id="f-Amount">
                                 <label class="govuk-label govuk-body" for="amount">
                                     Amount
                                     <span id="error-message__Amount"></span>
                                 </label>
-                                <div class="govuk-input__wrapper"><div class="govuk-input__prefix" aria-hidden="true">£</div>
-                                    <input class="govuk-input govuk-input--width-5" id="amount"  name="amount" type="text" spellcheck="false"></div>
+                                <div class="govuk-input__wrapper">
+                                    <div class="govuk-input__prefix" aria-hidden="true">£</div>
+                                    <input class="govuk-input govuk-input--width-5" id="amount" name="amount"
+                                           type="text" spellcheck="false"></div>
                             </div>
                         </div>
                         <div class="govuk-button-group govuk-!-margin-top-7">
@@ -69,7 +85,8 @@
                                     data-module="govuk-button">
                                 Save and continue
                             </button>
-                            <a class="govuk-link"  href="{{prefix (printf "/clients/%s/invoices" .ClientId) }}">Cancel</a>
+                            <a class="govuk-link"
+                               href="{{prefix (printf "/clients/%s/invoices" .ClientId) }}">Cancel</a>
                         </div>
                     </form>
                 </div>

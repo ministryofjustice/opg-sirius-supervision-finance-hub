@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/text/cases"
@@ -20,7 +21,7 @@ type FinanceClient struct {
 }
 
 type HeaderData struct {
-	MyDetails     shared.Assignee
+	User          *shared.User
 	FinanceClient FinanceClient
 }
 
@@ -47,26 +48,22 @@ func (r route) execute(w http.ResponseWriter, req *http.Request, data any) error
 	if IsHxRequest(req) {
 		return r.tmpl.ExecuteTemplate(w, r.partial, data)
 	} else {
-		ctx := getContext(req)
-		group, groupCtx := errgroup.WithContext(ctx.Context)
+		ctx := req.Context().(auth.Context)
+		group, groupCtx := errgroup.WithContext(ctx)
+		ctx = ctx.WithContext(groupCtx)
 
 		data := PageData{
 			Data: data,
 		}
 
+		data.User = ctx.User
+
+		clientID := getClientID(req)
 		var person shared.Person
 		var accountInfo shared.AccountInformation
 
 		group.Go(func() error {
-			myDetails, err := r.client.GetCurrentUserDetails(ctx.With(groupCtx))
-			if err != nil {
-				return err
-			}
-			data.MyDetails = myDetails
-			return nil
-		})
-		group.Go(func() error {
-			p, err := r.client.GetPersonDetails(ctx.With(groupCtx), ctx.ClientId)
+			p, err := r.client.GetPersonDetails(ctx, clientID)
 			if err != nil {
 				return err
 			}
@@ -74,7 +71,7 @@ func (r route) execute(w http.ResponseWriter, req *http.Request, data any) error
 			return nil
 		})
 		group.Go(func() error {
-			ai, err := r.client.GetAccountInformation(ctx.With(groupCtx), ctx.ClientId)
+			ai, err := r.client.GetAccountInformation(ctx, clientID)
 			if err != nil {
 				return err
 			}
@@ -103,6 +100,8 @@ func (r route) getSuccess(req *http.Request) string {
 		return "Manual debit successfully created"
 	case "invoice-adjustment[WRITE OFF REVERSAL]":
 		return "Write-off reversal successfully created"
+	case "invoice-adjustment[FEE REDUCTION REVERSAL]":
+		return "Fee reduction reversal successfully created"
 	case "fee-reduction[REMISSION]":
 		return "The remission has been successfully added"
 	case "fee-reduction[EXEMPTION]":
@@ -119,12 +118,18 @@ func (r route) getSuccess(req *http.Request) string {
 		return "You have approved the write off reversal"
 	case "approved-invoice-adjustment[DEBIT]":
 		return "You have approved the debit"
+	case "approved-invoice-adjustment[FEE REDUCTION REVERSAL]":
+		return "You have approved the fee reduction reversal"
 	case "rejected-invoice-adjustment[CREDIT]":
 		return "You have rejected the credit"
 	case "rejected-invoice-adjustment[WRITE OFF]":
 		return "You have rejected the write off"
+	case "rejected-invoice-adjustment[WRITE OFF REVERSAL]":
+		return "You have rejected the write off reversal"
 	case "rejected-invoice-adjustment[DEBIT]":
 		return "You have rejected the debit"
+	case "rejected-invoice-adjustment[FEE REDUCTION REVERSAL]":
+		return "You have rejected the fee reduction reversal"
 	case "invoice-type[AD]":
 		return "The AD invoice has been successfully created"
 	case "invoice-type[S2]":
@@ -147,8 +152,20 @@ func (r route) getSuccess(req *http.Request) string {
 		return "The GS invoice has been successfully created"
 	case "invoice-type[GT]":
 		return "The GT invoice has been successfully created"
+	case "payment-method":
+		return "Payment method has been successfully changed"
+	case "refund-added":
+		return "The refund has been successfully added"
+	case "refunds[APPROVED]":
+		return "You have approved the refund"
+	case "refunds[REJECTED]":
+		return "You have rejected the refund"
+	case "refunds[CANCELLED]":
+		return "You have cancelled the refund"
 	case "direct-debit":
-		return "The Direct Debit has been setup"
+		return "The Direct Debit has been set up"
+	case "cancel-direct-debit":
+		return "The Direct Debit has been cancelled"
 	}
 	return ""
 }
@@ -167,4 +184,9 @@ func (r route) transformFinanceClient(person shared.Person, accountInfo shared.A
 		CreditBalance:      shared.IntToDecimalString(accountInfo.CreditBalance),
 		PaymentMethod:      cases.Title(language.English).String(accountInfo.PaymentMethod),
 	}
+}
+
+func getClientID(req *http.Request) int {
+	clientId, _ := strconv.Atoi(req.PathValue("clientId"))
+	return clientId
 }

@@ -1,23 +1,22 @@
-{{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.FeeReductions*/ -}}
+{{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.FeeReductionsTab*/ -}}
 {{ define "fee-reductions-list" }}
     <header>
         <h1 class="govuk-heading-l  govuk-!-margin-bottom-0  govuk-!-margin-top-0">Fee Reductions</h1>
-
-        {{/* move the style into css file */}}
-        <div style="float: right;">
-            <div class="moj-button-menu">
-                        <a
-                            class="govuk-button moj-button-menu__item govuk-button--secondary"
-                            role="button"
-                            draggable="false"
-                            data-module="govuk-button"
-                            hx-get="{{ prefix (printf "/clients/%s/fee-reductions/add" .ClientId) }}"
-                            hx-target="#main-content"
-                            hx-push-url="{{ prefix (printf "/clients/%s/fee-reductions/add" .ClientId) }}">
-                            Award a fee reduction
-                        </a>
+        {{ if .User.IsFinanceUser }}
+            {{/* move the style into css file */}}
+            <div class="moj-button-menu" style="float: right;">
+                <a
+                        class="govuk-button moj-button-menu__item govuk-button--secondary"
+                        role="button"
+                        draggable="false"
+                        data-module="govuk-button"
+                        hx-get="{{ prefix (printf "/clients/%s/fee-reductions/add" .ClientId) }}"
+                        hx-target="#main-content"
+                        hx-push-url="{{ prefix (printf "/clients/%s/fee-reductions/add" .ClientId) }}">
+                    Award a fee reduction
+                </a>
             </div>
-        </div>
+        {{ end }}
     </header>
     <table id="fee-reductions" class="govuk-table">
         <thead class="govuk-table__head">
@@ -37,32 +36,35 @@
             </tr>
         {{ else }}
             {{ $clientId := .ClientId }}
+            {{ $user := .User }}
             {{ range .FeeReductions }}
                 <tbody class="govuk-table__body">
-                    <tr>
-                        <td class="govuk-table__cell">{{.Type}}</td>
-                        <td class="govuk-table__cell">{{.StartDate}}</td>
-                        <td class="govuk-table__cell">{{.EndDate}}</td>
-                        <td class="govuk-table__cell">{{.DateReceived}}</td>
-                        <td class="govuk-table__cell">{{.Status}}</td>
-                        <td class="govuk-table__cell">{{.Notes}}</td>
-                        <td class="govuk-table__cell">
+                <tr>
+                    <td class="govuk-table__cell">{{.Type}}</td>
+                    <td class="govuk-table__cell">{{.StartDate}}</td>
+                    <td class="govuk-table__cell">{{.EndDate}}</td>
+                    <td class="govuk-table__cell">{{.DateReceived}}</td>
+                    <td class="govuk-table__cell">{{.Status}}</td>
+                    <td class="govuk-table__cell">{{.Notes}}</td>
+                    <td class="govuk-table__cell">
+                        {{ if $user.IsFinanceManager}}
                             {{ if .FeeReductionCancelAction }}
-                            <div class="moj-button-menu">
+                                <div class="moj-button-menu">
                                     <a
-                                    class="govuk-button moj-button-menu__item govuk-button--secondary"
-                                    role="button"
-                                    draggable="false"
-                                    data-module="govuk-button"
-                                    hx-get="{{ prefix (printf "/clients/%s/fee-reductions/%s/cancel" $clientId .Id) }}"
-                                    hx-target="#main-content"
-                                    hx-push-url="{{ prefix (printf "/clients/%s/fee-reductions/%s/cancel" $clientId .Id) }}">
-                                    Cancel
+                                            class="govuk-button moj-button-menu__item govuk-button--secondary"
+                                            role="button"
+                                            draggable="false"
+                                            data-module="govuk-button"
+                                            hx-get="{{ prefix (printf "/clients/%s/fee-reductions/%s/cancel" $clientId .Id) }}"
+                                            hx-target="#main-content"
+                                            hx-push-url="{{ prefix (printf "/clients/%s/fee-reductions/%s/cancel" $clientId .Id) }}">
+                                        Cancel
                                     </a>
-                            </div>
+                                </div>
                             {{end}}
-                        </td>
-                    </tr>
+                        {{end}}
+                    </td>
+                </tr>
                 </tbody>
             {{end }}
         {{ end }}

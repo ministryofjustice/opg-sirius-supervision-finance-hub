@@ -1,87 +1,59 @@
 package service
 
 import (
+	"testing"
+	"time"
+
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/testhelpers"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"testing"
-	"time"
 )
-
-func addManualInvoiceSetup(seeder *testhelpers.Seeder) (*Service, shared.AddManualInvoice) {
-	params := shared.AddManualInvoice{
-		InvoiceType:      shared.InvoiceTypeS2,
-		Amount:           shared.Nillable[int]{Value: 50000, Valid: true},
-		RaisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
-		StartDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2024-04-12"), Valid: true},
-		EndDate:          shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
-		SupervisionLevel: shared.Nillable[string]{Value: "GENERAL", Valid: true},
-	}
-
-	s := NewService(seeder.Conn, nil, nil, nil, nil)
-
-	return s, params
-}
 
 func (suite *IntegrationSuite) TestService_AddManualInvoice() {
 	ctx := suite.ctx
 	seeder := suite.cm.Seeder(ctx, suite.T())
+	s := Service{store: store.New(seeder.Conn), tx: seeder.Conn}
 
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (24, 24, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO fee_reduction VALUES (24, 24, 'REMISSION', NULL, '2023-04-01', '2024-03-31', 'Remission to see the notes', FALSE, '2023-05-01');",
 	)
-	s, params := addManualInvoiceSetup(seeder)
+
+	params := shared.AddManualInvoice{
+		InvoiceType: shared.InvoiceTypeS2,
+		Amount:      shared.Nillable[int32]{Value: 50000, Valid: true},
+		RaisedDate:  shared.Nillable[shared.Date]{Value: shared.NewDate("2024-03-01"), Valid: true},
+		StartDate:   shared.Nillable[shared.Date]{Value: shared.NewDate("2023-04-12"), Valid: true},
+	}
 
 	err := s.AddManualInvoice(ctx, 24, params)
-	rows := seeder.QueryRow(ctx, "SELECT * FROM supervision_finance.invoice WHERE id = 1")
+	rows := seeder.QueryRow(ctx, "SELECT feetype, amount, startdate, enddate, created_by, cacheddebtamount FROM supervision_finance.invoice WHERE id = 1")
 
 	var (
-		id                int
-		personId          int
-		financeClientId   int
-		feeType           string
-		reference         string
-		startDate         time.Time
-		endDate           time.Time
-		amount            int
-		supervisionLevel  string
-		confirmedDate     time.Time
-		batchNumber       int
-		raisedDate        time.Time
-		source            string
-		scheduledFn14Date time.Time
-		cachedDebtAmount  int
-		createdDate       time.Time
-		createdById       int
+		feeType          string
+		amount           int
+		startDate        time.Time
+		endDate          time.Time
+		createdById      int
+		cachedDebtAmount int
 	)
 
 	_ = rows.Scan(
-		&id,
-		&personId,
-		&financeClientId,
 		&feeType,
-		&reference,
+		&amount,
 		&startDate,
 		&endDate,
-		&amount,
-		&supervisionLevel,
-		&confirmedDate,
-		&batchNumber,
-		&raisedDate,
-		&source,
-		&scheduledFn14Date,
-		&cachedDebtAmount,
-		&createdDate,
-		&createdById)
+		&createdById,
+		&cachedDebtAmount)
 
 	assert.Equal(suite.T(), shared.InvoiceTypeS2.Key(), feeType)
 	assert.Equal(suite.T(), 50000, amount)
-	assert.Equal(suite.T(), "2024-04-12", startDate.Format("2006-01-02"))
-	assert.Equal(suite.T(), "2025-03-31", endDate.Format("2006-01-02"))
+	assert.Equal(suite.T(), "2023-04-12", startDate.Format("2006-01-02"))
+	assert.Equal(suite.T(), "2024-03-01", endDate.Format("2006-01-02"))
+	assert.Equal(suite.T(), 10, createdById)
+	assert.Equal(suite.T(), 25000, cachedDebtAmount)
 
 	if err == nil {
 		return
@@ -92,22 +64,26 @@ func (suite *IntegrationSuite) TestService_AddManualInvoice() {
 func (suite *IntegrationSuite) TestService_AddManualInvoiceRaisedDateForAnInvoiceReturnsErrorForInvalidDates() {
 	ctx := suite.ctx
 	seeder := suite.cm.Seeder(ctx, suite.T())
+	s := Service{store: store.New(seeder.Conn)}
 
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (24, 24, '1234', 'DEMANDED', NULL);",
-		"INSERT INTO fee_reduction VALUES (24, 24, 'REMISSION', NULL, '2023-04-01', '2024-03-31', 'Remission to see the notes', FALSE, '2023-05-01');",
+		"INSERT INTO fee_reduction VALUES (24, 24, 'REMISSION', NULL, '2023-04-01', '2026-03-31', 'Remission to see the notes', FALSE, '2023-05-01');",
 	)
-	s, params := addManualInvoiceSetup(seeder)
 
-	params.RaisedDate = shared.Nillable[shared.Date]{Value: shared.Date{Time: time.Now().AddDate(0, 0, 1)}, Valid: true}
-	params.StartDate = shared.Nillable[shared.Date]{Value: shared.Date{Time: time.Now().AddDate(0, 0, 1)}, Valid: true}
-	params.EndDate = shared.Nillable[shared.Date]{Value: shared.Date{Time: time.Now().AddDate(0, 0, -1)}, Valid: true}
-	params.InvoiceType = shared.InvoiceTypeSO
+	params := shared.AddManualInvoice{
+		InvoiceType:      shared.InvoiceTypeSO,
+		Amount:           shared.Nillable[int32]{Value: 50000, Valid: true},
+		RaisedDate:       shared.Nillable[shared.Date]{Value: shared.Date{Time: time.Now().AddDate(0, 0, 1)}, Valid: true},
+		StartDate:        shared.Nillable[shared.Date]{Value: shared.Date{Time: time.Now().AddDate(0, 0, 1)}, Valid: true},
+		EndDate:          shared.Nillable[shared.Date]{Value: shared.Date{Time: time.Now().AddDate(0, 0, -1)}, Valid: true},
+		SupervisionLevel: shared.Nillable[string]{Value: "GENERAL", Valid: true},
+	}
 
 	expectedErr := apierror.ValidationError{Errors: apierror.ValidationErrors{
-		"RaisedDate": {"RaisedDate": "Raised BankDate not in the past"},
-		"StartDate":  {"StartDate": "Start BankDate must be before end BankDate"},
-		"EndDate":    {"EndDate": "End BankDate must be after start BankDate"},
+		"RaisedDate": {"RaisedDate": "Raised date not in the past"},
+		"StartDate":  {"StartDate": "Start date must be before end date"},
+		"EndDate":    {"EndDate": "End date must be after start date"},
 	}}
 
 	err := s.AddManualInvoice(suite.ctx, 24, params)
@@ -119,15 +95,22 @@ func (suite *IntegrationSuite) TestService_AddManualInvoiceRaisedDateForAnInvoic
 func (suite *IntegrationSuite) TestService_AddManualInvoiceRaisedDateForAnInvoiceReturnsNoError() {
 	ctx := suite.ctx
 	seeder := suite.cm.Seeder(ctx, suite.T())
+	s := Service{store: store.New(seeder.Conn), tx: seeder.Conn}
 
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (24, 24, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO fee_reduction VALUES (24, 24, 'REMISSION', NULL, '2023-04-01', '2024-03-31', 'Remission to see the notes', FALSE, '2023-05-01');",
 	)
-	s, params := addManualInvoiceSetup(seeder)
 
-	params.RaisedDate = shared.Nillable[shared.Date]{Value: shared.Date{Time: time.Now().AddDate(0, 0, -1)}, Valid: true}
-	params.InvoiceType = shared.InvoiceTypeSO
+	date := time.Date(time.Now().Year(), 4, 1, 0, 0, 0, 0, time.UTC)
+
+	params := shared.AddManualInvoice{
+		InvoiceType: shared.InvoiceTypeSO,
+		Amount:      shared.Nillable[int32]{Value: 50000, Valid: true},
+		RaisedDate:  shared.Nillable[shared.Date]{Value: shared.Date{Time: time.Now().AddDate(0, 0, -1)}, Valid: true},
+		StartDate:   shared.Nillable[shared.Date]{Value: shared.Date{Time: date}, Valid: true},
+		EndDate:     shared.Nillable[shared.Date]{Value: shared.Date{Time: date.AddDate(0, 6, 0)}, Valid: true},
+	}
 
 	err := s.AddManualInvoice(suite.ctx, 24, params)
 	if err == nil {
@@ -231,21 +214,20 @@ func Test_validateStartDate(t *testing.T) {
 func (suite *IntegrationSuite) TestService_AddLedgerAndAllocationsForAnADInvoice() {
 	ctx := suite.ctx
 	seeder := suite.cm.Seeder(ctx, suite.T())
+	s := Service{store: store.New(seeder.Conn), tx: seeder.Conn}
 
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (25, 25, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO fee_reduction VALUES (25, 25, 'REMISSION', NULL, '2023-04-01', '2024-03-31', 'Remission to see the notes', FALSE, '2023-05-01');",
 	)
 
-	s, params := addManualInvoiceSetup(seeder)
-
-	params.InvoiceType = shared.InvoiceTypeAD
 	dateString := "2023-05-01"
 	date, _ := time.Parse("2006-01-02", dateString)
 
-	params.RaisedDate = shared.Nillable[shared.Date]{Value: shared.Date{Time: date}, Valid: true}
-	params.StartDate = params.RaisedDate
-	params.EndDate = params.RaisedDate
+	params := shared.AddManualInvoice{
+		InvoiceType: shared.InvoiceTypeAD,
+		RaisedDate:  shared.Nillable[shared.Date]{Value: shared.Date{Time: date}, Valid: true},
+	}
 
 	err := s.AddManualInvoice(ctx, 25, params)
 	if err != nil {
@@ -273,13 +255,19 @@ func (suite *IntegrationSuite) TestService_AddLedgerAndAllocationsForAnADInvoice
 func (suite *IntegrationSuite) TestService_AddLedgerAndAllocationsForAnExemption() {
 	ctx := suite.ctx
 	seeder := suite.cm.Seeder(ctx, suite.T())
+	s := Service{store: store.New(seeder.Conn), tx: seeder.Conn}
 
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (25, 25, '1234', 'DEMANDED', NULL);",
 		"INSERT INTO fee_reduction VALUES (25, 25, 'EXEMPTION', NULL, '2022-04-01', '2025-03-31', 'Exemption to see the notes', FALSE, '2023-05-01');",
 	)
 
-	s, params := addManualInvoiceSetup(seeder)
+	params := shared.AddManualInvoice{
+		InvoiceType: shared.InvoiceTypeS2,
+		Amount:      shared.Nillable[int32]{Value: 50000, Valid: true},
+		RaisedDate:  shared.Nillable[shared.Date]{Value: shared.NewDate("2024-03-01"), Valid: true},
+		StartDate:   shared.Nillable[shared.Date]{Value: shared.NewDate("2023-04-12"), Valid: true},
+	}
 
 	err := s.AddManualInvoice(ctx, 25, params)
 	if err != nil {
@@ -308,7 +296,7 @@ func Test_invoiceData(t *testing.T) {
 	tests := []struct {
 		name             string
 		args             shared.AddManualInvoice
-		amount           shared.Nillable[int]
+		amount           shared.Nillable[int32]
 		startDate        shared.Nillable[shared.Date]
 		raisedDate       shared.Nillable[shared.Date]
 		endDate          shared.Nillable[shared.Date]
@@ -318,13 +306,13 @@ func Test_invoiceData(t *testing.T) {
 			name: "AD invoice returns correct values",
 			args: shared.AddManualInvoice{
 				InvoiceType:      shared.InvoiceTypeAD,
-				Amount:           shared.Nillable[int]{},
+				Amount:           shared.Nillable[int32]{},
 				StartDate:        shared.Nillable[shared.Date]{},
 				RaisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2023-04-01"), Valid: true},
 				EndDate:          shared.Nillable[shared.Date]{},
 				SupervisionLevel: shared.Nillable[string]{},
 			},
-			amount:           shared.Nillable[int]{Value: 10000, Valid: true},
+			amount:           shared.Nillable[int32]{Value: 10000, Valid: true},
 			startDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2023-04-01"), Valid: true},
 			raisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2023-04-01"), Valid: true},
 			endDate:          shared.Nillable[shared.Date]{Value: shared.NewDate("2023-04-01"), Valid: true},
@@ -334,13 +322,13 @@ func Test_invoiceData(t *testing.T) {
 			name: "GA invoice returns correct values",
 			args: shared.AddManualInvoice{
 				InvoiceType:      shared.InvoiceTypeGA,
-				Amount:           shared.Nillable[int]{},
+				Amount:           shared.Nillable[int32]{},
 				StartDate:        shared.Nillable[shared.Date]{},
 				RaisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2023-04-01"), Valid: true},
 				EndDate:          shared.Nillable[shared.Date]{},
 				SupervisionLevel: shared.Nillable[string]{},
 			},
-			amount:           shared.Nillable[int]{Value: 20000, Valid: true},
+			amount:           shared.Nillable[int32]{Value: 20000, Valid: true},
 			startDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2023-04-01"), Valid: true},
 			raisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2023-04-01"), Valid: true},
 			endDate:          shared.Nillable[shared.Date]{Value: shared.NewDate("2023-04-01"), Valid: true},
@@ -350,13 +338,13 @@ func Test_invoiceData(t *testing.T) {
 			name: "B2 invoice returns correct values",
 			args: shared.AddManualInvoice{
 				InvoiceType:      shared.InvoiceTypeB2,
-				Amount:           shared.Nillable[int]{Value: 10000, Valid: true},
+				Amount:           shared.Nillable[int32]{Value: 10000, Valid: true},
 				StartDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2033-04-01"), Valid: true},
 				RaisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
 				EndDate:          shared.Nillable[shared.Date]{},
 				SupervisionLevel: shared.Nillable[string]{},
 			},
-			amount:           shared.Nillable[int]{Value: 10000, Valid: true},
+			amount:           shared.Nillable[int32]{Value: 10000, Valid: true},
 			startDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2033-04-01"), Valid: true},
 			raisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
 			endDate:          shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
@@ -366,13 +354,13 @@ func Test_invoiceData(t *testing.T) {
 			name: "B3 invoice returns correct values",
 			args: shared.AddManualInvoice{
 				InvoiceType:      shared.InvoiceTypeB3,
-				Amount:           shared.Nillable[int]{Value: 10000, Valid: true},
+				Amount:           shared.Nillable[int32]{Value: 10000, Valid: true},
 				StartDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2033-04-01"), Valid: true},
 				RaisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
 				EndDate:          shared.Nillable[shared.Date]{},
 				SupervisionLevel: shared.Nillable[string]{Value: "MINIMAL", Valid: true},
 			},
-			amount:           shared.Nillable[int]{Value: 10000, Valid: true},
+			amount:           shared.Nillable[int32]{Value: 10000, Valid: true},
 			startDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2033-04-01"), Valid: true},
 			raisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
 			endDate:          shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
@@ -382,13 +370,13 @@ func Test_invoiceData(t *testing.T) {
 			name: "S2 invoice returns correct values",
 			args: shared.AddManualInvoice{
 				InvoiceType:      shared.InvoiceTypeS2,
-				Amount:           shared.Nillable[int]{Value: 10000, Valid: true},
+				Amount:           shared.Nillable[int32]{Value: 10000, Valid: true},
 				StartDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2033-04-01"), Valid: true},
 				RaisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
 				EndDate:          shared.Nillable[shared.Date]{},
 				SupervisionLevel: shared.Nillable[string]{},
 			},
-			amount:           shared.Nillable[int]{Value: 10000, Valid: true},
+			amount:           shared.Nillable[int32]{Value: 10000, Valid: true},
 			startDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2033-04-01"), Valid: true},
 			raisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
 			endDate:          shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
@@ -398,13 +386,13 @@ func Test_invoiceData(t *testing.T) {
 			name: "S3 invoice returns correct values",
 			args: shared.AddManualInvoice{
 				InvoiceType:      shared.InvoiceTypeS3,
-				Amount:           shared.Nillable[int]{Value: 10000, Valid: true},
+				Amount:           shared.Nillable[int32]{Value: 10000, Valid: true},
 				StartDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2033-04-01"), Valid: true},
 				RaisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
 				EndDate:          shared.Nillable[shared.Date]{},
 				SupervisionLevel: shared.Nillable[string]{Value: "MINIMAL", Valid: true},
 			},
-			amount:           shared.Nillable[int]{Value: 10000, Valid: true},
+			amount:           shared.Nillable[int32]{Value: 10000, Valid: true},
 			startDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2033-04-01"), Valid: true},
 			raisedDate:       shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
 			endDate:          shared.Nillable[shared.Date]{Value: shared.NewDate("2025-03-31"), Valid: true},
@@ -414,13 +402,13 @@ func Test_invoiceData(t *testing.T) {
 			name: "No year will return correct values",
 			args: shared.AddManualInvoice{
 				InvoiceType:      shared.InvoiceTypeS3,
-				Amount:           shared.Nillable[int]{Value: 10000, Valid: true},
+				Amount:           shared.Nillable[int32]{Value: 10000, Valid: true},
 				StartDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2033-04-01"), Valid: true},
 				RaisedDate:       shared.Nillable[shared.Date]{},
 				EndDate:          shared.Nillable[shared.Date]{},
 				SupervisionLevel: shared.Nillable[string]{},
 			},
-			amount:           shared.Nillable[int]{Value: 10000, Valid: true},
+			amount:           shared.Nillable[int32]{Value: 10000, Valid: true},
 			startDate:        shared.Nillable[shared.Date]{Value: shared.NewDate("2033-04-01"), Valid: true},
 			raisedDate:       shared.Nillable[shared.Date]{},
 			endDate:          shared.Nillable[shared.Date]{},

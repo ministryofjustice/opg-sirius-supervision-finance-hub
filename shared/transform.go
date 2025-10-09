@@ -1,21 +1,33 @@
 package shared
 
 import (
-	"regexp"
+	"fmt"
 	"strconv"
+	"strings"
 )
 
 func IntToDecimalString(i int) string {
-	s := strconv.FormatFloat(float64(i)/100, 'f', -1, 32)
-	const singleDecimal = "\\.\\d$"
-	m, _ := regexp.Match(singleDecimal, []byte(s))
-	if m {
-		s = s + "0"
+	whole := i / 100
+	fraction := i % 100
+	if fraction == 0 {
+		return fmt.Sprintf("%d", whole)
 	}
-	return s
+	return fmt.Sprintf("%d.%02d", whole, fraction)
 }
 
-func DecimalStringToInt(s string) int {
-	i, _ := strconv.ParseFloat(s, 64)
-	return int(i * 100)
+func DecimalStringToInt(s string) int32 {
+	parts := strings.SplitN(s, ".", 2)
+
+	// Ensure two decimal places
+	if len(parts) == 1 {
+		parts = append(parts, "00")
+	} else if len(parts[1]) == 1 {
+		parts[1] += "0"
+	} else if len(parts[1]) > 2 {
+		parts[1] = parts[1][:2] // truncate extra decimals
+	}
+
+	combined := parts[0] + parts[1]
+	val, _ := strconv.ParseInt(combined, 10, 32)
+	return int32(val)
 }

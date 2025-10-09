@@ -5,14 +5,26 @@ import (
 )
 
 type AdjustmentsSchedule struct {
+	ReportQuery
+	AdjustmentsScheduleInput
+}
+
+type AdjustmentsScheduleInput struct {
 	Date         *shared.Date
 	ScheduleType *shared.ScheduleType
+}
+
+func NewAdjustmentsSchedule(input AdjustmentsScheduleInput) ReportQuery {
+	return &AdjustmentsSchedule{
+		ReportQuery:              NewReportQuery(AdjustmentsScheduleQuery),
+		AdjustmentsScheduleInput: input,
+	}
 }
 
 const AdjustmentsScheduleQuery = `SELECT
 	fc.court_ref AS "Court reference",
 	i.reference AS "Invoice reference",
-	(ABS(la.amount) / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS "Amount",
+	(CASE WHEN $5 THEN la.amount ELSE ABS(la.amount) END / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS "Amount",
 	TO_CHAR(l.created_at, 'YYYY-MM-DD') AS "Created date"
 	FROM supervision_finance.ledger l
 	    JOIN supervision_finance.ledger_allocation la ON l.id = la.ledger_id AND la.status = 'ALLOCATED'
@@ -33,7 +45,7 @@ const AdjustmentsScheduleQuery = `SELECT
   	) AND i.feetype = ANY($4);
 `
 
-func (c *AdjustmentsSchedule) GetHeaders() []string {
+func (a *AdjustmentsSchedule) GetHeaders() []string {
 	return []string{
 		"Court reference",
 		"Invoice reference",
@@ -42,34 +54,33 @@ func (c *AdjustmentsSchedule) GetHeaders() []string {
 	}
 }
 
-func (c *AdjustmentsSchedule) GetQuery() string {
-	return AdjustmentsScheduleQuery
-}
-
-func (c *AdjustmentsSchedule) GetParams() []any {
+func (a *AdjustmentsSchedule) GetParams() []any {
 	var (
 		ledgerTypes      []string
 		supervisionLevel string
 		invoiceTypes     []string
+		includeNegatives = false
 	)
-	switch *c.ScheduleType {
+	switch *a.ScheduleType {
 	case shared.ScheduleTypeGeneralFeeReductions,
 		shared.ScheduleTypeGeneralManualCredits,
 		shared.ScheduleTypeGeneralManualDebits,
 		shared.ScheduleTypeGeneralWriteOffs,
-		shared.ScheduleTypeGeneralWriteOffReversals:
+		shared.ScheduleTypeGeneralWriteOffReversals,
+		shared.ScheduleTypeGeneralFeeReductionReversals:
 		supervisionLevel = "GENERAL"
 	case shared.ScheduleTypeMinimalFeeReductions,
 		shared.ScheduleTypeMinimalManualCredits,
 		shared.ScheduleTypeMinimalManualDebits,
 		shared.ScheduleTypeMinimalWriteOffs,
-		shared.ScheduleTypeMinimalWriteOffReversals:
+		shared.ScheduleTypeMinimalWriteOffReversals,
+		shared.ScheduleTypeMinimalFeeReductionReversals:
 		supervisionLevel = "MINIMAL"
 	default:
 		supervisionLevel = ""
 	}
 
-	switch *c.ScheduleType {
+	switch *a.ScheduleType {
 	case shared.ScheduleTypeADFeeReductions,
 		shared.ScheduleTypeGeneralFeeReductions,
 		shared.ScheduleTypeMinimalFeeReductions,
@@ -117,18 +128,29 @@ func (c *AdjustmentsSchedule) GetParams() []any {
 		ledgerTypes = []string{
 			shared.TransactionTypeWriteOffReversal.Key(),
 		}
+	case shared.ScheduleTypeADFeeReductionReversals,
+		shared.ScheduleTypeGeneralFeeReductionReversals,
+		shared.ScheduleTypeMinimalFeeReductionReversals,
+		shared.ScheduleTypeGAFeeReductionReversals,
+		shared.ScheduleTypeGSFeeReductionReversals,
+		shared.ScheduleTypeGTFeeReductionReversals:
+		ledgerTypes = []string{
+			shared.TransactionTypeFeeReductionReversal.Key(),
+		}
+		includeNegatives = true
 	default:
 		ledgerTypes = []string{
 			shared.TransactionTypeUnknown.Key(),
 		}
 	}
 
-	switch *c.ScheduleType {
+	switch *a.ScheduleType {
 	case shared.ScheduleTypeADFeeReductions,
 		shared.ScheduleTypeADManualCredits,
 		shared.ScheduleTypeADManualDebits,
 		shared.ScheduleTypeADWriteOffs,
-		shared.ScheduleTypeADWriteOffReversals:
+		shared.ScheduleTypeADWriteOffReversals,
+		shared.ScheduleTypeADFeeReductionReversals:
 		invoiceTypes = []string{
 			shared.InvoiceTypeAD.Key(),
 		}
@@ -136,7 +158,8 @@ func (c *AdjustmentsSchedule) GetParams() []any {
 		shared.ScheduleTypeGeneralManualCredits,
 		shared.ScheduleTypeGeneralManualDebits,
 		shared.ScheduleTypeGeneralWriteOffs,
-		shared.ScheduleTypeGeneralWriteOffReversals:
+		shared.ScheduleTypeGeneralWriteOffReversals,
+		shared.ScheduleTypeGeneralFeeReductionReversals:
 		invoiceTypes = []string{
 			shared.InvoiceTypeS2.Key(),
 			shared.InvoiceTypeB2.Key(),
@@ -148,7 +171,8 @@ func (c *AdjustmentsSchedule) GetParams() []any {
 		shared.ScheduleTypeMinimalManualCredits,
 		shared.ScheduleTypeMinimalManualDebits,
 		shared.ScheduleTypeMinimalWriteOffs,
-		shared.ScheduleTypeMinimalWriteOffReversals:
+		shared.ScheduleTypeMinimalWriteOffReversals,
+		shared.ScheduleTypeMinimalFeeReductionReversals:
 		invoiceTypes = []string{
 			shared.InvoiceTypeS3.Key(),
 			shared.InvoiceTypeB3.Key(),
@@ -160,7 +184,8 @@ func (c *AdjustmentsSchedule) GetParams() []any {
 		shared.ScheduleTypeGAManualCredits,
 		shared.ScheduleTypeGAManualDebits,
 		shared.ScheduleTypeGAWriteOffs,
-		shared.ScheduleTypeGAWriteOffReversals:
+		shared.ScheduleTypeGAWriteOffReversals,
+		shared.ScheduleTypeGAFeeReductionReversals:
 		invoiceTypes = []string{
 			shared.InvoiceTypeGA.Key(),
 		}
@@ -168,7 +193,8 @@ func (c *AdjustmentsSchedule) GetParams() []any {
 		shared.ScheduleTypeGSManualCredits,
 		shared.ScheduleTypeGSManualDebits,
 		shared.ScheduleTypeGSWriteOffs,
-		shared.ScheduleTypeGSWriteOffReversals:
+		shared.ScheduleTypeGSWriteOffReversals,
+		shared.ScheduleTypeGSFeeReductionReversals:
 		invoiceTypes = []string{
 			shared.InvoiceTypeGS.Key(),
 		}
@@ -176,11 +202,12 @@ func (c *AdjustmentsSchedule) GetParams() []any {
 		shared.ScheduleTypeGTManualCredits,
 		shared.ScheduleTypeGTManualDebits,
 		shared.ScheduleTypeGTWriteOffs,
-		shared.ScheduleTypeGTWriteOffReversals:
+		shared.ScheduleTypeGTWriteOffReversals,
+		shared.ScheduleTypeGTFeeReductionReversals:
 		invoiceTypes = []string{
 			shared.InvoiceTypeGT.Key(),
 		}
 	}
 
-	return []any{c.Date.Time.Format("2006-01-02"), ledgerTypes, supervisionLevel, invoiceTypes}
+	return []any{a.Date.Time.Format("2006-01-02"), ledgerTypes, supervisionLevel, invoiceTypes, includeNegatives}
 }

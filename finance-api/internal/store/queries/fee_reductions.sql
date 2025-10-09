@@ -23,7 +23,7 @@ INSERT INTO fee_reduction (id,
                            created_by,
                            created_at)
 VALUES (NEXTVAL('fee_reduction_id_seq'::REGCLASS),
-        (SELECT id FROM finance_client WHERE client_id = $1), $2, $3, $4, $5, $6, $7, now())
+        (SELECT id FROM finance_client WHERE client_id = @client_id), @type, @start_date::DATE, @end_date::DATE, @notes, @date_received, @created_by, now())
 RETURNING *;
 
 -- name: CountOverlappingFeeReduction :one
@@ -32,7 +32,7 @@ FROM fee_reduction fr
          INNER JOIN finance_client fc ON fc.id = fr.finance_client_id
 WHERE fc.client_id = $1
   AND fr.deleted = FALSE
-  AND (fr.startdate, fr.enddate) OVERLAPS ($2, $3);
+  AND (fr.startdate::DATE, fr.enddate::DATE) OVERLAPS (@start_date::DATE, @end_date::DATE);
 
 -- name: CancelFeeReduction :one
 UPDATE fee_reduction
@@ -44,7 +44,7 @@ RETURNING *;
 SELECT fr.id, fr.type
 FROM fee_reduction fr
          JOIN finance_client fc ON fr.finance_client_id = fc.id
-WHERE $2 >= (fr.datereceived - INTERVAL '6 months')
-  AND $2 BETWEEN fr.startdate AND fr.enddate
+WHERE @date_received::DATE >= (fr.datereceived - INTERVAL '6 months')
+  AND @date_received::DATE BETWEEN fr.startdate::DATE AND fr.enddate::DATE
   AND fr.deleted = FALSE
-  AND fc.client_id = $1;
+  AND fc.client_id = @client_id;

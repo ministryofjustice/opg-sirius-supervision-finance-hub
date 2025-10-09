@@ -29,5 +29,5 @@ adjustments have decisions made and there is no requirement to display legacy ad
 tab.
 
 This will mean that many of the statuses will become redundant. Ledgers will only ever be created with a `CONFIRMED`/`APPROVED`
-status (tbc) and so we could deprecate the field, while `PENDING` and `UNALLOCATED` allocation statuses would also be unused,
+status (tbc) and so we could deprecate the field, while `PENDING` and `UN ALLOCATED` allocation statuses would also be unused,
 so a future data cleansing could tidy up and rationalise this.

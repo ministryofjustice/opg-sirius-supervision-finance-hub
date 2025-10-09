@@ -2,21 +2,52 @@
 {{ define "person-info" }}
     <div id="person-info" class="govuk-grid-row">
         <div class="govuk-grid-column-full">
-            <a href="javascript: history.go(-1)" class="govuk-back-link">Back</a>
-            <h1 data-cy="person-name" class="govuk-heading-m govuk-!-margin-bottom-2">{{ .FirstName }} {{ .Surname }}</h1>
-            <span data-cy="court-ref" class="govuk-caption-m  govuk-!-margin-bottom-1">Court reference: <a href="{{ sirius (printf "/supervision/#/clients/%s" .ClientId) }}" class="govuk-link">{{ .CourtRef }}</a></span>
-            <span data-cy="total-outstanding-balance" class="govuk-caption-m  govuk-!-margin-bottom-1">Total outstanding balance: £{{ .OutstandingBalance }}</span>
-            <span data-cy="total-credit-balance" class="govuk-caption-m  govuk-!-margin-bottom-1">Total credit balance: £{{ .CreditBalance }}</span>
-            <span data-cy="payment-method" class="govuk-caption-m  govuk-!-margin-bottom-1">Payment method: {{ .PaymentMethod }}</span>
+            <h1 data-cy="person-name"
+                class="govuk-heading-m govuk-!-margin-bottom-2">{{ .FinanceClient.FirstName }} {{ .FinanceClient.Surname }}</h1>
+            <span data-cy="court-ref" class="govuk-caption-m  govuk-!-margin-bottom-1">Court reference: <a
+                        href="{{ sirius (printf "/supervision/#/clients/%s" .FinanceClient.ClientId) }}"
+                        class="govuk-link">{{ .FinanceClient.CourtRef }}</a></span>
+            <span data-cy="total-outstanding-balance" class="govuk-caption-m  govuk-!-margin-bottom-1">Total outstanding balance: £{{ .FinanceClient.OutstandingBalance }}</span>
+            <span data-cy="total-credit-balance" class="govuk-caption-m  govuk-!-margin-bottom-1">Total credit balance: £{{ .FinanceClient.CreditBalance }}</span>
+            <span data-cy="payment-method"
+                  class="govuk-caption-m  govuk-!-margin-bottom-1">Payment method: {{ .FinanceClient.PaymentMethod }}</span>
         </div>
     </div>
-    <a class="govuk-button moj-button-menu__item govuk-button--secondary govuk-!-margin-top-5"
-       role="button"
-       draggable="false"
-       data-module="govuk-button"
-       hx-get="{{ prefix (printf "/clients/%s/direct-debit/add" .ClientId) }}"
-       hx-target="#main-content"
-       hx-push-url="{{ prefix (printf "/clients/%s/direct-debit/add" .ClientId) }}">
-        Set up Direct Debit
-    </a>
+    {{ if .User.IsFinanceUser }}
+        <div id="direct-debit-button">
+            {{ if eq showDirectDebits true }}
+                {{ if eq .FinanceClient.PaymentMethod "Demanded" }}
+                     <a class="govuk-button moj-button-menu__item govuk-button--secondary govuk-!-margin-top-5"
+                           role="button"
+                           draggable="false"
+                           data-module="govuk-button"
+                           hx-get="{{ prefix (printf "/clients/%s/direct-debit/setup" .FinanceClient.ClientId) }}"
+                           hx-target="#main-content"
+                           hx-push-url="{{ prefix (printf "/clients/%s/direct-debit/setup" .FinanceClient.ClientId) }}">
+                           Set up direct debit
+                    </a>
+                 {{ else if eq .FinanceClient.PaymentMethod "Direct Debit"}}
+                    <a class="govuk-button moj-button-menu__item govuk-button--secondary govuk-!-margin-top-5"
+                       role="button"
+                       draggable="false"
+                       data-module="govuk-button"
+                       hx-get="{{ prefix (printf "/clients/%s/direct-debit/cancel" .FinanceClient.ClientId) }}"
+                       hx-target="#main-content"
+                       hx-push-url="{{ prefix (printf "/clients/%s/direct-debit/cancel" .FinanceClient.ClientId) }}">
+                        Cancel direct debit
+                    </a>
+                 {{ end }}
+            {{ else }}
+                <a class="govuk-button moj-button-menu__item govuk-button--secondary govuk-!-margin-top-5"
+                   role="button"
+                   draggable="false"
+                   data-module="govuk-button"
+                   hx-get="{{ prefix (printf "/clients/%s/payment-method/add" .FinanceClient.ClientId) }}"
+                   hx-target="#main-content"
+                   hx-push-url="{{ prefix (printf "/clients/%s/payment-method/add" .FinanceClient.ClientId) }}">
+                   Edit payment method
+                </a>
+            {{ end }}
+        </div>
+    {{ end }}
 {{ end }}

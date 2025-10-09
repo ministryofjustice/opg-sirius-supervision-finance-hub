@@ -1,0 +1,19 @@
+{{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.RefundsTab*/ -}}
+{{ template "page" . }}
+
+{{ define "title" }}OPG Sirius Finance Hub - Refunds{{ end }}
+
+{{ define "main-content" }}
+
+  {{ block "refunds" .Data }}
+    {{ template "navigation" . }}
+    <div>
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full">
+          {{ template "refunds-list" . }}
+        </div>
+      </div>
+    </div>
+  {{ end }}
+
+{{ end }}

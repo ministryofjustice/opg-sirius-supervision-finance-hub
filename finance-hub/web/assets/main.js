@@ -19,6 +19,25 @@ document.body.addEventListener('htmx:beforeOnLoad', function (evt) {
     });
 });
 
+function showOrHideDirectDebitButton() {
+  currentUrl = window.location.href;
+  if (
+      currentUrl.includes("/add") ||
+      currentUrl.includes("/adjustments") ||
+      currentUrl.includes("/cancel") ||
+      currentUrl.includes("/setup")
+  ) {
+     htmx.addClass(htmx.find("#direct-debit-button"), "hide");
+  } else {
+     htmx.removeClass(htmx.find("#direct-debit-button"), "hide");
+  }
+}
+
+
+document.body.addEventListener('htmx:afterOnLoad', function(evt) {
+    return showOrHideDirectDebitButton()
+});
+
 // adding event listeners inside the onLoad function will ensure they are re-added to partial content when loaded back in
 htmx.onLoad(content => {
     initAll();
@@ -27,12 +46,56 @@ htmx.onLoad(content => {
         htmx.on(`#${element.id}`, "click", () => htmx.toggleClass(htmx.find(`#${element.id}-reveal`), "hide"));
     }));
 
-    htmx.findAll(".show-input-field").forEach((element) => {
-        element.addEventListener("click", () => htmx.removeClass(htmx.find("#field-input"), "hide"));
+   htmx.findAll("#direct-debit-button").forEach((element => {
+        return showOrHideDirectDebitButton()
+    }));
+
+    htmx.findAll(".show-amount-field").forEach((element) => {
+        element.addEventListener("click", () => htmx.removeClass(htmx.find("#amount-field"), "hide"));
     });
 
-    htmx.findAll(".hide-input-field").forEach((element) => {
-        element.addEventListener("click", () => htmx.addClass(htmx.find("#field-input"), "hide"));
+    htmx.findAll(".hide-amount-field").forEach((element) => {
+        element.addEventListener("click", () => htmx.addClass(htmx.find("#amount-field"), "hide"));
+    });
+
+    htmx.findAll(".show-manager-override-field").forEach((element) => {
+        element.addEventListener("click", () => htmx.removeClass(htmx.find("#manager-override-field"), "hide"));
+    });
+
+    htmx.findAll(".hide-manager-override-field").forEach((element) => {
+        element.addEventListener("click", () => htmx.addClass(htmx.find("#manager-override-field"), "hide"));
+    });
+
+    htmx.findAll("#manager-override").forEach((element) => {
+        element.addEventListener("change", (event) => {
+            if (event.target.checked) {
+                htmx.removeClass(htmx.find("#amount-field"), "hide");
+
+            } else {
+                htmx.addClass(htmx.find("#amount-field"), "hide");
+            }
+        });
+    });
+
+    htmx.findAll("#sortCode").forEach((element) => {
+        element.addEventListener("input", (e) => {
+            const input = e.target;
+            const digits = input.value.replace(/\D/g, "").slice(0, 6);
+            let formatted = "";
+
+            if (digits.length > 0) {
+                formatted += digits.slice(0, 2);
+            }
+            if (digits.length >= 3) {
+                formatted += "-" + digits.slice(2, 4);
+            }
+            if (digits.length >= 5) {
+                formatted += "-" + digits.slice(4, 6);
+            }
+
+            input.value = formatted;
+
+        });
     });
 
     htmx.findAll(".moj-banner--success").forEach((element) => {

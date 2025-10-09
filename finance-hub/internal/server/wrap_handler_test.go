@@ -5,6 +5,8 @@ import (
 	"errors"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/api"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -41,11 +43,14 @@ func (m *mockHandler) render(app AppVars, w http.ResponseWriter, r *http.Request
 
 func Test_wrapHandler_successful_request(t *testing.T) {
 	w := httptest.NewRecorder()
-	ctx := telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("opg-sirius-supervision-finance-hub"))
+	ctx := auth.Context{
+		Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("opg-sirius-supervision-finance-hub")),
+		User:    &shared.User{ID: 1},
+	}
 	r, _ := http.NewRequestWithContext(ctx, http.MethodGet, "test-url/1", nil)
 
 	errorTemplate := &mockTemplate{}
-	envVars := EnvironmentVars{}
+	envVars := Envs{}
 	nextHandlerFunc := wrapHandler(errorTemplate, "", envVars)
 	next := &mockHandler{}
 	httpHandler := nextHandlerFunc(next)
@@ -75,15 +80,19 @@ func Test_wrapHandler_status_error_handling(t *testing.T) {
 		{error: api.StatusError{Code: 403}, wantCode: 403, wantError: "  returned 403"},
 		{error: api.StatusError{Code: 404}, wantCode: 404, wantError: "  returned 404"},
 		{error: api.StatusError{Code: 500}, wantCode: 500, wantError: "  returned 500"},
+		{error: context.Canceled, wantCode: 499, wantError: "context canceled"},
 	}
 	for i, test := range tests {
 		t.Run("Scenario "+strconv.Itoa(i), func(t *testing.T) {
 			w := httptest.NewRecorder()
-			ctx := telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("opg-sirius-supervision-finance-hub"))
+			ctx := auth.Context{
+				Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("opg-sirius-supervision-finance-hub")),
+				User:    &shared.User{ID: 1},
+			}
 			r, _ := http.NewRequestWithContext(ctx, http.MethodGet, "test-url/1", nil)
 
 			errorTemplate := &mockTemplate{error: errors.New("some template error")}
-			envVars := EnvironmentVars{}
+			envVars := Envs{}
 			nextHandlerFunc := wrapHandler(errorTemplate, "", envVars)
 			next := &mockHandler{Err: test.error}
 			httpHandler := nextHandlerFunc(next)

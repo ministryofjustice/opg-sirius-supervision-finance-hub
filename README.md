@@ -62,6 +62,7 @@ To seed this data, add the inserts to `/test-data.sql`.
 `make test`
 
 ## Run the Cypress tests
+`make build-all`
 `make cypress`
 
 Or to run interactively:
@@ -73,6 +74,20 @@ npx cypress open baseUrl=http://localhost:8888/finance
 
 ## Run Trivy scanning
 `make scan`
+
+## Run adhoc tasks
+To create an adhoc task to be against the service in a live environment:
+* Validate the task name in `service/process_adhoc_event.go`. If more than one adhoc task is needed, use this service to
+  conditionally handle the events by task name.
+* Add the logic to be performed in `/api/process_adhoc_event.go`.
+
+Then, in the AWS environment you wish to run the task:
+* Go to Amazon EventBridge -> Event buses
+* Select the  `<env>-supervision` event bus
+* Click "Send events"
+* Enter the "Event source" as `opg.supervision.finance.adhoc` and the "Detail type" as `finance-adhoc`
+* Enter the expected JSON into "Event detail" i.e. `{"task":"<task-name>"}`
+* Click "Send"
 
 -----
 ## Architectural Decision Records
@@ -87,3 +102,25 @@ loaded. To avoid this, you can force event listeners to register on every HTMX l
 `htmx.onLoad` function.
 
 HTMX also includes a range of utility functions that can be used in place of more unwieldy native DOM functions.
+
+-----
+## Mock APIs
+This service integrates with multiple APIs, and we have a number of different approaches to mock responses.
+
+### Sirius
+Sirius endpoints are mocked using [json-server](https://github.com/typicode/json-server). This is a simple Express app that
+reads responses from a JSON file. The config files are located in `/json-server`, with routes specified in `routes.json`
+and the data in `db.json`. Additional middleware can be written in JS to intercept requests.
+
+### Allpay
+The Allpay Direct Debit API is mocked using [imposter](https://docs.imposter.sh/). This applies a config to an OpenAPI spec
+and responds with a file or string based on request data. Config files are located in `/api-mocks/allpay`.
+
+Note that Allpay requires client reference and surname path parameters in the URL to be base64 encoded, as these strings 
+may include invalid characters (e.g. whitespace, reserved symbols). When the mock switches response based on a path parameter,
+the value will need to be the base64 encoded string, with the actual value included as a comment in the line above.
+
+### Bank Holiday API
+We use the GovUK bank holidays endpoint in order to calculate working days. This is just a JSON file, but to avoid calling
+this repeatedly during testing, there is a simple Go file to serve it instead, located in `/api-mocks/holidays-api`. The
+`bank-holidays.json` file contains all dates from 2024-2027, and this can be manually updates as new dates are available.

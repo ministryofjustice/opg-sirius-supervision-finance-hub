@@ -37,7 +37,7 @@ describe("Adjust invoice form", () => {
         const now = new Date().toLocaleDateString("en-UK");
         cy.get(".moj-timeline__item").first().within((el) => {
             cy.get(".moj-timeline__title").contains("Pending credit memo of £100 added to AD11111/19");
-            cy.get(".moj-timeline__byline").contains(`by Super User, ${now}`);
+            cy.get(".moj-timeline__byline").contains(`by Ian Admin, ${now}`);
             cy.get(".moj-timeline__date").contains("Outstanding balance: £420 Credit balance: £0");
             cy.contains(".govuk-link", "AD11111/19").click();
         });
@@ -61,10 +61,21 @@ describe("Adjust invoice form", () => {
         cy.get("#f-AdjustmentType").contains(".govuk-radios__item", "Write off reversal").click();
         cy.get("#f-AdjustmentNotes").type("Reversing write off");
         cy.get("#f-Amount").should("be.hidden");
+        cy.get("#f-manager-override").click();
+        cy.get("#f-Amount").type("10");
         cy.contains(".govuk-button", "Save and continue").click();
 
         cy.url().should("include", "clients/4/invoices?success=invoice-adjustment[WRITE%20OFF%20REVERSAL]");
         cy.get(".moj-banner__message").contains("Write-off reversal successfully created");
+    });
+
+    it("does not show manager override checkbox for write off reversals when not a Finance Manager", () => {
+        cy.setUser("1");
+        cy.visit("/clients/4/invoices/4/adjustments");
+
+        cy.get("#f-AdjustmentType").contains(".govuk-radios__item", "Write off reversal").click();
+        cy.get("#f-Amount").should("be.hidden");
+        cy.get("#f-manager-override").should("not.exist");
     });
 
     it("adds debit to an invoice", () => {
@@ -88,8 +99,34 @@ describe("Adjust invoice form", () => {
         cy.get(".moj-banner__message").contains("Manual debit successfully created");
     });
 
+    it("adds a fee reduction reversal", () => {
+        cy.visit("/clients/4/invoices/5/adjustments");
+
+        cy.get("#f-AdjustmentType").contains(".govuk-radios__item", "Fee reduction reversal").click();
+        cy.get("#f-AdjustmentNotes").type("Reversing fee reduction");
+        cy.get("#f-Amount").type("100");
+        cy.contains(".govuk-button", "Save and continue").click();
+
+        // validation
+        cy.get(".govuk-error-summary").contains("The fee reduction reversal amount must be £50 or less");
+
+        cy.get("#f-Amount").find("input").clear();
+        cy.get("#f-Amount").type("50");
+        cy.contains(".govuk-button", "Save and continue").click();
+
+        // navigation and success message
+        cy.url().should("include", "clients/4/invoices?success=invoice-adjustment[FEE%20REDUCTION%20REVERSAL]");
+        cy.get(".moj-banner__message").contains("Fee reduction reversal successfully created");
+    });
+
     it("should have no accessibility violations",() => {
         cy.visit("/clients/4/invoices/3/adjustments");
         cy.checkAccessibility();
+    });
+
+   it("should not show direct debit button when viewing the adjust invoice form",() => {
+        cy.visit("/clients/4/invoices/3/adjustments");
+        cy.get("#direct-debit-button").should('exist');
+        cy.get("#direct-debit-button").should('not.be.visible');
     });
 });

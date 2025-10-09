@@ -6,15 +6,27 @@ import (
 )
 
 type AgedDebt struct {
+	ReportQuery
+	AgedDebtInput
+}
+
+type AgedDebtInput struct {
 	FromDate *shared.Date
 	ToDate   *shared.Date
+}
+
+func NewAgedDebt(input AgedDebtInput) ReportQuery {
+	return &AgedDebt{
+		ReportQuery:   NewReportQuery(AgedDebtQuery),
+		AgedDebtInput: input,
+	}
 }
 
 const AgedDebtQuery = `WITH outstanding_invoices AS (SELECT i.id,
                                      i.finance_client_id,
                                      i.feetype,
                                      CASE 
-                                         WHEN i.feetype = 'AD' THEN 'AD'
+                                         WHEN i.feetype IN ('AD', 'GA', 'GS', 'GT') THEN i.feetype
                                     	 ELSE COALESCE(sl.supervision_level, '')    
 									 END AS supervision_level,
                                      i.reference,
@@ -29,7 +41,7 @@ const AgedDebtQuery = `WITH outstanding_invoices AS (SELECT i.id,
 								  SELECT SUM(la.amount) AS received
 								  FROM supervision_finance.ledger_allocation la
 								  		 JOIN supervision_finance.ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
-									WHERE la.status NOT IN ('PENDING', 'UNALLOCATED')
+									WHERE la.status NOT IN ('PENDING', 'UN ALLOCATED')
 								    AND la.invoice_id = i.id
 								  ) transactions ON TRUE
                                        LEFT JOIN LATERAL (
@@ -49,10 +61,10 @@ SELECT CONCAT(p.firstname, ' ', p.surname)                 AS "Customer name",
        fc.sop_number                                       AS "SOP number",
        d.deputytype                                        AS "Deputy type",
        COALESCE(active_orders.is_active, 'No')             AS "Active case?",
-       '="0470"'                                            AS "Entity",
+       '="0470"'                                           AS "Entity",
        '99999999'                                          AS "Receivable cost centre",
        'BALANCE SHEET'                                     AS "Receivable cost centre description",
-       '1816100000'                                        AS "Receivable account code",
+       '1816102003'                                        AS "Receivable account code",
        cc.code                                             AS "Revenue cost centre",
        cc.cost_centre_description                          AS "Revenue cost centre description",
        a.code                                              AS "Revenue account code",
@@ -76,9 +88,9 @@ SELECT CONCAT(p.firstname, ' ', p.surname)                 AS "Customer name",
        CASE
            WHEN NOW() > oi.due_date AND oi.age < 1 THEN oi.outstanding
            ELSE '0' END                                      AS "0-1 years",
-       CASE WHEN oi.age BETWEEN 1 AND 2 THEN oi.outstanding ELSE '0' END AS "1-2 years",
-       CASE WHEN oi.age BETWEEN 2 AND 3 THEN oi.outstanding ELSE '0' END AS "2-3 years",
-       CASE WHEN oi.age BETWEEN 3 AND 5 THEN oi.outstanding ELSE '0' END AS "3-5 years",
+       CASE WHEN oi.age > 1 AND oi.age <= 2 THEN oi.outstanding ELSE '0' END AS "1-2 years",
+       CASE WHEN oi.age > 2 AND oi.age <= 3 THEN oi.outstanding ELSE '0' END AS "2-3 years",
+       CASE WHEN oi.age > 3 AND oi.age <= 5 THEN oi.outstanding ELSE '0' END AS "3-5 years",
        CASE WHEN oi.age > 5 THEN oi.outstanding ELSE '0' END AS "5+ years",
        CASE
            WHEN apc.age < 2 THEN '="0-1"'
@@ -135,10 +147,6 @@ func (a *AgedDebt) GetHeaders() []string {
 		"5+ years",
 		"Debt impairment years",
 	}
-}
-
-func (a *AgedDebt) GetQuery() string {
-	return AgedDebtQuery
 }
 
 func (a *AgedDebt) GetParams() []any {

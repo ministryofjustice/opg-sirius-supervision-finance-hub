@@ -6,13 +6,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"io"
 	"net/http"
 	"strings"
 	"time"
 )
 
-const notifyUrl = "https://api.notifications.service.gov.uk"
 const emailEndpoint = "v2/notifications/email"
 const ProcessingErrorTemplateId = "872d88b3-076e-495c-bf81-a2be2d3d234c"
 const ProcessingFailedTemplateId = "a8f9ab79-1489-4639-9e6c-cad1f079ebcf"
@@ -34,17 +35,19 @@ type Payload struct {
 }
 
 type Client struct {
-	http     *http.Client
-	iss      string
-	jwtToken string
+	http      *http.Client
+	iss       string
+	jwtToken  string
+	notifyUrl string
 }
 
-func NewClient(apiKey string) *Client {
+func NewClient(apiKey string, notifyUrl string) *Client {
 	iss, jwtToken := parseNotifyApiKey(apiKey)
 	return &Client{
-		http:     http.DefaultClient,
-		iss:      iss,
-		jwtToken: jwtToken,
+		http:      http.DefaultClient,
+		iss:       iss,
+		jwtToken:  jwtToken,
+		notifyUrl: notifyUrl,
 	}
 }
 
@@ -59,6 +62,8 @@ func parseNotifyApiKey(notifyApiKey string) (string, string) {
 }
 
 func (c *Client) Send(ctx context.Context, payload Payload) error {
+	logger := telemetry.LoggerFromContext(ctx)
+
 	signedToken, err := c.createSignedJwtToken()
 	if err != nil {
 		return err
@@ -71,7 +76,7 @@ func (c *Client) Send(ctx context.Context, payload Payload) error {
 		return err
 	}
 
-	r, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/%s", notifyUrl, emailEndpoint), &body)
+	r, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/%s", c.notifyUrl, emailEndpoint), &body)
 
 	if err != nil {
 		return err
@@ -85,7 +90,11 @@ func (c *Client) Send(ctx context.Context, payload Payload) error {
 		return err
 	}
 
-	defer resp.Body.Close()
+	logger.Info("payload sent to notify", "templateID", payload.TemplateId)
+
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
 
 	switch resp.StatusCode {
 	case http.StatusOK:

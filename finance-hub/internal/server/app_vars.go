@@ -2,16 +2,20 @@ package server
 
 import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"net/http"
 )
 
 type AppVars struct {
 	Path            string
 	XSRFToken       string
+	User            *shared.User
 	Tabs            []Tab
-	EnvironmentVars EnvironmentVars
+	EnvironmentVars Envs
 	Errors          apierror.ValidationErrors
 	Error           string
+	Code            int
 }
 
 type Tab struct {
@@ -19,10 +23,11 @@ type Tab struct {
 	Title    string
 	BasePath string
 	Selected bool
+	Show     bool
 }
 
-func NewAppVars(r *http.Request, envVars EnvironmentVars) AppVars {
-	ctx := getContext(r)
+func NewAppVars(r *http.Request, envVars Envs) AppVars {
+	ctx := r.Context()
 
 	clientId := r.PathValue("clientId")
 	tabs := []Tab{
@@ -30,27 +35,38 @@ func NewAppVars(r *http.Request, envVars EnvironmentVars) AppVars {
 			Id:       "invoices",
 			Title:    "Invoices",
 			BasePath: "/clients/" + clientId + "/invoices",
+			Show:     true,
 		},
 		{
 			Id:       "fee-reductions",
 			Title:    "Fee Reductions",
 			BasePath: "/clients/" + clientId + "/fee-reductions",
+			Show:     true,
 		},
 		{
-			Id:       "pending-invoice-adjustments",
-			Title:    "Pending Adjustments",
-			BasePath: "/clients/" + clientId + "/pending-invoice-adjustments",
+			Id:       "invoice-adjustments",
+			Title:    "Invoice Adjustments",
+			BasePath: "/clients/" + clientId + "/invoice-adjustments",
+			Show:     true,
+		},
+		{
+			Id:       "refunds",
+			Title:    "Refunds",
+			BasePath: "/clients/" + clientId + "/refunds",
+			Show:     true,
 		},
 		{
 			Id:       "billing-history",
 			Title:    "Billing History",
 			BasePath: "/clients/" + clientId + "/billing-history",
+			Show:     true,
 		},
 	}
 
 	vars := AppVars{
 		Path:            r.URL.Path,
-		XSRFToken:       ctx.XSRFToken,
+		XSRFToken:       ctx.(auth.Context).XSRFToken,
+		User:            ctx.(auth.Context).User,
 		EnvironmentVars: envVars,
 		Tabs:            tabs,
 	}
@@ -66,6 +82,7 @@ func (a *AppVars) selectTab(s string) {
 				tab.Title,
 				tab.BasePath,
 				true,
+				tab.Show,
 			}
 		}
 	}

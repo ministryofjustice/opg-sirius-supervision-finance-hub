@@ -17,17 +17,19 @@ const (
 	AdjustmentTypeCreditMemo
 	AdjustmentTypeDebitMemo
 	AdjustmentTypeWriteOffReversal
+	AdjustmentTypeFeeReductionReversal
 )
 
 var adjustmentTypeMap = map[string]AdjustmentType{
-	"CREDIT WRITE OFF":   AdjustmentTypeWriteOff,
-	"CREDIT MEMO":        AdjustmentTypeCreditMemo,
-	"DEBIT MEMO":         AdjustmentTypeDebitMemo,
-	"WRITE OFF REVERSAL": AdjustmentTypeWriteOffReversal,
+	"CREDIT WRITE OFF":       AdjustmentTypeWriteOff,
+	"CREDIT MEMO":            AdjustmentTypeCreditMemo,
+	"DEBIT MEMO":             AdjustmentTypeDebitMemo,
+	"WRITE OFF REVERSAL":     AdjustmentTypeWriteOffReversal,
+	"FEE REDUCTION REVERSAL": AdjustmentTypeFeeReductionReversal,
 }
 
-func (i AdjustmentType) String() string {
-	switch i {
+func (a AdjustmentType) String() string {
+	switch a {
 	case AdjustmentTypeWriteOff:
 		return "Write off"
 	case AdjustmentTypeCreditMemo:
@@ -36,13 +38,15 @@ func (i AdjustmentType) String() string {
 		return "Debit memo"
 	case AdjustmentTypeWriteOffReversal:
 		return "Write off reversal"
+	case AdjustmentTypeFeeReductionReversal:
+		return "Fee reduction reversal"
 	default:
 		return ""
 	}
 }
 
-func (i AdjustmentType) Translation() string {
-	switch i {
+func (a AdjustmentType) Translation() string {
+	switch a {
 	case AdjustmentTypeWriteOff:
 		return "Write off"
 	case AdjustmentTypeCreditMemo:
@@ -51,13 +55,15 @@ func (i AdjustmentType) Translation() string {
 		return "Add debit"
 	case AdjustmentTypeWriteOffReversal:
 		return "Write off reversal"
+	case AdjustmentTypeFeeReductionReversal:
+		return "Fee reduction reversal"
 	default:
 		return ""
 	}
 }
 
-func (i AdjustmentType) Key() string {
-	switch i {
+func (a AdjustmentType) Key() string {
+	switch a {
 	case AdjustmentTypeWriteOff:
 		return "CREDIT WRITE OFF"
 	case AdjustmentTypeCreditMemo:
@@ -66,22 +72,28 @@ func (i AdjustmentType) Key() string {
 		return "DEBIT MEMO"
 	case AdjustmentTypeWriteOffReversal:
 		return "WRITE OFF REVERSAL"
+	case AdjustmentTypeFeeReductionReversal:
+		return "FEE REDUCTION REVERSAL"
 	default:
 		return ""
 	}
 }
 
-func (i AdjustmentType) AmountRequired() bool {
-	switch i {
-	case AdjustmentTypeCreditMemo, AdjustmentTypeDebitMemo:
+func (a AdjustmentType) AmountRequired() bool {
+	switch a {
+	case AdjustmentTypeCreditMemo, AdjustmentTypeDebitMemo, AdjustmentTypeFeeReductionReversal:
 		return true
 	default:
 		return false
 	}
 }
 
-func (i AdjustmentType) Valid() bool {
-	return i != AdjustmentTypeUnknown
+func (a AdjustmentType) CanOverride() bool {
+	return a == AdjustmentTypeWriteOffReversal
+}
+
+func (a AdjustmentType) Valid() bool {
+	return a != AdjustmentTypeUnknown
 }
 
 func ParseAdjustmentType(s string) AdjustmentType {
@@ -92,15 +104,15 @@ func ParseAdjustmentType(s string) AdjustmentType {
 	return value
 }
 
-func (i AdjustmentType) MarshalJSON() ([]byte, error) {
-	return json.Marshal(i.Key())
+func (a AdjustmentType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(a.Key())
 }
 
-func (i *AdjustmentType) UnmarshalJSON(data []byte) (err error) {
+func (a *AdjustmentType) UnmarshalJSON(data []byte) (err error) {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
 		return err
 	}
-	*i = ParseAdjustmentType(s)
+	*a = ParseAdjustmentType(s)
 	return nil
 }

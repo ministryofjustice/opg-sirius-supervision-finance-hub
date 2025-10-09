@@ -1,4 +1,4 @@
-{{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.UpdateFeeReductions*/ -}}
+{{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.AddFeeReductionForm*/ -}}
 {{ template "page" . }}
 
 {{ define "title" }}Award fee reduction{{ end }}
@@ -17,8 +17,9 @@
                         class="govuk-grid-column-one-third"
                         method="post"
                         hx-post="{{ prefix (printf "/clients/%s/fee-reductions/add" .ClientId) }}"
-                        hx-target="#error-summary">
-                        <input type="hidden" name="xsrfToken" value="{{ .AppVars.XSRFToken }}"/>
+                        hx-target="#error-summary"
+                        hx-disabled-elt="find button">
+                        <input type="hidden" name="CSRF" value="{{ .AppVars.XSRFToken }}"/>
 
                         <div id="f-FeeType" class="govuk-form-group">
                             <fieldset class="govuk-fieldset">

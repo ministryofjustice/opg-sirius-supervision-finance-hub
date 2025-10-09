@@ -8,6 +8,15 @@ FROM invoice_adjustment ia
 WHERE fc.client_id = $1
 ORDER BY ia.raised_date DESC;
 
+-- name: GetRejectedInvoiceAdjustments :many
+SELECT ia.invoice_id, i.reference, ia.adjustment_type, ia.amount, ia.notes, ia.updated_at, ia.updated_by
+FROM invoice_adjustment ia
+         JOIN invoice i ON i.id = ia.invoice_id
+         JOIN finance_client fc ON fc.id = ia.finance_client_id
+WHERE fc.client_id = $1
+AND status = 'REJECTED'
+ORDER BY ia.raised_date DESC;
+
 -- name: GetGeneratedInvoices :many
 SELECT i.id invoice_id, reference, feetype, amount, created_by, created_at
 FROM invoice i
@@ -42,7 +51,8 @@ SELECT l.id AS ledger_id,
        la.status,
        l.amount  AS ledger_amount,
        la.amount AS allocation_amount,
-       l.datetime AS created_at,
+       l.datetime AS ledger_datetime,
+       l.created_at,
        l.created_by
 FROM ledger_allocation la
          JOIN ledger l ON l.id = la.ledger_id
@@ -50,4 +60,23 @@ FROM ledger_allocation la
          LEFT JOIN invoice i ON la.invoice_id = i.id
          LEFT JOIN fee_reduction fr ON l.fee_reduction_id = fr.id
 WHERE fc.client_id = $1
-  AND la.status NOT IN ('PENDING', 'UNALLOCATED');
+  AND la.status NOT IN ('PENDING', 'UN ALLOCATED');
+
+-- name: GetRefundsForBillingHistory :many
+SELECT r.id AS refund_id,
+       r.raised_date,
+       r.amount,
+       r.decision,
+       r.notes,
+       r.created_by,
+       r.created_at,
+       r.decision_by,
+       r.decision_at,
+       r.processed_at,
+       r.cancelled_at,
+       r.fulfilled_at,
+       r.cancelled_by
+FROM refund r
+        JOIN finance_client fc ON fc.id = r.finance_client_id
+WHERE fc.client_id = $1
+ORDER BY r.created_at DESC;

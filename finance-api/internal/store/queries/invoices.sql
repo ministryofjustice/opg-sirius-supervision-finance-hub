@@ -14,21 +14,21 @@ FROM invoice i
     FROM ledger_allocation la
              JOIN ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
              LEFT JOIN fee_reduction fr ON l.fee_reduction_id = fr.id
-    WHERE la.status NOT IN ('PENDING', 'UNALLOCATED')
+    WHERE la.status NOT IN ('PENDING', 'UN ALLOCATED')
       AND la.invoice_id = i.id
     ) transactions ON TRUE
 WHERE fc.client_id = $1
 ORDER BY i.raiseddate DESC;
 
--- name: GetInvoicesForCourtRef :many
-SELECT i.id, (i.amount - COALESCE(transactions.received, 0)::INT) outstanding
+-- name: GetUnpaidInvoicesByCourtRef :many
+SELECT i.id, (i.amount - COALESCE(transactions.received, 0)::INT) AS outstanding
 FROM invoice i
          JOIN finance_client fc ON fc.id = i.finance_client_id
          LEFT JOIN LATERAL (
     SELECT SUM(la.amount) AS received
     FROM ledger_allocation la
              JOIN ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
-    WHERE la.status NOT IN ('PENDING', 'UNALLOCATED')
+    WHERE la.status NOT IN ('PENDING', 'UN ALLOCATED')
       AND la.invoice_id = i.id
     ) transactions ON TRUE
 WHERE fc.court_ref = $1
@@ -36,23 +36,39 @@ GROUP BY i.id, i.amount, transactions.received, i.raiseddate
 HAVING (i.amount - COALESCE(SUM(transactions.received), 0)::INT) > 0
 ORDER BY i.raiseddate;
 
+-- name: GetInvoicesForReversalByCourtRef :many
+SELECT i.id, i.amount, (COALESCE(transactions.received, 0)::INT) AS received
+FROM invoice i
+         JOIN finance_client fc ON fc.id = i.finance_client_id
+         LEFT JOIN LATERAL (
+    SELECT SUM(la.amount) AS received
+    FROM ledger_allocation la
+             JOIN ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
+    WHERE la.status NOT IN ('PENDING', 'UN ALLOCATED')
+      AND la.invoice_id = i.id
+    ) transactions ON TRUE
+WHERE fc.court_ref = $1
+GROUP BY i.id, i.amount, transactions.received, i.raiseddate
+HAVING COALESCE(SUM(transactions.received), 0)::INT > 0
+ORDER BY i.raiseddate DESC;
+
 -- name: GetLedgerAllocations :many
 WITH allocations AS (SELECT la.invoice_id,
                             la.amount,
-                            COALESCE(l.bankdate, la.datetime) AS raised_date,
+                            la.datetime AS received_date,
                             l.type,
                             la.status,
-                            la.datetime                       AS created_at,
-                            la.id                             AS ledger_allocation_id
+                            la.datetime AS created_at,
+                            la.id       AS ledger_allocation_id
                      FROM ledger_allocation la
                               JOIN ledger l ON la.ledger_id = l.id
                      WHERE la.invoice_id = ANY ($1::INT[])
-                       AND la.status NOT IN ('PENDING', 'UNALLOCATED')
+                       AND la.status NOT IN ('PENDING', 'UN ALLOCATED')
                        AND l.status = 'CONFIRMED'
                      UNION
                      SELECT ia.invoice_id,
                             ia.amount,
-                            ia.raised_date,
+                            ia.raised_date AS received_date,
                             ia.adjustment_type,
                             ia.status,
                             ia.created_at,
@@ -62,7 +78,7 @@ WITH allocations AS (SELECT la.invoice_id,
                        AND ia.invoice_id = ANY ($1::INT[]))
 SELECT *
 FROM allocations
-ORDER BY raised_date DESC, created_at DESC, status DESC, ledger_allocation_id ASC;
+ORDER BY received_date DESC, created_at DESC, status DESC, ledger_allocation_id ASC;
 
 -- name: GetSupervisionLevels :many
 SELECT invoice_id, supervisionlevel, fromdate, todate, amount
@@ -71,32 +87,48 @@ WHERE invoice_id = ANY ($1::INT[])
 ORDER BY todate DESC;
 
 -- name: GetInvoiceBalanceDetails :one
-SELECT i.amount                                      initial,
-       i.amount - COALESCE(transactions.received, 0) outstanding,
+WITH ledger_sums AS (SELECT la.invoice_id,
+                            SUM(CASE
+                                    WHEN l.status = 'CONFIRMED' AND l.type = 'CREDIT WRITE OFF' AND
+                                         la.status = 'ALLOCATED' THEN la.amount
+                                    ELSE 0 END) AS write_off_amount,
+                            SUM(CASE
+                                    WHEN l.status = 'CONFIRMED' AND l.type = 'WRITE OFF REVERSAL' AND
+                                         la.status = 'ALLOCATED' THEN la.amount
+                                    ELSE 0 END) AS write_off_reversal_amount,
+                            SUM(CASE
+                                    WHEN l.status = 'CONFIRMED' AND la.status NOT IN ('PENDING', 'UN ALLOCATED')
+                                        THEN la.amount
+                                    ELSE 0 END) AS received
+                     FROM ledger_allocation la
+                              JOIN ledger l ON la.ledger_id = l.id
+                     GROUP BY la.invoice_id)
+SELECT i.amount::INT                                                                          AS initial,
+       i.amount - COALESCE(ls.received, 0)::INT                                               AS outstanding,
        i.feetype,
-       COALESCE(write_offs.amount, 0)::INT           write_off_amount
+       COALESCE(ls.write_off_amount, 0)::INT + COALESCE(ls.write_off_reversal_amount, 0)::INT AS write_off_amount
 FROM invoice i
-         LEFT JOIN LATERAL (
-    SELECT SUM(la.amount) AS amount
-    FROM ledger_allocation la
-             JOIN ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED' AND l.type = 'CREDIT WRITE OFF'
-    WHERE la.status = 'ALLOCATED'
-      AND la.invoice_id = i.id
-    ) write_offs ON TRUE
-         LEFT JOIN LATERAL (
-    SELECT SUM(la.amount) AS received
-    FROM ledger_allocation la
-             JOIN ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
-    WHERE la.status NOT IN ('PENDING', 'UNALLOCATED')
-      AND la.invoice_id = i.id
-    ) transactions ON TRUE
-WHERE i.id = $1;
+         LEFT JOIN ledger_sums ls ON ls.invoice_id = i.id
+WHERE i.id = @invoice_id;
+
+-- name: GetInvoiceFeeReductionReversalDetails :one
+SELECT (SELECT COALESCE(SUM(amount), 0)
+        FROM invoice_adjustment ia
+        WHERE ia.invoice_id = @invoice_id
+          AND ia.adjustment_type = 'FEE REDUCTION REVERSAL'
+          AND ia.status = 'APPROVED')         AS reversal_total,
+       (SELECT COALESCE(SUM(la.amount), 0)
+        FROM ledger l
+                 JOIN ledger_allocation la ON l.id = la.ledger_id
+        WHERE la.invoice_id = @invoice_id
+          AND la.status = 'ALLOCATED'
+          AND l.fee_reduction_id IS NOT NULL) AS fee_reduction_total;
 
 -- name: GetInvoiceBalancesForFeeReductionRange :many
 SELECT i.id,
        i.amount,
-       COALESCE(general_fee.amount, 0)               general_supervision_fee,
-       i.amount - COALESCE(transactions.received, 0) outstanding,
+       COALESCE(general_fee.amount, 0)::INT               general_supervision_fee,
+       i.amount - COALESCE(transactions.received, 0)::INT outstanding,
        i.feetype
 FROM invoice i
          JOIN fee_reduction fr ON i.finance_client_id = fr.finance_client_id
@@ -104,7 +136,7 @@ FROM invoice i
     SELECT SUM(la.amount) AS received
     FROM ledger_allocation la
              JOIN ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
-    WHERE la.status NOT IN ('PENDING', 'UNALLOCATED')
+    WHERE la.status NOT IN ('PENDING', 'UN ALLOCATED')
       AND la.invoice_id = i.id
     ) transactions ON TRUE
          LEFT JOIN LATERAL (

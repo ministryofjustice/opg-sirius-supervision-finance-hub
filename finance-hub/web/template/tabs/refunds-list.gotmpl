@@ -1,0 +1,107 @@
+{{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.RefundsTab*/ -}}
+{{ define "refunds-list" }}
+    <header>
+        <h1 class="govuk-heading-l  govuk-!-margin-bottom-0  govuk-!-margin-top-0">Refunds</h1>
+        <div style="float: right;">
+            <div class="moj-button-menu">
+                {{ if (and .User.IsFinanceUser .ShowAddRefund) }}
+                    <a
+                            class="govuk-button moj-button-menu__item govuk-button--secondary"
+                            role="button"
+                            draggable="false"
+                            data-module="govuk-button"
+                            hx-get="{{ prefix (printf "/clients/%s/refunds/add" .ClientId) }}"
+                            hx-target="#main-content"
+                            hx-push-url="{{ prefix  (printf "/clients/%s/refunds/add" .ClientId) }}">
+                        Add refund
+                    </a>
+                {{ end }}
+            </div>
+        </div>
+    </header>
+    <table id="refunds" class="govuk-table">
+        <thead class="govuk-table__head">
+        <tr class="govuk-table__row">
+            <th scope="col" class="govuk-table__header">Date raised</th>
+            <th scope="col" class="govuk-table__header">Date fulfilled</th>
+            <th scope="col" class="govuk-table__header">Amount</th>
+            {{ if .User.IsFinanceManager }}
+                <th scope="col" class="govuk-table__header">Bank details</th>
+            {{ end }}
+            <th scope="col" class="govuk-table__header">Notes</th>
+            <th scope="col" class="govuk-table__header">Status</th>
+            <th scope="col" class="govuk-table__header">Actions</th>
+        </tr>
+        </thead>
+        {{ if eq (len .Refunds) 0 }}
+            <tr class="govuk-table__row">
+                <td colspan="100%" class="govuk-table__cell govuk-table__cell--no-data">There are no refunds
+                </td>
+            </tr>
+        {{ else }}
+            {{ $clientId := .ClientId }}
+            {{ $user := .User }}
+            {{ $xsrfToken := .AppVars.XSRFToken }}
+            {{ range .Refunds }}
+                <tbody class="govuk-table__body">
+                <tr>
+                    <td class="govuk-table__cell">{{.DateRaised}}</td>
+                    <td class="govuk-table__cell">{{ if .DateFulfilled }}{{ .DateFulfilled }}{{ else }}{{ "" }}{{ end }}</td>
+                    <td class="govuk-table__cell">£{{.Amount}}</td>
+                    {{ if $user.IsFinanceManager }}
+                        <td class="govuk-table__cell">
+                            {{ if eq .Status "Pending" }}
+                                <b>Account Name:</b> {{.BankDetails.Name}}<br>
+                                <b>Account Number:</b> {{.BankDetails.Account}}<br>
+                                <b>Sort Code:</b> {{.BankDetails.SortCode}}
+                            {{ end }}
+                        </td>
+                    {{ end }}
+                    <td class="govuk-table__cell">{{.Notes}}</td>
+                    <td class="govuk-table__cell">{{.Status}}</td>
+                    <td class="govuk-table__cell">
+                        <div class="form-button-menu">
+                            {{ if $user.IsFinanceManager }}
+                                {{ if eq .Status "Pending"}}
+                                    <form method="post"
+                                          hx-post="{{ prefix (printf "/clients/%s/refunds/%s" $clientId .ID) }}"
+                                          hx-disabled-elt="find button">
+                                        <input type="hidden" name="CSRF" value="{{ $xsrfToken }}"/>
+                                        <input type="hidden" name="decision" value="APPROVED"/>
+                                        <button class="govuk-button moj-button-menu__item govuk-button--secondary {{ if eq $user.ID .CreatedBy }}invisible{{end}}"
+                                                type="submit">
+                                            Approve
+                                        </button>
+                                    </form>
+
+                                    <form method="post"
+                                          hx-post="{{ prefix (printf "/clients/%s/refunds/%s" $clientId .ID) }}"
+                                          hx-disabled-elt="find button">
+                                        <input type="hidden" name="CSRF" value="{{ $xsrfToken }}"/>
+                                        <input type="hidden" name="decision" value="REJECTED"/>
+                                        <button class="govuk-button moj-button-menu__item govuk-button--secondary"
+                                                type="submit">
+                                            Reject
+                                        </button>
+                                    </form>
+                                {{ else if (or (eq .Status "Approved") (eq .Status "Processing")) }}
+                                    <form method="post"
+                                          hx-post="{{ prefix (printf "/clients/%s/refunds/%s" $clientId .ID) }}"
+                                          hx-disabled-elt="find button">
+                                        <input type="hidden" name="CSRF" value="{{ $xsrfToken }}"/>
+                                        <input type="hidden" name="decision" value="CANCELLED"/>
+                                        <button class="govuk-button moj-button-menu__item govuk-button--secondary"
+                                                type="submit">
+                                            Cancel
+                                        </button>
+                                    </form>
+                                {{ end}}
+                            {{ end}}
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            {{end }}
+        {{ end }}
+    </table>
+{{ end }}

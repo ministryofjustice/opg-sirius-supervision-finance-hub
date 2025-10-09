@@ -4,15 +4,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestServer_addManualInvoice(t *testing.T) {
@@ -23,7 +24,7 @@ func TestServer_addManualInvoice(t *testing.T) {
 
 	manualInvoiceInfo := &shared.AddManualInvoice{
 		InvoiceType:      shared.InvoiceTypeS2,
-		Amount:           shared.Nillable[int]{Value: 32000, Valid: true},
+		Amount:           shared.Nillable[int32]{Value: 32000, Valid: true},
 		RaisedDate:       shared.Nillable[shared.Date]{Value: shared.Date{Time: endDateToTime}, Valid: true},
 		StartDate:        shared.Nillable[shared.Date]{Value: shared.Date{Time: startDateToTime}, Valid: true},
 		EndDate:          shared.Nillable[shared.Date]{Value: shared.Date{Time: endDateToTime}, Valid: true},
@@ -37,11 +38,13 @@ func TestServer_addManualInvoice(t *testing.T) {
 	validator, _ := validation.New()
 
 	mock := &mockService{manualInvoice: manualInvoiceInfo}
-	server := NewServer(mock, nil, nil, validator, nil)
+	server := NewServer(mock, nil, nil, nil, nil, validator, nil)
 	_ = server.addManualInvoice(w, req)
 
 	res := w.Result()
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(res.Body)
 	data, _ := io.ReadAll(res.Body)
 
 	expected := ""
@@ -54,7 +57,7 @@ func TestServer_addManualInvoiceNoValidationErrorsForNilFields(t *testing.T) {
 	var b bytes.Buffer
 	manualInvoiceInfo := &shared.AddManualInvoice{
 		InvoiceType:      shared.InvoiceTypeAD,
-		Amount:           shared.Nillable[int]{},
+		Amount:           shared.Nillable[int32]{},
 		RaisedDate:       shared.Nillable[shared.Date]{},
 		StartDate:        shared.Nillable[shared.Date]{},
 		EndDate:          shared.Nillable[shared.Date]{},
@@ -68,11 +71,13 @@ func TestServer_addManualInvoiceNoValidationErrorsForNilFields(t *testing.T) {
 	validator, _ := validation.New()
 
 	mock := &mockService{manualInvoice: manualInvoiceInfo}
-	server := NewServer(mock, nil, nil, validator, nil)
+	server := NewServer(mock, nil, nil, nil, nil, validator, nil)
 	_ = server.addManualInvoice(w, req)
 
 	res := w.Result()
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(res.Body)
 
 	expected := ""
 
@@ -85,7 +90,7 @@ func TestServer_addManualInvoiceValidationErrors(t *testing.T) {
 
 	manualInvoiceInfo := &shared.AddManualInvoice{
 		InvoiceType:      shared.InvoiceTypeUnknown,
-		Amount:           shared.Nillable[int]{Valid: true},
+		Amount:           shared.Nillable[int32]{Valid: true},
 		RaisedDate:       shared.Nillable[shared.Date]{Valid: true},
 		StartDate:        shared.Nillable[shared.Date]{Valid: true},
 		EndDate:          shared.Nillable[shared.Date]{Valid: true},
@@ -99,7 +104,7 @@ func TestServer_addManualInvoiceValidationErrors(t *testing.T) {
 	validator, _ := validation.New()
 
 	mock := &mockService{manualInvoice: manualInvoiceInfo}
-	server := NewServer(mock, nil, nil, validator, nil)
+	server := NewServer(mock, nil, nil, nil, nil, validator, nil)
 	err := server.addManualInvoice(w, req)
 
 	expected := apierror.ValidationError{Errors: apierror.ValidationErrors{
@@ -133,7 +138,7 @@ func TestServer_addManualInvoiceValidationErrorsForAmountTooHigh(t *testing.T) {
 
 	manualInvoiceInfo := &shared.AddManualInvoice{
 		InvoiceType:      shared.InvoiceTypeS2,
-		Amount:           shared.Nillable[int]{Value: 320000, Valid: true},
+		Amount:           shared.Nillable[int32]{Value: 320000, Valid: true},
 		RaisedDate:       shared.Nillable[shared.Date]{Value: shared.Date{Time: endDateToTime}, Valid: true},
 		StartDate:        shared.Nillable[shared.Date]{Value: shared.Date{Time: startDateToTime}, Valid: true},
 		EndDate:          shared.Nillable[shared.Date]{Value: shared.Date{Time: endDateToTime}, Valid: true},
@@ -147,7 +152,7 @@ func TestServer_addManualInvoiceValidationErrorsForAmountTooHigh(t *testing.T) {
 	validator, _ := validation.New()
 
 	mock := &mockService{manualInvoice: manualInvoiceInfo}
-	server := NewServer(mock, nil, nil, validator, nil)
+	server := NewServer(mock, nil, nil, nil, nil, validator, nil)
 	err := server.addManualInvoice(w, req)
 
 	expected := apierror.ValidationError{Errors: apierror.ValidationErrors{
@@ -166,7 +171,7 @@ func TestServer_addManualInvoiceDateErrors(t *testing.T) {
 
 	manualInvoiceInfo := &shared.AddManualInvoice{
 		InvoiceType:      shared.InvoiceTypeS2,
-		Amount:           shared.Nillable[int]{Value: 320000, Valid: true},
+		Amount:           shared.Nillable[int32]{Value: 320000, Valid: true},
 		RaisedDate:       shared.Nillable[shared.Date]{Value: shared.Date{Time: endDateToTime}, Valid: true},
 		StartDate:        shared.Nillable[shared.Date]{Value: shared.Date{Time: startDateToTime}, Valid: true},
 		EndDate:          shared.Nillable[shared.Date]{Value: shared.Date{Time: endDateToTime}, Valid: true},
@@ -179,12 +184,14 @@ func TestServer_addManualInvoiceDateErrors(t *testing.T) {
 
 	validator, _ := validation.New()
 
-	mock := &mockService{manualInvoice: manualInvoiceInfo, err: apierror.BadRequestsError([]string{"RaisedDateForAnInvoice", "StartDate", "EndDate"})}
-	server := NewServer(mock, nil, nil, validator, nil)
+	mock := &mockService{manualInvoice: manualInvoiceInfo, errs: map[string]error{"AddFeeReduction": apierror.BadRequestsError([]string{"RaisedDateForAnInvoice", "StartDate", "EndDate"})}}
+	server := NewServer(mock, nil, nil, nil, nil, validator, nil)
 	err := server.addFeeReduction(w, req)
 
 	res := w.Result()
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(res.Body)
 
 	var expErr apierror.ValidationError
 	assert.ErrorAs(t, err, &expErr)
@@ -198,7 +205,7 @@ func TestServer_addManualInvoice422Error(t *testing.T) {
 
 	manualInvoiceInfo := &shared.AddManualInvoice{
 		InvoiceType:      shared.InvoiceTypeS2,
-		Amount:           shared.Nillable[int]{Value: 32000, Valid: true},
+		Amount:           shared.Nillable[int32]{Value: 32000, Valid: true},
 		RaisedDate:       shared.Nillable[shared.Date]{Value: shared.Date{Time: endDateToTime}, Valid: true},
 		StartDate:        shared.Nillable[shared.Date]{Value: shared.Date{Time: startDateToTime}, Valid: true},
 		EndDate:          shared.Nillable[shared.Date]{Value: shared.Date{Time: endDateToTime}, Valid: true},
@@ -211,12 +218,12 @@ func TestServer_addManualInvoice422Error(t *testing.T) {
 
 	validator, _ := validation.New()
 
-	mock := &mockService{manualInvoice: manualInvoiceInfo, err: errors.New("something is wrong")}
-	server := NewServer(mock, nil, nil, validator, nil)
+	mock := &mockService{manualInvoice: manualInvoiceInfo, errs: map[string]error{"AddFeeReduction": errors.New("something is wrong")}}
+	server := NewServer(mock, nil, nil, nil, nil, validator, nil)
 	err := server.addFeeReduction(w, req)
 
 	res := w.Result()
-	defer res.Body.Close()
+	defer unchecked(res.Body.Close)
 
 	var expErr apierror.ValidationError
 	assert.ErrorAs(t, err, &expErr)

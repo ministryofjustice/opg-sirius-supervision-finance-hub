@@ -15,7 +15,8 @@ type SubmitFeeReductionsHandler struct {
 }
 
 func (h *SubmitFeeReductionsHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
-	ctx := getContext(r)
+	ctx := r.Context()
+	clientID := getClientID(r)
 
 	var (
 		feeType       = r.PostFormValue("feeType")
@@ -25,10 +26,10 @@ func (h *SubmitFeeReductionsHandler) render(v AppVars, w http.ResponseWriter, r 
 		notes         = r.PostFormValue("notes")
 	)
 
-	err := h.Client().AddFeeReduction(ctx, ctx.ClientId, feeType, startYear, lengthOfAward, dateReceived, notes)
+	err := h.Client().AddFeeReduction(ctx, clientID, feeType, startYear, lengthOfAward, dateReceived, notes)
 
 	if err == nil {
-		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/fee-reductions?success=fee-reduction[%s]", v.EnvironmentVars.Prefix, ctx.ClientId, strings.ToUpper(feeType)))
+		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/fee-reductions?success=fee-reduction[%s]", v.EnvironmentVars.Prefix, clientID, strings.ToUpper(feeType)))
 	} else {
 		var (
 			valErr apierror.ValidationError
@@ -39,7 +40,7 @@ func (h *SubmitFeeReductionsHandler) render(v AppVars, w http.ResponseWriter, r 
 			w.WriteHeader(http.StatusUnprocessableEntity)
 			err = h.execute(w, r, data)
 		} else if errors.As(err, &stErr) {
-			data := AppVars{Error: stErr.Error()}
+			data := AppVars{Error: stErr.Error(), Code: stErr.Code}
 			w.WriteHeader(stErr.Code)
 			err = h.execute(w, r, data)
 		}

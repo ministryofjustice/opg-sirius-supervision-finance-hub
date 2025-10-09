@@ -1,35 +1,39 @@
 package server
 
 import (
+	"context"
 	"github.com/ministryofjustice/opg-go-common/securityheaders"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/api"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"html/template"
 	"io"
 	"log/slog"
 	"net/http"
-	"net/url"
-	"strconv"
 )
 
 type ApiClient interface {
-	GetCurrentUserDetails(api.Context) (shared.Assignee, error)
-	GetPersonDetails(api.Context, int) (shared.Person, error)
-	GetFeeReductions(api.Context, int) (shared.FeeReductions, error)
-	GetInvoices(api.Context, int) (shared.Invoices, error)
-	GetPermittedAdjustments(api.Context, int, int) ([]shared.AdjustmentType, error)
-	AdjustInvoice(api.Context, int, int, int, string, string, string) error
-	GetAccountInformation(api.Context, int) (shared.AccountInformation, error)
-	GetInvoiceAdjustments(api.Context, int) (shared.InvoiceAdjustments, error)
-	AddFeeReduction(api.Context, int, string, string, string, string, string) error
-	CancelFeeReduction(api.Context, int, int, string) error
-	UpdatePendingInvoiceAdjustment(api.Context, int, int, string) error
-	AddManualInvoice(api.Context, int, string, *string, *string, *string, *string, *string, *string) error
-	GetBillingHistory(api.Context, int) ([]shared.BillingHistory, error)
-	GetUser(api.Context, int) (shared.Assignee, error)
-	SubmitDirectDebit(string, string, string, string) error
+	CancelDirectDebitMandate(context.Context, int) error
+	CreateDirectDebitMandate(context.Context, int, api.AccountDetails) error
+	AddFeeReduction(context.Context, int, string, string, string, string, string) error
+	AddInvoiceAdjustment(context.Context, int, int, int, string, string, string, bool) error
+	AddManualInvoice(context.Context, int, string, *string, *string, *string, *string, *string, *string) error
+	AddRefund(context.Context, int, string, string, string, string) error
+	CancelFeeReduction(context.Context, int, int, string) error
+	GetAccountInformation(context.Context, int) (shared.AccountInformation, error)
+	GetBillingHistory(context.Context, int) ([]shared.BillingHistory, error)
+	GetFeeReductions(context.Context, int) (shared.FeeReductions, error)
+	GetInvoices(context.Context, int) (shared.Invoices, error)
+	GetInvoiceAdjustments(context.Context, int) (shared.InvoiceAdjustments, error)
+	GetPersonDetails(context.Context, int) (shared.Person, error)
+	GetPermittedAdjustments(context.Context, int, int) ([]shared.AdjustmentType, error)
+	GetRefunds(context.Context, int) (shared.Refunds, error)
+	GetUser(context.Context, int) (shared.User, error)
+	UpdatePaymentMethod(context.Context, int, string) error
+	UpdatePendingInvoiceAdjustment(context.Context, int, int, string) error
+	UpdateRefundDecision(context.Context, int, int, string) error
 }
 
 type router interface {
@@ -42,55 +46,68 @@ type Template interface {
 	ExecuteTemplate(wr io.Writer, name string, data any) error
 }
 
-func New(logger *slog.Logger, client ApiClient, templates map[string]*template.Template, envVars EnvironmentVars) http.Handler {
-	wrap := wrapHandler(templates["error.gotmpl"], "main", envVars)
+type HtmxHandler interface {
+	render(app AppVars, w http.ResponseWriter, r *http.Request) error
+}
 
+type Envs struct {
+	Port             string
+	WebDir           string
+	SiriusURL        string
+	SiriusPublicURL  string
+	Prefix           string
+	BackendURL       string
+	BillingTeamID    int
+	ShowDirectDebits bool
+}
+
+func New(logger *slog.Logger, client *api.Client, templates map[string]*template.Template, envs Envs) http.Handler {
 	mux := http.NewServeMux()
 
-	mux.Handle("GET /clients/{clientId}/invoices", wrap(&InvoicesHandler{&route{client: client, tmpl: templates["invoices.gotmpl"], partial: "invoices"}}))
-	mux.Handle("GET /clients/{clientId}/fee-reductions", wrap(&FeeReductionsHandler{&route{client: client, tmpl: templates["fee-reductions.gotmpl"], partial: "fee-reductions"}}))
-	mux.Handle("GET /clients/{clientId}/pending-invoice-adjustments", wrap(&PendingInvoiceAdjustmentsHandler{&route{client: client, tmpl: templates["pending-invoice-adjustments.gotmpl"], partial: "pending-invoice-adjustments"}}))
-	mux.Handle("GET /clients/{clientId}/invoices/{invoiceId}/adjustments", wrap(&AdjustInvoiceFormHandler{&route{client: client, tmpl: templates["adjust-invoice.gotmpl"], partial: "adjust-invoice"}}))
-	mux.Handle("GET /clients/{clientId}/fee-reductions/add", wrap(&UpdateFeeReductionHandler{&route{client: client, tmpl: templates["add-fee-reduction.gotmpl"], partial: "add-fee-reduction"}}))
-	mux.Handle("GET /clients/{clientId}/direct-debit/add", wrap(&UpdateDirectDebitHandler{&route{client: client, tmpl: templates["set-up-direct-debit.gotmpl"], partial: "set-up-direct-debit"}}))
-	mux.Handle("GET /clients/{clientId}/invoices/add", wrap(&UpdateManualInvoiceHandler{&route{client: client, tmpl: templates["add-manual-invoice.gotmpl"], partial: "add-manual-invoice"}}))
-	mux.Handle("GET /clients/{clientId}/billing-history", wrap(&BillingHistoryHandler{&route{client: client, tmpl: templates["billing-history.gotmpl"], partial: "billing-history"}}))
-	mux.Handle("GET /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", wrap(&CancelFeeReductionHandler{&route{client: client, tmpl: templates["cancel-fee-reduction.gotmpl"], partial: "cancel-fee-reduction"}}))
+	authenticator := auth.Auth{
+		Client: client,
+		EnvVars: auth.EnvVars{
+			SiriusPublicURL: envs.SiriusPublicURL,
+			Prefix:          envs.Prefix,
+		},
+	}
 
-	mux.Handle("POST /clients/{clientId}/invoices", wrap(&SubmitManualInvoiceHandler{&route{client: client, tmpl: templates["add-manual-invoice.gotmpl"], partial: "error-summary"}}))
-	mux.Handle("POST /clients/{clientId}/invoices/{invoiceId}/adjustments", wrap(&SubmitInvoiceAdjustmentHandler{&route{client: client, tmpl: templates["adjust-invoice.gotmpl"], partial: "error-summary"}}))
-	mux.Handle("POST /clients/{clientId}/fee-reductions/add", wrap(&SubmitFeeReductionsHandler{&route{client: client, tmpl: templates["add-fee-reduction.gotmpl"], partial: "error-summary"}}))
-	mux.Handle("POST /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", wrap(&SubmitCancelFeeReductionsHandler{&route{client: client, tmpl: templates["cancel-fee-reduction.gotmpl"], partial: "error-summary"}}))
-	mux.Handle("POST /clients/{clientId}/pending-invoice-adjustments/{adjustmentId}/{adjustmentType}/{status}", wrap(&SubmitUpdatePendingInvoiceAdjustmentHandler{&route{client: client, tmpl: templates["pending-invoice-adjustments.gotmpl"], partial: "pending-invoice-adjustments"}}))
-	mux.Handle("POST /clients/{clientId}/direct-debit/add", wrap(&SubmitDirectDebitHandler{&route{client: client, tmpl: templates["set-up-direct-debit.gotmpl"], partial: "error-summary"}}))
+	handleMux := func(pattern string, h HtmxHandler) {
+		errors := wrapHandler(templates["error.gotmpl"], "main", envs)
+		mux.Handle(pattern, authenticator.Authenticate(auth.XsrfCheck(errors(h))))
+	}
+
+	handleMux("GET /clients/{clientId}/billing-history", &BillingHistoryHandler{&route{client: client, tmpl: templates["billing-history.gotmpl"], partial: "billing-history"}})
+	handleMux("GET /clients/{clientId}/direct-debit/setup", &DirectDebitMandateHandler{&route{client: client, tmpl: templates["setup-direct-debit.gotmpl"], partial: "setup-direct-debit"}})
+	handleMux("GET /clients/{clientId}/direct-debit/cancel", &DirectDebitMandateHandler{&route{client: client, tmpl: templates["cancel-direct-debit.gotmpl"], partial: "cancel-direct-debit"}})
+	handleMux("GET /clients/{clientId}/fee-reductions", &FeeReductionsHandler{&route{client: client, tmpl: templates["fee-reductions.gotmpl"], partial: "fee-reductions"}})
+	handleMux("GET /clients/{clientId}/fee-reductions/add", &AddFeeReductionHandler{&route{client: client, tmpl: templates["add-fee-reduction.gotmpl"], partial: "add-fee-reduction"}})
+	handleMux("GET /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", &CancelFeeReductionHandler{&route{client: client, tmpl: templates["cancel-fee-reduction.gotmpl"], partial: "cancel-fee-reduction"}})
+	handleMux("GET /clients/{clientId}/invoices", &InvoicesHandler{&route{client: client, tmpl: templates["invoices.gotmpl"], partial: "invoices"}})
+	handleMux("GET /clients/{clientId}/invoices/add", &AddManualInvoiceHandler{&route{client: client, tmpl: templates["add-manual-invoice.gotmpl"], partial: "add-manual-invoice"}})
+	handleMux("GET /clients/{clientId}/invoices/{invoiceId}/adjustments", &AddInvoiceAdjustmentFormHandler{&route{client: client, tmpl: templates["adjust-invoice.gotmpl"], partial: "adjust-invoice"}})
+	handleMux("GET /clients/{clientId}/invoice-adjustments", &InvoiceAdjustmentsHandler{&route{client: client, tmpl: templates["invoice-adjustments.gotmpl"], partial: "invoice-adjustments"}})
+	handleMux("GET /clients/{clientId}/refunds", &RefundsHandler{&route{client: client, tmpl: templates["refunds.gotmpl"], partial: "refunds"}})
+	handleMux("GET /clients/{clientId}/refunds/add", &AddRefundHandler{&route{client: client, tmpl: templates["add-refund.gotmpl"], partial: "add-refund"}})
+	handleMux("GET /clients/{clientId}/payment-method/add", &PaymentMethodHandler{&route{client: client, tmpl: templates["set-up-payment-method.gotmpl"], partial: "set-up-payment-method"}})
+
+	handleMux("POST /clients/{clientId}/direct-debit/setup", &SetupDirectDebitHandler{&route{client: client, tmpl: templates["setup-direct-debit.gotmpl"], partial: "error-summary"}})
+	handleMux("POST /clients/{clientId}/direct-debit/cancel", &SubmitCancelDirectDebitHandler{&route{client: client, tmpl: templates["cancel-direct-debit.gotmpl"], partial: "error-summary"}})
+	handleMux("POST /clients/{clientId}/fee-reductions/add", &SubmitFeeReductionsHandler{&route{client: client, tmpl: templates["add-fee-reduction.gotmpl"], partial: "error-summary"}})
+	handleMux("POST /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", &SubmitCancelFeeReductionsHandler{&route{client: client, tmpl: templates["cancel-fee-reduction.gotmpl"], partial: "error-summary"}})
+	handleMux("POST /clients/{clientId}/invoices", &SubmitManualInvoiceHandler{&route{client: client, tmpl: templates["add-manual-invoice.gotmpl"], partial: "error-summary"}})
+	handleMux("POST /clients/{clientId}/invoices/{invoiceId}/adjustments", &SubmitInvoiceAdjustmentHandler{&route{client: client, tmpl: templates["adjust-invoice.gotmpl"], partial: "error-summary"}})
+	handleMux("POST /clients/{clientId}/invoice-adjustments/{adjustmentId}/{adjustmentType}/{status}", &SubmitUpdatePendingInvoiceAdjustmentHandler{&route{client: client, tmpl: templates["invoice-adjustments.gotmpl"], partial: "invoice-adjustments"}})
+	handleMux("POST /clients/{clientId}/payment-method/add", &SubmitPaymentMethodHandler{&route{client: client, tmpl: templates["setup-direct-debit.gotmpl"], partial: "error-summary"}})
+	handleMux("POST /clients/{clientId}/refunds", &SubmitRefundHandler{&route{client: client, tmpl: templates["add-refund.gotmpl"], partial: "error-summary"}})
+	handleMux("POST /clients/{clientId}/refunds/{refundId}", &SubmitRefundDecisionHandler{&route{client: client, tmpl: templates["refunds.gotmpl"], partial: "refunds"}})
 
 	mux.Handle("/health-check", healthCheck())
 
-	static := http.FileServer(http.Dir(envVars.WebDir + "/static"))
+	static := http.FileServer(http.Dir(envs.WebDir + "/static"))
 	mux.Handle("/assets/", static)
 	mux.Handle("/javascript/", static)
 	mux.Handle("/stylesheets/", static)
 
-	return otelhttp.NewHandler(http.StripPrefix(envVars.Prefix, telemetry.Middleware(logger)(securityheaders.Use(mux))), "supervision-finance-hub")
-}
-
-func getContext(r *http.Request) api.Context {
-	token := ""
-
-	if r.Method == http.MethodGet {
-		if cookie, err := r.Cookie("XSRF-TOKEN"); err == nil {
-			token, _ = url.QueryUnescape(cookie.Value)
-		}
-	} else {
-		token = r.FormValue("xsrfToken")
-	}
-
-	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
-
-	return api.Context{
-		Context:   r.Context(),
-		Cookies:   r.Cookies(),
-		XSRFToken: token,
-		ClientId:  clientId,
-	}
+	return otelhttp.NewHandler(http.StripPrefix(envs.Prefix, telemetry.Middleware(logger)(securityheaders.Use(mux))), "supervision-finance-hub")
 }

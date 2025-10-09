@@ -1,0 +1,17 @@
+{
+  "AccountNumber": 12345678,
+  "Address": {
+    "Fax": "0123456789",
+    "Line1": "123 Main St",
+    "Line2": "Suite 100",
+    "Phone": "1234567890",
+    "PostCode": "AB12 3CD",
+    "Town": "Sampletown"
+  },
+  "BankName": "Sample Bank",
+  "Branch": "Sample Branch",
+  "DirectDebitCapable": true,
+  "DirectCreditCapable": true,
+  "SortCode": 123456,
+  "Valid": false
+}

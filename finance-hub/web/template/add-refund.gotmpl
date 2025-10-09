@@ -1,0 +1,74 @@
+{{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.AddRefundForm*/ -}}
+{{ template "page" . }}
+
+{{ define "title" }}Add Refund{{ end }}
+
+{{ define "main-content" }}
+    {{ block "add-refund" .Data }}
+        <div class="govuk-grid-row govuk-!-margin-top-5">
+            <div class="govuk-grid-column-full">
+                <header>
+                    <h1 class="govuk-heading-l  govuk-!-margin-bottom-0  govuk-!-margin-top-0">Add Refund</h1>
+                </header>
+                <div id="error-summary"></div>
+                <div class="govuk-grid-row">
+                    <form
+                            id="add-refund-form"
+                            class="govuk-grid-column-one-third"
+                            method="post"
+                            hx-post="{{ prefix (printf "/clients/%s/refunds" .ClientId) }}"
+                            hx-target="#error-summary"
+                            hx-disabled-elt="find button">
+                        <input type="hidden" name="CSRF" value="{{ .AppVars.XSRFToken }}"/>
+
+                        <div id="f-AccountName" class="govuk-form-group">
+                            <label class="govuk-label" for="accountName">
+                                Name on bank account
+                            </label>
+                            <span id="error-message__AccountName"></span>
+                            <input class="govuk-input" id="accountName" name="accountName" style="width: 40%"
+                                   type="text">
+                        </div>
+
+                        <div id="f-AccountNumber" class="govuk-form-group">
+                            <label class="govuk-label" for="accountNumber">
+                                Account number
+                            </label>
+                            <span id="error-message__AccountNumber"></span>
+                            <input class="govuk-input" id="accountNumber" name="accountNumber" style="width: 40%" type="number">
+                        </div>
+
+                        <div id="f-SortCode" class="govuk-form-group">
+                            <label class="govuk-label" for="sortCode">
+                                Sort code
+                            </label>
+                            <span id="error-message__SortCode"></span>
+                            <input class="govuk-input" id="sortCode" name="sortCode" style="width: 40%" inputmode="numeric">
+                        </div>
+
+                        <div class="govuk-character-count" data-module="govuk-character-count" data-maxlength="1000">
+                            <div id="f-Notes" class="govuk-form-group">
+                                <label class="govuk-label" for="refund-notes">
+                                    Reasons for refund
+                                </label>
+                                <span id="error-message__Notes"></span>
+                                <textarea class="govuk-textarea govuk-js-character-count" id="refund-notes" name="notes" rows="10" aria-describedby="refund-notes-info notes-hint"></textarea>
+                            </div>
+                            <div id="refund-notes-info" class="govuk-hint govuk-character-count__message" aria-live="polite">
+                                You have 1,000 characters remaining
+                            </div>
+                        </div>
+
+                        <div class="govuk-button-group govuk-!-margin-top-7">
+                            <button class="govuk-button" data-module="govuk-button">
+                                Save and continue
+                            </button>
+                            <a class="govuk-link"
+                               href="{{ prefix (printf "/clients/%s/refunds" .ClientId) }}">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {{ end }}
+{{ end }}

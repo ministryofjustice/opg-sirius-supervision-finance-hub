@@ -1,10 +1,10 @@
-FROM cypress/included:14.0.0
+FROM cypress/included:15.3.0
 
 WORKDIR /root
 
-RUN npm install "cypress-failed-log@2.9.2"
-RUN npm install axe-core
-RUN npm install cypress-axe
+COPY cypress/package.json .
+COPY cypress/yarn.lock .
+RUN yarn install
 
 ENV CYPRESS_VIDEO=false
 ENV CYPRESS_baseUrl=http://finance-hub:8888/finance

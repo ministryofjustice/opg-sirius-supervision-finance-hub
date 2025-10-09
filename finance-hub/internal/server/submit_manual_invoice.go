@@ -25,13 +25,14 @@ func getFieldPointer(postForm url.Values, key string) *string {
 }
 
 func (h *SubmitManualInvoiceHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
-	ctx := getContext(r)
+	ctx := r.Context()
+	clientID := getClientID(r)
 
 	invoiceType := r.PostFormValue("invoiceType")
 
 	err := h.Client().AddManualInvoice(
 		ctx,
-		ctx.ClientId,
+		clientID,
 		invoiceType,
 		getFieldPointer(r.PostForm, "amount"),
 		getFieldPointer(r.PostForm, "raisedDate"),
@@ -42,7 +43,7 @@ func (h *SubmitManualInvoiceHandler) render(v AppVars, w http.ResponseWriter, r 
 	)
 
 	if err == nil {
-		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices?success=invoice-type[%s]", v.EnvironmentVars.Prefix, ctx.ClientId, strings.ToUpper(invoiceType)))
+		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/invoices?success=invoice-type[%s]", v.EnvironmentVars.Prefix, clientID, strings.ToUpper(invoiceType)))
 	} else {
 		var (
 			valErr apierror.ValidationError
@@ -53,7 +54,7 @@ func (h *SubmitManualInvoiceHandler) render(v AppVars, w http.ResponseWriter, r 
 			w.WriteHeader(http.StatusUnprocessableEntity)
 			err = h.execute(w, r, data)
 		} else if errors.As(err, &stErr) {
-			data := AppVars{Error: stErr.Error()}
+			data := AppVars{Error: stErr.Error(), Code: stErr.Code}
 			w.WriteHeader(stErr.Code)
 			err = h.execute(w, r, data)
 		}

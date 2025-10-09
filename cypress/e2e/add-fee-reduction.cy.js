@@ -30,7 +30,7 @@ describe("Add fee reduction form", () => {
         const now = new Date().toLocaleDateString("en-UK");
         cy.get(".moj-timeline__item").first().within((el) => {
             cy.get(".moj-timeline__title").contains("Hardship awarded");
-            cy.get(".moj-timeline__byline").contains(`by Super User, ${now}`);
+            cy.get(".moj-timeline__byline").contains(`by Ian Admin, ${now}`);
             cy.get(".moj-timeline__date").contains("Outstanding balance: £0 Credit balance: £0");
             cy.get(".govuk-list > li")
                 .first().contains(`Start date: 01/04/${startYear}`)
@@ -43,5 +43,11 @@ describe("Add fee reduction form", () => {
     it("should have no accessibility violations",() => {
         cy.visit("/clients/2/fee-reductions/add");
         cy.checkAccessibility();
+    });
+
+    it("should not show direct debit button when viewing the add fee reduction form",() => {
+        cy.visit("/clients/2/fee-reductions/add");
+        cy.get("#direct-debit-button").should('exist');
+        cy.get("#direct-debit-button").should('not.be.visible');
     });
 });

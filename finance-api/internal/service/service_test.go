@@ -2,12 +2,17 @@ package service
 
 import (
 	"context"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/testhelpers"
-	"github.com/stretchr/testify/suite"
-	"io"
 	"net/http"
 	"testing"
+	"time"
+
+	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/allpay"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/testhelpers"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"github.com/stretchr/testify/suite"
 )
 
 type IntegrationSuite struct {
@@ -18,7 +23,10 @@ type IntegrationSuite struct {
 }
 
 func (suite *IntegrationSuite) SetupSuite() {
-	suite.ctx = telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test"))
+	suite.ctx = auth.Context{
+		Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test")),
+		User:    &shared.User{ID: 10},
+	}
 	suite.cm = testhelpers.Init(suite.ctx, "supervision_finance")
 	suite.seeder = suite.cm.Seeder(suite.ctx, suite.T())
 }
@@ -48,30 +56,90 @@ func (m *MockClient) Do(req *http.Request) (*http.Response, error) {
 	return GetDoFunc(req)
 }
 
-func SetUpTest() *MockClient {
-	mockClient := &MockClient{}
-	return mockClient
+type mockDispatch struct {
+	event any
 }
 
-type mockFileStorage struct {
-	file io.ReadCloser
-	err  error
+func (m *mockDispatch) PaymentMethodChanged(ctx context.Context, event event.PaymentMethod) error {
+	m.event = event
+	return nil
 }
 
-func (m *mockFileStorage) GetFile(ctx context.Context, bucketName string, fileName string) (io.ReadCloser, error) {
-	if m.err != nil {
-		return nil, m.err
-	}
-	return m.file, nil
+func (m *mockDispatch) CreditOnAccount(ctx context.Context, event event.CreditOnAccount) error {
+	m.event = event
+	return nil
 }
 
-func (m *mockFileStorage) PutFile(ctx context.Context, bucketName string, fileName string, file io.Reader) (*string, error) {
-	if m.err != nil {
-		return nil, m.err
-	}
-	return nil, nil
+func (m *mockDispatch) RefundAdded(ctx context.Context, event event.RefundAdded) error {
+	m.event = event
+	return nil
 }
 
-func Ptr[T any](val T) *T {
-	return &val
+func (m *mockDispatch) DirectDebitScheduleFailed(ctx context.Context, event event.DirectDebitScheduleFailed) error {
+	m.event = event
+	return nil
+}
+
+type mockAllpay struct {
+	called           []string
+	failedPayments   allpay.FailedPayments
+	errs             map[string]error
+	lastCalledParams []interface{}
+}
+
+func (m *mockAllpay) CancelMandate(ctx context.Context, data *allpay.CancelMandateRequest) error {
+	m.called = append(m.called, "CancelMandate")
+	m.lastCalledParams = []interface{}{data}
+	return m.errs["CancelMandate"]
+}
+
+func (m *mockAllpay) CreateMandate(ctx context.Context, data *allpay.CreateMandateRequest) error {
+	m.called = append(m.called, "CreateMandate")
+	m.lastCalledParams = []interface{}{data}
+	return m.errs["CreateMandate"]
+}
+
+func (m *mockAllpay) ModulusCheck(ctx context.Context, sortCode string, accountNumber string) error {
+	m.called = append(m.called, "ModulusCheck")
+	m.lastCalledParams = []interface{}{sortCode, accountNumber}
+	return m.errs["ModulusCheck"]
+}
+
+func (m *mockAllpay) CreateSchedule(ctx context.Context, data *allpay.CreateScheduleInput) error {
+	m.called = append(m.called, "CreateSchedule")
+	m.lastCalledParams = []interface{}{data}
+	return m.errs["CreateSchedule"]
+}
+
+func (m *mockAllpay) FetchFailedPayments(ctx context.Context, input allpay.FetchFailedPaymentsInput) (allpay.FailedPayments, error) {
+	m.called = append(m.called, "FetchFailedPayments")
+	m.lastCalledParams = []interface{}{input}
+	return m.failedPayments, m.errs["FetchFailedPayments"]
+}
+
+type mockGovUK struct {
+	called         []string
+	errs           map[string]error
+	nWorkingDays   int
+	Xday           int
+	workingDay     time.Time
+	nextWorkingDay time.Time
+}
+
+func (m *mockGovUK) AddWorkingDays(ctx context.Context, d time.Time, n int) (time.Time, error) {
+	m.called = append(m.called, "AddWorkingDays")
+	m.nWorkingDays = n
+	return m.workingDay, m.errs["AddWorkingDays"]
+}
+
+func (m *mockGovUK) SubWorkingDays(ctx context.Context, d time.Time, n int) (time.Time, error) {
+	m.called = append(m.called, "SubWorkingDays")
+	m.nWorkingDays = n
+	return m.workingDay, m.errs["SubWorkingDays"]
+}
+
+func (m *mockGovUK) NextWorkingDayOnOrAfterX(ctx context.Context, date time.Time, dayOfMonth int) (time.Time, error) {
+	m.called = append(m.called, "NextWorkingDayOnOrAfterX")
+	m.Xday = dayOfMonth
+	return m.nextWorkingDay, m.errs["NextWorkingDayOnOrAfterX"]
 }

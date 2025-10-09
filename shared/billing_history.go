@@ -38,10 +38,14 @@ func (b *BillingHistory) UnmarshalJSON(data []byte) (err error) {
 		b.Event = new(InvoiceAdjustmentApplied)
 	case EventTypeInvoiceAdjustmentPending:
 		b.Event = new(InvoiceAdjustmentPending)
+	case EventTypeInvoiceAdjustmentRejected:
+		b.Event = new(InvoiceAdjustmentRejected)
 	case EventTypePaymentProcessed:
 		b.Event = new(PaymentProcessed)
 	case EventTypeReappliedCredit:
 		b.Event = new(ReappliedCredit)
+	case EventTypeRefundCreated, EventTypeRefundCancelled, EventTypeRefundFulfilled, EventTypeRefundStatusUpdated, EventTypeRefundProcessing, EventTypeRefundApproved:
+		b.Event = new(RefundEvent)
 	default:
 		b.Event = new(UnknownEvent)
 	}
@@ -98,6 +102,14 @@ type InvoiceAdjustmentPending struct {
 	BaseBillingEvent
 }
 
+type InvoiceAdjustmentRejected struct {
+	AdjustmentType   AdjustmentType `json:"adjustment_type"`
+	ClientId         int            `json:"client_id"`
+	Notes            string         `json:"notes"`
+	PaymentBreakdown `json:"payment_breakdown"`
+	BaseBillingEvent
+}
+
 type TransactionEvent struct {
 	ClientId        int                `json:"client_id"`
 	TransactionType TransactionType    `json:"transaction_type"`
@@ -110,6 +122,14 @@ type PaymentBreakdown struct {
 	InvoiceReference InvoiceEvent `json:"invoice_reference"`
 	Amount           int          `json:"amount"`
 	Status           string       `json:"status"`
+}
+
+type RefundEvent struct {
+	Id       int    `json:"id"`
+	ClientId int    `json:"client_id"`
+	Amount   int    `json:"amount"`
+	Notes    string `json:"notes"`
+	BaseBillingEvent
 }
 
 type InvoiceAdjustmentApplied struct {
@@ -139,19 +159,33 @@ const (
 	EventTypeInvoiceAdjustmentApplied
 	EventTypePaymentProcessed
 	EventTypeInvoiceAdjustmentPending
+	EventTypeInvoiceAdjustmentRejected
 	EventTypeReappliedCredit
+	EventTypeRefundApproved
+	EventTypeRefundCreated
+	EventTypeRefundCancelled
+	EventTypeRefundFulfilled
+	EventTypeRefundProcessing
+	EventTypeRefundStatusUpdated
 )
 
 var eventTypeMap = map[string]BillingEventType{
-	"UNKNOWN":                    EventTypeUnknown,
-	"INVOICE_GENERATED":          EventTypeInvoiceGenerated,
-	"FEE_REDUCTION_AWARDED":      EventTypeFeeReductionAwarded,
-	"FEE_REDUCTION_CANCELLED":    EventTypeFeeReductionCancelled,
-	"FEE_REDUCTION_APPLIED":      EventTypeFeeReductionApplied,
-	"INVOICE_ADJUSTMENT_APPLIED": EventTypeInvoiceAdjustmentApplied,
-	"INVOICE_ADJUSTMENT_PENDING": EventTypeInvoiceAdjustmentPending,
-	"PAYMENT_PROCESSED":          EventTypePaymentProcessed,
-	"REAPPLIED_CREDIT":           EventTypeReappliedCredit,
+	"UNKNOWN":                     EventTypeUnknown,
+	"INVOICE_GENERATED":           EventTypeInvoiceGenerated,
+	"FEE_REDUCTION_AWARDED":       EventTypeFeeReductionAwarded,
+	"FEE_REDUCTION_CANCELLED":     EventTypeFeeReductionCancelled,
+	"FEE_REDUCTION_APPLIED":       EventTypeFeeReductionApplied,
+	"INVOICE_ADJUSTMENT_APPLIED":  EventTypeInvoiceAdjustmentApplied,
+	"INVOICE_ADJUSTMENT_PENDING":  EventTypeInvoiceAdjustmentPending,
+	"INVOICE_ADJUSTMENT_REJECTED": EventTypeInvoiceAdjustmentRejected,
+	"PAYMENT_PROCESSED":           EventTypePaymentProcessed,
+	"REAPPLIED_CREDIT":            EventTypeReappliedCredit,
+	"REFUND_APPROVED":             EventTypeRefundApproved,
+	"REFUND_CREATED":              EventTypeRefundCreated,
+	"REFUND_CANCELLED":            EventTypeRefundCancelled,
+	"REFUND_FULFILLED":            EventTypeRefundFulfilled,
+	"REFUND_PROCESSING":           EventTypeRefundProcessing,
+	"REFUND_STATUS_UPDATED":       EventTypeRefundStatusUpdated,
 }
 
 func (b BillingEventType) String() string {
@@ -168,10 +202,25 @@ func (b BillingEventType) String() string {
 		return "INVOICE_ADJUSTMENT_APPLIED"
 	case EventTypeInvoiceAdjustmentPending:
 		return "INVOICE_ADJUSTMENT_PENDING"
+	case EventTypeInvoiceAdjustmentRejected:
+		return "INVOICE_ADJUSTMENT_REJECTED"
 	case EventTypePaymentProcessed:
 		return "PAYMENT_PROCESSED"
 	case EventTypeReappliedCredit:
 		return "REAPPLIED_CREDIT"
+	case EventTypeRefundApproved:
+		return "REFUND_APPROVED"
+	case EventTypeRefundCreated:
+		return "REFUND_CREATED"
+	case EventTypeRefundCancelled:
+		return "REFUND_CANCELLED"
+	case EventTypeRefundFulfilled:
+		return "REFUND_FULFILLED"
+	case EventTypeRefundProcessing:
+		return "REFUND_PROCESSING"
+	case EventTypeRefundStatusUpdated:
+		return "REFUND_STATUS_UPDATED"
+
 	default:
 		return "UNKNOWN"
 	}

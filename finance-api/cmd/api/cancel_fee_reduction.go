@@ -4,14 +4,13 @@ import (
 	"encoding/json"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"net/http"
-	"strconv"
 )
 
 func (s *Server) cancelFeeReduction(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 
 	var cancelFeeReduction shared.CancelFeeReduction
-	defer r.Body.Close()
+	defer unchecked(r.Body.Close)
 
 	if err := json.NewDecoder(r.Body).Decode(&cancelFeeReduction); err != nil {
 		return err
@@ -23,8 +22,12 @@ func (s *Server) cancelFeeReduction(w http.ResponseWriter, r *http.Request) erro
 		return validationError
 	}
 
-	feeReductionId, _ := strconv.Atoi(r.PathValue("feeReductionId"))
-	err := s.service.CancelFeeReduction(ctx, feeReductionId, cancelFeeReduction)
+	feeReductionId, err := s.getPathID(r, "feeReductionId")
+	if err != nil {
+		return err
+	}
+
+	err = s.service.CancelFeeReduction(ctx, feeReductionId, cancelFeeReduction)
 
 	if err != nil {
 		return err

@@ -1,6 +1,8 @@
-const { defineConfig } = require("cypress")
+import {SignJWT} from "jose";
+import {defineConfig} from "cypress";
+import cypress_failed_log from "cypress-failed-log/src/failed";
 
-module.exports = defineConfig({
+export default defineConfig({
     fixturesFolder: false,
     e2e: {
         setupNodeEvents(on, config) {
@@ -15,7 +17,26 @@ module.exports = defineConfig({
 
                     return null
                 },
-                failed: require("cypress-failed-log/src/failed")()
+                async generateJWT(user) {
+                    const secret = new TextEncoder().encode(
+                        'mysupersecrettestkeythatis128bits',
+                    )
+                    const alg = 'HS256'
+
+                    return await new SignJWT({
+                        roles: user.roles,
+                        id: user.id,
+                    })
+                        .setJti(`${user.id}`)
+                        .setProtectedHeader({alg})
+                        .setIssuedAt()
+                        .setIssuer('urn:opg:payments-admin')
+                        .setAudience('urn:opg:payments-api')
+                        .setExpirationTime('5s')
+                        .setSubject(`urn:opg:sirius:users:${user.id}`)
+                        .sign(secret);
+                },
+                failed: cypress_failed_log()
             });
         },
         baseUrl: "http://localhost:8888/finance",

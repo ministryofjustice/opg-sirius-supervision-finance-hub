@@ -13,7 +13,8 @@ import (
 
 func TestGetAccountInformation(t *testing.T) {
 	mockClient := SetUpTest()
-	client, _ := NewApiClient(mockClient, "http://localhost:3000", "http://localhost:8181")
+	mockJWT := mockJWTClient{}
+	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", ""})
 
 	json := `{
             "outstandingBalance": 2222,
@@ -36,7 +37,7 @@ func TestGetAccountInformation(t *testing.T) {
 		PaymentMethod:      "DEMANDED",
 	}
 
-	headerDetails, err := client.GetAccountInformation(getContext(nil), 2)
+	headerDetails, err := client.GetAccountInformation(testContext(), 2)
 	assert.Equal(t, expectedResponse, headerDetails)
 	assert.Equal(t, nil, err)
 }
@@ -47,8 +48,8 @@ func TestGetAccountInformationReturnsUnauthorisedClientError(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
-	_, err := client.GetAccountInformation(getContext(nil), 2)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
+	_, err := client.GetAccountInformation(testContext(), 2)
 	assert.Equal(t, ErrUnauthorized, err)
 }
 
@@ -58,9 +59,9 @@ func TestAccountInformationReturns500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client, _ := NewApiClient(http.DefaultClient, svr.URL, svr.URL)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	_, err := client.GetAccountInformation(getContext(nil), 1)
+	_, err := client.GetAccountInformation(testContext(), 1)
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/clients/1",

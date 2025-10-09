@@ -11,6 +11,7 @@ const (
 	ScheduleTypeOPGBACSTransfer
 	ScheduleTypeSupervisionBACSTransfer
 	ScheduleTypeDirectDebitPayments
+	ScheduleTypeChequePayments
 	ScheduleTypeAdFeeInvoices
 	ScheduleTypeS2FeeInvoices
 	ScheduleTypeS3FeeInvoices
@@ -55,58 +56,77 @@ const (
 	ScheduleTypeGAWriteOffReversals
 	ScheduleTypeGSWriteOffReversals
 	ScheduleTypeGTWriteOffReversals
+	ScheduleTypeUnappliedPayments
+	ScheduleTypeReappliedPayments
+	ScheduleTypeRefunds
+	ScheduleTypeADFeeReductionReversals
+	ScheduleTypeGeneralFeeReductionReversals
+	ScheduleTypeMinimalFeeReductionReversals
+	ScheduleTypeGAFeeReductionReversals
+	ScheduleTypeGSFeeReductionReversals
+	ScheduleTypeGTFeeReductionReversals
 )
 
 var scheduleTypeMap = map[string]ScheduleType{
-	"MOTOCardPayments":         ScheduleTypeMOTOCardPayments,
-	"OnlineCardPayments":       ScheduleTypeOnlineCardPayments,
-	"OPGBACSTransfer":          ScheduleTypeOPGBACSTransfer,
-	"SupervisionBACSTransfer":  ScheduleTypeSupervisionBACSTransfer,
-	"DirectDebitPayment":       ScheduleTypeDirectDebitPayments,
-	"AdFeeInvoices":            ScheduleTypeAdFeeInvoices,
-	"S2FeeInvoices":            ScheduleTypeS2FeeInvoices,
-	"S3FeeInvoices":            ScheduleTypeS3FeeInvoices,
-	"B2FeeInvoices":            ScheduleTypeB2FeeInvoices,
-	"B3FeeInvoices":            ScheduleTypeB3FeeInvoices,
-	"SFFeeInvoicesGeneral":     ScheduleTypeSFFeeInvoicesGeneral,
-	"SFFeeInvoicesMinimal":     ScheduleTypeSFFeeInvoicesMinimal,
-	"SEFeeInvoicesGeneral":     ScheduleTypeSEFeeInvoicesGeneral,
-	"SEFeeInvoicesMinimal":     ScheduleTypeSEFeeInvoicesMinimal,
-	"SOFeeInvoicesGeneral":     ScheduleTypeSOFeeInvoicesGeneral,
-	"SOFeeInvoicesMinimal":     ScheduleTypeSOFeeInvoicesMinimal,
-	"GAFeeInvoices":            ScheduleTypeGAFeeInvoices,
-	"GSFeeInvoices":            ScheduleTypeGSFeeInvoices,
-	"GTFeeInvoices":            ScheduleTypeGTFeeInvoices,
-	"ADFeeReductions":          ScheduleTypeADFeeReductions,
-	"GeneralFeeReductions":     ScheduleTypeGeneralFeeReductions,
-	"MinimalFeeReductions":     ScheduleTypeMinimalFeeReductions,
-	"GAFeeReductions":          ScheduleTypeGAFeeReductions,
-	"GSFeeReductions":          ScheduleTypeGSFeeReductions,
-	"GTFeeReductions":          ScheduleTypeGTFeeReductions,
-	"ADManualCredits":          ScheduleTypeADManualCredits,
-	"GeneralManualCredits":     ScheduleTypeGeneralManualCredits,
-	"MinimalManualCredits":     ScheduleTypeMinimalManualCredits,
-	"GAManualCredits":          ScheduleTypeGAManualCredits,
-	"GSManualCredits":          ScheduleTypeGSManualCredits,
-	"GTManualCredits":          ScheduleTypeGTManualCredits,
-	"ADManualDebits":           ScheduleTypeADManualDebits,
-	"GeneralManualDebits":      ScheduleTypeGeneralManualDebits,
-	"MinimalManualDebits":      ScheduleTypeMinimalManualDebits,
-	"GAManualDebits":           ScheduleTypeGAManualDebits,
-	"GSManualDebits":           ScheduleTypeGSManualDebits,
-	"GTManualDebits":           ScheduleTypeGTManualDebits,
-	"ADWriteOffs":              ScheduleTypeADWriteOffs,
-	"GeneralWriteOffs":         ScheduleTypeGeneralWriteOffs,
-	"MinimalWriteOffs":         ScheduleTypeMinimalWriteOffs,
-	"GAWriteOffs":              ScheduleTypeGAWriteOffs,
-	"GSWriteOffs":              ScheduleTypeGSWriteOffs,
-	"GTWriteOffs":              ScheduleTypeGTWriteOffs,
-	"ADWriteOffReversals":      ScheduleTypeADWriteOffReversals,
-	"GeneralWriteOffReversals": ScheduleTypeGeneralWriteOffReversals,
-	"MinimalWriteOffReversals": ScheduleTypeMinimalWriteOffReversals,
-	"GAWriteOffReversals":      ScheduleTypeGAWriteOffReversals,
-	"GSWriteOffReversals":      ScheduleTypeGSWriteOffReversals,
-	"GTWriteOffReversals":      ScheduleTypeGTWriteOffReversals,
+	"MOTOCardPayments":             ScheduleTypeMOTOCardPayments,
+	"OnlineCardPayments":           ScheduleTypeOnlineCardPayments,
+	"OPGBACSTransfer":              ScheduleTypeOPGBACSTransfer,
+	"SupervisionBACSTransfer":      ScheduleTypeSupervisionBACSTransfer,
+	"DirectDebitPayment":           ScheduleTypeDirectDebitPayments,
+	"ChequePayments":               ScheduleTypeChequePayments,
+	"AdFeeInvoices":                ScheduleTypeAdFeeInvoices,
+	"S2FeeInvoices":                ScheduleTypeS2FeeInvoices,
+	"S3FeeInvoices":                ScheduleTypeS3FeeInvoices,
+	"B2FeeInvoices":                ScheduleTypeB2FeeInvoices,
+	"B3FeeInvoices":                ScheduleTypeB3FeeInvoices,
+	"SFFeeInvoicesGeneral":         ScheduleTypeSFFeeInvoicesGeneral,
+	"SFFeeInvoicesMinimal":         ScheduleTypeSFFeeInvoicesMinimal,
+	"SEFeeInvoicesGeneral":         ScheduleTypeSEFeeInvoicesGeneral,
+	"SEFeeInvoicesMinimal":         ScheduleTypeSEFeeInvoicesMinimal,
+	"SOFeeInvoicesGeneral":         ScheduleTypeSOFeeInvoicesGeneral,
+	"SOFeeInvoicesMinimal":         ScheduleTypeSOFeeInvoicesMinimal,
+	"GAFeeInvoices":                ScheduleTypeGAFeeInvoices,
+	"GSFeeInvoices":                ScheduleTypeGSFeeInvoices,
+	"GTFeeInvoices":                ScheduleTypeGTFeeInvoices,
+	"ADFeeReductions":              ScheduleTypeADFeeReductions,
+	"GeneralFeeReductions":         ScheduleTypeGeneralFeeReductions,
+	"MinimalFeeReductions":         ScheduleTypeMinimalFeeReductions,
+	"GAFeeReductions":              ScheduleTypeGAFeeReductions,
+	"GSFeeReductions":              ScheduleTypeGSFeeReductions,
+	"GTFeeReductions":              ScheduleTypeGTFeeReductions,
+	"ADManualCredits":              ScheduleTypeADManualCredits,
+	"GeneralManualCredits":         ScheduleTypeGeneralManualCredits,
+	"MinimalManualCredits":         ScheduleTypeMinimalManualCredits,
+	"GAManualCredits":              ScheduleTypeGAManualCredits,
+	"GSManualCredits":              ScheduleTypeGSManualCredits,
+	"GTManualCredits":              ScheduleTypeGTManualCredits,
+	"ADManualDebits":               ScheduleTypeADManualDebits,
+	"GeneralManualDebits":          ScheduleTypeGeneralManualDebits,
+	"MinimalManualDebits":          ScheduleTypeMinimalManualDebits,
+	"GAManualDebits":               ScheduleTypeGAManualDebits,
+	"GSManualDebits":               ScheduleTypeGSManualDebits,
+	"GTManualDebits":               ScheduleTypeGTManualDebits,
+	"ADWriteOffs":                  ScheduleTypeADWriteOffs,
+	"GeneralWriteOffs":             ScheduleTypeGeneralWriteOffs,
+	"MinimalWriteOffs":             ScheduleTypeMinimalWriteOffs,
+	"GAWriteOffs":                  ScheduleTypeGAWriteOffs,
+	"GSWriteOffs":                  ScheduleTypeGSWriteOffs,
+	"GTWriteOffs":                  ScheduleTypeGTWriteOffs,
+	"ADWriteOffReversals":          ScheduleTypeADWriteOffReversals,
+	"GeneralWriteOffReversals":     ScheduleTypeGeneralWriteOffReversals,
+	"MinimalWriteOffReversals":     ScheduleTypeMinimalWriteOffReversals,
+	"GAWriteOffReversals":          ScheduleTypeGAWriteOffReversals,
+	"GSWriteOffReversals":          ScheduleTypeGSWriteOffReversals,
+	"GTWriteOffReversals":          ScheduleTypeGTWriteOffReversals,
+	"UnappliedPayments":            ScheduleTypeUnappliedPayments,
+	"ReappliedPayments":            ScheduleTypeReappliedPayments,
+	"Refunds":                      ScheduleTypeRefunds,
+	"ADFeeReductionReversals":      ScheduleTypeADFeeReductionReversals,
+	"GeneralFeeReductionReversals": ScheduleTypeGeneralFeeReductionReversals,
+	"MinimalFeeReductionReversals": ScheduleTypeMinimalFeeReductionReversals,
+	"GAFeeReductionReversals":      ScheduleTypeGAFeeReductionReversals,
+	"GSFeeReductionReversals":      ScheduleTypeGSFeeReductionReversals,
+	"GTFeeReductionReversals":      ScheduleTypeGTFeeReductionReversals,
 }
 
 func (s ScheduleType) String() string {
@@ -125,6 +145,8 @@ func (s ScheduleType) Translation() string {
 		return "Supervision BACS transfer"
 	case ScheduleTypeDirectDebitPayments:
 		return "Direct Debit Payment"
+	case ScheduleTypeChequePayments:
+		return "Cheque Payments"
 	case ScheduleTypeAdFeeInvoices:
 		return "Ad Fee Invoices"
 	case ScheduleTypeS2FeeInvoices:
@@ -213,6 +235,24 @@ func (s ScheduleType) Translation() string {
 		return "GS Write-off Reversals"
 	case ScheduleTypeGTWriteOffReversals:
 		return "GT Write-off Reversals"
+	case ScheduleTypeUnappliedPayments:
+		return "Unapplied payments"
+	case ScheduleTypeReappliedPayments:
+		return "Reapplied payments"
+	case ScheduleTypeRefunds:
+		return "Refunds"
+	case ScheduleTypeADFeeReductionReversals:
+		return "AD Fee Reduction Reversals"
+	case ScheduleTypeGeneralFeeReductionReversals:
+		return "General Fee Reduction Reversals"
+	case ScheduleTypeMinimalFeeReductionReversals:
+		return "Minimal Fee Reduction Reversals"
+	case ScheduleTypeGAFeeReductionReversals:
+		return "GA Fee Reduction Reversals"
+	case ScheduleTypeGSFeeReductionReversals:
+		return "GS Fee Reduction Reversals"
+	case ScheduleTypeGTFeeReductionReversals:
+		return "GT Fee Reduction Reversals"
 	default:
 		return ""
 	}
@@ -230,6 +270,8 @@ func (s ScheduleType) Key() string {
 		return "SupervisionBACSTransfer"
 	case ScheduleTypeDirectDebitPayments:
 		return "DirectDebitPayment"
+	case ScheduleTypeChequePayments:
+		return "ChequePayments"
 	case ScheduleTypeAdFeeInvoices:
 		return "AdFeeInvoices"
 	case ScheduleTypeS2FeeInvoices:
@@ -318,6 +360,24 @@ func (s ScheduleType) Key() string {
 		return "GSWriteOffReversals"
 	case ScheduleTypeGTWriteOffReversals:
 		return "GTWriteOffReversals"
+	case ScheduleTypeUnappliedPayments:
+		return "UnappliedPayments"
+	case ScheduleTypeReappliedPayments:
+		return "ReappliedPayments"
+	case ScheduleTypeRefunds:
+		return "Refunds"
+	case ScheduleTypeADFeeReductionReversals:
+		return "ADFeeReductionReversals"
+	case ScheduleTypeGeneralFeeReductionReversals:
+		return "GeneralFeeReductionReversals"
+	case ScheduleTypeMinimalFeeReductionReversals:
+		return "MinimalFeeReductionReversals"
+	case ScheduleTypeGAFeeReductionReversals:
+		return "GAFeeReductionReversals"
+	case ScheduleTypeGSFeeReductionReversals:
+		return "GSFeeReductionReversals"
+	case ScheduleTypeGTFeeReductionReversals:
+		return "GTFeeReductionReversals"
 	default:
 		return ""
 	}

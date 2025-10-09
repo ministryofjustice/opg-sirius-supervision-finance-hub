@@ -6,8 +6,20 @@ import (
 )
 
 type Receipts struct {
+	ReportQuery
+	ReceiptsInput
+}
+
+type ReceiptsInput struct {
 	FromDate *shared.Date
 	ToDate   *shared.Date
+}
+
+func NewReceipts(input ReceiptsInput) ReportQuery {
+	return &Receipts{
+		ReportQuery:   NewReportQuery(ReceiptsQuery),
+		ReceiptsInput: input,
+	}
 }
 
 const ReceiptsQuery = `SELECT CONCAT(p.firstname, ' ', p.surname)                             AS "Customer Name",
@@ -27,10 +39,10 @@ const ReceiptsQuery = `SELECT CONCAT(p.firstname, ' ', p.surname)               
                THEN CONCAT(EXTRACT(YEAR FROM la.datetime), '/', TO_CHAR(la.datetime + INTERVAL '1 year', 'YY'))
            ELSE CONCAT(EXTRACT(YEAR FROM la.datetime - INTERVAL '1 year'), '/', TO_CHAR(la.datetime, 'YY'))
            END                                                                                AS "Financial Year",
-       CASE WHEN la.status = 'ALLOCATED' OR la.status = 'UNAPPLIED' AND la.invoice_id IS NULL 
+       CASE WHEN la.status = 'ALLOCATED' OR (la.status = 'UNAPPLIED' AND la.invoice_id IS NULL) 
            THEN ((l.amount / 100.0)::NUMERIC(10, 2))::VARCHAR(255) ELSE '0.00' END  		  AS "Receipt amount",
        CASE WHEN la.status <> 'UNAPPLIED' THEN ((la.amount / 100.0)::NUMERIC(10, 2))::VARCHAR(255) ELSE '0.00' END AS "Amount applied",
-       CASE WHEN la.status = 'UNAPPLIED' THEN ((ABS(la.amount) / 100.0)::NUMERIC(10, 2))::VARCHAR(255) ELSE '0.00' END  AS "Amount unapplied"       
+       CASE WHEN la.status = 'UNAPPLIED' THEN ((-la.amount / 100.0)::NUMERIC(10, 2))::VARCHAR(255) ELSE '0.00' END  AS "Amount unapplied"       
 FROM supervision_finance.ledger_allocation la
          JOIN supervision_finance.ledger l ON l.id = la.ledger_id
          LEFT JOIN supervision_finance.invoice i ON i.id = la.invoice_id
@@ -68,10 +80,6 @@ func (r *Receipts) GetHeaders() []string {
 		"Amount applied",
 		"Amount unapplied",
 	}
-}
-
-func (r *Receipts) GetQuery() string {
-	return ReceiptsQuery
 }
 
 func (r *Receipts) GetParams() []any {

@@ -5,6 +5,9 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,12 +25,11 @@ func (m *MockClient) Do(req *http.Request) (*http.Response, error) {
 	return GetDoFunc(req)
 }
 
-func getContext(cookies []*http.Cookie) Context {
-	return Context{
-		Context:   context.Background(),
-		Cookies:   cookies,
-		XSRFToken: "abcde",
-	}
+type mockJWTClient struct {
+}
+
+func (m *mockJWTClient) CreateJWT(ctx context.Context) string {
+	return "jwt"
 }
 
 func TestClientError(t *testing.T) {
@@ -51,4 +53,10 @@ func TestStatusError(t *testing.T) {
 func SetUpTest() *MockClient {
 	mockClient := &MockClient{cache: newCaches()}
 	return mockClient
+}
+
+func testContext() auth.Context {
+	return auth.Context{
+		Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-hub-test")),
+	}
 }

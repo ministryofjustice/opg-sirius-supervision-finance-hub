@@ -1,9 +1,11 @@
 package service
 
 import (
+	"context"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
@@ -24,12 +26,12 @@ func (suite *IntegrationSuite) TestService_AddInvoiceAdjustment() {
 		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 2;",
 	)
 
-	s := NewService(seeder.Conn, nil, nil, nil, nil)
+	s := Service{store: store.New(seeder.Conn)}
 
 	testCases := []struct {
 		name      string
-		invoiceId int
-		clientId  int
+		invoiceId int32
+		clientId  int32
 		data      *shared.AddInvoiceAdjustmentRequest
 		err       error
 	}{
@@ -92,11 +94,11 @@ func (suite *IntegrationSuite) TestService_AddInvoiceAdjustment() {
 
 			expected := store.InvoiceAdjustment{
 				ID:              1,
-				FinanceClientID: int32(tt.clientId),
-				InvoiceID:       int32(tt.invoiceId),
+				FinanceClientID: tt.clientId,
+				InvoiceID:       tt.invoiceId,
 				RaisedDate:      pgtype.Date{Time: time.Now().UTC().Truncate(24 * time.Hour), Valid: true},
 				AdjustmentType:  tt.data.AdjustmentType.Key(),
-				Amount:          int32(tt.data.Amount),
+				Amount:          tt.data.Amount,
 				Notes:           tt.data.AdjustmentNotes,
 				Status:          "PENDING",
 			}
@@ -110,10 +112,12 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 	s := Service{}
 
 	testCases := []struct {
-		name       string
-		adjustment *shared.AddInvoiceAdjustmentRequest
-		balance    store.GetInvoiceBalanceDetailsRow
-		err        error
+		name                string
+		roles               []string
+		adjustment          *shared.AddInvoiceAdjustmentRequest
+		balance             store.GetInvoiceBalanceDetailsRow
+		feeReductionDetails store.GetInvoiceFeeReductionReversalDetailsRow
+		err                 error
 	}{
 		{
 			name: "Unimplemented adjustment type",
@@ -248,13 +252,74 @@ func TestService_ValidateAdjustmentAmount(t *testing.T) {
 			},
 			err: nil,
 		},
+		{
+			name: "Write off reversal - manager override - exceeds total write offs",
+			adjustment: &shared.AddInvoiceAdjustmentRequest{
+				AdjustmentType: shared.AdjustmentTypeWriteOffReversal,
+				Amount:         1001,
+			},
+			roles: []string{"Finance Manager"},
+			balance: store.GetInvoiceBalanceDetailsRow{
+				Initial:        32000,
+				Outstanding:    10000,
+				WriteOffAmount: 1000,
+			},
+			err: apierror.BadRequest{Field: "Amount", Reason: "The write-off reversal amount must be £10 or less"},
+		},
+		{
+			name: "Write off reversal - manager override - valid",
+			adjustment: &shared.AddInvoiceAdjustmentRequest{
+				AdjustmentType: shared.AdjustmentTypeWriteOffReversal,
+				Amount:         999,
+			},
+			roles: []string{"Finance Manager"},
+			balance: store.GetInvoiceBalanceDetailsRow{
+				Initial:        32000,
+				Outstanding:    10000,
+				WriteOffAmount: 1000,
+			},
+			err: nil,
+		},
+		{
+			name: "Fee reduction reversal - valid",
+			adjustment: &shared.AddInvoiceAdjustmentRequest{
+				AdjustmentType: shared.AdjustmentTypeFeeReductionReversal,
+				Amount:         500,
+			},
+			feeReductionDetails: store.GetInvoiceFeeReductionReversalDetailsRow{
+				ReversalTotal:     pgtype.Int8{Int64: 500, Valid: true},
+				FeeReductionTotal: pgtype.Int8{Int64: 1500, Valid: true},
+			},
+			err: nil,
+		},
+		{
+			name: "Fee reduction reversal - invalid amount",
+			adjustment: &shared.AddInvoiceAdjustmentRequest{
+				AdjustmentType: shared.AdjustmentTypeFeeReductionReversal,
+				Amount:         1000,
+			},
+			feeReductionDetails: store.GetInvoiceFeeReductionReversalDetailsRow{
+				ReversalTotal:     pgtype.Int8{Int64: 500, Valid: true},
+				FeeReductionTotal: pgtype.Int8{Int64: 1000, Valid: true},
+			},
+			err: apierror.BadRequest{Field: "Amount", Reason: "The fee reduction reversal amount must be £5 or less"},
+		},
 	}
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			err := s.validateAdjustmentAmount(tt.adjustment, tt.balance)
+			ctx := auth.Context{
+				Context: context.Background(),
+				User: &shared.User{
+					ID:          1,
+					DisplayName: "Test",
+					Roles:       tt.roles,
+				},
+			}
+			err := s.validateAdjustmentAmount(ctx, tt.adjustment, tt.balance, tt.feeReductionDetails)
 			if tt.err != nil {
 				assert.ErrorAs(t, err, &tt.err)
+				assert.Equal(t, tt.err.Error(), err.Error())
 			} else {
 				assert.NoError(t, err)
 			}
@@ -345,6 +410,20 @@ func TestService_CalculateAdjustmentAmount(t *testing.T) {
 			},
 			customerCreditBalance: 1500,
 			expected:              -800,
+		},
+		{
+			name: "Write off reversal with manager override returns Amount",
+			adjustment: &shared.AddInvoiceAdjustmentRequest{
+				AdjustmentType: shared.AdjustmentTypeWriteOffReversal,
+				Amount:         4321,
+			},
+			balance: store.GetInvoiceBalanceDetailsRow{
+				Initial:        1000,
+				Outstanding:    10000,
+				WriteOffAmount: 800,
+			},
+			customerCreditBalance: 1500,
+			expected:              -4321,
 		},
 	}
 	for _, tt := range testCases {

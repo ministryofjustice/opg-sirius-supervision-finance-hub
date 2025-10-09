@@ -1,0 +1,55 @@
+{{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.PaymentMethodForm*/ -}}
+{{ template "page" . }}
+
+{{ define "title" }}Edit payment method{{ end }}
+
+{{ define "main-content" }}
+    {{ block "set-up-payment-method" .Data }}
+        <div class="govuk-grid-row govuk-!-margin-top-5">
+            <div class="govuk-grid-column-full">
+                <header>
+                    <h1 class="govuk-heading-l  govuk-!-margin-bottom-0  govuk-!-margin-top-0">Edit payment method</h1>
+                </header>
+                <div id="error-summary"></div>
+                <div class="govuk-grid-row">
+                    <form
+                            id="set-up-payment-method-form"
+                            class="govuk-grid-column-one-third"
+                            method="post"
+                            hx-post="{{ prefix (printf "/clients/%s/payment-method/add" .ClientId) }}"
+                            hx-target="#error-summary"
+                            hx-disabled-elt="find button">
+                        <input type="hidden" name="CSRF" value="{{ .AppVars.XSRFToken }}"/>
+                        <div id="f-PaymentMethod" class="govuk-form-group">
+                            <fieldset class="govuk-fieldset">
+                                <legend class="govuk-fieldset__legend">Choose a payment method</legend>
+                                <span id="error-message__PaymentMethod"></span>
+                                <div class="govuk-radios" data-module="govuk-radios">
+                                    <div class="govuk-radios__item">
+                                        <input {{ if eq .PaymentMethod "DEMANDED" }}checked{{ end }} class="govuk-radios__input" id="demanded" name="paymentMethod" type="radio" value="DEMANDED">
+                                        <label class="govuk-label govuk-radios__label" for="demanded">
+                                            Demanded
+                                        </label>
+                                    </div>
+                                    <div class="govuk-radios__item">
+                                        <input {{ if eq .PaymentMethod "DIRECT DEBIT" }}checked{{ end }} class="govuk-radios__input" id="direct" name="paymentMethod" type="radio" value="DIRECT DEBIT">
+                                        <label class="govuk-label govuk-radios__label" for="direct">
+                                            Direct debit
+                                        </label>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
+
+                        <div class="govuk-button-group govuk-!-margin-top-7">
+                            <button class="govuk-button" data-module="govuk-button">
+                                Save and continue
+                            </button>
+                            <a class="govuk-link"  href="{{ prefix (printf "/clients/%s/invoices" .ClientId) }}">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {{ end }}
+{{ end }}

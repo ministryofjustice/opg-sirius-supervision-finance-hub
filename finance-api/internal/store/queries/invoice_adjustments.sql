@@ -5,7 +5,8 @@ SELECT ia.id,
        ia.adjustment_type,
        ia.amount,
        ia.notes,
-       ia.status
+       ia.status,
+       ia.created_by
 FROM invoice_adjustment ia
          JOIN invoice i ON i.id = ia.invoice_id
          JOIN finance_client fc ON fc.id = ia.finance_client_id
@@ -29,18 +30,6 @@ FROM finance_client fc
 WHERE fc.client_id = $1
 RETURNING (SELECT reference invoicereference FROM invoice WHERE id = invoice_id);
 
--- name: GetAdjustmentForDecision :one
-SELECT ia.amount,
-       ia.adjustment_type,
-       ia.finance_client_id,
-       ia.invoice_id,
-       i.amount - COALESCE(SUM(la.amount), 0) outstanding
-FROM invoice_adjustment ia
-         JOIN invoice i ON ia.invoice_id = i.id
-         LEFT JOIN ledger_allocation la ON i.id = la.invoice_id AND la.status NOT IN ('PENDING', 'UNALLOCATED')
-WHERE ia.id = $1
-GROUP BY ia.amount, ia.adjustment_type, ia.finance_client_id, ia.invoice_id, i.amount;
-
 -- name: SetAdjustmentDecision :one
 UPDATE invoice_adjustment ia
 SET status     = $2,
@@ -48,12 +37,13 @@ SET status     = $2,
     updated_by = $3
 WHERE ia.id = $1
 RETURNING ia.amount, ia.adjustment_type, ia.finance_client_id, ia.invoice_id,
-    (SELECT i.amount - COALESCE(SUM(la.amount), 0) outstanding
+    (SELECT (i.amount - COALESCE(SUM(la.amount), 0)) outstanding
      FROM invoice i
-              LEFT JOIN ledger_allocation la
-                        ON i.id = la.invoice_id AND la.status NOT IN ('PENDING', 'UNALLOCATED')
+              LEFT JOIN ledger_allocation la ON i.id = la.invoice_id
+              AND la.status NOT IN ('PENDING', 'UN ALLOCATED')
+              AND la.ledger_id IN (SELECT id FROM ledger WHERE status = 'CONFIRMED')
      WHERE i.id = ia.invoice_id
-     GROUP BY i.amount);
+     GROUP BY i.amount)::INT AS outstanding;
 
 -- name: CreateLedgerForAdjustment :one
 WITH created AS (

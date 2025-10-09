@@ -83,5 +83,20 @@
   .hide {
     display: none;
   }
+
+  .invisible {
+    visibility: hidden;
+  }
+
+  .form-button-menu {
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+    width: max-content;
+  }
+
+  .no-underline {
+    text-decoration: none;
+  }
 }
 

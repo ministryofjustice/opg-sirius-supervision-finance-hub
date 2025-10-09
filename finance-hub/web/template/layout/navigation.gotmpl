@@ -4,7 +4,9 @@
             <nav class="moj-sub-navigation" aria-label="Secondary navigation">
                 <ul class="moj-sub-navigation__list">
                     {{ range .Tabs }}
-                        {{ template "tab" . }}
+                        {{ if .Show }}
+                            {{ template "tab" . }}
+                        {{ end }}
                     {{ end }}
                 </ul>
             </nav>

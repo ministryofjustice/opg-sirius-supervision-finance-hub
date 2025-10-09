@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
@@ -9,7 +10,7 @@ import (
 	"net/http"
 )
 
-func (c *ApiClient) AddManualInvoice(ctx Context, clientId int, invoiceType string, amount *string, raisedDate *string, raisedYear *string, startDate *string, endDate *string, supervisionLevel *string) error {
+func (c *Client) AddManualInvoice(ctx context.Context, clientId int, invoiceType string, amount *string, raisedDate *string, raisedYear *string, startDate *string, endDate *string, supervisionLevel *string) error {
 	var body bytes.Buffer
 
 	addManualInvoiceForm := shared.AddManualInvoice{
@@ -45,7 +46,8 @@ func (c *ApiClient) AddManualInvoice(ctx Context, clientId int, invoiceType stri
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+
+	defer unchecked(resp.Body.Close)
 
 	if resp.StatusCode == http.StatusCreated {
 		return nil

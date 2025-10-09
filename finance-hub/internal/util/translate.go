@@ -47,6 +47,11 @@ var validationMappings = map[string]map[string]pair{
 		"required":                 pair{"Notes", "Enter a reason for awarding fee reduction"},
 		"thousand-character-limit": pair{"Notes", "Reason for awarding fee reduction must be 1000 characters or less"},
 	},
+
+	"RefundNotes": {
+		"required":                 pair{"Notes", "Enter a reason for the refund"},
+		"thousand-character-limit": pair{"Notes", "Reason for the refund must be 1000 characters or less"},
+	},
 	"CancellationReason": {
 		"required":                 pair{"CancellationReason", "Enter a reason for cancelling fee reduction"},
 		"thousand-character-limit": pair{"CancellationReason", "Reason for cancellation must be 1000 characters or less"},
@@ -55,17 +60,20 @@ var validationMappings = map[string]map[string]pair{
 		"start-or-end-date": pair{"start-or-end-date", "A fee reduction already exists for the period specified"},
 	},
 	"AccountHolder": {
-		"required": pair{"AccountHolder", "Select who the account holder is"},
+		"required": pair{"AccountHolder", "Select the account holder"},
 	},
 	"AccountName": {
-		"required":    pair{"AccountName", "Enter the name on the account"},
-		"gteEighteen": pair{"AccountName", "Account name can not be over 18 characters"},
+		"required": pair{"AccountName", "Enter the name on the account"},
+		"lte":      pair{"AccountName", "Account name can not be over 18 characters"},
 	},
 	"SortCode": {
-		"eqSix": pair{"SortCode", "Sort code must consist of 6 digits and cannot be all zeros"},
+		"len":      pair{"SortCode", "Sort code must consist of 6 digits in the format 00-00-00"},
+		"valid":    pair{"SortCode", "Enter a valid sort code"},
+		"required": pair{"SortCode", "Enter the sort code"},
 	},
 	"AccountNumber": {
-		"eqEight": pair{"AccountNumber", "Enter the account number, must consist of 8 digits"},
+		"len":      pair{"AccountNumber", "The account number must consist of 8 digits"},
+		"required": pair{"AccountNumber", "Enter the account number"},
 	},
 	"StartDate": {
 		"nillable-date-required": pair{"StartDate", "Enter a start date"},
@@ -81,6 +89,27 @@ var validationMappings = map[string]map[string]pair{
 	},
 	"SupervisionLevel": {
 		"nillable-string-oneof": pair{"SupervisionLevel", "Please select a valid supervision level"},
+	},
+	"NoCreditToRefund": {
+		"no-credit-to-refund": pair{"Amount", "Client has no credit balance to refund"},
+	},
+	"FeePayer": {
+		"inactive": pair{"FeePayer", "There is no active fee payer deputy for this client."},
+	},
+	"ActiveOrder": {
+		"required": pair{"ActiveOrder", "The client has no active court order."},
+	},
+	"ClientStatus": {
+		"inactive": pair{"ClientStatus", "The client status is not active."},
+	},
+	"AccountHolderAddress": {
+		"required": pair{"Address", "The client requires a valid address that includes Address Line 1 and Town (no more than 40 characters) and a UK postcode."},
+	},
+	"AccountDetails": {
+		"invalid": pair{"AccountDetails", "The account number and sort code are not a valid combination."},
+	},
+	"Allpay": {
+		"invalid": pair{"Allpay", "Direct debit cannot be setup due to an unexpected response from AllPay. Please try again later."},
 	},
 }
 

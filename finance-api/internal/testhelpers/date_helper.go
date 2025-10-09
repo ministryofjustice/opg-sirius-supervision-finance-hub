@@ -33,6 +33,10 @@ func (t DateHelper) StringPtr() *string {
 	return &s
 }
 
+func (t DateHelper) UKString() string {
+	return t.date.Format("02/01/2006")
+}
+
 func (t DateHelper) Date() time.Time {
 	return t.date
 }

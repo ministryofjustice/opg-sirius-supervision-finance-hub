@@ -4,14 +4,19 @@ import (
 	"encoding/json"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"net/http"
-	"strconv"
 )
 
-func (s *Server) AddInvoiceAdjustment(w http.ResponseWriter, r *http.Request) error {
+func (s *Server) addInvoiceAdjustment(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 
-	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
-	invoiceId, _ := strconv.Atoi(r.PathValue("invoiceId"))
+	clientId, err := s.getPathID(r, "clientId")
+	if err != nil {
+		return err
+	}
+	invoiceId, err := s.getPathID(r, "invoiceId")
+	if err != nil {
+		return err
+	}
 
 	var ledgerEntry shared.AddInvoiceAdjustmentRequest
 	if err := json.NewDecoder(r.Body).Decode(&ledgerEntry); err != nil {

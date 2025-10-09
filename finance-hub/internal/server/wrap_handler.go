@@ -1,10 +1,12 @@
 package server
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/api"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
 	"log/slog"
 	"net/http"
 	"time"
@@ -13,7 +15,7 @@ import (
 type ErrorVars struct {
 	Code  int
 	Error string
-	EnvironmentVars
+	Envs
 }
 
 type StatusError int
@@ -32,20 +34,22 @@ type Handler interface {
 	render(app AppVars, w http.ResponseWriter, r *http.Request) error
 }
 
-func wrapHandler(errTmpl Template, errPartial string, envVars EnvironmentVars) func(next Handler) http.Handler {
+func wrapHandler(errTmpl Template, errPartial string, envVars Envs) func(next Handler) http.Handler {
 	return func(next Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
+			ctx := r.Context().(auth.Context)
 
 			vars := NewAppVars(r, envVars)
 			err := next.render(vars, w, r)
 
-			logger := telemetry.LoggerFromContext(r.Context())
+			logger := telemetry.LoggerFromContext(ctx)
 
 			logger.Info(
-				"Page Request",
+				"page request",
 				"duration", time.Since(start),
 				"hx-request", r.Header.Get("HX-Request") == "true",
+				"user-id", ctx.User.ID,
 			)
 
 			if err != nil {
@@ -54,24 +58,27 @@ func wrapHandler(errTmpl Template, errPartial string, envVars EnvironmentVars) f
 					return
 				}
 
-				logger.Error("Page Error", slog.String("err", err.Error()))
-
 				code := http.StatusInternalServerError
 				var serverStatusError StatusError
 				if errors.As(err, &serverStatusError) {
+					logger.Error("server error", "error", err)
 					code = serverStatusError.Code()
 				}
-				var siriusStatusError api.StatusError
-				if errors.As(err, &siriusStatusError) {
-					code = siriusStatusError.Code
+				var apiStatusError api.StatusError
+				if errors.As(err, &apiStatusError) {
+					logger.Error("sirius error", "error", err)
+					code = apiStatusError.Code
+				}
+				if errors.Is(err, context.Canceled) {
+					code = 499 // Client Closed Request
 				}
 
 				w.Header().Add("HX-Retarget", "#main-container")
 				w.WriteHeader(code)
 				errVars := ErrorVars{
-					Code:            code,
-					Error:           err.Error(),
-					EnvironmentVars: envVars,
+					Code:  code,
+					Error: err.Error(),
+					Envs:  envVars,
 				}
 				if IsHxRequest(r) {
 					err = errTmpl.ExecuteTemplate(w, errPartial, errVars)

@@ -15,16 +15,17 @@ type SubmitCancelFeeReductionsHandler struct {
 }
 
 func (h *SubmitCancelFeeReductionsHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
-	ctx := getContext(r)
+	ctx := r.Context()
+	clientID := getClientID(r)
 
 	var (
 		notes             = r.PostFormValue("cancellation-reason")
 		feeReductionId, _ = strconv.Atoi(r.PathValue("feeReductionId"))
 	)
-	err := h.Client().CancelFeeReduction(ctx, ctx.ClientId, feeReductionId, notes)
+	err := h.Client().CancelFeeReduction(ctx, clientID, feeReductionId, notes)
 
 	if err == nil {
-		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/fee-reductions?success=fee-reduction[CANCELLED]", v.EnvironmentVars.Prefix, ctx.ClientId))
+		w.Header().Add("HX-Redirect", fmt.Sprintf("%s/clients/%d/fee-reductions?success=fee-reduction[CANCELLED]", v.EnvironmentVars.Prefix, clientID))
 	} else {
 		var (
 			valErr apierror.ValidationError
@@ -35,7 +36,7 @@ func (h *SubmitCancelFeeReductionsHandler) render(v AppVars, w http.ResponseWrit
 			w.WriteHeader(http.StatusUnprocessableEntity)
 			err = h.execute(w, r, data)
 		} else if errors.As(err, &stErr) {
-			data := AppVars{Error: stErr.Error()}
+			data := AppVars{Error: stErr.Error(), Code: stErr.Code}
 			w.WriteHeader(stErr.Code)
 			err = h.execute(w, r, data)
 		}

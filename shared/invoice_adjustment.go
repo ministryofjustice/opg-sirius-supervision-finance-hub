@@ -10,4 +10,5 @@ type InvoiceAdjustment struct {
 	Amount         int            `json:"amount"`
 	Status         string         `json:"status"`
 	Notes          string         `json:"notes"`
+	CreatedBy      int            `json:"createdBy"`
 }

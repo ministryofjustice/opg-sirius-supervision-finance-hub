@@ -10,9 +10,9 @@ import (
 func (suite *IntegrationSuite) Test_bad_debt_write_off() {
 	ctx := suite.ctx
 	today := suite.seeder.Today()
-	twoMonthsAgo := suite.seeder.Today().Sub(0, 2, 0)
-	twoYearsAgo := suite.seeder.Today().Sub(2, 0, 0)
-	fourYearsAgo := suite.seeder.Today().Sub(4, 0, 0)
+	twoMonthsAgo := today.Sub(0, 2, 0)
+	twoYearsAgo := today.Sub(2, 0, 0)
+	fourYearsAgo := today.Sub(4, 0, 0)
 	general := "320.00"
 
 	suite.seeder.CreateTestAssignee(ctx)
@@ -20,38 +20,38 @@ func (suite *IntegrationSuite) Test_bad_debt_write_off() {
 	// one client with:
 	// - one written off invoice
 	// - one active invoice
-	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234")
-	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
+	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234", "ACTIVE")
+	suite.seeder.CreateOrder(ctx, client1ID)
 	_, _ = suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeGA, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
 	paidInvoiceID, c1i1Ref := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
-	suite.seeder.CreateAdjustment(ctx, client1ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 10000, "Written off", nil)
+	suite.seeder.CreateAdjustment(ctx, client1ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 0, "Written off", nil)
 
 	// one client with two written off invoices
-	client2ID := suite.seeder.CreateClient(ctx, "John", "Suite", "87654321", "4321")
-	suite.seeder.CreateOrder(ctx, client2ID, "ACTIVE")
+	client2ID := suite.seeder.CreateClient(ctx, "John", "Suite", "87654321", "4321", "ACTIVE")
+	suite.seeder.CreateOrder(ctx, client2ID)
 	paidInvoiceID, c2i1Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeAD, nil, fourYearsAgo.StringPtr(), nil, nil, nil, nil)
-	suite.seeder.CreateAdjustment(ctx, client1ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 10000, "Written off", nil)
+	suite.seeder.CreateAdjustment(ctx, client1ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 0, "Written off", nil)
 
 	paidInvoiceID, c2i2Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, &general, twoYearsAgo.StringPtr(), twoYearsAgo.StringPtr(), nil, nil, nil)
-	suite.seeder.CreateAdjustment(ctx, client1ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 10000, "Written off", nil)
+	suite.seeder.CreateAdjustment(ctx, client1ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 0, "Written off", nil)
 
 	// one client with one unapproved write off
-	client3ID := suite.seeder.CreateClient(ctx, "John", "Suite", "87654321", "4321")
-	suite.seeder.CreateOrder(ctx, client3ID, "ACTIVE")
+	client3ID := suite.seeder.CreateClient(ctx, "John", "Suite", "87654321", "4321", "ACTIVE")
+	suite.seeder.CreateOrder(ctx, client3ID)
 	paidInvoiceID, _ = suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeAD, nil, fourYearsAgo.StringPtr(), nil, nil, nil, nil)
-	suite.seeder.CreatePendingAdjustment(ctx, client1ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 10000, "Written off")
+	suite.seeder.CreatePendingAdjustment(ctx, client1ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 0, "Written off")
 
 	c := Client{suite.seeder.Conn}
 
 	from := shared.NewDate(fourYearsAgo.String())
 	to := shared.NewDate(today.String())
 
-	rows, err := c.Run(ctx, &BadDebtWriteOff{
+	rows, err := c.Run(ctx, NewBadDebtWriteOff(BadDebtWriteOffInput{
 		FromDate: &from,
 		ToDate:   &to,
-	})
+	}))
 
-	runTime := time.Now()
+	runTime := today
 
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), 4, len(rows))
@@ -68,7 +68,7 @@ func (suite *IntegrationSuite) Test_bad_debt_write_off() {
 	assert.Equal(suite.T(), "5356202100", results[0]["Account code"], "Account code - client 1")
 	assert.Equal(suite.T(), "EXP - IMPAIRMENT - BAD DEBTS-Appoint Deputy Write Off", results[0]["Account code description"], "Account code description - client 1")
 	assert.Equal(suite.T(), "100.00", results[0]["Adjustment amount"], "Adjustment amount - client 1")
-	assert.Contains(suite.T(), results[0]["Adjustment date"], runTime.Format("2006-01-02 15:04"), "Adjustment date - client 1")
+	assert.Contains(suite.T(), results[0]["Adjustment date"], runTime.Date().Format("2006-01-02 15:04"), "Adjustment date - client 1")
 	assert.Equal(suite.T(), "WO"+c1i1Ref, results[0]["Txn number"], "Txn number - client 1")
 	assert.Equal(suite.T(), "Johnny Test", results[0]["Approver"], "Approver - client 1")
 
@@ -81,7 +81,7 @@ func (suite *IntegrationSuite) Test_bad_debt_write_off() {
 	assert.Equal(suite.T(), "5356202100", results[1]["Account code"], "Account code - client 2 write off 1")
 	assert.Equal(suite.T(), "EXP - IMPAIRMENT - BAD DEBTS-Appoint Deputy Write Off", results[1]["Account code description"], "Account code description - client 2 write off 1")
 	assert.Equal(suite.T(), "100.00", results[1]["Adjustment amount"], "Adjustment amount - client 2 write off 1")
-	assert.Contains(suite.T(), results[1]["Adjustment date"], runTime.Format("2006-01-02 15:04"), "Adjustment date - client 2 write off 1")
+	assert.Contains(suite.T(), results[1]["Adjustment date"], runTime.Date().Format("2006-01-02 15:04"), "Adjustment date - client 2 write off 1")
 	assert.Equal(suite.T(), "WO"+c2i1Ref, results[1]["Txn number"], "Txn number - client 2 write off 1")
 	assert.Equal(suite.T(), "Johnny Test", results[1]["Approver"], "Approver - client 2 write off 1")
 
@@ -94,7 +94,7 @@ func (suite *IntegrationSuite) Test_bad_debt_write_off() {
 	assert.Equal(suite.T(), "5356202102", results[2]["Account code"], "Account code - client 2 write off 2")
 	assert.Equal(suite.T(), "EXP - IMPAIRMENT - BAD DEBTS-Sup Fee 2 Write Off\tWrite-off", results[2]["Account code description"], "Account code description - client 2 write off 2")
 	assert.Equal(suite.T(), "320.00", results[2]["Adjustment amount"], "Adjustment amount - client 2 write off 2")
-	assert.Contains(suite.T(), results[2]["Adjustment date"], runTime.Format("2006-01-02 15:04"), "Adjustment date - client 2 write off 2")
+	assert.Contains(suite.T(), results[2]["Adjustment date"], runTime.Date().Format("2006-01-02 15:04"), "Adjustment date - client 2 write off 2")
 	assert.Equal(suite.T(), "WO"+c2i2Ref, results[2]["Txn number"], "Txn number - client 2 write off 2")
 	assert.Equal(suite.T(), "Johnny Test", results[2]["Approver"], "Approver - client 2 write off 2")
 }
@@ -127,11 +127,11 @@ func Test_badDebtWriteOff_getParams(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			badDebtWriteOff := &BadDebtWriteOff{
+			badDebtWriteOff := NewBadDebtWriteOff(BadDebtWriteOffInput{
 				FromDate:   tt.fromDate,
 				ToDate:     tt.toDate,
 				GoLiveDate: goLiveDate,
-			}
+			})
 			params := badDebtWriteOff.GetParams()
 			assert.Equal(t, tt.expected, params)
 		})

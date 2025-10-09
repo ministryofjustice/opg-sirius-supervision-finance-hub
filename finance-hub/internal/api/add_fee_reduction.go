@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
@@ -11,7 +12,7 @@ import (
 	"time"
 )
 
-func (c *ApiClient) AddFeeReduction(ctx Context, clientId int, feeType string, startYear string, lengthOfAward string, dateReceived string, notes string) error {
+func (c *Client) AddFeeReduction(ctx context.Context, clientId int, feeType string, startYear string, lengthOfAward string, dateReceived string, notes string) error {
 	var body bytes.Buffer
 	var dateReceivedTransformed *shared.Date
 
@@ -44,7 +45,8 @@ func (c *ApiClient) AddFeeReduction(ctx Context, clientId int, feeType string, s
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+
+	defer unchecked(resp.Body.Close)
 
 	if resp.StatusCode == http.StatusCreated {
 		return nil

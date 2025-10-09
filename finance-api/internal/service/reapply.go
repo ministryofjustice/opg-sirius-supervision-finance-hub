@@ -4,16 +4,26 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
-	"log/slog"
 )
 
-func (s *Service) ReapplyCredit(ctx context.Context, clientID int32) error {
-	creditPosition, err := s.store.GetCreditBalanceAndOldestOpenInvoice(ctx, clientID)
+func (s *Service) ReapplyCredit(ctx context.Context, clientID int32, tx *store.Tx) error {
+	if tx == nil {
+		return s.reapplyCreditTx(ctx, clientID)
+	}
+
+	logger := s.Logger(ctx)
+	logger.Info(fmt.Sprintf("reapplying credit for client %d", clientID))
+
+	var userID pgtype.Int4
+	_ = store.ToInt4(&userID, ctx.(auth.Context).User.ID)
+	creditPosition, err := tx.GetCreditBalanceAndOldestOpenInvoice(ctx, clientID)
 
 	switch {
 	case errors.Is(err, pgx.ErrNoRows):
@@ -29,38 +39,43 @@ func (s *Service) ReapplyCredit(ctx context.Context, clientID int32) error {
 		})
 	}
 
-	reapplyAmount := getReapplyAmount(creditPosition.Credit, creditPosition.Outstanding.Int32)
+	reapplyAmount := getReapplyAmount(creditPosition.Credit, creditPosition.Outstanding)
 	allocation := store.CreateLedgerAllocationParams{
 		InvoiceID: creditPosition.InvoiceID,
 		Amount:    reapplyAmount,
 		Status:    "REAPPLIED",
 	}
 
+	var notes pgtype.Text
+	_ = notes.Scan("Excess credit applied to invoice")
+
 	ledger := store.CreateLedgerParams{
-		ClientID: clientID,
-		Amount:   reapplyAmount,
-		Notes:    pgtype.Text{String: "Excess credit applied to invoice", Valid: true},
-		Type:     "CREDIT REAPPLY",
-		Status:   "CONFIRMED",
-		//TODO when adding this in PFS-136, the id with need to be a system user
-		CreatedBy: pgtype.Int4{Int32: 1, Valid: true},
+		ClientID:  clientID,
+		Amount:    reapplyAmount,
+		Notes:     notes,
+		Type:      "CREDIT REAPPLY",
+		Status:    "CONFIRMED",
+		CreatedBy: userID,
 	}
 
-	ledgerId, err := s.store.CreateLedger(ctx, ledger)
+	ledgerID, err := tx.CreateLedger(ctx, ledger)
 	if err != nil {
-		logger := telemetry.LoggerFromContext(ctx)
-		logger.Error(fmt.Sprintf("Error in reapply for client %d", clientID), slog.String("err", err.Error()))
+		s.Logger(ctx).Error(fmt.Sprintf("Error in reapply for client %d", clientID), slog.String("err", err.Error()))
 		return err
 	}
 
-	allocation.LedgerID = pgtype.Int4{Int32: ledgerId, Valid: true}
-	err = s.store.CreateLedgerAllocation(ctx, allocation)
+	allocation.LedgerID = ledgerID
+
+	err = tx.CreateLedgerAllocation(ctx, allocation)
 	if err != nil {
+		s.Logger(ctx).Error(fmt.Sprintf("Error create ledger allocation for client %d", clientID), slog.String("err", err.Error()))
 		return err
 	}
+
+	logger.Info(fmt.Sprintf("%d credit applied to invoice %d", reapplyAmount, creditPosition.InvoiceID.Int32))
 
 	// there may still be credit on account, so repeat to find the next applicable invoice
-	return s.ReapplyCredit(ctx, clientID)
+	return s.ReapplyCredit(ctx, clientID, tx)
 }
 
 func getReapplyAmount(credit int32, outstanding int32) int32 {
@@ -69,4 +84,21 @@ func getReapplyAmount(credit int32, outstanding int32) int32 {
 	} else {
 		return credit
 	}
+}
+
+/**
+ * reapplyCreditTx is a wrapper function to supply a transaction where ReapplyCredit is called without an existing transaction
+ */
+func (s *Service) reapplyCreditTx(ctx context.Context, clientID int32) error {
+	tx, err := s.BeginStoreTx(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	err = s.ReapplyCredit(ctx, clientID, tx)
+	if err != nil {
+		return err
+	}
+	return tx.Commit(ctx)
 }

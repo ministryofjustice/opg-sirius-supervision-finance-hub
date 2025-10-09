@@ -9,25 +9,28 @@ services:
       PORT: 8888
       SIRIUS_PUBLIC_URL: http://localhost:8080
       SIRIUS_URL: http://json-server:3000
-      BACKEND_URL: http://finance-api:8080
+      BACKEND_URL: http://finance-api:8181
+      HEALTHCHECK: /finance/health-check
       PREFIX: /finance
-    healthcheck:
-      test: wget -O /dev/null -S 'http://localhost:8888/finance/health-check' 2>&1 | grep 'HTTP/1.1 200 OK' || exit 1
-      interval: 15s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
+      SUPERVISION_BILLING_TEAM_ID: 41
+      JWT_SECRET: mysupersecrettestkeythatis128bits
+      FINANCE_HUB_LIVE_DATE: 01/01/2024
+      SHOW_DIRECT_DEBITS: 1
     depends_on:
-      - json-server
-      - finance-api
+      finance-api:
+        condition: service_healthy
+      json-server:
+        condition: service_started
 
   finance-api:
     image: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-api:latest
     build:
       dockerfile: docker/finance-api/Dockerfile
     ports:
-      - "8181:8080"
+      - "8181:8181"
     environment:
+      PORT: 8181
+      HEALTHCHECK: /health-check
       POSTGRES_CONN: sirius-db:5432
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
@@ -38,15 +41,25 @@ services:
       AWS_SECRET_ACCESS_KEY: localstack
       EVENT_BUS_NAME: local-main
       S3_ENCRYPTION_KEY: alias/aws/s3
-      SIRIUS_PUBLIC_URL: http://localhost:8080
+      AWS_S3_ENDPOINT: http://localstack:4566
+      SIRIUS_PUBLIC_URL: http://localhost:8181
       FINANCE_ADMIN_PREFIX: /supervision/finance-admin
-    healthcheck:
-      test: wget -O /dev/null -S 'http://localhost:8080/health-check' 2>&1 | grep 'HTTP/1.1 200 OK' || exit 1
-      interval: 15s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
+      JWT_SECRET: mysupersecrettestkeythatis128bits
+      FINANCE_HUB_LIVE_DATE: 01/01/2024
+      REPORTS_S3_BUCKET: opg-backoffice-reports-local
+      ASYNC_S3_BUCKET: opg-backoffice-async-uploads-local
+      NOTIFY_URL: http://json-server:3000
+      OPG_NOTIFY_API_KEY: test
+      OPG_SUPERVISION_SYSTEM_USER_ID: 1
+      EVENT_BRIDGE_API_KEY: test
+      ALLPAY_HOST: http://allpay-mock:8080
+      ALLPAY_API_KEY: test-key
+      HOLIDAYS_API_URL: http://holidays-api-mock:8080/bank-holidays.json
     depends_on:
+      allpay-mock:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
       sirius-db:
         condition: service_healthy
 
@@ -60,6 +73,9 @@ services:
     build:
       dockerfile: docker/cypress/Dockerfile
     command: [ "--headless", "-b", "electron" ]
+    environment:
+      - CYPRESS_JSON_SERVER_URL=http://json-server:3000
+      - CYPRESS_FINANCE_API_URL=http://finance-api:8181
     volumes:
       - ./cypress/screenshots:/root/cypress/screenshots:rw,delegated
       - ./cypress/logs:/root/cypress/logs:rw,delegated
@@ -68,12 +84,19 @@ services:
         condition: service_healthy
 
   go-lint:
-    image: golangci/golangci-lint:v1.63.4
+    image: golangci/golangci-lint:v2.4.0
     working_dir: /go/src/app
     volumes:
       - ./:/go/src/app
-      - ./.cache/golangci-lint/v1.53.3:/root/.cache
+      - ./.cache/golangci-lint/v2.4.0:/root/.cache
     command: golangci-lint run -v --timeout 5m
+
+  gosec:
+    image: securego/gosec:latest
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: -exclude-dir=.gocache -exclude-generated -fmt=sarif -out=/app/test-results/gosec.sarif -stdout -verbose=text /app/...
 
   trivy:
     image: aquasec/trivy:latest
@@ -96,7 +119,7 @@ services:
       - ./finance-hub:/home/node/app
 
   sirius-db:
-    image: postgres:13-alpine
+    image: postgres:14-alpine
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
@@ -112,24 +135,8 @@ services:
       timeout: 5s
       retries: 5
 
-  sqlc-gen:
-    image: kjconroy/sqlc
-    working_dir: /src
-    volumes:
-      - ./finance-api/internal/store:/src
-      - ./migrations:/schema
-    command: generate
-
-  sqlc-diff:
-    image: kjconroy/sqlc
-    working_dir: /src
-    volumes:
-      - ./finance-api/internal/store:/src
-      - ./migrations:/schema
-    command: diff
-
-  sqlc-vet:
-    image: kjconroy/sqlc
+  sqlc:
+    image: sqlc/sqlc:1.29.0
     environment:
       POSTGRES_CONN: localhost:5432
       POSTGRES_USER: user
@@ -140,7 +147,6 @@ services:
     volumes:
       - ./finance-api/internal/store:/src
       - ./migrations:/schema
-    command: vet
     depends_on:
       - finance-migration
 
@@ -160,7 +166,11 @@ services:
     command: "up"
 
   localstack:
-    image: localstack/localstack:4.0
+    image: localstack/localstack:4.7
+    volumes:
+      - "./scripts/localstack/init:/etc/localstack/init/ready.d"
+      - "./scripts/localstack/files:/scripts/files"
+      - "./scripts/localstack/wait:/scripts/wait"
     ports:
       - "4566:4566"
     environment:
@@ -170,3 +180,26 @@ services:
       interval: 10s
       timeout: 10s
       retries: 50
+
+  allpay-mock:
+    image: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-allpay-mock:latest
+    build:
+      context: .
+      dockerfile: docker/allpay/Dockerfile
+    ports:
+      - "4010:8080"
+    volumes:
+      - ./api-mocks/allpay:/opt/imposter/config
+    healthcheck:
+      test: [ "CMD", "imposter", "list", "-x" ]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+
+
+  holidays-api-mock:
+    build:
+      context: .
+      dockerfile: docker/holidays-api/Dockerfile
+    ports:
+      - "8080:8080"

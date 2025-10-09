@@ -4,14 +4,13 @@ import (
 	"encoding/json"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"net/http"
-	"strconv"
 )
 
 func (s *Server) addManualInvoice(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 
 	var addManualInvoice shared.AddManualInvoice
-	defer r.Body.Close()
+	defer unchecked(r.Body.Close)
 
 	if err := json.NewDecoder(r.Body).Decode(&addManualInvoice); err != nil {
 		return err
@@ -23,8 +22,12 @@ func (s *Server) addManualInvoice(w http.ResponseWriter, r *http.Request) error 
 		return validationError
 	}
 
-	clientId, _ := strconv.Atoi(r.PathValue("clientId"))
-	err := s.service.AddManualInvoice(ctx, clientId, addManualInvoice)
+	clientId, err := s.getPathID(r, "clientId")
+	if err != nil {
+		return err
+	}
+
+	err = s.service.AddManualInvoice(ctx, clientId, addManualInvoice)
 
 	if err != nil {
 		return err

@@ -3,17 +3,19 @@ package api
 import (
 	"context"
 	"encoding/json"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"log/slog"
 	"net/http"
+	"os"
+	"runtime/debug"
+	"strconv"
 	"time"
 )
 
 func (s *Server) requestReport(w http.ResponseWriter, r *http.Request) error {
 	var reportRequest shared.ReportRequest
-	defer r.Body.Close()
+	defer unchecked(r.Body.Close)
 
 	if err := json.NewDecoder(r.Body).Decode(&reportRequest); err != nil {
 		return err
@@ -24,17 +26,42 @@ func (s *Server) requestReport(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	go func(logger *slog.Logger) {
-		err := s.reports.GenerateAndUploadReport(context.Background(), reportRequest, time.Now())
-		if err != nil {
-			logger.Error(err.Error())
+	if reportRequest.ReportType == shared.ReportsTypeJournal {
+		goLiveDate := shared.NewDate(os.Getenv("FINANCE_HUB_LIVE_DATE"))
+		if !reportRequest.TransactionDate.Before(shared.NewDate(time.Now().Format("2006-01-02"))) ||
+			reportRequest.TransactionDate.Before(goLiveDate) {
+			return apierror.ValidationError{Errors: apierror.ValidationErrors{
+				"Date": {
+					"Date": fmt.Sprintf("Date must be before today and after %s", os.Getenv("FINANCE_HUB_LIVE_DATE")),
+				},
+			},
+			}
 		}
-	}(telemetry.LoggerFromContext(r.Context()))
+	}
+
+	s.asyncRequestReport(s.copyCtx(r), reportRequest)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 
 	return nil
+}
+
+func (s *Server) asyncRequestReport(ctx context.Context, reportRequest shared.ReportRequest) {
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				fmt.Printf("Recovered from panic in asyncRequestReport: %v\n%s", r, debug.Stack())
+			}
+		}()
+
+		s.reports.GenerateAndUploadReport(ctx, reportRequest, time.Now())
+		s.service.PostReportActions(ctx, reportRequest)
+
+		if s.onReportRequested != nil {
+			s.onReportRequested()
+		}
+	}()
 }
 
 func (s *Server) validateReportRequest(reportRequest shared.ReportRequest) error {
@@ -89,6 +116,18 @@ func (s *Server) validateReportRequest(reportRequest shared.ReportRequest) error
 		} else if reportRequest.TransactionDate.Before(shared.Date{Time: s.envs.GoLiveDate}) {
 			validationErrors["Date"] = map[string]string{
 				"min-go-live": "This field Date needs to be looked at min-go-live",
+			}
+		}
+
+		if reportRequest.ScheduleType != nil && *reportRequest.ScheduleType == shared.ScheduleTypeChequePayments {
+			if reportRequest.PisNumber == 0 {
+				validationErrors["PisNumber"] = map[string]string{
+					"required": "This field PisNumber needs to be looked at required",
+				}
+			} else if len(strconv.Itoa(reportRequest.PisNumber)) != 6 {
+				validationErrors["PisNumber"] = map[string]string{
+					"eqSix": "PIS number must be 6 digits",
+				}
 			}
 		}
 	}

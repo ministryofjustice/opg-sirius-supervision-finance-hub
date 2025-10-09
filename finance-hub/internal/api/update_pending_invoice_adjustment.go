@@ -2,13 +2,14 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"net/http"
 )
 
-func (c *ApiClient) UpdatePendingInvoiceAdjustment(ctx Context, clientId int, ledgerId int, status string) error {
+func (c *Client) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId int, ledgerId int, status string) error {
 	var body bytes.Buffer
 
 	err := json.NewEncoder(&body).Encode(shared.UpdateInvoiceAdjustment{
@@ -31,7 +32,9 @@ func (c *ApiClient) UpdatePendingInvoiceAdjustment(ctx Context, clientId int, le
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+
+	defer unchecked(resp.Body.Close)
+
 	if resp.StatusCode == http.StatusUnauthorized {
 		return ErrUnauthorized
 	}

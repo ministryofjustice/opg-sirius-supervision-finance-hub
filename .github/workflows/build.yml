@@ -9,6 +9,19 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  id-token: write
+  actions: read
+  checks: write
+  contents: write
+  deployments: none
+  issues: none
+  packages: none
+  pull-requests: write
+  repository-projects: none
+  security-events: write
+  statuses: none
+
 defaults:
   run:
     shell: bash
@@ -19,26 +32,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Set up Go 1.22
-        uses: actions/setup-go@v5
+      - name: Set up Go 1.24.0
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
         with:
-          go-version: 1.22
+          go-version: 1.25.1
         id: go
 
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
-      - name: Run tests
-        run: make test
+      - name: Run unit tests
+        run: make unit-test
 
       - name: Test Summary
-        uses: test-summary/action@v2
+        uses: test-summary/action@31493c76ec9e7aa675f1585d3ed6f1da69269a86 # v2.4
         with:
           paths: "test-results/unit-tests.xml"
         if: always()
 
       - name: Upload Code Coverage
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
         with:
           files: test-results/test-coverage.txt
           fail_ci_if_error: false
@@ -48,166 +61,240 @@ jobs:
     name: sqlc validation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
       - name: diff
         run: make sqlc-diff
 
-      - uses: sqlc-dev/setup-sqlc@v4
-        with:
-          sqlc-version: '1.26.0'
-      - uses: sqlc-dev/action-setup-postgres@master
-        with:
-          postgres-version: "16"
-        id: postgres
       - run: make sqlc-vet
         env:
           POSTGRESQL_SERVER_URI: postgres://user:password@sirius-db:5432/finance?search_path=supervision_finance&sslmode=disable
 
-  lint:
+  golint:
     name: Go Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Go Lint
         run: make go-lint
+
+  gosec:
+    name: Go Sec
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: Go Sec
+        run: make gosec
+      - name: Upload GoSec results to GitHub Security tab
+        if: ${{ always() }}
+        uses: github/codeql-action/upload-sarif@303c0aef88fc2fe5ff6d63d3b1596bfd83dfa1f9 # v3.30.4
+        with:
+          sarif_file: 'test-results/gosec.sarif'
+          category: gosec
 
   cypress:
     name: Cypress Tests
     runs-on: ubuntu-latest
-    needs: test
+    needs: ['sqlc']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: Build Images
+        run: make build-all
       - name: Run cypress
         run: make cypress
       - name: Store screenshots
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: failure()
         with:
           name: cypress-screenshots
           path: cypress/screenshots
       - name: Store logs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: failure()
         with:
           name: cypress-logs
           path: cypress/logs
 
-  build-and-push:
-    name: "Build & Push Containers"
+  test-migrations:
+    name: Test Migrations are Safe.
     runs-on: ubuntu-latest
-    needs: ['test', 'lint']
     outputs:
-      branch: ${{ steps.set-outputs.outputs.branch }}
-      tag: ${{ steps.bump_version.outputs.tag }}
+      tag: ${{ steps.semver_tag.outputs.created_tag }}
+      timestamp: ${{ steps.set_timestamp.outputs.build_timestamp }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           fetch-depth: '0'
-      - name: Extract branch name
-        run: |
-          if [ "${{ github.head_ref }}" == "" ]; then
-            echo BRANCH_NAME=main >> $GITHUB_ENV
-          else
-            echo BRANCH_NAME=${{ github.head_ref }} >> $GITHUB_ENV
-          fi
-        id: extract_branch
-      - uses: unfor19/install-aws-cli-action@v1
-
-      - name: Build Container
-        run: make build
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: Configure OIDC AWS credentials for ECR Pull
+        uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
+          role-to-assume: arn:aws:iam::311462405659:role/sirius-component-ecr-role
+          role-session-name: opg-sirius-supervision-finance-hub-github-actions-ecr-push
+          role-duration-seconds: 900
           aws-region: eu-west-1
-          role-to-assume: arn:aws:iam::311462405659:role/sirius-actions-ci
-          role-duration-seconds: 3600
-          role-session-name: GitHubActions
+      - name: ECR Login
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+        with:
+          registries: 311462405659
+      - name: Test Migrations
+        run: make test-migrations
+
+  create-tag:
+    name: Create Tags
+    uses: ./.github/workflows/create-tags.yml
+
+  build:
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - image_name: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-api
+            service_name: api
+            build_options: --file docker/finance-api/Dockerfile
+          - image_name: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-hub
+            service_name: hub
+            build_options: --file docker/finance-hub/Dockerfile
+          - image_name: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-migration
+            service_name: migrations
+            build_options: --file docker/finance-migration/Dockerfile
+          - image_name: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-allpay-mock
+            service_name: allpay-mock
+            build_options: --file docker/allpay/Dockerfile
+    name: Build ${{ matrix.service_name }}
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/build-multi-architecture-image.yml@27a0f72b83c6b026fa4131230289bfbed9049cc7 # v3.15.0
+    with:
+      image_name: ${{ matrix.image_name }}
+      artifact_name: ${{ matrix.service_name }}-multi-arch
+      job_name: Build ${{ matrix.service_name }} Image
+      build_options: ${{ matrix.build_options }}
+
+  push:
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - ecr_repository: sirius-finance-api
+            service_name: api
+            scan: 1
+          - ecr_repository: sirius-finance-hub
+            service_name: hub
+            scan: 1
+          - ecr_repository: sirius-finance-migration
+            service_name: migrations
+            scan: 1
+          - ecr_repository: sirius-finance-allpay-mock
+            service_name: allpay-mock
+            scan: 0
+    name: "Push Images"
+    runs-on: ubuntu-latest
+    needs: ['test', 'test-migrations', 'golint', 'gosec', 'sqlc', 'create-tag', 'build']
+    env:
+      TAG: ${{ needs.create-tag.outputs.tag }}
+      TIMESTAMP: ${{ needs.create-tag.outputs.timestamp }}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          fetch-depth: '0'
+
+      - uses: unfor19/install-aws-cli-action@f5b46b7f32cf5e7ebd652656c5036bf83dd1e60c # 1.0.8
+
+      - name: Set up Docker
+        run: |
+          echo '{"experimental": true, "features": { "containerd-snapshotter": true }}' | sudo tee -a /etc/docker/daemon.json
+          sudo systemctl restart docker
+          docker run --privileged --rm tonistiigi/binfmt --install all
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        with:
+          pattern: "${{ matrix.service_name }}-multi-arch"
+          path: /tmp/images
+          merge-multiple: true
+      - name: Load Images
+        run: |
+          docker load -i /tmp/images/${{ matrix.service_name }}-multi-arch.tar
+
+      - name: Configure OIDC AWS credentials for ECR push
+        uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
+        with:
+          role-to-assume: arn:aws:iam::311462405659:role/sirius-component-ecr-role
+          role-session-name: opg-sirius-supervision-finance-hub-github-actions-ecr-push
+          role-duration-seconds: 900
+          aws-region: eu-west-1
 
       - name: ECR Login
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
         with:
           registries: 311462405659
 
       - name: Run Trivy Vulnerability Scanner
+        if: matrix.scan == 1
         env:
           TRIVY_DB_REPOSITORY: ${{ steps.login-ecr.outputs.registry }}/trivy-db-public-ecr/aquasecurity/trivy-db:2
           TRIVY_JAVA_DB_REPOSITORY: ${{ steps.login-ecr.outputs.registry }}/trivy-db-public-ecr/aquasecurity/trivy-java-db:1
           DOCKER_USERNAME: ${{ steps.login-ecr.outputs.docker_username_311462405659_dkr_ecr_eu_west_1_amazonaws_com }}
           DOCKER_PASSWORD: ${{ steps.login-ecr.outputs.docker_password_311462405659_dkr_ecr_eu_west_1_amazonaws_com }}
-        run: make scan
+        run: make scan-${{ matrix.service_name }}
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
+        if: matrix.scan == 1
+        uses: github/codeql-action/upload-sarif@303c0aef88fc2fe5ff6d63d3b1596bfd83dfa1f9 # v3.30.4
         with:
           sarif_file: 'test-results/'
-
-      - name: Bump Version
-        id: bump_version
-        uses: anothrNick/github-tag-action@1.71.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          INITIAL_VERSION: 1.0.0
-          DEFAULT_BUMP: minor
-          PRERELEASE: true
-          PRERELEASE_SUFFIX: ${{ env.BRANCH_NAME }}
-          RELEASE_BRANCHES: main
-          WITH_V: true
-      
-      - name: Generate Single Timestamp
-        run: echo "TIMESTAMP=$(date +"%Y%m%d%H%M%S")" >> $GITHUB_ENV
-
+          category: trivy-docker-${{ matrix.service_name }}
       - name: Push Container
         run: |
-          docker tag 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-hub:latest 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-hub:${{ steps.bump_version.outputs.tag }}
-          docker tag 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-api:latest 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-api:${{ steps.bump_version.outputs.tag }}
-          docker tag 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-migration:latest 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-migration:${{ steps.bump_version.outputs.tag }}
-          if [ $BRANCH_NAME == "main" ]; then
-            docker tag 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-hub:latest 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-hub:main-${{ steps.bump_version.outputs.tag }}
-            docker tag 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-hub:latest 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-hub:main-${{ steps.bump_version.outputs.tag }}-$TIMESTAMP
-            docker tag 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-api:latest 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-api:main-${{ steps.bump_version.outputs.tag }}
-            docker tag 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-api:latest 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-api:main-${{ steps.bump_version.outputs.tag }}-$TIMESTAMP
-            docker tag 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-migration:latest 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-migration:main-${{ steps.bump_version.outputs.tag }}
-            docker tag 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-migration:latest 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-migration:main-${{ steps.bump_version.outputs.tag }}-$TIMESTAMP
+          docker tag 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/${{ matrix.ecr_repository }}:latest 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/${{ matrix.ecr_repository }}:$TAG
+          if ${{ github.ref_name == 'main' }}
+          then
+            docker tag 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/${{ matrix.ecr_repository }}:latest 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/${{ matrix.ecr_repository }}:main-$TAG
+            docker tag 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/${{ matrix.ecr_repository }}:latest 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/${{ matrix.ecr_repository }}:main-$TAG-$TIMESTAMP
             # We want all of the tags pushed
-            docker push  --all-tags 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-hub
-            docker push  --all-tags 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-api
-            docker push  --all-tags 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-migration
+            docker push  --all-tags 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/${{ matrix.ecr_repository }}
           else
-            docker push 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-hub:${{ steps.bump_version.outputs.tag }}
-            docker push 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-api:${{ steps.bump_version.outputs.tag }}
-            docker push 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-migration:${{ steps.bump_version.outputs.tag }}
+            docker push 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/${{ matrix.ecr_repository }}:$TAG
+          fi
+
+  end_of_pr_workflow:
+    name: End of PR Workflow
+    runs-on: ubuntu-latest
+    if: always()
+    needs: ['test', 'test-migrations', 'golint', 'gosec', 'sqlc', 'cypress', 'create-tag', 'build', 'push']
+    steps:
+      - name: End of PR Workflow
+        run: |
+          if ${{ contains(needs.*.result,'failure') }}
+          then
+            echo "Not all checks succedeed, check the previous jobs."
+            exit 1
+          else
+            echo "All checks succedeed!"
+            exit 0
           fi
 
   push-tags:
     runs-on: ubuntu-latest
-    needs: build-and-push
+    needs: ['create-tag', 'end_of_pr_workflow']
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: Configure OIDC AWS credentials for SSM
+        uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 # v5.0.0
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_ACTIONS }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ACTIONS }}
+          role-to-assume: arn:aws:iam::997462338508:role/sirius-component-ssm-role
+          role-session-name: opg-sirius-supervision-finance-hub-github-actions-ssm-push
+          role-duration-seconds: 900
           aws-region: eu-west-1
-          role-to-assume: arn:aws:iam::997462338508:role/sirius-actions-ci
-          role-duration-seconds: 3600
-          role-session-name: GitHubActions
 
       - name: Install AWS CLI
         id: install-aws-cli
-        uses: unfor19/install-aws-cli-action@v1
+        uses: unfor19/install-aws-cli-action@f5b46b7f32cf5e7ebd652656c5036bf83dd1e60c # 1.0.8
 
       - name: Push Tag to Parameter Store
         run: |
-          aws ssm put-parameter --name "opg-sirius-supervision-finance-hub-latest-green-build" --type "String" --value "${{ needs.build-and-push.outputs.tag }}" --overwrite --region=eu-west-1
+          aws ssm put-parameter --name "opg-sirius-supervision-finance-hub-latest-green-build" --type "String" --value "${{ needs.create-tag.outputs.tag }}" --overwrite --region=eu-west-1
 
-      # - name: Trigger Dev Deploy
-      #   shell: bash
-      #   run: curl -u ${{ secrets.JENKINS_API_USER }}:${{ secrets.JENKINS_API_TOKEN }} "https://${{ secrets.JENKINS_URL }}/job/Sirius/job/Deploy_to_Development/build?token=${{ secrets.JENKINS_API_TOKEN_NAME }}&cause=Triggered+by+opg-sirius-supervision-finance-hub"
+      - name: Trigger Dev Deploy
+        shell: bash
+        run: curl -u ${{ secrets.JENKINS_API_USER }}:${{ secrets.JENKINS_API_TOKEN }} "https://${{ secrets.JENKINS_URL }}/job/Sirius/job/Deploy_to_Development/build?token=${{ secrets.JENKINS_API_TOKEN_NAME }}&cause=Triggered+by+opg-sirius-supervision-finance-hub"

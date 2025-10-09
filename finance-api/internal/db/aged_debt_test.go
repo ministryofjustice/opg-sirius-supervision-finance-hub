@@ -11,13 +11,13 @@ import (
 func (suite *IntegrationSuite) Test_aged_debt() {
 	ctx := suite.ctx
 	today := suite.seeder.Today()
-	yesterday := suite.seeder.Today().Sub(0, 0, 1)
-	twoMonthsAgo := suite.seeder.Today().Sub(0, 2, 0)
-	oneYearAgo := suite.seeder.Today().Sub(1, 0, 0)
-	twoYearsAgo := suite.seeder.Today().Sub(2, 0, 0)
-	fourYearsAgo := suite.seeder.Today().Sub(4, 0, 0)
-	fiveYearsAgo := suite.seeder.Today().Sub(5, 0, 0)
-	sixYearsAgo := suite.seeder.Today().Sub(6, 0, 0)
+	yesterday := today.Sub(0, 0, 1)
+	twoMonthsAgo := today.Sub(0, 2, 0)
+	oneYearAgo := today.Sub(1, 0, 0)
+	twoYearsAgo := today.Sub(2, 0, 0)
+	fourYearsAgo := today.Sub(4, 0, 0)
+	fiveYearsAgo := today.Sub(5, 0, 0)
+	sixYearsAgo := today.Sub(6, 0, 0)
 	general := "320.00"
 
 	// one client with:
@@ -25,15 +25,15 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	// - an active order
 	// - one written off invoice
 	// - one active invoice (2024)
-	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234")
+	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234", "ACTIVE")
 	suite.seeder.CreateDeputy(ctx, client1ID, "Suzie", "Deputy", "LAY")
-	suite.seeder.CreateOrder(ctx, client1ID, "ACTIVE")
+	suite.seeder.CreateOrder(ctx, client1ID)
 	unpaidInvoiceID, c1i1Ref := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeGA, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
 	paidInvoiceID, _ := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
-	suite.seeder.CreateAdjustment(ctx, client1ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 10000, "Written off", nil)
+	suite.seeder.CreateAdjustment(ctx, client1ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 0, "Written off", nil)
 	// ignore these as legacy data with APPROVED ledger status
 	suite.seeder.SeedData(
-		fmt.Sprintf("INSERT INTO supervision_finance.ledger VALUES (99, 'ignore-me', '2022-04-11T08:36:40+00:00', '', 99999, '', 'CREDIT REMISSION', 'APPROVED', %d, NULL, NULL, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 65);", client1ID),
+		fmt.Sprintf("INSERT INTO supervision_finance.ledger VALUES (99, 'ignore-me', '2022-04-11T08:36:40+00:00', '', 99999, '', 'CREDIT REMISSION', 'APPROVED', %d, NULL, NULL, '11/04/2022', '12/04/2022', 1254, '', '', 1, '05/05/2022', 2);", client1ID),
 		fmt.Sprintf("INSERT INTO supervision_finance.ledger_allocation VALUES (99, 99, %d, '2022-04-11T08:36:40+00:00', 99999, 'ALLOCATED', NULL, 'Notes here', '2022-04-11', NULL);", unpaidInvoiceID),
 	)
 
@@ -42,20 +42,19 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	// - a closed order
 	// - one active invoice (2020) with hardship reduction
 	// - one active invoice (2022)
-	client2ID := suite.seeder.CreateClient(ctx, "John", "Suite", "87654321", "4321")
+	client2ID := suite.seeder.CreateClient(ctx, "John", "Suite", "87654321", "4321", "ACTIVE")
 	suite.seeder.CreateDeputy(ctx, client2ID, "Jane", "Deputy", "PRO")
-	suite.seeder.CreateOrder(ctx, client2ID, "CLOSED")
-	suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeRemission, strconv.Itoa(fiveYearsAgo.Date().Year()), 2, "A reduction", fiveYearsAgo.Date())
+	suite.seeder.CreateClosedOrder(ctx, client2ID, today.Date(), "")
+	_ = suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeRemission, strconv.Itoa(fiveYearsAgo.Date().Year()), 2, "A reduction", fiveYearsAgo.Date())
 	_, c2i1Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeAD, nil, fourYearsAgo.StringPtr(), nil, nil, nil, nil)
 	_, c2i2Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, &general, twoYearsAgo.StringPtr(), twoYearsAgo.StringPtr(), nil, nil, nil)
 
 	// one client with:
 	// split invoice
 	i3amount := "170.00"
-	client3ID := suite.seeder.CreateClient(ctx, "Freddy", "Splitz", "11111111", "1111")
+	client3ID := suite.seeder.CreateClient(ctx, "Freddy", "Splitz", "11111111", "1111", "ACTIVE")
 	suite.seeder.CreateDeputy(ctx, client3ID, "Frank", "Deputy", "LAY")
-	suite.seeder.CreateOrder(ctx, client3ID, "ACTIVE")
-	suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeRemission, strconv.Itoa(twoYearsAgo.Date().Year()), 2, "A reduction", twoYearsAgo.Date())
+	suite.seeder.CreateOrder(ctx, client3ID)
 	c3i1ID, c3i1Ref := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeS2, &i3amount, oneYearAgo.StringPtr(), oneYearAgo.StringPtr(), nil, nil, nil)
 	suite.seeder.AddFeeRanges(ctx, c3i1ID, []testhelpers.FeeRange{
 		{FromDate: oneYearAgo.Date(), ToDate: oneYearAgo.Add(0, 6, 0).Date(), SupervisionLevel: "GENERAL", Amount: 16000},
@@ -63,9 +62,9 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	})
 
 	// excluded clients as out of range
-	excluded1ID := suite.seeder.CreateClient(ctx, "Too", "Early", "99999999", "9999")
+	excluded1ID := suite.seeder.CreateClient(ctx, "Too", "Early", "99999999", "9999", "ACTIVE")
 	suite.seeder.CreateInvoice(ctx, excluded1ID, shared.InvoiceTypeAD, nil, sixYearsAgo.StringPtr(), nil, nil, nil, nil)
-	excluded2ID := suite.seeder.CreateClient(ctx, "Too", "Early", "99999999", "9999")
+	excluded2ID := suite.seeder.CreateClient(ctx, "Too", "Early", "99999999", "", "ACTIVE")
 	suite.seeder.CreateInvoice(ctx, excluded2ID, shared.InvoiceTypeAD, nil, today.StringPtr(), nil, nil, nil, nil)
 
 	c := Client{suite.seeder.Conn}
@@ -73,7 +72,10 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	from := shared.NewDate(fourYearsAgo.String())
 	to := shared.NewDate(yesterday.String())
 
-	rows, err := c.Run(ctx, &AgedDebt{FromDate: &from, ToDate: &to})
+	rows, err := c.Run(ctx, NewAgedDebt(AgedDebtInput{
+		FromDate: &from,
+		ToDate:   &to,
+	}))
 
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), 5, len(rows))
@@ -90,7 +92,7 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	assert.Equal(suite.T(), "=\"0470\"", results[0]["Entity"], "Entity - client 1")
 	assert.Equal(suite.T(), "99999999", results[0]["Receivable cost centre"], "Receivable cost centre - client 1")
 	assert.Equal(suite.T(), "BALANCE SHEET", results[0]["Receivable cost centre description"], "Receivable cost centre description - client 1")
-	assert.Equal(suite.T(), "1816100000", results[0]["Receivable account code"], "Receivable account code - client 1")
+	assert.Equal(suite.T(), "1816102003", results[0]["Receivable account code"], "Receivable account code - client 1")
 	assert.Equal(suite.T(), "10486000", results[0]["Revenue cost centre"], "Revenue cost centre - client 1")
 	assert.Equal(suite.T(), "Allocations, HW & SIS BISD", results[0]["Revenue cost centre description"], "Revenue cost centre description - client 1")
 	assert.Equal(suite.T(), "4481102104", results[0]["Revenue account code"], "Revenue account code - client 1")
@@ -121,7 +123,7 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	assert.Equal(suite.T(), "=\"0470\"", results[1]["Entity"], "Entity - client 2, invoice 1")
 	assert.Equal(suite.T(), "99999999", results[1]["Receivable cost centre"], "Receivable cost centre - client 2, invoice 1")
 	assert.Equal(suite.T(), "BALANCE SHEET", results[1]["Receivable cost centre description"], "Receivable cost centre description - client 2, invoice 1")
-	assert.Equal(suite.T(), "1816100000", results[1]["Receivable account code"], "Receivable account code - client 2, invoice 1")
+	assert.Equal(suite.T(), "1816102003", results[1]["Receivable account code"], "Receivable account code - client 2, invoice 1")
 	assert.Equal(suite.T(), "10482009", results[1]["Revenue cost centre"], "Revenue cost centre - client 2, invoice 1")
 	assert.Equal(suite.T(), "Supervision Investigations", results[1]["Revenue cost centre description"], "Revenue cost centre description - client 2, invoice 1")
 	assert.Equal(suite.T(), "4481102093", results[1]["Revenue account code"], "Revenue account code - client 2, invoice 1")
@@ -152,7 +154,7 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	assert.Equal(suite.T(), "=\"0470\"", results[2]["Entity"], "Entity - client 2, invoice 2")
 	assert.Equal(suite.T(), "99999999", results[2]["Receivable cost centre"], "Receivable cost centre - client 2, invoice 2")
 	assert.Equal(suite.T(), "BALANCE SHEET", results[2]["Receivable cost centre description"], "Receivable cost centre description - client 2, invoice 2")
-	assert.Equal(suite.T(), "1816100000", results[2]["Receivable account code"], "Receivable account code - client 2, invoice 2")
+	assert.Equal(suite.T(), "1816102003", results[2]["Receivable account code"], "Receivable account code - client 2, invoice 2")
 	assert.Equal(suite.T(), "10482009", results[2]["Revenue cost centre"], "Revenue cost centre - client 2, invoice 2")
 	assert.Equal(suite.T(), "Supervision Investigations", results[2]["Revenue cost centre description"], "Revenue cost centre description - client 2, invoice 2")
 	assert.Equal(suite.T(), "4481102094", results[2]["Revenue account code"], "Revenue account code - client 2, invoice 2")
@@ -182,7 +184,7 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	assert.Equal(suite.T(), "=\"0470\"", results[3]["Entity"], "Entity - client 3")
 	assert.Equal(suite.T(), "99999999", results[3]["Receivable cost centre"], "Receivable cost centre - client 3")
 	assert.Equal(suite.T(), "BALANCE SHEET", results[3]["Receivable cost centre description"], "Receivable cost centre description - client 3")
-	assert.Equal(suite.T(), "1816100000", results[3]["Receivable account code"], "Receivable account code - client 3")
+	assert.Equal(suite.T(), "1816102003", results[3]["Receivable account code"], "Receivable account code - client 3")
 	assert.Equal(suite.T(), "10482009", results[3]["Revenue cost centre"], "Revenue cost centre - client 3")
 	assert.Equal(suite.T(), "Supervision Investigations", results[3]["Revenue cost centre description"], "Revenue cost centre description - client 3")
 	assert.Equal(suite.T(), "4481102094", results[3]["Revenue account code"], "Revenue account code - client 3")

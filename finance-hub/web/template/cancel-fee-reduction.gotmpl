@@ -1,4 +1,4 @@
-{{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.CancelFeeReductions*/ -}}
+{{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.CancelFeeReductionForm*/ -}}
 {{ template "page" . }}
 
 {{ define "title" }}Award fee reduction{{ end }}
@@ -17,8 +17,9 @@
                         class="govuk-grid-column-one-third"
                         method="post"
                         hx-post="{{ prefix (printf "/clients/%s/fee-reductions/%s/cancel" .ClientId .Id) }}"
-                        hx-target="#error-summary">
-                        <input type="hidden" name="xsrfToken" value="{{ .AppVars.XSRFToken }}"/>
+                        hx-target="#error-summary"
+                        hx-disabled-elt="find button">
+                        <input type="hidden" name="CSRF" value="{{ .AppVars.XSRFToken }}"/>
 
                         <div class="govuk-character-count" data-module="govuk-character-count" data-maxlength="1000">
                             <div id="f-CancellationReason" class="govuk-form-group{{ if index .AppVars.Errors "CancellationReason" }} govuk-form-group--error{{ end }}">

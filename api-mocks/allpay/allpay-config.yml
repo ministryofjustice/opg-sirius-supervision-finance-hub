@@ -1,0 +1,127 @@
+plugin: openapi
+specFile: openapi.yml
+
+validation:
+  request: true
+
+resources:
+  - path: "/AllpayApi/Customers/{SchemeCode}/VariableMandates/Create"
+    method: post
+    response:
+      statusCode: 200
+      file: data/success.json
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/VariableMandates/Create"
+    method: post
+    requestBody:
+      jsonPath: $.LastName
+      value: allpay_mandate_validation
+      operator: contains
+    response:
+      statusCode: 422
+      file: data/validation.json
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/VariableMandates/Create"
+    method: post
+    requestBody:
+      jsonPath: $.LastName
+      value: allpay_mandate_fail
+      operator: contains
+    response:
+      statusCode: 400
+      content: "Bad Request - Please check the format of your body request"
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/VariableMandates"
+    method: post
+    response:
+      statusCode: 200
+      file: data/success.json
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/VariableMandates"
+    method: post
+    pathParams:
+      # allpay_mandate_validation
+       Surname: YWxscGF5X21hbmRhdGVfdmFsaWRhdGlvbg==
+    response:
+      statusCode: 422
+      file: data/validation.json
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/VariableMandates"
+    method: post
+    pathParams:
+      # allpay_schedule_fail
+      Surname: YWxscGF5X3NjaGVkdWxlX2ZhaWw=
+    response:
+      statusCode: 400
+      content: "Bad Request - Please check the format of your body request"
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/{Date}"
+    method: post
+    response:
+      statusCode: 200
+      file: data/success.json
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/{Date}"
+    method: post
+    requestBody:
+      jsonPath: $.LastName
+      value: allpay_cancel_fail
+      operator: contains
+    response:
+      statusCode: 400
+      content: "Bad Request - Please check the format of your body request"
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/Mandates/FailedPayments/{FromDate}/{ToDate}/{Page}"
+    method: get
+    pathParams:
+      Page: 1
+    response:
+      statusCode: 200
+      file: data/failed_payments_page_1.json
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/Mandates/FailedPayments/{FromDate}/{ToDate}/{Page}"
+    method: get
+    pathParams:
+      Page: 2
+    response:
+      statusCode: 200
+      file: data/failed_payments_page_2.json
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/Mandates/FailedPayments/{FromDate}/{ToDate}/{Page}"
+    method: get
+    pathParams:
+      Page: 3
+    response:
+      statusCode: 200
+      file: data/failed_payments_page_3.json
+
+  - path: "/AllpayApi/BankAccounts"
+    method: get
+    response:
+      statusCode: 200
+      file: data/mod_check_success.json
+
+  - path: "/AllpayApi/BankAccounts"
+    method: get
+    queryParams:
+      accountnumber: 99999999
+    response:
+      statusCode: 200
+      file: data/mod_check_invalid_combo.json
+
+  - path: "/AllpayApi/BankAccounts"
+    method: get
+    queryParams:
+      sortcode: 99-99-99
+    response:
+      statusCode: 200
+      file: data/mod_check_invalid_sortcode.json
+
+  - path: "/AllpayApi/BankAccounts"
+    method: get
+    queryParams:
+      sortcode: 00-00-00
+    response:
+      statusCode: 200
+      file: data/mod_check_nonexistent_sortcode.json
+

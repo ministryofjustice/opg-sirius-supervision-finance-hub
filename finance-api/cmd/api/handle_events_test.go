@@ -3,13 +3,16 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 func TestServer_handleEvents(t *testing.T) {
@@ -31,16 +34,6 @@ func TestServer_handleEvents(t *testing.T) {
 			expectedHandler: "ReapplyCredit",
 		},
 		{
-			name: "upload event",
-			event: shared.Event{
-				Source:     "opg.supervision.finance.admin",
-				DetailType: "finance-admin-upload",
-				Detail:     shared.FinanceAdminUploadEvent{Filename: "file.csv", EmailAddress: "hello@test.com"},
-			},
-			expectedErr:     nil,
-			expectedHandler: "ProcessFinanceAdminUpload",
-		},
-		{
 			name: "client created event",
 			event: shared.Event{
 				Source:     "opg.supervision.sirius",
@@ -49,6 +42,36 @@ func TestServer_handleEvents(t *testing.T) {
 			},
 			expectedErr:     nil,
 			expectedHandler: "UpdateClient",
+		},
+		{
+			name: "client made inactive event",
+			event: shared.Event{
+				Source:     "opg.supervision.sirius",
+				DetailType: "client-made-inactive",
+				Detail:     shared.ClientMadeInactiveEvent{ClientID: 1, CourtRef: "12345678", Surname: "Smith"},
+			},
+			expectedErr:     nil,
+			expectedHandler: "CancelDirectDebitMandate",
+		},
+		{
+			name: "adhoc event",
+			event: shared.Event{
+				Source:     "opg.supervision.finance.adhoc",
+				DetailType: "finance-adhoc",
+				Detail:     shared.AdhocEvent{Task: "RebalanceCCB"},
+			},
+			expectedErr:     nil,
+			expectedHandler: "ProcessAdhocEvent",
+		},
+		{
+			name: "scheduled event",
+			event: shared.Event{
+				Source:     "opg.supervision.infra",
+				DetailType: "scheduled-event",
+				Detail:     shared.ScheduledEvent{Trigger: "refund-expiry"},
+			},
+			expectedErr:     nil,
+			expectedHandler: "ExpireRefunds",
 		},
 		{
 			name: "unknown event",
@@ -60,10 +83,14 @@ func TestServer_handleEvents(t *testing.T) {
 			expectedHandler: "",
 		},
 	}
+
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			mock := &mockService{}
-			server := NewServer(mock, nil, nil, nil, nil)
+			fileStorage := &mockFileStorage{}
+			fileStorage.data = io.NopCloser(strings.NewReader("test"))
+			notifyClient := &mockNotify{}
+			server := NewServer(mock, nil, fileStorage, notifyClient, nil, nil, nil)
 
 			var body bytes.Buffer
 			_ = json.NewEncoder(&body).Encode(test.event)
@@ -78,7 +105,11 @@ func TestServer_handleEvents(t *testing.T) {
 			} else {
 				assert.Nil(t, err)
 			}
-			assert.Equal(t, test.expectedHandler, mock.lastCalled)
+			if test.expectedHandler != "" {
+				assert.Equal(t, test.expectedHandler, mock.called[0])
+			} else {
+				assert.Len(t, mock.called, 0)
+			}
 		})
 	}
 }

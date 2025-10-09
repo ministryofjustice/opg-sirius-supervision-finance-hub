@@ -14,6 +14,10 @@ describe("Customer credit balance", () => {
         cy.get("table#ledger-allocations > tbody > tr").should("have.length", 1)
             .contains('[data-cy="ledger-amount-data"]', "£30");
 
+        // check add refund button not showing
+        cy.get('[data-cy="refunds"]').click();
+        cy.get(".moj-button-menu").should("not.contain", "Add refund");
+
         // apply fee reduction
         cy.get('[data-cy="fee-reductions"]').click();
         cy.contains("a", "Award a fee reduction").click();
@@ -45,13 +49,17 @@ describe("Customer credit balance", () => {
             cy.contains("Total credit balance: £30");
         });
 
+        // check add refund button now shows
+        cy.get('[data-cy="refunds"]').click();
+        cy.get(".moj-button-menu").contains("Add refund");
+
         // check billing history
         cy.visit("/clients/7/billing-history");
 
         const now = new Date().toLocaleDateString("en-UK");
         cy.get(".moj-timeline__item").first().within((el) => {
             cy.get(".moj-timeline__title").contains("Hardship credit of £100 applied to AD77777/24");
-            cy.get(".moj-timeline__byline").contains(`by Super User, ${now}`);
+            cy.get(".moj-timeline__byline").contains(`by Ian Admin, ${now}`);
             cy.get(".moj-timeline__date").contains("Outstanding balance: £0 Credit balance: £30");
             cy.get(".govuk-list > li")
                 .first().contains("£100 applied to AD77777/24")
@@ -85,11 +93,11 @@ describe("Customer credit balance", () => {
 
         const now = new Date().toLocaleDateString("en-UK");
         cy.get(".moj-timeline__item").first().within((el) => {
-            cy.get(".moj-timeline__title").contains("£30 reapplied to AD000001/22");
-            cy.get(".moj-timeline__byline").contains(`by Super User, ${now}`);
+            cy.get(".moj-timeline__title").contains("£30 reapplied to AD000001/21");
+            cy.get(".moj-timeline__byline").contains(`by Ian Admin, ${now}`);
             cy.get(".moj-timeline__date").contains("Outstanding balance: £70 Credit balance: £0");
             cy.get(".govuk-list > li")
-                .first().contains("£30 reapplied to AD000001/22");
+                .first().contains("£30 reapplied to AD000001/21");
         });
     });
 });

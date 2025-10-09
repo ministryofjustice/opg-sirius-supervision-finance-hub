@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 func TestServer_updatePendingInvoiceAdjustment(t *testing.T) {
@@ -25,11 +26,11 @@ func TestServer_updatePendingInvoiceAdjustment(t *testing.T) {
 	validator, _ := validation.New()
 
 	mock := &mockService{}
-	server := NewServer(mock, nil, nil, validator, nil)
+	server := NewServer(mock, nil, nil, nil, nil, validator, nil)
 	_ = server.updatePendingInvoiceAdjustment(w, req)
 
 	res := w.Result()
-	defer res.Body.Close()
+	defer unchecked(res.Body.Close)
 
 	expected := ""
 
@@ -48,8 +49,8 @@ func TestServer_updatePendingInvoiceAdjustment500Error(t *testing.T) {
 
 	validator, _ := validation.New()
 
-	mock := &mockService{err: errors.New("Something is wrong")}
-	server := NewServer(mock, nil, nil, validator, nil)
+	mock := &mockService{errs: map[string]error{"UpdatePendingInvoiceAdjustment": errors.New("something is wrong")}}
+	server := NewServer(mock, nil, nil, nil, nil, validator, nil)
 	err := server.updatePendingInvoiceAdjustment(w, req)
 
 	assert.Error(t, err)
@@ -66,8 +67,8 @@ func TestServer_updatePendingInvoiceAdjustmentValidationError(t *testing.T) {
 
 	validator, _ := validation.New()
 
-	mock := &mockService{err: errors.New("Something is wrong")}
-	server := NewServer(mock, nil, nil, validator, nil)
+	mock := &mockService{errs: map[string]error{"UpdatePendingInvoiceAdjustment": errors.New("something is wrong")}}
+	server := NewServer(mock, nil, nil, nil, nil, validator, nil)
 	err := server.updatePendingInvoiceAdjustment(w, req)
 
 	expected := apierror.ValidationError{Errors: apierror.ValidationErrors{

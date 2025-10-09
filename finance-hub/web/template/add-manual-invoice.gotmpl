@@ -1,4 +1,4 @@
-{{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.UpdateManualInvoiceHandler*/ -}}
+{{- /*gotype: github.com/ministryofjustice/opg-sirius-supervision-finance-hub/internal/server.AddManualInvoiceForm*/ -}}
 {{ template "page" . }}
 
 {{ define "title" }}Add manual invoice{{ end }}
@@ -17,8 +17,10 @@
                         class="govuk-grid-column-one-third"
                         method="post"
                         hx-post="{{ prefix (printf "/clients/%s/invoices" .ClientId) }}"
-                        hx-target="#error-summary">
-                        <input type="hidden" name="xsrfToken" value="{{ .AppVars.XSRFToken }}"/>
+                        hx-target="#error-summary"
+                        hx-disabled-elt="find button"
+                        >
+                        <input type="hidden" name="CSRF" value="{{ .AppVars.XSRFToken }}"/>
 
                         <div class="govuk-form-group" id="f-InvoiceType">
                             <label class="govuk-label" for="invoice-type">

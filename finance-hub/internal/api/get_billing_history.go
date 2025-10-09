@@ -1,13 +1,14 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"net/http"
 )
 
-func (c *ApiClient) GetBillingHistory(ctx Context, clientId int) ([]shared.BillingHistory, error) {
+func (c *Client) GetBillingHistory(ctx context.Context, clientId int) ([]shared.BillingHistory, error) {
 	var billingHistory []shared.BillingHistory
 
 	url := fmt.Sprintf("/clients/%d/billing-history", clientId)
@@ -23,7 +24,7 @@ func (c *ApiClient) GetBillingHistory(ctx Context, clientId int) ([]shared.Billi
 		return billingHistory, err
 	}
 
-	defer resp.Body.Close()
+	defer unchecked(resp.Body.Close)
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		return billingHistory, ErrUnauthorized
@@ -33,9 +34,7 @@ func (c *ApiClient) GetBillingHistory(ctx Context, clientId int) ([]shared.Billi
 		return billingHistory, newStatusError(resp)
 	}
 
-	if err = json.NewDecoder(resp.Body).Decode(&billingHistory); err != nil {
-		return billingHistory, err
-	}
+	err = json.NewDecoder(resp.Body).Decode(&billingHistory)
 
 	return billingHistory, err
 }

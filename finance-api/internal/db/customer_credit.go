@@ -1,6 +1,12 @@
 package db
 
-type CustomerCredit struct{}
+type CustomerCredit struct{ ReportQuery }
+
+func NewCustomerCredit() ReportQuery {
+	return &CustomerCredit{
+		ReportQuery: NewReportQuery(CustomerCreditQuery),
+	}
+}
 
 const CustomerCreditQuery = `SELECT CONCAT(p.firstname, ' ', p.surname)   AS "Customer Name",
 								   p.caserecnumber                       AS "Customer number",
@@ -12,7 +18,7 @@ const CustomerCreditQuery = `SELECT CONCAT(p.firstname, ' ', p.surname)   AS "Cu
 									 JOIN supervision_finance.ledger_allocation la ON l.id = la.ledger_id
 							WHERE la.status IN ('UNAPPLIED', 'REAPPLIED')
 							GROUP BY p.caserecnumber, CONCAT(p.firstname, ' ', p.surname), fc.sop_number
-							HAVING SUM(la.amount) < 0;`
+							HAVING SUM(la.amount) < 0;` // #nosec G101 -- False Positive
 
 func (c *CustomerCredit) GetHeaders() []string {
 	return []string{
@@ -21,12 +27,4 @@ func (c *CustomerCredit) GetHeaders() []string {
 		"SOP number",
 		"Credit balance",
 	}
-}
-
-func (c *CustomerCredit) GetQuery() string {
-	return CustomerCreditQuery
-}
-
-func (c *CustomerCredit) GetParams() []any {
-	return []any{}
 }

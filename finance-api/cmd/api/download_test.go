@@ -2,13 +2,10 @@ package api
 
 import (
 	"bytes"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/stretchr/testify/assert"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -22,17 +19,14 @@ func TestServer_download(t *testing.T) {
 
 	fileContent := "col1,col2,col3\n1,a,Z\n"
 
-	mockS3 := MockFileStorage{}
-	mockS3.outgoingObject = &s3.GetObjectOutput{
-		Body:        io.NopCloser(bytes.NewBufferString(fileContent)),
-		ContentType: aws.String("text/csv"),
-	}
+	mockS3 := mockFileStorage{}
+	mockS3.data = bytes.NewBufferString(fileContent)
 
-	server := NewServer(nil, nil, &mockS3, nil, &Envs{ReportsBucket: "test"})
+	server := NewServer(nil, nil, &mockS3, nil, nil, nil, &Envs{ReportsBucket: "test"})
 	_ = server.download(w, r)
 
 	res := w.Result()
-	defer res.Body.Close()
+	defer unchecked(res.Body.Close)
 
 	assert.Equal(t, fileContent, w.Body.String())
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -46,9 +40,9 @@ func TestServer_download_noMatch(t *testing.T) {
 	r = r.WithContext(ctx)
 	w := httptest.NewRecorder()
 
-	mockS3 := MockFileStorage{}
+	mockS3 := mockFileStorage{}
 	mockS3.err = &types.NoSuchKey{}
-	server := NewServer(nil, nil, &mockS3, nil, &Envs{ReportsBucket: "test"})
+	server := NewServer(nil, nil, &mockS3, nil, nil, nil, &Envs{ReportsBucket: "test"})
 
 	err := server.download(w, r)
 

@@ -99,9 +99,11 @@ type mockQueryReport struct {
 
 func (m mockQueryReport) GetQuery() string { return "" }
 func (m mockQueryReport) GetParams() []any { return nil }
-
 func (m mockQueryReport) GetHeaders() []string {
 	return m.headers
+}
+func (m mockQueryReport) GetCallback() func(row pgx.CollectableRow) ([]string, error) {
+	return rowToStringMap
 }
 
 func TestRun(t *testing.T) {

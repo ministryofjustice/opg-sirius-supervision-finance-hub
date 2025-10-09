@@ -4,15 +4,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestServer_addFeeReductions(t *testing.T) {
@@ -38,11 +39,11 @@ func TestServer_addFeeReductions(t *testing.T) {
 	validator, _ := validation.New()
 
 	mock := &mockService{feeReduction: feeReductionInfo}
-	server := NewServer(mock, nil, nil, validator, nil)
+	server := NewServer(mock, nil, nil, nil, nil, validator, nil)
 	_ = server.addFeeReduction(w, req)
 
 	res := w.Result()
-	defer res.Body.Close()
+	defer unchecked(res.Body.Close)
 
 	expected := ""
 
@@ -67,7 +68,7 @@ func TestServer_addFeeReductionsValidationErrors(t *testing.T) {
 	validator, _ := validation.New()
 
 	mock := &mockService{feeReduction: feeReductionInfo}
-	server := NewServer(mock, nil, nil, validator, nil)
+	server := NewServer(mock, nil, nil, nil, nil, validator, nil)
 	err := server.addFeeReduction(w, req)
 
 	expected := apierror.ValidationError{Errors: apierror.ValidationErrors{
@@ -113,7 +114,7 @@ func TestServer_addFeeReductionsValidationErrorsForThousandCharacters(t *testing
 	validator, _ := validation.New()
 
 	mock := &mockService{feeReduction: feeReductionInfo}
-	server := NewServer(mock, nil, nil, validator, nil)
+	server := NewServer(mock, nil, nil, nil, nil, validator, nil)
 	err := server.addFeeReduction(w, req)
 
 	expected := apierror.ValidationError{Errors: apierror.ValidationErrors{
@@ -145,8 +146,8 @@ func TestServer_addFeeReductionsOverlapError(t *testing.T) {
 
 	validator, _ := validation.New()
 
-	mock := &mockService{feeReduction: feeReductionInfo, err: apierror.BadRequest{Reason: "overlap"}}
-	server := NewServer(mock, nil, nil, validator, nil)
+	mock := &mockService{feeReduction: feeReductionInfo, errs: map[string]error{"AddFeeReduction": apierror.BadRequest{Reason: "overlap"}}}
+	server := NewServer(mock, nil, nil, nil, nil, validator, nil)
 	err := server.addFeeReduction(w, req)
 
 	var e apierror.BadRequest
@@ -174,8 +175,8 @@ func TestServer_addFeeReductions500Error(t *testing.T) {
 
 	validator, _ := validation.New()
 
-	mock := &mockService{feeReduction: feeReductionInfo, err: errors.New("something is wrong")}
-	server := NewServer(mock, nil, nil, validator, nil)
+	mock := &mockService{feeReduction: feeReductionInfo, errs: map[string]error{"AddFeeReduction": errors.New("something is wrong")}}
+	server := NewServer(mock, nil, nil, nil, nil, validator, nil)
 	err := server.addFeeReduction(w, req)
 	assert.Error(t, err)
 }

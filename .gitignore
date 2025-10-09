@@ -11,6 +11,10 @@ cypress/videos
 cypress/downloads
 /cypress/cypress/
 
+# Zap reports
+zap/FinanceHubReport/
+zap/FinanceHubReport.*
+
 # binaries
 /main
 

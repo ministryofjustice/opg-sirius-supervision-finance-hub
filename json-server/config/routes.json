@@ -1,4 +1,5 @@
 {
     "/supervision-api/v1/*": "/$1",
-    "/users/current": "/users/65"
+    "/v2/notifications/email": "/notify",
+    "/clean/*": "/notify/$1"
 }

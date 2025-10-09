@@ -13,7 +13,7 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 
 	var event shared.Event
-	defer r.Body.Close()
+	defer unchecked(r.Body.Close)
 
 	if err := json.NewDecoder(r.Body).Decode(&event); err != nil {
 		return apierror.BadRequestError("event", "unable to parse event", err)
@@ -21,7 +21,7 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
 
 	if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeDebtPositionChanged {
 		if detail, ok := event.Detail.(shared.DebtPositionChangedEvent); ok {
-			err := s.service.ReapplyCredit(ctx, int32(detail.ClientID))
+			err := s.service.ReapplyCredit(ctx, detail.ClientID, nil)
 			if err != nil {
 				return err
 			}
@@ -33,9 +33,27 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
 				return err
 			}
 		}
-	} else if event.Source == shared.EventSourceFinanceAdmin && event.DetailType == shared.DetailTypeFinanceAdminUpload {
-		if detail, ok := event.Detail.(shared.FinanceAdminUploadEvent); ok {
-			err := s.service.ProcessFinanceAdminUpload(ctx, detail)
+	} else if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeClientMadeInactive {
+		if detail, ok := event.Detail.(shared.ClientMadeInactiveEvent); ok {
+			allPayCustomer := shared.AllPayCustomer{
+				Surname:         detail.Surname,
+				ClientReference: detail.CourtRef,
+			}
+			err := s.service.CancelDirectDebitMandate(ctx, detail.ClientID, shared.CancelMandate{AllPayCustomer: allPayCustomer})
+			if err != nil {
+				return err
+			}
+		}
+	} else if event.Source == shared.EventSourceFinanceAdhoc && event.DetailType == shared.DetailTypeFinanceAdhoc {
+		if detail, ok := event.Detail.(shared.AdhocEvent); ok {
+			err := s.processAdhocEvent(ctx, detail)
+			if err != nil {
+				return err
+			}
+		}
+	} else if event.Source == shared.EventSourceInfra && event.DetailType == shared.DetailTypeScheduledEvent {
+		if detail, ok := event.Detail.(shared.ScheduledEvent); ok {
+			err := s.processScheduledEvent(ctx, detail)
 			if err != nil {
 				return err
 			}

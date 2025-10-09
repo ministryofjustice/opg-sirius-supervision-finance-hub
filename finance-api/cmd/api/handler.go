@@ -1,20 +1,33 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"log/slog"
 	"net/http"
+	"runtime/debug"
 )
 
 type handlerFunc func(w http.ResponseWriter, r *http.Request) error
 
 func (f handlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if rcv := recover(); rcv != nil {
+			logger := telemetry.LoggerFromContext(r.Context())
+			logger.Error("panic recovered", slog.Any("error", rcv), slog.String("stack", string(debug.Stack())))
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		}
+	}()
+
 	if err := f(w, r); err != nil {
-		ctx := r.Context()
-		logger := telemetry.LoggerFromContext(ctx)
-		logger.Error("an api error occurred", slog.String("err", err.Error()))
+		var valErr apierror.ValidationError
+		if !errors.As(err, &valErr) && !errors.Is(err, context.Canceled) {
+			logger := telemetry.LoggerFromContext(r.Context())
+			logger.Error("an api error occurred", slog.String("err", err.Error()))
+		}
 		writeError(w, err)
 	}
 }

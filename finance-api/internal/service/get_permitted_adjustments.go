@@ -3,11 +3,14 @@ package service
 import (
 	"context"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"log/slog"
 )
 
-func (s *Service) GetPermittedAdjustments(ctx context.Context, invoiceId int) ([]shared.AdjustmentType, error) {
-	balance, err := s.store.GetInvoiceBalanceDetails(ctx, int32(invoiceId))
+func (s *Service) GetPermittedAdjustments(ctx context.Context, invoiceId int32) ([]shared.AdjustmentType, error) {
+	balance, err := s.store.GetInvoiceBalanceDetails(ctx, invoiceId)
+
 	if err != nil {
+		s.Logger(ctx).Error("Error get invoice balance in get permitted adjustments", slog.String("err", err.Error()))
 		return nil, err
 	}
 
@@ -22,6 +25,16 @@ func (s *Service) GetPermittedAdjustments(ctx context.Context, invoiceId int) ([
 		}
 	} else {
 		permitted = append(permitted, shared.AdjustmentTypeWriteOffReversal)
+	}
+
+	feeReductionDetails, err := s.store.GetInvoiceFeeReductionReversalDetails(ctx, invoiceId)
+	if err != nil {
+		s.Logger(ctx).Error("Error get invoice fee reduction details in get permitted adjustments", slog.String("err", err.Error()))
+		return nil, err
+	}
+
+	if feeReductionDetails.FeeReductionTotal.Int64 > feeReductionDetails.ReversalTotal.Int64 {
+		permitted = append(permitted, shared.AdjustmentTypeFeeReductionReversal)
 	}
 
 	return permitted, nil

@@ -1,8 +1,25 @@
 package shared
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"slices"
+)
 
 type TransactionType int
+
+var paymentTransactionTypes = []TransactionType{
+	TransactionTypeMotoCardPayment,
+	TransactionTypeOnlineCardPayment,
+	TransactionTypeSupervisionBACSPayment,
+	TransactionTypeOPGBACSPayment,
+	TransactionTypeDirectDebitPayment,
+	TransactionTypeSupervisionChequePayment,
+}
+
+var reversalTransactionTypes = []TransactionType{
+	TransactionTypeFeeReductionReversal,
+	TransactionTypeWriteOffReversal,
+}
 
 const (
 	TransactionTypeUnknown TransactionType = iota
@@ -10,6 +27,7 @@ const (
 	TransactionTypeCreditMemo
 	TransactionTypeDebitMemo
 	TransactionTypeWriteOffReversal
+	TransactionTypeFeeReductionReversal
 	TransactionTypeExemption
 	TransactionTypeHardship
 	TransactionTypeRemission
@@ -19,22 +37,32 @@ const (
 	TransactionTypeSupervisionBACSPayment
 	TransactionTypeOPGBACSPayment
 	TransactionTypeDirectDebitPayment
+	TransactionTypeSupervisionChequePayment
+	TransactionTypeSOPUnallocatedPayment
+	TransactionTypeRefund
 )
 
 var TransactionTypeMap = map[string]TransactionType{
-	"CREDIT WRITE OFF":         TransactionTypeWriteOff,
-	"CREDIT MEMO":              TransactionTypeCreditMemo,
-	"DEBIT MEMO":               TransactionTypeDebitMemo,
-	"WRITE OFF REVERSAL":       TransactionTypeWriteOffReversal,
-	"EXEMPTION":                TransactionTypeExemption,
-	"HARDSHIP":                 TransactionTypeHardship,
-	"REMISSION":                TransactionTypeRemission,
-	"CREDIT REAPPLY":           TransactionTypeReapply,
-	"MOTO CARD PAYMENT":        TransactionTypeMotoCardPayment,
-	"ONLINE CARD PAYMENT":      TransactionTypeOnlineCardPayment,
-	"SUPERVISION BACS PAYMENT": TransactionTypeSupervisionBACSPayment,
-	"OPG BACS PAYMENT":         TransactionTypeOPGBACSPayment,
-	"DIRECT DEBIT PAYMENT":     TransactionTypeDirectDebitPayment,
+	"CREDIT WRITE OFF":           TransactionTypeWriteOff,
+	"CREDIT MEMO":                TransactionTypeCreditMemo,
+	"DEBIT MEMO":                 TransactionTypeDebitMemo,
+	"WRITE OFF REVERSAL":         TransactionTypeWriteOffReversal,
+	"FEE REDUCTION REVERSAL":     TransactionTypeFeeReductionReversal,
+	"EXEMPTION":                  TransactionTypeExemption,
+	"CREDIT EXEMPTION":           TransactionTypeExemption,
+	"HARDSHIP":                   TransactionTypeHardship,
+	"CREDIT HARDSHIP":            TransactionTypeHardship,
+	"REMISSION":                  TransactionTypeRemission,
+	"CREDIT REMISSION":           TransactionTypeRemission,
+	"CREDIT REAPPLY":             TransactionTypeReapply,
+	"MOTO CARD PAYMENT":          TransactionTypeMotoCardPayment,
+	"ONLINE CARD PAYMENT":        TransactionTypeOnlineCardPayment,
+	"SUPERVISION BACS PAYMENT":   TransactionTypeSupervisionBACSPayment,
+	"OPG BACS PAYMENT":           TransactionTypeOPGBACSPayment,
+	"DIRECT DEBIT PAYMENT":       TransactionTypeDirectDebitPayment,
+	"SUPERVISION CHEQUE PAYMENT": TransactionTypeSupervisionChequePayment,
+	"SOP UNALLOCATED":            TransactionTypeSOPUnallocatedPayment,
+	"REFUND":                     TransactionTypeRefund,
 }
 
 func (t TransactionType) String() string {
@@ -47,6 +75,8 @@ func (t TransactionType) String() string {
 		return "Debit memo"
 	case TransactionTypeWriteOffReversal:
 		return "Write off reversal"
+	case TransactionTypeFeeReductionReversal:
+		return "Fee reduction reversal"
 	case TransactionTypeExemption:
 		return "Exemption"
 	case TransactionTypeHardship:
@@ -65,6 +95,12 @@ func (t TransactionType) String() string {
 		return "BACS payment (Main account)"
 	case TransactionTypeDirectDebitPayment:
 		return "Direct Debit payment"
+	case TransactionTypeSupervisionChequePayment:
+		return "Cheque payment"
+	case TransactionTypeSOPUnallocatedPayment:
+		return "SOP Unallocated"
+	case TransactionTypeRefund:
+		return "Refund"
 	default:
 		return ""
 	}
@@ -80,6 +116,8 @@ func (t TransactionType) Key() string {
 		return "DEBIT MEMO"
 	case TransactionTypeWriteOffReversal:
 		return "WRITE OFF REVERSAL"
+	case TransactionTypeFeeReductionReversal:
+		return "FEE REDUCTION REVERSAL"
 	case TransactionTypeExemption:
 		return "EXEMPTION"
 	case TransactionTypeHardship:
@@ -98,9 +136,23 @@ func (t TransactionType) Key() string {
 		return "OPG BACS PAYMENT"
 	case TransactionTypeDirectDebitPayment:
 		return "DIRECT DEBIT PAYMENT"
+	case TransactionTypeSupervisionChequePayment:
+		return "SUPERVISION CHEQUE PAYMENT"
+	case TransactionTypeSOPUnallocatedPayment:
+		return "SOP UNALLOCATED"
+	case TransactionTypeRefund:
+		return "REFUND"
 	default:
 		return ""
 	}
+}
+
+func (u TransactionType) IsPayment() bool {
+	return slices.Contains(paymentTransactionTypes, u)
+}
+
+func (u TransactionType) IsReversalType() bool {
+	return slices.Contains(reversalTransactionTypes, u)
 }
 
 func (t TransactionType) Valid() bool {

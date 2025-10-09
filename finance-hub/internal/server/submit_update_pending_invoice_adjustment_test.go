@@ -30,7 +30,7 @@ func TestSubmitApprovePendingInvoiceAdjustmentSuccess(t *testing.T) {
 	err := sut.render(appVars, w, r)
 
 	assert.Nil(t, err)
-	assert.Equal(t, "prefix/clients/1/pending-invoice-adjustments?success=approved-invoice-adjustment[CREDIT]", w.Header().Get("HX-Redirect"))
+	assert.Equal(t, "prefix/clients/1/invoice-adjustments?success=approved-invoice-adjustment[CREDIT]", w.Header().Get("HX-Redirect"))
 }
 
 func TestSubmitRejectPendingInvoiceAdjustmentSuccess(t *testing.T) {
@@ -56,5 +56,5 @@ func TestSubmitRejectPendingInvoiceAdjustmentSuccess(t *testing.T) {
 	err := sut.render(appVars, w, r)
 
 	assert.Nil(t, err)
-	assert.Equal(t, "prefix/clients/1/pending-invoice-adjustments?success=rejected-invoice-adjustment[CREDIT]", w.Header().Get("HX-Redirect"))
+	assert.Equal(t, "prefix/clients/1/invoice-adjustments?success=rejected-invoice-adjustment[CREDIT]", w.Header().Get("HX-Redirect"))
 }

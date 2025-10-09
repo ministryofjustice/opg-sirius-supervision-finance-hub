@@ -2,23 +2,27 @@ package service
 
 import (
 	"context"
-	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"fmt"
+	"log/slog"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
 func processInvoiceData(data shared.AddManualInvoice) shared.AddManualInvoice {
 	switch data.InvoiceType {
 	case shared.InvoiceTypeAD:
-		data.Amount = shared.Nillable[int]{Value: 10000, Valid: true}
+		data.Amount = shared.Nillable[int32]{Value: 10000, Valid: true}
 		data.StartDate = data.RaisedDate
 		data.EndDate = data.RaisedDate
 	case shared.InvoiceTypeGA:
-		data.Amount = shared.Nillable[int]{Value: 20000, Valid: true}
+		data.Amount = shared.Nillable[int32]{Value: 20000, Valid: true}
 		data.StartDate = data.RaisedDate
 		data.EndDate = data.RaisedDate
 	case shared.InvoiceTypeS2, shared.InvoiceTypeB2:
@@ -32,66 +36,93 @@ func processInvoiceData(data shared.AddManualInvoice) shared.AddManualInvoice {
 	return data
 }
 
-func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data shared.AddManualInvoice) error {
+func (s *Service) AddManualInvoice(ctx context.Context, clientId int32, data shared.AddManualInvoice) error {
 	data = processInvoiceData(data)
 	validationErrors := s.validateManualInvoice(data)
-
 	if len(validationErrors) != 0 {
 		return apierror.ValidationError{Errors: validationErrors}
 	}
-
-	ctx, cancelTx := context.WithCancel(ctx)
-	defer cancelTx()
 
 	tx, err := s.BeginStoreTx(ctx)
 	if err != nil {
 		return err
 	}
+	defer tx.Rollback(ctx)
 
 	counter, err := tx.GetInvoiceCounter(ctx, strconv.Itoa(data.StartDate.Value.Time.Year())+"InvoiceNumber")
 	if err != nil {
+		s.Logger(ctx).Error("Get invoice counter has an issue " + err.Error())
 		return err
 	}
 
 	invoiceRef := addLeadingZeros(counter)
 
+	var (
+		personID   pgtype.Int4
+		startDate  pgtype.Date
+		endDate    pgtype.Date
+		raisedDate pgtype.Date
+		source     pgtype.Text
+		createdBy  pgtype.Int4
+	)
+
+	_ = store.ToInt4(&personID, clientId)
+	_ = startDate.Scan(data.StartDate.Value.Time)
+	_ = endDate.Scan(data.EndDate.Value.Time)
+	_ = raisedDate.Scan(data.RaisedDate.Value.Time)
+	_ = source.Scan("Created manually")
+	_ = store.ToInt4(&createdBy, ctx.(auth.Context).User.ID)
+
+	calculateFinanceYear := data.StartDate.Value.CalculateFinanceYear()
+
 	invoiceParams := store.AddInvoiceParams{
-		PersonID:   pgtype.Int4{Int32: int32(clientId), Valid: true},
+		PersonID:   personID,
 		Feetype:    data.InvoiceType.Key(),
-		Reference:  data.InvoiceType.Key() + invoiceRef + "/" + strconv.Itoa(data.StartDate.Value.Time.Year()%100),
-		Startdate:  pgtype.Date{Time: data.StartDate.Value.Time, Valid: true},
-		Enddate:    pgtype.Date{Time: data.EndDate.Value.Time, Valid: true},
-		Amount:     int32(data.Amount.Value),
-		Raiseddate: pgtype.Date{Time: data.RaisedDate.Value.Time, Valid: true},
-		Source:     pgtype.Text{String: "Created manually", Valid: true},
-		//TODO make sure we have correct createdby ID in ticket PFS-136
-		CreatedBy: pgtype.Int4{Int32: int32(1), Valid: true},
+		Reference:  data.InvoiceType.Key() + invoiceRef + "/" + calculateFinanceYear,
+		Startdate:  startDate,
+		Enddate:    endDate,
+		Amount:     data.Amount.Value,
+		Raiseddate: raisedDate,
+		Source:     source,
+		CreatedBy:  createdBy,
 	}
 
 	var invoice store.Invoice
 	invoice, err = tx.AddInvoice(ctx, invoiceParams)
 	if err != nil {
+		s.Logger(ctx).Error("Add invoice has an issue " + err.Error() + fmt.Sprintf("for client %d", clientId))
 		return err
 	}
 
+	var (
+		invoiceID pgtype.Int4
+		fromDate  pgtype.Date
+		toDate    pgtype.Date
+	)
+
+	_ = store.ToInt4(&invoiceID, invoice.ID)
+	_ = fromDate.Scan(data.StartDate.Value.Time)
+	_ = toDate.Scan(data.EndDate.Value.Time)
+
 	if data.SupervisionLevel.Valid {
 		addInvoiceRangeQueryArgs := store.AddInvoiceRangeParams{
-			InvoiceID:        pgtype.Int4{Int32: invoice.ID, Valid: true},
+			InvoiceID:        invoiceID,
 			Supervisionlevel: strings.ToUpper(data.SupervisionLevel.Value),
-			Fromdate:         pgtype.Date{Time: data.StartDate.Value.Time, Valid: true},
-			Todate:           pgtype.Date{Time: data.EndDate.Value.Time, Valid: true},
+			Fromdate:         fromDate,
+			Todate:           toDate,
 			Amount:           invoice.Amount,
 		}
 
 		err = tx.AddInvoiceRange(ctx, addInvoiceRangeQueryArgs)
 		if err != nil {
+			s.Logger(ctx).Error(fmt.Sprintf("Error in add invoice range for invoice %d for client %d", invoiceID.Int32, clientId), slog.String("err", err.Error()))
 			return err
 		}
 	}
 
 	reductionForDateParams := store.GetFeeReductionForDateParams{
-		ClientID:     int32(clientId),
-		Datereceived: invoice.Raiseddate,
+		ClientID:     clientId,
+		DateReceived: invoice.Raiseddate,
 	}
 
 	feeReduction, _ := tx.GetFeeReductionForDate(ctx, reductionForDateParams)
@@ -102,34 +133,36 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int, data share
 			generalSupervisionFee = invoice.Amount
 		}
 		reduction := calculateFeeReduction(shared.ParseFeeReductionType(feeReduction.Type), invoice.Amount, invoice.Feetype, generalSupervisionFee)
-		ledger, allocations := generateLedgerEntries(addLedgerVars{
+		ledger, allocations := generateLedgerEntries(ctx, addLedgerVars{
 			amount:             reduction,
 			transactionType:    shared.ParseFeeReductionType(feeReduction.Type),
 			feeReductionId:     feeReduction.ID,
-			clientId:           int32(clientId),
+			clientId:           clientId,
 			invoiceId:          invoice.ID,
 			outstandingBalance: invoice.Amount,
 		})
-		ledgerId, err := tx.CreateLedger(ctx, ledger)
+		ledgerID, err := tx.CreateLedger(ctx, ledger)
 		if err != nil {
+			s.Logger(ctx).Error(fmt.Sprintf("Error in add fee reduction for ledger %d for client %d", ledgerID, clientId), slog.String("err", err.Error()))
 			return err
 		}
 
 		for _, allocation := range allocations {
-			allocation.LedgerID = pgtype.Int4{Int32: ledgerId, Valid: true}
+			allocation.LedgerID = ledgerID
 			err = tx.CreateLedgerAllocation(ctx, allocation)
 			if err != nil {
+				s.Logger(ctx).Error(fmt.Sprintf("Error in add fee reduction for ledger allocation %d for client %d", ledgerID, clientId), slog.String("err", err.Error()))
 				return err
 			}
 		}
 	}
 
-	commitErr := tx.Commit(ctx)
-	if commitErr != nil {
-		return commitErr
+	err = s.ReapplyCredit(ctx, clientId, tx)
+	if err != nil {
+		return err
 	}
 
-	return s.ReapplyCredit(ctx, int32(clientId))
+	return tx.Commit(ctx)
 }
 
 func (s *Service) validateManualInvoice(data shared.AddManualInvoice) apierror.ValidationErrors {
@@ -137,25 +170,25 @@ func (s *Service) validateManualInvoice(data shared.AddManualInvoice) apierror.V
 
 	if data.InvoiceType.RequiresDateValidation() {
 		if !data.RaisedDate.Value.Time.Before(time.Now()) {
-			validationErrors["RaisedDate"] = map[string]string{"RaisedDate": "Raised BankDate not in the past"}
+			validationErrors["RaisedDate"] = map[string]string{"RaisedDate": "Raised date not in the past"}
 		}
 	}
 
 	if data.InvoiceType.RequiresSameFinancialYearValidation() {
 		isSameFinancialYear := validateSameFinancialYear(data.StartDate.Value, data.EndDate.Value)
 		if !isSameFinancialYear {
-			validationErrors["StartDate"] = map[string]string{"StartDate": "Start BankDate and end BankDate must be in same financial year"}
+			validationErrors["StartDate"] = map[string]string{"StartDate": "Start date and end date must be in same financial year"}
 		}
 	}
 
 	isStartDateValid := validateStartDate(data.StartDate.Value, data.EndDate.Value)
 	if !isStartDateValid {
-		validationErrors["StartDate"] = map[string]string{"StartDate": "Start BankDate must be before end BankDate"}
+		validationErrors["StartDate"] = map[string]string{"StartDate": "Start date must be before end date"}
 	}
 
 	isEndDateValid := validateEndDate(data.StartDate.Value, data.EndDate.Value)
 	if !isEndDateValid {
-		validationErrors["EndDate"] = map[string]string{"EndDate": "End BankDate must be after start BankDate"}
+		validationErrors["EndDate"] = map[string]string{"EndDate": "End date must be after start date"}
 	}
 
 	return validationErrors

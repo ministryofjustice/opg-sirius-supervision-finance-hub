@@ -2,20 +2,33 @@
   "users": [
     {
       "id": 1,
-      "displayName": "Super User",
+      "displayName": "Colin Case",
       "roles": [
-        "Case Manager",
-        "Manager",
-        "Finance Reporting"
+        "Case Manager"
       ]
     },
     {
-      "id": 65,
+      "id": 2,
       "displayName": "Ian Admin",
       "roles": [
-        "Case Manager",
-        "Manager",
-        "Finance Reporting"
+        "Finance User",
+        "Finance Manager",
+        "Finance Reporting",
+        "Corporate Finance"
+      ]
+    },
+    {
+      "id": 3,
+      "displayName": "Usain Userman",
+      "roles": [
+        "Finance User"
+      ]
+    },
+    {
+      "id": 4,
+      "displayName": "Mandy Manager",
+      "roles": [
+        "Finance Manager"
       ]
     },
     {
@@ -31,74 +44,557 @@
       "id": 1,
       "firstname": "Finance",
       "surname": "Person",
-      "caseRecNumber": "12345678"
+      "caseRecNumber": "11111111",
+      "addressLine1": "1 Main Street",
+      "addressLine2": "Mainville",
+      "town": "Mainopolis",
+      "postcode": "MP1 2PM",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
     },
     {
       "id": 2,
       "firstname": "Ian",
       "surname": "Finance",
-      "caseRecNumber": "12345678"
+      "caseRecNumber": "22222222",
+      "addressLine1": "1 Main Street",
+      "addressLine2": "Mainville",
+      "town": "Mainopolis",
+      "postcode": "MP1 2PM",
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
     },
     {
       "id": 3,
       "firstname": "Mandy",
       "surname": "Moneybags",
-      "caseRecNumber": "12345678"
+      "caseRecNumber": "33333333",
+      "addressLine1": "1 Main Street",
+      "addressLine2": "Mainville",
+      "town": "Mainopolis",
+      "postcode": "MP1 2PM",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
     },
     {
       "id": 4,
       "firstname": "Bobby",
       "surname": "Cash",
-      "caseRecNumber": "12345678"
+      "caseRecNumber": "44444444",
+      "addressLine1": "1 Main Street",
+      "addressLine2": "Mainville",
+      "town": "Mainopolis",
+      "postcode": "MP1 2PM",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
     },
     {
       "id": 5,
       "firstname": "Felicity",
       "surname": "Fat-Cat",
-      "caseRecNumber": "12345678"
+      "caseRecNumber": "55555555",
+      "addressLine1": "1 Main Street",
+      "addressLine2": "Mainville",
+      "town": "Mainopolis",
+      "postcode": "MP1 2PM",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
     },
     {
       "id": 6,
       "firstname": "Conrad",
       "surname": "Credit",
-      "caseRecNumber": "12345678"
+      "caseRecNumber": "66666666",
+      "addressLine1": "1 Main Street",
+      "addressLine2": "Mainville",
+      "town": "Mainopolis",
+      "postcode": "MP1 2PM",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
     },
     {
       "id": 7,
       "firstname": "Sue",
       "surname": "Pervision",
-      "caseRecNumber": "12345678"
+      "caseRecNumber": "77777777",
+      "addressLine1": "1 Main Street",
+      "addressLine2": "Mainville",
+      "town": "Mainopolis",
+      "postcode": "MP1 2PM",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
     },
     {
       "id": 8,
       "firstname": "Fiona",
       "surname": "Reductions",
-      "caseRecNumber": "12345678"
+      "caseRecNumber": "88888888",
+      "addressLine1": "1 Main Street",
+      "addressLine2": "Mainville",
+      "town": "Mainopolis",
+      "postcode": "MP1 2PM",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
     },
     {
       "id": 9,
       "firstname": "Debby",
       "surname": "Dollar",
-      "caseRecNumber": "12345678"
+      "caseRecNumber": "99999999",
+      "addressLine1": "1 Main Street",
+      "addressLine2": "Mainville",
+      "town": "Mainopolis",
+      "postcode": "MP1 2PM",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
     },
     {
       "id": 10,
       "firstname": "Billy",
       "surname": "Bank",
-      "caseRecNumber": "12345678"
+      "caseRecNumber": "10101010",
+      "addressLine1": "1 Main Street",
+      "addressLine2": "Mainville",
+      "town": "Mainopolis",
+      "postcode": "MP1 2PM",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
+      "id": 11,
+      "firstname": "Percival",
+      "surname": "Permissions",
+      "caseRecNumber": "11011011",
+      "addressLine1": "1 Main Street",
+      "addressLine2": "Mainville",
+      "town": "Mainopolis",
+      "postcode": "MP1 2PM",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
+      "id": 12,
+      "firstname": "Amy",
+      "surname": "API",
+      "caseRecNumber": "12121212",
+      "addressLine1": "1 Main Street",
+      "addressLine2": "Mainville",
+      "town": "Mainopolis",
+      "postcode": "MP1 2PM",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
+      "id": 13,
+      "firstname": "Peter",
+      "surname": "Payments",
+      "caseRecNumber": "13131313",
+      "addressLine1": "1 Main Street",
+      "addressLine2": "Mainville",
+      "town": "Mainopolis",
+      "postcode": "MP1 2PM",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
+      "id": 14,
+      "firstname": "Reginald",
+      "surname": "Refunds",
+      "caseRecNumber": "14141414",
+      "addressLine1": "1 Main Street",
+      "addressLine2": "Mainville",
+      "town": "Mainopolis",
+      "postcode": "MP1 2PM",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
+      "id": 15,
+      "firstname": "Regina",
+      "surname": "Refunds",
+      "caseRecNumber": "15151515",
+      "addressLine1": "1 Main Street",
+      "addressLine2": "Mainville",
+      "town": "Mainopolis",
+      "postcode": "MP1 2PM",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
+      "id": 16,
+      "firstname": "Rolf",
+      "surname": "Refunds",
+      "caseRecNumber": "16161616",
+      "addressLine1": "1 Main Street",
+      "addressLine2": "Mainville",
+      "town": "Mainopolis",
+      "postcode": "MP1 2PM",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
+      "id": 17,
+      "firstname": "Donny",
+      "surname": "Decisions",
+      "caseRecNumber": "17171717",
+      "addressLine1": "1 Main Street",
+      "addressLine2": "Mainville",
+      "town": "Mainopolis",
+      "postcode": "MP1 2PM",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
+      "id": 18,
+      "firstname": "Connie",
+      "surname": "Cancel",
+      "caseRecNumber": "18181818"
+    },
+    {
+      "id": 19,
+      "firstname": "Colin",
+      "surname": "Cancel",
+      "caseRecNumber": "19191919"
+    },
+    {
+      "id": 20,
+      "firstname": "Perry",
+      "surname": "Payments",
+      "caseRecNumber": "20202020"
+    },
+    {
+      "id": 21,
+      "firstname": "Penelope",
+      "surname": "Pending",
+      "caseRecNumber": "21212100"
+    },
+    {
+      "id": 22,
+      "firstname": "Ceri",
+      "surname": "Collections",
+      "caseRecNumber": "22222200",
+      "addressLine1": "1 Main Street",
+      "addressLine2": "Mainville",
+      "town": "Mainopolis",
+      "postcode": "MP1 2PM",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
+      "id": 23,
+      "firstname": "Derek",
+      "surname": "Direct_allpay_mandate_validation",
+      "caseRecNumber": "23232300",
+      "addressLine1": "1 Main Street",
+      "addressLine2": "Mainville",
+      "town": "Mainopolis",
+      "postcode": "MP1 2PM",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
+      "id": 24,
+      "firstname": "Annie",
+      "surname": "Approved",
+      "caseRecNumber": "24242400"
+    },
+    {
+      "id": 25,
+      "firstname": "Odin",
+      "surname": "allpay_mandate_fail",
+      "caseRecNumber": "25252500",
+      "addressLine1": "123 Fake Street",
+      "addressLine2": "Mainville",
+      "town": "Springfield",
+      "postcode": "S1 1FF",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
+      "id": 26,
+      "firstname": "Marina",
+      "surname": "allpay_schedule_fail",
+      "caseRecNumber": "26262600",
+      "addressLine1": "321 Fake Street",
+      "addressLine2": "",
+      "town": "Pueblo",
+      "postcode": "P1 1FF",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
+      "id": 27,
+      "firstname": "Gomez",
+      "surname": "allpay_schedule_validation",
+      "caseRecNumber": "27272700",
+      "addressLine1": "333 Fake Street",
+      "addressLine2": "",
+      "town": "Pueblo",
+      "postcode": "P1 1FF",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
+      "id": 28,
+      "firstname": "Felicity",
+      "surname": "Failed-Payments",
+      "caseRecNumber": "28282800",
+      "addressLine1": "333 Fake Street",
+      "addressLine2": "",
+      "town": "Pueblo",
+      "postcode": "P1 1FF",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
     },
     {
       "id": 99,
       "firstname": "Nelly",
       "surname": "Nullman",
-      "caseRecNumber": "12345678"
+      "caseRecNumber": "00000000",
+      "addressLine1": "1 Main Street",
+      "addressLine2": "Mainville",
+      "town": "Mainopolis",
+      "postcode": "MP1 2PM",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
     }
   ],
-  "tasks": {
-    "personId": 3,
-    "type": "FPIA",
-    "dueDate": "17/07/2024",
-    "assigneeId": 41,
-    "description": "Pending credit write off added to S203532/24 requires manager approval"
-  }
+  "notify": [],
+  "tasks": []
 }

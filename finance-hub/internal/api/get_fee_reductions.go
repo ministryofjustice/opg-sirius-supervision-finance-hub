@@ -1,13 +1,14 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"net/http"
 )
 
-func (c *ApiClient) GetFeeReductions(ctx Context, clientId int) (shared.FeeReductions, error) {
+func (c *Client) GetFeeReductions(ctx context.Context, clientId int) (shared.FeeReductions, error) {
 	var v shared.FeeReductions
 
 	url := fmt.Sprintf("/clients/%d/fee-reductions", clientId)
@@ -21,7 +22,7 @@ func (c *ApiClient) GetFeeReductions(ctx Context, clientId int) (shared.FeeReduc
 		return v, err
 	}
 
-	defer resp.Body.Close()
+	defer unchecked(resp.Body.Close)
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		return v, ErrUnauthorized

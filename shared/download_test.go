@@ -44,8 +44,8 @@ func TestDownloadRequest_Decode(t *testing.T) {
 func TestDownloadRequest_Encode(t *testing.T) {
 	d := &DownloadRequest{
 		Key:       "test.csv",
-		VersionId: "vprAxsYtLVsb5P9H_qHeNUiU9MBnPNcz",
+		VersionId: "testvprAxsYtLVsb5P9H_qHeNUiU9MBnPNcz",
 	}
 	got, _ := d.Encode()
-	assert.Equalf(t, "eyJLZXkiOiJ0ZXN0LmNzdiIsIlZlcnNpb25JZCI6InZwckF4c1l0TFZzYjVQOUhfcUhlTlVpVTlNQm5QTmN6In0=", got, "Encode()")
+	assert.Equalf(t, "eyJLZXkiOiJ0ZXN0LmNzdiIsIlZlcnNpb25JZCI6InRlc3R2cHJBeHNZdExWc2I1UDlIX3FIZU5VaVU5TUJuUE5jeiJ9", got, "Encode()")
 }

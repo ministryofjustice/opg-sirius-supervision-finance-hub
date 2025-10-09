@@ -108,6 +108,12 @@ func validateIntGreaterThan(fl validator.FieldLevel) bool {
 			panic(err)
 		}
 		return !v.Valid || v.Value > intParam
+	} else if v, ok := fl.Field().Interface().(shared.Nillable[int32]); ok {
+		intParam, err := strconv.ParseInt(fl.Param(), 10, 32)
+		if err != nil {
+			panic(err)
+		}
+		return !v.Valid || v.Value > int32(intParam)
 	}
 	return false
 }
@@ -119,6 +125,12 @@ func validateIntLessThanOrEqualTo(fl validator.FieldLevel) bool {
 			panic(err)
 		}
 		return !v.Valid || v.Value <= intParam
+	} else if v, ok := fl.Field().Interface().(shared.Nillable[int32]); ok {
+		intParam, err := strconv.ParseInt(fl.Param(), 10, 32)
+		if err != nil {
+			panic(err)
+		}
+		return !v.Valid || v.Value <= int32(intParam)
 	}
 	return false
 }
