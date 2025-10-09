@@ -25,10 +25,6 @@ type FailedPayment struct {
 	ReasonCode      string `json:"ReasonCode"`
 }
 
-func (f FailedPayment) IsPayerDeceased() bool {
-	return f.ReasonCode == "PAYER DECEASED"
-}
-
 type FailedPaymentsOutput struct {
 	FailedPayments FailedPayments `json:"FailedPayments"`
 	TotalRecords   int            `json:"TotalRecords"`

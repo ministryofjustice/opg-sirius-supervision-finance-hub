@@ -54,14 +54,6 @@ func (s *Service) ProcessFailedDirectDebitCollections(ctx context.Context, colle
 			var courtRef pgtype.Text
 			_ = courtRef.Scan(payment.ClientReference)
 			client, _ := s.store.GetClientByCourtRef(ctx, courtRef) // unchecked errors as inputs have already been confirmed via payment processing
-
-			if payment.IsPayerDeceased() {
-				_ = s.store.UpdatePaymentMethod(ctx, store.UpdatePaymentMethodParams{
-					PaymentMethod: "DEMANDED",
-					ClientID:      client.ClientID,
-				})
-			}
-
 			processed[client.ClientID] = payment
 		}
 	}
