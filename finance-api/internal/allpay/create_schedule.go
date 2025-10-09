@@ -24,10 +24,9 @@ type createScheduleRequest struct {
 }
 
 type CreateScheduleInput struct {
-	ClientReference string
-	Surname         string
-	Date            time.Time
-	Amount          int32
+	Date   time.Time
+	Amount int32
+	ClientDetails
 }
 
 func (c *Client) CreateSchedule(ctx context.Context, data *CreateScheduleInput) error {

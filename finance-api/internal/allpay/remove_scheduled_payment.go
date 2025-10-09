@@ -10,37 +10,39 @@ import (
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 )
 
-type CancelMandateRequest struct {
-	ClosureDate time.Time
+type RemoveScheduledPaymentRequest struct {
+	CollectionDate time.Time
+	Amount         int32
 	ClientDetails
 }
 
-func (c *Client) CancelMandate(ctx context.Context, data *CancelMandateRequest) error {
+func (c *Client) RemoveScheduledPayment(ctx context.Context, data *RemoveScheduledPaymentRequest) error {
 	logger := telemetry.LoggerFromContext(ctx)
 
 	req, err := c.newRequest(ctx, http.MethodDelete,
-		fmt.Sprintf("/Customers/%s/%s/%s/Mandates/%s",
+		fmt.Sprintf("/Customers/%s/%s/%s/Mandates/Schedule/%s/%d",
 			c.schemeCode,
 			base64.StdEncoding.EncodeToString([]byte(data.ClientReference)),
 			base64.StdEncoding.EncodeToString([]byte(data.Surname)),
-			data.ClosureDate.Format("2006-01-02"),
+			data.CollectionDate.Format("2006-01-02"),
+			data.Amount,
 		), nil)
 
 	if err != nil {
-		logger.Error("unable to build cancel mandate request", "error", err)
+		logger.Error("unable to build remove schedule component request", "error", err)
 		return ErrorAPI{}
 	}
 
 	resp, err := c.http.Do(req)
 	if err != nil {
-		logger.Error("unable to send cancel mandate request", "error", err)
+		logger.Error("unable to send remove schedule component request", "error", err)
 		return ErrorAPI{}
 	}
 
 	defer unchecked(resp.Body.Close)
 
 	if resp.StatusCode != http.StatusOK {
-		logger.Error("cancel mandate request returned unexpected status code", "status", resp.Status)
+		logger.Error("remove schedule component request returned unexpected status code", "status", resp.Status)
 		return ErrorAPI{}
 	}
 
