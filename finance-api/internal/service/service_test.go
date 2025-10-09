@@ -57,26 +57,37 @@ func (m *MockClient) Do(req *http.Request) (*http.Response, error) {
 }
 
 type mockDispatch struct {
-	event any
+	called []string
+	event  any
 }
 
 func (m *mockDispatch) PaymentMethodChanged(ctx context.Context, event event.PaymentMethod) error {
 	m.event = event
+	m.called = append(m.called, "PaymentMethodChanged")
 	return nil
 }
 
 func (m *mockDispatch) CreditOnAccount(ctx context.Context, event event.CreditOnAccount) error {
 	m.event = event
+	m.called = append(m.called, "CreditOnAccount")
 	return nil
 }
 
 func (m *mockDispatch) RefundAdded(ctx context.Context, event event.RefundAdded) error {
 	m.event = event
+	m.called = append(m.called, "RefundAdded")
 	return nil
 }
 
 func (m *mockDispatch) DirectDebitScheduleFailed(ctx context.Context, event event.DirectDebitScheduleFailed) error {
 	m.event = event
+	m.called = append(m.called, "DirectDebitScheduleFailed")
+	return nil
+}
+
+func (m *mockDispatch) DirectDebitCollectionFailed(ctx context.Context, event event.DirectDebitCollectionFailed) error {
+	m.event = event
+	m.called = append(m.called, "DirectDebitCollectionFailed")
 	return nil
 }
 

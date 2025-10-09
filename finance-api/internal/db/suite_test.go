@@ -2,6 +2,8 @@ package db
 
 import (
 	"context"
+	"testing"
+
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
@@ -9,7 +11,6 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/testhelpers"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/suite"
-	"testing"
 )
 
 type IntegrationSuite struct {
@@ -32,7 +33,12 @@ func (m *mockDispatch) CreditOnAccount(ctx context.Context, event event.CreditOn
 func (m *mockDispatch) RefundAdded(ctx context.Context, event event.RefundAdded) error {
 	return nil
 }
+
 func (m *mockDispatch) DirectDebitScheduleFailed(ctx context.Context, event event.DirectDebitScheduleFailed) error {
+	return nil
+}
+
+func (m *mockDispatch) DirectDebitCollectionFailed(ctx context.Context, event event.DirectDebitCollectionFailed) error {
 	return nil
 }
 
