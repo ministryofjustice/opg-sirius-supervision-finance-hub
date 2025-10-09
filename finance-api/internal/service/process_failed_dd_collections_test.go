@@ -8,16 +8,29 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/allpay"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 )
+
+type expectedFailedDDOutput struct {
+	ledgerAmount     int
+	ledgerType       string
+	receivedDate     time.Time
+	bankDate         time.Time
+	allocationAmount int
+	invoiceId        pgtype.Int4
+	financeClientId  int
+	notes            string
+	paymentMethod    string
+}
 
 func (suite *IntegrationSuite) Test_ProcessFailedDirectDebitCollections() {
 	ctx := suite.ctx
 	seeder := suite.cm.Seeder(ctx, suite.T())
 
 	seeder.SeedData(
-		"INSERT INTO finance_client VALUES (2, 22, '', 'DEMANDED', NULL, 'reverse');",
-		"INSERT INTO finance_client VALUES (3, 33, '', 'DEMANDED', NULL, 'reverse too');",
+		"INSERT INTO finance_client VALUES (2, 22, '', 'DIRECT DEBIT', NULL, 'reverse');",
+		"INSERT INTO finance_client VALUES (3, 33, '', 'DIRECT DEBIT', NULL, 'reverse too');",
 
 		// wrong date for payment but reverse on this invoice due to raised date
 		"INSERT INTO invoice VALUES (2, 22, 2, 'AD', 'invoice-2', '2023-04-01', '2025-03-31', 15000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
@@ -50,15 +63,17 @@ func (suite *IntegrationSuite) Test_ProcessFailedDirectDebitCollections() {
 	)
 
 	allpayMock := &mockAllpay{}
+	dispatchMock := &mockDispatch{}
 	collectionDate, _ := time.Parse("2006-01-02", "2025-09-01")
 	govUKMock := &mockGovUK{workingDay: collectionDate.AddDate(0, 0, -10)}
-	s := Service{store: store.New(seeder.Conn), allpay: allpayMock, govUK: govUKMock, tx: seeder.Conn}
+	s := Service{store: store.New(seeder.Conn), allpay: allpayMock, govUK: govUKMock, tx: seeder.Conn, dispatch: dispatchMock}
 
 	tests := []struct {
 		name           string
 		failedPayments allpay.FailedPayments
 		apiError       error
-		allocations    []createdReversalAllocation
+		expected       []expectedFailedDDOutput
+		paymentMethod  shared.PaymentMethod
 		want           error
 	}{
 		{
@@ -94,40 +109,38 @@ func (suite *IntegrationSuite) Test_ProcessFailedDirectDebitCollections() {
 					ClientReference: "reverse",
 					CollectionDate:  "01/09/2025 11:22:33",
 					ProcessedDate:   "10/09/2025 11:22:33",
-					ReasonCode:      "reason A",
+					ReasonCode:      "REFER TO PAYER",
 				},
 				{
 					Amount:          10000,
 					ClientReference: "reverse too",
 					CollectionDate:  "25/08/2025 11:22:33",
 					ProcessedDate:   "01/09/2025 11:22:33",
-					ReasonCode:      "reason B",
+					ReasonCode:      "PAYER DECEASED",
 				},
 			},
-			allocations: []createdReversalAllocation{
+			expected: []expectedFailedDDOutput{
 				{
 					ledgerAmount:     -10000,
 					ledgerType:       "DIRECT DEBIT PAYMENT",
-					ledgerStatus:     "CONFIRMED",
 					receivedDate:     time.Date(2025, 9, 10, 11, 22, 33, 0, time.UTC),
 					bankDate:         time.Date(2025, 9, 10, 00, 00, 00, 0, time.UTC),
 					allocationAmount: -10000,
-					allocationStatus: "ALLOCATED",
 					invoiceId:        pgtype.Int4{Int32: 2, Valid: true}, // payment will reverse the most recent invoice by raised date
 					financeClientId:  2,
-					notes:            "reason A",
+					notes:            "REFER TO PAYER",
+					paymentMethod:    "DIRECT DEBIT",
 				},
 				{
 					ledgerAmount:     -10000,
 					ledgerType:       "DIRECT DEBIT PAYMENT",
-					ledgerStatus:     "CONFIRMED",
 					receivedDate:     time.Date(2025, 9, 01, 11, 22, 33, 0, time.UTC),
 					bankDate:         time.Date(2025, 9, 01, 00, 00, 00, 0, time.UTC),
 					allocationAmount: -10000,
-					allocationStatus: "ALLOCATED",
 					invoiceId:        pgtype.Int4{Int32: 5, Valid: true},
 					financeClientId:  3,
-					notes:            "reason B",
+					notes:            "PAYER DECEASED",
+					paymentMethod:    "DEMANDED",
 				},
 			},
 		},
@@ -161,21 +174,31 @@ func (suite *IntegrationSuite) Test_ProcessFailedDirectDebitCollections() {
 				From: collectionDate.AddDate(0, 0, -10),
 			}, allpayMock.lastCalledParams[0])
 
-			var allocations []createdReversalAllocation
+			var output []expectedFailedDDOutput
 
-			rows, _ := seeder.Query(suite.ctx,
-				`SELECT l.amount, l.type, l.status, l.datetime, l.bankdate, la.amount, la.status, l.finance_client_id, la.invoice_id, l.notes
+			rows, err := seeder.Query(suite.ctx,
+				`SELECT l.amount, l.type, l.datetime, l.bankdate, la.amount, la.invoice_id, l.finance_client_id, l.notes, fc.payment_method
 						FROM ledger l
-						LEFT JOIN ledger_allocation la ON l.id = la.ledger_id
+						JOIN ledger_allocation la ON l.id = la.ledger_id
+						JOIN finance_client fc ON l.finance_client_id = fc.id
 					WHERE l.id > $1`, currentLedgerId)
 
 			for rows.Next() {
-				var r createdReversalAllocation
-				_ = rows.Scan(&r.ledgerAmount, &r.ledgerType, &r.ledgerStatus, &r.receivedDate, &r.bankDate, &r.allocationAmount, &r.allocationStatus, &r.financeClientId, &r.invoiceId, &r.notes)
-				allocations = append(allocations, r)
+				var r expectedFailedDDOutput
+				_ = rows.Scan(&r.ledgerAmount, &r.ledgerType, &r.receivedDate, &r.bankDate, &r.allocationAmount, &r.invoiceId, &r.financeClientId, &r.notes, &r.paymentMethod)
+				output = append(output, r)
 			}
 
-			assert.Equal(t, tt.allocations, allocations)
+			assert.Equal(t, tt.expected, output)
+
+			var dispatchCount int
+			for _, d := range dispatchMock.called {
+				if d == "DirectDebitCollectionFailed" {
+					dispatchCount++
+				}
+			}
+
+			assert.Equal(t, len(tt.expected), dispatchCount)
 		})
 	}
 }
