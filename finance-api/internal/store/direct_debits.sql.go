@@ -14,20 +14,21 @@ import (
 const checkPendingCollection = `-- name: CheckPendingCollection :one
 SELECT pc.id
 FROM pending_collection pc
+JOIN supervision_finance.finance_client fc ON fc.id = pc.finance_client_id
 WHERE pc.collection_date = $1::DATE
     AND pc.amount = $2
-    AND pc.finance_client_id = $3
+    AND fc.client_id = $3
     AND pc.status = 'PENDING'
 `
 
 type CheckPendingCollectionParams struct {
-	DateCollected   pgtype.Date
-	Amount          int32
-	FinanceClientID pgtype.Int4
+	DateCollected pgtype.Date
+	Amount        pgtype.Int4
+	ClientID      pgtype.Int4
 }
 
 func (q *Queries) CheckPendingCollection(ctx context.Context, arg CheckPendingCollectionParams) (int32, error) {
-	row := q.db.QueryRow(ctx, checkPendingCollection, arg.DateCollected, arg.Amount, arg.FinanceClientID)
+	row := q.db.QueryRow(ctx, checkPendingCollection, arg.DateCollected, arg.Amount, arg.ClientID)
 	var id int32
 	err := row.Scan(&id)
 	return id, err

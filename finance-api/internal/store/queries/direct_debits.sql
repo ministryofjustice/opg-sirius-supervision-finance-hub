@@ -54,9 +54,10 @@ WHERE pc.collection_date = @date_collected::DATE
 -- name: CheckPendingCollection :one
 SELECT pc.id
 FROM pending_collection pc
+JOIN supervision_finance.finance_client fc ON fc.id = pc.finance_client_id
 WHERE pc.collection_date = @date_collected::DATE
     AND pc.amount = @amount
-    AND pc.finance_client_id = @finance_client_id
+    AND fc.client_id = @client_id
     AND pc.status = 'PENDING';
 
 -- name: MarkPendingCollectionAsCollected :exec

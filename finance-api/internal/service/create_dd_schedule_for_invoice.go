@@ -48,9 +48,9 @@ func (s *Service) pendingScheduleExists(ctx context.Context, clientID int32) boo
 	date, _ := s.govUK.AddWorkingDays(ctx, time.Now().UTC(), 14)
 
 	exists, _ := s.store.CheckPendingCollection(ctx, store.CheckPendingCollectionParams{
-		DateCollected:   pgtype.Date{Time: date, Valid: true},
-		Amount:          clientBalance,
-		FinanceClientID: pgtype.Int4{Int32: clientID, Valid: true},
+		DateCollected: pgtype.Date{Time: date, Valid: true},
+		Amount:        pgtype.Int4{Int32: clientBalance, Valid: true},
+		ClientID:      pgtype.Int4{Int32: clientID, Valid: true},
 	})
 
 	return exists != 0
