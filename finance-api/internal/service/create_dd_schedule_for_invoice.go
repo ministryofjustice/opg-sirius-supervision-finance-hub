@@ -39,9 +39,13 @@ func (s *Service) CreateDirectDebitScheduleForInvoice(ctx context.Context, clien
 		return err
 	}
 
-	if err := s.SendDirectDebitCollectionEvent(ctx, clientID, pendingCollection); err != nil {
-		logger.Error("Sending direct-debit-collection event in CreateDirectDebitScheduleForInvoice failed", "err", err)
-		return err
+	var pc PendingCollection
+
+	if pendingCollection != pc {
+		if err := s.SendDirectDebitCollectionEvent(ctx, clientID, pendingCollection); err != nil {
+			logger.Error("Sending direct-debit-collection event in CreateDirectDebitScheduleForInvoice failed", "err", err)
+			return err
+		}
 	}
 
 	return nil
