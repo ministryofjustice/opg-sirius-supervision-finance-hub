@@ -29,13 +29,13 @@ func (s *Service) CreateDirectDebitScheduleForInvoice(ctx context.Context, clien
 		return nil
 	}
 
-	// Check if schedule has already been made for this invoice
 	if s.pendingScheduleExists(ctx, clientID) {
 		logger.Info(fmt.Sprintf("skipping direct debit schedule creation for invoice %d as a schedule already exists", data.InvoiceId))
 		return nil
 	}
 
-	err = s.CreateDirectDebitSchedule(ctx, clientID, shared.CreateSchedule{AllPayCustomer: data.AllPayCustomer})
+	// Todo : Send direct debit schedule created event
+	_, err = s.CreateDirectDebitSchedule(ctx, clientID, shared.CreateSchedule{AllPayCustomer: data.AllPayCustomer})
 	if err != nil {
 		return err
 	}
