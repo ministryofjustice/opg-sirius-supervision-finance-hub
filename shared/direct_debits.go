@@ -32,3 +32,8 @@ type CancelMandate struct {
 type CreateSchedule struct {
 	AllPayCustomer
 }
+
+type CreateScheduleForInvoice struct {
+	CreateSchedule
+	InvoiceId int32 `json:"invoiceId"`
+}
