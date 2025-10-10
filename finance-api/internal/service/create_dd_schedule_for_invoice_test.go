@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -21,7 +22,9 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitScheduleForInvoice()
 	collectionDate, _ := time.Parse("2006-01-02", "2022-04-02")
 	allPayMock := &mockAllpay{}
 	govUKMock := &mockGovUK{nextWorkingDay: collectionDate}
-	s := Service{store: store.New(seeder.Conn), allpay: allPayMock, govUK: govUKMock, tx: seeder.Conn}
+	dispatchMock := &mockDispatch{}
+
+	s := Service{store: store.New(seeder.Conn), allpay: allPayMock, govUK: govUKMock, tx: seeder.Conn, dispatch: dispatchMock}
 
 	err := s.CreateDirectDebitScheduleForInvoice(ctx, 11, shared.CreateScheduleForInvoice{
 		CreateSchedule: shared.CreateSchedule{
@@ -52,6 +55,13 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitScheduleForInvoice()
 	}
 
 	assert.EqualValues(suite.T(), expected, p)
+
+	expectedEvent := event.DirectDebitCollection{
+		ClientID:       11,
+		Amount:         10000,
+		CollectionDate: collectionDate,
+	}
+	assert.Equal(suite.T(), expectedEvent, dispatchMock.event)
 }
 
 func (suite *IntegrationSuite) TestService_CreateDirectDebitScheduleForInvoice_invoiceHasNoBalance() {
