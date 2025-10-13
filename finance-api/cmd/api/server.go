@@ -14,6 +14,7 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/service"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
@@ -48,8 +49,9 @@ type Service interface {
 	UpdateRefundDecision(ctx context.Context, clientId int32, refundId int32, status shared.RefundStatus) error
 	CreateDirectDebitMandate(ctx context.Context, id int32, createMandate shared.CreateMandate) error
 	CancelDirectDebitMandate(ctx context.Context, id int32, cancelMandate shared.CancelMandate) error
-	CreateDirectDebitSchedule(ctx context.Context, clientID int32, data shared.CreateSchedule) error
+	CreateDirectDebitSchedule(ctx context.Context, clientID int32, data shared.CreateSchedule) (service.PendingCollection, error)
 	ProcessFailedDirectDebitCollections(ctx context.Context, date time.Time) error
+	SendDirectDebitCollectionEvent(ctx context.Context, id int32, pendingCollection service.PendingCollection) error
 }
 type FileStorage interface {
 	GetFile(ctx context.Context, bucketName string, filename string) (io.ReadCloser, error)

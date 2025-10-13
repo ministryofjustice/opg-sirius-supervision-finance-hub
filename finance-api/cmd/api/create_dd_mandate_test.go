@@ -6,8 +6,10 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/service"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
@@ -45,8 +47,12 @@ func TestServer_createDirectDebitMandateWithSchedule(t *testing.T) {
 
 	validator, _ := validation.New()
 
-	mock := &mockService{}
-
+	mock := &mockService{
+		pendingCollection: service.PendingCollection{
+			Amount:         10000,
+			CollectionDate: time.Time{},
+		},
+	}
 	server := NewServer(mock, nil, nil, nil, nil, validator, nil)
 	_ = server.createDirectDebitMandate(w, req)
 
@@ -56,6 +62,7 @@ func TestServer_createDirectDebitMandateWithSchedule(t *testing.T) {
 	assert.Equal(t, http.StatusCreated, w.Code)
 	assert.Equal(t, "CreateDirectDebitMandate", mock.called[0])
 	assert.Equal(t, "CreateDirectDebitSchedule", mock.called[1])
+	assert.Equal(t, "SendDirectDebitCollectionEvent", mock.called[2])
 }
 
 func TestServer_createDirectDebitMandateWithoutSchedule(t *testing.T) {
@@ -100,4 +107,5 @@ func TestServer_createDirectDebitMandateWithoutSchedule(t *testing.T) {
 	assert.Equal(t, http.StatusCreated, w.Code)
 	assert.Equal(t, "CreateDirectDebitMandate", mock.called[0])
 	assert.Equal(t, "CreateDirectDebitSchedule", mock.called[1])
+	assert.Equal(t, "SendDirectDebitCollectionEvent", mock.called[2])
 }
