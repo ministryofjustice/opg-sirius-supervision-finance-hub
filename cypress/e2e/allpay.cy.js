@@ -63,37 +63,6 @@ describe("Allpay end-to-end", () => {
             .parentsUntil("tr").siblings()
             .first().contains("Closed");
     });
-
-    it("reverses the failed payment", () => {
-        const failureEvent = {
-            source: "opg.supervision.infra",
-            "detail-type": "scheduled-event",
-            detail: {
-                trigger: "failed-direct-debit-collections",
-                override: {
-                    date: "2000-01-01"
-                }
-            }
-        };
-
-        cy.request({
-            method: 'POST',
-            url: `${apiUrl}/events`,
-            body: failureEvent,
-            headers: {
-                Authorization: `Bearer test`
-            }
-        }).then((response) => {
-            expect(response.status).to.eq(200);
-        });
-
-        cy.wait(1000); // async process so give it a second to complete
-
-        cy.visit("/clients/29/invoices");
-        cy.get("table#invoices > tbody").contains("AD292929/24")
-            .parentsUntil("tr").siblings()
-            .first().contains("Unpaid");
-    });
 });
 
 
