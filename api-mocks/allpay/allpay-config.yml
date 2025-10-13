@@ -10,6 +10,7 @@ resources:
     response:
       statusCode: 200
       file: data/success.json
+      template: true
 
   - path: "/AllpayApi/Customers/{SchemeCode}/VariableMandates/Create"
     method: post
@@ -48,6 +49,7 @@ resources:
     response:
       statusCode: 200
       file: data/success.json
+      template: true
 
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/VariableMandates"
     method: post
@@ -72,6 +74,7 @@ resources:
     response:
       statusCode: 200
       file: data/success.json
+      template: true
 
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/{Date}"
     method: delete
