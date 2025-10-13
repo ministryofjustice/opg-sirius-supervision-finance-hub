@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/ministryofjustice/opg-go-common/telemetry"
@@ -78,6 +79,9 @@ func (c *Client) CreateMandate(ctx context.Context, data *CreateMandateRequest) 
 		logger.Error("create mandate request returned unexpected status code", "status", resp.Status)
 		return ErrorAPI{}
 	}
+
+	all, _ := io.ReadAll(resp.Body)
+	logger.Info(string(all))
 
 	return nil
 }
