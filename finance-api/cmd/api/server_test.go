@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/service"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
@@ -25,6 +26,7 @@ type mockService struct {
 	billingHistory     []shared.BillingHistory
 	refunds            shared.Refunds
 	addRefund          shared.AddRefund
+	pendingCollection  service.PendingCollection
 	expectedIds        []int
 	called             []string
 	errs               map[string]error
@@ -192,9 +194,14 @@ func (s *mockService) CreateDirectDebitMandate(ctx context.Context, id int32, cr
 	return s.errs["CreateDirectDebitMandate"]
 }
 
-func (s *mockService) CreateDirectDebitSchedule(ctx context.Context, clientID int32, data shared.CreateSchedule) error {
+func (s *mockService) CreateDirectDebitSchedule(ctx context.Context, clientID int32, data shared.CreateSchedule) (service.PendingCollection, error) {
 	s.called = append(s.called, "CreateDirectDebitSchedule")
-	return s.errs["CreateDirectDebitSchedule"]
+	return s.pendingCollection, s.errs["CreateDirectDebitSchedule"]
+}
+
+func (s *mockService) SendDirectDebitCollectionEvent(ctx context.Context, id int32, pendingCollection service.PendingCollection) error {
+	s.called = append(s.called, "SendDirectDebitCollectionEvent")
+	return s.errs["SendDirectDebitCollectionEvent"]
 }
 
 func (s *mockService) ProcessFailedDirectDebitCollections(ctx context.Context, date time.Time) error {
