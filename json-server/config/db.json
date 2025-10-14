@@ -573,6 +573,28 @@
       }
     },
     {
+      "id": 29,
+      "firstname": "Ernie",
+      "surname": "E2E",
+      "caseRecNumber": "29292900",
+      "addressLine1": "333 Fake Street",
+      "addressLine2": "",
+      "town": "Pueblo",
+      "postcode": "P1 1FF",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
       "id": 99,
       "firstname": "Nelly",
       "surname": "Nullman",
