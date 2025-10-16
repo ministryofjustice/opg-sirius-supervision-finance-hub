@@ -17,6 +17,7 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitScheduleForInvoice()
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (1, 11, '1234', 'DIRECT DEBIT', NULL);",
 		"INSERT INTO invoice VALUES (1, 11, 1, 'S2', 'S200123/24', '2024-01-01', '2025-03-31', 10000, NULL, '2024-01-01', NULL, '2024-01-01')",
+		"INSERT INTO invoice VALUES (2, 11, 1, 'S2', 'S200124/24', '2024-01-01', '2025-03-31', 1000, NULL, '2024-01-01', NULL, '2024-01-01')",
 	)
 
 	collectionDate, _ := time.Parse("2006-01-02", "2022-04-02")
@@ -50,7 +51,7 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitScheduleForInvoice()
 	expected := store.PendingCollection{
 		ID:              1,
 		FinanceClientID: pgtype.Int4{Int32: 1, Valid: true},
-		Amount:          10000,
+		Amount:          11000,
 		CollectionDate:  pgtype.Date{Time: collectionDate, Valid: true},
 	}
 
