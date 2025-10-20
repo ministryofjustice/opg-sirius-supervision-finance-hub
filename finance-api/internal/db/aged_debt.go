@@ -12,8 +12,7 @@ type AgedDebt struct {
 }
 
 type AgedDebtInput struct {
-	FromDate *shared.Date
-	ToDate   *shared.Date
+	ToDate *shared.Date
 }
 
 func NewAgedDebt(input AgedDebtInput) ReportQuery {
@@ -43,7 +42,7 @@ const AgedDebtQuery = `WITH outstanding_invoices AS (SELECT i.id,
 								  FROM supervision_finance.ledger_allocation la
 								  		 JOIN supervision_finance.ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
 									WHERE la.status NOT IN ('PENDING', 'UN ALLOCATED')
-									AND l.datetime <= $2
+									AND l.datetime::DATE <= $1
 								    AND la.invoice_id = i.id
 								  ) transactions ON TRUE
                                        LEFT JOIN LATERAL (
@@ -53,7 +52,7 @@ const AgedDebtQuery = `WITH outstanding_invoices AS (SELECT i.id,
                                   ORDER BY id DESC
                                   LIMIT 1
                                   ) sl ON TRUE
-							WHERE i.raiseddate >= $1 AND i.raiseddate <= $2 AND i.amount > COALESCE(transactions.received, 0)),
+							WHERE i.raiseddate <= $1 AND i.amount > COALESCE(transactions.received, 0)),
      age_per_client AS (SELECT fc.client_id, MAX(oi.age) AS age
                         FROM supervision_finance.finance_client fc
                                  JOIN outstanding_invoices oi ON fc.id = oi.finance_client_id
@@ -153,14 +152,8 @@ func (a *AgedDebt) GetHeaders() []string {
 
 func (a *AgedDebt) GetParams() []any {
 	var (
-		from, to time.Time
+		to time.Time
 	)
-
-	if a.FromDate == nil {
-		from = time.Time{}
-	} else {
-		from = a.FromDate.Time
-	}
 
 	if a.ToDate == nil {
 		to = time.Now()
@@ -168,5 +161,5 @@ func (a *AgedDebt) GetParams() []any {
 		to = a.ToDate.Time
 	}
 
-	return []any{from.Format("2006-01-02"), to.Format("2006-01-02")}
+	return []any{to.Format("2006-01-02")}
 }
