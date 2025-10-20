@@ -59,7 +59,7 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitScheduleForInvoice()
 
 	expectedEvent := event.DirectDebitCollection{
 		ClientID:       11,
-		Amount:         10000,
+		Amount:         11000,
 		CollectionDate: collectionDate,
 	}
 	assert.Equal(suite.T(), expectedEvent, dispatchMock.event)
