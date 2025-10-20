@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"net/http"
+	"slices"
 	"testing"
 	"time"
 
@@ -90,11 +91,13 @@ type mockAllpay struct {
 	failedPayments   allpay.FailedPayments
 	errs             map[string]error
 	lastCalledParams []interface{}
+	closureDate      time.Time
 }
 
 func (m *mockAllpay) CancelMandate(ctx context.Context, data *allpay.CancelMandateRequest) error {
 	m.called = append(m.called, "CancelMandate")
 	m.lastCalledParams = []interface{}{data}
+	m.closureDate = data.ClosureDate
 	return m.errs["CancelMandate"]
 }
 
@@ -122,29 +125,41 @@ func (m *mockAllpay) FetchFailedPayments(ctx context.Context, input allpay.Fetch
 	return m.failedPayments, m.errs["FetchFailedPayments"]
 }
 
+func (m *mockAllpay) RemoveScheduledPayment(ctx context.Context, data *allpay.RemoveScheduledPaymentRequest) error {
+	m.called = append(m.called, "RemoveScheduledPayment")
+	m.lastCalledParams = []interface{}{data}
+	return m.errs["RemoveScheduledPayment"]
+}
+
 type mockGovUK struct {
 	called         []string
 	errs           map[string]error
+	NonWorkingDays []time.Time
 	nWorkingDays   int
 	Xday           int
-	workingDay     time.Time
-	nextWorkingDay time.Time
+	WorkingDay     time.Time
 }
 
 func (m *mockGovUK) AddWorkingDays(ctx context.Context, d time.Time, n int) (time.Time, error) {
 	m.called = append(m.called, "AddWorkingDays")
 	m.nWorkingDays = n
-	return m.workingDay, m.errs["AddWorkingDays"]
+	d = time.Date(d.Year(), d.Month(), d.Day()+n, 0, 0, 0, 0, time.UTC)
+
+	for slices.Contains(m.NonWorkingDays, d) {
+		d = d.AddDate(0, 0, 1)
+	}
+	m.WorkingDay = d
+	return d, m.errs["AddWorkingDays"]
 }
 
-func (m *mockGovUK) SubWorkingDays(ctx context.Context, d time.Time, n int) (time.Time, error) {
-	m.called = append(m.called, "SubWorkingDays")
-	m.nWorkingDays = n
-	return m.workingDay, m.errs["SubWorkingDays"]
-}
-
-func (m *mockGovUK) NextWorkingDayOnOrAfterX(ctx context.Context, date time.Time, dayOfMonth int) (time.Time, error) {
+func (m *mockGovUK) NextWorkingDayOnOrAfterX(ctx context.Context, d time.Time, dayOfMonth int) (time.Time, error) {
 	m.called = append(m.called, "NextWorkingDayOnOrAfterX")
 	m.Xday = dayOfMonth
-	return m.nextWorkingDay, m.errs["NextWorkingDayOnOrAfterX"]
+	d = time.Date(d.Year(), d.Month(), dayOfMonth, 0, 0, 0, 0, time.UTC)
+
+	for slices.Contains(m.NonWorkingDays, d) {
+		d = d.AddDate(0, 0, 1)
+	}
+	m.WorkingDay = d
+	return d, m.errs["NextWorkingDayOnOrAfterX"]
 }

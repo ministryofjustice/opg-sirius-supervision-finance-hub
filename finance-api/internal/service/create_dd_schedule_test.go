@@ -22,9 +22,8 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitSchedule() {
 		"INSERT INTO invoice VALUES (1, 11, 1, 'S2', 'S200123/24', '2024-01-01', '2025-03-31', 10000, NULL, '2024-01-01', NULL, '2024-01-01')",
 	)
 
-	collectionDate, _ := time.Parse("2006-01-02", "2022-04-02")
 	allPayMock := &mockAllpay{}
-	govUKMock := &mockGovUK{nextWorkingDay: collectionDate}
+	govUKMock := &mockGovUK{}
 	s := Service{store: store.New(seeder.Conn), allpay: allPayMock, govUK: govUKMock, tx: seeder.Conn}
 
 	pc, err := s.CreateDirectDebitSchedule(ctx, 11, shared.CreateSchedule{
@@ -45,6 +44,7 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitSchedule() {
 		&p.CollectionDate,
 	)
 
+	collectionDate := govUKMock.WorkingDay.Truncate(24 * time.Hour)
 	expected := store.PendingCollection{
 		ID:              1,
 		FinanceClientID: pgtype.Int4{Int32: 1, Valid: true},
@@ -65,10 +65,12 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitSchedule() {
 
 	assert.Equal(suite.T(), "CreateSchedule", allPayMock.called[0])
 	assert.Equal(suite.T(), &allpay.CreateScheduleInput{
-		ClientReference: "1234567T",
-		Surname:         "Scheduleson",
-		Date:            collectionDate,
-		Amount:          10000,
+		Date:   govUKMock.WorkingDay.Truncate(24 * time.Hour),
+		Amount: 10000,
+		ClientDetails: allpay.ClientDetails{
+			ClientReference: "1234567T",
+			Surname:         "Scheduleson",
+		},
 	}, allPayMock.lastCalledParams[0])
 }
 
@@ -164,9 +166,8 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitSchedule_createSched
 		"INSERT INTO invoice VALUES (1, 11, 1, 'S2', 'S200123/24', '2024-01-01', '2025-03-31', 10000, NULL, '2024-01-01', NULL, '2024-01-01')",
 	)
 
-	collectionDate, _ := time.Parse("2006-01-02", "2022-04-02")
 	allPayMock := &mockAllpay{errs: map[string]error{"CreateSchedule": errors.New("CreateSchedule error")}}
-	govUKMock := &mockGovUK{nextWorkingDay: collectionDate}
+	govUKMock := &mockGovUK{}
 	dispatchMock := &mockDispatch{}
 	s := Service{store: store.New(seeder.Conn), allpay: allPayMock, govUK: govUKMock, tx: seeder.Conn, dispatch: dispatchMock}
 
