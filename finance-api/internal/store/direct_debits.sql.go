@@ -11,6 +11,17 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const cancelPendingCollection = `-- name: CancelPendingCollection :exec
+UPDATE pending_collection
+SET status = 'CANCELLED'
+WHERE id = $1
+`
+
+func (q *Queries) CancelPendingCollection(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, cancelPendingCollection, id)
+	return err
+}
+
 const checkPendingCollection = `-- name: CheckPendingCollection :one
 SELECT pc.id
 FROM pending_collection pc
@@ -32,17 +43,6 @@ func (q *Queries) CheckPendingCollection(ctx context.Context, arg CheckPendingCo
 	var id int32
 	err := row.Scan(&id)
 	return id, err
-}
-
-const cancelPendingCollection = `-- name: CancelPendingCollection :exec
-UPDATE pending_collection
-SET status = 'CANCELLED'
-WHERE id = $1
-`
-
-func (q *Queries) CancelPendingCollection(ctx context.Context, id int32) error {
-	_, err := q.db.Exec(ctx, cancelPendingCollection, id)
-	return err
 }
 
 const createPendingCollection = `-- name: CreatePendingCollection :exec

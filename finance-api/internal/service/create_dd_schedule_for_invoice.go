@@ -6,7 +6,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"time"
 )
 
 func (s *Service) CreateDirectDebitScheduleForInvoice(ctx context.Context, clientID int32, data shared.CreateScheduleForInvoice) error {
@@ -53,7 +52,7 @@ func (s *Service) CreateDirectDebitScheduleForInvoice(ctx context.Context, clien
 
 func (s *Service) pendingScheduleExists(ctx context.Context, clientID int32) bool {
 	clientBalance, _ := s.store.GetPendingOutstandingBalance(ctx, clientID)
-	date, _ := s.govUK.AddWorkingDays(ctx, time.Now().UTC(), 14)
+	date, _ := s.CalculateScheduleCollectionDate(ctx)
 
 	exists, _ := s.store.CheckPendingCollection(ctx, store.CheckPendingCollectionParams{
 		DateCollected: pgtype.Date{Time: date, Valid: true},
