@@ -4,15 +4,16 @@ import (
 	"bytes"
 	"context"
 	"encoding/csv"
+	"io"
+	"os"
+	"testing"
+	"time"
+
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/db"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"io"
-	"os"
-	"testing"
-	"time"
 )
 
 type MockFileStorage struct {
@@ -100,12 +101,10 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				ReportType:             shared.ReportsTypeAccountsReceivable,
 				AccountsReceivableType: toPtr(shared.AccountsReceivableTypeAgedDebt),
 				ToDate:                 &toDate,
-				FromDate:               &fromDate,
 			},
 			expectedQuery: &db.AgedDebt{
 				AgedDebtInput: db.AgedDebtInput{
-					FromDate: &fromDate,
-					ToDate:   &toDate,
+					ToDate: &toDate,
 				},
 				ReportQuery: db.NewReportQuery(db.AgedDebtQuery)},
 			expectedFilename: "AgedDebt_01:01:2024.csv",

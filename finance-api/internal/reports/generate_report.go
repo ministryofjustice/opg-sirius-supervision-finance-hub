@@ -3,12 +3,13 @@ package reports
 import (
 	"context"
 	"fmt"
+	"io"
+	"time"
+
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/db"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"io"
-	"time"
 )
 
 const (
@@ -93,8 +94,7 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 		switch *reportRequest.AccountsReceivableType {
 		case shared.AccountsReceivableTypeAgedDebt:
 			query = db.NewAgedDebt(db.AgedDebtInput{
-				FromDate: reportRequest.FromDate,
-				ToDate:   reportRequest.ToDate,
+				ToDate: reportRequest.ToDate,
 			})
 		case shared.AccountsReceivableTypeAgedDebtByCustomer:
 			query = db.NewAgedDebtByCustomer()
