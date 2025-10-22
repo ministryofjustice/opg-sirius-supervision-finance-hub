@@ -13,7 +13,7 @@ func (s *Service) CreateDirectDebitScheduleForInvoice(ctx context.Context, clien
 
 	logger := s.Logger(ctx)
 
-	err = s.reapplyCreditTx(ctx, clientID)
+	err = s.ReapplyCredit(ctx, clientID, nil)
 	if err != nil {
 		return err
 	}
@@ -54,11 +54,20 @@ func (s *Service) pendingScheduleExists(ctx context.Context, clientID int32) boo
 	clientBalance, _ := s.store.GetPendingOutstandingBalance(ctx, clientID)
 	date, _ := s.CalculateScheduleCollectionDate(ctx)
 
+	var (
+		dateReceived pgtype.Date
+		balance      pgtype.Int4
+		client       pgtype.Int4
+	)
+	_ = dateReceived.Scan(date)
+	_ = store.ToInt4(&balance, clientBalance)
+	_ = store.ToInt4(&client, clientID)
+
 	exists, _ := s.store.CheckPendingCollection(ctx, store.CheckPendingCollectionParams{
-		DateCollected: pgtype.Date{Time: date, Valid: true},
-		Amount:        pgtype.Int4{Int32: clientBalance, Valid: true},
-		ClientID:      pgtype.Int4{Int32: clientID, Valid: true},
+		DateCollected: dateReceived,
+		Amount:        balance,
+		ClientID:      client,
 	})
 
-	return exists != 0
+	return exists
 }
