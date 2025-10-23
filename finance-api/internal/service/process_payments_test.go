@@ -35,6 +35,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 		"INSERT INTO finance_client VALUES (2, 2, 'invoice-2', 'DEMANDED', NULL, '12345');",
 		"INSERT INTO finance_client VALUES (3, 3, 'invoice-3', 'DEMANDED', NULL, '123456');",
 		"INSERT INTO finance_client VALUES (4, 4, 'invoice-4', 'DEMANDED', NULL, '1234567');",
+		"INSERT INTO finance_client VALUES (5, 5, 'minus', 'DEMANDED', NULL, '12345678');",
 		"INSERT INTO invoice VALUES (1, 1, 1, 'AD', 'AD11223/19', '2023-04-01', '2025-03-31', 15000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 		"INSERT INTO invoice VALUES (2, 2, 2, 'AD', 'AD11224/19', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 		"INSERT INTO invoice VALUES (3, 3, 3, 'AD', 'AD11225/19', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
@@ -75,7 +76,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					10000,
 					"ALLOCATED",
 					1,
-					0,
+					-1,
 				},
 			},
 			expectedFailedLines: map[int]string{},
@@ -108,7 +109,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 					-15010,
 					"UNAPPLIED",
-					0,
+					-1,
 					150,
 				},
 			},
@@ -133,7 +134,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					5000,
 					"ALLOCATED",
 					3,
-					0,
+					-1,
 				},
 			},
 			expectedFailedLines: map[int]string{},
@@ -170,9 +171,9 @@ func (suite *IntegrationSuite) Test_processPayments() {
 			var createdLedgerAllocations []createdLedgerAllocation
 
 			rows, _ := seeder.Query(suite.ctx,
-				`SELECT l.amount, l.type, l.status, l.datetime, la.amount, la.status, COALESCE(l.pis_number, 0), COALESCE(la.invoice_id, 0)
+				`SELECT l.amount, l.type, l.status, l.datetime, COALESCE(la.amount, -1), COALESCE(la.status, 'NOT_SET'), COALESCE(l.pis_number, -1), COALESCE(la.invoice_id, -1)
 						FROM ledger l
-						JOIN ledger_allocation la ON l.id = la.ledger_id
+						LEFT JOIN ledger_allocation la ON l.id = la.ledger_id
 					WHERE l.finance_client_id = $1 AND l.id > $2`, tt.expectedClientId, currentLedgerId)
 
 			for rows.Next() {
