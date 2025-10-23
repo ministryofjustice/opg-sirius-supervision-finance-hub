@@ -18,9 +18,6 @@ func (s *Service) ReapplyCredit(ctx context.Context, clientID int32, tx *store.T
 		return s.reapplyCreditTx(ctx, clientID)
 	}
 
-	logger := s.Logger(ctx)
-	logger.Info(fmt.Sprintf("reapplying credit for client %d", clientID))
-
 	var userID pgtype.Int4
 	_ = store.ToInt4(&userID, ctx.(auth.Context).User.ID)
 	creditPosition, err := tx.GetCreditBalanceAndOldestOpenInvoice(ctx, clientID)
@@ -38,6 +35,9 @@ func (s *Service) ReapplyCredit(ctx context.Context, clientID int32, tx *store.T
 			CreditRemaining: int(creditPosition.Credit),
 		})
 	}
+
+	logger := s.Logger(ctx)
+	logger.Info(fmt.Sprintf("reapplying credit for client %d", clientID))
 
 	reapplyAmount := getReapplyAmount(creditPosition.Credit, creditPosition.Outstanding)
 	allocation := store.CreateLedgerAllocationParams{
