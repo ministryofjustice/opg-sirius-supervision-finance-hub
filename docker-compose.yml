@@ -186,10 +186,6 @@ services:
     build:
       context: .
       dockerfile: docker/allpay/Dockerfile
-    ports:
-      - "4010:8080"
-    volumes:
-      - ./api-mocks/allpay:/opt/imposter/config
     healthcheck:
       test: [ "CMD", "imposter", "list", "-x" ]
       interval: 15s
