@@ -32,6 +32,12 @@ services:
       - ./shared:/app/shared
       - ./apierror:/app/apierror
 
+  allpay-mock:
+    ports:
+      - "4010:8080"
+    volumes:
+      - ./api-mocks/allpay:/opt/imposter/config
+
   yarn:
     command: watch
 
