@@ -129,6 +129,9 @@ INSERT INTO refund VALUES (9, 18001, '2021-06-01', 12344, 'APPROVED', 'Cancel me
 
 -- cancel direct debit
 INSERT INTO finance_client VALUES (19001, 19, 'canceldirectdebit', 'DIRECT DEBIT', null, '19191919');
+INSERT INTO pending_collection VALUES (1, 19001, now()::DATE - 1, 10000, 'COLLECTED', NULL, '2025-06-01 00:00:00', 1);
+INSERT INTO pending_collection VALUES (2, 19001, now()::DATE + 1, 10000, 'PENDING', NULL, '2025-06-01 00:00:00', 1);
+INSERT INTO pending_collection VALUES (3, 19001, now()::DATE + 10, 10000, 'PENDING', NULL, '2025-06-01 00:00:00', 1);
 
 -- billing history payments
 INSERT INTO finance_client VALUES (20001, 20, 'paymentevents', 'DEMANDED', null, '20202020');
@@ -147,7 +150,7 @@ INSERT INTO ledger_allocation VALUES (19, 15, 15, '2024-05-14T08:36:40+00:00', -
 -- create ledger for pending collection (event)
 INSERT INTO finance_client VALUES (21001, 21, 'pendingcollection', 'DIRECT DEBIT', null, '21212100');
 INSERT INTO invoice VALUES (17, 21, 21001, 'AD', 'AD212100/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-04-10T08:36:40+00:00', 99);
-INSERT INTO pending_collection VALUES (1, 21001, '2025-08-01', 10000, 'PENDING', NULL, '2025-08-21', 1);
+INSERT INTO pending_collection VALUES (4, 21001, '2025-08-01', 10000, 'PENDING', NULL, '2025-08-21', 1);
 
 -- create direct debit mandate/schedule
 INSERT INTO finance_client VALUES (22001, 22, 'createdirectdebit', 'DEMANDED', null, '22222200');
@@ -177,6 +180,10 @@ INSERT INTO ledger VALUES (16, 'dd payment 1', '2025-09-30T08:36:40+00:00', '', 
 INSERT INTO ledger_allocation VALUES (20, 16, 22, '2025-09-30T08:36:40+00:00', 6000, 'ALLOCATED', null, '', '22025-09-30', null);
 INSERT INTO ledger VALUES (17, 'dd payment 2', '2025-10-08T08:36:40+00:00', '', 4000, '', 'DIRECT DEBIT PAYMENT', 'CONFIRMED', 28001, null, null, '2025-10-08', '2025-10-08', 1, '', '', 1, '2025-10-08 12:01:58', 2);
 INSERT INTO ledger_allocation VALUES (21, 17, 22, '2025-10-08T08:36:40+00:00', 4000, 'ALLOCATED', null, '', '2025-10-08', null);
+
+-- allpay e2e - create mandate and collect
+INSERT INTO finance_client VALUES (29001, 29, 'allpaye2e', 'DEMANDED', null, '29292900');
+INSERT INTO invoice VALUES (23, 29, 29001, 'AD', 'AD292929/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-05-11T12:01:59+00:00', 2);
 
 -- TEST CLIENT DATA: Add data for default client here
 

@@ -21,8 +21,8 @@ func (s *Service) ProcessFailedDirectDebitCollections(ctx context.Context, colle
 	}
 
 	payments, err := s.allpay.FetchFailedPayments(ctx, allpay.FetchFailedPaymentsInput{
-		To:   collectionDate,
-		From: fromDate,
+		From: collectionDate,
+		To:   fromDate,
 	})
 	if err != nil {
 		return err

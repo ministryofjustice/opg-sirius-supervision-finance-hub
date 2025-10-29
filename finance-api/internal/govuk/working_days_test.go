@@ -126,7 +126,12 @@ func TestNextWorkingDayOnOrAfterX(t *testing.T) {
 	client := &Client{
 		caches: newCaches(),
 	}
-	client.caches.updateHolidays([]Holiday{{"2025-01-24"}, {"2025-01-25"}})
+	client.caches.updateHolidays([]Holiday{{"2025-12-25"}, {"2025-12-26"}})
+	// Saturday 27th December - Weekend
+	// Sunday 28th December - Weekend
+	//Saturday 24th January - Weekend
+	// Sunday 25th January - Weekend
+
 	X := 24
 
 	tests := []struct {
@@ -136,28 +141,28 @@ func TestNextWorkingDayOnOrAfterX(t *testing.T) {
 	}{
 		{
 			name:     "before X",
-			date:     time.Date(2024, 12, 10, 0, 0, 0, 0, time.UTC),
-			expected: time.Date(2024, 12, X, 0, 0, 0, 0, time.UTC),
+			date:     time.Date(2025, 12, 23, 0, 0, 0, 0, time.UTC),
+			expected: time.Date(2025, 12, 24, 0, 0, 0, 0, time.UTC),
 		},
 		{
 			name:     "on X",
-			date:     time.Date(2024, 12, X, 0, 0, 0, 0, time.UTC),
-			expected: time.Date(2024, 12, X, 0, 0, 0, 0, time.UTC),
+			date:     time.Date(2025, 12, 24, 0, 0, 0, 0, time.UTC),
+			expected: time.Date(2025, 12, 24, 0, 0, 0, 0, time.UTC),
 		},
 		{
-			name:     "after X",
-			date:     time.Date(2025, 1, 25, 0, 0, 0, 0, time.UTC),
-			expected: time.Date(2025, 2, X, 0, 0, 0, 0, time.UTC),
+			name:     "after X is working day",
+			date:     time.Date(2025, 11, 25, 0, 0, 0, 0, time.UTC),
+			expected: time.Date(2025, 12, 24, 0, 0, 0, 0, time.UTC),
 		},
 		{
-			name:     "on X with working days",
-			date:     time.Date(2025, 1, X, 0, 0, 0, 0, time.UTC),
-			expected: time.Date(2025, 1, 26, 0, 0, 0, 0, time.UTC),
+			name:     "on X is not working day",
+			date:     time.Date(2026, 1, 24, 0, 0, 0, 0, time.UTC),
+			expected: time.Date(2026, 1, 26, 0, 0, 0, 0, time.UTC),
 		},
 		{
-			name:     "after X on working days",
-			date:     time.Date(2024, 12, 25, 0, 0, 0, 0, time.UTC),
-			expected: time.Date(2025, 1, 26, 0, 0, 0, 0, time.UTC),
+			name:     "after X is not working day",
+			date:     time.Date(2025, 12, 25, 0, 0, 0, 0, time.UTC),
+			expected: time.Date(2026, 1, 26, 0, 0, 0, 0, time.UTC),
 		},
 	}
 

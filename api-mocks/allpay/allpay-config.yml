@@ -10,6 +10,7 @@ resources:
     response:
       statusCode: 200
       file: data/success.json
+      template: true
 
   - path: "/AllpayApi/Customers/{SchemeCode}/VariableMandates/Create"
     method: post
@@ -33,15 +34,28 @@ resources:
 
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/VariableMandates"
     method: post
+    capture:
+      clientRef:
+        store: schedules
+        pathParam: ClientRef
+      amount:
+        store: schedules
+        requestBody:
+          jsonPath: $.Schedules[0].Amount
+      date:
+        store: schedules
+        requestBody:
+          jsonPath: $.Schedules[0].ScheduleDate
     response:
       statusCode: 200
       file: data/success.json
+      template: true
 
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/VariableMandates"
     method: post
     pathParams:
-      # allpay_mandate_validation
-       Surname: YWxscGF5X21hbmRhdGVfdmFsaWRhdGlvbg==
+      # allpay_schedule_validation
+       Surname: YWxscGF5X3NjaGVkdWxlX3ZhbGlkYXRpb24=
     response:
       statusCode: 422
       file: data/validation.json
@@ -56,13 +70,14 @@ resources:
       content: "Bad Request - Please check the format of your body request"
 
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/{Date}"
-    method: post
+    method: delete
     response:
       statusCode: 200
       file: data/success.json
+      template: true
 
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/{Date}"
-    method: post
+    method: delete
     requestBody:
       jsonPath: $.LastName
       value: allpay_cancel_fail
@@ -70,6 +85,39 @@ resources:
     response:
       statusCode: 400
       content: "Bad Request - Please check the format of your body request"
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/{Date}/{Amount}"
+    method: delete
+    response:
+      statusCode: 200
+      file: data/success.json
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/{Date}/{Amount}"
+    method: delete
+    pathParams:
+      # allpay_remove_schedule_validation
+      Surname: YWxscGF5X3JlbW92ZV9zY2hlZHVsZV92YWxpZGF0aW9u
+    response:
+      statusCode: 400
+      content: "Bad Request - Please check the format of your body request"
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/Mandates/FailedPayments/{FromDate}/{ToDate}/{Page}"
+    method: get
+    pathParams:
+      ToDate: 2000-01-01
+      Page: 1
+    response:
+      scriptFile: scripts/failed-payments.js
+      statusCode: 200
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/Mandates/FailedPayments/{FromDate}/{ToDate}/{Page}"
+    method: get
+    pathParams:
+      ToDate: 2000-01-01
+      Page: 2
+    response:
+      statusCode: 200
+      file: data/failed_payments_page_3.json
 
   - path: "/AllpayApi/Customers/{SchemeCode}/Mandates/FailedPayments/{FromDate}/{ToDate}/{Page}"
     method: get
