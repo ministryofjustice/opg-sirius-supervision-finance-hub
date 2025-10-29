@@ -1,5 +1,5 @@
 {
-  "SchemeCode": "OPGB",
-  "LastName": "Smith",
-  "ClientReference": "ABC123XYZ"
+  "SchemeCode": "${context.request.pathParams.SchemeCode}",
+  "LastName": "${context.request.body:$.LastName}",
+  "ClientReference": "${context.request.body:$.ClientReference}"
 }
