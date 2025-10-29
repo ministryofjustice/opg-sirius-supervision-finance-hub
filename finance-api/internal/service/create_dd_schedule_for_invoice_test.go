@@ -2,7 +2,6 @@ package service
 
 import (
 	"fmt"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -56,46 +55,6 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitScheduleForInvoice()
 	}
 
 	assert.EqualValues(suite.T(), expected, p)
-
-	expectedEvent := event.DirectDebitCollection{
-		ClientID:       11,
-		Amount:         11000,
-		CollectionDate: govUKMock.WorkingDay,
-	}
-	assert.Equal(suite.T(), expectedEvent, dispatchMock.event)
-}
-
-func (suite *IntegrationSuite) TestService_CreateDirectDebitScheduleForInvoice_invoiceHasNoBalance() {
-	ctx := suite.ctx
-	seeder := suite.cm.Seeder(ctx, suite.T())
-
-	seeder.SeedData(
-		"INSERT INTO finance_client VALUES (1, 11, '1234', 'DIRECT DEBIT', NULL);",
-		"INSERT INTO invoice VALUES (1, 11, 1, 'S2', 'S200123/24', '2024-01-01', '2025-03-31', 10000, NULL, '2024-01-01', NULL, '2024-01-01')",
-		"INSERT INTO ledger VALUES (1, '1', '2020-04-02T00:00:00+00:00', '', 10000, 'Settled', 'CARD PAYMENT', 'CONFIRMED', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2020-05-05', 1);",
-		"INSERT INTO ledger_allocation VALUES (1, 1, 1, '2020-04-02T00:00:00+00:00', 10000, 'ALLOCATED', NULL, '', '2020-04-02', NULL);",
-	)
-
-	allPayMock := &mockAllpay{}
-	govUKMock := &mockGovUK{}
-	s := Service{store: store.New(seeder.Conn), allpay: allPayMock, govUK: govUKMock, tx: seeder.Conn}
-
-	err := s.CreateDirectDebitScheduleForInvoice(ctx, 11, shared.CreateScheduleForInvoice{
-		CreateSchedule: shared.CreateSchedule{
-			AllPayCustomer: shared.AllPayCustomer{
-				Surname:         "Scheduleson",
-				ClientReference: "1234567T",
-			},
-		},
-		InvoiceId: 1,
-	})
-
-	assert.Nil(suite.T(), err)
-
-	var c int
-	_ = seeder.QueryRow(ctx, "SELECT COUNT(*) FROM pending_collection").Scan(&c)
-	assert.Equal(suite.T(), 0, c)
-	assert.Len(suite.T(), allPayMock.called, 0)
 }
 
 func (suite *IntegrationSuite) TestService_CreateDirectDebitScheduleForInvoice_scheduleAlreadyExists() {

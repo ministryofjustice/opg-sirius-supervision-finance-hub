@@ -18,33 +18,14 @@ func (s *Service) CreateDirectDebitScheduleForInvoice(ctx context.Context, clien
 		return err
 	}
 
-	balance, err := s.store.GetInvoiceBalanceDetails(ctx, data.InvoiceId)
-	if err != nil {
-		return err
-	}
-
-	if balance.Outstanding < 1 {
-		logger.Info(fmt.Sprintf("skipping direct debit schedule creation for invoice %d as there is no balance outstanding", data.InvoiceId), "balance", balance)
-		return nil
-	}
-
 	if s.pendingScheduleExists(ctx, clientID) {
 		logger.Info(fmt.Sprintf("skipping direct debit schedule creation for invoice %d as a schedule already exists", data.InvoiceId))
 		return nil
 	}
 
-	pendingCollection, err := s.CreateDirectDebitSchedule(ctx, clientID, shared.CreateSchedule{AllPayCustomer: data.AllPayCustomer})
+	_, err = s.CreateDirectDebitSchedule(ctx, clientID, shared.CreateSchedule{AllPayCustomer: data.AllPayCustomer})
 	if err != nil {
 		return err
-	}
-
-	var pc PendingCollection
-
-	if pendingCollection != pc {
-		if err := s.SendDirectDebitCollectionEvent(ctx, clientID, pendingCollection); err != nil {
-			logger.Error("Sending direct-debit-collection event in CreateDirectDebitScheduleForInvoice failed", "err", err)
-			return err
-		}
 	}
 
 	return nil
