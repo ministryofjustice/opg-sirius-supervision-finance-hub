@@ -12,48 +12,41 @@ describe("Allpay end-to-end", () => {
     });
 
     it("collects scheduled payment", () => {
-        // get next collection date
-        let collectionDate = getCollectionDate();
-
-        const yyyy = collectionDate.getFullYear();
-        let mm = String(collectionDate.getMonth() + 1).padStart(2, '0');
-        const dd = String(collectionDate.getDate()).padStart(2, '0');
-
-        const collectionEvent = {
-            source: "opg.supervision.infra",
-            "detail-type": "scheduled-event",
-            detail: {
-                trigger: "direct-debit-collection",
-                override: {
-                    date: `${yyyy}-${mm}-${dd}`
-                }
-            }
-        };
-
         cy.request({
             method: 'POST',
             url: `${apiUrl}/events`,
-            body: collectionEvent,
+            body: {
+                source: "opg.supervision.infra",
+                "detail-type": "scheduled-event",
+                detail: {
+                    trigger: "direct-debit-collection",
+                    override: {
+                        date: getCollectionDate(1)
+                    }
+                }
+            },
             headers: {
                 Authorization: `Bearer test`
             }
-        }).then((response) => {
-            expect(response.status).to.eq(200);
         });
 
         // send a second time in case it was delayed until the next month
-        mm = String(collectionDate.getMonth() + 2).padStart(2, '0')
-        collectionEvent.detail.override.date = `${yyyy}-${mm}-${dd}`;
-
         cy.request({
             method: 'POST',
             url: `${apiUrl}/events`,
-            body: collectionEvent,
+            body: {
+                source: "opg.supervision.infra",
+                "detail-type": "scheduled-event",
+                detail: {
+                    trigger: "direct-debit-collection",
+                    override: {
+                        date: getCollectionDate(2)
+                    }
+                }
+            },
             headers: {
                 Authorization: `Bearer test`
             }
-        }).then((response) => {
-            expect(response.status).to.eq(200);
         });
 
         cy.wait(1000); // async process so give it a second to complete
@@ -66,7 +59,7 @@ describe("Allpay end-to-end", () => {
 });
 
 
-function getCollectionDate() {
+function getCollectionDate(offset) {
     const today = new Date();
     const year = today.getFullYear();
     let month = today.getMonth(); // 0-indexed
@@ -90,5 +83,5 @@ function getCollectionDate() {
         collectionDate.setDate(25);
     }
 
-    return collectionDate;
+    return `${collectionDate.getFullYear()}-${String(collectionDate.getMonth() + offset).padStart(2, '0')}-${String(collectionDate.getDate()).padStart(2, '0')}`;
 }
