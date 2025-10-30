@@ -4,7 +4,7 @@
 - [Go](https://golang.org/) (>= 1.22)
 - [docker compose](https://docs.docker.com/compose/install/) (>= 2.26.0)
 - [sqlc](https://github.com/sqlc-dev/sqlc?tab=readme-ov-file) (>=1.25.0)
-- [goose](https://github.com/pressly/goose) (3.20.0)
+- [goose](https://github.com/pressly/goose) (3.26.0)
 - [htmx](https://htmx.org/) (2.0.0)
 - [pgx](https://github.com/jackc/pgx) (5.5.5)
 - [validator](https://github.com/go-playground/validator) (10.19.0)
