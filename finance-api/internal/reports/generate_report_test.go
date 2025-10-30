@@ -101,12 +101,10 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				ReportType:             shared.ReportsTypeAccountsReceivable,
 				AccountsReceivableType: toPtr(shared.AccountsReceivableTypeAgedDebt),
 				ToDate:                 &toDate,
-				FromDate:               &fromDate,
 			},
 			expectedQuery: &db.AgedDebt{
 				AgedDebtInput: db.AgedDebtInput{
-					FromDate: &fromDate,
-					ToDate:   &toDate,
+					ToDate: &toDate,
 				},
 				ReportQuery: db.NewReportQuery(db.AgedDebtQuery)},
 			expectedFilename: "AgedDebt_01:01:2024.csv",
