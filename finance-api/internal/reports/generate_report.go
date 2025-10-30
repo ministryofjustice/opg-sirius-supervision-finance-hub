@@ -3,12 +3,13 @@ package reports
 import (
 	"context"
 	"fmt"
+	"io"
+	"time"
+
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/db"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"io"
-	"time"
 )
 
 const (
@@ -88,13 +89,12 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 
 	switch reportRequest.ReportType {
 	case shared.ReportsTypeAccountsReceivable:
-		filename = fmt.Sprintf("%s_%s.csv", reportRequest.AccountsReceivableType.Key(), requestedDate.Format("02:01:2006"))
-		reportName = reportRequest.AccountsReceivableType.Translation()
+		reportDate := requestedDate.Format("02:01:2006")
 		switch *reportRequest.AccountsReceivableType {
 		case shared.AccountsReceivableTypeAgedDebt:
+			reportDate = reportRequest.ToDate.Time.Format("02:01:2006")
 			query = db.NewAgedDebt(db.AgedDebtInput{
-				FromDate: reportRequest.FromDate,
-				ToDate:   reportRequest.ToDate,
+				ToDate: reportRequest.ToDate,
 			})
 		case shared.AccountsReceivableTypeAgedDebtByCustomer:
 			query = db.NewAgedDebtByCustomer()
@@ -128,7 +128,8 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 		default:
 			return "", reportName, nil, fmt.Errorf("unimplemented accounts receivable query: %s", reportRequest.AccountsReceivableType.Key())
 		}
-
+		filename = fmt.Sprintf("%s_%s.csv", reportRequest.AccountsReceivableType.Key(), reportDate)
+		reportName = reportRequest.AccountsReceivableType.Translation()
 	case shared.ReportsTypeJournal:
 		filename = fmt.Sprintf("%s_%s.csv", reportRequest.JournalType.Key(), reportRequest.TransactionDate.Time.Format("02:01:2006"))
 		reportName = reportRequest.JournalType.Translation()
