@@ -81,6 +81,34 @@ func (q *Queries) GetClientByCourtRef(ctx context.Context, courtRef pgtype.Text)
 	return i, err
 }
 
+const getClientById = `-- name: GetClientById :one
+SELECT fc.id AS finance_client_id, fc.client_id, fc.court_ref, fc.payment_method, c.surname
+FROM finance_client fc
+INNER JOIN public.persons c ON fc.client_id = c.id
+WHERE client_id = $1
+`
+
+type GetClientByIdRow struct {
+	FinanceClientID int32
+	ClientID        int32
+	CourtRef        pgtype.Text
+	PaymentMethod   string
+	Surname         pgtype.Text
+}
+
+func (q *Queries) GetClientById(ctx context.Context, clientID int32) (GetClientByIdRow, error) {
+	row := q.db.QueryRow(ctx, getClientById, clientID)
+	var i GetClientByIdRow
+	err := row.Scan(
+		&i.FinanceClientID,
+		&i.ClientID,
+		&i.CourtRef,
+		&i.PaymentMethod,
+		&i.Surname,
+	)
+	return i, err
+}
+
 const getCreditBalanceByCourtRef = `-- name: GetCreditBalanceByCourtRef :one
 SELECT ABS(COALESCE(SUM(la.amount), 0))::INT AS credit
 FROM finance_client fc

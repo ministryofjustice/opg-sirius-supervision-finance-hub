@@ -22,6 +22,29 @@ func (q *Queries) CancelPendingCollection(ctx context.Context, id int32) error {
 	return err
 }
 
+const checkPendingCollection = `-- name: CheckPendingCollection :one
+SELECT EXISTS (SELECT 1
+               FROM pending_collection pc
+                        JOIN supervision_finance.finance_client fc ON fc.id = pc.finance_client_id
+               WHERE pc.collection_date = $1::DATE
+                 AND pc.amount = $2
+                 AND fc.client_id = $3
+                 AND pc.status = 'PENDING')
+`
+
+type CheckPendingCollectionParams struct {
+	DateCollected pgtype.Date
+	Amount        pgtype.Int4
+	ClientID      pgtype.Int4
+}
+
+func (q *Queries) CheckPendingCollection(ctx context.Context, arg CheckPendingCollectionParams) (bool, error) {
+	row := q.db.QueryRow(ctx, checkPendingCollection, arg.DateCollected, arg.Amount, arg.ClientID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const createPendingCollection = `-- name: CreatePendingCollection :exec
 INSERT INTO pending_collection (id, finance_client_id, collection_date, amount, status, created_at, created_by)
 VALUES (NEXTVAL('pending_collection_id_seq'),
