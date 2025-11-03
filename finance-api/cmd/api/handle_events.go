@@ -19,23 +19,13 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
 		return apierror.BadRequestError("event", "unable to parse event", err)
 	}
 
-	if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeDebtPositionChanged {
-		if detail, ok := event.Detail.(shared.DebtPositionChangedEvent); ok {
+	if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeInvoiceCreated {
+		if detail, ok := event.Detail.(shared.InvoiceCreatedEvent); ok {
 			err := s.service.ReapplyCredit(ctx, detail.ClientID, nil)
 			if err != nil {
 				return err
 			}
-		}
-	} else if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeDirectDebitInvoiceCreated {
-		if detail, ok := event.Detail.(shared.DirectDebitInvoiceCreatedEvent); ok {
-			allPayCustomer := shared.AllPayCustomer{
-				Surname:         detail.Surname,
-				ClientReference: detail.CourtRef,
-			}
-			err := s.service.CreateDirectDebitScheduleForInvoice(ctx, detail.ClientID, shared.CreateScheduleForInvoice{
-				CreateSchedule: shared.CreateSchedule{AllPayCustomer: allPayCustomer},
-				InvoiceId:      detail.InvoiceId,
-			})
+			err = s.service.CreateDirectDebitScheduleForInvoice(ctx, detail.ClientID)
 			if err != nil {
 				return err
 			}

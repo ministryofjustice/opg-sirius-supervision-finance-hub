@@ -204,7 +204,7 @@ func (s *mockService) SendDirectDebitCollectionEvent(ctx context.Context, id int
 	return s.errs["SendDirectDebitCollectionEvent"]
 }
 
-func (s *mockService) CreateDirectDebitScheduleForInvoice(ctx context.Context, clientID int32, data shared.CreateScheduleForInvoice) error {
+func (s *mockService) CreateDirectDebitScheduleForInvoice(ctx context.Context, clientID int32) error {
 	s.called = append(s.called, "CreateDirectDebitScheduleForInvoice")
 	return s.errs["CreateDirectDebitScheduleForInvoice"]
 }

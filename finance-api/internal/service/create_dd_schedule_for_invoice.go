@@ -8,22 +8,29 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
-func (s *Service) CreateDirectDebitScheduleForInvoice(ctx context.Context, clientID int32, data shared.CreateScheduleForInvoice) error {
+func (s *Service) CreateDirectDebitScheduleForInvoice(ctx context.Context, clientID int32) error {
 	var err error
 
 	logger := s.Logger(ctx)
 
-	err = s.ReapplyCredit(ctx, clientID, nil)
+	client, err := s.store.GetClientById(ctx, clientID)
 	if err != nil {
 		return err
 	}
-
-	if s.pendingScheduleExists(ctx, clientID) {
-		logger.Info(fmt.Sprintf("skipping direct debit schedule creation for invoice %d as a schedule already exists", data.InvoiceId))
+	if client.PaymentMethod != shared.PaymentMethodDirectDebit.Key() {
 		return nil
 	}
 
-	_, err = s.CreateDirectDebitSchedule(ctx, clientID, shared.CreateSchedule{AllPayCustomer: data.AllPayCustomer})
+	if s.pendingScheduleExists(ctx, clientID) {
+		logger.Info(fmt.Sprintf("skipping direct debit schedule creation for client %d as a schedule already exists", clientID))
+		return nil
+	}
+
+	allPayCustomer := shared.AllPayCustomer{
+		Surname:         client.Surname.String,
+		ClientReference: client.CourtRef.String,
+	}
+	_, err = s.CreateDirectDebitSchedule(ctx, clientID, shared.CreateSchedule{AllPayCustomer: allPayCustomer})
 	if err != nil {
 		return err
 	}

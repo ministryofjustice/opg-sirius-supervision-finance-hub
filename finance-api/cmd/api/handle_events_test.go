@@ -24,11 +24,11 @@ func TestServer_handleEvents(t *testing.T) {
 		expectedHandler string
 	}{
 		{
-			name: "reapply event",
+			name: "invoice created event",
 			event: shared.Event{
 				Source:     "opg.supervision.sirius",
-				DetailType: "debt-position-changed",
-				Detail:     shared.DebtPositionChangedEvent{ClientID: 1},
+				DetailType: "invoice-created",
+				Detail:     shared.InvoiceCreatedEvent{ClientID: 1},
 			},
 			expectedErr:     nil,
 			expectedHandler: "ReapplyCredit",
@@ -52,16 +52,6 @@ func TestServer_handleEvents(t *testing.T) {
 			},
 			expectedErr:     nil,
 			expectedHandler: "CancelDirectDebitMandate",
-		},
-		{
-			name: "dd invoice created event",
-			event: shared.Event{
-				Source:     "opg.supervision.sirius",
-				DetailType: "dd-invoice-created",
-				Detail:     shared.DirectDebitInvoiceCreatedEvent{ClientID: 1, CourtRef: "12345678", Surname: "Smith", InvoiceId: 1},
-			},
-			expectedErr:     nil,
-			expectedHandler: "CreateDirectDebitScheduleForInvoice",
 		},
 		{
 			name: "adhoc event",
