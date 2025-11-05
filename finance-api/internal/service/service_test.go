@@ -86,6 +86,11 @@ func (m *mockDispatch) DirectDebitCollection(ctx context.Context, event event.Di
 	return nil
 }
 
+func (m *mockDispatch) DebtChaseUploaded(ctx context.Context, event event.DebtChaseUploaded) error {
+	m.event = event
+	return nil
+}
+
 type mockAllpay struct {
 	called           []string
 	failedPayments   allpay.FailedPayments

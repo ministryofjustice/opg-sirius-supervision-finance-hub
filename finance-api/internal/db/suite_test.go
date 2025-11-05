@@ -40,6 +40,9 @@ func (m *mockDispatch) DirectDebitScheduleFailed(ctx context.Context, event even
 func (m *mockDispatch) DirectDebitCollection(ctx context.Context, event event.DirectDebitCollection) error {
 	return nil
 }
+func (m *mockDispatch) DebtChaseUploaded(ctx context.Context, event event.DebtChaseUploaded) error {
+	return nil
+}
 
 func (suite *IntegrationSuite) SetupSuite() {
 	suite.ctx = auth.Context{
