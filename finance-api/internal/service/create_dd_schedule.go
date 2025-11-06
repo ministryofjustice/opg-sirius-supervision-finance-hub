@@ -23,6 +23,14 @@ type PendingCollection struct {
 	CollectionDate time.Time
 }
 
+func (s *Service) CalculateScheduleCollectionDate(ctx context.Context) (time.Time, error) {
+	date, err := s.govUK.AddWorkingDays(ctx, time.Now().UTC(), 14)
+	if err != nil {
+		return date, err
+	}
+	return s.govUK.NextWorkingDayOnOrAfterX(ctx, date, billingDay)
+}
+
 func (s *Service) CreateDirectDebitSchedule(ctx context.Context, clientID int32, data shared.CreateSchedule) (PendingCollection, error) {
 	var pc PendingCollection
 	logger := s.Logger(ctx)
@@ -43,13 +51,11 @@ func (s *Service) CreateDirectDebitSchedule(ctx context.Context, clientID int32,
 		return pc, nil
 	}
 
-	date, err := s.govUK.AddWorkingDays(ctx, time.Now().UTC(), 14)
+	date, err := s.CalculateScheduleCollectionDate(ctx)
 	if err != nil {
 		logger.Error("failed to create schedule due to error in calculating working days", "error", err)
 		return pc, err
 	}
-
-	date, _ = s.govUK.NextWorkingDayOnOrAfterX(ctx, date, billingDay) // no need to check error here as it would have failed earlier
 
 	var collectionDate pgtype.Date
 	_ = collectionDate.Scan(date)

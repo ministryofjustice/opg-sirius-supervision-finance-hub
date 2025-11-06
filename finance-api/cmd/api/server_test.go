@@ -204,6 +204,11 @@ func (s *mockService) SendDirectDebitCollectionEvent(ctx context.Context, id int
 	return s.errs["SendDirectDebitCollectionEvent"]
 }
 
+func (s *mockService) CreateDirectDebitScheduleForInvoice(ctx context.Context, clientID int32) error {
+	s.called = append(s.called, "CreateDirectDebitScheduleForInvoice")
+	return s.errs["CreateDirectDebitScheduleForInvoice"]
+}
+
 func (s *mockService) ProcessFailedDirectDebitCollections(ctx context.Context, date time.Time) error {
 	s.called = append(s.called, "ProcessFailedDirectDebitCollections")
 	s.lastCalledParams = []interface{}{date}

@@ -50,6 +50,7 @@ type Service interface {
 	CreateDirectDebitMandate(ctx context.Context, id int32, createMandate shared.CreateMandate) error
 	CancelDirectDebitMandate(ctx context.Context, id int32, cancelMandate shared.CancelMandate) error
 	CreateDirectDebitSchedule(ctx context.Context, clientID int32, data shared.CreateSchedule) (service.PendingCollection, error)
+	CreateDirectDebitScheduleForInvoice(ctx context.Context, clientID int32) error
 	ProcessFailedDirectDebitCollections(ctx context.Context, date time.Time) error
 	SendDirectDebitCollectionEvent(ctx context.Context, id int32, pendingCollection service.PendingCollection) error
 }
