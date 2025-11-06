@@ -3,11 +3,12 @@ package testhelpers
 import (
 	"context"
 	"encoding/json"
+	"time"
+
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"time"
 )
 
 func (s *Seeder) CreateClient(ctx context.Context, firstName string, surname string, courtRef string, sopNumber string, status string) int32 {
@@ -222,7 +223,7 @@ func (s *Seeder) ReversePayment(ctx context.Context, erroredCourtRef string, cor
 		{"Payment type", "Current (errored) court reference", "New (correct) court reference", "Bank date", "Received date", "Amount", "PIS number (cheque only)"},
 		{ledgerType.Key(), erroredCourtRef, correctCourtRef, bankDate.Format("02/01/2006"), receivedDate.Format("02/01/2006"), amount, ""},
 	}
-	failedLines, err := s.Service.ProcessPaymentReversals(ctx, records, shared.ReportTypeUploadMisappliedPayments)
+	failedLines, err := s.Service.ProcessPaymentReversals(ctx, records, shared.ReportTypeUploadMisappliedPayments, shared.Date{Time: uploadDate})
 	assert.Empty(s.t, failedLines, "failed to process reversals")
 	assert.NoError(s.t, err, "failed to process reversals: %v", err)
 
@@ -258,7 +259,7 @@ func (s *Seeder) AddFeeRanges(ctx context.Context, invoiceId int32, ranges []Fee
 
 func (s *Seeder) CreateWarning(ctx context.Context, personId int32, warningType string) {
 	var warningId int
-	err := s.Conn.QueryRow(ctx, "INSERT INTO public.warnings VALUES (NEXTVAL('public.warnings_id_seq'), $1, true) RETURNING id", warningType).Scan(&warningId)
+	err := s.Conn.QueryRow(ctx, "INSERT INTO public.warnings VALUES (NEXTVAL('public.warnings_id_seq'), $1, TRUE) RETURNING id", warningType).Scan(&warningId)
 	assert.NoError(s.t, err, "failed to add warning: %v", err)
 
 	_, err = s.Conn.Exec(ctx,
