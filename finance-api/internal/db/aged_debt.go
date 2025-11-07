@@ -155,7 +155,7 @@ func (a *AgedDebt) GetParams() []any {
 		to time.Time
 	)
 
-	if a.ToDate == nil {
+	if a.ToDate == nil || a.ToDate.IsNull() {
 		to = time.Now()
 	} else {
 		to = a.ToDate.Time
