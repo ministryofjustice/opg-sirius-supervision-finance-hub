@@ -85,7 +85,7 @@ const getClientById = `-- name: GetClientById :one
 SELECT fc.id AS finance_client_id, fc.client_id, fc.court_ref, fc.payment_method, c.surname
 FROM finance_client fc
 INNER JOIN public.persons c ON fc.client_id = c.id
-WHERE client_id = $1
+WHERE fc.client_id = $1
 `
 
 type GetClientByIdRow struct {
