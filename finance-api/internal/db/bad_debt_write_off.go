@@ -1,8 +1,9 @@
 package db
 
 import (
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"time"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
 type BadDebtWriteOff struct {
@@ -79,13 +80,13 @@ func (b *BadDebtWriteOff) GetParams() []any {
 		from, to time.Time
 	)
 
-	if b.FromDate == nil {
+	if b.FromDate == nil || b.FromDate.IsNull() {
 		from = b.GoLiveDate
 	} else {
 		from = b.FromDate.Time
 	}
 
-	if b.ToDate == nil {
+	if b.ToDate == nil || b.ToDate.IsNull() {
 		to = time.Now()
 	} else {
 		to = b.ToDate.Time
