@@ -1,8 +1,9 @@
 package db
 
 import (
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"time"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
 type PaidInvoices struct {
@@ -137,13 +138,13 @@ func (p *PaidInvoices) GetParams() []any {
 		from, to time.Time
 	)
 
-	if p.FromDate == nil {
+	if p.FromDate == nil || p.FromDate.IsNull() {
 		from = p.GoLiveDate
 	} else {
 		from = p.FromDate.Time
 	}
 
-	if p.ToDate == nil {
+	if p.ToDate == nil || p.ToDate.IsNull() {
 		to = time.Now()
 	} else {
 		to = p.ToDate.Time
