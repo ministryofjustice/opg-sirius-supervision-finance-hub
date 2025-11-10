@@ -57,6 +57,13 @@ func (s *Service) CreateDirectDebitMandate(ctx context.Context, clientID int32, 
 		s.Logger(ctx).Error(fmt.Sprintf("Error creating mandate with allpay, rolling back payment method change for client : %d", clientID), slog.String("err", err.Error()))
 		return apierror.BadRequestError("Allpay", "Failed", err)
 	}
+	//
+	////db entry to say we've recorded a new payment method
+	//feeReduction, err := tx.AddFeeReduction(ctx, feeReductionParams)
+	//if err != nil {
+	//	s.Logger(ctx).Error("Add fee reduction has an issue " + err.Error())
+	//	return err
+	//}
 
 	err = s.dispatch.PaymentMethodChanged(ctx, event.PaymentMethod{
 		ClientID:      int(clientID),
