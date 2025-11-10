@@ -351,6 +351,31 @@ func Test_getPaymentDetails(t *testing.T) {
 			},
 		},
 		{
+			name:       "SOP unallocated",
+			record:     []string{"012345678", "200.92"},
+			uploadType: shared.ReportTypeUploadSOPUnallocated,
+			index:      0,
+			expectedPaymentDetails: shared.PaymentDetails{
+				Amount: 20092,
+				ReceivedDate: pgtype.Timestamp{
+					Time:             time.Date(2025, 03, 31, 0, 0, 0, 0, time.UTC),
+					InfinityModifier: 0,
+					Valid:            true,
+				},
+				CourtRef:   pgtype.Text{String: "012345678", Valid: true},
+				LedgerType: shared.TransactionTypeSOPUnallocatedPayment,
+				BankDate: pgtype.Date{
+					Time:             time.Date(2025, 03, 31, 0, 0, 0, 0, time.UTC),
+					InfinityModifier: 0,
+					Valid:            true,
+				},
+				CreatedBy: pgtype.Int4{
+					Int32: 10,
+					Valid: true,
+				},
+			},
+		},
+		{
 			name:                "Amount parse error returns failed line",
 			record:              []string{"23145746", "2024-01-01 00:00:00", "five hundred pounds!!!"},
 			uploadType:          shared.ReportTypeUploadPaymentsMOTOCard,
