@@ -160,7 +160,7 @@ func (s *mockService) ProcessPayments(ctx context.Context, records [][]string, u
 	return nil, s.errs["ProcessPayments"]
 }
 
-func (s *mockService) ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType) (map[int]string, error) {
+func (s *mockService) ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType, uploadDate shared.Date) (map[int]string, error) {
 	s.called = append(s.called, "ProcessPaymentReversals")
 	return nil, s.errs["ProcessPaymentReversals"]
 }

@@ -101,7 +101,7 @@ func (s *Server) processUploadFile(ctx context.Context, upload Upload) {
 			}
 			payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, perr, failedLines)
 		} else if upload.UploadType.IsReversal() {
-			failedLines, perr := s.service.ProcessPaymentReversals(ctx, records, upload.UploadType)
+			failedLines, perr := s.service.ProcessPaymentReversals(ctx, records, upload.UploadType, upload.UploadDate)
 			if perr != nil {
 				logger.Error("unable to process payment reversals due to error", "err", perr)
 			} else if len(failedLines) > 0 {
