@@ -3,6 +3,8 @@ package db
 import (
 	"fmt"
 	"strconv"
+	"testing"
+	"time"
 
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/testhelpers"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
@@ -236,4 +238,44 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	assert.Equal(suite.T(), "0", results[4]["3-5 years"], "3-5 years - client 4")
 	assert.Equal(suite.T(), "0", results[4]["5+ years"], "5+ years - client 4")
 	assert.Equal(suite.T(), "=\"0-1\"", results[4]["Debt impairment years"], "Debt impairment years - client 4")
+}
+
+func TestAgedDebt_GetParams(t *testing.T) {
+	type fields struct {
+		ReportQuery   ReportQuery
+		AgedDebtInput AgedDebtInput
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   []any
+	}{
+		{
+			name:   "nil ToDate defaults to today",
+			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: nil}},
+			want:   []any{time.Now().Format("2006-01-02")},
+		},
+		{
+			name:   "empty ToDate defaults to today",
+			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: &shared.Date{}}},
+			want:   []any{time.Now().Format("2006-01-02")},
+		},
+		{
+			name: "valid ToDate returns formatted date",
+			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: func() *shared.Date {
+				d := shared.NewDate("2023-05-01")
+				return &d
+			}()}},
+			want: []any{"2023-05-01"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			a := &AgedDebt{
+				ReportQuery:   tt.fields.ReportQuery,
+				AgedDebtInput: tt.fields.AgedDebtInput,
+			}
+			assert.Equalf(t, tt.want, a.GetParams(), "GetParams()")
+		})
+	}
 }
