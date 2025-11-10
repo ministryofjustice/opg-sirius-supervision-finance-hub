@@ -63,8 +63,11 @@ func getLedgerType(uploadType shared.ReportUploadType) (shared.TransactionType, 
 		return shared.TransactionTypeSupervisionChequePayment, nil
 	case shared.ReportTypeUploadDirectDebitsCollections:
 		return shared.TransactionTypeDirectDebitPayment, nil
+	case shared.ReportTypeUploadSOPUnallocated:
+		return shared.TransactionTypeSOPUnallocatedPayment, nil
+	default:
+		return shared.TransactionTypeUnknown, fmt.Errorf("unknown upload type")
 	}
-	return shared.TransactionTypeUnknown, fmt.Errorf("unknown upload type")
 }
 
 func parseAmount(amount string) (int32, error) {
@@ -92,7 +95,9 @@ func getPaymentDetails(ctx context.Context, record []string, uploadType shared.R
 		err          error
 	)
 
-	_ = bankDate.Scan(formDate.Time)
+	if !formDate.IsNull() {
+		_ = bankDate.Scan(formDate.Time)
+	}
 	_ = store.ToInt4(&createdBy, ctx.(auth.Context).User.ID)
 	_ = store.ToInt4(&pis, pisNumber)
 
@@ -161,6 +166,18 @@ func getPaymentDetails(ctx context.Context, record []string, uploadType shared.R
 			return shared.PaymentDetails{}
 		}
 		_ = receivedDate.Scan(rd)
+	case shared.ReportTypeUploadSOPUnallocated:
+		_ = courtRef.Scan(strings.TrimSpace(safeRead(record, 0)))
+		amount, err = parseAmount(strings.TrimSpace(safeRead(record, 1)))
+		if err != nil {
+			(*failedLines)[index] = validation.UploadErrorAmountParse
+			return shared.PaymentDetails{}
+		}
+		date, _ := time.Parse("2006/01/02", "2025/03/31")
+		_ = bankDate.Scan(date)
+		_ = receivedDate.Scan(date)
+	default:
+		(*failedLines)[index] = validation.UploadErrorPaymentTypeParse
 	}
 
 	return shared.PaymentDetails{Amount: amount, BankDate: bankDate, CourtRef: courtRef, LedgerType: paymentType, ReceivedDate: receivedDate, CreatedBy: createdBy, PisNumber: pis}

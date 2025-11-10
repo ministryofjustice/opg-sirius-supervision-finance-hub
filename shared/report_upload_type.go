@@ -14,6 +14,7 @@ var reportUploadPaymentTypes = []ReportUploadType{
 	ReportTypeUploadPaymentsSupervisionBACS,
 	ReportTypeUploadPaymentsSupervisionCheque,
 	ReportTypeUploadDirectDebitsCollections,
+	ReportTypeUploadSOPUnallocated,
 }
 
 var reportUploadReversalTypes = []ReportUploadType{
@@ -44,6 +45,7 @@ const (
 	ReportTypeUploadBouncedCheque
 	ReportTypeUploadFulfilledRefunds
 	ReportTypeUploadFailedDirectDebitCollections
+	ReportTypeUploadSOPUnallocated
 )
 
 var reportTypeUploadMap = map[string]ReportUploadType{
@@ -60,6 +62,7 @@ var reportTypeUploadMap = map[string]ReportUploadType{
 	"BOUNCED_CHEQUE":                   ReportTypeUploadBouncedCheque,
 	"FULFILLED_REFUNDS":                ReportTypeUploadFulfilledRefunds,
 	"FAILED_DIRECT_DEBITS_COLLECTIONS": ReportTypeUploadFailedDirectDebitCollections,
+	"SOP_UNALLOCATED":                  ReportTypeUploadSOPUnallocated,
 }
 
 func (u ReportUploadType) String() string {
@@ -94,6 +97,8 @@ func (u ReportUploadType) Translation() string {
 		return "Fulfilled refunds"
 	case ReportTypeUploadFailedDirectDebitCollections:
 		return "Payment Reversals - Failed direct debit collections"
+	case ReportTypeUploadSOPUnallocated:
+		return "SOP Unallocated"
 	default:
 		return ""
 	}
@@ -127,6 +132,8 @@ func (u ReportUploadType) Key() string {
 		return "FULFILLED_REFUNDS"
 	case ReportTypeUploadFailedDirectDebitCollections:
 		return "FAILED_DIRECT_DEBITS_COLLECTIONS"
+	case ReportTypeUploadSOPUnallocated:
+		return "SOP_UNALLOCATED"
 	default:
 		return ""
 	}
@@ -156,6 +163,8 @@ func (u ReportUploadType) CSVHeaders() []string {
 		return []string{"Court reference", "Amount", "Bank account name", "Bank account number", "Bank account sort code", "Created by", "Approved by"}
 	case ReportTypeUploadFailedDirectDebitCollections:
 		return []string{"Court reference", "Bank date", "Received date", "Amount"}
+	case ReportTypeUploadSOPUnallocated:
+		return []string{"Reference", "Amount"}
 	}
 
 	return []string{"Unknown report type"}
@@ -173,6 +182,8 @@ func (u ReportUploadType) Filename(date string) (string, error) {
 		return "debt_FeeChase_*.csv", nil
 	case ReportTypeUploadFailedDirectDebitCollections:
 		return "faileddirectdebitcollections.csv", nil
+	case ReportTypeUploadSOPUnallocated:
+		return "sopunallocated.csv", nil
 	}
 
 	parsedDate, err := time.Parse("2006-01-02", date)
