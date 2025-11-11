@@ -9,6 +9,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
@@ -62,8 +63,11 @@ func getLedgerType(uploadType shared.ReportUploadType) (shared.TransactionType, 
 		return shared.TransactionTypeSupervisionChequePayment, nil
 	case shared.ReportTypeUploadDirectDebitsCollections:
 		return shared.TransactionTypeDirectDebitPayment, nil
+	case shared.ReportTypeUploadSOPUnallocated:
+		return shared.TransactionTypeSOPUnallocatedPayment, nil
+	default:
+		return shared.TransactionTypeUnknown, fmt.Errorf("unknown upload type")
 	}
-	return shared.TransactionTypeUnknown, fmt.Errorf("unknown upload type")
 }
 
 func parseAmount(amount string) (int32, error) {
@@ -91,7 +95,9 @@ func getPaymentDetails(ctx context.Context, record []string, uploadType shared.R
 		err          error
 	)
 
-	_ = bankDate.Scan(formDate.Time)
+	if !formDate.IsNull() {
+		_ = bankDate.Scan(formDate.Time)
+	}
 	_ = store.ToInt4(&createdBy, ctx.(auth.Context).User.ID)
 	_ = store.ToInt4(&pis, pisNumber)
 
@@ -160,6 +166,18 @@ func getPaymentDetails(ctx context.Context, record []string, uploadType shared.R
 			return shared.PaymentDetails{}
 		}
 		_ = receivedDate.Scan(rd)
+	case shared.ReportTypeUploadSOPUnallocated:
+		_ = courtRef.Scan(strings.TrimSpace(safeRead(record, 0)))
+		amount, err = parseAmount(strings.TrimSpace(safeRead(record, 1)))
+		if err != nil {
+			(*failedLines)[index] = validation.UploadErrorAmountParse
+			return shared.PaymentDetails{}
+		}
+		date, _ := time.Parse("2006/01/02", "2025/03/31")
+		_ = bankDate.Scan(date)
+		_ = receivedDate.Scan(date)
+	default:
+		(*failedLines)[index] = validation.UploadErrorPaymentTypeParse
 	}
 
 	return shared.PaymentDetails{Amount: amount, BankDate: bankDate, CourtRef: courtRef, LedgerType: paymentType, ReceivedDate: receivedDate, CreatedBy: createdBy, PisNumber: pis}
@@ -197,7 +215,50 @@ func (s *Service) validatePaymentLine(ctx context.Context, details shared.Paymen
 }
 
 func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, details shared.PaymentDetails) (int32, error) {
-	if details.Amount == 0 {
+	if details.Amount <= 0 {
+		return 0, nil
+	}
+
+	invoices, err := tx.GetUnpaidInvoicesByCourtRef(ctx, details.CourtRef)
+
+	if err != nil {
+		return 0, err
+	}
+
+	remaining := details.Amount
+	var allocations []store.CreateLedgerAllocationParams
+
+	for _, invoice := range invoices {
+		allocationAmount := invoice.Outstanding
+		if allocationAmount > remaining {
+			allocationAmount = remaining
+		}
+
+		var invoiceID pgtype.Int4
+		_ = store.ToInt4(&invoiceID, invoice.ID)
+
+		allocations = append(allocations, store.CreateLedgerAllocationParams{
+			InvoiceID: invoiceID,
+			Amount:    allocationAmount,
+			Status:    "ALLOCATED",
+		})
+
+		remaining -= allocationAmount
+		if remaining <= 0 {
+			break
+		}
+	}
+
+	if remaining > 0 {
+		allocations = append(allocations, store.CreateLedgerAllocationParams{
+			Amount: -remaining,
+			Status: "UNAPPLIED",
+		})
+	}
+
+	if len(allocations) == 0 {
+		// this should never occur but back out and log if it does
+		s.Logger(ctx).Error("no allocations generated for ledger in payment line", "courtref", details.CourtRef, "amount", details.Amount)
 		return 0, nil
 	}
 
@@ -217,52 +278,21 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 		return 0, err
 	}
 
-	invoices, err := tx.GetUnpaidInvoicesByCourtRef(ctx, details.CourtRef)
-
-	if err != nil {
-		return 0, err
-	}
-
-	remaining := details.Amount
-
-	for _, invoice := range invoices {
-		allocationAmount := invoice.Outstanding
-		if allocationAmount > remaining {
-			allocationAmount = remaining
-		}
-
-		var invoiceID pgtype.Int4
-		_ = store.ToInt4(&invoiceID, invoice.ID)
-
-		err = tx.CreateLedgerAllocation(ctx, store.CreateLedgerAllocationParams{
-			InvoiceID: invoiceID,
-			Amount:    allocationAmount,
-			Status:    "ALLOCATED",
-			LedgerID:  ledgerID,
-		})
+	for _, allocation := range allocations {
+		allocation.LedgerID = ledgerID
+		err = tx.CreateLedgerAllocation(ctx, allocation)
 		if err != nil {
 			return 0, err
-		}
-
-		remaining -= allocationAmount
-		if remaining <= 0 {
-			break
 		}
 	}
 
 	if remaining > 0 {
-		err = tx.CreateLedgerAllocation(ctx, store.CreateLedgerAllocationParams{
-			Amount:   -remaining,
-			Status:   "UNAPPLIED",
-			LedgerID: ledgerID,
-		})
-
-		if err != nil {
-			return 0, err
-		}
-
 		client, _ := tx.GetClientByCourtRef(ctx, details.CourtRef)
-		return ledgerID, s.ReapplyCredit(ctx, client.ClientID, tx)
+		err = s.dispatch.CreditOnAccount(ctx, event.CreditOnAccount{
+			ClientID:        int(client.ClientID),
+			CreditRemaining: int(remaining),
+		})
+		return ledgerID, err
 	}
 
 	return ledgerID, nil
