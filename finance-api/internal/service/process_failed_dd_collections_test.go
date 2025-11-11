@@ -154,10 +154,12 @@ func (suite *IntegrationSuite) Test_ProcessFailedDirectDebitCollections() {
 			allpayMock.failedPayments = tt.failedPayments
 			allpayMock.errs = map[string]error{"FetchFailedPayments": tt.apiError}
 
-			fromDate, _ := time.Parse("2006-01-02", "2025-09-01")
-			toDate := time.Date(fromDate.Year(), fromDate.Month(), fromDate.Day()+8, 0, 0, 0, 0, time.UTC) // 7 working days + 1 non-working
+			collectionDate, _ := time.Parse("2006-01-02", "2025-09-01")
+			// fromDate should be 7 working days before collectionDate
+			// With one non-working day at +7, we need to go back 8 days to get 7 working days before
+			fromDate := time.Date(collectionDate.Year(), collectionDate.Month(), collectionDate.Day()-8, 0, 0, 0, 0, time.UTC)
 			govUKMock := &mockGovUK{NonWorkingDays: []time.Time{
-				time.Date(fromDate.Year(), fromDate.Month(), fromDate.Day()+7, 0, 0, 0, 0, time.UTC),
+				time.Date(collectionDate.Year(), collectionDate.Month(), collectionDate.Day()-7, 0, 0, 0, 0, time.UTC),
 			}}
 
 			dispatchMock := &mockDispatch{}
@@ -166,12 +168,12 @@ func (suite *IntegrationSuite) Test_ProcessFailedDirectDebitCollections() {
 			var currentLedgerId int
 			_ = seeder.QueryRow(suite.ctx, `SELECT MAX(id) FROM ledger`).Scan(&currentLedgerId)
 
-			err := s.ProcessFailedDirectDebitCollections(suite.ctx, fromDate)
+			err := s.ProcessFailedDirectDebitCollections(suite.ctx, collectionDate)
 
 			assert.Equal(t, tt.want, err)
 			assert.Equal(t, allpay.FetchFailedPaymentsInput{
-				To:   toDate,
 				From: fromDate,
+				To:   collectionDate,
 			}, allpayMock.lastCalledParams[0])
 
 			var output []expectedFailedDDOutput

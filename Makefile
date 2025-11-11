@@ -101,3 +101,18 @@ cypress-zap: clean start-and-seed
 	docker compose -f docker-compose.yml -f zap/docker-compose.zap.yml exec -u root zap-proxy bash -c "apk add --no-cache jq"
 	docker compose -f docker-compose.yml -f zap/docker-compose.zap.yml exec zap-proxy bash -c "/zap/wrk/scan.sh"
 	docker compose -f docker-compose.yml -f zap/docker-compose.zap.yml down
+
+send-event:
+	./scripts/send_eventbridge_event.sh "$(SOURCE)" "$(DETAIL_TYPE)" '$(DETAIL)' '$(OVERRIDE)' $(API_URL)
+
+OVERRIDE ?= "" ## '{date: "2022-04-02"}'
+send-event-refund-expiry:
+	$(MAKE) send-event SOURCE="opg.supervision.infra" DETAIL_TYPE="scheduled-event" DETAIL='{"trigger":"refund-expiry"}'
+
+OVERRIDE ?= "" ## '{date: "2022-04-02"}'
+send-event-direct-debit-collection:
+	$(MAKE) send-event SOURCE="opg.supervision.infra" DETAIL_TYPE="scheduled-event" DETAIL='{"trigger":"direct-debit-collection"}'
+
+OVERRIDE ?= "" ## '{date: "2022-04-02"}'
+send-event-failed-direct-debit-collections:
+	$(MAKE) send-event SOURCE="opg.supervision.infra" DETAIL_TYPE="scheduled-event" DETAIL='{"trigger":"failed-direct-debit-collections"}'
