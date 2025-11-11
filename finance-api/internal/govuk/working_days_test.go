@@ -177,3 +177,29 @@ func TestNextWorkingDayOnOrAfterX(t *testing.T) {
 		}
 	}
 }
+
+func TestSubWorkingDays(t *testing.T) {
+	client := &Client{
+		caches: newCaches(),
+	}
+	client.caches.updateHolidays([]Holiday{{"2025-12-25"}, {"2025-12-26"}})
+
+	start := time.Date(2025, 12, 31, 0, 0, 0, 0, time.UTC) // Wednesday
+	// Tuesday 30th - Work day
+	// Monday 29th - Work day
+	// Sunday 28th - Weekend
+	// Saturday 27th - Weekend
+	// Friday 26th - Holiday
+	// Thursday 25th - Holiday
+	// Wednesday 24th - Work day
+	expected := time.Date(2025, 12, 24, 0, 0, 0, 0, time.UTC)
+
+	result, err := client.SubWorkingDays(testContext(), start, 3)
+	if err != nil {
+		t.Fatalf("SubWorkingDays returned error: %v", err)
+	}
+
+	if !result.Equal(expected) {
+		t.Errorf("SubWorkingDays = %v; want %v", result, expected)
+	}
+}

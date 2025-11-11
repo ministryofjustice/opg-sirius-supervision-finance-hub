@@ -16,14 +16,14 @@ import (
 func (s *Service) ProcessFailedDirectDebitCollections(ctx context.Context, collectionDate time.Time) error {
 	logger := s.Logger(ctx)
 
-	fromDate, err := s.govUK.AddWorkingDays(ctx, collectionDate, 7)
+	fromDate, err := s.govUK.SubWorkingDays(ctx, collectionDate, 7)
 	if err != nil {
 		return err
 	}
 
 	payments, err := s.allpay.FetchFailedPayments(ctx, allpay.FetchFailedPaymentsInput{
-		From: collectionDate,
-		To:   fromDate,
+		From: fromDate,
+		To:   collectionDate,
 	})
 	if err != nil {
 		return err

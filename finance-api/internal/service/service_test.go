@@ -163,6 +163,18 @@ func (m *mockGovUK) AddWorkingDays(ctx context.Context, d time.Time, n int) (tim
 	return d, m.errs["AddWorkingDays"]
 }
 
+func (m *mockGovUK) SubWorkingDays(ctx context.Context, d time.Time, n int) (time.Time, error) {
+	m.called = append(m.called, "AddWorkingDays")
+	m.nWorkingDays = n
+	d = time.Date(d.Year(), d.Month(), d.Day()-n, 0, 0, 0, 0, time.UTC)
+
+	for slices.Contains(m.NonWorkingDays, d) {
+		d = d.AddDate(0, 0, -1)
+	}
+	m.WorkingDay = d
+	return d, m.errs["AddWorkingDays"]
+}
+
 func (m *mockGovUK) NextWorkingDayOnOrAfterX(ctx context.Context, d time.Time, dayOfMonth int) (time.Time, error) {
 	m.called = append(m.called, "NextWorkingDayOnOrAfterX")
 	m.Xday = dayOfMonth
