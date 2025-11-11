@@ -148,6 +148,10 @@ type ReappliedCredit struct {
 	TransactionEvent
 }
 
+type PaymentMethodChanged struct {
+	TransactionEvent
+}
+
 type BillingEventType int
 
 const (
@@ -167,6 +171,8 @@ const (
 	EventTypeRefundFulfilled
 	EventTypeRefundProcessing
 	EventTypeRefundStatusUpdated
+	EventTypeDirectDebitMandateCreated
+	EventTypeDirectDebitMandateCancelled
 )
 
 var eventTypeMap = map[string]BillingEventType{
@@ -186,6 +192,8 @@ var eventTypeMap = map[string]BillingEventType{
 	"REFUND_FULFILLED":            EventTypeRefundFulfilled,
 	"REFUND_PROCESSING":           EventTypeRefundProcessing,
 	"REFUND_STATUS_UPDATED":       EventTypeRefundStatusUpdated,
+	"DIRECTDEBITCREATED":          EventTypeDirectDebitMandateCreated,
+	"DIRECTDEBITCANCELLED":        EventTypeDirectDebitMandateCancelled,
 }
 
 func (b BillingEventType) String() string {
