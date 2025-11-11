@@ -64,6 +64,11 @@ func (s *Service) CancelDirectDebitMandate(ctx context.Context, clientID int32, 
 		CreatedBy: ctx.(auth.Context).User.ID,
 	})
 
+	if err != nil {
+		s.Logger(ctx).Error("Updating payment method table had an issue " + err.Error())
+		return err
+	}
+
 	err = s.dispatch.PaymentMethodChanged(ctx, event.PaymentMethod{
 		ClientID:      int(clientID),
 		PaymentMethod: shared.PaymentMethodDemanded,

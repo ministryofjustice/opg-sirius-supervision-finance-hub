@@ -80,3 +80,10 @@ FROM refund r
         JOIN finance_client fc ON fc.id = r.finance_client_id
 WHERE fc.client_id = $1
 ORDER BY r.created_at DESC;
+
+-- name: GetPaymentMethodsForClient :many
+SELECT *
+FROM payment_method pm
+     JOIN finance_client fc ON fc.id = pm.finance_client_id
+WHERE fc.client_id = $1
+ORDER BY id DESC;

@@ -66,6 +66,14 @@ func (s *Service) GetBillingHistory(ctx context.Context, clientID int32) ([]shar
 
 	history = append(history, processRefundEvents(refunds, clientID)...)
 
+	paymentMethods, err := s.store.GetPaymentMethods(ctx, clientID)
+	if err != nil {
+		s.Logger(ctx).Error(fmt.Sprintf("Error in getting payment methods in billing history for client %d", clientID), slog.String("err", err.Error()))
+		return nil, err
+	}
+
+	history = append(history, processPaymentMethodEvents(paymentMethods, clientID)...)
+
 	return computeBillingHistory(history), nil
 }
 
@@ -386,6 +394,29 @@ func processLedgerAllocations(allocations []store.GetLedgerAllocationsForClientR
 	var history []historyHolder
 	for _, lh := range historyByLedger {
 		history = append(history, *lh)
+	}
+
+	return history
+}
+
+func processPaymentMethodEvents(paymentMethods []store.GetPaymentMethodsRow, clientID int32) []historyHolder {
+	var history []historyHolder
+	for _, pm := range paymentMethods {
+		event := shared.BaseBillingEvent{}
+		if pm.Type == "DEMANDED" {
+			event.Type = shared.EventTypeDirectDebitMandateCancelled
+		} else {
+			event.Type = shared.EventTypeDirectDebitMandateCreated
+		}
+		bh := shared.BillingHistory{
+			User:  int(pm.CreatedBy),
+			Date:  shared.Date{Time: pm.CreatedAt.Time},
+			Event: event,
+		}
+		history = append(history, historyHolder{
+			billingHistory:    bh,
+			balanceAdjustment: 0,
+		})
 	}
 
 	return history

@@ -67,7 +67,7 @@ func (s *Service) CreateDirectDebitMandate(ctx context.Context, clientID int32, 
 	})
 
 	if err != nil {
-		s.Logger(ctx).Error("Add payment method has an issue " + err.Error())
+		s.Logger(ctx).Error("Updating payment method table had an issue " + err.Error())
 		return err
 	}
 
