@@ -75,7 +75,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					10000,
 					"ALLOCATED",
 					1,
-					0,
+					-1,
 				},
 			},
 			expectedFailedLines: map[int]string{},
@@ -108,7 +108,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 					-15010,
 					"UNAPPLIED",
-					0,
+					-1,
 					150,
 				},
 			},
@@ -133,7 +133,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 					5000,
 					"ALLOCATED",
 					3,
-					0,
+					-1,
 				},
 			},
 			expectedFailedLines: map[int]string{},
@@ -170,9 +170,9 @@ func (suite *IntegrationSuite) Test_processPayments() {
 			var createdLedgerAllocations []createdLedgerAllocation
 
 			rows, _ := seeder.Query(suite.ctx,
-				`SELECT l.amount, l.type, l.status, l.datetime, la.amount, la.status, COALESCE(l.pis_number, 0), COALESCE(la.invoice_id, 0)
+				`SELECT l.amount, l.type, l.status, l.datetime, COALESCE(la.amount, -1), COALESCE(la.status, 'NOT_SET'), COALESCE(l.pis_number, -1), COALESCE(la.invoice_id, -1)
 						FROM ledger l
-						JOIN ledger_allocation la ON l.id = la.ledger_id
+						LEFT JOIN ledger_allocation la ON l.id = la.ledger_id
 					WHERE l.finance_client_id = $1 AND l.id > $2`, tt.expectedClientId, currentLedgerId)
 
 			for rows.Next() {

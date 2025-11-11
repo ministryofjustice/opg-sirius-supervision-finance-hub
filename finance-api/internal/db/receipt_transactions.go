@@ -32,7 +32,7 @@ WITH transaction_type_order AS (
             WHEN line_description LIKE 'Direct debit%' THEN 5
             WHEN line_description LIKE 'Cheque payment%' THEN 6
         END AS index
-	FROM transaction_type WHERE is_receipt = TRUE
+	FROM supervision_finance.transaction_type WHERE is_receipt = TRUE
 ),
 ledger_totals AS (
     SELECT
@@ -63,7 +63,6 @@ allocation_totals AS (
             ELSE '1841102050'
         END AS debit_account_code,
 		'1816102003' AS credit_account_code,
-        SUM(l.amount) AS debit_amount,
         SUM(CASE WHEN la.status != 'UNAPPLIED' AND la.amount > 0 THEN la.amount ELSE 0 END) AS credit_amount,
         SUM(CASE WHEN la.status = 'UNAPPLIED' AND la.amount < 0 THEN ABS(la.amount) ELSE 0 END) AS overpayment_amount,
         SUM(CASE WHEN la.status != 'UNAPPLIED' AND la.amount < 0 THEN ABS(la.amount) ELSE 0 END) AS reversed_amount,
