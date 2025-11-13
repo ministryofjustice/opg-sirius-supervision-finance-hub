@@ -2,7 +2,6 @@ package allpay
 
 import (
 	"context"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"io"
 	"net/http"
 )
@@ -39,8 +38,6 @@ type HTTPClient interface {
 }
 
 func (c *Client) newRequest(ctx context.Context, method, path string, body io.Reader) (*http.Request, error) {
-	logger := telemetry.LoggerFromContext(ctx)
-	logger.Info(c.apiHost + "/AllpayApi" + path)
 	req, err := http.NewRequestWithContext(ctx, method, c.apiHost+"/AllpayApi"+path, body)
 	if err != nil {
 		return nil, err
