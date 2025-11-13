@@ -44,11 +44,16 @@ func (c *Client) newRequest(ctx context.Context, method, path string, body io.Re
 		return nil, err
 	}
 
+	logger := telemetry.LoggerFromContext(ctx)
+
+	if c.apiHost == "" {
+		logger.Error("Oh no! Allpay API host is not set")
+	}
+
 	req.Header.Add("Authorization", "Bearer "+c.apiKey)
 	req.Header.Add("Content-Type", "application/json")
 
 	if c.apiKey == "" {
-		logger := telemetry.LoggerFromContext(ctx)
 		logger.Error("Oh no! Allpay API key is not set")
 	}
 
