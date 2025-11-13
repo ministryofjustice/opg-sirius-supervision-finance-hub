@@ -16,15 +16,13 @@ type modulusCheckResponse struct {
 
 func (c *Client) ModulusCheck(ctx context.Context, sortCode string, accountNumber string) error {
 	logger := telemetry.LoggerFromContext(ctx)
-	url := fmt.Sprintf("/BankAccounts?sortcode=%s&accountnumber=%s", sortCode, accountNumber)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.apiHost+"/AllpayApi"+url, nil)
+
+	req, err := c.newRequest(ctx, http.MethodGet, fmt.Sprintf("/BankAccounts?sortcode=%s&accountnumber=%s", sortCode, accountNumber), nil)
 
 	if err != nil {
 		logger.Error("unable to build modulus check request", "error", err)
 		return ErrorAPI{}
 	}
-
-	req.Header.Add("Authorization", "Bearer "+c.apiKey)
 
 	resp, err := c.http.Do(req)
 	if err != nil {
