@@ -92,7 +92,9 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 		reportDate := requestedDate.Format("02:01:2006")
 		switch *reportRequest.AccountsReceivableType {
 		case shared.AccountsReceivableTypeAgedDebt:
-			reportDate = reportRequest.ToDate.Time.Format("02:01:2006")
+			if reportRequest.ToDate != nil {
+				reportDate = reportRequest.ToDate.Time.Format("02:01:2006")
+			}
 			query = db.NewAgedDebt(db.AgedDebtInput{
 				ToDate: reportRequest.ToDate,
 			})
