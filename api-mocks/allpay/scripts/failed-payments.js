@@ -2,9 +2,9 @@ logger.info('running failed payments script')
 const scheduleStore = stores.open('schedules');
 
 const schedule = scheduleStore.loadAll();
-logger.info(schedule);
+console.log('schedule', schedule);
 
-if (schedule) {
+if (schedule?.date) {
     const date = schedule.date.replace(/^(\d{4})-(\d{2})-(\d{2})$/, '$3/$2/$1 00:00:00');
     const data = JSON.stringify(
         {
