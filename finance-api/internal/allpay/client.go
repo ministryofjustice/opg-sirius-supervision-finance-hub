@@ -2,6 +2,7 @@ package allpay
 
 import (
 	"context"
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"io"
 	"net/http"
 )
@@ -45,6 +46,11 @@ func (c *Client) newRequest(ctx context.Context, method, path string, body io.Re
 
 	req.Header.Add("Authorization", "Bearer "+c.apiKey)
 	req.Header.Add("Content-Type", "application/json")
+
+	if c.apiKey == "" {
+		logger := telemetry.LoggerFromContext(ctx)
+		logger.Error("Oh no! Allpay API key is not set")
+	}
 
 	return req, err
 }
