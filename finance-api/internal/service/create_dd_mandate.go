@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strings"
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
@@ -48,19 +49,21 @@ func (s *Service) CreateDirectDebitMandate(ctx context.Context, clientID int32, 
 	}
 
 	err = s.allpay.CreateMandate(ctx, &allpay.CreateMandateRequest{
-		ClientReference: createMandate.ClientReference,
-		Surname:         createMandate.Surname,
-		Address: allpay.Address{
-			Line1:    createMandate.Address.Line1,
-			Town:     createMandate.Address.Town,
-			PostCode: createMandate.Address.PostCode,
+		Customer: allpay.Customer{
+			ClientReference: createMandate.ClientReference,
+			Surname:         createMandate.Surname,
+			Address: allpay.Address{
+				Line1:    createMandate.Address.Line1,
+				Town:     createMandate.Address.Town,
+				PostCode: createMandate.Address.PostCode,
+			},
 		},
 		BankAccount: struct {
 			BankDetails allpay.BankDetails `json:"BankDetails"`
 		}{
 			BankDetails: allpay.BankDetails{
 				AccountName:   bankDetails.AccountName,
-				SortCode:      bankDetails.SortCode,
+				SortCode:      strings.ReplaceAll(bankDetails.SortCode, "-", ""),
 				AccountNumber: bankDetails.AccountNumber,
 			},
 		},
