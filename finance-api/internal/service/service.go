@@ -26,6 +26,7 @@ type Dispatch interface {
 	DirectDebitScheduleFailed(ctx context.Context, event event.DirectDebitScheduleFailed) error
 	RefundAdded(ctx context.Context, event event.RefundAdded) error
 	DirectDebitCollection(ctx context.Context, event event.DirectDebitCollection) error
+	DirectDebitMandateReview(ctx context.Context, event event.DirectDebitMandateReview) error
 }
 
 type FileStorage interface {

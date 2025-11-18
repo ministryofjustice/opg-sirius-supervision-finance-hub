@@ -12,6 +12,7 @@ const (
 	DetailTypeFinanceAdhoc              = "finance-adhoc"
 	DetailTypeInvoiceCreated            = "invoice-created"
 	DetailTypeClientCreated             = "client-created"
+	DetailTypeOrderCreated              = "order-created"
 	DetailTypeClientMadeInactive        = "client-made-inactive"
 	DetailTypeFinanceAdminUpload        = "finance-admin-upload"
 	DetailTypeScheduledEvent            = "scheduled-event"
@@ -66,6 +67,12 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		e.Detail = detail
+	case DetailTypeOrderCreated:
+		var detail OrderCreatedEvent
+		if err := json.Unmarshal(raw.Detail, &detail); err != nil {
+			return err
+		}
+		e.Detail = detail
 	case DetailTypeFinanceAdhoc:
 		var detail AdhocEvent
 		if err := json.Unmarshal(raw.Detail, &detail); err != nil {
@@ -92,6 +99,10 @@ type InvoiceCreatedEvent struct {
 type ClientCreatedEvent struct {
 	ClientID int32  `json:"clientId"`
 	CourtRef string `json:"courtRef"`
+}
+
+type OrderCreatedEvent struct {
+	ClientID int32 `json:"clientId"`
 }
 
 type ClientMadeInactiveEvent struct {
