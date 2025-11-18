@@ -26,6 +26,7 @@ type Dispatch interface {
 	DirectDebitScheduleFailed(ctx context.Context, event event.DirectDebitScheduleFailed) error
 	RefundAdded(ctx context.Context, event event.RefundAdded) error
 	DirectDebitCollection(ctx context.Context, event event.DirectDebitCollection) error
+	DirectDebitCollectionFailed(ctx context.Context, event event.DirectDebitCollectionFailed) error
 }
 
 type FileStorage interface {
@@ -49,6 +50,7 @@ type AllpayClient interface {
 
 type GovUKClient interface {
 	AddWorkingDays(ctx context.Context, d time.Time, n int) (time.Time, error)
+	SubWorkingDays(ctx context.Context, d time.Time, n int) (time.Time, error)
 	NextWorkingDayOnOrAfterX(ctx context.Context, date time.Time, dayOfMonth int) (time.Time, error)
 }
 
