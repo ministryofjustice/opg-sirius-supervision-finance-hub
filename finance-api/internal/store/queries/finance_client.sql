@@ -81,3 +81,8 @@ SELECT fc.id AS finance_client_id, fc.client_id, fc.court_ref, fc.payment_method
 FROM finance_client fc
 INNER JOIN public.persons c ON fc.client_id = c.id
 WHERE fc.client_id = @client_id;
+
+-- name: GetPaymentMethod :one
+SELECT payment_method
+FROM finance_client
+WHERE client_id = $1;
