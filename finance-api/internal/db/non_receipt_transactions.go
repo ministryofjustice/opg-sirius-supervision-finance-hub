@@ -117,7 +117,11 @@ transactions AS (
 transaction_totals AS (
 	SELECT
 		tt.line_description,
-		tt.account_code,
+		CASE WHEN n % 2 = 1  THEN
+		 	CASE WHEN t.fee_type IN ('UA', 'RA') THEN '1816102005' ELSE tt.account_code END
+		ELSE
+			CASE WHEN t.fee_type IN ('UA', 'RA') THEN tt.account_code ELSE '1816102003' END
+        END account_code,
 		ABS(SUM(t.amount) / 100.0)::NUMERIC(10,2)::VARCHAR(255) AS amount,
 		account.cost_centre,
 		SUM(t.amount) >= 0 AS is_credit,
