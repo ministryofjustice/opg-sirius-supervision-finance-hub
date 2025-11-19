@@ -92,7 +92,7 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 		reportDate := requestedDate.Format("02:01:2006")
 		switch *reportRequest.AccountsReceivableType {
 		case shared.AccountsReceivableTypeAgedDebt:
-			if reportRequest.ToDate != nil {
+			if reportRequest.ToDate != nil && !reportRequest.ToDate.IsNull() {
 				reportDate = reportRequest.ToDate.Time.Format("02:01:2006")
 			}
 			query = db.NewAgedDebt(db.AgedDebtInput{
@@ -124,7 +124,12 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 				ToDate:   reportRequest.ToDate,
 			})
 		case shared.AccountsReceivableTypeUnappliedReceipts:
-			query = db.NewCustomerCredit()
+			if reportRequest.ToDate != nil && !reportRequest.ToDate.IsNull() {
+				reportDate = reportRequest.ToDate.Time.Format("02:01:2006")
+			}
+			query = db.NewCustomerCredit(db.CustomerCreditInput{
+				ToDate: reportRequest.ToDate,
+			})
 		case shared.AccountsReceivableTypeFeeAccrual:
 			return filename, reportName, nil, nil
 		default:
