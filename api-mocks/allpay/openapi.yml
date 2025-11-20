@@ -392,7 +392,7 @@ paths:
                       SchemeCode: XYZ001
                   TotalRecords: 1
 
-  /AllpayApi/BankAccounts:
+  /AllpayApi/BankAccounts/:
     get:
       summary: Modulus check to validate a bank account
       parameters:
