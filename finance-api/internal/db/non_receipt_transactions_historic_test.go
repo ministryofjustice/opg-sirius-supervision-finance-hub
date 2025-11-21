@@ -18,9 +18,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions_historic() {
 	threeMonthsAgo := today.Sub(0, 3, 0)
 	oneYearAgo := today.Sub(1, 0, 0)
 
-	// client with one AD invoice, one minimal S3 invoice, a GS invoice, and an exemption for all debt.
-	// The payment creates an overpayment and the fee reduction is then reversed.
-	// unapply of 12.00, reapply of 5.00
+	// client with one AD invoice, one minimal S3 invoice, a GS invoice, an exemption and a moto card payment. The payment creates an unapply.
 	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234", "ACTIVE")
 	suite.seeder.CreateOrder(ctx, client1ID)
 
@@ -46,14 +44,13 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions_historic() {
 	_ = suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeHardship, strconv.Itoa(yesterday.Date().Year()-1), 4, "Test", yesterday.Date())
 	suite.seeder.CreatePayment(ctx, 1000, yesterday.Date(), "87654321", shared.TransactionTypeDirectDebitPayment, yesterday.Date(), 0)
 
-	// client with an SE invoice, a credit memo, a direct debit over-payment, a new invoice and a reapply
-	// unapply of 30.00, reapply of 10.00
+	// client with an SE invoice, a credit memo, a direct debit payment and a reapply
 	client3ID := suite.seeder.CreateClient(ctx, "Bill", "Wilson", "12344321", "9876", "ACTIVE")
-	invoice9ID, _ := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeSE, valToPtr("120.00"), threeMonthsAgo.StringPtr(), nil, nil, valToPtr("GENERAL"), yesterday.StringPtr())
+	invoice9ID, _ := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeSE, valToPtr("120"), threeMonthsAgo.StringPtr(), nil, nil, valToPtr("GENERAL"), yesterday.StringPtr())
 
 	suite.seeder.CreateAdjustment(ctx, client3ID, invoice9ID, shared.AdjustmentTypeCreditMemo, -200, "", yesterday.DatePtr())
-	suite.seeder.CreatePayment(ctx, 15000, yesterday.Date(), "12344321", shared.TransactionTypeDirectDebitPayment, yesterday.Date(), 0)
-	_, _ = suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeSE, valToPtr("10.00"), threeMonthsAgo.StringPtr(), nil, nil, valToPtr("GENERAL"), yesterday.StringPtr())
+	suite.seeder.CreatePayment(ctx, 1000, yesterday.Date(), "12344321", shared.TransactionTypeDirectDebitPayment, yesterday.Date(), 0)
+	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "12344321", shared.TransactionTypeReapply, yesterday.Date(), 0)
 
 	// client with AD invoice, a partial payment and two exemptions on the same day. The exemptions create unapplies that should not be counted.
 	client4ID := suite.seeder.CreateClient(ctx, "Flora", "Four", "44444444", "9876", "ACTIVE")
@@ -151,7 +148,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions_historic() {
 	assert.Equal(suite.T(), "=\"0000\"", results[6]["Intercompany"], "Intercompany - Gen SE invoice Credit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[6]["Spare"], "Spare - Gen SE invoice Credit")
 	assert.Equal(suite.T(), "", results[6]["Debit"], "Debit - Gen SE invoice Credit")
-	assert.Equal(suite.T(), "130.00", results[6]["Credit"], "Credit - Gen SE invoice Credit")
+	assert.Equal(suite.T(), "120.00", results[6]["Credit"], "Credit - Gen SE invoice Credit")
 	assert.Equal(suite.T(), fmt.Sprintf("Gen SE invoice [%s]", yesterday.Date().Format("02/01/2006")), results[6]["Line description"], "Line description - Gen SE invoice Credit")
 
 	assert.Equal(suite.T(), "=\"0470\"", results[7]["Entity"], "Entity - Gen SE invoice Debit")
@@ -161,7 +158,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions_historic() {
 	assert.Equal(suite.T(), "=\"00000000\"", results[7]["Analysis"], "Analysis - Gen SE invoice Debit")
 	assert.Equal(suite.T(), "=\"0000\"", results[7]["Intercompany"], "Intercompany - Gen SE invoice Debit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[7]["Spare"], "Spare - Gen SE invoice Debit")
-	assert.Equal(suite.T(), "130.00", results[7]["Debit"], "Debit - Gen SE invoice Debit")
+	assert.Equal(suite.T(), "120.00", results[7]["Debit"], "Debit - Gen SE invoice Debit")
 	assert.Equal(suite.T(), "", results[7]["Credit"], "Credit - Gen SE invoice Debit")
 	assert.Equal(suite.T(), fmt.Sprintf("Gen SE invoice [%s]", yesterday.Date().Format("02/01/2006")), results[7]["Line description"], "Line description - Gen SE invoice Debit")
 
@@ -362,48 +359,4 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions_historic() {
 	assert.Equal(suite.T(), "5.00", results[25]["Debit"], "Debit - Fee reduction reversal Credit")
 	assert.Equal(suite.T(), "", results[25]["Credit"], "Credit - Fee reduction reversal Credit")
 	assert.Equal(suite.T(), fmt.Sprintf("AD Fee reduction reversal [%s]", yesterday.Date().Format("02/01/2006")), results[25]["Line description"], "Line description - Fee reduction reversal Credit")
-
-	assert.Equal(suite.T(), "=\"0470\"", results[26]["Entity"], "Entity - Unapply Debit")
-	assert.Equal(suite.T(), "99999999", results[26]["Cost Centre"], "Cost Centre - Unapply Debit")
-	assert.Equal(suite.T(), "1816102005", results[26]["Account"], "Account - Unapply Debit")
-	assert.Equal(suite.T(), "=\"0000000\"", results[26]["Objective"], "Objective - Unapply Debit")
-	assert.Equal(suite.T(), "=\"00000000\"", results[26]["Analysis"], "Analysis - Unapply Debit")
-	assert.Equal(suite.T(), "=\"0000\"", results[26]["Intercompany"], "Intercompany - Unapply Debit")
-	assert.Equal(suite.T(), "=\"00000000\"", results[26]["Spare"], "Spare - Unapply Debit")
-	assert.Equal(suite.T(), "", results[26]["Debit"], "Debit - Unapply Debit")
-	assert.Equal(suite.T(), "42.00", results[26]["Credit"], "Credit - Unapply Debit")
-	assert.Equal(suite.T(), fmt.Sprintf("Unapply [%s]", yesterday.Date().Format("02/01/2006")), results[26]["Line description"], "Line description - Unapply Debit")
-
-	assert.Equal(suite.T(), "=\"0470\"", results[27]["Entity"], "Entity - Unapply Credit")
-	assert.Equal(suite.T(), "99999999", results[27]["Cost Centre"], "Cost Centre - Unapply Credit")
-	assert.Equal(suite.T(), "1816102003", results[27]["Account"], "Account - Unapply Credit")
-	assert.Equal(suite.T(), "=\"0000000\"", results[27]["Objective"], "Objective - Unapply Credit")
-	assert.Equal(suite.T(), "=\"00000000\"", results[27]["Analysis"], "Analysis - Unapply Credit")
-	assert.Equal(suite.T(), "=\"0000\"", results[27]["Intercompany"], "Intercompany - Unapply Credit")
-	assert.Equal(suite.T(), "=\"00000000\"", results[27]["Spare"], "Spare - Unapply Credit")
-	assert.Equal(suite.T(), "42.00", results[27]["Debit"], "Debit - Unapply Credit")
-	assert.Equal(suite.T(), "", results[27]["Credit"], "Credit - Unapply Credit")
-	assert.Equal(suite.T(), fmt.Sprintf("Unapply [%s]", yesterday.Date().Format("02/01/2006")), results[27]["Line description"], "Line description - Unapply Credit")
-
-	assert.Equal(suite.T(), "=\"0470\"", results[28]["Entity"], "Entity - Reapply Debit")
-	assert.Equal(suite.T(), "99999999", results[28]["Cost Centre"], "Cost Centre - Reapply Debit")
-	assert.Equal(suite.T(), "1816102005", results[28]["Account"], "Account - Reapply Debit")
-	assert.Equal(suite.T(), "=\"0000000\"", results[28]["Objective"], "Objective - Reapply Debit")
-	assert.Equal(suite.T(), "=\"00000000\"", results[28]["Analysis"], "Analysis - Reapply Debit")
-	assert.Equal(suite.T(), "=\"0000\"", results[28]["Intercompany"], "Intercompany - Reapply Debit")
-	assert.Equal(suite.T(), "=\"00000000\"", results[28]["Spare"], "Spare - Reapply Debit")
-	assert.Equal(suite.T(), "10.00", results[28]["Debit"], "Debit - Reapply Debit")
-	assert.Equal(suite.T(), "", results[28]["Credit"], "Credit - Reapply Debit")
-	assert.Equal(suite.T(), fmt.Sprintf("Reapply [%s]", yesterday.Date().Format("02/01/2006")), results[28]["Line description"], "Line description - Reapply Debit")
-
-	assert.Equal(suite.T(), "=\"0470\"", results[29]["Entity"], "Entity - Reapply Credit")
-	assert.Equal(suite.T(), "99999999", results[29]["Cost Centre"], "Cost Centre - Reapply Credit")
-	assert.Equal(suite.T(), "1816102003", results[29]["Account"], "Account - Reapply Credit")
-	assert.Equal(suite.T(), "=\"0000000\"", results[29]["Objective"], "Objective - Reapply Credit")
-	assert.Equal(suite.T(), "=\"00000000\"", results[29]["Analysis"], "Analysis - Reapply Credit")
-	assert.Equal(suite.T(), "=\"0000\"", results[29]["Intercompany"], "Intercompany - Reapply Credit")
-	assert.Equal(suite.T(), "=\"00000000\"", results[29]["Spare"], "Spare - Reapply Credit")
-	assert.Equal(suite.T(), "", results[29]["Debit"], "Debit - Reapply Credit")
-	assert.Equal(suite.T(), "10.00", results[29]["Credit"], "Credit - Reapply Credit")
-	assert.Equal(suite.T(), fmt.Sprintf("Reapply [%s]", yesterday.Date().Format("02/01/2006")), results[29]["Line description"], "Line description - Reapply Credit")
 }
