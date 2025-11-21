@@ -62,6 +62,8 @@ func (s *Seeder) CreateInvoice(ctx context.Context, clientID int32, invoiceType 
 		SupervisionLevel: shared.TransformNillableString(supervisionLevel),
 	}
 
+	latestLedgerID := s.GetLatestLedgerID(ctx)
+
 	err := s.Service.AddManualInvoice(ctx, clientID, invoice)
 	assert.NoError(s.t, err, "failed to add invoice: %v", err)
 
@@ -77,7 +79,7 @@ func (s *Seeder) CreateInvoice(ctx context.Context, clientID int32, invoiceType 
 	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger SET datetime = $1, created_at = $2 WHERE id IN (SELECT ledger_id FROM supervision_finance.ledger_allocation WHERE invoice_id = $3)", raisedDate, createdDate, id)
 	assert.NoError(s.t, err, "failed to update ledger dates for reduction: %v", err)
 
-	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger_allocation SET datetime = $1 WHERE invoice_id = $2", raisedDate, id)
+	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger_allocation SET datetime = $1 WHERE ledger_id > $2", raisedDate, latestLedgerID)
 	assert.NoError(s.t, err, "failed to update ledger allocation dates for reduction: %v", err)
 
 	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.invoice SET created_at = $2 WHERE id = $1", id, &createdDate)
@@ -104,8 +106,7 @@ func (s *Seeder) CreateAdjustment(ctx context.Context, clientID int32, invoiceId
 		Amount:          amount,
 	}
 
-	var currentLedgerId int
-	_ = s.Conn.QueryRow(ctx, "SELECT MAX(id) FROM supervision_finance.ledger").Scan(&currentLedgerId)
+	currentLedgerId := s.GetLatestLedgerID(ctx)
 
 	_, err := s.Service.AddInvoiceAdjustment(ctx, clientID, invoiceId, &adjustment)
 	assert.NoError(s.t, err, "failed to add adjustment: %v", err)
@@ -124,11 +125,7 @@ func (s *Seeder) CreateAdjustment(ctx context.Context, clientID int32, invoiceId
 	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.invoice_adjustment SET created_at = $1 WHERE id = $2", approvedDate, id)
 	assert.NoError(s.t, err, "failed to update approval dates: %v", err)
 
-	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger SET datetime = $1, created_at = $2 WHERE id > $3", approvedDate, approvedDate, currentLedgerId)
-	assert.NoError(s.t, err, "failed to update ledger dates: %v", err)
-
-	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger_allocation SET datetime = $1 WHERE ledger_id > $2", approvedDate, currentLedgerId)
-	assert.NoError(s.t, err, "failed to update ledger allocation dates: %v", err)
+	s.updateLedgerDates(ctx, currentLedgerId, *approvedDate)
 }
 
 func (s *Seeder) CreateFeeReduction(ctx context.Context, clientId int32, feeType shared.FeeReductionType, startYear string, length int, notes string, createdAt time.Time) int32 {
@@ -140,19 +137,17 @@ func (s *Seeder) CreateFeeReduction(ctx context.Context, clientId int32, feeType
 		DateReceived:  &received,
 		Notes:         notes,
 	}
+
+	currentLedgerId := s.GetLatestLedgerID(ctx)
+
 	err := s.Service.AddFeeReduction(ctx, clientId, reduction)
 	assert.NoError(s.t, err, "failed to create fee reduction: %v", err)
 
-	// update created dates to enable testing reductions added in the past
+	s.updateLedgerDates(ctx, currentLedgerId, createdAt)
+
 	var id int32
 	err = s.Conn.QueryRow(ctx, "SELECT id FROM supervision_finance.fee_reduction ORDER BY id DESC LIMIT 1").Scan(&id)
 	assert.NoError(s.t, err, "failed find created reduction: %v", err)
-
-	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger SET datetime = $1, created_at = $1 WHERE fee_reduction_id = $2", createdAt, id)
-	assert.NoError(s.t, err, "failed to update ledger dates for reduction: %v", err)
-
-	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger_allocation SET datetime = $1 WHERE ledger_id IN (SELECT id FROM supervision_finance.ledger WHERE fee_reduction_id = $2)", createdAt, id)
-	assert.NoError(s.t, err, "failed to update ledger allocation dates for reduction: %v", err)
 
 	return id
 }
@@ -191,9 +186,7 @@ func (s *Seeder) CreatePayment(ctx context.Context, amount int32, bankDate time.
 	tx, err := s.Service.BeginStoreTx(ctx)
 	assert.NoError(s.t, err, "failed to begin transaction: %v", err)
 
-	var latestLedgerId int
-	err = s.Conn.QueryRow(ctx, "SELECT COALESCE(MAX(id), 0) FROM supervision_finance.ledger").Scan(&latestLedgerId)
-	assert.NoError(s.t, err, "failed to find latest ledger id: %v", err)
+	latestLedgerId := s.GetLatestLedgerID(ctx)
 
 	_, err = s.Service.ProcessPaymentsUploadLine(ctx, tx, payment)
 	assert.NoError(s.t, err, "payment not processed: %v", err)
@@ -201,17 +194,7 @@ func (s *Seeder) CreatePayment(ctx context.Context, amount int32, bankDate time.
 	err = tx.Commit(ctx)
 	assert.NoError(s.t, err, "failed to commit payment: %v", err)
 
-	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger SET datetime = $1, created_at = $1 WHERE id > $2", uploadDate, latestLedgerId)
-	assert.NoError(s.t, err, "failed to update ledger dates for payment: %v", err)
-
-	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger_allocation SET datetime = $1 WHERE ledger_id > $2", uploadDate, latestLedgerId)
-	assert.NoError(s.t, err, "failed to update ledger allocation dates for payment: %v", err)
-
-	var newMaxLedger int
-	err = s.Conn.QueryRow(ctx, "SELECT COALESCE(MAX(id), 0) FROM supervision_finance.ledger").Scan(&newMaxLedger)
-	assert.NoError(s.t, err, "failed to find latest ledger id: %v", err)
-
-	assert.Greater(s.t, newMaxLedger, latestLedgerId, "no ledgers created")
+	s.updateLedgerDates(ctx, latestLedgerId, uploadDate)
 }
 
 func (s *Seeder) ReversePayment(ctx context.Context, erroredCourtRef string, correctCourtRef string, amount string, bankDate time.Time, receivedDate time.Time, ledgerType shared.TransactionType, uploadDate time.Time) {
@@ -347,9 +330,7 @@ func (s *Seeder) FulfillRefund(ctx context.Context, refundId int32, amount int32
 	tx, err := s.Service.BeginStoreTx(ctx)
 	assert.NoError(s.t, err, "failed to begin transaction: %v", err)
 
-	var latestLedgerId int
-	err = s.Conn.QueryRow(ctx, "SELECT COALESCE(MAX(id), 0) FROM supervision_finance.ledger").Scan(&latestLedgerId)
-	assert.NoError(s.t, err, "failed to find latest ledger id: %v", err)
+	latestLedgerId := s.GetLatestLedgerID(ctx)
 
 	_ = s.Service.ProcessFulfilledRefundsLine(ctx, tx, refundId, refund)
 	assert.NoError(s.t, err, "refund not processed: %v", err)
@@ -357,18 +338,29 @@ func (s *Seeder) FulfillRefund(ctx context.Context, refundId int32, amount int32
 	err = tx.Commit(ctx)
 	assert.NoError(s.t, err, "failed to commit refund: %v", err)
 
-	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger SET datetime = $1, created_at = $1 WHERE id > $2", uploadDate, latestLedgerId)
-	assert.NoError(s.t, err, "failed to update ledger dates for refund: %v", err)
-
-	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger_allocation SET datetime = $1 WHERE ledger_id > $2", uploadDate, latestLedgerId)
-	assert.NoError(s.t, err, "failed to update ledger allocation dates for refund: %v", err)
+	s.updateLedgerDates(ctx, latestLedgerId, uploadDate)
 
 	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.refund SET fulfilled_at = $1 WHERE id = $2", uploadDate, refundId)
 	assert.NoError(s.t, err, "failed to update refund date: %v", err)
+}
+
+func (s *Seeder) GetLatestLedgerID(ctx context.Context) int {
+	var latestLedgerId int
+	err := s.Conn.QueryRow(ctx, "SELECT COALESCE(MAX(id), 0) FROM supervision_finance.ledger").Scan(&latestLedgerId)
+	assert.NoError(s.t, err, "failed to find latest ledger id: %v", err)
+	return latestLedgerId
+}
+
+func (s *Seeder) updateLedgerDates(ctx context.Context, latestLedgerID int, date time.Time) {
+	_, err := s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger SET datetime = $1, created_at = $1 WHERE id > $2", date, latestLedgerID)
+	assert.NoError(s.t, err, "failed to update ledger dates for refund: %v", err)
+
+	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger_allocation SET datetime = $1 WHERE ledger_id > $2", date, latestLedgerID)
+	assert.NoError(s.t, err, "failed to update ledger allocation dates for refund: %v", err)
 
 	var newMaxLedger int
 	err = s.Conn.QueryRow(ctx, "SELECT COALESCE(MAX(id), 0) FROM supervision_finance.ledger").Scan(&newMaxLedger)
 	assert.NoError(s.t, err, "failed to find latest ledger id: %v", err)
 
-	assert.Greater(s.t, newMaxLedger, latestLedgerId, "no ledgers created")
+	assert.Greater(s.t, newMaxLedger, latestLedgerID, "no ledgers created")
 }
