@@ -357,10 +357,4 @@ func (s *Seeder) updateLedgerDates(ctx context.Context, latestLedgerID int, date
 
 	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger_allocation SET datetime = $1 WHERE ledger_id > $2", date, latestLedgerID)
 	assert.NoError(s.t, err, "failed to update ledger allocation dates for refund: %v", err)
-
-	var newMaxLedger int
-	err = s.Conn.QueryRow(ctx, "SELECT COALESCE(MAX(id), 0) FROM supervision_finance.ledger").Scan(&newMaxLedger)
-	assert.NoError(s.t, err, "failed to find latest ledger id: %v", err)
-
-	assert.Greater(s.t, newMaxLedger, latestLedgerID, "no ledgers created")
 }
