@@ -192,8 +192,8 @@ var eventTypeMap = map[string]BillingEventType{
 	"REFUND_FULFILLED":            EventTypeRefundFulfilled,
 	"REFUND_PROCESSING":           EventTypeRefundProcessing,
 	"REFUND_STATUS_UPDATED":       EventTypeRefundStatusUpdated,
-	"DIRECTDEBITCREATED":          EventTypeDirectDebitMandateCreated,
-	"DIRECTDEBITCANCELLED":        EventTypeDirectDebitMandateCancelled,
+	"DIRECT_DEBIT_CREATED":        EventTypeDirectDebitMandateCreated,
+	"DIRECT_DEBIT_CANCELLED":      EventTypeDirectDebitMandateCancelled,
 }
 
 func (b BillingEventType) String() string {
@@ -228,6 +228,10 @@ func (b BillingEventType) String() string {
 		return "REFUND_PROCESSING"
 	case EventTypeRefundStatusUpdated:
 		return "REFUND_STATUS_UPDATED"
+	case EventTypeDirectDebitMandateCancelled:
+		return "DIRECT_DEBIT_CANCELLED"
+	case EventTypeDirectDebitMandateCreated:
+		return "DIRECT_DEBIT_CREATED"
 
 	default:
 		return "UNKNOWN"
