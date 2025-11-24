@@ -2,7 +2,7 @@
     <div class="moj-timeline__item">
         <div class="moj-timeline__header">
              <h2 class="moj-timeline__title">
-                 DIRECT DEBIT SET UP of £{{ toCurrency  .Event.Amount }} fulfilled
+                 Direct Debit Instruction created
              </h2>
             <p class="moj-timeline__byline">
                 {{ printf "by %v, %v" .User .Date }}
@@ -11,5 +11,10 @@
         <p class="moj-timeline__date">
             {{ printf "Outstanding balance: £%v Credit balance: £%v" .OutstandingBalance .CreditBalance }}
         </p>
+        <div class="moj-timeline__description">
+            <ul class="govuk-list govuk-list--bullet">
+                <li> Payment method updated to Direct debit</li>
+            </ul>
+        </div>
     </div>
 {{ end }}

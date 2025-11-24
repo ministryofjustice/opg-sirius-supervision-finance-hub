@@ -66,7 +66,7 @@ func (s *Service) GetBillingHistory(ctx context.Context, clientID int32) ([]shar
 
 	history = append(history, processRefundEvents(refunds, clientID)...)
 
-	paymentMethods, err := s.store.GetPaymentMethods(ctx, clientID)
+	paymentMethods, err := s.store.GetPaymentMethodsForBillingHistory(ctx, clientID)
 	if err != nil {
 		s.Logger(ctx).Error(fmt.Sprintf("Error in getting payment methods in billing history for client %d", clientID), slog.String("err", err.Error()))
 		return nil, err
@@ -399,7 +399,7 @@ func processLedgerAllocations(allocations []store.GetLedgerAllocationsForClientR
 	return history
 }
 
-func processPaymentMethodEvents(paymentMethods []store.GetPaymentMethodsRow, clientID int32) []historyHolder {
+func processPaymentMethodEvents(paymentMethods []store.GetPaymentMethodsForBillingHistoryRow, clientID int32) []historyHolder {
 	var history []historyHolder
 	for _, pm := range paymentMethods {
 		event := shared.BaseBillingEvent{}
