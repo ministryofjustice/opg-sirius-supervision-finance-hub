@@ -46,7 +46,7 @@ SELECT pm.id,
        type,
        created_by,
        created_at
-FROM payment_method pm
+FROM supervision_finance.payment_method pm
 WHERE pm.finance_client_id = $1
 ORDER BY created_at DESC
 `
@@ -59,8 +59,8 @@ type GetPaymentMethodsRow struct {
 	CreatedAt       pgtype.Timestamp
 }
 
-func (q *Queries) GetPaymentMethods(ctx context.Context, financeClientID int32) ([]GetPaymentMethodsRow, error) {
-	rows, err := q.db.Query(ctx, getPaymentMethods, financeClientID)
+func (q *Queries) GetPaymentMethods(ctx context.Context, dollar_1 pgtype.Int4) ([]GetPaymentMethodsRow, error) {
+	rows, err := q.db.Query(ctx, getPaymentMethods, dollar_1)
 	if err != nil {
 		return nil, err
 	}

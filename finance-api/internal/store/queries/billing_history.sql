@@ -81,9 +81,13 @@ FROM refund r
 WHERE fc.client_id = $1
 ORDER BY r.created_at DESC;
 
--- name: GetPaymentMethodsForClient :many
-SELECT *
+-- name: GetPaymentMethodsForBillingHistory :many
+SELECT pm.id,
+    finance_client_id,
+    type,
+    created_by,
+    created_at
 FROM payment_method pm
      JOIN finance_client fc ON fc.id = pm.finance_client_id
 WHERE fc.client_id = $1
-ORDER BY id DESC;
+ORDER BY pm.id DESC;

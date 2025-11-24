@@ -183,6 +183,52 @@ func (q *Queries) GetLedgerAllocationsForClient(ctx context.Context, clientID in
 	return items, nil
 }
 
+const getPaymentMethodsForBillingHistory = `-- name: GetPaymentMethodsForBillingHistory :many
+SELECT pm.id,
+    finance_client_id,
+    type,
+    created_by,
+    created_at
+FROM payment_method pm
+     JOIN finance_client fc ON fc.id = pm.finance_client_id
+WHERE fc.client_id = $1
+ORDER BY pm.id DESC
+`
+
+type GetPaymentMethodsForBillingHistoryRow struct {
+	ID              int32
+	FinanceClientID int32
+	Type            string
+	CreatedBy       int32
+	CreatedAt       pgtype.Timestamp
+}
+
+func (q *Queries) GetPaymentMethodsForBillingHistory(ctx context.Context, clientID int32) ([]GetPaymentMethodsForBillingHistoryRow, error) {
+	rows, err := q.db.Query(ctx, getPaymentMethodsForBillingHistory, clientID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPaymentMethodsForBillingHistoryRow
+	for rows.Next() {
+		var i GetPaymentMethodsForBillingHistoryRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.FinanceClientID,
+			&i.Type,
+			&i.CreatedBy,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPendingInvoiceAdjustments = `-- name: GetPendingInvoiceAdjustments :many
 SELECT ia.invoice_id, i.reference, ia.adjustment_type, ia.amount, ia.notes, ia.created_at, ia.created_by
 FROM invoice_adjustment ia

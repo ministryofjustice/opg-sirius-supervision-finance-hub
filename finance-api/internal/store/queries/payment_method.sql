@@ -4,7 +4,7 @@ SELECT pm.id,
        type,
        created_by,
        created_at
-FROM payment_method pm
+FROM supervision_finance.payment_method pm
 WHERE pm.finance_client_id = $1
 ORDER BY created_at DESC;
 
