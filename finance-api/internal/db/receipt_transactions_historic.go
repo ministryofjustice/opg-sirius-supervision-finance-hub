@@ -4,24 +4,24 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
-type ReceiptTransactions struct {
+type ReceiptTransactionsHistoric struct {
 	ReportQuery
-	ReceiptTransactionsInput
+	ReceiptTransactionsHistoricInput
 }
 
-type ReceiptTransactionsInput struct {
+type ReceiptTransactionsHistoricInput struct {
 	Date *shared.Date
 }
 
-func NewReceiptTransactions(input ReceiptTransactionsInput) ReportQuery {
-	return &ReceiptTransactions{
-		ReportQuery:              NewReportQuery(ReceiptTransactionsQuery),
-		ReceiptTransactionsInput: input,
+func NewReceiptTransactionsHistoric(input ReceiptTransactionsHistoricInput) ReportQuery {
+	return &ReceiptTransactionsHistoric{
+		ReportQuery:                      NewReportQuery(ReceiptTransactionsHistoricQuery),
+		ReceiptTransactionsHistoricInput: input,
 	}
 }
 
-const ReceiptTransactionsQuery = `WITH 
-    transaction_type_order AS (
+const ReceiptTransactionsHistoricQuery = `
+WITH transaction_type_order AS (
     SELECT
         id,
         CASE
@@ -32,7 +32,7 @@ const ReceiptTransactionsQuery = `WITH
             WHEN line_description LIKE 'Direct debit%' THEN 5
             WHEN line_description LIKE 'Cheque payment%' THEN 6
         END AS index
-	FROM supervision_finance.transaction_type
+	FROM supervision_finance.transaction_type WHERE is_receipt = TRUE
 ),
 ledger_totals AS (
     SELECT
@@ -41,7 +41,6 @@ ledger_totals AS (
 		    ELSE tt.line_description || ' [' || TO_CHAR(l.bankdate, 'DD/MM/YYYY') || ']' 
 		END AS line_description,
         SUM(CASE WHEN l.amount > 0 THEN l.amount ELSE 0 END) AS debit_amount,
-        SUM(CASE WHEN l.amount < 0 THEN ABS(l.amount) ELSE 0 END) AS reversal_amount,
         tt.index
     FROM supervision_finance.ledger l
     INNER JOIN LATERAL (
@@ -64,10 +63,9 @@ allocation_totals AS (
             ELSE '1841102050'
         END AS debit_account_code,
 		'1816102003' AS credit_account_code,
-        SUM(CASE WHEN l.amount > 0 AND la.status != 'UNAPPLIED' AND la.amount > 0 THEN la.amount ELSE 0 END) AS credit_amount,
-        SUM(CASE WHEN l.amount > 0 AND la.status = 'UNAPPLIED' AND la.amount < 0 THEN ABS(la.amount) ELSE 0 END) AS overpayment_amount,
-        SUM(CASE WHEN l.amount < 0 AND la.status != 'UNAPPLIED' AND la.amount < 0 THEN ABS(la.amount) ELSE 0 END) AS reversed_credit_amount,
-        SUM(CASE WHEN l.amount < 0 AND la.status = 'UNAPPLIED' THEN ABS(la.amount) ELSE 0 END) AS reversed_overpayment_amount,
+        SUM(CASE WHEN la.status != 'UNAPPLIED' AND la.amount > 0 THEN la.amount ELSE 0 END) AS credit_amount,
+        SUM(CASE WHEN la.status = 'UNAPPLIED' AND la.amount < 0 THEN ABS(la.amount) ELSE 0 END) AS overpayment_amount,
+        SUM(CASE WHEN la.status != 'UNAPPLIED' AND la.amount < 0 THEN ABS(la.amount) ELSE 0 END) AS reversed_amount,
         l.bankdate,
         l.pis_number,
 		tt.index
@@ -83,15 +81,16 @@ allocation_totals AS (
 	GROUP BY tt.line_description, tt.index, l.bankdate, l.type, l.pis_number
 ),
 transaction_rows AS (
-    -- debit row
     SELECT
+        '="0470"' AS entity,
+        '99999999' AS cost_centre,
         debit_account_code AS account_code,
         '="0000000"' AS objective,
         '="00000000"' AS analysis,
         '="0000"' AS intercompany,
         '="000000"' AS spare,
         (lt.debit_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS debit,
-        '' AS credit,
+        CASE WHEN at.reversed_amount > 0 THEN (at.reversed_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) ELSE '' END AS credit,
         at.line_description,
         at.bankdate,
         at.pis_number,
@@ -99,16 +98,16 @@ transaction_rows AS (
         1 AS n
     FROM allocation_totals at
     JOIN ledger_totals lt ON at.index = lt.index AND at.line_description = lt.line_description
-    WHERE lt.debit_amount > 0
     UNION ALL
-    -- credit row
     SELECT
+        '="0470"' AS entity,
+        '99999999' AS cost_centre,
 		credit_account_code AS account_code,
         '="0000000"' AS objective,
         '="00000000"' AS analysis,
         '="0000"' AS intercompany,
         '="00000"' AS spare,
-        '' AS debit,
+        CASE WHEN reversed_amount > 0 THEN (reversed_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) ELSE '' END AS debit,
         (credit_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS credit,
         line_description,
         bankdate,
@@ -117,13 +116,14 @@ transaction_rows AS (
         2 AS n
     FROM allocation_totals
     UNION ALL
-        -- overpayment row
     SELECT
-        '1816102005' AS account_code,
-        '="0000000"' AS objective,
-        '="00000000"' AS analysis,
-        '="0000"' AS intercompany,
-        '="00000"' AS spare,
+        '="0470"' AS entity,
+        '' AS cost_centre,
+        '' AS account_code,
+        '' AS objective,
+        '' AS analysis,
+        '' AS intercompany,
+        '' AS spare,
         '' AS debit,
         (overpayment_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS credit,
         line_description,
@@ -133,62 +133,10 @@ transaction_rows AS (
         3 AS n
     FROM allocation_totals
     WHERE overpayment_amount > 0
-    UNION ALL
-    -- reversal debit row
-    SELECT
-        at.debit_account_code AS account_code,
-        '="0000000"' AS objective,
-        '="00000000"' AS analysis,
-        '="0000"' AS intercompany,
-        '="000000"' AS spare,
-        '' AS debit,
-        (lt.reversal_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS credit,
-        at.line_description,
-        at.bankdate,
-        at.pis_number,
-        at.index,
-        4 AS n
-    FROM allocation_totals at
-    JOIN ledger_totals lt ON at.index = lt.index AND at.line_description = lt.line_description
-    WHERE lt.reversal_amount > 0
-    UNION ALL
-    -- reversal credit row
-    SELECT
-		credit_account_code AS account_code,
-        '="0000000"' AS objective,
-        '="00000000"' AS analysis,
-        '="0000"' AS intercompany,
-        '="00000"' AS spare,
-        (reversed_credit_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS debit,
-        '' AS credit,
-        line_description,
-        bankdate,
-        pis_number,
-        index,
-        5 AS n
-    FROM allocation_totals
-    WHERE reversed_credit_amount > 0
-    UNION ALL
-    -- reversal overpayment row
-    SELECT
-        '1816102005' AS account_code,
-        '="0000000"' AS objective,
-        '="00000000"' AS analysis,
-        '="0000"' AS intercompany,
-        '="00000"' AS spare,
-        (reversed_overpayment_amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS debit,
-        '' AS credit,
-        line_description,
-        bankdate,
-        pis_number,
-        index,
-        6 AS n
-    FROM allocation_totals
-    WHERE reversed_overpayment_amount > 0
 )
 SELECT
-    '="0470"' AS "Entity",
-    '99999999' AS "Cost Centre",
+    entity AS "Entity",
+    cost_centre AS "Cost Centre",
     account_code AS "Account",
     objective AS "Objective",
     analysis AS "Analysis",
@@ -201,7 +149,7 @@ FROM transaction_rows
 ORDER BY index, bankdate, pis_number, n;
 `
 
-func (r *ReceiptTransactions) GetHeaders() []string {
+func (r *ReceiptTransactionsHistoric) GetHeaders() []string {
 	return []string{
 		"Entity",
 		"Cost Centre",
@@ -216,6 +164,6 @@ func (r *ReceiptTransactions) GetHeaders() []string {
 	}
 }
 
-func (r *ReceiptTransactions) GetParams() []any {
+func (r *ReceiptTransactionsHistoric) GetParams() []any {
 	return []any{r.Date.Time.Format("2006-01-02")}
 }
