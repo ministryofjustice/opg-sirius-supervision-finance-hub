@@ -252,6 +252,21 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			expectedTemplate: reportRequestedTemplateId,
 		},
 		{
+			name: "ReceiptTransactionsHistoric",
+			reportRequest: shared.ReportRequest{
+				ReportType:      shared.ReportsTypeJournal,
+				JournalType:     toPtr(shared.JournalTypeReceiptTransactionsHistoric),
+				TransactionDate: &toDate,
+			},
+			expectedQuery: &db.ReceiptTransactionsHistoric{
+				ReceiptTransactionsHistoricInput: db.ReceiptTransactionsHistoricInput{
+					Date: &toDate,
+				},
+				ReportQuery: db.NewReportQuery(db.ReceiptTransactionsHistoricQuery)},
+			expectedFilename: "ReceiptTransactionsHistoric_01:01:2024.csv",
+			expectedTemplate: reportRequestedTemplateId,
+		},
+		{
 			name: "ReceiptTransactions",
 			reportRequest: shared.ReportRequest{
 				ReportType:      shared.ReportsTypeJournal,
