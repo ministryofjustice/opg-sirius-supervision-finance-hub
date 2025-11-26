@@ -58,7 +58,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions_historic() {
 
 	client6ID := suite.seeder.CreateClient(ctx, "Colette", "Correct", "66666666", "2314", "ACTIVE")
 	_, _ = suite.seeder.CreateInvoice(ctx, client6ID, shared.InvoiceTypeS3, &minimal, yesterday.StringPtr(), nil, nil, nil, yesterday.StringPtr())
-	suite.seeder.ReversePayment(ctx, "55555555", "66666666", "12.34", twoMonthsAgo.Date(), twoMonthsAgo.Date(), shared.TransactionTypeMotoCardPayment, yesterday.Date())
+	suite.seeder.ReversePayment(ctx, "55555555", "66666666", "12.34", twoMonthsAgo.Date(), twoMonthsAgo.Date(), shared.TransactionTypeMotoCardPayment, yesterday.Date(), "")
 
 	// one client with an S2 invoice, two cheques payments for the same PIS number and one cheque payment for another PIS number
 	client7ID := suite.seeder.CreateClient(ctx, "Gilgamesh", "Test", "77777777", "9999", "ACTIVE")
