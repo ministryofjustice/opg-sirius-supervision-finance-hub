@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -21,6 +22,7 @@ type createdReversalAllocation struct {
 	invoiceId        pgtype.Int4
 	financeClientId  int
 	notes            string
+	pisNumber        int
 }
 
 func (suite *IntegrationSuite) Test_processReversals() {
@@ -124,6 +126,16 @@ func (suite *IntegrationSuite) Test_processReversals() {
 
 		"ALTER SEQUENCE ledger_id_seq RESTART WITH 18;",
 		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 22;",
+		// misapplied cheque passes through PIS number
+		"INSERT INTO finance_client VALUES (16, 16, 'test 16', 'DEMANDED', NULL, '1616');",
+		"INSERT INTO invoice VALUES (17, 16, 16, 'AD', 'test 16 unpaid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
+		"INSERT INTO ledger VALUES (18, 'test 16', '2025-01-02 15:32:10', '', 5000, 'payment 15 being reversed', 'SUPERVISION CHEQUE PAYMENT', 'CONFIRMED', 16, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1, 101);",
+		"INSERT INTO ledger_allocation VALUES (22, 18, 17, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
+		"INSERT INTO finance_client VALUES (17, 17, 'test 17', 'DEMANDED', NULL, '1717');",
+		"INSERT INTO invoice VALUES (18, 17, 17, 'AD', 'test 17 unpaid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
+
+		"ALTER SEQUENCE ledger_id_seq RESTART WITH 19;",
+		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 23;",
 	)
 
 	dispatch := &mockDispatch{}
@@ -144,13 +156,14 @@ func (suite *IntegrationSuite) Test_processReversals() {
 			uploadType: shared.ReportTypeUploadMisappliedPayments,
 			records: [][]string{
 				{"Payment type", "Current (errored) court reference", "New (correct) court reference", "Bank date", "Received date", "Amount", "PIS number (cheque only)"},
-				{"MOTO CARD PAYMENT", "0000", "2222", "01/01/2024", "02/01/2024", "10.00", ""},   // current court reference not found
-				{"MOTO CARD PAYMENT", "1111", "0000", "01/01/2024", "02/01/2024", "10.00", ""},   // new court reference not found
-				{"ONLINE CARD PAYMENT", "1111", "2222", "01/01/2024", "02/01/2024", "10.00", ""}, // incorrect payment type
-				{"MOTO CARD PAYMENT", "1111", "2222", "12/01/2024", "02/01/2024", "10.00", ""},   // bank date does not match payment
-				{"MOTO CARD PAYMENT", "1111", "2222", "01/01/2024", "12/01/2024", "10.00", ""},   // received date does not match payment
-				{"MOTO CARD PAYMENT", "1111", "2222", "01/01/2024", "02/01/2024", "10.01", ""},   // amount does not match payment
-				{"MOTO CARD PAYMENT", "1111", "2222", "01/01/2024", "02/01/2024", "10.00", ""},   // successful match
+				{"MOTO CARD PAYMENT", "0000", "2222", "01/01/2024", "02/01/2024", "10.00", ""},             // current court reference not found
+				{"MOTO CARD PAYMENT", "1111", "0000", "01/01/2024", "02/01/2024", "10.00", ""},             // new court reference not found
+				{"ONLINE CARD PAYMENT", "1111", "2222", "01/01/2024", "02/01/2024", "10.00", ""},           // incorrect payment type
+				{"MOTO CARD PAYMENT", "1111", "2222", "12/01/2024", "02/01/2024", "10.00", ""},             // bank date does not match payment
+				{"MOTO CARD PAYMENT", "1111", "2222", "01/01/2024", "12/01/2024", "10.00", ""},             // received date does not match payment
+				{"MOTO CARD PAYMENT", "1111", "2222", "01/01/2024", "02/01/2024", "10.01", ""},             // amount does not match payment
+				{"MOTO CARD PAYMENT", "1111", "2222", "01/01/2024", "02/01/2024", "10.00", ""},             // successful match
+				{"SUPERVISION CHEQUE PAYMENT", "1616", "1717", "02/01/2025", "02/01/2025", "50.00", "101"}, // successful match
 			},
 			allocations: []createdReversalAllocation{
 				{
@@ -174,6 +187,30 @@ func (suite *IntegrationSuite) Test_processReversals() {
 					allocationStatus: "ALLOCATED",
 					invoiceId:        pgtype.Int4{Int32: 2, Valid: true},
 					financeClientId:  2,
+				},
+				{
+					ledgerAmount:     -5000,
+					ledgerType:       "SUPERVISION CHEQUE PAYMENT",
+					ledgerStatus:     "CONFIRMED",
+					receivedDate:     time.Date(2025, 01, 02, 00, 00, 00, 0, time.UTC),
+					bankDate:         time.Date(2025, 01, 02, 0, 0, 0, 0, time.UTC),
+					allocationAmount: -5000,
+					allocationStatus: "ALLOCATED",
+					invoiceId:        pgtype.Int4{Int32: 17, Valid: true},
+					financeClientId:  16,
+					pisNumber:        101,
+				},
+				{
+					ledgerAmount:     5000,
+					ledgerType:       "SUPERVISION CHEQUE PAYMENT",
+					ledgerStatus:     "CONFIRMED",
+					receivedDate:     time.Date(2025, 01, 02, 00, 00, 00, 0, time.UTC),
+					bankDate:         time.Date(2025, 01, 02, 0, 0, 0, 0, time.UTC),
+					allocationAmount: 5000,
+					allocationStatus: "ALLOCATED",
+					invoiceId:        pgtype.Int4{Int32: 18, Valid: true},
+					financeClientId:  17,
+					pisNumber:        101,
 				},
 			},
 			expectedFailedLines: map[int]string{
@@ -291,6 +328,7 @@ func (suite *IntegrationSuite) Test_processReversals() {
 					allocationStatus: "ALLOCATED",
 					invoiceId:        pgtype.Int4{Int32: 8, Valid: true},
 					financeClientId:  7,
+					pisNumber:        123,
 				},
 			},
 			expectedFailedLines: map[int]string{},
@@ -480,14 +518,17 @@ func (suite *IntegrationSuite) Test_processReversals() {
 			var allocations []createdReversalAllocation
 
 			rows, _ := seeder.Query(suite.ctx,
-				`SELECT l.amount, l.type, l.status, l.datetime, l.bankdate, la.amount, la.status, l.finance_client_id, la.invoice_id
+				`SELECT l.amount, l.type, l.status, l.datetime, l.bankdate, la.amount, la.status, l.finance_client_id, la.invoice_id, COALESCE(l.pis_number, 0)
 						FROM ledger l
 						LEFT JOIN ledger_allocation la ON l.id = la.ledger_id
 					WHERE l.id > $1`, currentLedgerId)
 
 			for rows.Next() {
 				var r createdReversalAllocation
-				_ = rows.Scan(&r.ledgerAmount, &r.ledgerType, &r.ledgerStatus, &r.receivedDate, &r.bankDate, &r.allocationAmount, &r.allocationStatus, &r.financeClientId, &r.invoiceId)
+				err := rows.Scan(&r.ledgerAmount, &r.ledgerType, &r.ledgerStatus, &r.receivedDate, &r.bankDate, &r.allocationAmount, &r.allocationStatus, &r.financeClientId, &r.invoiceId, &r.pisNumber)
+				if err != nil {
+					fmt.Println(err.Error())
+				}
 				allocations = append(allocations, r)
 			}
 
