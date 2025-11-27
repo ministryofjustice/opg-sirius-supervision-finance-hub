@@ -53,6 +53,7 @@ func (s *Service) ProcessPaymentReversals(ctx context.Context, records [][]strin
 						LedgerType:   details.PaymentType,
 						ReceivedDate: details.ReceivedDate,
 						CreatedBy:    details.CreatedBy,
+						PisNumber:    details.PisNumber,
 					})
 					if err != nil {
 						return nil, err

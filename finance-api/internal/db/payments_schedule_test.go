@@ -42,7 +42,7 @@ func (suite *IntegrationSuite) Test_payments_schedules() {
 
 	client6ID := suite.seeder.CreateClient(ctx, "Colette", "Correct", courtRef5, "2314", "ACTIVE")
 	_, inv5Ref := suite.seeder.CreateInvoice(ctx, client6ID, shared.InvoiceTypeS2, &general, yesterday.StringPtr(), nil, nil, nil, yesterday.StringPtr())
-	suite.seeder.ReversePayment(ctx, courtRef4, courtRef5, "150.00", yesterday.Date(), yesterday.Date(), shared.TransactionTypeOnlineCardPayment, yesterday.Date())
+	suite.seeder.ReversePayment(ctx, courtRef4, courtRef5, "150.00", yesterday.Date(), yesterday.Date(), shared.TransactionTypeOnlineCardPayment, yesterday.Date(), "")
 
 	// cheques
 	client7ID := suite.seeder.CreateClient(ctx, "Ian", "Test", courtRef6, "1234", "ACTIVE")

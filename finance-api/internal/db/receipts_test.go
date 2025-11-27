@@ -1,9 +1,10 @@
 package db
 
 import (
+	"strconv"
+
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"strconv"
 )
 
 func (suite *IntegrationSuite) Test_receipts() {
@@ -40,7 +41,7 @@ func (suite *IntegrationSuite) Test_receipts() {
 	suite.seeder.CreatePayment(ctx, 15000, yesterday.Date(), courtRef2, shared.TransactionTypeOnlineCardPayment, yesterday.Date(), 0)
 	client3ID := suite.seeder.CreateClient(ctx, "Colette", "Correct", courtRef3, "3333", "ACTIVE")
 	_, inv5Ref := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeSO, valToPtr("90.00"), yesterday.StringPtr(), nil, nil, nil, yesterday.StringPtr())
-	suite.seeder.ReversePayment(ctx, courtRef2, courtRef3, "150.00", yesterday.Date(), yesterday.Date(), shared.TransactionTypeOnlineCardPayment, yesterday.Date())
+	suite.seeder.ReversePayment(ctx, courtRef2, courtRef3, "150.00", yesterday.Date(), yesterday.Date(), shared.TransactionTypeOnlineCardPayment, yesterday.Date(), "")
 
 	// excluded as out of range - would have partial reapply if included
 	_, _ = suite.seeder.CreateInvoice(ctx, clientID, shared.InvoiceTypeGA, nil, today.StringPtr(), nil, nil, nil, nil)
@@ -86,8 +87,8 @@ func (suite *IntegrationSuite) Test_receipts() {
 	assert.Equal(suite.T(), "0470", results[1]["Entity"], "Line 2: Entity")
 	assert.Equal(suite.T(), "99999999", results[1]["Receivables cost centre"], "Line 2: Receivables cost centre")
 	assert.Equal(suite.T(), "BALANCE SHEET", results[1]["Receivables cost centre description"], "Line 2: Receivables cost centre description")
-	assert.Equal(suite.T(), "1816102004", results[1]["Receivables account code"], "Line 2: Receivables account code")
-	assert.Equal(suite.T(), "CA - TRADE RECEIVABLES - UNAPPLIED RECEIPTS – SIRIUS SUPERVISION", results[1]["Account code description"], "Line 2: Account code description")
+	assert.Equal(suite.T(), "1816102003", results[1]["Receivables account code"], "Line 2: Receivables account code")
+	assert.Equal(suite.T(), "CA - TRADE RECEIVABLES - SIRIUS SUPERVISION CONTROL ACCOUNT", results[1]["Account code description"], "Line 2: Account code description")
 	assert.Equal(suite.T(), "UA"+inv1Ref, results[1]["Txn number"], "Line 2: Txn number")
 	assert.Equal(suite.T(), "Unapply (money from invoice)", results[1]["Txn type"], "Line 2: Txn type")
 	assert.Equal(suite.T(), "", results[1]["Receipt date"], "Line 2: Receipt date")

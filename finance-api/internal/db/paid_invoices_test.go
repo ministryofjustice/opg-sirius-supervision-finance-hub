@@ -1,11 +1,12 @@
 package db
 
 import (
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"github.com/stretchr/testify/assert"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"github.com/stretchr/testify/assert"
 )
 
 func (suite *IntegrationSuite) Test_paid_invoices() {
@@ -85,7 +86,7 @@ func (suite *IntegrationSuite) Test_paid_invoices() {
 	client9ref := "99999999"
 	client9ID := suite.seeder.CreateClient(ctx, "Colette", "Correct", client9ref, "3333", "ACTIVE")
 	_, c9i1Ref := suite.seeder.CreateInvoice(ctx, client9ID, shared.InvoiceTypeSO, valToPtr("90.00"), today.Sub(0, 0, 7).StringPtr(), nil, nil, nil, today.Sub(0, 0, 7).StringPtr())
-	suite.seeder.ReversePayment(ctx, client8ref, client9ref, "150.00", today.Sub(0, 0, 7).Date(), today.Sub(0, 0, 7).Date(), shared.TransactionTypeOnlineCardPayment, today.Date())
+	suite.seeder.ReversePayment(ctx, client8ref, client9ref, "150.00", today.Sub(0, 0, 7).Date(), today.Sub(0, 0, 7).Date(), shared.TransactionTypeOnlineCardPayment, today.Date(), "")
 
 	c := Client{suite.seeder.Conn}
 
