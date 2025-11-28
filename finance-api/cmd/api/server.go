@@ -28,6 +28,7 @@ type Service interface {
 	AddManualInvoice(ctx context.Context, clientId int32, invoice shared.AddManualInvoice) error
 	AddRefund(ctx context.Context, clientId int32, refund shared.AddRefund) error
 	CancelFeeReduction(ctx context.Context, id int32, cancelledFeeReduction shared.CancelFeeReduction) error
+	CheckPaymentMethod(ctx context.Context, clientID int32) error
 	ExpireRefunds(ctx context.Context) error
 	GetAccountInformation(ctx context.Context, id int32) (*shared.AccountInformation, error)
 	GetBillingHistory(ctx context.Context, id int32) ([]shared.BillingHistory, error)
