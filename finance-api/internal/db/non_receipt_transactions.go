@@ -20,8 +20,8 @@ func NewNonReceiptTransactions(input NonReceiptTransactionsInput) ReportQuery {
 	}
 }
 
-const NonReceiptTransactionsQuery = `
-WITH transaction_type_order AS (
+const NonReceiptTransactionsQuery = `WITH 
+	transaction_type_order AS (
 	SELECT 
 		id, 
 		CASE
@@ -117,17 +117,14 @@ transactions AS (
 transaction_totals AS (
 	SELECT
 		tt.line_description,
-		CASE WHEN n % 2 = 1  THEN
-		 	CASE WHEN t.fee_type IN ('UA', 'RA') THEN '1816102005' ELSE tt.account_code END
-		ELSE
-			CASE WHEN t.fee_type IN ('UA', 'RA') THEN tt.account_code ELSE '1816102003' END
-        END account_code,
+		tt.account_code,
 		ABS(SUM(t.amount) / 100.0)::NUMERIC(10,2)::VARCHAR(255) AS amount,
 		account.cost_centre,
 		SUM(t.amount) >= 0 AS is_credit,
 		tt.index,
 		n
 	FROM transactions t
+	CROSS JOIN (SELECT 1 AS n UNION ALL SELECT 2) n
 	INNER JOIN LATERAL (
 		SELECT CASE 
 		    WHEN t.fee_type IN ('AD', 'GA', 'GS', 'GT') THEN t.fee_type 
@@ -139,15 +136,21 @@ transaction_totals AS (
 			LIMIT 1) END AS supervision_level
 	) sl ON TRUE
 	INNER JOIN LATERAL (
-		SELECT tto.index, fee_type, account_code, line_description 
+		SELECT 
+		    tto.index, 
+		    CASE WHEN n % 2 = 1  THEN
+		 	CASE WHEN t.fee_type IN ('UA', 'RA') THEN '1816102005' ELSE tt.account_code END
+		ELSE
+			CASE WHEN t.fee_type IN ('UA', 'RA') THEN tt.account_code ELSE '1816102003' END
+        END account_code, 
+		    line_description 
 		FROM supervision_finance.transaction_type tt
 		INNER JOIN transaction_type_order tto ON tt.id = tto.id
 		WHERE (tt.ledger_type = t.ledger_type OR (t.ledger_type IS NULL AND tt.fee_type = t.fee_type)) 
 		AND (t.fee_type IN ('UA', 'RA') OR sl.supervision_level = tt.supervision_level)
 	) tt ON TRUE
 	INNER JOIN supervision_finance.account ON tt.account_code = account.code
-	CROSS JOIN (SELECT 1 AS n UNION ALL SELECT 2) n
-	GROUP BY tt.line_description, tt.account_code, account.cost_centre, t.fee_type, tt.index, n
+	GROUP BY tt.line_description, tt.account_code, account.cost_centre, tt.index, n
 )
 SELECT
     '="0470"' AS "Entity",
