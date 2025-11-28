@@ -1,10 +1,13 @@
 package db
 
 import (
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"time"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
+// AllRefunds generates a report of all refunds created within a specified date range.
+// This is used by the Finance team to monitor and audit refund activity.
 type AllRefunds struct {
 	ReportQuery
 	AllRefundsInput

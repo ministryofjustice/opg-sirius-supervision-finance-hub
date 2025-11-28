@@ -4,6 +4,10 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
+// ReceiptTransactions generates the receipts transactions journal for a given date. The journal displays all receipt
+// transactions (payments, refunds, and reversals) that were created on that date, grouped by transaction type and
+// bank date (or PIS for cheques). This line description matches a schedule report, which breaks down the transactions
+// further for reconciliation purposes.
 type ReceiptTransactions struct {
 	ReportQuery
 	ReceiptTransactionsInput

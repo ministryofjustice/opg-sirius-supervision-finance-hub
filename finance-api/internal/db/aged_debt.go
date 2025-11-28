@@ -6,6 +6,12 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
+// AgedDebt generates a report of all outstanding debt as of a given date. If no date is provided, the current date is used.
+// Outstanding debt is defined as invoices that were raised by the provided date but not fully paid by that date.
+// This means invoices raised after the provided date are not included, even if they are unpaid, and invoices that were
+// fully paid after the provided date will appear as outstanding.
+// The report also calculates the age of the debt based on the due date (30 days after the raised date) and categorises
+// the debt into ageing buckets (current, 0-1 years, 1-2 years, etc.).
 type AgedDebt struct {
 	ReportQuery
 	AgedDebtInput

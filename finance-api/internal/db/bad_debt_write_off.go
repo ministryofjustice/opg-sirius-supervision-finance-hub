@@ -6,6 +6,8 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
+// BadDebtWriteOff generates a report of bad debt that has been written-off within a specified date range.
+// If the date range is not provided, it defaults to from the system go-live date to the current date.
 type BadDebtWriteOff struct {
 	ReportQuery
 	BadDebtWriteOffInput

@@ -4,6 +4,9 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
+// AdjustmentsSchedule generates a report of all invoice adjustments for a given date and adjustment type.
+// This is used by the Billing team to reconcile adjustments, and each adjustment schedule should correlate to a line
+// in the non-receipts transactions journal by line description.
 type AdjustmentsSchedule struct {
 	ReportQuery
 	AdjustmentsScheduleInput

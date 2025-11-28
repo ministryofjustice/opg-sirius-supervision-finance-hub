@@ -6,6 +6,9 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
+// CustomerCredit generates a report of all customers that are in credit as of a specified date. Credit is calculated as
+// the sum of all unapplied and reapplied ledger allocations up to the given date.
+// If the date is not provided, it defaults to the current date.
 type CustomerCredit struct {
 	ReportQuery
 	CustomerCreditInput

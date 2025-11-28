@@ -4,6 +4,10 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
+// NonReceiptTransactions generates the non-receipts transactions journal for a given date. The journal displays all
+// non-receipt transactions (invoices, adjustments, unapplies, and reapplies) that were created on that date, grouped by
+// transaction type and create date.  This line description matches a schedule report, which breaks down the transactions
+// further for reconciliation purposes.
 type NonReceiptTransactions struct {
 	ReportQuery
 	NonReceiptTransactionsInput

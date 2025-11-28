@@ -4,6 +4,9 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
+// InvoicesSchedule generates a report of invoices raised for a given date and invoice type.
+// This is used by the Billing team to reconcile invoice debt raised, and each invoice schedule should correlate to a line
+// in the non-receipts transactions journal by line description.
 type InvoicesSchedule struct {
 	ReportQuery
 	InvoicesScheduleInput

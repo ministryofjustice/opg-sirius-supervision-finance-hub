@@ -3,9 +3,13 @@ package db
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/jackc/pgx/v5"
 )
 
+// FeeChase generates a report of all outstanding debt for active clients. This is used in the debt chase process to
+// chase the fee payer for payment.
+// This report dynamically resizes to include all outstanding invoices for each client, up to a maximum of 23 invoices.
 type FeeChase struct {
 	ReportQuery
 }
@@ -22,14 +26,14 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
 				cl.firstname AS "Client_forename",
 				cl.surname AS "Client_surname",
 				CASE WHEN do_not_invoice_warning_count.count >= 1 THEN 'Yes' ELSE 'No' END  AS "Do_not_chase",
-				initcap(fc.payment_method) AS "Payment_method",
+				INITCAP(fc.payment_method) AS "Payment_method",
 				COALESCE(p.deputytype, '') AS "Deputy_type",
 				COALESCE(p.deputynumber::VARCHAR, '') AS "Deputy_no",
 				CASE WHEN a.isairmailrequired IS TRUE THEN 'Yes' ELSE 'No' END AS "Airmail",
 				COALESCE(p.salutation, '') AS "Deputy_title",
 				CASE WHEN p.correspondencebywelsh IS TRUE THEN 'Yes' ELSE 'No' END AS "Deputy_Welsh",
 				CASE WHEN p.specialcorrespondencerequirements_largeprint IS TRUE THEN 'Yes' ELSE 'No' END AS "Deputy_Large_Print",
-				COALESCE(nullif(p.organisationname, ''), CONCAT(p.firstname, ' ' , p.surname)) AS "Deputy_name",
+				COALESCE(NULLIF(p.organisationname, ''), CONCAT(p.firstname, ' ' , p.surname)) AS "Deputy_name",
 				COALESCE(p.email, '') AS "Email",
 				CASE WHEN a.address_lines IS NOT NULL THEN COALESCE(a.address_lines ->> 0, '') ELSE '' END AS "Address1",
 				CASE WHEN a.address_lines IS NOT NULL THEN COALESCE(a.address_lines ->> 1, '') ELSE '' END AS "Address2",
@@ -40,21 +44,21 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
 				CONCAT('£', ABS(gi.total / 100.0)::NUMERIC(10,2)::VARCHAR(255)) AS "Total_debt",
 				gi.invoice
         FROM public.persons cl
-                INNER JOIN supervision_finance.finance_client fc on cl.id = fc.client_id
+                INNER JOIN supervision_finance.finance_client fc ON cl.id = fc.client_id
                 LEFT JOIN public.persons p ON cl.feepayer_id = p.id
                 LEFT JOIN LATERAL (
                        SELECT a.* FROM public.addresses a WHERE a.person_id = p.id ORDER BY a.id DESC LIMIT 1
                 ) a ON TRUE
            , LATERAL (
             SELECT 
-                json_agg(
-                	json_build_object(
+                JSON_AGG(
+                	JSON_BUILD_OBJECT(
                    		'reference', i.reference, 
                    		'debt', CONCAT('£', ABS((i.amount - COALESCE(transactions.received, 0)) / 100.0)::NUMERIC(10,2)::VARCHAR(255))
                 	) ORDER BY i.startdate
-				)   as invoice,
-			   count(i.reference)                                                                         		  as count,
-			   SUM(i.amount - COALESCE(transactions.received, 0))                                                 as total
+				)   AS invoice,
+			   COUNT(i.reference)                                                                         		  AS count,
+			   SUM(i.amount - COALESCE(transactions.received, 0))                                                 AS total
 			FROM supervision_finance.invoice i
 			LEFT JOIN LATERAL (
 				SELECT SUM(la.amount) AS received
@@ -70,9 +74,9 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
             , LATERAL (
             SELECT COUNT(w.id)
             FROM public.person_warning pw
-            INNER JOIN public.warnings w on pw.warning_id = w.id
+            INNER JOIN public.warnings w ON pw.warning_id = w.id
             WHERE pw.person_id = cl.id
-              AND w.systemstatus = true
+              AND w.systemstatus = TRUE
               AND w.warningtype = 'Do not invoice'
             ) AS do_not_invoice_warning_count
             WHERE cl.type = 'actor_client'

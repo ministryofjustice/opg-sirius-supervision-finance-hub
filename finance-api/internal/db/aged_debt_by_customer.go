@@ -1,5 +1,6 @@
 package db
 
+// AgedDebtByCustomer generates a report of all customers with outstanding debt, broken down into ageing buckets.
 type AgedDebtByCustomer struct{ ReportQuery }
 
 func NewAgedDebtByCustomer() ReportQuery {

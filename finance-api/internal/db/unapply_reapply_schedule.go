@@ -4,6 +4,9 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
+// UnapplyReapplySchedule generates a report of all unapply or reapply transactions for a given date.
+// This is used by the Cash Control team to reconcile unapply and reapply transactions, and each schedule should correlate
+// to a line in the non-receipts transactions journal by line description.
 type UnapplyReapplySchedule struct {
 	ReportQuery
 	UnapplyReapplyScheduleInput

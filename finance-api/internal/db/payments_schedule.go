@@ -4,6 +4,9 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
+// PaymentsSchedule generates a report of all payments received for a given bank date and payment type.
+// This is used by the Cash Control team to reconcile payments, and each payment schedule should correlate to a line
+// in the receipts transactions journal by line description.
 type PaymentsSchedule struct {
 	ReportQuery
 	PaymentsScheduleInput
