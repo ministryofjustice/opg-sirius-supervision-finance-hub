@@ -2028,3 +2028,265 @@ func Test_calculateTotalAmountForPaymentEvents(t *testing.T) {
 		})
 	}
 }
+
+func Test_makeDirectDebitEvent(t *testing.T) {
+	now := time.Now()
+
+	tests := []struct {
+		name           string
+		directDebit    shared.BillingEvent
+		amount         int32
+		user           int32
+		eventType      shared.BillingEventType
+		date           time.Time
+		clientID       int32
+		history        []historyHolder
+		expectedResult []historyHolder
+	}{
+		{
+			name: "Add event to empty history holder",
+			directDebit: shared.DirectDebitScheduled{
+				Amount:   23,
+				ClientId: 45,
+			},
+			amount:    23,
+			user:      11,
+			eventType: shared.EventTypeDirectDebitCollectionScheduled,
+			date:      now,
+			clientID:  45,
+			history:   []historyHolder{},
+			expectedResult: []historyHolder{
+				{
+					billingHistory: shared.BillingHistory{
+						User: 11,
+						Date: shared.Date{Time: now},
+						Event: shared.DirectDebitScheduled{
+							ClientId: 45,
+							Amount:   23,
+						},
+						OutstandingBalance: 0,
+					},
+					balanceAdjustment: 23,
+				},
+			},
+		},
+		{
+			name: "Add event to not empty history holder",
+			directDebit: shared.DirectDebitCollectionFailed{
+				Amount:   23,
+				ClientId: 45,
+			},
+			amount:    23,
+			user:      11,
+			eventType: shared.EventTypeDirectDebitCollectionFailed,
+			date:      now,
+			clientID:  45,
+			history: []historyHolder{
+				{
+					billingHistory: shared.BillingHistory{
+						User: 11,
+						Date: shared.Date{Time: now},
+						Event: shared.DirectDebitScheduled{
+							ClientId: 45,
+							Amount:   23,
+						},
+						OutstandingBalance: 0,
+					},
+					balanceAdjustment: 23,
+				},
+			},
+			expectedResult: []historyHolder{
+				{
+					billingHistory: shared.BillingHistory{
+						User: 11,
+						Date: shared.Date{Time: now},
+						Event: shared.DirectDebitScheduled{
+							ClientId: 45,
+							Amount:   23,
+						},
+						OutstandingBalance: 0,
+					},
+					balanceAdjustment: 23,
+				},
+				{
+					billingHistory: shared.BillingHistory{
+						User: 11,
+						Date: shared.Date{Time: now},
+						Event: shared.DirectDebitCollectionFailed{
+							ClientId: 45,
+							Amount:   23,
+						},
+						OutstandingBalance: 0,
+					},
+					balanceAdjustment: 23,
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actualEvent := makeDirectDebitEvent(tt.directDebit, tt.amount, tt.user, tt.date, tt.history)
+			assert.Equalf(t, tt.expectedResult, actualEvent, "makeDirectDebitEvent(%v, %v)", tt.expectedResult, actualEvent)
+		})
+	}
+}
+
+func Test_processPaymentMethodsEvents(t *testing.T) {
+	now := time.Now()
+	paymentMethods := []store.GetPaymentMethodsForBillingHistoryRow{
+		{
+			Type:      "DEMANDED",
+			CreatedAt: pgtype.Timestamp(pgtype.Date{Time: now.Add(2 * time.Hour), Valid: true}),
+			CreatedBy: 1,
+		},
+		{
+			Type:      "DIRECT DEBIT",
+			CreatedAt: pgtype.Timestamp{Time: now.Add(72 * time.Hour), Valid: true},
+			CreatedBy: 3,
+		},
+		{
+			Type:      "DEMANDED",
+			CreatedAt: pgtype.Timestamp{Time: now.Add(180 * time.Hour), Valid: true},
+			CreatedBy: 5,
+		},
+	}
+
+	expected := []historyHolder{
+		{
+			billingHistory: shared.BillingHistory{
+				User: 1,
+				Date: shared.Date{Time: now.Add(2 * time.Hour)},
+				Event: shared.BaseBillingEvent{
+					Type: shared.EventTypeDirectDebitMandateCancelled,
+				},
+				OutstandingBalance: 0,
+			},
+			balanceAdjustment: 0,
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				User: 3,
+				Date: shared.Date{Time: now.Add(72 * time.Hour)},
+				Event: shared.BaseBillingEvent{
+					Type: shared.EventTypeDirectDebitMandateCreated,
+				},
+				OutstandingBalance: 0,
+			},
+			balanceAdjustment: 0,
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				User: 5,
+				Date: shared.Date{Time: now.Add(180 * time.Hour)},
+				Event: shared.BaseBillingEvent{
+					Type: shared.EventTypeDirectDebitMandateCancelled,
+				},
+				OutstandingBalance: 0,
+			},
+			balanceAdjustment: 0,
+		},
+	}
+
+	assert.Equalf(t, expected, processPaymentMethodEvents(paymentMethods, 33), "processPaymentMethodsEvents(%v)", paymentMethods)
+}
+
+func Test_processDirectDebitEvents(t *testing.T) {
+	now := time.Now()
+	yesterday := time.Date(now.Year(), now.Month(), now.Day()-1, 0, 0, 0, 0, time.UTC)
+	aWeekAgo := time.Date(now.Year(), now.Month(), now.Day()-7, 0, 0, 0, 0, time.UTC)
+	twoWeeksAgo := time.Date(now.Year(), now.Month(), now.Day()-14, 0, 0, 0, 0, time.UTC)
+
+	directDebits := []store.GetDirectDebitPaymentsForBillingHistoryRow{
+		{
+			FinanceClientID: pgtype.Int4{Int32: 43},
+			Amount:          int32(123),
+			Status:          "PENDING",
+			LedgerID:        pgtype.Int4{Int32: 2},
+			CreatedAt:       pgtype.Timestamp(pgtype.Date{Time: yesterday, Valid: true}),
+			CreatedBy:       1,
+		},
+		{
+			FinanceClientID: pgtype.Int4{Int32: 43},
+			CollectionDate:  pgtype.Date{Time: now.Add(72 * time.Hour), Valid: true},
+			Amount:          int32(333),
+			Status:          "COLLECTED",
+			LedgerID:        pgtype.Int4{Int32: 3},
+			CreatedAt:       pgtype.Timestamp(pgtype.Date{Time: aWeekAgo, Valid: true}),
+			CreatedBy:       2,
+		},
+		{
+			FinanceClientID: pgtype.Int4{Int32: 43},
+			CollectionDate:  pgtype.Date{Time: now.Add(74 * time.Hour), Valid: true},
+			Amount:          int32(111),
+			Status:          "FAILED",
+			LedgerID:        pgtype.Int4{Int32: 4},
+			CreatedAt:       pgtype.Timestamp(pgtype.Date{Time: twoWeeksAgo, Valid: true}),
+			CreatedBy:       1,
+		},
+	}
+
+	expected := []historyHolder{
+		{
+			billingHistory: shared.BillingHistory{
+				User: 1,
+				Date: shared.Date{Time: yesterday},
+				Event: shared.DirectDebitScheduled{
+					Amount:   123,
+					ClientId: 33,
+				},
+				OutstandingBalance: 0,
+			},
+			balanceAdjustment: 0,
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				User: 2,
+				Date: shared.Date{Time: now.Add(72 * time.Hour)},
+				Event: shared.DirectDebitCollected{
+					Amount:   333,
+					ClientId: 33,
+				},
+				OutstandingBalance: 0,
+			},
+			balanceAdjustment: 333,
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				User: 2,
+				Date: shared.Date{Time: aWeekAgo},
+				Event: shared.DirectDebitScheduled{
+					Amount:   333,
+					ClientId: 33,
+				},
+				OutstandingBalance: 0,
+			},
+			balanceAdjustment: 0,
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				User: 1,
+				Date: shared.Date{Time: now.Add(74 * time.Hour)},
+				Event: shared.DirectDebitCollectionFailed{
+					Amount:   111,
+					ClientId: 33,
+				},
+				OutstandingBalance: 0,
+			},
+			balanceAdjustment: 0,
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				User: 1,
+				Date: shared.Date{Time: twoWeeksAgo},
+				Event: shared.DirectDebitScheduled{
+					Amount:   111,
+					ClientId: 33,
+				},
+				OutstandingBalance: 0,
+			},
+			balanceAdjustment: 0,
+		},
+	}
+
+	assert.Equalf(t, expected, processDirectDebitEvents(directDebits, 33), "processDirectDebitEvents(%v)", directDebits)
+}

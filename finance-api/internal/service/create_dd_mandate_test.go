@@ -61,6 +61,12 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitMandate() {
 		ClientID:      11,
 		PaymentMethod: shared.PaymentMethodDirectDebit,
 	}, dispatchMock.event)
+
+	rows = seeder.QueryRow(ctx, "SELECT type FROM supervision_finance.payment_method WHERE finance_client_id = 1")
+	var paymentMethodDbEntry string
+	_ = rows.Scan(&paymentMethodDbEntry)
+	assert.Equal(suite.T(), "DIRECT DEBIT", paymentMethodDbEntry)
+
 }
 
 func (suite *IntegrationSuite) TestService_CreateDirectDebitMandate_modulusCheckFails() {
