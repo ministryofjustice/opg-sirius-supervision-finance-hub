@@ -80,7 +80,7 @@ func (s *Service) GetBillingHistory(ctx context.Context, clientID int32) ([]shar
 		return nil, err
 	}
 
-	history = append(history, processDirectDebitEvents(directDebitEvents, clientID)...)
+	history = append(history, processDirectDebitEvents(directDebitEvents)...)
 
 	return computeBillingHistory(history), nil
 }
@@ -226,15 +226,25 @@ func makeRefundEvent(refund store.GetRefundsForBillingHistoryRow, user int32, ev
 	return history
 }
 
-func makeDirectDebitEvent(event shared.BillingEvent, amount int32, user int32, date time.Time, history []historyHolder) []historyHolder {
-	bh := shared.BillingHistory{
-		User:  int(user),
-		Date:  shared.Date{Time: date},
-		Event: event,
+func makeDirectDebitEvent(eventType shared.BillingEventType, amount int32, user int32, createdDate time.Time, collectionDate time.Time, history []historyHolder) []historyHolder {
+	timelineDate := collectionDate
+	if eventType == shared.EventTypeDirectDebitCollectionScheduled {
+		//we want the event to show as though it were made when the collection happened/ failed
+		timelineDate = createdDate
 	}
+	bh := shared.BillingHistory{
+		User: int(user),
+		Date: shared.Date{Time: timelineDate},
+		Event: shared.DirectDebitEvent{
+			Amount:           int(amount),
+			CollectionDate:   shared.Date{Time: collectionDate},
+			BaseBillingEvent: shared.BaseBillingEvent{Type: eventType},
+		},
+	}
+	//theres a chance this will be double counted by the ledger so I've made it 0 even for collected direct debits right now
 	history = append(history, historyHolder{
 		billingHistory:    bh,
-		balanceAdjustment: int(amount),
+		balanceAdjustment: 0,
 	})
 	return history
 }
@@ -267,27 +277,18 @@ func processRefundEvents(refunds []store.GetRefundsForBillingHistoryRow, clientI
 	return history
 }
 
-func processDirectDebitEvents(directDebitEvents []store.GetDirectDebitPaymentsForBillingHistoryRow, clientID int32) []historyHolder {
+func processDirectDebitEvents(directDebitEvents []store.GetDirectDebitPaymentsForBillingHistoryRow) []historyHolder {
 	var history []historyHolder
 	for _, dd := range directDebitEvents {
 		//make a rejected or successful event if appropriate
 		switch dd.Status {
 		case "FAILED":
-			history = makeDirectDebitEvent(shared.DirectDebitCollectionFailed{
-				Amount:   int(dd.Amount),
-				ClientId: int(clientID),
-			}, 0, dd.CreatedBy, dd.CollectionDate.Time, history)
+			history = makeDirectDebitEvent(shared.EventTypeDirectDebitCollectionFailed, dd.Amount, dd.CreatedBy, dd.CreatedAt.Time, dd.CollectionDate.Time, history)
 		case "COLLECTED":
-			history = makeDirectDebitEvent(shared.DirectDebitCollected{
-				Amount:   int(dd.Amount),
-				ClientId: int(clientID),
-			}, dd.Amount, dd.CreatedBy, dd.CollectionDate.Time, history)
+			history = makeDirectDebitEvent(shared.EventTypeDirectDebitCollected, dd.Amount, dd.CreatedBy, dd.CreatedAt.Time, dd.CollectionDate.Time, history)
 		}
 		//also make a create event for all direct debits
-		history = makeDirectDebitEvent(shared.DirectDebitScheduled{
-			Amount:   int(dd.Amount),
-			ClientId: int(clientID),
-		}, 0, dd.CreatedBy, dd.CreatedAt.Time, history)
+		history = makeDirectDebitEvent(shared.EventTypeDirectDebitCollectionScheduled, dd.Amount, dd.CreatedBy, dd.CreatedAt.Time, dd.CollectionDate.Time, history)
 	}
 	return history
 }
