@@ -94,6 +94,13 @@ type FeeReductionCancelled struct {
 	BaseBillingEvent
 }
 
+type DirectDebitEvent struct {
+	Amount         int    `json:"amount"`
+	CollectionDate Date   `json:"collection_date"`
+	Status         string `json:"status"`
+	BaseBillingEvent
+}
+
 type InvoiceAdjustmentPending struct {
 	AdjustmentType   AdjustmentType `json:"adjustment_type"`
 	ClientId         int            `json:"client_id"`
@@ -132,24 +139,6 @@ type RefundEvent struct {
 	BaseBillingEvent
 }
 
-type DirectDebitScheduled struct {
-	Amount   int `json:"amount"`
-	ClientId int `json:"client_id"`
-	BaseBillingEvent
-}
-
-type DirectDebitCollected struct {
-	Amount   int `json:"amount"`
-	ClientId int `json:"client_id"`
-	BaseBillingEvent
-}
-
-type DirectDebitCollectionFailed struct {
-	Amount   int `json:"amount"`
-	ClientId int `json:"client_id"`
-	BaseBillingEvent
-}
-
 type InvoiceAdjustmentApplied struct {
 	TransactionEvent
 }
@@ -163,10 +152,6 @@ type PaymentProcessed struct {
 }
 
 type ReappliedCredit struct {
-	TransactionEvent
-}
-
-type PaymentMethodChanged struct {
 	TransactionEvent
 }
 
