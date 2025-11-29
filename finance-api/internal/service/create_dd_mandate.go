@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"log/slog"
 
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
@@ -56,6 +57,18 @@ func (s *Service) CreateDirectDebitMandate(ctx context.Context, clientID int32, 
 	if err != nil {
 		s.Logger(ctx).Error(fmt.Sprintf("Error creating mandate with allpay, rolling back payment method change for client : %d", clientID), slog.String("err", err.Error()))
 		return apierror.BadRequestError("Allpay", "Failed", err)
+	}
+
+	//db entry to say we've recorded a new payment method
+	_, err = tx.AddPaymentMethod(ctx, store.AddPaymentMethodParams{
+		ClientID:  clientID,
+		Type:      shared.PaymentMethodDirectDebit.Key(),
+		CreatedBy: ctx.(auth.Context).User.ID,
+	})
+
+	if err != nil {
+		s.Logger(ctx).Error("Updating payment method table had an issue " + err.Error())
+		return err
 	}
 
 	err = s.dispatch.PaymentMethodChanged(ctx, event.PaymentMethod{

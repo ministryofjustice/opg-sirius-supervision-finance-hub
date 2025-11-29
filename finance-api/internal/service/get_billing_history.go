@@ -66,6 +66,22 @@ func (s *Service) GetBillingHistory(ctx context.Context, clientID int32) ([]shar
 
 	history = append(history, processRefundEvents(refunds, clientID)...)
 
+	paymentMethods, err := s.store.GetPaymentMethodsForBillingHistory(ctx, clientID)
+	if err != nil {
+		s.Logger(ctx).Error(fmt.Sprintf("Error in getting payment methods in billing history for client %d", clientID), slog.String("err", err.Error()))
+		return nil, err
+	}
+
+	history = append(history, processPaymentMethodEvents(paymentMethods, clientID)...)
+
+	directDebitEvents, err := s.store.GetDirectDebitPaymentsForBillingHistory(ctx, clientID)
+	if err != nil {
+		s.Logger(ctx).Error(fmt.Sprintf("Error in getting direct debit payments in billing history for client %d", clientID), slog.String("err", err.Error()))
+		return nil, err
+	}
+
+	history = append(history, processDirectDebitEvents(directDebitEvents)...)
+
 	return computeBillingHistory(history), nil
 }
 
@@ -210,6 +226,29 @@ func makeRefundEvent(refund store.GetRefundsForBillingHistoryRow, user int32, ev
 	return history
 }
 
+func makeDirectDebitEvent(eventType shared.BillingEventType, amount int32, user int32, createdDate time.Time, collectionDate time.Time, history []historyHolder) []historyHolder {
+	timelineDate := collectionDate
+	if eventType == shared.EventTypeDirectDebitCollectionScheduled {
+		//we want the event to show as though it were made when the collection happened/ failed
+		timelineDate = createdDate
+	}
+	bh := shared.BillingHistory{
+		User: int(user),
+		Date: shared.Date{Time: timelineDate},
+		Event: shared.DirectDebitEvent{
+			Amount:           int(amount),
+			CollectionDate:   shared.Date{Time: collectionDate},
+			BaseBillingEvent: shared.BaseBillingEvent{Type: eventType},
+		},
+	}
+	//theres a chance this will be double counted by the ledger so I've made it 0 even for collected direct debits right now
+	history = append(history, historyHolder{
+		billingHistory:    bh,
+		balanceAdjustment: 0,
+	})
+	return history
+}
+
 func processRefundEvents(refunds []store.GetRefundsForBillingHistoryRow, clientID int32) []historyHolder {
 	var history []historyHolder
 	for _, re := range refunds {
@@ -235,6 +274,22 @@ func processRefundEvents(refunds []store.GetRefundsForBillingHistoryRow, clientI
 		history = makeRefundEvent(re, re.CreatedBy, shared.EventTypeRefundCreated, re.CreatedAt.Time, clientID, history)
 	}
 
+	return history
+}
+
+func processDirectDebitEvents(directDebitEvents []store.GetDirectDebitPaymentsForBillingHistoryRow) []historyHolder {
+	var history []historyHolder
+	for _, dd := range directDebitEvents {
+		//make a rejected or successful event if appropriate
+		switch dd.Status {
+		case "FAILED":
+			history = makeDirectDebitEvent(shared.EventTypeDirectDebitCollectionFailed, dd.Amount, dd.CreatedBy, dd.CreatedAt.Time, dd.CollectionDate.Time, history)
+		case "COLLECTED":
+			history = makeDirectDebitEvent(shared.EventTypeDirectDebitCollected, dd.Amount, dd.CreatedBy, dd.CreatedAt.Time, dd.CollectionDate.Time, history)
+		}
+		//also make a create event for all direct debits
+		history = makeDirectDebitEvent(shared.EventTypeDirectDebitCollectionScheduled, dd.Amount, dd.CreatedBy, dd.CreatedAt.Time, dd.CollectionDate.Time, history)
+	}
 	return history
 }
 
@@ -386,6 +441,29 @@ func processLedgerAllocations(allocations []store.GetLedgerAllocationsForClientR
 	var history []historyHolder
 	for _, lh := range historyByLedger {
 		history = append(history, *lh)
+	}
+
+	return history
+}
+
+func processPaymentMethodEvents(paymentMethods []store.GetPaymentMethodsForBillingHistoryRow, clientID int32) []historyHolder {
+	var history []historyHolder
+	for _, pm := range paymentMethods {
+		event := shared.BaseBillingEvent{}
+		if pm.Type == "DEMANDED" {
+			event.Type = shared.EventTypeDirectDebitMandateCancelled
+		} else {
+			event.Type = shared.EventTypeDirectDebitMandateCreated
+		}
+		bh := shared.BillingHistory{
+			User:  int(pm.CreatedBy),
+			Date:  shared.Date{Time: pm.CreatedAt.Time},
+			Event: event,
+		}
+		history = append(history, historyHolder{
+			billingHistory:    bh,
+			balanceAdjustment: 0,
+		})
 	}
 
 	return history
