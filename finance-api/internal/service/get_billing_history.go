@@ -74,6 +74,14 @@ func (s *Service) GetBillingHistory(ctx context.Context, clientID int32) ([]shar
 
 	history = append(history, processPaymentMethodEvents(paymentMethods, clientID)...)
 
+	directDebitEvents, err := s.store.GetDirectDebitPaymentsForBillingHistory(ctx, clientID)
+	if err != nil {
+		s.Logger(ctx).Error(fmt.Sprintf("Error in getting direct debit payments in billing history for client %d", clientID), slog.String("err", err.Error()))
+		return nil, err
+	}
+
+	history = append(history, processDirectDebitEvents(directDebitEvents, clientID)...)
+
 	return computeBillingHistory(history), nil
 }
 
@@ -218,6 +226,19 @@ func makeRefundEvent(refund store.GetRefundsForBillingHistoryRow, user int32, ev
 	return history
 }
 
+func makeDirectDebitEvent(event shared.BillingEvent, amount int32, user int32, date time.Time, history []historyHolder) []historyHolder {
+	bh := shared.BillingHistory{
+		User:  int(user),
+		Date:  shared.Date{Time: date},
+		Event: event,
+	}
+	history = append(history, historyHolder{
+		billingHistory:    bh,
+		balanceAdjustment: int(amount),
+	})
+	return history
+}
+
 func processRefundEvents(refunds []store.GetRefundsForBillingHistoryRow, clientID int32) []historyHolder {
 	var history []historyHolder
 	for _, re := range refunds {
@@ -243,6 +264,31 @@ func processRefundEvents(refunds []store.GetRefundsForBillingHistoryRow, clientI
 		history = makeRefundEvent(re, re.CreatedBy, shared.EventTypeRefundCreated, re.CreatedAt.Time, clientID, history)
 	}
 
+	return history
+}
+
+func processDirectDebitEvents(directDebitEvents []store.GetDirectDebitPaymentsForBillingHistoryRow, clientID int32) []historyHolder {
+	var history []historyHolder
+	for _, dd := range directDebitEvents {
+		//make a rejected or successful event if appropriate
+		switch dd.Status {
+		case "FAILED":
+			history = makeDirectDebitEvent(shared.DirectDebitCollectionFailed{
+				Amount:   int(dd.Amount),
+				ClientId: int(clientID),
+			}, 0, dd.CreatedBy, dd.CollectionDate.Time, history)
+		case "COLLECTED":
+			history = makeDirectDebitEvent(shared.DirectDebitCollected{
+				Amount:   int(dd.Amount),
+				ClientId: int(clientID),
+			}, dd.Amount, dd.CreatedBy, dd.CollectionDate.Time, history)
+		}
+		//also make a create event for all direct debits
+		history = makeDirectDebitEvent(shared.DirectDebitScheduled{
+			Amount:   int(dd.Amount),
+			ClientId: int(clientID),
+		}, 0, dd.CreatedBy, dd.CreatedAt.Time, history)
+	}
 	return history
 }
 
