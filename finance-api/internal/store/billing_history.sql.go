@@ -11,6 +11,58 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const getDirectDebitPaymentsForBillingHistory = `-- name: GetDirectDebitPaymentsForBillingHistory :many
+SELECT pc.finance_client_id,
+       collection_date,
+       amount,
+       status,
+       ledger_id,
+       created_at,
+       created_by
+FROM pending_collection pc
+    JOIN finance_client fc ON fc.id = pc.finance_client_id
+WHERE fc.client_id = $1
+ORDER BY pc.created_at DESC
+`
+
+type GetDirectDebitPaymentsForBillingHistoryRow struct {
+	FinanceClientID pgtype.Int4
+	CollectionDate  pgtype.Date
+	Amount          int32
+	Status          string
+	LedgerID        pgtype.Int4
+	CreatedAt       pgtype.Timestamp
+	CreatedBy       int32
+}
+
+func (q *Queries) GetDirectDebitPaymentsForBillingHistory(ctx context.Context, clientID int32) ([]GetDirectDebitPaymentsForBillingHistoryRow, error) {
+	rows, err := q.db.Query(ctx, getDirectDebitPaymentsForBillingHistory, clientID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetDirectDebitPaymentsForBillingHistoryRow
+	for rows.Next() {
+		var i GetDirectDebitPaymentsForBillingHistoryRow
+		if err := rows.Scan(
+			&i.FinanceClientID,
+			&i.CollectionDate,
+			&i.Amount,
+			&i.Status,
+			&i.LedgerID,
+			&i.CreatedAt,
+			&i.CreatedBy,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getFeeReductionEvents = `-- name: GetFeeReductionEvents :many
 SELECT fr.type,
        fr.startdate,
