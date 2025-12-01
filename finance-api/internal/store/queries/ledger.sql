@@ -55,7 +55,7 @@ FROM ledger l
 WHERE l.amount = @amount
  AND l.status = 'CONFIRMED'
  AND (@skip_bank_date IS TRUE OR l.bankdate = @bank_date)
- AND l.datetime::DATE = (@received_date::TIMESTAMP)::DATE
+ AND (@skip_received_date IS TRUE OR l.datetime::DATE = (@received_date::TIMESTAMP)::DATE)
  AND l.type = @type
  AND fc.court_ref = @court_ref
  AND COALESCE(l.pis_number, 0) = COALESCE(sqlc.narg('pis_number'), 0);

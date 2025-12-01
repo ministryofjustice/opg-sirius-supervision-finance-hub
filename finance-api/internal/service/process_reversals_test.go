@@ -116,17 +116,25 @@ func (suite *IntegrationSuite) Test_processReversals() {
 		"INSERT INTO ledger_allocation VALUES (19, 16, 15, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
 		"INSERT INTO ledger_allocation VALUES (20, 16, 15, '2025-01-02 15:32:10', -5000, 'UNAPPLIED', NULL, '', '2025-01-02', NULL);",
 
-		"ALTER SEQUENCE ledger_id_seq RESTART WITH 17;",
-		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 21;",
+		// failed direct debit collection
+		"INSERT INTO finance_client VALUES (15, 15, 'test 15', 'DEMANDED', NULL, '1515');",
+		"INSERT INTO invoice VALUES (16, 15, 15, 'AD', 'test 15 paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
+		"INSERT INTO ledger VALUES (17, 'test 15', '2025-01-02 15:32:10', '', 5000, 'payment 15', 'REFUND', 'CONFIRMED', 15, NULL, NULL, NULL, '2025-01-01', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
+		"INSERT INTO ledger_allocation VALUES (21, 17, 16, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
+
+		"ALTER SEQUENCE ledger_id_seq RESTART WITH 18;",
+		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 22;",
 	)
 
 	dispatch := &mockDispatch{}
 	s := Service{store: store.New(seeder.Conn), dispatch: dispatch, tx: seeder.Conn}
+	uploadDate := shared.NewDate("2025-02-03")
 
 	tests := []struct {
 		name                string
 		records             [][]string
 		uploadType          shared.ReportUploadType
+		uploadDate          shared.Date
 		allocations         []createdReversalAllocation
 		expectedFailedLines map[int]string
 		want                error
@@ -434,6 +442,29 @@ func (suite *IntegrationSuite) Test_processReversals() {
 			},
 			expectedFailedLines: map[int]string{},
 		},
+		{
+			name: "refund reversal",
+			records: [][]string{
+				{"Court reference", "Amount", "Bank date"},
+				{"1515", "50.00", "01/01/2025"},
+			},
+			uploadType: shared.ReportTypeUploadReverseFulfilledRefunds,
+			uploadDate: uploadDate,
+			allocations: []createdReversalAllocation{
+				{
+					ledgerAmount:     -5000,
+					ledgerType:       "REFUND",
+					ledgerStatus:     "CONFIRMED",
+					receivedDate:     time.Date(2025, 02, 03, 0, 0, 0, 0, time.UTC),
+					bankDate:         time.Date(2025, 02, 03, 0, 0, 0, 0, time.UTC),
+					allocationAmount: -5000,
+					allocationStatus: "ALLOCATED",
+					invoiceId:        pgtype.Int4{Int32: 16, Valid: true},
+					financeClientId:  15,
+				},
+			},
+			expectedFailedLines: map[int]string{},
+		},
 	}
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
@@ -441,7 +472,7 @@ func (suite *IntegrationSuite) Test_processReversals() {
 			_ = seeder.QueryRow(suite.ctx, `SELECT MAX(id) FROM ledger`).Scan(&currentLedgerId)
 
 			var failedLines map[int]string
-			failedLines, err := s.ProcessPaymentReversals(suite.ctx, tt.records, tt.uploadType)
+			failedLines, err := s.ProcessPaymentReversals(suite.ctx, tt.records, tt.uploadType, tt.uploadDate)
 
 			assert.Equal(t, tt.want, err)
 			assert.Equal(t, tt.expectedFailedLines, failedLines)

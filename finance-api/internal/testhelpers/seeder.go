@@ -2,13 +2,14 @@ package testhelpers
 
 import (
 	"context"
+	"testing"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 type Service interface {
@@ -18,7 +19,7 @@ type Service interface {
 	AddFeeReduction(ctx context.Context, clientId int32, reduction shared.AddFeeReduction) error
 	ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, details shared.PaymentDetails) (int32, error)
 	ProcessReversalUploadLine(ctx context.Context, tx *store.Tx, details shared.ReversalDetails) error
-	ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType) (map[int]string, error)
+	ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType, uploadDate shared.Date) (map[int]string, error)
 	CancelFeeReduction(ctx context.Context, id int32, cancelledFeeReduction shared.CancelFeeReduction) error
 	AddRefund(ctx context.Context, clientId int32, refund shared.AddRefund) error
 	UpdateRefundDecision(ctx context.Context, clientId int32, refundId int32, status shared.RefundStatus) error

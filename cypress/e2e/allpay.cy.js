@@ -21,7 +21,7 @@ describe("Allpay end-to-end", () => {
                 detail: {
                     trigger: "direct-debit-collection",
                     override: {
-                        date: getCollectionDate(1)
+                        date: getCollectionDate(0)
                     }
                 }
             },
@@ -40,7 +40,7 @@ describe("Allpay end-to-end", () => {
                 detail: {
                     trigger: "direct-debit-collection",
                     override: {
-                        date: getCollectionDate(2)
+                        date: getCollectionDate(1)
                     }
                 }
             },
@@ -61,12 +61,17 @@ describe("Allpay end-to-end", () => {
 
 function getCollectionDate(offset) {
     const today = new Date();
-    const year = today.getFullYear();
-    let month = today.getMonth(); // 0-indexed
+    let year = today.getFullYear();
+    let month = today.getMonth() + offset; // 0-indexed
 
     // next month if collection date has already passed
     if (today.getDate() > 24) {
         month++;
+    }
+
+    if (month > 11) {
+        month = month % 12;
+        year++;
     }
 
     let collectionDate = new Date(year, month, 24);
@@ -83,5 +88,5 @@ function getCollectionDate(offset) {
         collectionDate.setDate(25);
     }
 
-    return `${collectionDate.getFullYear()}-${String(collectionDate.getMonth() + offset).padStart(2, '0')}-${String(collectionDate.getDate()).padStart(2, '0')}`;
+    return `${collectionDate.getFullYear()}-${String(collectionDate.getMonth() + 1).padStart(2, '0')}-${String(collectionDate.getDate()).padStart(2, '0')}`;
 }

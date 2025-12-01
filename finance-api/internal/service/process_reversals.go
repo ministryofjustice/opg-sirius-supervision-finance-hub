@@ -12,7 +12,7 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
-func (s *Service) ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType) (map[int]string, error) {
+func (s *Service) ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType, uploadDate shared.Date) (map[int]string, error) {
 	failedLines := make(map[int]string)
 
 	tx, err := s.BeginStoreTx(ctx)
@@ -36,6 +36,17 @@ func (s *Service) ProcessPaymentReversals(ctx context.Context, records [][]strin
 					if !s.validateApplyLine(ctx, details, index, &failedLines) {
 						continue
 					}
+				}
+
+				if uploadType == shared.ReportTypeUploadReverseFulfilledRefunds {
+					var (
+						bankDate     pgtype.Date
+						receivedDate pgtype.Timestamp
+					)
+					_ = bankDate.Scan(uploadDate.Time)
+					_ = receivedDate.Scan(uploadDate.Time)
+					details.BankDate = bankDate
+					details.ReceivedDate = receivedDate
 				}
 
 				err = s.ProcessReversalUploadLine(ctx, tx, details)
@@ -195,6 +206,25 @@ func getReversalLines(ctx context.Context, record []string, uploadType shared.Re
 			return shared.ReversalDetails{}
 		}
 
+	case shared.ReportTypeUploadReverseFulfilledRefunds:
+		paymentType = shared.TransactionTypeRefund
+		_ = erroredCourtRef.Scan(safeRead(record, 0))
+
+		bd, err := time.Parse("02/01/2006", safeRead(record, 2))
+		if err != nil {
+			(*failedLines)[index] = validation.UploadErrorDateParse
+			return shared.ReversalDetails{}
+		}
+		_ = bankDate.Scan(bd)
+		_ = receivedDate.Scan(bd)
+
+		amount, err = parseAmount(safeRead(record, 1))
+
+		if err != nil {
+			(*failedLines)[index] = validation.UploadErrorAmountParse
+			return shared.ReversalDetails{}
+		}
+
 	default:
 		(*failedLines)[index] = validation.UploadErrorUnknownUploadType
 	}
@@ -202,27 +232,29 @@ func getReversalLines(ctx context.Context, record []string, uploadType shared.Re
 	_ = store.ToInt4(&createdBy, ctx.(auth.Context).User.ID)
 
 	return shared.ReversalDetails{
-		PaymentType:     paymentType,
-		ErroredCourtRef: erroredCourtRef,
-		CorrectCourtRef: correctCourtRef,
-		BankDate:        bankDate,
-		ReceivedDate:    receivedDate,
-		Amount:          amount,
-		PisNumber:       pisNumber,
-		CreatedBy:       createdBy,
-		SkipBankDate:    shouldSkipBankDate(uploadType, pisNumber),
+		PaymentType:      paymentType,
+		ErroredCourtRef:  erroredCourtRef,
+		CorrectCourtRef:  correctCourtRef,
+		BankDate:         bankDate,
+		ReceivedDate:     receivedDate,
+		Amount:           amount,
+		PisNumber:        pisNumber,
+		CreatedBy:        createdBy,
+		SkipBankDate:     shouldSkipBankDate(uploadType, pisNumber),
+		SkipReceivedDate: shouldSkipReceivedDate(uploadType),
 	}
 }
 
 func (s *Service) validateReversalLine(ctx context.Context, details shared.ReversalDetails, uploadType shared.ReportUploadType, processedRecords []shared.ReversalDetails, index int, failedLines *map[int]string) bool {
 	ledgerCount, _ := s.store.CountDuplicateLedger(ctx, store.CountDuplicateLedgerParams{
-		CourtRef:     details.ErroredCourtRef,
-		Amount:       details.Amount,
-		Type:         details.PaymentType.Key(),
-		BankDate:     details.BankDate,
-		ReceivedDate: details.ReceivedDate,
-		PisNumber:    details.PisNumber,
-		SkipBankDate: details.SkipBankDate,
+		CourtRef:         details.ErroredCourtRef,
+		Amount:           details.Amount,
+		Type:             details.PaymentType.Key(),
+		BankDate:         details.BankDate,
+		ReceivedDate:     details.ReceivedDate,
+		PisNumber:        details.PisNumber,
+		SkipBankDate:     details.SkipBankDate,
+		SkipReceivedDate: details.SkipReceivedDate,
 	})
 
 	if ledgerCount == 0 {
@@ -377,5 +409,11 @@ func hasPaymentToReverse(processedRecords []shared.ReversalDetails, details shar
 func shouldSkipBankDate(uploadType shared.ReportUploadType, pisNumber pgtype.Int4) pgtype.Bool {
 	var skip pgtype.Bool
 	_ = skip.Scan(uploadType == shared.ReportTypeUploadFailedDirectDebitCollections || pisNumber.Valid)
+	return skip
+}
+
+func shouldSkipReceivedDate(uploadType shared.ReportUploadType) pgtype.Bool {
+	var skip pgtype.Bool
+	_ = skip.Scan(uploadType == shared.ReportTypeUploadReverseFulfilledRefunds)
 	return skip
 }
