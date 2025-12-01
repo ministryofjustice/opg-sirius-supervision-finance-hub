@@ -42,8 +42,10 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 		"INSERT INTO supervision_finance.refund values (10, 3, '2024-01-01', 234, 'PENDING', 'pending refund', 1, '2024-01-01', null);",
 		"INSERT INTO supervision_finance.refund values (11, 3, '2024-01-01', 234, 'APPROVED', 'approved refund', 1, '2024-02-01', 2, '2024-02-02');",
 
+		//this should have a ledger and ledger allocation to go with it
 		"INSERT INTO supervision_finance.pending_collection values (10, 1, '2024-01-01', 1233, 'COLLECTED', null, '2023-12-31 00:00:00', 1);",
-		"INSERT INTO supervision_finance.pending_collection values (11, 1, '2025-01-01', 333, 'PENDING', null, '2024-12-30 00:00:00', 1);",
+		"INSERT INTO supervision_finance.pending_collection values (11, 1, '2025-01-01', 333, 'PENDING', null, '2024-12-30 00:00:00', 2);",
+		"INSERT INTO supervision_finance.pending_collection values (12, 1, '2025-11-01', 423, 'CANCELLED', null, '2025-10-01 00:00:00', 1);",
 	)
 
 	Store := store.New(seeder.Conn)
@@ -60,6 +62,32 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 			want: []shared.BillingHistory{
 				{
 					User: 1,
+					Date: shared.NewDate("2025-11-01 00:00:00"),
+					Event: shared.DirectDebitEvent{
+						Amount:         423,
+						CollectionDate: shared.NewDate("2025-11-01 00:00:00"),
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeDirectDebitCollectionFailed,
+						},
+					},
+					OutstandingBalance: 4000,
+					CreditBalance:      0,
+				},
+				{
+					User: 1,
+					Date: shared.NewDate("2025-10-01 00:00:00"),
+					Event: shared.DirectDebitEvent{
+						Amount:         423,
+						CollectionDate: shared.NewDate("2025-11-01 00:00:00"),
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeDirectDebitCollectionScheduled,
+						},
+					},
+					OutstandingBalance: 4000,
+					CreditBalance:      0,
+				},
+				{
+					User: 2,
 					Date: shared.NewDate("2024-12-30 00:00:00"),
 					Event: shared.DirectDebitEvent{
 						Amount:         333,
@@ -2109,6 +2137,9 @@ func Test_makeDirectDebitEvent(t *testing.T) {
 							BaseBillingEvent: shared.BaseBillingEvent{
 								Type: shared.EventTypeDirectDebitCollectionScheduled,
 							},
+							InvoiceReference: shared.InvoiceEvent{
+								Reference: "invoice-ref-123",
+							},
 						},
 						OutstandingBalance: 0,
 					},
@@ -2137,6 +2168,9 @@ func Test_makeDirectDebitEvent(t *testing.T) {
 							BaseBillingEvent: shared.BaseBillingEvent{
 								Type: shared.EventTypeDirectDebitCollected,
 							},
+							InvoiceReference: shared.InvoiceEvent{
+								Reference: "invoice-ref-123",
+							},
 						},
 						OutstandingBalance: 0,
 					},
@@ -2163,6 +2197,9 @@ func Test_makeDirectDebitEvent(t *testing.T) {
 							BaseBillingEvent: shared.BaseBillingEvent{
 								Type: shared.EventTypeDirectDebitCollectionScheduled,
 							},
+							InvoiceReference: shared.InvoiceEvent{
+								Reference: "invoice-ref-123",
+							},
 						},
 						OutstandingBalance: 0,
 					},
@@ -2180,6 +2217,9 @@ func Test_makeDirectDebitEvent(t *testing.T) {
 							BaseBillingEvent: shared.BaseBillingEvent{
 								Type: shared.EventTypeDirectDebitCollectionScheduled,
 							},
+							InvoiceReference: shared.InvoiceEvent{
+								Reference: "invoice-ref-123",
+							},
 						},
 						OutstandingBalance: 0,
 					},
@@ -2195,6 +2235,9 @@ func Test_makeDirectDebitEvent(t *testing.T) {
 							BaseBillingEvent: shared.BaseBillingEvent{
 								Type: shared.EventTypeDirectDebitCollectionFailed,
 							},
+							InvoiceReference: shared.InvoiceEvent{
+								Reference: "invoice-ref-123",
+							},
 						},
 						OutstandingBalance: 0,
 					},
@@ -2205,7 +2248,7 @@ func Test_makeDirectDebitEvent(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actualEvent := makeDirectDebitEvent(tt.eventType, tt.amount, tt.user, tt.createdDate, tt.collectionDate, tt.history)
+			actualEvent := makeDirectDebitEvent(tt.eventType, tt.amount, tt.user, tt.createdDate, tt.collectionDate, pgtype.Text{"invoice-ref-123", true}, tt.history)
 			assert.Equalf(t, tt.expectedResult, actualEvent, "makeDirectDebitEvent(%v, %v)", tt.expectedResult, actualEvent)
 		})
 	}
@@ -2300,7 +2343,7 @@ func Test_processDirectDebitEvents(t *testing.T) {
 			FinanceClientID: pgtype.Int4{Int32: 43},
 			CollectionDate:  pgtype.Date{Time: yesterday},
 			Amount:          int32(111),
-			Status:          "FAILED",
+			Status:          "CANCELLED",
 			LedgerID:        pgtype.Int4{Int32: 4},
 			CreatedAt:       pgtype.Timestamp(pgtype.Date{Time: twoWeeksAgo, Valid: true}),
 			CreatedBy:       1,
