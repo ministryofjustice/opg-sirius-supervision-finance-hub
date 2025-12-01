@@ -118,11 +118,12 @@ func (suite *IntegrationSuite) Test_processReversals() {
 		"INSERT INTO ledger_allocation VALUES (19, 16, 15, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
 		"INSERT INTO ledger_allocation VALUES (20, 16, 15, '2025-01-02 15:32:10', -5000, 'UNAPPLIED', NULL, '', '2025-01-02', NULL);",
 
-		// failed direct debit collection
+		// refund reversal
 		"INSERT INTO finance_client VALUES (15, 15, 'test 15', 'DEMANDED', NULL, '1515');",
-		"INSERT INTO invoice VALUES (16, 15, 15, 'AD', 'test 15 paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
-		"INSERT INTO ledger VALUES (17, 'test 15', '2025-01-02 15:32:10', '', 5000, 'payment 15', 'REFUND', 'CONFIRMED', 15, NULL, NULL, NULL, '2025-01-01', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
-		"INSERT INTO ledger_allocation VALUES (21, 17, 16, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
+		"INSERT INTO ledger VALUES (17, 'test 15', '2025-01-02 15:32:10', '', 5000, 'payment 15', 'ONLINE CARD PAYMENT', 'CONFIRMED', 15, NULL, NULL, NULL, '2025-01-01', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
+		"INSERT INTO ledger_allocation VALUES (21, 17, NULL, '2025-01-02 15:32:10', -5000, 'UNAPPLIED', NULL, '', '2025-01-02', NULL);",
+		"INSERT INTO ledger VALUES (18, 'test 15-refund', '2025-01-02 15:32:10', '', 5000, 'payment 15-refund', 'REFUND', 'CONFIRMED', 15, NULL, NULL, NULL, '2025-01-01', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
+		"INSERT INTO ledger_allocation VALUES (22, 18, NULL, '2025-01-02 15:32:10', 5000, 'REAPPLIED', NULL, '', '2025-01-02', NULL);",
 
 		// misapplied cheque passes through PIS number
 		"INSERT INTO finance_client VALUES (16, 16, 'test 16', 'DEMANDED', NULL, '1616');",
@@ -493,9 +494,8 @@ func (suite *IntegrationSuite) Test_processReversals() {
 					ledgerStatus:     "CONFIRMED",
 					receivedDate:     time.Date(2025, 02, 03, 0, 0, 0, 0, time.UTC),
 					bankDate:         time.Date(2025, 02, 03, 0, 0, 0, 0, time.UTC),
-					allocationAmount: -5000,
-					allocationStatus: "ALLOCATED",
-					invoiceId:        pgtype.Int4{Int32: 16, Valid: true},
+					allocationAmount: 5000,
+					allocationStatus: "UNAPPLIED",
 					financeClientId:  15,
 				},
 			},

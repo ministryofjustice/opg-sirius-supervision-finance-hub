@@ -131,8 +131,10 @@ WITH ledger_data AS (
         fc.id AS client_id,
         fc.court_ref,
         SUM(CASE
-                WHEN la.status NOT IN ('PENDING', 'UN ALLOCATED') AND l.status = 'CONFIRMED'
-                    AND la.invoice_id IS NOT NULL THEN la.amount
+                WHEN la.status = 'ALLOCATED'
+                    THEN la.amount
+                WHEN la.status IN ('REAPPLIED') AND la.invoice_id IS NULL -- refund
+                    THEN la.amount
                 ELSE 0
             END) AS received,
         SUM(CASE
