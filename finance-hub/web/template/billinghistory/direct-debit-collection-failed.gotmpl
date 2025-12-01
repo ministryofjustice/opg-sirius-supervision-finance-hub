@@ -2,7 +2,7 @@
     <div class="moj-timeline__item">
         <div class="moj-timeline__header">
             <h2 class="moj-timeline__title">
-                Direct Debit Failed
+                Failed Direct Debit payment
             </h2>
             <p class="moj-timeline__byline">
                 {{ printf "by %v, %v" .User .Date }}
@@ -13,7 +13,11 @@
         </p>
         <div class="moj-timeline__description">
             <ul class="govuk-list govuk-list--bullet">
-                <li> Payment method updated to Demanded</li>
+                <li> {{ printf "Direct Debit collection of £%v on %v has failed " (toCurrency .Event.Amount) .Event.CollectionDate }} </li>
+                {{ if .Event.InvoiceReference.Reference }}
+                    <li> {{ printf "£%v reversed on Invoice number %s" (toCurrency .Event.Amount) .Event.InvoiceReference.Reference }} </li>
+                    <li> {{ printf "Unallocated amount £%v reversed against on account balance" (toCurrency .Event.Amount) }} </li>
+                {{ end }}
             </ul>
         </div>
     </div>

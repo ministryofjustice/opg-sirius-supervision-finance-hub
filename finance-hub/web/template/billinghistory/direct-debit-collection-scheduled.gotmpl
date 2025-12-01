@@ -2,7 +2,7 @@
     <div class="moj-timeline__item">
         <div class="moj-timeline__header">
             <h2 class="moj-timeline__title">
-                Direct Debit Scheduled
+                Direct debit payment scheduled
             </h2>
             <p class="moj-timeline__byline">
                 {{ printf "by %v, %v" .User .Date }}
@@ -13,7 +13,7 @@
         </p>
         <div class="moj-timeline__description">
             <ul class="govuk-list govuk-list--bullet">
-                <li>  Direct debit payment for {{ .Event }} scheduled for </li>
+                <li> {{ printf "Direct debit payment for £%v scheduled for %v" (toCurrency .Event.Amount) .Event.CollectionDate }} </li>
             </ul>
         </div>
     </div>
