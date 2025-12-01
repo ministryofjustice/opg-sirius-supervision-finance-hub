@@ -13,14 +13,21 @@ import (
 
 const getDirectDebitPaymentsForBillingHistory = `-- name: GetDirectDebitPaymentsForBillingHistory :many
 SELECT pc.finance_client_id,
-       collection_date,
-       amount,
-       status,
-       ledger_id,
-       created_at,
-       created_by
+       pc.collection_date,
+       pc.amount,
+       pc.status,
+       pc.ledger_id,
+       pc.created_at,
+       pc.created_by,
+       ledger.amount AS l_amount,
+       ledger.reference AS l_reference,
+       ledger_allocation.invoice_id AS la_invoice_id,
+       ledger_allocation.amount AS la_amount,
+       ledger_allocation.reference As la_reference
 FROM pending_collection pc
     JOIN finance_client fc ON fc.id = pc.finance_client_id
+    LEFT JOIN ledger ON pc.ledger_id = ledger.id
+    LEFT JOIN ledger_allocation ON pc.ledger_id = ledger_allocation.ledger_id
 WHERE fc.client_id = $1
 ORDER BY pc.created_at DESC
 `
@@ -33,6 +40,11 @@ type GetDirectDebitPaymentsForBillingHistoryRow struct {
 	LedgerID        pgtype.Int4
 	CreatedAt       pgtype.Timestamp
 	CreatedBy       int32
+	LAmount         pgtype.Int4
+	LReference      pgtype.Text
+	LaInvoiceID     pgtype.Int4
+	LaAmount        pgtype.Int4
+	LaReference     pgtype.Text
 }
 
 func (q *Queries) GetDirectDebitPaymentsForBillingHistory(ctx context.Context, clientID int32) ([]GetDirectDebitPaymentsForBillingHistoryRow, error) {
@@ -52,6 +64,11 @@ func (q *Queries) GetDirectDebitPaymentsForBillingHistory(ctx context.Context, c
 			&i.LedgerID,
 			&i.CreatedAt,
 			&i.CreatedBy,
+			&i.LAmount,
+			&i.LReference,
+			&i.LaInvoiceID,
+			&i.LaAmount,
+			&i.LaReference,
 		); err != nil {
 			return nil, err
 		}

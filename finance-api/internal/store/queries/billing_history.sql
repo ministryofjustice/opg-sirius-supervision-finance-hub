@@ -94,13 +94,20 @@ ORDER BY pm.id DESC;
 
 -- name: GetDirectDebitPaymentsForBillingHistory :many
 SELECT pc.finance_client_id,
-       collection_date,
-       amount,
-       status,
-       ledger_id,
-       created_at,
-       created_by
+       pc.collection_date,
+       pc.amount,
+       pc.status,
+       pc.ledger_id,
+       pc.created_at,
+       pc.created_by,
+       ledger.amount AS l_amount,
+       ledger.reference AS l_reference,
+       ledger_allocation.invoice_id AS la_invoice_id,
+       ledger_allocation.amount AS la_amount,
+       ledger_allocation.reference As la_reference
 FROM pending_collection pc
     JOIN finance_client fc ON fc.id = pc.finance_client_id
+    LEFT JOIN ledger ON pc.ledger_id = ledger.id
+    LEFT JOIN ledger_allocation ON pc.ledger_id = ledger_allocation.ledger_id
 WHERE fc.client_id = $1
 ORDER BY pc.created_at DESC;

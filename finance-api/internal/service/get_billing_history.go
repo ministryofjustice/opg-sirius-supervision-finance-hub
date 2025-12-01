@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"log/slog"
@@ -226,12 +227,13 @@ func makeRefundEvent(refund store.GetRefundsForBillingHistoryRow, user int32, ev
 	return history
 }
 
-func makeDirectDebitEvent(eventType shared.BillingEventType, amount int32, user int32, createdDate time.Time, collectionDate time.Time, history []historyHolder) []historyHolder {
+func makeDirectDebitEvent(eventType shared.BillingEventType, amount int32, user int32, createdDate time.Time, collectionDate time.Time, invoiceReference pgtype.Text, history []historyHolder) []historyHolder {
 	timelineDate := collectionDate
 	if eventType == shared.EventTypeDirectDebitCollectionScheduled {
 		//we want the event to show as though it were made when the collection happened/ failed
 		timelineDate = createdDate
 	}
+
 	bh := shared.BillingHistory{
 		User: int(user),
 		Date: shared.Date{Time: timelineDate},
@@ -239,6 +241,9 @@ func makeDirectDebitEvent(eventType shared.BillingEventType, amount int32, user 
 			Amount:           int(amount),
 			CollectionDate:   shared.Date{Time: collectionDate},
 			BaseBillingEvent: shared.BaseBillingEvent{Type: eventType},
+			InvoiceReference: shared.InvoiceEvent{
+				Reference: invoiceReference.String,
+			},
 		},
 	}
 	//theres a chance this will be double counted by the ledger so I've made it 0 even for collected direct debits right now
@@ -282,13 +287,20 @@ func processDirectDebitEvents(directDebitEvents []store.GetDirectDebitPaymentsFo
 	for _, dd := range directDebitEvents {
 		//make a rejected or successful event if appropriate
 		switch dd.Status {
-		case "FAILED":
-			history = makeDirectDebitEvent(shared.EventTypeDirectDebitCollectionFailed, dd.Amount, dd.CreatedBy, dd.CreatedAt.Time, dd.CollectionDate.Time, history)
+		case "CANCELLED":
+			history = makeDirectDebitEvent(
+				shared.EventTypeDirectDebitCollectionFailed,
+				dd.Amount,
+				dd.CreatedBy,
+				dd.CreatedAt.Time,
+				dd.CollectionDate.Time,
+				dd.LReference,
+				history)
 		case "COLLECTED":
-			history = makeDirectDebitEvent(shared.EventTypeDirectDebitCollected, dd.Amount, dd.CreatedBy, dd.CreatedAt.Time, dd.CollectionDate.Time, history)
+			history = makeDirectDebitEvent(shared.EventTypeDirectDebitCollected, dd.Amount, dd.CreatedBy, dd.CreatedAt.Time, dd.CollectionDate.Time, dd.LReference, history)
 		}
 		//also make a create event for all direct debits
-		history = makeDirectDebitEvent(shared.EventTypeDirectDebitCollectionScheduled, dd.Amount, dd.CreatedBy, dd.CreatedAt.Time, dd.CollectionDate.Time, history)
+		history = makeDirectDebitEvent(shared.EventTypeDirectDebitCollectionScheduled, dd.Amount, dd.CreatedBy, dd.CreatedAt.Time, dd.CollectionDate.Time, dd.LReference, history)
 	}
 	return history
 }
