@@ -2,12 +2,13 @@ package service
 
 import (
 	"encoding/json"
+	"testing"
+	"time"
+
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"testing"
-	"time"
 )
 
 func (suite *IntegrationSuite) TestService_GetBillingHistory() {
@@ -34,18 +35,19 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 		"INSERT INTO ledger_allocation VALUES (8,7,10,'2024-10-07 09:35:03',5000,'REAPPLIED');",
 		"INSERT INTO ledger_allocation VALUES (9,8,10,'2024-10-07 09:36:05',1000,'ALLOCATED');",
 
-		"INSERT INTO supervision_finance.refund values (16, 3, '2024-01-01', 234, 'REJECTED', 'rejected refund', 1, '2024-07-01', 2, '2024-07-02');",
-		"INSERT INTO supervision_finance.refund values (15, 3, '2024-01-01', 234, 'APPROVED', 'processing then cancelled refund', 1, '2024-06-01', 2, '2024-06-02', '2024-06-03', '2024-06-04', null, 3);",
-		"INSERT INTO supervision_finance.refund values (14, 3, '2024-01-01', 234, 'APPROVED', 'approved then cancelled refund', 1, '2024-05-01', 2, '2024-05-02', null, '2024-05-03', null, 3);",
-		"INSERT INTO supervision_finance.refund values (13, 3, '2024-01-01', 234, 'APPROVED', 'fulfilled refund', 1, '2024-04-01', 2, '2024-04-02', '2024-04-03', null, '2024-04-04');",
-		"INSERT INTO supervision_finance.refund values (12, 3, '2024-01-01', 234, 'APPROVED', 'processing refund', 1, '2024-03-01', 2, '2024-03-02', '2024-03-03');",
-		"INSERT INTO supervision_finance.refund values (10, 3, '2024-01-01', 234, 'PENDING', 'pending refund', 1, '2024-01-01', null);",
-		"INSERT INTO supervision_finance.refund values (11, 3, '2024-01-01', 234, 'APPROVED', 'approved refund', 1, '2024-02-01', 2, '2024-02-02');",
+		"INSERT INTO supervision_finance.refund VALUES (16, 3, '2024-01-01', 234, 'REJECTED', 'rejected refund', 1, '2024-07-01', 2, '2024-07-02');",
+		"INSERT INTO supervision_finance.refund VALUES (15, 3, '2024-01-01', 234, 'APPROVED', 'processing then cancelled refund', 1, '2024-06-01', 2, '2024-06-02', '2024-06-03', '2024-06-04', NULL, 3);",
+		"INSERT INTO supervision_finance.refund VALUES (14, 3, '2024-01-01', 234, 'APPROVED', 'approved then cancelled refund', 1, '2024-05-01', 2, '2024-05-02', NULL, '2024-05-03', NULL, 3);",
+		"INSERT INTO supervision_finance.refund VALUES (13, 3, '2024-01-01', 234, 'APPROVED', 'fulfilled refund', 1, '2024-04-01', 2, '2024-04-02', '2024-04-03', NULL, '2024-04-04');",
+		"INSERT INTO supervision_finance.refund VALUES (12, 3, '2024-01-01', 234, 'APPROVED', 'processing refund', 1, '2024-03-01', 2, '2024-03-02', '2024-03-03');",
+		"INSERT INTO supervision_finance.refund VALUES (10, 3, '2024-01-01', 234, 'PENDING', 'pending refund', 1, '2024-01-01', NULL);",
+		"INSERT INTO supervision_finance.refund VALUES (11, 3, '2024-01-01', 234, 'APPROVED', 'approved refund', 1, '2024-02-01', 2, '2024-02-02');",
 
-		//this should have a ledger and ledger allocation to go with it
-		"INSERT INTO supervision_finance.pending_collection values (10, 1, '2024-01-01', 1233, 'COLLECTED', null, '2023-12-31 00:00:00', 1);",
-		"INSERT INTO supervision_finance.pending_collection values (11, 1, '2025-01-01', 333, 'PENDING', null, '2024-12-30 00:00:00', 2);",
-		"INSERT INTO supervision_finance.pending_collection values (12, 1, '2025-11-01', 423, 'CANCELLED', null, '2025-10-01 00:00:00', 1);",
+		"INSERT INTO supervision_finance.payment_method VALUES (1, 1, 'DIRECT DEBIT', '2023-01-01 00:00:00', 1);",
+		"INSERT INTO supervision_finance.pending_collection VALUES (10, 1, '2024-01-01', 1233, 'COLLECTED', NULL, '2023-12-31 00:00:00', 1);",
+		"INSERT INTO supervision_finance.pending_collection VALUES (11, 1, '2025-01-01', 333, 'PENDING', NULL, '2024-12-30 00:00:00', 2);",
+		"INSERT INTO supervision_finance.pending_collection VALUES (12, 1, '2025-11-01', 423, 'CANCELLED', NULL, '2025-10-01 00:00:00', 1);",
+		"INSERT INTO supervision_finance.payment_method VALUES (2, 1, 'DEMANDED', '2026-01-01 00:00:00', 1);",
 	)
 
 	Store := store.New(seeder.Conn)
@@ -60,6 +62,17 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 			name: "returns all events that match the client id",
 			id:   1,
 			want: []shared.BillingHistory{
+				{
+					User: 1,
+					Date: shared.NewDate("2026-01-01 00:00:00"),
+					Event: shared.PaymentMethodChangedEvent{
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeDirectDebitMandateCancelled,
+						},
+					},
+					OutstandingBalance: 4000,
+					CreditBalance:      0,
+				},
 				{
 					User: 1,
 					Date: shared.NewDate("2025-11-01 00:00:00"),
@@ -365,304 +378,315 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 					OutstandingBalance: 0,
 					CreditBalance:      0,
 				},
+				{
+					User: 1,
+					Date: shared.NewDate("2023-01-01 00:00:00"),
+					Event: shared.PaymentMethodChangedEvent{
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeDirectDebitMandateCreated,
+						},
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
 			},
 		},
-		//{
-		//	name: "returns correct refund events",
-		//	id:   3,
-		//	want: []shared.BillingHistory{
-		//		{
-		//			User: 2,
-		//			Date: shared.NewDate("2024-07-02"),
-		//			Event: shared.RefundEvent{
-		//				ClientId: 3,
-		//				Id:       16,
-		//				Amount:   234,
-		//				BaseBillingEvent: shared.BaseBillingEvent{
-		//					Type: shared.EventTypeRefundStatusUpdated,
-		//				},
-		//				Notes: "rejected refund",
-		//			},
-		//			OutstandingBalance: 0,
-		//			CreditBalance:      0,
-		//		},
-		//		{
-		//			User: 1,
-		//			Date: shared.NewDate("2024-07-01"),
-		//			Event: shared.RefundEvent{
-		//				ClientId: 3,
-		//				Id:       16,
-		//				Amount:   234,
-		//				BaseBillingEvent: shared.BaseBillingEvent{
-		//					Type: shared.EventTypeRefundCreated,
-		//				},
-		//				Notes: "rejected refund",
-		//			},
-		//			OutstandingBalance: 0,
-		//			CreditBalance:      0,
-		//		},
-		//		{
-		//			User: 3,
-		//			Date: shared.NewDate("2024-06-04"),
-		//			Event: shared.RefundEvent{
-		//				ClientId: 3,
-		//				Id:       15,
-		//				Amount:   234,
-		//				BaseBillingEvent: shared.BaseBillingEvent{
-		//					Type: shared.EventTypeRefundCancelled,
-		//				},
-		//				Notes: "processing then cancelled refund",
-		//			},
-		//			OutstandingBalance: 0,
-		//			CreditBalance:      0,
-		//		},
-		//		{
-		//			User: 2,
-		//			Date: shared.NewDate("2024-06-03"),
-		//			Event: shared.RefundEvent{
-		//				ClientId: 3,
-		//				Id:       15,
-		//				Amount:   234,
-		//				BaseBillingEvent: shared.BaseBillingEvent{
-		//					Type: shared.EventTypeRefundProcessing,
-		//				},
-		//				Notes: "processing then cancelled refund",
-		//			},
-		//			OutstandingBalance: 0,
-		//			CreditBalance:      0,
-		//		},
-		//		{
-		//			User: 2,
-		//			Date: shared.NewDate("2024-06-02"),
-		//			Event: shared.RefundEvent{
-		//				ClientId: 3,
-		//				Id:       15,
-		//				Amount:   234,
-		//				BaseBillingEvent: shared.BaseBillingEvent{
-		//					Type: shared.EventTypeRefundApproved,
-		//				},
-		//				Notes: "processing then cancelled refund",
-		//			},
-		//			OutstandingBalance: 0,
-		//			CreditBalance:      0,
-		//		},
-		//		{
-		//			User: 1,
-		//			Date: shared.NewDate("2024-06-01"),
-		//			Event: shared.RefundEvent{
-		//				ClientId: 3,
-		//				Id:       15,
-		//				Amount:   234,
-		//				BaseBillingEvent: shared.BaseBillingEvent{
-		//					Type: shared.EventTypeRefundCreated,
-		//				},
-		//				Notes: "processing then cancelled refund",
-		//			},
-		//			OutstandingBalance: 0,
-		//			CreditBalance:      0,
-		//		},
-		//		{
-		//			User: 3,
-		//			Date: shared.NewDate("2024-05-03"),
-		//			Event: shared.RefundEvent{
-		//				ClientId: 3,
-		//				Id:       14,
-		//				Amount:   234,
-		//				BaseBillingEvent: shared.BaseBillingEvent{
-		//					Type: shared.EventTypeRefundCancelled,
-		//				},
-		//				Notes: "approved then cancelled refund",
-		//			},
-		//			OutstandingBalance: 0,
-		//			CreditBalance:      0,
-		//		},
-		//		{
-		//			User: 2,
-		//			Date: shared.NewDate("2024-05-02"),
-		//			Event: shared.RefundEvent{
-		//				ClientId: 3,
-		//				Id:       14,
-		//				Amount:   234,
-		//				BaseBillingEvent: shared.BaseBillingEvent{
-		//					Type: shared.EventTypeRefundApproved,
-		//				},
-		//				Notes: "approved then cancelled refund",
-		//			},
-		//			OutstandingBalance: 0,
-		//			CreditBalance:      0,
-		//		},
-		//		{
-		//			User: 1,
-		//			Date: shared.NewDate("2024-05-01"),
-		//			Event: shared.RefundEvent{
-		//				ClientId: 3,
-		//				Id:       14,
-		//				Amount:   234,
-		//				BaseBillingEvent: shared.BaseBillingEvent{
-		//					Type: shared.EventTypeRefundCreated,
-		//				},
-		//				Notes: "approved then cancelled refund",
-		//			},
-		//			OutstandingBalance: 0,
-		//			CreditBalance:      0,
-		//		},
-		//		{
-		//			User: 2,
-		//			Date: shared.NewDate("2024-04-04"),
-		//			Event: shared.RefundEvent{
-		//				ClientId: 3,
-		//				Id:       13,
-		//				Amount:   234,
-		//				BaseBillingEvent: shared.BaseBillingEvent{
-		//					Type: shared.EventTypeRefundFulfilled,
-		//				},
-		//				Notes: "fulfilled refund",
-		//			},
-		//			OutstandingBalance: 0,
-		//			CreditBalance:      0,
-		//		},
-		//		{
-		//			User: 2,
-		//			Date: shared.NewDate("2024-04-03"),
-		//			Event: shared.RefundEvent{
-		//				ClientId: 3,
-		//				Id:       13,
-		//				Amount:   234,
-		//				BaseBillingEvent: shared.BaseBillingEvent{
-		//					Type: shared.EventTypeRefundProcessing,
-		//				},
-		//				Notes: "fulfilled refund",
-		//			},
-		//			OutstandingBalance: 0,
-		//			CreditBalance:      0,
-		//		},
-		//		{
-		//			User: 2,
-		//			Date: shared.NewDate("2024-04-02"),
-		//			Event: shared.RefundEvent{
-		//				ClientId: 3,
-		//				Id:       13,
-		//				Amount:   234,
-		//				BaseBillingEvent: shared.BaseBillingEvent{
-		//					Type: shared.EventTypeRefundApproved,
-		//				},
-		//				Notes: "fulfilled refund",
-		//			},
-		//			OutstandingBalance: 0,
-		//			CreditBalance:      0,
-		//		},
-		//		{
-		//			User: 1,
-		//			Date: shared.NewDate("2024-04-01"),
-		//			Event: shared.RefundEvent{
-		//				ClientId: 3,
-		//				Id:       13,
-		//				Amount:   234,
-		//				BaseBillingEvent: shared.BaseBillingEvent{
-		//					Type: shared.EventTypeRefundCreated,
-		//				},
-		//				Notes: "fulfilled refund",
-		//			},
-		//			OutstandingBalance: 0,
-		//			CreditBalance:      0,
-		//		},
-		//		{
-		//			User: 2,
-		//			Date: shared.NewDate("2024-03-03"),
-		//			Event: shared.RefundEvent{
-		//				ClientId: 3,
-		//				Id:       12,
-		//				Amount:   234,
-		//				BaseBillingEvent: shared.BaseBillingEvent{
-		//					Type: shared.EventTypeRefundProcessing,
-		//				},
-		//				Notes: "processing refund",
-		//			},
-		//			OutstandingBalance: 0,
-		//			CreditBalance:      0,
-		//		},
-		//		{
-		//			User: 2,
-		//			Date: shared.NewDate("2024-03-02"),
-		//			Event: shared.RefundEvent{
-		//				ClientId: 3,
-		//				Id:       12,
-		//				Amount:   234,
-		//				BaseBillingEvent: shared.BaseBillingEvent{
-		//					Type: shared.EventTypeRefundApproved,
-		//				},
-		//				Notes: "processing refund",
-		//			},
-		//			OutstandingBalance: 0,
-		//			CreditBalance:      0,
-		//		},
-		//		{
-		//			User: 1,
-		//			Date: shared.NewDate("2024-03-01"),
-		//			Event: shared.RefundEvent{
-		//				ClientId: 3,
-		//				Id:       12,
-		//				Amount:   234,
-		//				BaseBillingEvent: shared.BaseBillingEvent{
-		//					Type: shared.EventTypeRefundCreated,
-		//				},
-		//				Notes: "processing refund",
-		//			},
-		//			OutstandingBalance: 0,
-		//			CreditBalance:      0,
-		//		},
-		//		{
-		//			User: 2,
-		//			Date: shared.NewDate("2024-02-02"),
-		//			Event: shared.RefundEvent{
-		//				ClientId: 3,
-		//				Id:       11,
-		//				Amount:   234,
-		//				BaseBillingEvent: shared.BaseBillingEvent{
-		//					Type: shared.EventTypeRefundApproved,
-		//				},
-		//				Notes: "approved refund",
-		//			},
-		//			OutstandingBalance: 0,
-		//			CreditBalance:      0,
-		//		},
-		//		{
-		//			User: 1,
-		//			Date: shared.NewDate("2024-02-01"),
-		//			Event: shared.RefundEvent{
-		//				ClientId: 3,
-		//				Id:       11,
-		//				Amount:   234,
-		//				BaseBillingEvent: shared.BaseBillingEvent{
-		//					Type: shared.EventTypeRefundCreated,
-		//				},
-		//				Notes: "approved refund",
-		//			},
-		//			OutstandingBalance: 0,
-		//			CreditBalance:      0,
-		//		},
-		//		{
-		//			User: 1,
-		//			Date: shared.NewDate("2024-01-01"),
-		//			Event: shared.RefundEvent{
-		//				ClientId: 3,
-		//				Id:       10,
-		//				Amount:   234,
-		//				BaseBillingEvent: shared.BaseBillingEvent{
-		//					Type: shared.EventTypeRefundCreated,
-		//				},
-		//				Notes: "pending refund",
-		//			},
-		//			OutstandingBalance: 0,
-		//			CreditBalance:      0,
-		//		},
-		//	},
-		//},
-		//{
-		//	name: "returns an empty array when no match is found",
-		//	id:   2,
-		//	want: []shared.BillingHistory{},
-		//},
+		{
+			name: "returns correct refund events",
+			id:   3,
+			want: []shared.BillingHistory{
+				{
+					User: 2,
+					Date: shared.NewDate("2024-07-02"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       16,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundStatusUpdated,
+						},
+						Notes: "rejected refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 1,
+					Date: shared.NewDate("2024-07-01"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       16,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundCreated,
+						},
+						Notes: "rejected refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 3,
+					Date: shared.NewDate("2024-06-04"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       15,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundCancelled,
+						},
+						Notes: "processing then cancelled refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 2,
+					Date: shared.NewDate("2024-06-03"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       15,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundProcessing,
+						},
+						Notes: "processing then cancelled refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 2,
+					Date: shared.NewDate("2024-06-02"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       15,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundApproved,
+						},
+						Notes: "processing then cancelled refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 1,
+					Date: shared.NewDate("2024-06-01"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       15,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundCreated,
+						},
+						Notes: "processing then cancelled refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 3,
+					Date: shared.NewDate("2024-05-03"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       14,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundCancelled,
+						},
+						Notes: "approved then cancelled refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 2,
+					Date: shared.NewDate("2024-05-02"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       14,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundApproved,
+						},
+						Notes: "approved then cancelled refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 1,
+					Date: shared.NewDate("2024-05-01"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       14,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundCreated,
+						},
+						Notes: "approved then cancelled refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 2,
+					Date: shared.NewDate("2024-04-04"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       13,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundFulfilled,
+						},
+						Notes: "fulfilled refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 2,
+					Date: shared.NewDate("2024-04-03"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       13,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundProcessing,
+						},
+						Notes: "fulfilled refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 2,
+					Date: shared.NewDate("2024-04-02"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       13,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundApproved,
+						},
+						Notes: "fulfilled refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 1,
+					Date: shared.NewDate("2024-04-01"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       13,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundCreated,
+						},
+						Notes: "fulfilled refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 2,
+					Date: shared.NewDate("2024-03-03"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       12,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundProcessing,
+						},
+						Notes: "processing refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 2,
+					Date: shared.NewDate("2024-03-02"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       12,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundApproved,
+						},
+						Notes: "processing refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 1,
+					Date: shared.NewDate("2024-03-01"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       12,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundCreated,
+						},
+						Notes: "processing refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 2,
+					Date: shared.NewDate("2024-02-02"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       11,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundApproved,
+						},
+						Notes: "approved refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 1,
+					Date: shared.NewDate("2024-02-01"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       11,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundCreated,
+						},
+						Notes: "approved refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+				{
+					User: 1,
+					Date: shared.NewDate("2024-01-01"),
+					Event: shared.RefundEvent{
+						ClientId: 3,
+						Id:       10,
+						Amount:   234,
+						BaseBillingEvent: shared.BaseBillingEvent{
+							Type: shared.EventTypeRefundCreated,
+						},
+						Notes: "pending refund",
+					},
+					OutstandingBalance: 0,
+					CreditBalance:      0,
+				},
+			},
+		},
+		{
+			name: "returns an empty array when no match is found",
+			id:   2,
+			want: []shared.BillingHistory{},
+		},
 	}
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
@@ -2248,7 +2272,7 @@ func Test_makeDirectDebitEvent(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actualEvent := makeDirectDebitEvent(tt.eventType, tt.amount, tt.user, tt.createdDate, tt.collectionDate, pgtype.Text{"invoice-ref-123", true}, tt.history)
+			actualEvent := makeDirectDebitEvent(tt.eventType, tt.amount, tt.user, tt.createdDate, tt.collectionDate, pgtype.Text{String: "invoice-ref-123", Valid: true}, tt.history)
 			assert.Equalf(t, tt.expectedResult, actualEvent, "makeDirectDebitEvent(%v, %v)", tt.expectedResult, actualEvent)
 		})
 	}
@@ -2279,8 +2303,10 @@ func Test_processPaymentMethodsEvents(t *testing.T) {
 			billingHistory: shared.BillingHistory{
 				User: 1,
 				Date: shared.Date{Time: now.Add(2 * time.Hour)},
-				Event: shared.BaseBillingEvent{
-					Type: shared.EventTypeDirectDebitMandateCancelled,
+				Event: shared.PaymentMethodChangedEvent{
+					BaseBillingEvent: shared.BaseBillingEvent{
+						Type: shared.EventTypeDirectDebitMandateCancelled,
+					},
 				},
 				OutstandingBalance: 0,
 			},
@@ -2290,8 +2316,10 @@ func Test_processPaymentMethodsEvents(t *testing.T) {
 			billingHistory: shared.BillingHistory{
 				User: 3,
 				Date: shared.Date{Time: now.Add(72 * time.Hour)},
-				Event: shared.BaseBillingEvent{
-					Type: shared.EventTypeDirectDebitMandateCreated,
+				Event: shared.PaymentMethodChangedEvent{
+					BaseBillingEvent: shared.BaseBillingEvent{
+						Type: shared.EventTypeDirectDebitMandateCreated,
+					},
 				},
 				OutstandingBalance: 0,
 			},
@@ -2301,8 +2329,10 @@ func Test_processPaymentMethodsEvents(t *testing.T) {
 			billingHistory: shared.BillingHistory{
 				User: 5,
 				Date: shared.Date{Time: now.Add(180 * time.Hour)},
-				Event: shared.BaseBillingEvent{
-					Type: shared.EventTypeDirectDebitMandateCancelled,
+				Event: shared.PaymentMethodChangedEvent{
+					BaseBillingEvent: shared.BaseBillingEvent{
+						Type: shared.EventTypeDirectDebitMandateCancelled,
+					},
 				},
 				OutstandingBalance: 0,
 			},
@@ -2310,7 +2340,8 @@ func Test_processPaymentMethodsEvents(t *testing.T) {
 		},
 	}
 
-	assert.Equalf(t, expected, processPaymentMethodEvents(paymentMethods, 33), "processPaymentMethodsEvents(%v)", paymentMethods)
+	events := processPaymentMethodEvents(paymentMethods)
+	assert.Equalf(t, expected, events, "processPaymentMethodsEvents(%v)", paymentMethods)
 }
 
 func Test_processDirectDebitEvents(t *testing.T) {
