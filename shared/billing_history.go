@@ -48,6 +48,8 @@ func (b *BillingHistory) UnmarshalJSON(data []byte) (err error) {
 		b.Event = new(RefundEvent)
 	case EventTypeDirectDebitCollected, EventTypeDirectDebitCollectionScheduled, EventTypeDirectDebitCollectionFailed:
 		b.Event = new(DirectDebitEvent)
+	case EventTypeDirectDebitMandateCreated, EventTypeDirectDebitMandateCancelled:
+		b.Event = new(PaymentMethodChangedEvent)
 	default:
 		b.Event = new(UnknownEvent)
 	}
@@ -139,6 +141,10 @@ type DirectDebitEvent struct {
 	CollectionDate   Date         `json:"collection_date"`
 	Status           string       `json:"status"`
 	InvoiceReference InvoiceEvent `json:"invoice_reference"`
+	BaseBillingEvent
+}
+
+type PaymentMethodChangedEvent struct {
 	BaseBillingEvent
 }
 

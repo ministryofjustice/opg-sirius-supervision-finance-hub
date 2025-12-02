@@ -1,19 +1,11 @@
--- name: GetPaymentMethods :many
-SELECT pm.id,
-       finance_client_id,
-       type,
-       created_by,
-       created_at
-FROM supervision_finance.payment_method pm
-WHERE pm.finance_client_id = $1
-ORDER BY created_at DESC;
-
--- name: AddPaymentMethod :one
-INSERT INTO payment_method (id, finance_client_id, type, created_by, created_at)
+-- name: SetPaymentMethod :exec
+WITH this_payment_method AS (
+    INSERT INTO payment_method (id, finance_client_id, type, created_by, created_at)
 VALUES (NEXTVAL('payment_method_id_seq'),
         (SELECT id FROM finance_client WHERE client_id = @client_id),
-        @type,
+        @payment_method,
         @created_by,
-        now())
-RETURNING *;
-
+        now()))
+UPDATE finance_client
+ SET payment_method = @payment_method
+ WHERE client_id = @client_id;
