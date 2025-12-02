@@ -31,6 +31,7 @@ const ReceiptTransactionsQuery = `WITH
             WHEN line_description LIKE 'Supervision BACS%' THEN 4
             WHEN line_description LIKE 'Direct debit%' THEN 5
             WHEN line_description LIKE 'Cheque payment%' THEN 6
+            WHEN line_description LIKE 'Refund%' THEN 7
         END AS index
 	FROM supervision_finance.transaction_type
 ),
@@ -63,7 +64,10 @@ allocation_totals AS (
             WHEN l.type = 'SUPERVISION BACS PAYMENT' THEN '1841102088'
             ELSE '1841102050'
         END AS debit_account_code,
-		'1816102003' AS credit_account_code,
+		CASE 
+		    WHEN l.type = 'REFUND' THEN '1816102005'
+			ELSE '1816102003'
+		END AS credit_account_code,
         SUM(CASE WHEN l.amount > 0 AND la.status != 'UNAPPLIED' AND la.amount > 0 THEN la.amount ELSE 0 END) AS credit_amount,
         SUM(CASE WHEN l.amount > 0 AND la.status = 'UNAPPLIED' AND la.amount < 0 THEN ABS(la.amount) ELSE 0 END) AS overpayment_amount,
         SUM(CASE WHEN l.amount < 0 AND la.status != 'UNAPPLIED' AND la.amount < 0 THEN ABS(la.amount) ELSE 0 END) AS reversed_credit_amount,
@@ -116,6 +120,7 @@ transaction_rows AS (
         index,
         2 AS n
     FROM allocation_totals
+    WHERE credit_amount > 0
     UNION ALL
         -- overpayment row
     SELECT
