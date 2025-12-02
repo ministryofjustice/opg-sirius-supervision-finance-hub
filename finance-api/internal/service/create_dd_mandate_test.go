@@ -90,7 +90,7 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitMandate_modulusCheck
 		tx:       seeder.Conn,
 	}
 
-	err := s.CreateDirectDebitMandate(ctx, 1, shared.CreateMandate{
+	err := s.CreateDirectDebitMandate(ctx, 11, shared.CreateMandate{
 		AllPayCustomer: shared.AllPayCustomer{
 			ClientReference: "11111111",
 			Surname:         "Holder",
@@ -148,7 +148,7 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitMandate_createMandat
 		tx:       seeder.Conn,
 	}
 
-	err := s.CreateDirectDebitMandate(ctx, 1, shared.CreateMandate{
+	err := s.CreateDirectDebitMandate(ctx, 11, shared.CreateMandate{
 		AllPayCustomer: shared.AllPayCustomer{
 			ClientReference: "11111111",
 			Surname:         "Holder",

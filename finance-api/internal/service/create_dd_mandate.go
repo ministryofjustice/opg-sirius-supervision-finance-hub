@@ -3,11 +3,12 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"log/slog"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/allpay"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
@@ -26,10 +27,21 @@ func (s *Service) CreateDirectDebitMandate(ctx context.Context, clientID int32, 
 	}
 	defer tx.Rollback(ctx)
 
+	var (
+		paymentMethod pgtype.Text
+		id            pgtype.Int4
+		createdBy     pgtype.Int4
+	)
+
+	_ = paymentMethod.Scan(shared.PaymentMethodDirectDebit.Key())
+	_ = store.ToInt4(&id, clientID)
+	_ = store.ToInt4(&createdBy, ctx.(auth.Context).User.ID)
+
 	// update payment method first, in case this fails
-	err = tx.UpdatePaymentMethod(ctx, store.UpdatePaymentMethodParams{
-		PaymentMethod: shared.PaymentMethodDirectDebit.Key(),
-		ClientID:      clientID,
+	err = tx.SetPaymentMethod(ctx, store.SetPaymentMethodParams{
+		PaymentMethod: paymentMethod,
+		ClientID:      id,
+		CreatedBy:     createdBy,
 	})
 	if err != nil {
 		return err
@@ -57,18 +69,6 @@ func (s *Service) CreateDirectDebitMandate(ctx context.Context, clientID int32, 
 	if err != nil {
 		s.Logger(ctx).Error(fmt.Sprintf("Error creating mandate with allpay, rolling back payment method change for client : %d", clientID), slog.String("err", err.Error()))
 		return apierror.BadRequestError("Allpay", "Failed", err)
-	}
-
-	//db entry to say we've recorded a new payment method
-	_, err = tx.AddPaymentMethod(ctx, store.AddPaymentMethodParams{
-		ClientID:  clientID,
-		Type:      shared.PaymentMethodDirectDebit.Key(),
-		CreatedBy: ctx.(auth.Context).User.ID,
-	})
-
-	if err != nil {
-		s.Logger(ctx).Error("Updating payment method table had an issue " + err.Error())
-		return err
 	}
 
 	err = s.dispatch.PaymentMethodChanged(ctx, event.PaymentMethod{
