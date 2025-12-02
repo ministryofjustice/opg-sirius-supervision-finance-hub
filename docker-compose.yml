@@ -166,7 +166,7 @@ services:
     command: "up"
 
   localstack:
-    image: localstack/localstack:4.10
+    image: localstack/localstack:4.11
     volumes:
       - "./scripts/localstack/init:/etc/localstack/init/ready.d"
       - "./scripts/localstack/files:/scripts/files"
