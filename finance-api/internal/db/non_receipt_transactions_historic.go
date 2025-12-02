@@ -4,24 +4,25 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
-type NonReceiptTransactions struct {
+// NonReceiptTransactionsHistoric is the legacy version of the non-receipt journal, maintained for reconciliation purposes.
+type NonReceiptTransactionsHistoric struct {
 	ReportQuery
-	NonReceiptTransactionsInput
+	NonReceiptTransactionsHistoricInput
 }
 
-type NonReceiptTransactionsInput struct {
+type NonReceiptTransactionsHistoricInput struct {
 	Date *shared.Date
 }
 
-func NewNonReceiptTransactions(input NonReceiptTransactionsInput) ReportQuery {
-	return &NonReceiptTransactions{
-		ReportQuery:                 NewReportQuery(NonReceiptTransactionsQuery),
-		NonReceiptTransactionsInput: input,
+func NewNonReceiptTransactionsHistoric(input NonReceiptTransactionsHistoricInput) ReportQuery {
+	return &NonReceiptTransactionsHistoric{
+		ReportQuery:                         NewReportQuery(NonReceiptTransactionsHistoricQuery),
+		NonReceiptTransactionsHistoricInput: input,
 	}
 }
 
-const NonReceiptTransactionsQuery = `WITH 
-	transaction_type_order AS (
+const NonReceiptTransactionsHistoricQuery = `
+WITH transaction_type_order AS (
 	SELECT 
 		id, 
 		CASE
@@ -78,11 +79,9 @@ const NonReceiptTransactionsQuery = `WITH
 			WHEN line_description LIKE 'GA Fee reduction reversal%' THEN 51
 			WHEN line_description LIKE 'GS Fee reduction reversal%' THEN 52
 			WHEN line_description LIKE 'GT Fee reduction reversal%' THEN 53
-			WHEN fee_type = 'UA' THEN 54
-			WHEN fee_type = 'RA' THEN 55
-			ELSE 56
+			ELSE 54
 			END AS index
-	FROM supervision_finance.transaction_type 
+	FROM supervision_finance.transaction_type WHERE is_receipt = FALSE
 ),
 transactions AS (
    	SELECT
@@ -103,16 +102,6 @@ transactions AS (
 		i.id AS invoice_id
 	FROM supervision_finance.invoice i
 	WHERE i.created_at::DATE = $1
-	UNION ALL 
-	SELECT
-	    NULL AS ledger_type,
-		CASE WHEN la.status = 'UNAPPLIED' THEN 'UA' ELSE 'RA' END AS fee_type,
-		la.amount AS amount,
-		i.id AS invoice_id
-	FROM supervision_finance.ledger_allocation la
-        INNER JOIN supervision_finance.ledger l ON l.id = la.ledger_id
-		INNER JOIN supervision_finance.invoice i ON i.id = la.invoice_id
-	WHERE l.created_at::DATE = $1 AND la.status IN ('UNAPPLIED', 'REAPPLIED')
 ),
 transaction_totals AS (
 	SELECT
@@ -124,11 +113,8 @@ transaction_totals AS (
 		tt.index,
 		n
 	FROM transactions t
-	CROSS JOIN (SELECT 1 AS n UNION ALL SELECT 2) n
 	INNER JOIN LATERAL (
-		SELECT CASE 
-		    WHEN t.fee_type IN ('AD', 'GA', 'GS', 'GT') THEN t.fee_type 
-		    ELSE (
+		SELECT CASE WHEN t.fee_type IN ('AD', 'GA', 'GS', 'GT') THEN t.fee_type ELSE (
 			SELECT COALESCE(ifr.supervisionlevel, '')
 			FROM supervision_finance.invoice_fee_range ifr
 			WHERE ifr.invoice_id = t.invoice_id
@@ -136,21 +122,15 @@ transaction_totals AS (
 			LIMIT 1) END AS supervision_level
 	) sl ON TRUE
 	INNER JOIN LATERAL (
-		SELECT 
-		    tto.index, 
-		    CASE WHEN n % 2 = 1  THEN
-		 	CASE WHEN t.fee_type IN ('UA', 'RA') THEN '1816102005' ELSE tt.account_code END
-		ELSE
-			CASE WHEN t.fee_type IN ('UA', 'RA') THEN tt.account_code ELSE '1816102003' END
-        END account_code, 
-		    line_description 
+		SELECT tto.index, fee_type, account_code, line_description 
 		FROM supervision_finance.transaction_type tt
 		INNER JOIN transaction_type_order tto ON tt.id = tto.id
 		WHERE (tt.ledger_type = t.ledger_type OR (t.ledger_type IS NULL AND tt.fee_type = t.fee_type)) 
-		AND (t.fee_type IN ('UA', 'RA') OR sl.supervision_level = tt.supervision_level)
+		AND sl.supervision_level = tt.supervision_level
 	) tt ON TRUE
 	INNER JOIN supervision_finance.account ON tt.account_code = account.code
-	GROUP BY tt.line_description, tt.account_code, account.cost_centre, tt.index, n
+	CROSS JOIN (SELECT 1 AS n UNION ALL SELECT 2) n
+	GROUP BY tt.line_description, tt.account_code, account.cost_centre, tt.index, n 
 )
 SELECT
     '="0470"' AS "Entity",
@@ -158,7 +138,10 @@ SELECT
 		THEN cost_centre
         ELSE '99999999'
         END AS "Cost Centre",
-    account_code AS "Account",
+    CASE WHEN n % 2 = 1 
+		THEN account_code
+        ELSE '1816102003'
+        END AS "Account",
     '="0000000"' AS "Objective",
     '="00000000"' AS "Analysis",
     '="0000"' AS "Intercompany",
@@ -175,7 +158,7 @@ SELECT
 FROM transaction_totals
 ORDER BY index, n;`
 
-func (n *NonReceiptTransactions) GetHeaders() []string {
+func (n *NonReceiptTransactionsHistoric) GetHeaders() []string {
 	return []string{
 		"Entity",
 		"Cost Centre",
@@ -190,6 +173,6 @@ func (n *NonReceiptTransactions) GetHeaders() []string {
 	}
 }
 
-func (n *NonReceiptTransactions) GetParams() []any {
+func (n *NonReceiptTransactionsHistoric) GetParams() []any {
 	return []any{n.Date.Time.Format("2006-01-02")}
 }
