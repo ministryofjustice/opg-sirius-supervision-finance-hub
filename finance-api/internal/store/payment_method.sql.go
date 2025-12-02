@@ -11,76 +11,26 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const addPaymentMethod = `-- name: AddPaymentMethod :one
-INSERT INTO payment_method (id, finance_client_id, type, created_by, created_at)
+const setPaymentMethod = `-- name: SetPaymentMethod :exec
+WITH this_payment_method AS (
+    INSERT INTO payment_method (id, finance_client_id, type, created_by, created_at)
 VALUES (NEXTVAL('payment_method_id_seq'),
-        (SELECT id FROM finance_client WHERE client_id = $1),
-        $2,
+        (SELECT id FROM finance_client WHERE client_id = $2),
+        $1,
         $3,
-        now())
-RETURNING id, finance_client_id, type, created_at, created_by
+        now()))
+UPDATE finance_client
+ SET payment_method = $1
+ WHERE client_id = $2
 `
 
-type AddPaymentMethodParams struct {
-	ClientID  int32
-	Type      string
-	CreatedBy int32
+type SetPaymentMethodParams struct {
+	PaymentMethod pgtype.Text
+	ClientID      pgtype.Int4
+	CreatedBy     pgtype.Int4
 }
 
-func (q *Queries) AddPaymentMethod(ctx context.Context, arg AddPaymentMethodParams) (PaymentMethod, error) {
-	row := q.db.QueryRow(ctx, addPaymentMethod, arg.ClientID, arg.Type, arg.CreatedBy)
-	var i PaymentMethod
-	err := row.Scan(
-		&i.ID,
-		&i.FinanceClientID,
-		&i.Type,
-		&i.CreatedAt,
-		&i.CreatedBy,
-	)
-	return i, err
-}
-
-const getPaymentMethods = `-- name: GetPaymentMethods :many
-SELECT pm.id,
-       finance_client_id,
-       type,
-       created_by,
-       created_at
-FROM supervision_finance.payment_method pm
-WHERE pm.finance_client_id = $1
-ORDER BY created_at DESC
-`
-
-type GetPaymentMethodsRow struct {
-	ID              int32
-	FinanceClientID int32
-	Type            string
-	CreatedBy       int32
-	CreatedAt       pgtype.Timestamp
-}
-
-func (q *Queries) GetPaymentMethods(ctx context.Context, dollar_1 pgtype.Int4) ([]GetPaymentMethodsRow, error) {
-	rows, err := q.db.Query(ctx, getPaymentMethods, dollar_1)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetPaymentMethodsRow
-	for rows.Next() {
-		var i GetPaymentMethodsRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.FinanceClientID,
-			&i.Type,
-			&i.CreatedBy,
-			&i.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+func (q *Queries) SetPaymentMethod(ctx context.Context, arg SetPaymentMethodParams) error {
+	_, err := q.db.Exec(ctx, setPaymentMethod, arg.PaymentMethod, arg.ClientID, arg.CreatedBy)
+	return err
 }
