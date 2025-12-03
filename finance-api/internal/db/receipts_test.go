@@ -41,7 +41,7 @@ func (suite *IntegrationSuite) Test_receipts() {
 	suite.seeder.CreatePayment(ctx, 15000, yesterday.Date(), courtRef2, shared.TransactionTypeOnlineCardPayment, yesterday.Date(), 0)
 	client3ID := suite.seeder.CreateClient(ctx, "Colette", "Correct", courtRef3, "3333", "ACTIVE")
 	_, inv5Ref := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeSO, valToPtr("90.00"), yesterday.StringPtr(), nil, nil, nil, yesterday.StringPtr())
-	suite.seeder.ReversePayment(ctx, courtRef2, courtRef3, "150.00", yesterday.Date(), yesterday.Date(), shared.TransactionTypeOnlineCardPayment, yesterday.Date())
+	suite.seeder.ReversePayment(ctx, courtRef2, courtRef3, "150.00", yesterday.Date(), yesterday.Date(), shared.TransactionTypeOnlineCardPayment, yesterday.Date(), "")
 
 	// excluded as out of range - would have partial reapply if included
 	_, _ = suite.seeder.CreateInvoice(ctx, clientID, shared.InvoiceTypeGA, nil, today.StringPtr(), nil, nil, nil, nil)

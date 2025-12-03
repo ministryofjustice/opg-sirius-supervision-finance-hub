@@ -8,6 +8,7 @@ const (
 	JournalTypeNonReceiptTransactions
 	JournalTypeUnappliedTransactions
 	JournalTypeNonReceiptTransactionsHistoric
+	JournalTypeReceiptTransactionsHistoric
 )
 
 var journalTypeMap = map[string]JournalType{
@@ -15,6 +16,7 @@ var journalTypeMap = map[string]JournalType{
 	"NonReceiptTransactions":         JournalTypeNonReceiptTransactions,
 	"RefundUnappliedTransactions":    JournalTypeUnappliedTransactions,
 	"NonReceiptTransactionsHistoric": JournalTypeNonReceiptTransactionsHistoric,
+	"ReceiptTransactionsHistoric":    JournalTypeReceiptTransactionsHistoric,
 }
 
 type JournalType int
@@ -33,6 +35,8 @@ func (j JournalType) Translation() string {
 		return "Refunds & Unapplied Transactions"
 	case JournalTypeNonReceiptTransactionsHistoric:
 		return "Non Receipt Transactions (Historic)"
+	case JournalTypeReceiptTransactionsHistoric:
+		return "Receipt Transactions (Historic)"
 	default:
 		return ""
 	}
@@ -48,6 +52,8 @@ func (j JournalType) Key() string {
 		return "RefundUnappliedTransactions"
 	case JournalTypeNonReceiptTransactionsHistoric:
 		return "NonReceiptTransactionsHistoric"
+	case JournalTypeReceiptTransactionsHistoric:
+		return "ReceiptTransactionsHistoric"
 	default:
 		return ""
 	}
