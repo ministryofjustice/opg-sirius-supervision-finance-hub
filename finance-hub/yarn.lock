@@ -269,10 +269,10 @@
   resolved "https://registry.yarnpkg.com/@humanwhocodes/retry/-/retry-0.4.3.tgz#c2b9d2e374ee62c586d3adbea87199b1d7a7a6ba"
   integrity sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ==
 
-"@ministryofjustice/frontend@^5.0.0":
-  version "5.2.1"
-  resolved "https://registry.yarnpkg.com/@ministryofjustice/frontend/-/frontend-5.2.1.tgz#811fc89736daa954a49a71d297d2b2ca14bf1bd1"
-  integrity sha512-6P79TnIZnmntuFoGDSY+suOtgSBmCd4cGFfzImspvYhL4GjXFR9zjWrPt33Dem2wONAA96OQNUpKqScTV74yvQ==
+"@ministryofjustice/frontend@^7.0.0":
+  version "7.1.1"
+  resolved "https://registry.yarnpkg.com/@ministryofjustice/frontend/-/frontend-7.1.1.tgz#7cbdc00629f213cfc01ed0f152673d13c985a7e9"
+  integrity sha512-A26Vn8ov7R5oETQ4F3ZqlW3wn6fSrNAHl5UUEnCRx/+wUM1t6mC6GyUcs7o29kgazOy00CWPpVfKfVJt8Mq7vg==
 
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
