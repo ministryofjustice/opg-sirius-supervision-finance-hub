@@ -216,14 +216,13 @@ func getReversalLines(ctx context.Context, record []string, uploadType shared.Re
 
 func (s *Service) validateReversalLine(ctx context.Context, details shared.ReversalDetails, uploadType shared.ReportUploadType, processedRecords []shared.ReversalDetails, index int, failedLines *map[int]string) bool {
 	ledgerCount, _ := s.store.CountDuplicateLedger(ctx, store.CountDuplicateLedgerParams{
-		CourtRef:         details.ErroredCourtRef,
-		Amount:           details.Amount,
-		Type:             details.PaymentType.Key(),
-		BankDate:         details.BankDate,
-		ReceivedDate:     details.ReceivedDate,
-		PisNumber:        details.PisNumber,
-		SkipBankDate:     details.SkipBankDate,
-		SkipReceivedDate: details.SkipReceivedDate,
+		CourtRef:     details.ErroredCourtRef,
+		Amount:       details.Amount,
+		Type:         details.PaymentType.Key(),
+		BankDate:     details.BankDate,
+		ReceivedDate: details.ReceivedDate,
+		PisNumber:    details.PisNumber,
+		SkipBankDate: details.SkipBankDate,
 	})
 
 	if ledgerCount == 0 {
