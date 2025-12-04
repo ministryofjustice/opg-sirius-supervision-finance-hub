@@ -22,7 +22,6 @@ var reportUploadReversalTypes = []ReportUploadType{
 	ReportTypeUploadDuplicatedPayments,
 	ReportTypeUploadBouncedCheque,
 	ReportTypeUploadFailedDirectDebitCollections,
-	ReportTypeUploadReverseFulfilledRefunds,
 }
 
 var reportUploadNoHeaderTypes = []ReportUploadType{
@@ -244,6 +243,10 @@ func (u ReportUploadType) IsReversal() bool {
 
 func (u ReportUploadType) IsRefund() bool {
 	return u == ReportTypeUploadFulfilledRefunds
+}
+
+func (u ReportUploadType) IsRefundReversal() bool {
+	return u == ReportTypeUploadReverseFulfilledRefunds
 }
 
 func (u ReportUploadType) IsDirectUpload() bool {

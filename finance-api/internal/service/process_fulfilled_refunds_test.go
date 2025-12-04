@@ -74,7 +74,7 @@ func (suite *IntegrationSuite) Test_processFulfilledRefunds() {
 
 		assert.Equal(t, 1, len(createdLedgerAllocations))
 		assert.Equal(t, createdLedgerAllocation{
-			ledgerAmount:     32000,
+			ledgerAmount:     -32000,
 			ledgerType:       shared.TransactionTypeRefund.Key(),
 			ledgerStatus:     "CONFIRMED",
 			datetime:         bankDate,
@@ -90,7 +90,7 @@ func (suite *IntegrationSuite) Test_processFulfilledRefunds() {
 		assert.NotEqual(t, fulfilledAt, time.Time{})
 
 		var count int
-		_ = seeder.QueryRow(suite.ctx, `SELECT COUNT(*) FROM bank_details where refund_id = 1`).Scan(&count)
+		_ = seeder.QueryRow(suite.ctx, `SELECT COUNT(*) FROM bank_details WHERE refund_id = 1`).Scan(&count)
 		assert.Equal(t, 0, count)
 	})
 }

@@ -160,7 +160,7 @@ func (s *mockService) ProcessPayments(ctx context.Context, records [][]string, u
 	return nil, s.errs["ProcessPayments"]
 }
 
-func (s *mockService) ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType, uploadDate shared.Date) (map[int]string, error) {
+func (s *mockService) ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType) (map[int]string, error) {
 	s.called = append(s.called, "ProcessPaymentReversals")
 	return nil, s.errs["ProcessPaymentReversals"]
 }
@@ -168,6 +168,11 @@ func (s *mockService) ProcessPaymentReversals(ctx context.Context, records [][]s
 func (s *mockService) ProcessFulfilledRefunds(ctx context.Context, records [][]string, date shared.Date) (map[int]string, error) {
 	s.called = append(s.called, "ProcessFulfilledRefunds")
 	return nil, s.errs["ProcessFulfilledRefunds"]
+}
+
+func (s *mockService) ProcessRefundReversals(ctx context.Context, records [][]string, date shared.Date) (map[int]string, error) {
+	s.called = append(s.called, "ProcessRefundReversals")
+	return nil, s.errs["ProcessRefundReversals"]
 }
 
 func (s *mockService) ProcessDirectUploadReport(ctx context.Context, filename string, fileBytes io.Reader, uploadType shared.ReportUploadType) error {

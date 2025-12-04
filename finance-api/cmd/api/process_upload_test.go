@@ -162,6 +162,22 @@ func Test_processUploadFile(t *testing.T) {
 			expectedServiceCall: "ProcessFulfilledRefunds",
 		},
 		{
+			name: "Reverse refund",
+			upload: Upload{
+				UploadType:   shared.ReportTypeUploadReverseFulfilledRefunds,
+				EmailAddress: "test@email.com",
+				FileBytes:    bytes.NewReader([]byte("col1, col2\nabc,1")),
+			},
+			expectedPayload: notify.Payload{
+				EmailAddress: "test@email.com",
+				TemplateId:   notify.ProcessingSuccessTemplateId,
+				Personalisation: struct {
+					UploadType string `json:"upload_type"`
+				}{"Reverse fulfilled refunds"},
+			},
+			expectedServiceCall: "ProcessRefundReversals",
+		},
+		{
 			name: "Known direct upload",
 			upload: Upload{
 				UploadType:   shared.ReportTypeUploadDebtChase,
