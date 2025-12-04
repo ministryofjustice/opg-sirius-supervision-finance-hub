@@ -18,21 +18,20 @@ FROM ledger l
 WHERE l.amount = $1
  AND l.status = 'CONFIRMED'
  AND ($2 IS TRUE OR l.bankdate = $3)
- AND ($4 IS TRUE OR l.datetime::DATE = ($5::TIMESTAMP)::DATE)
- AND l.type = $6
- AND fc.court_ref = $7
- AND COALESCE(l.pis_number, 0) = COALESCE($8, 0)
+ AND l.datetime::DATE = ($4::TIMESTAMP)::DATE
+ AND l.type = $5
+ AND fc.court_ref = $6
+ AND COALESCE(l.pis_number, 0) = COALESCE($7, 0)
 `
 
 type CountDuplicateLedgerParams struct {
-	Amount           int32
-	SkipBankDate     pgtype.Bool
-	BankDate         pgtype.Date
-	SkipReceivedDate pgtype.Bool
-	ReceivedDate     pgtype.Timestamp
-	Type             string
-	CourtRef         pgtype.Text
-	PisNumber        pgtype.Int4
+	Amount       int32
+	SkipBankDate pgtype.Bool
+	BankDate     pgtype.Date
+	ReceivedDate pgtype.Timestamp
+	Type         string
+	CourtRef     pgtype.Text
+	PisNumber    pgtype.Int4
 }
 
 func (q *Queries) CountDuplicateLedger(ctx context.Context, arg CountDuplicateLedgerParams) (int64, error) {
@@ -40,7 +39,6 @@ func (q *Queries) CountDuplicateLedger(ctx context.Context, arg CountDuplicateLe
 		arg.Amount,
 		arg.SkipBankDate,
 		arg.BankDate,
-		arg.SkipReceivedDate,
 		arg.ReceivedDate,
 		arg.Type,
 		arg.CourtRef,
