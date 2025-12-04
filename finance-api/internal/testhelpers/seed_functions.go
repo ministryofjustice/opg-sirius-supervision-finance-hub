@@ -206,7 +206,7 @@ func (s *Seeder) ReversePayment(ctx context.Context, erroredCourtRef string, cor
 		{"Payment type", "Current (errored) court reference", "New (correct) court reference", "Bank date", "Received date", "Amount", "PIS number (cheque only)"},
 		{ledgerType.Key(), erroredCourtRef, correctCourtRef, bankDate.Format("02/01/2006"), receivedDate.Format("02/01/2006"), amount, pisNumber},
 	}
-	failedLines, err := s.Service.ProcessPaymentReversals(ctx, records, shared.ReportTypeUploadMisappliedPayments, shared.Date{Time: uploadDate})
+	failedLines, err := s.Service.ProcessPaymentReversals(ctx, records, shared.ReportTypeUploadMisappliedPayments)
 	assert.Empty(s.t, failedLines, "failed to process reversals")
 	assert.NoError(s.t, err, "failed to process reversals: %v", err)
 

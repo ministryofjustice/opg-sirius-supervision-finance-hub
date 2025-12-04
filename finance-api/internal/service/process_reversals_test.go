@@ -138,7 +138,6 @@ func (suite *IntegrationSuite) Test_processReversals() {
 
 	dispatch := &mockDispatch{}
 	s := Service{store: store.New(seeder.Conn), dispatch: dispatch, tx: seeder.Conn}
-	uploadDate := shared.NewDate("2025-02-03")
 
 	tests := []struct {
 		name                string
@@ -478,29 +477,6 @@ func (suite *IntegrationSuite) Test_processReversals() {
 			},
 			expectedFailedLines: map[int]string{},
 		},
-		{
-			name: "refund reversal",
-			records: [][]string{
-				{"Court reference", "Amount", "Bank date"},
-				{"1515", "50.00", "01/01/2025"},
-			},
-			uploadType: shared.ReportTypeUploadReverseFulfilledRefunds,
-			uploadDate: uploadDate,
-			allocations: []createdReversalAllocation{
-				{
-					ledgerAmount:     -5000,
-					ledgerType:       "REFUND",
-					ledgerStatus:     "CONFIRMED",
-					receivedDate:     time.Date(2025, 02, 03, 0, 0, 0, 0, time.UTC),
-					bankDate:         time.Date(2025, 02, 03, 0, 0, 0, 0, time.UTC),
-					allocationAmount: -5000,
-					allocationStatus: "ALLOCATED",
-					invoiceId:        pgtype.Int4{Int32: 16, Valid: true},
-					financeClientId:  15,
-				},
-			},
-			expectedFailedLines: map[int]string{},
-		},
 	}
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
@@ -508,7 +484,7 @@ func (suite *IntegrationSuite) Test_processReversals() {
 			_ = seeder.QueryRow(suite.ctx, `SELECT MAX(id) FROM ledger`).Scan(&currentLedgerId)
 
 			var failedLines map[int]string
-			failedLines, err := s.ProcessPaymentReversals(suite.ctx, tt.records, tt.uploadType, tt.uploadDate)
+			failedLines, err := s.ProcessPaymentReversals(suite.ctx, tt.records, tt.uploadType)
 
 			assert.Equal(t, tt.want, err)
 			assert.Equal(t, tt.expectedFailedLines, failedLines)

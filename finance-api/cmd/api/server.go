@@ -28,6 +28,10 @@ type Service interface {
 	AddManualInvoice(ctx context.Context, clientId int32, invoice shared.AddManualInvoice) error
 	AddRefund(ctx context.Context, clientId int32, refund shared.AddRefund) error
 	CancelFeeReduction(ctx context.Context, id int32, cancelledFeeReduction shared.CancelFeeReduction) error
+	CancelDirectDebitMandate(ctx context.Context, id int32, cancelMandate shared.CancelMandate) error
+	CreateDirectDebitMandate(ctx context.Context, id int32, createMandate shared.CreateMandate) error
+	CreateDirectDebitSchedule(ctx context.Context, clientID int32, data shared.CreateSchedule) (service.PendingCollection, error)
+	CreateDirectDebitScheduleForInvoice(ctx context.Context, clientID int32) error
 	ExpireRefunds(ctx context.Context) error
 	GetAccountInformation(ctx context.Context, id int32) (*shared.AccountInformation, error)
 	GetBillingHistory(ctx context.Context, id int32) ([]shared.BillingHistory, error)
@@ -36,22 +40,19 @@ type Service interface {
 	GetInvoiceAdjustments(ctx context.Context, clientId int32) (shared.InvoiceAdjustments, error)
 	GetPermittedAdjustments(ctx context.Context, invoiceId int32) ([]shared.AdjustmentType, error)
 	GetRefunds(ctx context.Context, clientId int32) (shared.Refunds, error)
-	ProcessPayments(ctx context.Context, records [][]string, uploadType shared.ReportUploadType, bankDate shared.Date, pisNumber int) (map[int]string, error)
-	ProcessAdhocEvent(ctx context.Context) error
-	ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType, uploadDate shared.Date) (map[int]string, error)
 	PostReportActions(ctx context.Context, report shared.ReportRequest)
-	ProcessFulfilledRefunds(ctx context.Context, records [][]string, date shared.Date) (map[int]string, error)
+	ProcessAdhocEvent(ctx context.Context) error
 	ProcessDirectUploadReport(ctx context.Context, filename string, fileBytes io.Reader, uploadType shared.ReportUploadType) error
+	ProcessFailedDirectDebitCollections(ctx context.Context, date time.Time) error
+	ProcessFulfilledRefunds(ctx context.Context, records [][]string, date shared.Date) (map[int]string, error)
+	ProcessPayments(ctx context.Context, records [][]string, uploadType shared.ReportUploadType, bankDate shared.Date, pisNumber int) (map[int]string, error)
+	ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType) (map[int]string, error)
+	ProcessRefundReversals(ctx context.Context, records [][]string, date shared.Date) (map[int]string, error)
 	ReapplyCredit(ctx context.Context, clientID int32, tx *store.Tx) error
 	UpdateClient(ctx context.Context, clientID int32, courtRef string) error
 	UpdatePaymentMethod(ctx context.Context, clientID int32, paymentMethod shared.PaymentMethod) error
 	UpdatePendingInvoiceAdjustment(ctx context.Context, clientId int32, adjustmentId int32, status shared.AdjustmentStatus) error
 	UpdateRefundDecision(ctx context.Context, clientId int32, refundId int32, status shared.RefundStatus) error
-	CreateDirectDebitMandate(ctx context.Context, id int32, createMandate shared.CreateMandate) error
-	CancelDirectDebitMandate(ctx context.Context, id int32, cancelMandate shared.CancelMandate) error
-	CreateDirectDebitSchedule(ctx context.Context, clientID int32, data shared.CreateSchedule) (service.PendingCollection, error)
-	CreateDirectDebitScheduleForInvoice(ctx context.Context, clientID int32) error
-	ProcessFailedDirectDebitCollections(ctx context.Context, date time.Time) error
 	SendDirectDebitCollectionEvent(ctx context.Context, id int32, pendingCollection service.PendingCollection) error
 }
 type FileStorage interface {
