@@ -353,7 +353,7 @@ func (s *Seeder) ReverseRefund(ctx context.Context, courtRef string, amount stri
 		{"Court reference", "Amount", "Bank date (of original refund)"},
 		{courtRef, amount, bankDate.Format("02/01/2006")},
 	}
-	failedLines, err := s.Service.ProcessPaymentReversals(ctx, records, shared.ReportTypeUploadReverseFulfilledRefunds, shared.Date{Time: uploadDate})
+	failedLines, err := s.Service.ProcessRefundReversals(ctx, records, shared.NewDate(uploadDate.Format("2006-01-02")))
 	assert.Empty(s.t, failedLines, "failed to process refund reversals")
 	assert.NoError(s.t, err, "failed to process refund reversals: %v", err)
 
