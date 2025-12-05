@@ -385,6 +385,14 @@ func (s *Service) ProcessReversalUploadLine(ctx context.Context, tx *store.Tx, d
 		}
 	}
 
+	if details.PaymentType == shared.TransactionTypeRefund {
+		return tx.CreateLedgerAllocation(ctx, store.CreateLedgerAllocationParams{
+			Amount:   remaining,
+			Status:   "UNAPPLIED",
+			LedgerID: ledgerID,
+		})
+	}
+
 	if remaining != 0 {
 		s.Logger(ctx).Error("process reversal upload line failed as amount remaining after applying to all available invoices", "amount", remaining)
 		return errors.New("unexpected error - remaining not zero")
