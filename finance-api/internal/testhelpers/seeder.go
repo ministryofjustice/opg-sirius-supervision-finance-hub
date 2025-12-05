@@ -26,6 +26,7 @@ type Service interface {
 	PostReportActions(ctx context.Context, reportType shared.ReportRequest)
 	BeginStoreTx(ctx context.Context) (*store.Tx, error)
 	ProcessFulfilledRefundsLine(ctx context.Context, tx *store.Tx, refundID int32, refund shared.FulfilledRefundDetails) error
+	ProcessRefundReversals(ctx context.Context, records [][]string, date shared.Date) (map[int]string, error)
 }
 
 // Seeder contains a test database connection pool and HTTP server for API calls

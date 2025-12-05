@@ -70,7 +70,7 @@ allocation_totals AS (
 		END AS credit_account_code,
         SUM(CASE WHEN l.amount > 0 AND la.status != 'UNAPPLIED' AND la.amount > 0 THEN la.amount ELSE 0 END) AS credit_amount,
         SUM(CASE WHEN l.amount > 0 AND la.status = 'UNAPPLIED' AND la.amount < 0 THEN ABS(la.amount) ELSE 0 END) AS overpayment_amount,
-        SUM(CASE WHEN l.amount < 0 AND la.status != 'UNAPPLIED' AND la.amount < 0 THEN ABS(la.amount) ELSE 0 END) AS reversed_credit_amount,
+        SUM(CASE WHEN l.amount < 0 AND la.status != 'UNAPPLIED' THEN ABS(la.amount) ELSE 0 END) AS reversed_credit_amount,
         SUM(CASE WHEN l.amount < 0 AND la.status = 'UNAPPLIED' THEN ABS(la.amount) ELSE 0 END) AS reversed_overpayment_amount,
         l.bankdate,
         l.pis_number,
@@ -139,7 +139,7 @@ transaction_rows AS (
     FROM allocation_totals
     WHERE overpayment_amount > 0
     UNION ALL
-    -- reversal debit row
+    -- reversal/refund debit row
     SELECT
         at.debit_account_code AS account_code,
         '="0000000"' AS objective,
@@ -157,7 +157,7 @@ transaction_rows AS (
     JOIN ledger_totals lt ON at.index = lt.index AND at.line_description = lt.line_description
     WHERE lt.reversal_amount > 0
     UNION ALL
-    -- reversal credit row
+    -- reversal/refund credit row
     SELECT
 		credit_account_code AS account_code,
         '="0000000"' AS objective,
