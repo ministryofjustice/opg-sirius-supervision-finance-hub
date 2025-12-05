@@ -1,9 +1,10 @@
 package db
 
 import (
+	"strconv"
+
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"strconv"
 )
 
 func (suite *IntegrationSuite) Test_unapply_reapply_schedules() {
@@ -37,6 +38,15 @@ func (suite *IntegrationSuite) Test_unapply_reapply_schedules() {
 	inv3ID, inv3Ref := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeAD, nil, twoYearsAgo.StringPtr(), nil, nil, nil, twoYearsAgo.StringPtr())
 	suite.seeder.CreateAdjustment(ctx, client3ID, inv3ID, shared.AdjustmentTypeCreditMemo, 8800, "Credit added", sixMonthsAgo.DatePtr())
 	_, inv4Ref := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeS3, &minimal, yesterday.StringPtr(), nil, nil, valToPtr("MINIMAL"), yesterday.StringPtr())
+
+	// refund - ignored as refunds have their own schedule
+	client9ID := suite.seeder.CreateClient(ctx, "Randy", "Refund", "88888888", "1234", "ACTIVE")
+	suite.seeder.CreatePayment(ctx, 14000, today.Date(), "88888888", shared.TransactionTypeMotoCardPayment, yesterday.Date(), 0)
+	refund4ID := suite.seeder.CreateRefund(ctx, client9ID, "MR R REFUND", "44444440", "44-44-44", yesterday.Date())
+	suite.seeder.SetRefundDecision(ctx, client9ID, refund4ID, shared.RefundStatusApproved, yesterday.Date())
+
+	suite.seeder.ProcessApprovedRefunds(ctx, []int32{refund4ID}, yesterday.Date())
+	suite.seeder.FulfillRefund(ctx, refund4ID, 14000, yesterday.Date(), "88888888", "MR R REFUND", "44444440", "444444", yesterday.Date())
 
 	c := Client{suite.seeder.Conn}
 

@@ -3,11 +3,12 @@ package api
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func Test_processAdhocEvent(t *testing.T) {
@@ -35,9 +36,9 @@ func Test_processAdhocEvent(t *testing.T) {
 			hasError:         true,
 		},
 		{
-			name: "Rebalance CCB",
+			name: "adhoc event",
 			adhocProcessName: shared.AdhocEvent{
-				Task: "RebalanceCCB",
+				Task: "UpdateRefundLedgerAmounts",
 			},
 			expectedResponse: nil,
 			hasError:         false,

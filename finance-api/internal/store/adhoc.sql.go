@@ -9,32 +9,17 @@ import (
 	"context"
 )
 
-const getClientsWithCredit = `-- name: GetClientsWithCredit :many
-SELECT fc.client_id AS finance_client_id
-FROM finance_client fc
-         LEFT JOIN ledger l ON fc.id = l.finance_client_id
-         LEFT JOIN ledger_allocation la ON l.id = la.ledger_id
-WHERE la.status IN ('UNAPPLIED', 'REAPPLIED')
-GROUP BY fc.client_id
-HAVING ABS(SUM(la.amount)) > 0
+const updateRefundLedgerAmounts = `-- name: UpdateRefundLedgerAmounts :execrows
+UPDATE ledger
+SET amount = -amount
+WHERE type = 'REFUND'
+  AND amount > 0
 `
 
-func (q *Queries) GetClientsWithCredit(ctx context.Context) ([]int32, error) {
-	rows, err := q.db.Query(ctx, getClientsWithCredit)
+func (q *Queries) UpdateRefundLedgerAmounts(ctx context.Context) (int64, error) {
+	result, err := q.db.Exec(ctx, updateRefundLedgerAmounts)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	defer rows.Close()
-	var items []int32
-	for rows.Next() {
-		var finance_client_id int32
-		if err := rows.Scan(&finance_client_id); err != nil {
-			return nil, err
-		}
-		items = append(items, finance_client_id)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+	return result.RowsAffected(), nil
 }
