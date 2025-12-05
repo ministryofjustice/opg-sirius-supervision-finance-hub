@@ -1,5 +1,8 @@
 package db
 
+// ApprovedRefunds generates a report containing all reports that have an approved status.
+// This is used by the Billing team to process approved refunds by uploading them to Bankline.
+// Requesting this report sets the status of all approved refunds to processing.
 type ApprovedRefunds struct {
 	ReportQuery
 }

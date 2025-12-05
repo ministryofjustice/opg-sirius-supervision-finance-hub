@@ -3,9 +3,13 @@ package db
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/jackc/pgx/v5"
 )
 
+// FinalFeeDebt generates a report of all outstanding debt on closed orders. This is used in the debt chase process to
+// chase the fee payer for payment.
+// This report dynamically resizes to include all outstanding invoices for each client, up to a maximum of 23 invoices.
 type FinalFeeDebt struct {
 	ReportQuery
 }
