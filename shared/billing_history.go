@@ -46,7 +46,7 @@ func (b *BillingHistory) UnmarshalJSON(data []byte) (err error) {
 		b.Event = new(ReappliedCredit)
 	case EventTypeRefundCreated, EventTypeRefundCancelled, EventTypeRefundFulfilled, EventTypeRefundStatusUpdated, EventTypeRefundProcessing, EventTypeRefundApproved:
 		b.Event = new(RefundEvent)
-	case EventTypeDirectDebitCollected, EventTypeDirectDebitCollectionScheduled, EventTypeDirectDebitCollectionFailed:
+	case EventTypeDirectDebitCollectionScheduled:
 		b.Event = new(DirectDebitEvent)
 	case EventTypeDirectDebitMandateCreated, EventTypeDirectDebitMandateCancelled:
 		b.Event = new(PaymentMethodChangedEvent)
@@ -137,10 +137,9 @@ type RefundEvent struct {
 }
 
 type DirectDebitEvent struct {
-	Amount           int          `json:"amount"`
-	CollectionDate   Date         `json:"collection_date"`
-	Status           string       `json:"status"`
-	InvoiceReference InvoiceEvent `json:"invoice_reference"`
+	Amount         int    `json:"amount"`
+	CollectionDate Date   `json:"collection_date"`
+	Status         string `json:"status"`
 	BaseBillingEvent
 }
 
@@ -186,8 +185,6 @@ const (
 	EventTypeDirectDebitMandateCreated
 	EventTypeDirectDebitMandateCancelled
 	EventTypeDirectDebitCollectionScheduled
-	EventTypeDirectDebitCollected
-	EventTypeDirectDebitCollectionFailed
 )
 
 var eventTypeMap = map[string]BillingEventType{
@@ -210,8 +207,6 @@ var eventTypeMap = map[string]BillingEventType{
 	"DIRECT_DEBIT_CREATED":              EventTypeDirectDebitMandateCreated,
 	"DIRECT_DEBIT_CANCELLED":            EventTypeDirectDebitMandateCancelled,
 	"DIRECT_DEBIT_COLLECTION_SCHEDULED": EventTypeDirectDebitCollectionScheduled,
-	"DIRECT_DEBIT_COLLECTED":            EventTypeDirectDebitCollected,
-	"DIRECT_DEBIT_COLLECTION_FAILED":    EventTypeDirectDebitCollectionFailed,
 }
 
 func (b BillingEventType) String() string {
@@ -252,10 +247,6 @@ func (b BillingEventType) String() string {
 		return "DIRECT_DEBIT_CREATED"
 	case EventTypeDirectDebitCollectionScheduled:
 		return "DIRECT_DEBIT_COLLECTION_SCHEDULED"
-	case EventTypeDirectDebitCollected:
-		return "DIRECT_DEBIT_COLLECTED"
-	case EventTypeDirectDebitCollectionFailed:
-		return "DIRECT_DEBIT_COLLECTION_FAILED"
 
 	default:
 		return "UNKNOWN"
