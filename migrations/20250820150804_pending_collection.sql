@@ -13,10 +13,12 @@ CREATE TABLE pending_collection
 
 CREATE INDEX idx_pending_collection_client_id ON pending_collection (finance_client_id);
 CREATE INDEX idx_pending_collection_status ON pending_collection (status);
+CREATE INDEX idx_pending_collection_ledger_id ON pending_collection (ledger_id);
 CREATE SEQUENCE pending_collection_id_seq;
 
 -- +goose Down
 DROP INDEX idx_pending_collection_client_id;
 DROP INDEX idx_pending_collection_status;
+DROP INDEX idx_pending_collection_ledger_id;
 DROP SEQUENCE pending_collection_id_seq;
 DROP TABLE pending_collection;

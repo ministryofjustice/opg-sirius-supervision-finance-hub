@@ -3,13 +3,14 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"log/slog"
 	"math"
 	"slices"
 	"sort"
 	"time"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
 type historyHolder struct {
@@ -65,6 +66,22 @@ func (s *Service) GetBillingHistory(ctx context.Context, clientID int32) ([]shar
 	}
 
 	history = append(history, processRefundEvents(refunds, clientID)...)
+
+	paymentMethods, err := s.store.GetPaymentMethodsForBillingHistory(ctx, clientID)
+	if err != nil {
+		s.Logger(ctx).Error(fmt.Sprintf("Error in getting payment methods in billing history for client %d", clientID), slog.String("err", err.Error()))
+		return nil, err
+	}
+
+	history = append(history, processPaymentMethodEvents(paymentMethods)...)
+
+	directDebitEvents, err := s.store.GetDirectDebitPaymentsForBillingHistory(ctx, clientID)
+	if err != nil {
+		s.Logger(ctx).Error(fmt.Sprintf("Error in getting direct debit payments in billing history for client %d", clientID), slog.String("err", err.Error()))
+		return nil, err
+	}
+
+	history = append(history, processDirectDebitEvents(directDebitEvents)...)
 
 	return computeBillingHistory(history), nil
 }
@@ -238,6 +255,28 @@ func processRefundEvents(refunds []store.GetRefundsForBillingHistoryRow, clientI
 	return history
 }
 
+func processDirectDebitEvents(directDebitEvents []store.GetDirectDebitPaymentsForBillingHistoryRow) []historyHolder {
+	var history []historyHolder
+	for _, dd := range directDebitEvents {
+		bh := shared.BillingHistory{
+			User: int(dd.CreatedBy),
+			Date: shared.Date{Time: dd.CreatedAt.Time},
+			Event: shared.DirectDebitEvent{
+				Amount:           int(dd.Amount),
+				CollectionDate:   shared.Date{Time: dd.CollectionDate.Time},
+				BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeDirectDebitCollectionScheduled},
+			},
+		}
+
+		// balance is only adjusted by ledgers, not direct debit events
+		history = append(history, historyHolder{
+			billingHistory:    bh,
+			balanceAdjustment: 0,
+		})
+	}
+	return history
+}
+
 func processFeeReductionEvents(feEvents []store.GetFeeReductionEventsRow) []historyHolder {
 	var history []historyHolder
 	for _, fe := range feEvents {
@@ -386,6 +425,33 @@ func processLedgerAllocations(allocations []store.GetLedgerAllocationsForClientR
 	var history []historyHolder
 	for _, lh := range historyByLedger {
 		history = append(history, *lh)
+	}
+
+	return history
+}
+
+func processPaymentMethodEvents(paymentMethods []store.GetPaymentMethodsForBillingHistoryRow) []historyHolder {
+	var history []historyHolder
+	for _, pm := range paymentMethods {
+		var eventType shared.BillingEventType
+		if pm.Type == "DEMANDED" {
+			eventType = shared.EventTypeDirectDebitMandateCancelled
+		} else {
+			eventType = shared.EventTypeDirectDebitMandateCreated
+		}
+		bh := shared.BillingHistory{
+			User: int(pm.CreatedBy),
+			Date: shared.Date{Time: pm.CreatedAt.Time},
+			Event: shared.PaymentMethodChangedEvent{
+				BaseBillingEvent: shared.BaseBillingEvent{
+					Type: eventType,
+				},
+			},
+		}
+		history = append(history, historyHolder{
+			billingHistory:    bh,
+			balanceAdjustment: 0,
+		})
 	}
 
 	return history
