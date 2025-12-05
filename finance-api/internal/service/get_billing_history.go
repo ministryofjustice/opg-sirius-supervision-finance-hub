@@ -9,7 +9,6 @@ import (
 	"sort"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
@@ -256,54 +255,24 @@ func processRefundEvents(refunds []store.GetRefundsForBillingHistoryRow, clientI
 	return history
 }
 
-func makeDirectDebitEvent(eventType shared.BillingEventType, amount int32, user int32, createdDate time.Time, collectionDate time.Time, invoiceReference pgtype.Text, history []historyHolder) []historyHolder {
-	timelineDate := collectionDate
-	if eventType == shared.EventTypeDirectDebitCollectionScheduled {
-		// TODO: is this correct?
-		// we want the event to show as though it were made when the collection happened/ failed
-		timelineDate = createdDate
-	}
-
-	bh := shared.BillingHistory{
-		User: int(user),
-		Date: shared.Date{Time: timelineDate},
-		Event: shared.DirectDebitEvent{
-			Amount:           int(amount),
-			CollectionDate:   shared.Date{Time: collectionDate},
-			BaseBillingEvent: shared.BaseBillingEvent{Type: eventType},
-			InvoiceReference: shared.InvoiceEvent{
-				Reference: invoiceReference.String,
-			},
-		},
-	}
-
-	// balance is only adjusted by ledgers, not direct debit events
-	history = append(history, historyHolder{
-		billingHistory:    bh,
-		balanceAdjustment: 0,
-	})
-	return history
-}
-
 func processDirectDebitEvents(directDebitEvents []store.GetDirectDebitPaymentsForBillingHistoryRow) []historyHolder {
 	var history []historyHolder
 	for _, dd := range directDebitEvents {
-		// make a rejected or successful event if appropriate
-		switch dd.Status {
-		case "CANCELLED":
-			history = makeDirectDebitEvent(
-				shared.EventTypeDirectDebitCollectionFailed,
-				dd.Amount,
-				dd.CreatedBy,
-				dd.CreatedAt.Time,
-				dd.CollectionDate.Time,
-				dd.LReference,
-				history)
-		case "COLLECTED":
-			history = makeDirectDebitEvent(shared.EventTypeDirectDebitCollected, dd.Amount, dd.CreatedBy, dd.CreatedAt.Time, dd.CollectionDate.Time, dd.LReference, history)
+		bh := shared.BillingHistory{
+			User: int(dd.CreatedBy),
+			Date: shared.Date{Time: dd.CreatedAt.Time},
+			Event: shared.DirectDebitEvent{
+				Amount:           int(dd.Amount),
+				CollectionDate:   shared.Date{Time: dd.CollectionDate.Time},
+				BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeDirectDebitCollectionScheduled},
+			},
 		}
-		// also make a create event for all direct debits
-		history = makeDirectDebitEvent(shared.EventTypeDirectDebitCollectionScheduled, dd.Amount, dd.CreatedBy, dd.CreatedAt.Time, dd.CollectionDate.Time, dd.LReference, history)
+
+		// balance is only adjusted by ledgers, not direct debit events
+		history = append(history, historyHolder{
+			billingHistory:    bh,
+			balanceAdjustment: 0,
+		})
 	}
 	return history
 }
