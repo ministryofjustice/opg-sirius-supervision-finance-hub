@@ -1,10 +1,14 @@
 package db
 
 import (
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"time"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
+// InvoiceAdjustments generates a report of all approved and applied invoice adjustments for a given date range,
+// excluding write-offs and write-off reversals.
+// If the date range is not provided, it defaults to the system go-live date and the current date respectively.
 type InvoiceAdjustments struct {
 	ReportQuery
 	InvoiceAdjustmentsInput

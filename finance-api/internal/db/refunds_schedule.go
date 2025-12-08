@@ -4,6 +4,9 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
+// RefundsSchedule generates a report of all refunds for a given bank date.
+// This is used by the Cash Control team to reconcile refunds, and each refund schedule should correlate to a line
+// in the receipts transactions journal by line description.
 type RefundsSchedule struct {
 	ReportQuery
 	RefundsScheduleInput
