@@ -52,8 +52,8 @@ services:
       OPG_NOTIFY_API_KEY: test
       OPG_SUPERVISION_SYSTEM_USER_ID: 1
       EVENT_BRIDGE_API_KEY: test
-      ALLPAY_HOST: http://allpay-mock:8080
-      ALLPAY_API_KEY: test-key
+      ALLPAY_HOST: https://ddtest.allpay.net
+      ALLPAY_API_KEY: 48F423D6-56FB-EF11-86E8-6045BDFC7A0B
       HOLIDAYS_API_URL: http://holidays-api-mock:8080/bank-holidays.json
     depends_on:
       allpay-mock:
