@@ -19,7 +19,7 @@
     "@cypress/grep": "^5.0.0",
     "@ministryofjustice/frontend": "^5.0.0",
     "govuk-frontend": "^5.0.0",
-    "opg-sirius-header": "ministryofjustice/opg-sirius-header#semver:v0.52.8",
+    "opg-sirius-header": "ministryofjustice/opg-sirius-header#semver:v0.52.9",
     "htmx.org": "^2.0.0",
     "htmx-ext-response-targets": "^2.0.0"
   },
