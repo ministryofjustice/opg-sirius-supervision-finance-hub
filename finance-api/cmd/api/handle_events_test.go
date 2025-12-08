@@ -44,6 +44,16 @@ func TestServer_handleEvents(t *testing.T) {
 			expectedHandler: "UpdateClient",
 		},
 		{
+			name: "order created event",
+			event: shared.Event{
+				Source:     "opg.supervision.sirius",
+				DetailType: "order-created",
+				Detail:     shared.OrderCreatedEvent{ClientID: 1},
+			},
+			expectedErr:     nil,
+			expectedHandler: "CheckPaymentMethod",
+		},
+		{
 			name: "client made inactive event",
 			event: shared.Event{
 				Source:     "opg.supervision.sirius",
