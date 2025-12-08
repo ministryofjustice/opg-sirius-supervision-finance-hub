@@ -2,11 +2,12 @@ package server
 
 import (
 	"errors"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestInvoice(t *testing.T) {
@@ -163,6 +164,13 @@ func Test_translate(t *testing.T) {
 			name:   "returns a correct value for REAPPLIED",
 			status: "REAPPLIED",
 			want:   "Reapplied Payment",
+		},
+		{
+			name:       "returns Refund Reversal",
+			ledgerType: shared.TransactionTypeRefund.Key(),
+			amount:     -32000,
+			status:     "UNAPPLIED",
+			want:       "Refund reversal",
 		},
 	}
 	for _, tt := range tests {

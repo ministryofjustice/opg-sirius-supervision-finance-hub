@@ -11,6 +11,11 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
+type refundReversalDetails struct {
+	shared.PaymentDetails
+	fulfilledDate pgtype.Date
+}
+
 func (s *Service) ProcessRefundReversals(ctx context.Context, records [][]string, bankDate shared.Date) (map[int]string, error) {
 	failedLines := make(map[int]string)
 
@@ -24,12 +29,12 @@ func (s *Service) ProcessRefundReversals(ctx context.Context, records [][]string
 		if !isHeaderRow(shared.ReportTypeUploadReverseFulfilledRefunds, index) && safeRead(record, 0) != "" {
 			details := getRefundReversalDetails(ctx, record, bankDate, index, &failedLines)
 
-			if details != (shared.PaymentDetails{}) {
+			if details != (refundReversalDetails{}) {
 				if !s.validateRefundReversalLine(ctx, details, index, &failedLines) {
 					continue
 				}
 
-				_, err := s.ProcessPaymentsUploadLine(ctx, tx, details)
+				_, err := s.ProcessPaymentsUploadLine(ctx, tx, details.PaymentDetails)
 				if err != nil {
 					return nil, err
 				}
@@ -45,48 +50,54 @@ func (s *Service) ProcessRefundReversals(ctx context.Context, records [][]string
 	return failedLines, nil
 }
 
-func getRefundReversalDetails(ctx context.Context, record []string, formDate shared.Date, index int, failedLines *map[int]string) shared.PaymentDetails {
+func getRefundReversalDetails(ctx context.Context, record []string, formDate shared.Date, index int, failedLines *map[int]string) refundReversalDetails {
 	var (
-		courtRef     pgtype.Text
-		bankDate     pgtype.Date
-		receivedDate pgtype.Timestamp
-		createdBy    pgtype.Int4
-		amount       int32
-		err          error
+		courtRef      pgtype.Text
+		bankDate      pgtype.Date
+		fulfilledDate pgtype.Date
+		receivedDate  pgtype.Timestamp
+		createdBy     pgtype.Int4
+		amount        int32
+		err           error
 	)
 
-	if !formDate.IsNull() {
-		_ = bankDate.Scan(formDate.Time)
+	if formDate.IsNull() {
+		(*failedLines)[0] = validation.UploadErrorDateParse
 	}
+	_ = bankDate.Scan(formDate.Time)
+	_ = receivedDate.Scan(formDate.Time)
+
 	_ = store.ToInt4(&createdBy, ctx.(auth.Context).User.ID)
 
 	_ = courtRef.Scan(safeRead(record, 0))
 
-	bd, err := time.Parse("02/01/2006", safeRead(record, 2))
+	refundDate, err := time.Parse("02/01/2006", safeRead(record, 2))
 	if err != nil {
 		(*failedLines)[index] = validation.UploadErrorDateParse
-		return shared.PaymentDetails{}
+		return refundReversalDetails{}
 	}
-	_ = bankDate.Scan(bd)
-	_ = receivedDate.Scan(bd)
+	_ = fulfilledDate.Scan(refundDate)
 
 	amount, err = parseAmount(safeRead(record, 1))
 
 	if err != nil {
 		(*failedLines)[index] = validation.UploadErrorAmountParse
-		return shared.PaymentDetails{}
+		return refundReversalDetails{}
 	}
 
-	return shared.PaymentDetails{Amount: amount, BankDate: bankDate, CourtRef: courtRef, LedgerType: shared.TransactionTypeRefund, ReceivedDate: receivedDate, CreatedBy: createdBy}
+	return refundReversalDetails{
+		PaymentDetails: shared.PaymentDetails{Amount: amount, BankDate: bankDate, CourtRef: courtRef, LedgerType: shared.TransactionTypeRefund, ReceivedDate: receivedDate, CreatedBy: createdBy},
+		fulfilledDate:  fulfilledDate,
+	}
 }
 
-func (s *Service) validateRefundReversalLine(ctx context.Context, details shared.PaymentDetails, index int, failedLines *map[int]string) bool {
+func (s *Service) validateRefundReversalLine(ctx context.Context, details refundReversalDetails, index int, failedLines *map[int]string) bool {
 	var amount pgtype.Int4
 	_ = store.ToInt4(&amount, details.Amount)
 
 	exists, _ := s.store.CheckRefundForReversalExists(ctx, store.CheckRefundForReversalExistsParams{
 		CourtRef:      details.CourtRef,
-		FulfilledDate: details.BankDate,
+		FulfilledDate: details.fulfilledDate,
 		Amount:        amount,
 	})
 
@@ -97,5 +108,5 @@ func (s *Service) validateRefundReversalLine(ctx context.Context, details shared
 
 	// check for already processed reversal
 	// this doesn't work as it is looking for a negative amount?
-	return s.validatePaymentLine(ctx, details, index, failedLines)
+	return s.validatePaymentLine(ctx, details.PaymentDetails, index, failedLines)
 }

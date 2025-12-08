@@ -13,6 +13,8 @@ func (suite *IntegrationSuite) Test_processRefundReversals() {
 	ctx := suite.ctx
 	seeder := suite.cm.Seeder(ctx, suite.T())
 
+	bankDate := shared.NewDate("2024-12-12")
+
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (1, 11, '1234', 'DEMANDED', NULL, '12345678');",
 		"INSERT INTO ledger VALUES (1, 'payment-1', '2024-01-01 15:30:27', '', 5000, 'payment', 'SUPERVISION DIRECT DEBIT', 'CONFIRMED', 1, NULL, NULL, NULL, '2024-01-01', NULL, NULL, NULL, NULL, '2020-05-05', 1);",
@@ -32,14 +34,12 @@ func (suite *IntegrationSuite) Test_processRefundReversals() {
 		"INSERT INTO ledger VALUES (4, 'refund-2', '2024-06-05 15:30:27', '', -5000, 'refund', 'REFUND', 'CONFIRMED', 2, NULL, NULL, NULL, '2024-06-05', NULL, NULL, NULL, NULL, '2024-06-05', 1);",
 		"INSERT INTO ledger_allocation VALUES (4, 4, NULL, '2024-06-05 15:30:27', 5000, 'REAPPLIED', NULL, '', '2024-06-05', NULL);",
 
-		"INSERT INTO ledger VALUES (5, 'reversal-1', '2024-06-05 15:30:27', '', 5000, 'refund reversal', 'REFUND', 'CONFIRMED', 2, NULL, NULL, NULL, '2024-06-05', NULL, NULL, NULL, NULL, '2024-06-05', 1);",
-		"INSERT INTO ledger_allocation VALUES (5, 5, NULL, '2024-06-05 15:30:27', -5000, 'UNAPPLIED', NULL, '', '2024-06-05', NULL);",
+		"INSERT INTO ledger VALUES (5, 'reversal-1', '2024-12-12 15:30:27', '', 5000, 'refund reversal', 'REFUND', 'CONFIRMED', 2, NULL, NULL, NULL, '2024-12-12', NULL, NULL, NULL, NULL, '2024-12-12', 1);",
+		"INSERT INTO ledger_allocation VALUES (5, 5, NULL, '2024-12-12 15:30:27', -5000, 'UNAPPLIED', NULL, '', '2024-12-12', NULL);",
 
 		"ALTER SEQUENCE ledger_id_seq RESTART WITH 6;",
 		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 6;",
 	)
-
-	bankDate := shared.NewDate("2024-06-05")
 
 	tests := []struct {
 		name                      string

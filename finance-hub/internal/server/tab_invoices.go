@@ -117,13 +117,6 @@ func (h *InvoicesHandler) transformLedgers(ledgers []shared.Ledger, caser cases.
 }
 
 func translate(transactionType string, status string, amount int) string {
-	switch status {
-	case "UNAPPLIED":
-		return "Unapplied Payment"
-	case "REAPPLIED":
-		return "Reapplied Payment"
-	}
-
 	switch transactionType {
 	case shared.AdjustmentTypeWriteOff.Key():
 		return "Write Off"
@@ -134,11 +127,20 @@ func translate(transactionType string, status string, amount int) string {
 	}
 
 	parsedTransactionType := shared.ParseTransactionType(transactionType)
+
 	if parsedTransactionType != shared.TransactionTypeUnknown {
-		if amount < 0 && !parsedTransactionType.IsReversalType() { // don't need to rename reversal types
+		if (amount < 0 && !parsedTransactionType.IsReversalType()) || // don't need to rename reversal types
+			parsedTransactionType == shared.TransactionTypeRefund { // refund transactions applied to invoices will always be reversals
 			return fmt.Sprintf("%s reversal", parsedTransactionType.String())
 		}
 		return parsedTransactionType.String()
+	}
+
+	switch status {
+	case "UNAPPLIED":
+		return "Unapplied Payment"
+	case "REAPPLIED":
+		return "Reapplied Payment"
 	}
 
 	caser := cases.Title(language.English)
