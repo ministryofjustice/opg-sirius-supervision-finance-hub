@@ -303,7 +303,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions_reversals() {
 	_, _ = suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeS2, &invoice2Amount, yesterday.StringPtr(), nil, nil, nil, yesterday.StringPtr())
 	suite.seeder.ReversePayment(ctx, "33333333", "44444444", "250.00", twoMonthsAgo.Date(), twoMonthsAgo.Date(), shared.TransactionTypeSupervisionChequePayment, yesterday.Date(), "100002")
 
-	// Scenario 3: reversed refund
+	// Scenario 3: reversed refund, invoice created between refund and reversal
 	client10ID := suite.seeder.CreateClient(ctx, "Randy", "Reversal", "99999999", "1234", "ACTIVE")
 	suite.seeder.CreatePayment(ctx, 14000, today.Date(), "99999999", shared.TransactionTypeMotoCardPayment, twoMonthsAgo.Date(), 0)
 	refund5ID := suite.seeder.CreateRefund(ctx, client10ID, "MR R REVERSAL", "44444440", "44-44-44", twoMonthsAgo.Date())
@@ -313,6 +313,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions_reversals() {
 	suite.seeder.FulfillRefund(ctx, refund5ID, 14000, twoMonthsAgo.Date(), "99999999", "MR R REVERSAL", "44444440", "444444", twoMonthsAgo.Date())
 
 	// refund occurred two months ago, reversal today
+	_, _ = suite.seeder.CreateInvoice(ctx, client10ID, shared.InvoiceTypeAD, nil, yesterday.StringPtr(), nil, nil, nil, yesterday.StringPtr())
 	suite.seeder.ReverseRefund(ctx, "99999999", "140.00", twoMonthsAgo.Date(), yesterday.Date())
 
 	c := Client{suite.seeder.Conn}
@@ -320,7 +321,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions_reversals() {
 	rows, err := c.Run(ctx, NewReceiptTransactions(ReceiptTransactionsInput{Date: &shared.Date{Time: yesterday.Date()}}))
 
 	assert.NoError(suite.T(), err)
-	assert.Equal(suite.T(), 15, len(rows))
+	assert.Equal(suite.T(), 16, len(rows))
 
 	results := mapByHeader(rows)
 	assert.NotEmpty(suite.T(), results)
@@ -458,7 +459,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions_reversals() {
 	assert.Equal(suite.T(), "130.00", results[11]["Debit"], "Debit - Cheques 1 Reversal Overpayment")
 	assert.Equal(suite.T(), "", results[11]["Credit"], "Credit - Cheques 1 Reversal Overpayment")
 	assert.Equal(suite.T(), "Cheque payment [100001]", results[11]["Line description"], "Line description - Cheques 1 Reversal Overpayment")
-
+	//1
 	assert.Equal(suite.T(), "=\"0470\"", results[12]["Entity"], "Entity - Refund Reversal Debit")
 	assert.Equal(suite.T(), "99999999", results[12]["Cost Centre"], "Cost Centre - Refund Reversal Debit")
 	assert.Equal(suite.T(), "1841102050", results[12]["Account"], "Account - Refund Reversal Debit")
@@ -469,15 +470,26 @@ func (suite *IntegrationSuite) Test_receipt_transactions_reversals() {
 	assert.Equal(suite.T(), "140.00", results[12]["Debit"], "Debit - Refund Reversal Debit") // the other way round for refund reversals as these are effectively reversing a reversal
 	assert.Equal(suite.T(), "", results[12]["Credit"], "Credit - Refund Reversal Debit")
 	assert.Equal(suite.T(), fmt.Sprintf("Refund [%s]", yesterday.Date().Format("02/01/2006")), results[12]["Line description"], "Line description - Refund Reversal Debit")
-
+	//2
 	assert.Equal(suite.T(), "=\"0470\"", results[13]["Entity"], "Entity - Refund Reversal Credit")
 	assert.Equal(suite.T(), "99999999", results[13]["Cost Centre"], "Cost Centre - Refund Reversal Credit")
-	assert.Equal(suite.T(), "1816102005", results[13]["Account"], "Account - Refund Reversal Credit")
+	assert.Equal(suite.T(), "1816102003", results[13]["Account"], "Account - Refund Reversal Credit")
 	assert.Equal(suite.T(), "=\"0000000\"", results[13]["Objective"], "Objective - Refund Reversal Credit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[13]["Analysis"], "Analysis - Refund Reversal Credit")
 	assert.Equal(suite.T(), "=\"0000\"", results[13]["Intercompany"], "Intercompany - Refund Reversal Credit")
 	assert.Equal(suite.T(), "=\"00000\"", results[13]["Spare"], "Spare - Refund Reversal Credit")
 	assert.Equal(suite.T(), "", results[13]["Debit"], "Debit - Refund Reversal Credit")
-	assert.Equal(suite.T(), "140.00", results[13]["Credit"], "Credit - Refund Reversal Credit") // the other way round for refund reversals as these are effectively reversing a reversal
+	assert.Equal(suite.T(), "100.00", results[13]["Credit"], "Credit - Refund Reversal Credit") // the other way round for refund reversals as these are effectively reversing a reversal
 	assert.Equal(suite.T(), fmt.Sprintf("Refund [%s]", yesterday.Date().Format("02/01/2006")), results[13]["Line description"], "Line description - Refund Reversal Credit")
+	//3
+	assert.Equal(suite.T(), "=\"0470\"", results[14]["Entity"], "Entity - Refund Reversal on invoice")
+	assert.Equal(suite.T(), "99999999", results[14]["Cost Centre"], "Cost Centre - Refund Reversal on invoice")
+	assert.Equal(suite.T(), "1816102005", results[14]["Account"], "Account - Refund Reversal on invoice")
+	assert.Equal(suite.T(), "=\"0000000\"", results[14]["Objective"], "Objective - Refund Reversal on invoice")
+	assert.Equal(suite.T(), "=\"00000000\"", results[14]["Analysis"], "Analysis - Refund Reversal on invoice")
+	assert.Equal(suite.T(), "=\"0000\"", results[14]["Intercompany"], "Intercompany - Refund Reversal on invoice")
+	assert.Equal(suite.T(), "=\"00000\"", results[14]["Spare"], "Spare - Refund Reversal on invoice")
+	assert.Equal(suite.T(), "", results[14]["Debit"], "Debit - Refund Reversal on invoice")
+	assert.Equal(suite.T(), "40.00", results[14]["Credit"], "Credit - Refund Reversal on invoice")
+	assert.Equal(suite.T(), fmt.Sprintf("Refund [%s]", yesterday.Date().Format("02/01/2006")), results[14]["Line description"], "Line description - Refund Reversal on invoice")
 }

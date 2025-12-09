@@ -107,6 +107,5 @@ func (s *Service) validateRefundReversalLine(ctx context.Context, details refund
 	}
 
 	// check for already processed reversal
-	// this doesn't work as it is looking for a negative amount?
 	return s.validatePaymentLine(ctx, details.PaymentDetails, index, failedLines)
 }
