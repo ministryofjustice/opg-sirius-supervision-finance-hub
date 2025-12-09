@@ -31,7 +31,7 @@ const RefundsScheduleQuery = `SELECT
 	FROM supervision_finance.ledger l
 	    JOIN supervision_finance.ledger_allocation la ON l.id = la.ledger_id
 	    JOIN supervision_finance.finance_client fc ON fc.id = l.finance_client_id
-	WHERE l.bankdate = $1 AND l.status = 'CONFIRMED' AND la.status IN ('UNAPPLIED', 'REAPPLIED') AND l.type = 'REFUND';
+	WHERE l.bankdate = $1 AND l.status = 'CONFIRMED' AND l.type = 'REFUND';
 `
 
 func (u *RefundsSchedule) GetHeaders() []string {

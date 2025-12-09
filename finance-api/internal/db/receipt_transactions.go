@@ -8,6 +8,8 @@ import (
 // transactions (payments, refunds, and reversals) that were created on that date, grouped by transaction type and
 // bank date (or PIS for cheques). This line description matches a schedule report, which breaks down the transactions
 // further for reconciliation purposes.
+// For the purpose of debit/credit categorisation, refunds are considered as payment reversals, and refund reversals
+// are considered as payments.
 type ReceiptTransactions struct {
 	ReportQuery
 	ReceiptTransactionsInput
@@ -71,7 +73,7 @@ allocation_totals AS (
 		CASE 
 		    WHEN l.type = 'REFUND' THEN '1816102005'
 			ELSE '1816102003'
-		END AS credit_account_code,
+		END AS reversal_credit_account_code,
         SUM(CASE WHEN l.amount > 0 AND la.status != 'UNAPPLIED' AND la.amount > 0 THEN la.amount ELSE 0 END) AS credit_amount,
         SUM(CASE WHEN l.amount > 0 AND la.status = 'UNAPPLIED' AND la.amount < 0 THEN ABS(la.amount) ELSE 0 END) AS overpayment_amount,
         SUM(CASE WHEN l.amount < 0 AND la.status != 'UNAPPLIED' THEN ABS(la.amount) ELSE 0 END) AS reversed_credit_amount,
@@ -111,7 +113,7 @@ transaction_rows AS (
     UNION ALL
     -- credit row
     SELECT
-		credit_account_code AS account_code,
+		'1816102003' AS account_code,
         '="0000000"' AS objective,
         '="00000000"' AS analysis,
         '="0000"' AS intercompany,
@@ -163,7 +165,7 @@ transaction_rows AS (
     UNION ALL
     -- reversal/refund credit row
     SELECT
-		credit_account_code AS account_code,
+		reversal_credit_account_code AS account_code,
         '="0000000"' AS objective,
         '="00000000"' AS analysis,
         '="0000"' AS intercompany,

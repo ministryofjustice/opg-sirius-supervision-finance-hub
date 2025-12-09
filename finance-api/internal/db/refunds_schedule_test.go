@@ -15,6 +15,8 @@ func (suite *IntegrationSuite) Test_refunds_schedules() {
 	threeDaysAgo := today.Sub(0, 0, 3)
 	fourDaysAgo := today.Sub(0, 0, 4)
 	fiveDaysAgo := today.Sub(0, 0, 5)
+	sixDaysAgo := today.Sub(0, 0, 6)
+	sevenDaysAgo := today.Sub(0, 0, 7)
 
 	// refund processed
 	client1ID := suite.seeder.CreateClient(ctx, "Filly", "Fulfilled", "11111111", "1234", "ACTIVE")
@@ -51,6 +53,18 @@ func (suite *IntegrationSuite) Test_refunds_schedules() {
 	suite.seeder.ProcessApprovedRefunds(ctx, []int32{refund4ID}, fiveDaysAgo.Date())
 	suite.seeder.FulfillRefund(ctx, refund4ID, 14000, fiveDaysAgo.Date(), "44444444", "MR R REVERSED", "44444440", "444444", fiveDaysAgo.Date())
 	suite.seeder.ReverseRefund(ctx, "44444444", "140.00", fiveDaysAgo.Date(), fiveDaysAgo.Date())
+
+	// reversed refund that allocates to invoice created in between refund fulfilled and reversal
+	client5ID := suite.seeder.CreateClient(ctx, "Ivy", "Invoice", "55555555", "1234", "ACTIVE")
+	suite.seeder.CreatePayment(ctx, 16000, sevenDaysAgo.Date(), "55555555", shared.TransactionTypeMotoCardPayment, sevenDaysAgo.Date(), 0)
+	refund5ID := suite.seeder.CreateRefund(ctx, client5ID, "MS I INVOICE", "55555550", "55-55-55", sevenDaysAgo.Date())
+	suite.seeder.SetRefundDecision(ctx, client5ID, refund5ID, shared.RefundStatusApproved, sevenDaysAgo.Date())
+
+	suite.seeder.ProcessApprovedRefunds(ctx, []int32{refund5ID}, sevenDaysAgo.Date())
+	suite.seeder.FulfillRefund(ctx, refund5ID, 16000, sevenDaysAgo.Date(), "55555555", "MS I INVOICE", "55555550", "555555", sevenDaysAgo.Date())
+
+	_, _ = suite.seeder.CreateInvoice(ctx, client5ID, shared.InvoiceTypeAD, nil, sixDaysAgo.StringPtr(), nil, nil, nil, sixDaysAgo.StringPtr())
+	suite.seeder.ReverseRefund(ctx, "55555555", "160.00", sevenDaysAgo.Date(), sixDaysAgo.Date())
 
 	c := Client{suite.seeder.Conn}
 
@@ -94,7 +108,7 @@ func (suite *IntegrationSuite) Test_refunds_schedules() {
 			},
 		},
 		{
-			name:         "reversed refund",
+			name:         "reversed refund on same day",
 			date:         shared.Date{Time: fiveDaysAgo.Date()},
 			expectedRows: 3,
 			expectedData: []map[string]string{
@@ -109,6 +123,25 @@ func (suite *IntegrationSuite) Test_refunds_schedules() {
 					"Amount":                  "-140.00",
 					"Bank date":               fiveDaysAgo.String(),
 					"Fulfilled (create) date": fiveDaysAgo.String(),
+				},
+			},
+		},
+		{
+			name:         "reversed refund different day, partially allocated to invoice",
+			date:         shared.Date{Time: sixDaysAgo.Date()},
+			expectedRows: 3,
+			expectedData: []map[string]string{
+				{
+					"Court reference":         "55555555",
+					"Amount":                  "100.00",
+					"Bank date":               sixDaysAgo.String(),
+					"Fulfilled (create) date": sixDaysAgo.String(),
+				},
+				{
+					"Court reference":         "55555555",
+					"Amount":                  "-60.00",
+					"Bank date":               sixDaysAgo.String(),
+					"Fulfilled (create) date": sixDaysAgo.String(),
 				},
 			},
 		},
