@@ -179,32 +179,9 @@ INSERT INTO ledger_allocation VALUES (20, 16, 22, '2025-09-30T08:36:40+00:00', 6
 INSERT INTO ledger VALUES (17, 'dd payment 2', '2025-10-08T08:36:40+00:00', '', 4000, '', 'DIRECT DEBIT PAYMENT', 'CONFIRMED', 28001, null, null, '2025-10-08', '2025-10-08', 1, '', '', 1, '2025-10-08 12:01:58', 2);
 INSERT INTO ledger_allocation VALUES (21, 17, 22, '2025-10-08T08:36:40+00:00', 4000, 'ALLOCATED', null, '', '2025-10-08', null);
 
--- allpay e2e - create mandate and collect
+-- allpay e2e
 INSERT INTO finance_client VALUES (29001, 29, 'allpaye2e', 'DEMANDED', null, '29292900');
 INSERT INTO invoice VALUES (23, 29, 29001, 'AD', 'AD292929/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-05-11T12:01:59+00:00', 2);
-INSERT INTO pending_collection VALUES (8, 29001, '2025-06-06', 10010, 'PENDING', null, '2025-02-01', 1);
-
--- pending collection collected with ledger
-INSERT INTO finance_client VALUES (30001, 30, 'pendingcollectioniscollected', 'DIRECT DEBIT', null, '30303030');
-INSERT INTO invoice VALUES (24, 30, 30001, 'AD', 'AD212122/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-04-10T08:36:40+00:00', 2);
-INSERT INTO ledger VALUES (18, 'ABCD1234', '2025-05-11T08:36:40+00:00', '', 12300, '', 'DIRECT DEBIT PAYMENT', 'CONFIRMED', 30001, null, null, '2024-04-11', '2024-04-12', 1, '', '', 1, '2024-05-11 12:01:58', 2);
-INSERT INTO ledger_allocation VALUES (22, 18, 24, '2024-05-11T08:36:40+00:00', 10000, 'ALLOCATED', null, 'moto-payment', '2024-05-11', null);
-INSERT INTO pending_collection VALUES (5, 30001, '2025-05-11', 10010, 'COLLECTED', 18, '2025-02-01', 1);
-
--- pending collection failed (check if we expect this to have a ledger or not)
-INSERT INTO finance_client VALUES (31001, 31, 'pendingcollectionfails', 'DIRECT DEBIT', null, '21212990');
-INSERT INTO invoice VALUES (27, 31, 31001, 'AD', 'AD2333212/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-04-10T08:36:40+00:00', 2);
-INSERT INTO ledger VALUES (20, 'ledger-ref-123', '2024-05-11T08:36:40+00:00', '', 14400, '', 'DIRECT DEBIT PAYMENT', 'CONFIRMED', 31001, null, null, '2024-04-11', '2024-04-12', 1, '', '', 1, '2024-05-11 12:01:58', 2);
-INSERT INTO pending_collection VALUES (7, 31001, '2025-08-01', 17011, 'CANCELLED', 20, '2025-03-01', 1);
-
--- -- pending collection collected with unallocated funds (?)
-INSERT INTO finance_client VALUES (32001, 32, 'pendingcollectioniscollectedandunallocated', 'DIRECT DEBIT', null, '32323232');
-INSERT INTO invoice VALUES (26, 32, 32001, 'AD', 'AD21242424/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-04-10T08:36:40+00:00', 2);
-INSERT INTO ledger VALUES (19, 'dd payment 3', '2024-05-11T08:36:40+00:00', '', 14400, '', 'MOTO CARD PAYMENT', 'CONFIRMED', 32001, null, null, '2024-04-11', '2024-04-12', 1, '', '', 1, '2024-05-11 12:01:58', 2);
-INSERT INTO ledger_allocation VALUES (23, 19, 26, '2024-05-11T08:36:40+00:00', 10000, 'ALLOCATED', null, 'moto-payment', '2024-05-11', null);
-INSERT INTO pending_collection VALUES (6, 32001, '2025-08-01', 14011, 'COLLECTED', 19, '2025-01-01', 1);
-
-
 
 -- TEST CLIENT DATA: Add data for default client here
 

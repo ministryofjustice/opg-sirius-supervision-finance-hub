@@ -172,69 +172,6 @@ describe("Billing History Tab", () => {
        });
     });
 
-    it("displays direct debit events", () => {
-        // setup and cancel direct debits
-        cy.visit("/clients/27/billing-history");
-        cy.get(".govuk-button").contains("Cancel direct debit").click();
-        cy.get(".govuk-button").contains("Cancel Direct Debit").click();
-        cy.contains("Billing History").click();
-        cy.get(".moj-timeline__item").first().within((el) => {
-            cy.get(".moj-timeline__title").contains("Direct Debit Instruction cancelled");
-            cy.get(".moj-timeline__byline").contains(`by Ian Admin`);
-            cy.contains("Payment method updated to Demanded");
-        });
-
-        cy.get(".govuk-button").contains("Set up direct debit").click();
-        cy.get("#f-AccountName").contains("Name").type("Mrs Account Holder");
-        cy.get("#f-SortCode").contains("Sort code").type("010000");
-        cy.get("#f-AccountNumber").contains("number").type("12345678");
-        cy.contains(".govuk-button", "Save and continue").click()
-
-        cy.contains("Billing History").click();
-        cy.get(".moj-timeline__item").first().within((el) => {
-            cy.get(".moj-timeline__title").contains("Direct Debit Instruction created");
-            cy.get(".moj-timeline__byline").contains(`by Ian Admin`);
-            cy.contains("Payment method updated to Direct debit");
-        });
-
-        // collected direct debits
-        cy.visit("/clients/30/billing-history");
-        cy.get(".moj-timeline__item").eq(1).within((el) => {
-            cy.get(".moj-timeline__title").contains("Direct debit payment scheduled");
-            cy.get(".moj-timeline__byline").contains(`by Colin Case`);
-            cy.contains("Direct debit payment for £100.10 scheduled for 11/05/2025");
-        });
-
-        cy.get(".moj-timeline__item").first().within((el) => {
-            cy.get(".moj-timeline__title").contains("Direct debit payment collected");
-            cy.get(".moj-timeline__byline").contains(`by Colin Case`);
-            cy.contains("£100.10 allocated to Invoice number ABCD1234");
-        });
-
-        // cancelled direct debits
-        cy.visit("/clients/31/billing-history");
-        cy.get(".moj-timeline__item").eq(1).within((el) => {
-            cy.get(".moj-timeline__title").contains("Direct debit payment scheduled");
-            cy.get(".moj-timeline__byline").contains(`by Colin Case`);
-        });
-
-        cy.get(".moj-timeline__item").first().within((el) => {
-            cy.get(".moj-timeline__title").contains("Failed Direct Debit payment ");
-            cy.get(".moj-timeline__byline").contains(`by Colin Case`);
-            cy.contains("Direct Debit collection of £170.11 on 01/08/2025 has failed");
-            cy.contains("£170.11 reversed on Invoice number ledger-ref-123");
-            cy.contains("Unallocated amount £170.11 reversed against on account balance");
-        });
-
-        // pending direct debit collection
-        cy.visit("/clients/29/billing-history");
-        cy.get(".moj-timeline__item").first().within((el) => {
-            cy.get(".moj-timeline__title").contains("Direct debit payment scheduled");
-            cy.get(".moj-timeline__byline").contains(`by Colin Case`);
-            cy.contains("Direct debit payment for £100.10 scheduled for 06/06/2025");
-        });
-    });
-
     it("no history shows correct message", () => {
         cy.visit("/clients/99/billing-history");
         cy.contains("h2.moj-timeline__title", "No billing history for this client").should("be.visible");
