@@ -25,7 +25,10 @@ func NewRefundsSchedule(input RefundsScheduleInput) ReportQuery {
 
 const RefundsScheduleQuery = `SELECT
 	fc.court_ref AS "Court reference",
-	(la.amount / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS "Amount",
+	(CASE 
+	    WHEN la.status = 'REAPPLIED' THEN ABS(la.amount) 
+	    ELSE -ABS(la.amount) 
+	 END / 100.0)::NUMERIC(10, 2)::VARCHAR(255) AS "Amount",
 	TO_CHAR(l.bankdate, 'YYYY-MM-DD') AS "Bank date",
 	TO_CHAR(l.created_at, 'YYYY-MM-DD') AS "Fulfilled (create) date"
 	FROM supervision_finance.ledger l
