@@ -144,31 +144,31 @@ describe("Billing History Tab", () => {
       cy.get(".moj-timeline__item").eq(4).within(() => {
            cy.get(".moj-timeline__title").contains("Pending refund of £123.41 added");
            cy.get(".moj-timeline__byline").contains("by Colin Case, 01/05/2024");
-           cy.get(".moj-timeline__date").contains("Outstanding balance: £-100 Credit balance: £30");
+           cy.get(".moj-timeline__date").contains("Outstanding balance: -£100 Credit balance: £30");
            cy.get(".moj-timeline__description").contains("Pending refund");
       });
 
       cy.get(".moj-timeline__item").eq(3).within(() => {
             cy.get(".moj-timeline__title").contains("Pending refund of £123.40 added");
             cy.get(".moj-timeline__byline").contains("by Colin Case, 01/06/2025");
-            cy.get(".moj-timeline__date").contains("Outstanding balance: £-100 Credit balance: £30");
+            cy.get(".moj-timeline__date").contains("Outstanding balance: -£100 Credit balance: £30");
             cy.get(".moj-timeline__description").contains("Fulfilled refund");
         });
 
      cy.get(".moj-timeline__item").eq(2).within(() => {
         cy.get(".moj-timeline__title").contains("Refund status of pending updated to approved");
         cy.get(".moj-timeline__byline").contains("by Ian Admin, 02/06/2025");
-        cy.get(".moj-timeline__date").contains("Outstanding balance: £-100 Credit balance: £30");
+        cy.get(".moj-timeline__date").contains("Outstanding balance: -£100 Credit balance: £30");
     });
 
      cy.get(".moj-timeline__item").eq(1).within(() => {
         cy.get(".moj-timeline__title").contains("Refund status of approved updated to processing");
-        cy.get(".moj-timeline__date").contains("Outstanding balance: £-100 Credit balance: £30");
+        cy.get(".moj-timeline__date").contains("Outstanding balance: -£100 Credit balance: £30");
     });
 
         cy.get(".moj-timeline__item").first().within(() => {
             cy.get(".moj-timeline__title").contains("Refund of £123.40 fulfilled");
-            cy.get(".moj-timeline__date").contains("Outstanding balance: £-100 Credit balance: £30");
+            cy.get(".moj-timeline__date").contains("Outstanding balance: -£100 Credit balance: £30");
        });
     });
 
