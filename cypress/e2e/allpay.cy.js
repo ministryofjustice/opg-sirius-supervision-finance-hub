@@ -63,10 +63,15 @@ describe("Allpay end-to-end", () => {
 
         cy.visit("/clients/29/invoices");
 
-        cy.get("table#invoices > tbody").contains("AD292929/24").click();
+        cy.get("table#invoices > tbody").contains("AD292929/24").as("invoice");
+        cy.get("@invoice").click();
+
+        cy.get("@invoice").parentsUntil("tr").siblings()
+            .first().contains("Unpaid");
+
         cy.get("table#ledger-allocations > tbody")
             .within(el => {
-                cy.get("tr").should('have.length', 4);
+                cy.get("tr").should('have.length', 2);
             });
     });
 
@@ -87,19 +92,19 @@ describe("Allpay end-to-end", () => {
         });
 
         cy.get(".moj-timeline__item").eq(1).within(() => {
-            cy.contains(".moj-timeline__title", "Direct Debit payment of £100 received");
+            cy.contains(".moj-timeline__title", "Direct Debit payment reversal of £100 created");
+            cy.contains(".moj-timeline__byline", `by Colin Case`);
+            cy.contains(".govuk-list", "£100 reversed against AD292929/24");
+        });
+
+        // the next two events may appear in any order, but in reality the scheduled event would be first, as payments
+        // are scheduled for at least 14 working days in the future
+        cy.contains(".moj-timeline__item", "Direct Debit payment of £100 received").within(() => {
             cy.contains(".moj-timeline__byline", `by Colin Case`);
             cy.contains(".govuk-list", "£100 allocated to AD292929/24");
         });
 
-        cy.get(".moj-timeline__item").eq(2).within(() => {
-            cy.contains(".moj-timeline__title", "Direct Debit payment of £100 received");
-            cy.contains(".moj-timeline__byline", `by Colin Case`);
-            cy.contains(".govuk-list", "£100 allocated to AD292929/24");
-        });
-
-        cy.get(".moj-timeline__item").eq(3).within(() => {
-            cy.contains(".moj-timeline__title", "Direct debit payment scheduled");
+        cy.contains(".moj-timeline__item", "Direct debit payment scheduled").within(() => {
             cy.contains(".moj-timeline__byline", `by Ian Admin`);
             cy.contains(".govuk-list", "Direct debit payment for £100 scheduled for");
         });
