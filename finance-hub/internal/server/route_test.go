@@ -3,12 +3,13 @@ package server
 import (
 	"context"
 	"errors"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"github.com/stretchr/testify/assert"
 )
 
 type mockRouteData struct {
@@ -72,8 +73,8 @@ func TestRoute_fullPage(t *testing.T) {
 			FirstName:          client.PersonDetails.FirstName,
 			Surname:            client.PersonDetails.Surname,
 			CourtRef:           client.PersonDetails.CourtRef,
-			OutstandingBalance: "123",
-			CreditBalance:      "1.23",
+			OutstandingBalance: 12300,
+			CreditBalance:      123,
 			PaymentMethod:      "Demanded",
 			ClientId:           "1",
 		},

@@ -2,11 +2,12 @@ package server
 
 import (
 	"errors"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestRefunds(t *testing.T) {
@@ -54,7 +55,7 @@ func TestRefunds(t *testing.T) {
 			ID:            "3",
 			DateRaised:    shared.NewDate("01/04/2222"),
 			DateFulfilled: &fulfilledDate,
-			Amount:        "2.32",
+			Amount:        232,
 			Status:        "Fulfilled",
 			Notes:         "Some notes here",
 			CreatedBy:     99,
