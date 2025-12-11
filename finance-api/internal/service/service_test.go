@@ -58,26 +58,37 @@ func (m *MockClient) Do(req *http.Request) (*http.Response, error) {
 }
 
 type mockDispatch struct {
-	event any
+	called []string
+	event  any
 }
 
 func (m *mockDispatch) PaymentMethodChanged(ctx context.Context, event event.PaymentMethod) error {
 	m.event = event
+	m.called = append(m.called, "PaymentMethodChanged")
 	return nil
 }
 
 func (m *mockDispatch) CreditOnAccount(ctx context.Context, event event.CreditOnAccount) error {
 	m.event = event
+	m.called = append(m.called, "CreditOnAccount")
 	return nil
 }
 
 func (m *mockDispatch) RefundAdded(ctx context.Context, event event.RefundAdded) error {
 	m.event = event
+	m.called = append(m.called, "RefundAdded")
 	return nil
 }
 
 func (m *mockDispatch) DirectDebitScheduleFailed(ctx context.Context, event event.DirectDebitScheduleFailed) error {
 	m.event = event
+	m.called = append(m.called, "DirectDebitScheduleFailed")
+	return nil
+}
+
+func (m *mockDispatch) DirectDebitCollectionFailed(ctx context.Context, event event.DirectDebitCollectionFailed) error {
+	m.event = event
+	m.called = append(m.called, "DirectDebitCollectionFailed")
 	return nil
 }
 
@@ -147,6 +158,18 @@ func (m *mockGovUK) AddWorkingDays(ctx context.Context, d time.Time, n int) (tim
 
 	for slices.Contains(m.NonWorkingDays, d) {
 		d = d.AddDate(0, 0, 1)
+	}
+	m.WorkingDay = d
+	return d, m.errs["AddWorkingDays"]
+}
+
+func (m *mockGovUK) SubWorkingDays(ctx context.Context, d time.Time, n int) (time.Time, error) {
+	m.called = append(m.called, "AddWorkingDays")
+	m.nWorkingDays = n
+	d = time.Date(d.Year(), d.Month(), d.Day()-n, 0, 0, 0, 0, time.UTC)
+
+	for slices.Contains(m.NonWorkingDays, d) {
+		d = d.AddDate(0, 0, -1)
 	}
 	m.WorkingDay = d
 	return d, m.errs["AddWorkingDays"]
