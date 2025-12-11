@@ -206,7 +206,7 @@ func (s *Seeder) ReversePayment(ctx context.Context, erroredCourtRef string, cor
 		{"Payment type", "Current (errored) court reference", "New (correct) court reference", "Bank date", "Received date", "Amount", "PIS number (cheque only)"},
 		{ledgerType.Key(), erroredCourtRef, correctCourtRef, bankDate.Format("02/01/2006"), receivedDate.Format("02/01/2006"), amount, pisNumber},
 	}
-	failedLines, err := s.Service.ProcessPaymentReversals(ctx, records, shared.ReportTypeUploadMisappliedPayments, shared.Date{Time: uploadDate})
+	failedLines, err := s.Service.ProcessPaymentReversals(ctx, records, shared.ReportTypeUploadMisappliedPayments)
 	assert.Empty(s.t, failedLines, "failed to process reversals")
 	assert.NoError(s.t, err, "failed to process reversals: %v", err)
 
@@ -342,6 +342,32 @@ func (s *Seeder) FulfillRefund(ctx context.Context, refundId int32, amount int32
 
 	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.refund SET fulfilled_at = $1 WHERE id = $2", uploadDate, refundId)
 	assert.NoError(s.t, err, "failed to update refund date: %v", err)
+}
+
+func (s *Seeder) ReverseRefund(ctx context.Context, courtRef string, amount string, bankDate time.Time, uploadDate time.Time) {
+	var latestLedgerId int
+	err := s.Conn.QueryRow(ctx, "SELECT COALESCE(MAX(id), 0) FROM supervision_finance.ledger").Scan(&latestLedgerId)
+	assert.NoError(s.t, err, "failed to find latest ledger id: %v", err)
+
+	records := [][]string{
+		{"Court reference", "Amount", "Bank date (of original refund)"},
+		{courtRef, amount, bankDate.Format("02/01/2006")},
+	}
+	failedLines, err := s.Service.ProcessRefundReversals(ctx, records, shared.NewDate(uploadDate.Format("2006-01-02")))
+	assert.Empty(s.t, failedLines, "failed to process refund reversals")
+	assert.NoError(s.t, err, "failed to process refund reversals: %v", err)
+
+	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger SET created_at = $1 WHERE id > $2", uploadDate, latestLedgerId)
+	assert.NoError(s.t, err, "failed to update ledger dates for refund reversals: %v", err)
+
+	_, err = s.Conn.Exec(ctx, "UPDATE supervision_finance.ledger_allocation SET datetime = $1 WHERE ledger_id > $2", uploadDate, latestLedgerId)
+	assert.NoError(s.t, err, "failed to update ledger allocation dates for refund reversals: %v", err)
+
+	var newMaxLedger int
+	err = s.Conn.QueryRow(ctx, "SELECT COALESCE(MAX(id), 0) FROM supervision_finance.ledger").Scan(&newMaxLedger)
+	assert.NoError(s.t, err, "failed to find latest ledger id: %v", err)
+
+	assert.Greater(s.t, newMaxLedger, latestLedgerId, "no ledgers created")
 }
 
 func (s *Seeder) GetLatestLedgerID(ctx context.Context) int {

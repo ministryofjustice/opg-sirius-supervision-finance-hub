@@ -8,6 +8,8 @@ import (
 // transactions (payments, refunds, and reversals) that were created on that date, grouped by transaction type and
 // bank date (or PIS for cheques). This line description matches a schedule report, which breaks down the transactions
 // further for reconciliation purposes.
+// For the purpose of debit/credit categorisation, refunds are considered as payment reversals, and refund reversals
+// are considered as payments.
 type ReceiptTransactions struct {
 	ReportQuery
 	ReceiptTransactionsInput
@@ -35,6 +37,7 @@ const ReceiptTransactionsQuery = `WITH
             WHEN line_description LIKE 'Supervision BACS%' THEN 4
             WHEN line_description LIKE 'Direct debit%' THEN 5
             WHEN line_description LIKE 'Cheque payment%' THEN 6
+            WHEN line_description LIKE 'Refund%' THEN 7
         END AS index
 	FROM supervision_finance.transaction_type
 ),
@@ -67,10 +70,13 @@ allocation_totals AS (
             WHEN l.type = 'SUPERVISION BACS PAYMENT' THEN '1841102088'
             ELSE '1841102050'
         END AS debit_account_code,
-		'1816102003' AS credit_account_code,
+		CASE 
+		    WHEN l.type = 'REFUND' THEN '1816102005'
+			ELSE '1816102003'
+		END AS reversal_credit_account_code,
         SUM(CASE WHEN l.amount > 0 AND la.status != 'UNAPPLIED' AND la.amount > 0 THEN la.amount ELSE 0 END) AS credit_amount,
         SUM(CASE WHEN l.amount > 0 AND la.status = 'UNAPPLIED' AND la.amount < 0 THEN ABS(la.amount) ELSE 0 END) AS overpayment_amount,
-        SUM(CASE WHEN l.amount < 0 AND la.status != 'UNAPPLIED' AND la.amount < 0 THEN ABS(la.amount) ELSE 0 END) AS reversed_credit_amount,
+        SUM(CASE WHEN l.amount < 0 AND la.status != 'UNAPPLIED' THEN ABS(la.amount) ELSE 0 END) AS reversed_credit_amount,
         SUM(CASE WHEN l.amount < 0 AND la.status = 'UNAPPLIED' THEN ABS(la.amount) ELSE 0 END) AS reversed_overpayment_amount,
         l.bankdate,
         l.pis_number,
@@ -107,7 +113,7 @@ transaction_rows AS (
     UNION ALL
     -- credit row
     SELECT
-		credit_account_code AS account_code,
+		'1816102003' AS account_code,
         '="0000000"' AS objective,
         '="00000000"' AS analysis,
         '="0000"' AS intercompany,
@@ -120,6 +126,7 @@ transaction_rows AS (
         index,
         2 AS n
     FROM allocation_totals
+    WHERE credit_amount > 0
     UNION ALL
         -- overpayment row
     SELECT
@@ -138,7 +145,7 @@ transaction_rows AS (
     FROM allocation_totals
     WHERE overpayment_amount > 0
     UNION ALL
-    -- reversal debit row
+    -- reversal/refund debit row
     SELECT
         at.debit_account_code AS account_code,
         '="0000000"' AS objective,
@@ -156,9 +163,9 @@ transaction_rows AS (
     JOIN ledger_totals lt ON at.index = lt.index AND at.line_description = lt.line_description
     WHERE lt.reversal_amount > 0
     UNION ALL
-    -- reversal credit row
+    -- reversal/refund credit row
     SELECT
-		credit_account_code AS account_code,
+		reversal_credit_account_code AS account_code,
         '="0000000"' AS objective,
         '="00000000"' AS analysis,
         '="0000"' AS intercompany,

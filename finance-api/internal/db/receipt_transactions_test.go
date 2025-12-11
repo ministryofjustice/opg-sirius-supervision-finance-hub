@@ -62,12 +62,21 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	suite.seeder.CreatePayment(ctx, 1700, yesterday.Date(), "77777777", shared.TransactionTypeSupervisionChequePayment, yesterday.Date(), pisNumber1)
 	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "77777777", shared.TransactionTypeSupervisionChequePayment, yesterday.Date(), pisNumber2)
 
+	// refund - payment initially to credit balance
+	client9ID := suite.seeder.CreateClient(ctx, "Randy", "Refund", "88888888", "1234", "ACTIVE")
+	suite.seeder.CreatePayment(ctx, 14000, today.Date(), "88888888", shared.TransactionTypeMotoCardPayment, twoMonthsAgo.Date(), 0)
+	refund4ID := suite.seeder.CreateRefund(ctx, client9ID, "MR R REFUND", "44444440", "44-44-44", twoMonthsAgo.Date())
+	suite.seeder.SetRefundDecision(ctx, client9ID, refund4ID, shared.RefundStatusApproved, twoMonthsAgo.Date())
+
+	suite.seeder.ProcessApprovedRefunds(ctx, []int32{refund4ID}, twoMonthsAgo.Date())
+	suite.seeder.FulfillRefund(ctx, refund4ID, 14000, yesterday.Date(), "88888888", "MR R REFUND", "44444440", "444444", yesterday.Date())
+
 	c := Client{suite.seeder.Conn}
 
 	rows, err := c.Run(ctx, NewReceiptTransactions(ReceiptTransactionsInput{Date: &shared.Date{Time: yesterday.Date()}}))
 
 	assert.NoError(suite.T(), err)
-	assert.Equal(suite.T(), 16, len(rows))
+	assert.Equal(suite.T(), 18, len(rows))
 
 	results := mapByHeader(rows)
 	assert.NotEmpty(suite.T(), results)
@@ -236,6 +245,28 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 	assert.Equal(suite.T(), "", results[14]["Debit"], "Debit - Cheques 3 Credit")
 	assert.Equal(suite.T(), "15.00", results[14]["Credit"], "Credit - Cheques 3 Credit")
 	assert.Equal(suite.T(), "Cheque payment [100024]", results[14]["Line description"], "Line description - Cheques 3 Credit")
+
+	assert.Equal(suite.T(), "=\"0470\"", results[15]["Entity"], "Entity - Refund Debit")
+	assert.Equal(suite.T(), "99999999", results[15]["Cost Centre"], "Cost Centre - Refund Debit")
+	assert.Equal(suite.T(), "1841102050", results[15]["Account"], "Account - Refund Debit")
+	assert.Equal(suite.T(), "=\"0000000\"", results[15]["Objective"], "Objective - Refund Debit")
+	assert.Equal(suite.T(), "=\"00000000\"", results[15]["Analysis"], "Analysis - Refund Debit")
+	assert.Equal(suite.T(), "=\"0000\"", results[15]["Intercompany"], "Intercompany - Refund Debit")
+	assert.Equal(suite.T(), "=\"000000\"", results[15]["Spare"], "Spare - Refund Debit")
+	assert.Equal(suite.T(), "", results[15]["Debit"], "Debit - Refund Debit")
+	assert.Equal(suite.T(), "140.00", results[15]["Credit"], "Credit - Refund Debit")
+	assert.Equal(suite.T(), fmt.Sprintf("Refund [%s]", yesterday.Date().Format("02/01/2006")), results[15]["Line description"], "Line description - Refund Debit")
+
+	assert.Equal(suite.T(), "=\"0470\"", results[16]["Entity"], "Entity - Refund Credit")
+	assert.Equal(suite.T(), "99999999", results[16]["Cost Centre"], "Cost Centre - Refund Credit")
+	assert.Equal(suite.T(), "1816102005", results[16]["Account"], "Account - Refund Credit")
+	assert.Equal(suite.T(), "=\"0000000\"", results[16]["Objective"], "Objective - Refund Credit")
+	assert.Equal(suite.T(), "=\"00000000\"", results[16]["Analysis"], "Analysis - Refund Credit")
+	assert.Equal(suite.T(), "=\"0000\"", results[16]["Intercompany"], "Intercompany - Refund Credit")
+	assert.Equal(suite.T(), "=\"00000\"", results[16]["Spare"], "Spare - Refund Credit")
+	assert.Equal(suite.T(), "140.00", results[16]["Debit"], "Debit - Refund Credit")
+	assert.Equal(suite.T(), "", results[16]["Credit"], "Credit - Refund Credit")
+	assert.Equal(suite.T(), fmt.Sprintf("Refund [%s]", yesterday.Date().Format("02/01/2006")), results[16]["Line description"], "Line description - Refund Credit")
 }
 
 func (suite *IntegrationSuite) Test_receipt_transactions_reversals() {
@@ -272,12 +303,25 @@ func (suite *IntegrationSuite) Test_receipt_transactions_reversals() {
 	_, _ = suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeS2, &invoice2Amount, yesterday.StringPtr(), nil, nil, nil, yesterday.StringPtr())
 	suite.seeder.ReversePayment(ctx, "33333333", "44444444", "250.00", twoMonthsAgo.Date(), twoMonthsAgo.Date(), shared.TransactionTypeSupervisionChequePayment, yesterday.Date(), "100002")
 
+	// Scenario 3: reversed refund, invoice created between refund and reversal
+	client10ID := suite.seeder.CreateClient(ctx, "Randy", "Reversal", "99999999", "1234", "ACTIVE")
+	suite.seeder.CreatePayment(ctx, 14000, today.Date(), "99999999", shared.TransactionTypeMotoCardPayment, twoMonthsAgo.Date(), 0)
+	refund5ID := suite.seeder.CreateRefund(ctx, client10ID, "MR R REVERSAL", "44444440", "44-44-44", twoMonthsAgo.Date())
+	suite.seeder.SetRefundDecision(ctx, client10ID, refund5ID, shared.RefundStatusApproved, twoMonthsAgo.Date())
+
+	suite.seeder.ProcessApprovedRefunds(ctx, []int32{refund5ID}, twoMonthsAgo.Date())
+	suite.seeder.FulfillRefund(ctx, refund5ID, 14000, twoMonthsAgo.Date(), "99999999", "MR R REVERSAL", "44444440", "444444", twoMonthsAgo.Date())
+
+	// refund occurred two months ago, reversal today
+	_, _ = suite.seeder.CreateInvoice(ctx, client10ID, shared.InvoiceTypeAD, nil, yesterday.StringPtr(), nil, nil, nil, yesterday.StringPtr())
+	suite.seeder.ReverseRefund(ctx, "99999999", "140.00", twoMonthsAgo.Date(), yesterday.Date())
+
 	c := Client{suite.seeder.Conn}
 
 	rows, err := c.Run(ctx, NewReceiptTransactions(ReceiptTransactionsInput{Date: &shared.Date{Time: yesterday.Date()}}))
 
 	assert.NoError(suite.T(), err)
-	assert.Equal(suite.T(), 13, len(rows))
+	assert.Equal(suite.T(), 16, len(rows))
 
 	results := mapByHeader(rows)
 	assert.NotEmpty(suite.T(), results)
@@ -289,8 +333,8 @@ func (suite *IntegrationSuite) Test_receipt_transactions_reversals() {
 	assert.Equal(suite.T(), "=\"0000000\"", results[0]["Objective"], "Objective - Cheques 2 Debit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[0]["Analysis"], "Analysis - Cheques 2 Debit")
 	assert.Equal(suite.T(), "=\"0000\"", results[0]["Intercompany"], "Intercompany - Cheques 2 Debit")
-	assert.Equal(suite.T(), "=\"000000\"", results[0]["Spare"], "Spare - Cheques 2 Debit") // 1
-	assert.Equal(suite.T(), "250.00", results[0]["Debit"], "Debit - Cheques 2 Debit")      // applied reversal of 250.00
+	assert.Equal(suite.T(), "=\"000000\"", results[0]["Spare"], "Spare - Cheques 2 Debit")
+	assert.Equal(suite.T(), "250.00", results[0]["Debit"], "Debit - Cheques 2 Debit") // applied reversal of 250.00
 	assert.Equal(suite.T(), "", results[0]["Credit"], "Credit - Cheques 2 Debit")
 	assert.Equal(suite.T(), "Cheque payment [100002]", results[0]["Line description"], "Line description - Cheques 2 Debit")
 
@@ -300,7 +344,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions_reversals() {
 	assert.Equal(suite.T(), "=\"0000000\"", results[1]["Objective"], "Objective - Cheques 2 Credit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[1]["Analysis"], "Analysis - Cheques 2 Credit")
 	assert.Equal(suite.T(), "=\"0000\"", results[1]["Intercompany"], "Intercompany - Cheques 2 Credit")
-	assert.Equal(suite.T(), "=\"00000\"", results[1]["Spare"], "Spare - Cheques 2 Credit") // 2
+	assert.Equal(suite.T(), "=\"00000\"", results[1]["Spare"], "Spare - Cheques 2 Credit")
 	assert.Equal(suite.T(), "", results[1]["Debit"], "Debit - Cheques 2 Credit")
 	assert.Equal(suite.T(), "235.00", results[1]["Credit"], "Credit - Cheques 2 Credit") // applied to debt
 	assert.Equal(suite.T(), "Cheque payment [100002]", results[1]["Line description"], "Line description - Cheques 2 Credit")
@@ -311,7 +355,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions_reversals() {
 	assert.Equal(suite.T(), "=\"0000000\"", results[2]["Objective"], "Objective - Cheques 2 Overpayment")
 	assert.Equal(suite.T(), "=\"00000000\"", results[2]["Analysis"], "Analysis - Cheques 2 Overpayment")
 	assert.Equal(suite.T(), "=\"0000\"", results[2]["Intercompany"], "Intercompany - Cheques 2 Overpayment")
-	assert.Equal(suite.T(), "=\"00000\"", results[2]["Spare"], "Spare - Cheques 2 Overpayment") // 3
+	assert.Equal(suite.T(), "=\"00000\"", results[2]["Spare"], "Spare - Cheques 2 Overpayment")
 	assert.Equal(suite.T(), "", results[2]["Debit"], "Debit - Cheques 2 Overpayment")
 	assert.Equal(suite.T(), "15.00", results[2]["Credit"], "Credit - Cheques 2 Overpayment") // to CCB
 	assert.Equal(suite.T(), "Cheque payment [100002]", results[2]["Line description"], "Line description - Cheques 2 Overpayment")
@@ -322,7 +366,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions_reversals() {
 	assert.Equal(suite.T(), "=\"0000000\"", results[3]["Objective"], "Objective - Cheques 2 Reversal Debit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[3]["Analysis"], "Analysis - Cheques 2 Reversal Debit")
 	assert.Equal(suite.T(), "=\"0000\"", results[3]["Intercompany"], "Intercompany - Cheques 2 Reversal Debit")
-	assert.Equal(suite.T(), "=\"000000\"", results[3]["Spare"], "Spare - Cheques 2 Reversal Debit") // 4
+	assert.Equal(suite.T(), "=\"000000\"", results[3]["Spare"], "Spare - Cheques 2 Reversal Debit")
 	assert.Equal(suite.T(), "", results[3]["Debit"], "Debit - Cheques 2 Reversal Debit")
 	assert.Equal(suite.T(), "250.00", results[3]["Credit"], "Credit - Cheques 2 Reversal Debit") // reversal of original payment
 	assert.Equal(suite.T(), "Cheque payment [100002]", results[3]["Line description"], "Line description - Cheques 2 Reversal Debit")
@@ -333,8 +377,8 @@ func (suite *IntegrationSuite) Test_receipt_transactions_reversals() {
 	assert.Equal(suite.T(), "=\"0000000\"", results[4]["Objective"], "Objective - Cheques 2 Reversal Credit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[4]["Analysis"], "Analysis - Cheques 2 Reversal Credit")
 	assert.Equal(suite.T(), "=\"0000\"", results[4]["Intercompany"], "Intercompany - Cheques 2 Reversal Credit")
-	assert.Equal(suite.T(), "=\"00000\"", results[4]["Spare"], "Spare - Cheques 2 Reversal Credit") // 5
-	assert.Equal(suite.T(), "120.00", results[4]["Debit"], "Debit - Cheques 2 Reversal Credit")     // reversal of original payment applied to invoice
+	assert.Equal(suite.T(), "=\"00000\"", results[4]["Spare"], "Spare - Cheques 2 Reversal Credit")
+	assert.Equal(suite.T(), "120.00", results[4]["Debit"], "Debit - Cheques 2 Reversal Credit") // reversal of original payment applied to invoice
 	assert.Equal(suite.T(), "", results[4]["Credit"], "Credit - Cheques 2 Reversal Credit")
 	assert.Equal(suite.T(), "Cheque payment [100002]", results[4]["Line description"], "Line description - Cheques 2 Reversal Credit")
 
@@ -344,8 +388,8 @@ func (suite *IntegrationSuite) Test_receipt_transactions_reversals() {
 	assert.Equal(suite.T(), "=\"0000000\"", results[5]["Objective"], "Objective - Cheques 2 Reversal Overpayment")
 	assert.Equal(suite.T(), "=\"00000000\"", results[5]["Analysis"], "Analysis - Cheques 2 Reversal Overpayment")
 	assert.Equal(suite.T(), "=\"0000\"", results[5]["Intercompany"], "Intercompany - Cheques 2 Reversal Overpayment")
-	assert.Equal(suite.T(), "=\"00000\"", results[5]["Spare"], "Spare - Cheques 2 Reversal Overpayment") // 6
-	assert.Equal(suite.T(), "130.00", results[5]["Debit"], "Debit - Cheques 2 Reversal Overpayment")     // reversal of original payment from credit
+	assert.Equal(suite.T(), "=\"00000\"", results[5]["Spare"], "Spare - Cheques 2 Reversal Overpayment")
+	assert.Equal(suite.T(), "130.00", results[5]["Debit"], "Debit - Cheques 2 Reversal Overpayment") // reversal of original payment from credit
 	assert.Equal(suite.T(), "", results[5]["Credit"], "Credit - Cheques 2 Reversal Overpayment")
 	assert.Equal(suite.T(), "Cheque payment [100002]", results[5]["Line description"], "Line description - Cheques 2 Reversal Overpayment")
 
@@ -356,8 +400,8 @@ func (suite *IntegrationSuite) Test_receipt_transactions_reversals() {
 	assert.Equal(suite.T(), "=\"0000000\"", results[6]["Objective"], "Objective - Cheques 1 Debit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[6]["Analysis"], "Analysis - Cheques 1 Debit")
 	assert.Equal(suite.T(), "=\"0000\"", results[6]["Intercompany"], "Intercompany - Cheques 1 Debit")
-	assert.Equal(suite.T(), "=\"000000\"", results[6]["Spare"], "Spare - Cheques 1 Debit") // 1
-	assert.Equal(suite.T(), "500.00", results[6]["Debit"], "Debit - Cheques 1 Debit")      // original payment of 250.00 + applied reversal of 250.00
+	assert.Equal(suite.T(), "=\"000000\"", results[6]["Spare"], "Spare - Cheques 1 Debit")
+	assert.Equal(suite.T(), "500.00", results[6]["Debit"], "Debit - Cheques 1 Debit") // original payment of 250.00 + applied reversal of 250.00
 	assert.Equal(suite.T(), "", results[6]["Credit"], "Credit - Cheques 1 Debit")
 	assert.Equal(suite.T(), "Cheque payment [100001]", results[6]["Line description"], "Line description - Cheques 1 Debit")
 
@@ -367,7 +411,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions_reversals() {
 	assert.Equal(suite.T(), "=\"0000000\"", results[7]["Objective"], "Objective - Cheques 1 Credit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[7]["Analysis"], "Analysis - Cheques 1 Credit")
 	assert.Equal(suite.T(), "=\"0000\"", results[7]["Intercompany"], "Intercompany - Cheques 1 Credit")
-	assert.Equal(suite.T(), "=\"00000\"", results[7]["Spare"], "Spare - Cheques 1 Credit") // 2
+	assert.Equal(suite.T(), "=\"00000\"", results[7]["Spare"], "Spare - Cheques 1 Credit")
 	assert.Equal(suite.T(), "", results[7]["Debit"], "Debit - Cheques 1 Credit")
 	assert.Equal(suite.T(), "355.00", results[7]["Credit"], "Credit - Cheques 1 Credit") // 120.00 + 235.00 on debt
 	assert.Equal(suite.T(), "Cheque payment [100001]", results[7]["Line description"], "Line description - Cheques 1 Credit")
@@ -378,7 +422,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions_reversals() {
 	assert.Equal(suite.T(), "=\"0000000\"", results[8]["Objective"], "Objective - Cheques 1 Overpayment")
 	assert.Equal(suite.T(), "=\"00000000\"", results[8]["Analysis"], "Analysis - Cheques 1 Overpayment")
 	assert.Equal(suite.T(), "=\"0000\"", results[8]["Intercompany"], "Intercompany - Cheques 1 Overpayment")
-	assert.Equal(suite.T(), "=\"00000\"", results[8]["Spare"], "Spare - Cheques 1 Overpayment") // 3
+	assert.Equal(suite.T(), "=\"00000\"", results[8]["Spare"], "Spare - Cheques 1 Overpayment")
 	assert.Equal(suite.T(), "", results[8]["Debit"], "Debit - Cheques 1 Overpayment")
 	assert.Equal(suite.T(), "145.00", results[8]["Credit"], "Credit - Cheques 1 Overpayment") // 130 + 15 to CCB
 	assert.Equal(suite.T(), "Cheque payment [100001]", results[8]["Line description"], "Line description - Cheques 1 Overpayment")
@@ -389,7 +433,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions_reversals() {
 	assert.Equal(suite.T(), "=\"0000000\"", results[9]["Objective"], "Objective - Cheques 1 Reversal Debit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[9]["Analysis"], "Analysis - Cheques 1 Reversal Debit")
 	assert.Equal(suite.T(), "=\"0000\"", results[9]["Intercompany"], "Intercompany - Cheques 1 Reversal Debit")
-	assert.Equal(suite.T(), "=\"000000\"", results[9]["Spare"], "Spare - Cheques 1 Reversal Debit") // 4
+	assert.Equal(suite.T(), "=\"000000\"", results[9]["Spare"], "Spare - Cheques 1 Reversal Debit")
 	assert.Equal(suite.T(), "", results[9]["Debit"], "Debit - Cheques 1 Reversal Debit")
 	assert.Equal(suite.T(), "250.00", results[9]["Credit"], "Credit - Cheques 1 Reversal Debit") // reversal of original payment
 	assert.Equal(suite.T(), "Cheque payment [100001]", results[9]["Line description"], "Line description - Cheques 1 Reversal Debit")
@@ -400,20 +444,52 @@ func (suite *IntegrationSuite) Test_receipt_transactions_reversals() {
 	assert.Equal(suite.T(), "=\"0000000\"", results[10]["Objective"], "Objective - Cheques 1 Reversal Credit")
 	assert.Equal(suite.T(), "=\"00000000\"", results[10]["Analysis"], "Analysis - Cheques 1 Reversal Credit")
 	assert.Equal(suite.T(), "=\"0000\"", results[10]["Intercompany"], "Intercompany - Cheques 1 Reversal Credit")
-	assert.Equal(suite.T(), "=\"00000\"", results[10]["Spare"], "Spare - Cheques 1 Reversal Credit") // 5
-	assert.Equal(suite.T(), "120.00", results[10]["Debit"], "Debit - Cheques 1 Reversal Credit")     // reversal of original payment
+	assert.Equal(suite.T(), "=\"00000\"", results[10]["Spare"], "Spare - Cheques 1 Reversal Credit")
+	assert.Equal(suite.T(), "120.00", results[10]["Debit"], "Debit - Cheques 1 Reversal Credit") // reversal of original payment
 	assert.Equal(suite.T(), "", results[10]["Credit"], "Credit - Cheques 1 Reversal Credit")
 	assert.Equal(suite.T(), "Cheque payment [100001]", results[10]["Line description"], "Line description - Cheques 1 Reversal Credit")
 
-	// plus 1 that shouldn't be here
 	assert.Equal(suite.T(), "=\"0470\"", results[11]["Entity"], "Entity - Cheques 1 Reversal Overpayment")
 	assert.Equal(suite.T(), "99999999", results[11]["Cost Centre"], "Cost Centre - Cheques 1 Reversal Overpayment")
 	assert.Equal(suite.T(), "1816102005", results[11]["Account"], "Account - Cheques 1 Reversal Overpayment")
 	assert.Equal(suite.T(), "=\"0000000\"", results[11]["Objective"], "Objective - Cheques 1 Reversal Overpayment")
 	assert.Equal(suite.T(), "=\"00000000\"", results[11]["Analysis"], "Analysis - Cheques 1 Reversal Overpayment")
 	assert.Equal(suite.T(), "=\"0000\"", results[11]["Intercompany"], "Intercompany - Cheques 1 Reversal Overpayment")
-	assert.Equal(suite.T(), "=\"00000\"", results[11]["Spare"], "Spare - Cheques 1 Reversal Overpayment") // 6?
+	assert.Equal(suite.T(), "=\"00000\"", results[11]["Spare"], "Spare - Cheques 1 Reversal Overpayment")
 	assert.Equal(suite.T(), "130.00", results[11]["Debit"], "Debit - Cheques 1 Reversal Overpayment")
 	assert.Equal(suite.T(), "", results[11]["Credit"], "Credit - Cheques 1 Reversal Overpayment")
 	assert.Equal(suite.T(), "Cheque payment [100001]", results[11]["Line description"], "Line description - Cheques 1 Reversal Overpayment")
+	//1
+	assert.Equal(suite.T(), "=\"0470\"", results[12]["Entity"], "Entity - Refund Reversal Debit")
+	assert.Equal(suite.T(), "99999999", results[12]["Cost Centre"], "Cost Centre - Refund Reversal Debit")
+	assert.Equal(suite.T(), "1841102050", results[12]["Account"], "Account - Refund Reversal Debit")
+	assert.Equal(suite.T(), "=\"0000000\"", results[12]["Objective"], "Objective - Refund Reversal Debit")
+	assert.Equal(suite.T(), "=\"00000000\"", results[12]["Analysis"], "Analysis - Refund Reversal Debit")
+	assert.Equal(suite.T(), "=\"0000\"", results[12]["Intercompany"], "Intercompany - Refund Reversal Debit")
+	assert.Equal(suite.T(), "=\"000000\"", results[12]["Spare"], "Spare - Refund Reversal Debit")
+	assert.Equal(suite.T(), "140.00", results[12]["Debit"], "Debit - Refund Reversal Debit") // the other way round for refund reversals as these are effectively reversing a reversal
+	assert.Equal(suite.T(), "", results[12]["Credit"], "Credit - Refund Reversal Debit")
+	assert.Equal(suite.T(), fmt.Sprintf("Refund [%s]", yesterday.Date().Format("02/01/2006")), results[12]["Line description"], "Line description - Refund Reversal Debit")
+	//2
+	assert.Equal(suite.T(), "=\"0470\"", results[13]["Entity"], "Entity - Refund Reversal Credit")
+	assert.Equal(suite.T(), "99999999", results[13]["Cost Centre"], "Cost Centre - Refund Reversal Credit")
+	assert.Equal(suite.T(), "1816102003", results[13]["Account"], "Account - Refund Reversal Credit")
+	assert.Equal(suite.T(), "=\"0000000\"", results[13]["Objective"], "Objective - Refund Reversal Credit")
+	assert.Equal(suite.T(), "=\"00000000\"", results[13]["Analysis"], "Analysis - Refund Reversal Credit")
+	assert.Equal(suite.T(), "=\"0000\"", results[13]["Intercompany"], "Intercompany - Refund Reversal Credit")
+	assert.Equal(suite.T(), "=\"00000\"", results[13]["Spare"], "Spare - Refund Reversal Credit")
+	assert.Equal(suite.T(), "", results[13]["Debit"], "Debit - Refund Reversal Credit")
+	assert.Equal(suite.T(), "100.00", results[13]["Credit"], "Credit - Refund Reversal Credit") // the other way round for refund reversals as these are effectively reversing a reversal
+	assert.Equal(suite.T(), fmt.Sprintf("Refund [%s]", yesterday.Date().Format("02/01/2006")), results[13]["Line description"], "Line description - Refund Reversal Credit")
+	//3
+	assert.Equal(suite.T(), "=\"0470\"", results[14]["Entity"], "Entity - Refund Reversal on invoice")
+	assert.Equal(suite.T(), "99999999", results[14]["Cost Centre"], "Cost Centre - Refund Reversal on invoice")
+	assert.Equal(suite.T(), "1816102005", results[14]["Account"], "Account - Refund Reversal on invoice")
+	assert.Equal(suite.T(), "=\"0000000\"", results[14]["Objective"], "Objective - Refund Reversal on invoice")
+	assert.Equal(suite.T(), "=\"00000000\"", results[14]["Analysis"], "Analysis - Refund Reversal on invoice")
+	assert.Equal(suite.T(), "=\"0000\"", results[14]["Intercompany"], "Intercompany - Refund Reversal on invoice")
+	assert.Equal(suite.T(), "=\"00000\"", results[14]["Spare"], "Spare - Refund Reversal on invoice")
+	assert.Equal(suite.T(), "", results[14]["Debit"], "Debit - Refund Reversal on invoice")
+	assert.Equal(suite.T(), "40.00", results[14]["Credit"], "Credit - Refund Reversal on invoice")
+	assert.Equal(suite.T(), fmt.Sprintf("Refund [%s]", yesterday.Date().Format("02/01/2006")), results[14]["Line description"], "Line description - Refund Reversal on invoice")
 }

@@ -101,7 +101,7 @@ func (s *Server) processUploadFile(ctx context.Context, upload Upload) {
 			}
 			payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, perr, failedLines)
 		} else if upload.UploadType.IsReversal() {
-			failedLines, perr := s.service.ProcessPaymentReversals(ctx, records, upload.UploadType, upload.UploadDate)
+			failedLines, perr := s.service.ProcessPaymentReversals(ctx, records, upload.UploadType)
 			if perr != nil {
 				logger.Error("unable to process payment reversals due to error", "err", perr)
 			} else if len(failedLines) > 0 {
@@ -114,6 +114,14 @@ func (s *Server) processUploadFile(ctx context.Context, upload Upload) {
 				logger.Error("unable to process fulfilled refunds due to error", "err", perr)
 			} else if len(failedLines) > 0 {
 				logger.Error(fmt.Sprintf("unable to process fulfilled refunds due to %d failed lines", len(failedLines)))
+			}
+			payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, err, failedLines)
+		} else if upload.UploadType.IsRefundReversal() {
+			failedLines, perr := s.service.ProcessRefundReversals(ctx, records, upload.UploadDate)
+			if perr != nil {
+				logger.Error("unable to process reverse refunds due to error", "err", perr)
+			} else if len(failedLines) > 0 {
+				logger.Error(fmt.Sprintf("unable to process reverse refunds due to %d failed lines", len(failedLines)))
 			}
 			payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, err, failedLines)
 		} else {
@@ -163,6 +171,8 @@ func formatFailedLines(failedLines map[int]string) []string {
 			errorMessage = "This payment has already been reversed"
 		case validation.UploadErrorRefundNotFound:
 			errorMessage = "The refund could not be found - either the data does not match or the refund has been cancelled"
+		case validation.UploadErrorRefundForReversalNotFound:
+			errorMessage = "The refund to reverse could not be found - either the data does not match or the refund has not been fulfilled"
 		case validation.UploadErrorMaximumDebt:
 			errorMessage = "Payment could not be reversed - maximum invoice debt exceeded"
 		case validation.UploadErrorDuplicatePayment:

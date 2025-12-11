@@ -19,13 +19,14 @@ type Service interface {
 	AddFeeReduction(ctx context.Context, clientId int32, reduction shared.AddFeeReduction) error
 	ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, details shared.PaymentDetails) (int32, error)
 	ProcessReversalUploadLine(ctx context.Context, tx *store.Tx, details shared.ReversalDetails) error
-	ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType, uploadDate shared.Date) (map[int]string, error)
+	ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType) (map[int]string, error)
 	CancelFeeReduction(ctx context.Context, id int32, cancelledFeeReduction shared.CancelFeeReduction) error
 	AddRefund(ctx context.Context, clientId int32, refund shared.AddRefund) error
 	UpdateRefundDecision(ctx context.Context, clientId int32, refundId int32, status shared.RefundStatus) error
 	PostReportActions(ctx context.Context, reportType shared.ReportRequest)
 	BeginStoreTx(ctx context.Context) (*store.Tx, error)
 	ProcessFulfilledRefundsLine(ctx context.Context, tx *store.Tx, refundID int32, refund shared.FulfilledRefundDetails) error
+	ProcessRefundReversals(ctx context.Context, records [][]string, date shared.Date) (map[int]string, error)
 }
 
 // Seeder contains a test database connection pool and HTTP server for API calls
