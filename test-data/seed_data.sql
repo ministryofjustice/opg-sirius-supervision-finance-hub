@@ -183,6 +183,13 @@ INSERT INTO ledger_allocation VALUES (21, 17, 22, '2025-10-08T08:36:40+00:00', 4
 INSERT INTO finance_client VALUES (29001, 29, 'allpaye2e', 'DEMANDED', null, '29292900');
 INSERT INTO invoice VALUES (23, 29, 29001, 'AD', 'AD292929/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-05-11T12:01:59+00:00', 2);
 
+-- refunds e2e
+INSERT INTO finance_client VALUES (30001, 30, 'refundse2e', 'DEMANDED', null, '30303000');
+INSERT INTO invoice VALUES (24, 30, 30001, 'AD', 'AD303030/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-05-11T12:01:59+00:00', 2);
+INSERT INTO ledger VALUES (18, 'refund-e2e-credit', '2024-06-11T08:36:40+00:00', '', 15000, '', 'CARD PAYMENT', 'CONFIRMED', 30001, null, null, '2024-06-11', '2024-06-12', 1, '', '', 1, '2024-07-05', 2);
+INSERT INTO ledger_allocation VALUES (22, 18, 24, '2024-06-11T08:36:40+00:00', 15000, 'ALLOCATED', null, 'refund-e2e-credit', '2024-06-11', 2);
+INSERT INTO ledger_allocation VALUES (23, 18, 24, '2024-06-11T08:36:40+00:00', -5000, 'UNAPPLIED', null, 'refund-e2e-credit', '2024-06-11', 2);
+
 -- TEST CLIENT DATA: Add data for default client here
 
 -- UPDATE SEQUENCES

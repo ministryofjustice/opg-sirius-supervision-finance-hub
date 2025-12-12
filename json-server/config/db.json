@@ -595,6 +595,28 @@
       }
     },
     {
+      "id": 30,
+      "firstname": "Ruby",
+      "surname": "E2E",
+      "caseRecNumber": "29292900",
+      "addressLine1": "333 Fake Street",
+      "addressLine2": "",
+      "town": "Pueblo",
+      "postcode": "P1 1FF",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
       "id": 99,
       "firstname": "Nelly",
       "surname": "Nullman",
@@ -617,79 +639,188 @@
       }
     }
   ],
-  "notify": [],
-  "tasks": [
+  "notify": [
     {
-      "personId": 4,
-      "type": "FPIA",
-      "dueDate": "08/01/2026",
-      "assigneeId": 41,
-      "description": "Pending credit memo added to AD11111/19 requires manager approval",
+      "email_address": "test@example.com",
+      "template_id": "bade69e4-0eb1-4896-a709-bd8f8371a629",
+      "personalisation": {
+        "file_link": "http://localhost:8181/supervision/finance-admin/download?uid=eyJLZXkiOiJkZWJ0X0FwcHJvdmVkUmVmdW5kc18xMjoxMjoyMDI1LmNzdiIsIlZlcnNpb25JZCI6IkFac1NwSDRxTWx5emM2bTdfbWhRUUkxSm04OGd3Q2diIn0=",
+        "report_name": "Approved Refunds",
+        "requested_date": "2025-12-12",
+        "requested_date_time": "2025-12-12 12:58:48"
+      },
       "id": 1
     },
     {
-      "personId": 4,
-      "type": "FPIA",
-      "dueDate": "08/01/2026",
-      "assigneeId": 41,
-      "description": "Pending credit write off added to S203532/24 requires manager approval",
+      "email_address": "test@example.com",
+      "template_id": "bade69e4-0eb1-4896-a709-bd8f8371a629",
+      "personalisation": {
+        "file_link": "http://localhost:8181/supervision/finance-admin/download?uid=eyJLZXkiOiJkZWJ0X0FwcHJvdmVkUmVmdW5kc18xMjoxMjoyMDI1LmNzdiIsIlZlcnNpb25JZCI6IkFac1NwSDRybHdYdXdYS1JyaXdxQTM4VFZpbGxDRmpyIn0=",
+        "report_name": "Approved Refunds",
+        "requested_date": "2025-12-12",
+        "requested_date_time": "2025-12-12 13:00:47"
+      },
       "id": 2
     },
     {
-      "personId": 4,
-      "type": "FPIA",
-      "dueDate": "08/01/2026",
-      "assigneeId": 41,
-      "description": "Pending write off reversal added to AD03533/24 requires manager approval",
+      "email_address": "test@example.com",
+      "template_id": "bade69e4-0eb1-4896-a709-bd8f8371a629",
+      "personalisation": {
+        "file_link": "http://localhost:8181/supervision/finance-admin/download?uid=eyJLZXkiOiJkZWJ0X0FwcHJvdmVkUmVmdW5kc18xMjoxMjoyMDI1LmNzdiIsIlZlcnNpb25JZCI6IkFac1NwSDRzTU1GbkNGXzk1b0FYVDk4SVVISDhyZFIuIn0=",
+        "report_name": "Approved Refunds",
+        "requested_date": "2025-12-12",
+        "requested_date_time": "2025-12-12 13:01:21"
+      },
       "id": 3
     },
     {
-      "personId": 4,
-      "type": "FPIA",
-      "dueDate": "08/01/2026",
-      "assigneeId": 41,
-      "description": "Pending debit memo added to AD03532/24 requires manager approval",
+      "email_address": "test@example.com",
+      "template_id": "bade69e4-0eb1-4896-a709-bd8f8371a629",
+      "personalisation": {
+        "file_link": "http://localhost:8181/supervision/finance-admin/download?uid=eyJLZXkiOiJkZWJ0X0FwcHJvdmVkUmVmdW5kc18xMjoxMjoyMDI1LmNzdiIsIlZlcnNpb25JZCI6IkFac1M0a3NKb2FkZ01ITFVyZi42elZYOUZIal9PbDdzIn0=",
+        "report_name": "Approved Refunds",
+        "requested_date": "2025-12-12",
+        "requested_date_time": "2025-12-12 14:06:18"
+      },
       "id": 4
     },
     {
-      "personId": 4,
-      "type": "FPIA",
-      "dueDate": "08/01/2026",
-      "assigneeId": 41,
-      "description": "Pending fee reduction reversal added to AD03534/24 requires manager approval",
+      "email_address": "test@example.com",
+      "template_id": "bade69e4-0eb1-4896-a709-bd8f8371a629",
+      "personalisation": {
+        "file_link": "http://localhost:8181/supervision/finance-admin/download?uid=eyJLZXkiOiJkZWJ0X0FwcHJvdmVkUmVmdW5kc18xMjoxMjoyMDI1LmNzdiIsIlZlcnNpb25JZCI6IkFac1M0a3NLOUptVjVkdThZbFI2UVdSS2hfSWs2ZVdnIn0=",
+        "report_name": "Approved Refunds",
+        "requested_date": "2025-12-12",
+        "requested_date_time": "2025-12-12 14:08:21"
+      },
       "id": 5
     },
     {
-      "personId": 4,
-      "type": "FPIA",
-      "dueDate": "08/01/2026",
-      "assigneeId": 41,
-      "description": "Pending credit memo added to AD11111/19 requires manager approval",
+      "email_address": "test@example.com",
+      "template_id": "bade69e4-0eb1-4896-a709-bd8f8371a629",
+      "personalisation": {
+        "file_link": "http://localhost:8181/supervision/finance-admin/download?uid=eyJLZXkiOiJkZWJ0X0FwcHJvdmVkUmVmdW5kc18xMjoxMjoyMDI1LmNzdiIsIlZlcnNpb25JZCI6IkFac1M2TzkyOURJWjNyWHVGZVJ5MXI5REJTUVF1OTRCIn0=",
+        "report_name": "Approved Refunds",
+        "requested_date": "2025-12-12",
+        "requested_date_time": "2025-12-12 14:13:34"
+      },
       "id": 6
     },
     {
-      "personId": 4,
-      "type": "FPIA",
-      "dueDate": "08/01/2026",
-      "assigneeId": 41,
-      "description": "Pending credit write off added to S203532/24 requires manager approval",
+      "email_address": "test@test.com",
+      "template_id": "a8f9ab79-1489-4639-9e6c-cad1f079ebcf",
+      "personalisation": {
+        "failed_lines": [
+          "Line 1: The refund could not be found - either the data does not match or the refund has been cancelled"
+        ],
+        "upload_type": "Fulfilled refunds"
+      },
       "id": 7
     },
     {
-      "personId": 4,
-      "type": "FPIA",
-      "dueDate": "08/01/2026",
-      "assigneeId": 41,
-      "description": "Pending write off reversal added to AD03533/24 requires manager approval",
+      "email_address": "test@test.com",
+      "template_id": "a8f9ab79-1489-4639-9e6c-cad1f079ebcf",
+      "personalisation": {
+        "failed_lines": [
+          "Line 1: Unable to parse date - please use the format DD/MM/YYYY"
+        ],
+        "upload_type": "Reverse fulfilled refunds"
+      },
       "id": 8
     },
     {
-      "personId": 4,
-      "type": "FPIA",
-      "dueDate": "08/01/2026",
-      "assigneeId": 41,
-      "description": "Pending debit memo added to AD03532/24 requires manager approval",
+      "email_address": "test@example.com",
+      "template_id": "bade69e4-0eb1-4896-a709-bd8f8371a629",
+      "personalisation": {
+        "file_link": "http://localhost:8181/supervision/finance-admin/download?uid=eyJLZXkiOiJkZWJ0X0FwcHJvdmVkUmVmdW5kc18xMjoxMjoyMDI1LmNzdiIsIlZlcnNpb25JZCI6IkFac1M2elI0S2ZwemJnRC5qa3ZSWmR4R1BMak1LOGpkIn0=",
+        "report_name": "Approved Refunds",
+        "requested_date": "2025-12-12",
+        "requested_date_time": "2025-12-12 14:16:02"
+      },
       "id": 9
+    },
+    {
+      "email_address": "test@test.com",
+      "template_id": "a8f9ab79-1489-4639-9e6c-cad1f079ebcf",
+      "personalisation": {
+        "failed_lines": [
+          "Line 1: The refund could not be found - either the data does not match or the refund has been cancelled"
+        ],
+        "upload_type": "Fulfilled refunds"
+      },
+      "id": 10
+    },
+    {
+      "email_address": "test@test.com",
+      "template_id": "a8f9ab79-1489-4639-9e6c-cad1f079ebcf",
+      "personalisation": {
+        "failed_lines": [
+          "Line 1: Unable to parse date - please use the format DD/MM/YYYY"
+        ],
+        "upload_type": "Reverse fulfilled refunds"
+      },
+      "id": 11
+    },
+    {
+      "email_address": "test@example.com",
+      "template_id": "bade69e4-0eb1-4896-a709-bd8f8371a629",
+      "personalisation": {
+        "file_link": "http://localhost:8181/supervision/finance-admin/download?uid=eyJLZXkiOiJkZWJ0X0FwcHJvdmVkUmVmdW5kc18xMjoxMjoyMDI1LmNzdiIsIlZlcnNpb25JZCI6IkFac1M2elI1NkpNVHZPUHlvUXdiSk1PdnpTdktMODlGIn0=",
+        "report_name": "Approved Refunds",
+        "requested_date": "2025-12-12",
+        "requested_date_time": "2025-12-12 14:20:32"
+      },
+      "id": 12
+    },
+    {
+      "email_address": "test@test.com",
+      "template_id": "a8f9ab79-1489-4639-9e6c-cad1f079ebcf",
+      "personalisation": {
+        "failed_lines": [
+          "Line 1: The refund could not be found - either the data does not match or the refund has been cancelled"
+        ],
+        "upload_type": "Fulfilled refunds"
+      },
+      "id": 13
+    },
+    {
+      "email_address": "test@test.com",
+      "template_id": "a8f9ab79-1489-4639-9e6c-cad1f079ebcf",
+      "personalisation": {
+        "failed_lines": [
+          "Line 1: The refund could not be found - either the data does not match or the refund has been cancelled"
+        ],
+        "upload_type": "Fulfilled refunds"
+      },
+      "id": 14
+    },
+    {
+      "email_address": "test@example.com",
+      "template_id": "bade69e4-0eb1-4896-a709-bd8f8371a629",
+      "personalisation": {
+        "file_link": "http://localhost:8181/supervision/finance-admin/download?uid=eyJLZXkiOiJkZWJ0X0FwcHJvdmVkUmVmdW5kc18xMjoxMjoyMDI1LmNzdiIsIlZlcnNpb25JZCI6IkFac1MuUU1OYU9qSXhlblYzT0VuR0J4VWtkYkdhWmIyIn0=",
+        "report_name": "Approved Refunds",
+        "requested_date": "2025-12-12",
+        "requested_date_time": "2025-12-12 14:31:07"
+      },
+      "id": 15
+    },
+    {
+      "email_address": "test@test.com",
+      "template_id": "8c85cf6c-695f-493a-a25f-77b4fb5f6a8e",
+      "personalisation": {
+        "upload_type": "Fulfilled refunds"
+      },
+      "id": 16
+    },
+    {
+      "email_address": "test@test.com",
+      "template_id": "8c85cf6c-695f-493a-a25f-77b4fb5f6a8e",
+      "personalisation": {
+        "upload_type": "Reverse fulfilled refunds"
+      },
+      "id": 17
     }
-  ]
+  ],
+  "tasks": []
 }
