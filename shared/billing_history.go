@@ -137,9 +137,8 @@ type RefundEvent struct {
 }
 
 type DirectDebitEvent struct {
-	Amount         int    `json:"amount"`
-	CollectionDate Date   `json:"collection_date"`
-	Status         string `json:"status"`
+	Amount         int  `json:"amount"`
+	CollectionDate Date `json:"collection_date"`
 	BaseBillingEvent
 }
 

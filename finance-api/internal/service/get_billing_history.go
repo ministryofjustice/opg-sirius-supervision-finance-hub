@@ -469,10 +469,16 @@ func computeBillingHistory(history []historyHolder) []shared.BillingHistory {
 	// reverse order to allow for balance to be calculated
 	sort.Slice(history, func(i, j int) bool {
 		if history[i].billingHistory.Date.Time.Equal(history[j].billingHistory.Date.Time) {
+			// direct debit mandate created should always appear before the schedule creation
+			if history[i].billingHistory.Event.GetType() == shared.EventTypeDirectDebitCollectionScheduled {
+				return history[j].billingHistory.Event.GetType() != shared.EventTypeDirectDebitMandateCreated
+			}
+
 			// reapplies should apply after if they are the result of a transaction event
 			if _, ok := history[i].billingHistory.Event.(shared.TransactionEvent); ok {
 				return history[j].billingHistory.Event.GetType() == shared.EventTypeReappliedCredit
 			}
+
 			// transaction events and reapplies should apply after the event that causes them
 			return history[i].billingHistory.Event.GetType() != shared.EventTypeReappliedCredit
 		}

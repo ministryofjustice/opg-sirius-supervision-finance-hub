@@ -749,6 +749,26 @@ func Test_computeBillingHistory(t *testing.T) {
 			},
 			balanceAdjustment: 0,
 		},
+		{
+			billingHistory: shared.BillingHistory{
+				Date: shared.NewDate("1999-01-01"),
+				Event: shared.PaymentMethodChangedEvent{
+					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeDirectDebitMandateCreated},
+				},
+			},
+			balanceAdjustment: 0,
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				Date: shared.NewDate("1999-01-01"),
+				Event: shared.DirectDebitEvent{
+					Amount:           1234,
+					CollectionDate:   shared.NewDate("2023-01-01"),
+					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeDirectDebitCollectionScheduled},
+				},
+			},
+			balanceAdjustment: 0,
+		},
 	}
 
 	expected := []shared.BillingHistory{
@@ -798,6 +818,20 @@ func Test_computeBillingHistory(t *testing.T) {
 				BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeInvoiceAdjustmentApplied},
 			},
 			OutstandingBalance: 500,
+		},
+		{
+			Date: shared.NewDate("1999-01-01"),
+			Event: shared.DirectDebitEvent{
+				Amount:           1234,
+				CollectionDate:   shared.NewDate("2023-01-01"),
+				BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeDirectDebitCollectionScheduled},
+			},
+		},
+		{
+			Date: shared.NewDate("1999-01-01"),
+			Event: shared.PaymentMethodChangedEvent{
+				BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeDirectDebitMandateCreated},
+			},
 		},
 	}
 
