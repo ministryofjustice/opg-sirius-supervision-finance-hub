@@ -97,8 +97,8 @@ describe("Allpay end-to-end", () => {
             cy.contains(".govuk-list", "£100 reversed against AD292929/24");
         });
 
-        // the next two events may appear in any order, but in reality the scheduled event would be first, as payments
-        // are scheduled for at least 14 working days in the future
+        // the next three events may appear in any order, but in reality the scheduled event would be first, as a
+        // schedule cannot be created before a mandate, and payments are scheduled for at least 14 working days in the future
         cy.contains(".moj-timeline__item", "Direct Debit payment of £100 received").within(() => {
             cy.contains(".moj-timeline__byline", `by Colin Case`);
             cy.contains(".govuk-list", "£100 allocated to AD292929/24");
@@ -109,11 +109,9 @@ describe("Allpay end-to-end", () => {
             cy.contains(".govuk-list", "Direct debit payment for £100 scheduled for");
         });
 
-        cy.get(".moj-timeline__item").eq(4).within(() => {
-            cy.get(".moj-timeline__title").contains("Direct Debit Instruction created");
-            cy.get(".moj-timeline__byline").contains(`by Ian Admin`);
-            cy.contains("Payment method updated to Direct debit");
-        });
+        cy.get(".moj-timeline__title").contains("Direct Debit Instruction created");
+        cy.get(".moj-timeline__byline").contains(`by Ian Admin`);
+        cy.contains("Payment method updated to Direct debit");
     });
 });
 
