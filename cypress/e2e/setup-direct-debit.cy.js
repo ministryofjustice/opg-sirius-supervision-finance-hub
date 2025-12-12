@@ -1,5 +1,5 @@
-describe("Direct debit form", () => {
-    it("navigates to and redirects on success with banner", () => {
+describe("Setup Direct Debit", () => {
+    it("Successfully changes payment method to Direct Debit and creates first payment schedule", () => {
         cy.visit("/clients/22/invoices");
         cy.contains('[data-cy="payment-method"]', "Demanded");
         cy.contains(".govuk-button", "Set up direct debit").click();

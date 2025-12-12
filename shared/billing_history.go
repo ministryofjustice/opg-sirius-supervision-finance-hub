@@ -46,6 +46,10 @@ func (b *BillingHistory) UnmarshalJSON(data []byte) (err error) {
 		b.Event = new(ReappliedCredit)
 	case EventTypeRefundCreated, EventTypeRefundCancelled, EventTypeRefundFulfilled, EventTypeRefundStatusUpdated, EventTypeRefundProcessing, EventTypeRefundApproved:
 		b.Event = new(RefundEvent)
+	case EventTypeDirectDebitCollectionScheduled:
+		b.Event = new(DirectDebitEvent)
+	case EventTypeDirectDebitMandateCreated, EventTypeDirectDebitMandateCancelled:
+		b.Event = new(PaymentMethodChangedEvent)
 	default:
 		b.Event = new(UnknownEvent)
 	}
@@ -132,6 +136,16 @@ type RefundEvent struct {
 	BaseBillingEvent
 }
 
+type DirectDebitEvent struct {
+	Amount         int  `json:"amount"`
+	CollectionDate Date `json:"collection_date"`
+	BaseBillingEvent
+}
+
+type PaymentMethodChangedEvent struct {
+	BaseBillingEvent
+}
+
 type InvoiceAdjustmentApplied struct {
 	TransactionEvent
 }
@@ -167,25 +181,31 @@ const (
 	EventTypeRefundFulfilled
 	EventTypeRefundProcessing
 	EventTypeRefundStatusUpdated
+	EventTypeDirectDebitMandateCreated
+	EventTypeDirectDebitMandateCancelled
+	EventTypeDirectDebitCollectionScheduled
 )
 
 var eventTypeMap = map[string]BillingEventType{
-	"UNKNOWN":                     EventTypeUnknown,
-	"INVOICE_GENERATED":           EventTypeInvoiceGenerated,
-	"FEE_REDUCTION_AWARDED":       EventTypeFeeReductionAwarded,
-	"FEE_REDUCTION_CANCELLED":     EventTypeFeeReductionCancelled,
-	"FEE_REDUCTION_APPLIED":       EventTypeFeeReductionApplied,
-	"INVOICE_ADJUSTMENT_APPLIED":  EventTypeInvoiceAdjustmentApplied,
-	"INVOICE_ADJUSTMENT_PENDING":  EventTypeInvoiceAdjustmentPending,
-	"INVOICE_ADJUSTMENT_REJECTED": EventTypeInvoiceAdjustmentRejected,
-	"PAYMENT_PROCESSED":           EventTypePaymentProcessed,
-	"REAPPLIED_CREDIT":            EventTypeReappliedCredit,
-	"REFUND_APPROVED":             EventTypeRefundApproved,
-	"REFUND_CREATED":              EventTypeRefundCreated,
-	"REFUND_CANCELLED":            EventTypeRefundCancelled,
-	"REFUND_FULFILLED":            EventTypeRefundFulfilled,
-	"REFUND_PROCESSING":           EventTypeRefundProcessing,
-	"REFUND_STATUS_UPDATED":       EventTypeRefundStatusUpdated,
+	"UNKNOWN":                           EventTypeUnknown,
+	"INVOICE_GENERATED":                 EventTypeInvoiceGenerated,
+	"FEE_REDUCTION_AWARDED":             EventTypeFeeReductionAwarded,
+	"FEE_REDUCTION_CANCELLED":           EventTypeFeeReductionCancelled,
+	"FEE_REDUCTION_APPLIED":             EventTypeFeeReductionApplied,
+	"INVOICE_ADJUSTMENT_APPLIED":        EventTypeInvoiceAdjustmentApplied,
+	"INVOICE_ADJUSTMENT_PENDING":        EventTypeInvoiceAdjustmentPending,
+	"INVOICE_ADJUSTMENT_REJECTED":       EventTypeInvoiceAdjustmentRejected,
+	"PAYMENT_PROCESSED":                 EventTypePaymentProcessed,
+	"REAPPLIED_CREDIT":                  EventTypeReappliedCredit,
+	"REFUND_APPROVED":                   EventTypeRefundApproved,
+	"REFUND_CREATED":                    EventTypeRefundCreated,
+	"REFUND_CANCELLED":                  EventTypeRefundCancelled,
+	"REFUND_FULFILLED":                  EventTypeRefundFulfilled,
+	"REFUND_PROCESSING":                 EventTypeRefundProcessing,
+	"REFUND_STATUS_UPDATED":             EventTypeRefundStatusUpdated,
+	"DIRECT_DEBIT_CREATED":              EventTypeDirectDebitMandateCreated,
+	"DIRECT_DEBIT_CANCELLED":            EventTypeDirectDebitMandateCancelled,
+	"DIRECT_DEBIT_COLLECTION_SCHEDULED": EventTypeDirectDebitCollectionScheduled,
 }
 
 func (b BillingEventType) String() string {
@@ -220,6 +240,12 @@ func (b BillingEventType) String() string {
 		return "REFUND_PROCESSING"
 	case EventTypeRefundStatusUpdated:
 		return "REFUND_STATUS_UPDATED"
+	case EventTypeDirectDebitMandateCancelled:
+		return "DIRECT_DEBIT_CANCELLED"
+	case EventTypeDirectDebitMandateCreated:
+		return "DIRECT_DEBIT_CREATED"
+	case EventTypeDirectDebitCollectionScheduled:
+		return "DIRECT_DEBIT_COLLECTION_SCHEDULED"
 
 	default:
 		return "UNKNOWN"

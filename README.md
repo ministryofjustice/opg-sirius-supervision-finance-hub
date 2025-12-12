@@ -49,6 +49,7 @@ To generate migration files with `goose`, install it locally with `brew install 
 `goose -dir ./migrations create <name-of-migration> sql`
 
 Or copy the up and down files and increment them.
+Do a make down/ up to update the local database. 
 
 ## Adding seed data
 In general, look to keep tests self-contained by having them create (and clear) the data they require for testing. However,
