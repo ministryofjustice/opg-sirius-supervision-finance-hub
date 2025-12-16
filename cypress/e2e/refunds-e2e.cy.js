@@ -8,6 +8,8 @@ describe("Refunds E2E", () => {
     const mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
     const yyyy = today.getFullYear();
     const apiUrl = Cypress.env('FINANCE_API_URL') ?? 'http://localhost:8181';
+    const jsonServerUrl = Cypress.env('JSON_SERVER_URL') ?? 'http://localhost:3000';
+    const notifyUrl = `${jsonServerUrl}/v2/notifications/email`;
     const user = {
         id: 2,
         roles: ['Finance Reporting']
@@ -146,37 +148,34 @@ describe("Refunds E2E", () => {
     it("displays the refund events in the billing history", () => {
         cy.visit("/clients/30/billing-history");
 
-        cy.get(".moj-timeline__item").should('have.length', 8);
+        cy.get(".moj-timeline__item").should('have.length', 7);
 
         cy.get(".moj-timeline__item").eq(0).within(() => {
-            cy.get(".moj-timeline__title").contains("Refund reversal of £50 received");
-            // balance checks
+            cy.get(".moj-timeline__title").contains("Refund of £50 reversed");
+            cy.contains(".moj-timeline__date", "Outstanding balance: £0 Credit balance: £50");
             cy.contains("£50 unallocated");
         });
 
         cy.get(".moj-timeline__item").eq(1).within(() => {
-            cy.contains(".moj-timeline__title", "Refund of £50 created");
+            cy.contains(".moj-timeline__title", "Refund of £50 fulfilled");
+            cy.contains(".moj-timeline__date", "Outstanding balance: £0 Credit balance: £0");
             cy.contains(".govuk-list", "£50 refunded");
         });
 
         cy.get(".moj-timeline__item").eq(2).within(() => {
-            cy.contains(".moj-timeline__title", "Refund of £50 fulfilled");
-        });
-
-        cy.get(".moj-timeline__item").eq(3).within(() => {
             cy.contains(".moj-timeline__title", "Refund status of approved updated to processing");
             cy.contains(".moj-timeline__date", "Outstanding balance: £0 Credit balance: £50");
         });
 
-        cy.get(".moj-timeline__item").eq(4).within(() => {
+        cy.get(".moj-timeline__item").eq(3).within(() => {
             cy.contains(".moj-timeline__title", "Refund status of pending updated to approved");
             cy.contains(".moj-timeline__date", "Outstanding balance: £0 Credit balance: £50");
         });
 
-        cy.get(".moj-timeline__item").eq(5).within(() => {
+        cy.get(".moj-timeline__item").eq(4).within(() => {
             cy.contains(".moj-timeline__title", "Pending refund of £50 added");
             cy.contains(".moj-timeline__date", "Outstanding balance: £0 Credit balance: £50");
-            cy.contains(".govuk-list", "Notes: This refund is needed for reasons");
+            cy.contains(".moj-timeline__description", "Notes: This refund is needed for reasons");
         });
     });
 });

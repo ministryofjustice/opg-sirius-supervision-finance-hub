@@ -111,8 +111,7 @@ func processRejectedAdjustments(adjustments []store.GetRejectedInvoiceAdjustment
 		}
 
 		history = append(history, historyHolder{
-			billingHistory:    bh,
-			balanceAdjustment: 0,
+			billingHistory: bh,
 		})
 	}
 
@@ -143,8 +142,7 @@ func processPendingAdjustments(adjustments []store.GetPendingInvoiceAdjustmentsR
 		}
 
 		history = append(history, historyHolder{
-			billingHistory:    bh,
-			balanceAdjustment: 0,
+			billingHistory: bh,
 		})
 	}
 
@@ -182,8 +180,6 @@ func invoiceEvents(invoices []store.GetGeneratedInvoicesRow, clientID int32) []h
 func getRefundEventTypeAndDate(refund store.GetRefundsForBillingHistoryRow) (shared.BillingEventType, time.Time) {
 	if refund.CancelledAt.Valid {
 		return shared.EventTypeRefundCancelled, refund.CancelledAt.Time
-	} else if refund.FulfilledAt.Valid {
-		return shared.EventTypeRefundFulfilled, refund.FulfilledAt.Time
 	} else if refund.Decision == "REJECTED" {
 		return shared.EventTypeRefundStatusUpdated, refund.DecisionAt.Time
 	} else if refund.ProcessedAt.Valid {
@@ -221,8 +217,7 @@ func makeRefundEvent(refund store.GetRefundsForBillingHistoryRow, user int32, ev
 	}
 	//never change balance as it will double count due to the ledger billing history event
 	history = append(history, historyHolder{
-		billingHistory:    bh,
-		balanceAdjustment: 0,
+		billingHistory: bh,
 	})
 	return history
 }
@@ -236,7 +231,7 @@ func processRefundEvents(refunds []store.GetRefundsForBillingHistoryRow, clientI
 			user := getUserForEventType(re, eventType)
 			history = makeRefundEvent(re, user, eventType, date, clientID, history)
 
-			if eventType == shared.EventTypeRefundFulfilled || eventType == shared.EventTypeRefundCancelled {
+			if eventType == shared.EventTypeRefundCancelled {
 				//	ensure there is a second timeline event for the approved and processing events
 				if re.ProcessedAt.Valid {
 					history = makeRefundEvent(re, re.DecisionBy.Int32, shared.EventTypeRefundProcessing, re.ProcessedAt.Time, clientID, history)
@@ -270,8 +265,7 @@ func processDirectDebitEvents(directDebitEvents []store.GetDirectDebitPaymentsFo
 
 		// balance is only adjusted by ledgers, not direct debit events
 		history = append(history, historyHolder{
-			billingHistory:    bh,
-			balanceAdjustment: 0,
+			billingHistory: bh,
 		})
 	}
 	return history
@@ -294,8 +288,7 @@ func processFeeReductionEvents(feEvents []store.GetFeeReductionEventsRow) []hist
 				},
 			}
 			history = append(history, historyHolder{
-				billingHistory:    bh,
-				balanceAdjustment: 0,
+				billingHistory: bh,
 			})
 		}
 		bh = shared.BillingHistory{
@@ -313,8 +306,7 @@ func processFeeReductionEvents(feEvents []store.GetFeeReductionEventsRow) []hist
 			},
 		}
 		history = append(history, historyHolder{
-			billingHistory:    bh,
-			balanceAdjustment: 0,
+			billingHistory: bh,
 		})
 	}
 	return history
@@ -343,11 +335,18 @@ func processLedgerAllocations(allocations []store.GetLedgerAllocationsForClientR
 					Status: allocation.Status,
 				},
 			)
-			if event.Type == shared.EventTypePaymentProcessed {
-				event.Amount = calculateTotalAmountForPaymentEvents(event)
+			if !(event.Type == shared.EventTypePaymentProcessed || event.Type == shared.EventTypeRefundProcessed) {
+				event.Amount += int(math.Abs(float64(allocation.AllocationAmount)))
 			}
 			lh.billingHistory.Event = event
 		} else {
+			lh = &historyHolder{
+				billingHistory: shared.BillingHistory{
+					User: int(allocation.CreatedBy.Int32),
+					Date: shared.Date{Time: allocation.LedgerDatetime.Time},
+				},
+			}
+
 			event = shared.TransactionEvent{
 				ClientId:        int(clientID),
 				TransactionType: shared.ParseTransactionType(allocation.Type),
@@ -361,6 +360,7 @@ func processLedgerAllocations(allocations []store.GetLedgerAllocationsForClientR
 						Status: allocation.Status,
 					},
 				},
+				Amount:           int(allocation.LedgerAmount),
 				BaseBillingEvent: shared.BaseBillingEvent{},
 			}
 			switch {
@@ -380,42 +380,27 @@ func processLedgerAllocations(allocations []store.GetLedgerAllocationsForClientR
 				event.BaseBillingEvent = shared.BaseBillingEvent{
 					Type: shared.EventTypePaymentProcessed,
 				}
+				lh.billingHistory.Date = shared.Date{Time: allocation.CreatedAt.Time}
+			case event.TransactionType == shared.TransactionTypeRefund:
+				event.BaseBillingEvent = shared.BaseBillingEvent{
+					Type: shared.EventTypeRefundProcessed,
+				}
+				lh.billingHistory.Date = shared.Date{Time: allocation.CreatedAt.Time}
 			default:
 				event.BaseBillingEvent = shared.BaseBillingEvent{
 					Type: shared.EventTypeUnknown,
 				}
 			}
 
-			// the allocated amounts should equal the total transaction for the event
-			if allocation.Status != "UNAPPLIED" {
-				event.Amount += int(allocation.AllocationAmount)
-			} else if event.TransactionType.IsPayment() {
-				event.Amount -= int(allocation.AllocationAmount)
-			}
-
-			lh = &historyHolder{
-				billingHistory: shared.BillingHistory{
-					User:  int(allocation.CreatedBy.Int32),
-					Date:  shared.Date{Time: allocation.LedgerDatetime.Time},
-					Event: event,
-				},
-			}
-
-			if event.TransactionType.IsPayment() {
-				lh.billingHistory.Date = shared.Date{Time: allocation.CreatedAt.Time}
-			}
+			lh.billingHistory.Event = event
 		}
 
-		switch allocation.Status {
-		case "ALLOCATED":
+		// receipt transactions not applied to an invoice only affect credit
+		if !(event.TransactionType.IsReceiptTransaction() && !allocation.InvoiceID.Valid) {
 			lh.balanceAdjustment -= int(allocation.AllocationAmount)
-		case "UNAPPLIED":
-			if !event.TransactionType.IsPayment() {
-				lh.balanceAdjustment -= int(allocation.AllocationAmount)
-			}
-			lh.creditAdjustment -= int(allocation.AllocationAmount)
-		case "REAPPLIED":
-			lh.balanceAdjustment -= int(allocation.AllocationAmount)
+		}
+
+		if allocation.Status == "UNAPPLIED" || allocation.Status == "REAPPLIED" {
 			lh.creditAdjustment -= int(allocation.AllocationAmount)
 		}
 
@@ -449,20 +434,11 @@ func processPaymentMethodEvents(paymentMethods []store.GetPaymentMethodsForBilli
 			},
 		}
 		history = append(history, historyHolder{
-			billingHistory:    bh,
-			balanceAdjustment: 0,
+			billingHistory: bh,
 		})
 	}
 
 	return history
-}
-
-func calculateTotalAmountForPaymentEvents(events shared.TransactionEvent) int {
-	amount := 0
-	for _, breakdownAmount := range events.Breakdown {
-		amount += breakdownAmount.Amount
-	}
-	return amount
 }
 
 func computeBillingHistory(history []historyHolder) []shared.BillingHistory {
