@@ -128,12 +128,20 @@ func translate(transactionType string, status string, amount int) string {
 
 	parsedTransactionType := shared.ParseTransactionType(transactionType)
 
-	if parsedTransactionType != shared.TransactionTypeUnknown {
-		if (amount < 0 && !parsedTransactionType.IsReversalType()) || // don't need to rename reversal types
-			parsedTransactionType == shared.TransactionTypeRefund { // refund transactions applied to invoices will always be reversals
-			return fmt.Sprintf("%s reversal", parsedTransactionType.String())
+	if parsedTransactionType == shared.TransactionTypeUnknown {
+		caser := cases.Title(language.English)
+		words := strings.Fields(transactionType)
+		for i, word := range words {
+			if strings.ToUpper(word) != word {
+				words[i] = caser.String(word)
+			}
 		}
-		return parsedTransactionType.String()
+		return strings.Join(words, " ")
+	}
+
+	if (amount < 0 && parsedTransactionType.IsPayment()) || // don't need to rename reversal types
+		parsedTransactionType == shared.TransactionTypeRefund { // refund transactions applied to invoices will always be reversals
+		return fmt.Sprintf("%s reversal", parsedTransactionType.String())
 	}
 
 	switch status {
@@ -141,14 +149,7 @@ func translate(transactionType string, status string, amount int) string {
 		return "Unapplied Payment"
 	case "REAPPLIED":
 		return "Reapplied Payment"
+	default:
+		return parsedTransactionType.String()
 	}
-
-	caser := cases.Title(language.English)
-	words := strings.Fields(transactionType)
-	for i, word := range words {
-		if strings.ToUpper(word) != word {
-			words[i] = caser.String(word)
-		}
-	}
-	return strings.Join(words, " ")
 }
