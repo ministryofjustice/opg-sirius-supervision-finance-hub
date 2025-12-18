@@ -27,12 +27,38 @@ defaults:
     shell: bash
 
 jobs:
+  identify:
+    name: Identify version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: "0"
+      - name: Define commit SHA and branch
+        id: commit_branch
+        run: |
+          if [ "${{ github.head_ref }}" == "" ]; then
+              echo "COMMIT=${{github.sha}}" >> $GITHUB_OUTPUT
+              echo "BRANCH=main" >> $GITHUB_OUTPUT
+          else
+              echo "COMMIT=${{github.event.pull_request.head.sha}}" >> $GITHUB_OUTPUT
+              echo "BRANCH=${{github.head_ref}}" >> $GITHUB_OUTPUT
+          fi
+    outputs:
+      commit: ${{ steps.commit_branch.outputs.COMMIT }}
+      branch: ${{ steps.commit_branch.outputs.BRANCH }}
+
+  create-tag:
+    name: Create Tags
+    uses: ./.github/workflows/create-tags.yml
+
   test:
     name: Unit/Integration Tests
+    needs: ['identify', 'create-tag']
     runs-on: ubuntu-latest
 
     steps:
-      - name: Set up Go 1.24.0
+      - name: Set up Go
         uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
         with:
           go-version: 1.25.5
@@ -41,27 +67,19 @@ jobs:
       - name: Check out code
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
-      - name: Install Pact FFI library
-        run: |
-          go install github.com/pact-foundation/pact-go/v2@latest
-          sudo mkdir -p /usr/local/lib
-          pact-go -l DEBUG install
-
       - name: Run unit tests
         run: make unit-test
 
       - name: Test Summary
         uses: test-summary/action@31493c76ec9e7aa675f1585d3ed6f1da69269a86 # v2.4
         with:
-          paths: "test-results/unit-tests.xml"
+          paths: "test-results/*-unit-tests.xml"
         if: always()
 
       - name: Publish pacts
         if: github.actor != 'dependabot[bot]'
-        env:
-          PACT_DIR: ./finance-hub/internal/api/pacts
         run: |
-          docker compose run --rm pact-cli pact-broker publish ${PACT_DIR}/supervision-finance-hub-sirius.json \
+          docker compose run --rm pact-cli pact-broker publish ./pacts/supervision-finance-hub-sirius.json \
             --consumer-app-version ${{ needs.identify.outputs.commit }} \
             --branch ${{ needs.identify.outputs.branch }} \
             --tag ${{ needs.create-tag.outputs.tag }} \
@@ -72,26 +90,22 @@ jobs:
       - name: Compare pacts
         if: github.actor == 'dependabot[bot]'
         env:
-          PACT_DIR: ./finance-hub/internal/api/pacts
           PACT_BROKER_URL: https://pact-broker.api.opg.service.justice.gov.uk
         run: |
           curl ${PACT_BROKER_URL}/pacts/provider/sirius/consumer/supervision-finance-hub/latest > /tmp/latest-pact.json
-          (diff <(jq --sort-keys . ${PACT_DIR}/supervision-finance-hub-sirius.json) <(jq --sort-keys . /tmp/latest-pact.json) || true) | (! grep '<')
+          (diff <(jq --sort-keys . /pacts/supervision-finance-hub-sirius.json) <(jq --sort-keys . /tmp/latest-pact.json) || true) | (! grep '<')
 
       - name: Upload Code Coverage
         uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
-          files: test-results/test-coverage.txt
-          fail_ci_if_error: true
+          files: test-results/coverage.txt
           verbose: true
 
       - name: Persist Pacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: pacts
-          path: ./finance-hub/internal/api/pacts/supervision-finance-hub-sirius.json
+          path: ./pacts/supervision-finance-hub-sirius.json
 
   sqlc:
     name: sqlc validation
@@ -175,10 +189,6 @@ jobs:
           registries: 311462405659
       - name: Test Migrations
         run: make test-migrations
-
-  create-tag:
-    name: Create Tags
-    uses: ./.github/workflows/create-tags.yml
 
   build:
     strategy:
