@@ -2,11 +2,14 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"net/http"
 	"net/url"
+
+	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
 type Context struct {
@@ -59,7 +62,7 @@ func (a *Auth) Authenticate(next http.Handler) http.Handler {
 
 		user, err := a.Client.GetUserSession(ctx)
 		if err != nil {
-			if err.Error() == "unauthorized" {
+			if errors.Is(err, apierror.Unauthorized{}) {
 				logger.Info("401 from Sirius when validating session")
 			} else {
 				logger.Error("Error validating session.", "error", err)
