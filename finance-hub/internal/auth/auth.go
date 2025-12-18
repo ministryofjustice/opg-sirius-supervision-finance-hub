@@ -59,7 +59,11 @@ func (a *Auth) Authenticate(next http.Handler) http.Handler {
 
 		user, err := a.Client.GetUserSession(ctx)
 		if err != nil {
-			logger.Error("Error validating session.", "error", err)
+			if err.Error() == "unauthorized" {
+				logger.Info("401 from Sirius when validating session")
+			} else {
+				logger.Error("Error validating session.", "error", err)
+			}
 			http.Redirect(w, r, a.redirectPath(r.URL.RequestURI()), http.StatusFound)
 			return
 		}
