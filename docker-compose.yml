@@ -192,10 +192,18 @@ services:
       timeout: 10s
       retries: 3
 
-
   holidays-api-mock:
     build:
       context: .
       dockerfile: docker/holidays-api/Dockerfile
     ports:
       - "8080:8080"
+
+  hub-test-runner:
+    build:
+      context: docker/test-runner/
+    command: gotestsum --junitfile test-results/hub-unit-tests.xml -- ./finance-hub/... -coverprofile=test-results/hub-coverage.txt
+    working_dir: /go/src/app
+    volumes:
+      - ./:/go/src/app
+      - ./.gocache:/go/pkg/mod
