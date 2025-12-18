@@ -29,19 +29,12 @@ func (s *Service) GetBillingHistory(ctx context.Context, clientID int32) ([]shar
 
 	history := invoiceEvents(invoices, clientID)
 
-	pendingAdjustments, err := s.store.GetPendingInvoiceAdjustments(ctx, clientID)
+	adjustments, err := s.store.GetInvoiceAdjustmentEvents(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}
 
-	history = append(history, processPendingAdjustments(pendingAdjustments, clientID)...)
-
-	rejectedAdjustments, err := s.store.GetRejectedInvoiceAdjustments(ctx, clientID)
-	if err != nil {
-		return nil, err
-	}
-
-	history = append(history, processRejectedAdjustments(rejectedAdjustments, clientID)...)
+	history = append(history, processAdjustments(adjustments, clientID)...)
 
 	feEvents, err := s.store.GetFeeReductionEvents(ctx, clientID)
 	if err != nil {
@@ -86,64 +79,58 @@ func (s *Service) GetBillingHistory(ctx context.Context, clientID int32) ([]shar
 	return computeBillingHistory(history), nil
 }
 
-func processRejectedAdjustments(adjustments []store.GetRejectedInvoiceAdjustmentsRow, clientID int32) []historyHolder {
+func processAdjustments(adjustments []store.GetInvoiceAdjustmentEventsRow, clientID int32) []historyHolder {
 	var history []historyHolder
 	for _, adjustment := range adjustments {
-
-		bh := shared.BillingHistory{
-			User: int(adjustment.UpdatedBy.Int32),
-			Date: shared.Date{Time: adjustment.UpdatedAt.Time},
-		}
-		bh.Event = shared.InvoiceAdjustmentRejected{
-			BaseBillingEvent: shared.BaseBillingEvent{
-				Type: shared.EventTypeInvoiceAdjustmentRejected,
-			},
-			AdjustmentType: shared.ParseAdjustmentType(adjustment.AdjustmentType),
-			Notes:          adjustment.Notes,
-			ClientId:       int(clientID),
-			PaymentBreakdown: shared.PaymentBreakdown{
-				InvoiceReference: shared.InvoiceEvent{
-					ID:        int(adjustment.InvoiceID),
-					Reference: adjustment.Reference,
-				},
-				Amount: int(adjustment.Amount),
-			},
-		}
-
-		history = append(history, historyHolder{
-			billingHistory: bh,
-		})
-	}
-
-	return history
-}
-
-func processPendingAdjustments(adjustments []store.GetPendingInvoiceAdjustmentsRow, clientID int32) []historyHolder {
-	var history []historyHolder
-	for _, adjustment := range adjustments {
-		bh := shared.BillingHistory{
+		// every adjustment will have a pending event on creation
+		pending := shared.BillingHistory{
 			User: int(adjustment.CreatedBy),
 			Date: shared.Date{Time: adjustment.CreatedAt.Time},
-		}
-		bh.Event = shared.InvoiceAdjustmentPending{
-			BaseBillingEvent: shared.BaseBillingEvent{
-				Type: shared.EventTypeInvoiceAdjustmentPending,
-			},
-			AdjustmentType: shared.ParseAdjustmentType(adjustment.AdjustmentType),
-			Notes:          adjustment.Notes,
-			ClientId:       int(clientID),
-			PaymentBreakdown: shared.PaymentBreakdown{
-				InvoiceReference: shared.InvoiceEvent{
-					ID:        int(adjustment.InvoiceID),
-					Reference: adjustment.Reference,
+			Event: shared.InvoiceAdjustmentPending{
+				BaseBillingEvent: shared.BaseBillingEvent{
+					Type: shared.EventTypeInvoiceAdjustmentPending,
 				},
-				Amount: int(adjustment.Amount),
+				AdjustmentType: shared.ParseAdjustmentType(adjustment.AdjustmentType),
+				Notes:          adjustment.Notes,
+				ClientId:       int(clientID),
+				PaymentBreakdown: shared.PaymentBreakdown{
+					InvoiceReference: shared.InvoiceEvent{
+						ID:        int(adjustment.InvoiceID),
+						Reference: adjustment.Reference,
+					},
+					Amount: int(adjustment.Amount),
+				},
 			},
 		}
 
 		history = append(history, historyHolder{
-			billingHistory: bh,
+			billingHistory: pending,
 		})
+
+		if adjustment.Status == "REJECTED" {
+			rejected := shared.BillingHistory{
+				User: int(adjustment.UpdatedBy.Int32),
+				Date: shared.Date{Time: adjustment.UpdatedAt.Time},
+				Event: shared.InvoiceAdjustmentRejected{
+					BaseBillingEvent: shared.BaseBillingEvent{
+						Type: shared.EventTypeInvoiceAdjustmentRejected,
+					},
+					AdjustmentType: shared.ParseAdjustmentType(adjustment.AdjustmentType),
+					Notes:          adjustment.Notes,
+					ClientId:       int(clientID),
+					PaymentBreakdown: shared.PaymentBreakdown{
+						InvoiceReference: shared.InvoiceEvent{
+							ID:        int(adjustment.InvoiceID),
+							Reference: adjustment.Reference,
+						},
+						Amount: int(adjustment.Amount),
+					},
+				},
+			}
+			history = append(history, historyHolder{
+				billingHistory: rejected,
+			})
+		}
 	}
 
 	return history
@@ -335,7 +322,7 @@ func processLedgerAllocations(allocations []store.GetLedgerAllocationsForClientR
 					Status: allocation.Status,
 				},
 			)
-			if !(event.Type == shared.EventTypePaymentProcessed || event.Type == shared.EventTypeRefundProcessed) {
+			if !event.TransactionType.IsReceiptTransaction() {
 				event.Amount += int(math.Abs(float64(allocation.AllocationAmount)))
 			}
 			lh.billingHistory.Event = event
@@ -395,8 +382,8 @@ func processLedgerAllocations(allocations []store.GetLedgerAllocationsForClientR
 			lh.billingHistory.Event = event
 		}
 
-		// receipt transactions not applied to an invoice only affect credit
-		if !(event.TransactionType.IsReceiptTransaction() && !allocation.InvoiceID.Valid) {
+		// receipt transactions that don't apply to an invoice will only affect credit
+		if !event.TransactionType.IsReceiptTransaction() || allocation.InvoiceID.Valid {
 			lh.balanceAdjustment -= int(allocation.AllocationAmount)
 		}
 

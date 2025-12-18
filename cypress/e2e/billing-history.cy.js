@@ -59,7 +59,7 @@ describe("Billing History Tab", () => {
         });
 
         cy.get(".moj-timeline__item").first().within(() => {
-            cy.get(".moj-timeline__title").contains("MOTO card payment reversal of £70 created");
+            cy.get(".moj-timeline__title").contains("MOTO card payment of £70 reversed");
             cy.get(".moj-timeline__byline").contains("by Ian Admin, 14/05/2024");
             cy.get(".moj-timeline__date").contains("Outstanding balance: £70 Credit balance: £0");
             cy.get(".moj-timeline__description").contains("£70 reversed against AD16162/24");
