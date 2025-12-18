@@ -3,14 +3,15 @@ package api
 import (
 	"bytes"
 	"fmt"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"github.com/pact-foundation/pact-go/v2/consumer"
-	"github.com/pact-foundation/pact-go/v2/matchers"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"github.com/pact-foundation/pact-go/v2/consumer"
+	"github.com/pact-foundation/pact-go/v2/matchers"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestClient_GetUserSession(t *testing.T) {
@@ -79,7 +80,7 @@ func TestClient_GetUserSession_Errors(t *testing.T) {
 
 func TestGetSession_contract(t *testing.T) {
 	pact, err := consumer.NewV2Pact(consumer.MockHTTPProviderConfig{
-		Consumer: "supervision-payments",
+		Consumer: "supervision-finance-hub",
 		Provider: "sirius",
 	})
 	assert.NoError(t, err)
