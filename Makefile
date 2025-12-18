@@ -21,7 +21,6 @@ go-lint:
 gosec: setup-directories
 	docker compose run --rm gosec
 
-PACT_LOG_LEVEL = error
 unit-test: setup-directories
 	go run gotest.tools/gotestsum@latest --format testname  --junitfile test-results/unit-tests.xml -- ./... -coverprofile=test-results/test-coverage.txt
 
