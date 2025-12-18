@@ -588,6 +588,134 @@ func Test_invoiceEvents(t *testing.T) {
 	assert.Equalf(t, expected, invoiceEvents(invoices, 1), "invoiceEvents(%v)", invoices)
 }
 
+func Test_processInvoiceAdjustments(t *testing.T) {
+	now := time.Now()
+	adjustments := []store.GetInvoiceAdjustmentEventsRow{
+		{
+			AdjustmentType: "CREDIT MEMO",
+			Amount:         5000,
+			Notes:          "Adjustment 1",
+			Status:         "PENDING",
+			CreatedAt:      pgtype.Timestamp{Time: now, Valid: true},
+			CreatedBy:      2,
+			InvoiceID:      1,
+			Reference:      "INV-001",
+		},
+		{
+			AdjustmentType: "CREDIT WRITE OFF",
+			Amount:         3000,
+			Notes:          "Adjustment 2",
+			Status:         "REJECTED",
+			CreatedAt:      pgtype.Timestamp{Time: now.Add(48 * time.Hour), Valid: true},
+			CreatedBy:      3,
+			UpdatedAt:      pgtype.Timestamp{Time: now.Add(72 * time.Hour), Valid: true},
+			UpdatedBy:      pgtype.Int4{Int32: 1, Valid: true},
+			InvoiceID:      2,
+			Reference:      "INV-002",
+		},
+		{
+			AdjustmentType: "DEBIT MEMO",
+			Amount:         1000,
+			Notes:          "Adjustment 3",
+			Status:         "APPROVED", // will only create a pending event, as approved adjustments are handled as ledger allocations
+			CreatedAt:      pgtype.Timestamp{Time: now.Add(24 * time.Hour), Valid: true},
+			CreatedBy:      3,
+			UpdatedAt:      pgtype.Timestamp{Time: now.Add(72 * time.Hour), Valid: true},
+			UpdatedBy:      pgtype.Int4{Int32: 1, Valid: true},
+			InvoiceID:      3,
+			Reference:      "INV-003",
+		},
+	}
+	expected := []historyHolder{
+		{
+			billingHistory: shared.BillingHistory{
+				User: 2,
+				Date: shared.Date{Time: now},
+				Event: shared.InvoiceAdjustmentPending{
+					BaseBillingEvent: shared.BaseBillingEvent{
+						Type: shared.EventTypeInvoiceAdjustmentPending,
+					},
+					AdjustmentType: shared.ParseAdjustmentType("CREDIT MEMO"),
+					Notes:          "Adjustment 1",
+					ClientId:       1,
+					PaymentBreakdown: shared.PaymentBreakdown{
+						InvoiceReference: shared.InvoiceEvent{
+							ID:        1,
+							Reference: "INV-001",
+						},
+						Amount: 5000,
+					},
+				},
+			},
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				User: 3,
+				Date: shared.Date{Time: now.Add(48 * time.Hour)},
+				Event: shared.InvoiceAdjustmentPending{
+					BaseBillingEvent: shared.BaseBillingEvent{
+						Type: shared.EventTypeInvoiceAdjustmentPending,
+					},
+					AdjustmentType: shared.ParseAdjustmentType("CREDIT WRITE OFF"),
+					Notes:          "Adjustment 2",
+					ClientId:       1,
+					PaymentBreakdown: shared.PaymentBreakdown{
+						InvoiceReference: shared.InvoiceEvent{
+							ID:        2,
+							Reference: "INV-002",
+						},
+						Amount: 3000,
+					},
+				},
+			},
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				User: 1,
+				Date: shared.Date{Time: now.Add(72 * time.Hour)},
+				Event: shared.InvoiceAdjustmentRejected{
+					BaseBillingEvent: shared.BaseBillingEvent{
+						Type: shared.EventTypeInvoiceAdjustmentRejected,
+					},
+					AdjustmentType: shared.ParseAdjustmentType("CREDIT WRITE OFF"),
+					Notes:          "Adjustment 2",
+					ClientId:       1,
+					PaymentBreakdown: shared.PaymentBreakdown{
+						InvoiceReference: shared.InvoiceEvent{
+							ID:        2,
+							Reference: "INV-002",
+						},
+						Amount: 3000,
+					},
+				},
+			},
+		},
+		{
+			billingHistory: shared.BillingHistory{
+				User: 3,
+				Date: shared.Date{Time: now.Add(24 * time.Hour)},
+				Event: shared.InvoiceAdjustmentPending{
+					BaseBillingEvent: shared.BaseBillingEvent{
+						Type: shared.EventTypeInvoiceAdjustmentPending,
+					},
+					AdjustmentType: shared.ParseAdjustmentType("DEBIT MEMO"),
+					Notes:          "Adjustment 3",
+					ClientId:       1,
+					PaymentBreakdown: shared.PaymentBreakdown{
+						InvoiceReference: shared.InvoiceEvent{
+							ID:        3,
+							Reference: "INV-003",
+						},
+						Amount: 1000,
+					},
+				},
+			},
+		},
+	}
+	actual := processAdjustments(adjustments, 1)
+	assert.Equalf(t, expected, actual, "processInvoiceAdjustments(%v)", adjustments)
+}
+
 func Test_processFeeReductionEvents(t *testing.T) {
 	now := time.Now()
 	reductions := []store.GetFeeReductionEventsRow{
