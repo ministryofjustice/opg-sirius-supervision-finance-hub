@@ -1,6 +1,6 @@
 {
   "consumer": {
-    "name": "supervision-payments"
+    "name": "supervision-finance-hub"
   },
   "interactions": [
     {
@@ -84,7 +84,7 @@
     },
     {
       "description": "A request for users",
-      "providerState": "User exists",
+      "providerState": "Users exists",
       "request": {
         "headers": {
           "Accept": "application/json"
