@@ -21,8 +21,17 @@ go-lint:
 gosec: setup-directories
 	docker compose run --rm gosec
 
-unit-test: setup-directories
-	go run gotest.tools/gotestsum@latest --format testname  --junitfile test-results/unit-tests.xml -- ./... -coverprofile=test-results/test-coverage.txt
+hub-tests: setup-directories
+	docker compose run --rm hub-test-runner
+
+api-tests: setup-directories
+	go run gotest.tools/gotestsum@latest --format testname  --junitfile test-results/api-unit-tests.xml -- ./finance-api/... -coverprofile=test-results/api-coverage.txt
+
+combine-coverage:
+	cat test-results/hub-coverage.txt > test-results/coverage.txt
+	tail -n +2 test-results/api-coverage.txt >> test-results/coverage.txt
+
+unit-test: hub-tests api-tests combine-coverage
 
 build: build-api build-hub build-migrations
 build-api:
