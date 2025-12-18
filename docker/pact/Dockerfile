@@ -1,5 +1,5 @@
 # Use an official Go image
-FROM golang:1.21
+FROM golang:1.25
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
@@ -16,11 +16,6 @@ RUN curl -LO https://github.com/pact-foundation/pact-ffi/releases/latest/downloa
 
 # Set up working directory
 WORKDIR /app
-
-# Copy Go files
-COPY ../go.mod ../go.sum ./
-RUN go mod download
-COPY ../contracts/ .
 
 # Run tests
 CMD ["go", "test", "-v", "./..."]
