@@ -76,7 +76,7 @@ func TestPersonDetailsReturns500Error(t *testing.T) {
 
 func TestGetPersonDetails_contract(t *testing.T) {
 	pact, err := consumer.NewV2Pact(consumer.MockHTTPProviderConfig{
-		Consumer: "supervision-finance-hub",
+		Consumer: "sirius-supervision-finance-hub",
 		Provider: "sirius",
 		LogDir:   "../../../logs",
 		PactDir:  "../../../pacts",
