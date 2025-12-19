@@ -3,6 +3,7 @@ package allpay
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -38,6 +39,19 @@ func (c *Client) CancelMandate(ctx context.Context, data *CancelMandateRequest) 
 	}
 
 	defer unchecked(resp.Body.Close)
+
+	if resp.StatusCode == http.StatusUnprocessableEntity {
+		var ve ErrorValidation
+
+		err = json.NewDecoder(resp.Body).Decode(&ve)
+		if err != nil {
+			logger.Error("unable to parse cancel mandate validation response", "error", err)
+			return ErrorAPI{}
+		}
+
+		logger.Error("cancel mandate request returned validation errors", "errors", ve)
+		return ve
+	}
 
 	if resp.StatusCode != http.StatusOK {
 		logger.Error("cancel mandate request returned unexpected status code", "status", resp.Status)
