@@ -51,7 +51,7 @@ jobs:
         if: always()
 
       - name: Upload Code Coverage
-        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         with:
           files: test-results/test-coverage.txt
           fail_ci_if_error: false
@@ -87,7 +87,7 @@ jobs:
         run: make gosec
       - name: Upload GoSec results to GitHub Security tab
         if: ${{ always() }}
-        uses: github/codeql-action/upload-sarif@fe4161a26a8629af62121b670040955b330f9af2 # v4.31.6
+        uses: github/codeql-action/upload-sarif@5d4e8d1aca955e8d8589aabd499c5cae939e33c7 # v4.31.9
         with:
           sarif_file: 'test-results/gosec.sarif'
           category: gosec
@@ -238,7 +238,7 @@ jobs:
 
       - name: Upload Trivy scan results to GitHub Security tab
         if: matrix.scan == 1
-        uses: github/codeql-action/upload-sarif@fe4161a26a8629af62121b670040955b330f9af2 # v4.31.6
+        uses: github/codeql-action/upload-sarif@5d4e8d1aca955e8d8589aabd499c5cae939e33c7 # v4.31.9
         with:
           sarif_file: 'test-results/'
           category: trivy-docker-${{ matrix.service_name }}
