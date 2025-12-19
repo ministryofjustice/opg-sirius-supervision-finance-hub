@@ -3,8 +3,10 @@ package api
 import (
 	"context"
 	"encoding/json"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"net/http"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
 func (c *Client) GetUserSession(ctx context.Context) (*shared.User, error) {
@@ -21,7 +23,7 @@ func (c *Client) GetUserSession(ctx context.Context) (*shared.User, error) {
 	defer unchecked(resp.Body.Close)
 
 	if resp.StatusCode == http.StatusUnauthorized {
-		return nil, ErrUnauthorized
+		return nil, apierror.Unauthorized{}
 	}
 
 	if resp.StatusCode != http.StatusOK {
