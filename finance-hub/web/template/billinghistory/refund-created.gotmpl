@@ -2,17 +2,17 @@
     <div class="moj-timeline__item">
         <div class="moj-timeline__header">
             <h2 class="moj-timeline__title">
-                Pending refund of £{{ toCurrency  .Event.Amount }} added
+                Pending refund of {{ toCurrency  .Event.Amount }} added
             </h2>
             <p class="moj-timeline__byline">
                 {{ printf "by %v, %v" .User .Date }}
             </p>
         </div>
         <p class="moj-timeline__date">
-            {{ printf "Outstanding balance: £%v Credit balance: £%v" .OutstandingBalance .CreditBalance }}
+            {{ printf "Outstanding balance: %v Credit balance: %v" (toCurrency .OutstandingBalance) (toCurrency .CreditBalance) }}
         </p>
-        <div class="moj-timeline__description">
+        <ul class="moj-timeline__description">
              <li>{{ printf "Notes: %v" .Event.Notes}}</li>
-        </div>
+        </ul>
     </div>
 {{ end }}

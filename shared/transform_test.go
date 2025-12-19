@@ -1,11 +1,12 @@
 package shared
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func Test_intToDecimalString(t *testing.T) {
+func Test_IntToCurrency(t *testing.T) {
 	tests := []struct {
 		name string
 		arg  int
@@ -14,27 +15,37 @@ func Test_intToDecimalString(t *testing.T) {
 		{
 			"converts int to two decimal places",
 			12345,
-			"123.45",
+			"£123.45",
 		},
 		{
 			"displays two decimal places when the last digit is 0",
 			12340,
-			"123.40",
+			"£123.40",
 		},
 		{
 			"displays no decimal places when the last two digits are 0",
 			12300,
-			"123",
+			"£123",
 		},
 		{
 			"displays a leading zero and two decimal places when there are two or fewer digits",
 			12,
-			"0.12",
+			"£0.12",
+		},
+		{
+			"negative value",
+			-1200,
+			"-£12",
+		},
+		{
+			"negative value with decimals",
+			-1234,
+			"-£12.34",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, IntToDecimalString(tt.arg), "intToDecimalString(%v)", tt.arg)
+			assert.Equalf(t, tt.want, IntToCurrency(tt.arg), "IntToCurrency(%v)", tt.arg)
 		})
 	}
 }

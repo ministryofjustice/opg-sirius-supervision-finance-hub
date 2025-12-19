@@ -3,12 +3,13 @@ package server
 import (
 	"context"
 	"errors"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestBillingHistory(t *testing.T) {
@@ -55,8 +56,8 @@ func TestBillingHistory(t *testing.T) {
 				User:               "Mr Testman",
 				Date:               data[0].Date,
 				Event:              data[0].Event,
-				OutstandingBalance: "251.24",
-				CreditBalance:      "0",
+				OutstandingBalance: 25124,
+				CreditBalance:      0,
 			},
 		},
 		AppVars: appVars,

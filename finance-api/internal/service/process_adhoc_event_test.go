@@ -13,7 +13,7 @@ func (suite *IntegrationSuite) Test_processAdhocEvent() {
 
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (99, 1, 'no-invoice', 'DEMANDED', NULL);",
-		"INSERT INTO ledger VALUES (1, '1', '2022-04-02T00:00:00+00:00', '', 8000, 'Overpayment', 'CARD PAYMENT', 'CONFIRMED', 99, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2020-05-05', 1);",
+		"INSERT INTO ledger VALUES (1, '1', '2022-04-02T00:00:00+00:00', '', 8000, 'Overpayment', 'ONLINE CARD PAYMENT', 'CONFIRMED', 99, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2020-05-05', 1);",
 		"INSERT INTO ledger_allocation VALUES (1, 1, NULL, '2022-04-02T00:00:00+00:00', -8000, 'UNAPPLIED', NULL, '', '2022-04-02', NULL);",
 
 		"INSERT INTO ledger VALUES (2, '2', '2020-04-02T00:00:00+00:00', '', 8000, 'half paid', 'REFUND', 'CONFIRMED', 99, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2020-05-05', 1);",

@@ -6,13 +6,18 @@ import (
 	"strings"
 )
 
-func IntToDecimalString(i int) string {
+func IntToCurrency(i int) string {
+	sign := ""
+	if i < 0 {
+		sign = "-"
+		i = -i
+	}
 	whole := i / 100
 	fraction := i % 100
 	if fraction == 0 {
-		return fmt.Sprintf("%d", whole)
+		return fmt.Sprintf("%s£%d", sign, whole)
 	}
-	return fmt.Sprintf("%d.%02d", whole, fraction)
+	return fmt.Sprintf("%s£%d.%02d", sign, whole, fraction)
 }
 
 func DecimalStringToInt(s string) int32 {

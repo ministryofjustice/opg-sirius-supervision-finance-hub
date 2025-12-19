@@ -36,12 +36,12 @@ func (s *Server) processUpload(w http.ResponseWriter, r *http.Request) error {
 	defer unchecked(r.Body.Close)
 
 	if err := json.NewDecoder(r.Body).Decode(&upload); err != nil {
-		return apierror.BadRequestError("event", "unable to parse upload", err)
+		return apierror.BadRequestError("upload", "unable to parse upload", err)
 	}
 
 	fileBytes, err := base64.StdEncoding.DecodeString(upload.Base64Data)
 	if err != nil {
-		return apierror.BadRequestError("event", "Invalid file data", err)
+		return apierror.BadRequestError("upload", "Invalid file data", err)
 	}
 
 	logger := s.Logger(ctx)

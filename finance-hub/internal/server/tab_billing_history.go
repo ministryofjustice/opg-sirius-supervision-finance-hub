@@ -2,17 +2,18 @@ package server
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"net/http"
 )
 
 type BillingHistory struct {
 	User               string
 	Date               shared.Date
 	Event              shared.BillingEvent
-	OutstandingBalance string
-	CreditBalance      string
+	OutstandingBalance int
+	CreditBalance      int
 }
 
 type BillingHistoryTab struct {
@@ -52,8 +53,8 @@ func (h *BillingHistoryHandler) transform(ctx context.Context, in []shared.Billi
 			User:               user.DisplayName,
 			Date:               bh.Date,
 			Event:              bh.Event,
-			OutstandingBalance: shared.IntToDecimalString(bh.OutstandingBalance),
-			CreditBalance:      shared.IntToDecimalString(bh.CreditBalance),
+			OutstandingBalance: bh.OutstandingBalance,
+			CreditBalance:      bh.CreditBalance,
 		})
 	}
 

@@ -47,7 +47,7 @@
                 <tr>
                     <td class="govuk-table__cell">{{.DateRaised}}</td>
                     <td class="govuk-table__cell">{{ if .DateFulfilled }}{{ .DateFulfilled }}{{ else }}{{ "" }}{{ end }}</td>
-                    <td class="govuk-table__cell">£{{.Amount}}</td>
+                    <td class="govuk-table__cell">{{ toCurrency .Amount}}</td>
                     {{ if $user.IsFinanceManager }}
                         <td class="govuk-table__cell">
                             {{ if eq .Status "Pending" }}

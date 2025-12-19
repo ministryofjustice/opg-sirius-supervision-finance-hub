@@ -19,7 +19,7 @@
                 {{ range . }}
                     <tr class="govuk-table__row">
                         <td class="govuk-table__cell" data-cy="supervision-level-data">{{ .Level }}</td>
-                        <td class="govuk-table__cell" data-cy="supervision-amount-data">£{{ .Amount }}</td>
+                        <td class="govuk-table__cell" data-cy="supervision-amount-data">{{ toCurrency .Amount }}</td>
                         <td class="govuk-table__cell" data-cy="supervision-from-data">{{ .From }}</td>
                         <td class="govuk-table__cell" data-cy="supervision-to-data">{{ .To }}</td>
                     </tr>

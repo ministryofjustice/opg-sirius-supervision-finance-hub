@@ -2,20 +2,20 @@
     <div class="moj-timeline__item">
         <div class="moj-timeline__header">
             <h2 class="moj-timeline__title">
-                {{ printf "£%v reapplied to %v" (toCurrency .Event.Amount) (index .Event.Breakdown 0).InvoiceReference.Reference }}
+                {{ printf "%v reapplied to %v" (toCurrency .Event.Amount) (index .Event.Breakdown 0).InvoiceReference.Reference }}
             </h2>
             <p class="moj-timeline__byline">
                 {{ printf "by %v, %v" .User .Date }}
             </p>
         </div>
         <p class="moj-timeline__date">
-            {{ printf "Outstanding balance: £%v Credit balance: £%v" .OutstandingBalance .CreditBalance }}
+            {{ printf "Outstanding balance: %v Credit balance: %v" (toCurrency .OutstandingBalance) (toCurrency .CreditBalance) }}
         </p>
         <div class="moj-timeline__description">
             <ul class="govuk-list govuk-list--bullet">
                 {{ range .Event.Breakdown }}
                     <li>
-                        {{ printf "£%v reapplied to %v" (toCurrency .Amount) .InvoiceReference.Reference }}
+                        {{ printf "%v reapplied to %v" (toCurrency .Amount) .InvoiceReference.Reference }}
                     </li>
                 {{ end }}
             </ul>

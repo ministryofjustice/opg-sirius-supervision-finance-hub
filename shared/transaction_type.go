@@ -15,7 +15,7 @@ var paymentTransactionTypes = []TransactionType{
 	TransactionTypeDirectDebitPayment,
 	TransactionTypeSupervisionChequePayment,
 	TransactionTypeSOPUnallocatedPayment,
-	TransactionTypeRefund,
+	TransactionTypeLegacyCardPayment,
 }
 
 var reversalTransactionTypes = []TransactionType{
@@ -42,6 +42,7 @@ const (
 	TransactionTypeSupervisionChequePayment
 	TransactionTypeSOPUnallocatedPayment
 	TransactionTypeRefund
+	TransactionTypeLegacyCardPayment
 )
 
 var TransactionTypeMap = map[string]TransactionType{
@@ -65,6 +66,7 @@ var TransactionTypeMap = map[string]TransactionType{
 	"SUPERVISION CHEQUE PAYMENT": TransactionTypeSupervisionChequePayment,
 	"SOP UNALLOCATED":            TransactionTypeSOPUnallocatedPayment,
 	"REFUND":                     TransactionTypeRefund,
+	"CARD PAYMENT":               TransactionTypeLegacyCardPayment,
 }
 
 func (t TransactionType) String() string {
@@ -103,6 +105,8 @@ func (t TransactionType) String() string {
 		return "SOP Unallocated"
 	case TransactionTypeRefund:
 		return "Refund"
+	case TransactionTypeLegacyCardPayment:
+		return "(Legacy) Card payment"
 	default:
 		return ""
 	}
@@ -144,6 +148,8 @@ func (t TransactionType) Key() string {
 		return "SOP UNALLOCATED"
 	case TransactionTypeRefund:
 		return "REFUND"
+	case TransactionTypeLegacyCardPayment:
+		return "CARD PAYMENT"
 	default:
 		return ""
 	}
@@ -151,6 +157,10 @@ func (t TransactionType) Key() string {
 
 func (t TransactionType) IsPayment() bool {
 	return slices.Contains(paymentTransactionTypes, t)
+}
+
+func (t TransactionType) IsReceiptTransaction() bool {
+	return slices.Contains(paymentTransactionTypes, t) || t == TransactionTypeRefund
 }
 
 func (t TransactionType) IsReversalType() bool {

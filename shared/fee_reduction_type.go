@@ -15,6 +15,10 @@ var feeReductionTypeMap = map[string]FeeReductionType{
 	"EXEMPTION": FeeReductionTypeExemption,
 	"HARDSHIP":  FeeReductionTypeHardship,
 	"REMISSION": FeeReductionTypeRemission,
+	// also match to equivalent transaction type keys
+	"CREDIT EXEMPTION": FeeReductionTypeExemption,
+	"CREDIT HARDSHIP":  FeeReductionTypeHardship,
+	"CREDIT REMISSION": FeeReductionTypeRemission,
 }
 
 func (f FeeReductionType) String() string {

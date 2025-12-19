@@ -1,17 +1,17 @@
-{{ define "payment-processed-event" }}
+{{ define "refund-processed-event" }}
     {{ $isReversal := false }}
     {{ $amount := .Event.Amount }}
-    {{ if not (eq (index .Event.Breakdown 0).Status "UNAPPLIED") }}
-        {{ $isReversal = lt $amount 0}}
+    {{ if not (eq (index .Event.Breakdown 0).Status "REAPPLIED") }}
+        {{ $isReversal = gt $amount 0}}
     {{ end }}
 
     <div class="moj-timeline__item">
         <div class="moj-timeline__header">
             <h2 class="moj-timeline__title">
                 {{ if not $isReversal }}
-                    {{ printf "%v of %v received" .Event.TransactionType (toCurrency $amount) }}
+                    {{ printf "Refund of %v fulfilled" (toCurrency (toNegative $amount)) }}
                 {{ else }}
-                    {{ printf "%v of %v reversed" .Event.TransactionType  (toCurrency (toNegative $amount)) }}
+                    {{ printf "Refund of %v reversed" (toCurrency $amount) }}
                 {{ end }}
             </h2>
             <p class="moj-timeline__byline">
@@ -25,7 +25,7 @@
             <ul class="govuk-list govuk-list--bullet">
                 {{ range .Event.Breakdown }}
                     <li>
-                        {{ if not $isReversal }}
+                        {{ if $isReversal }}
                             {{if eq .Status "ALLOCATED" }}
                                 {{ printf "%v allocated to %v" (toCurrency .Amount) .InvoiceReference.Reference }}
                             {{ else }}
@@ -33,9 +33,9 @@
                             {{ end }}
                         {{ else }}
                             {{if eq .Status "ALLOCATED" }}
-                                {{ printf "%v reversed against %v" (toCurrency .Amount) .InvoiceReference.Reference }}
+                                {{ printf "%v refunded against %v" (toCurrency .Amount) .InvoiceReference.Reference }}
                             {{ else }}
-                                {{ printf "%v reversed on account balance" (toCurrency .Amount) }}
+                                {{ printf "%v refunded" (toCurrency .Amount) }}
                             {{ end }}
                         {{ end }}
                     </li>

@@ -92,7 +92,7 @@ describe("Allpay end-to-end", () => {
         });
 
         cy.get(".moj-timeline__item").eq(1).within(() => {
-            cy.contains(".moj-timeline__title", "Direct Debit payment reversal of £100 created");
+            cy.contains(".moj-timeline__title", "Direct Debit payment of £100 reversed");
             cy.contains(".moj-timeline__byline", `by Colin Case`);
             cy.contains(".govuk-list", "£100 reversed against AD292929/24");
         });

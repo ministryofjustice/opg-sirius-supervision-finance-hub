@@ -1,10 +1,11 @@
 package server
 
 import (
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"math"
 	"net/http"
 	"strconv"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
 type InvoiceAdjustments []PendingInvoiceAdjustment
@@ -14,7 +15,7 @@ type PendingInvoiceAdjustment struct {
 	Invoice          string
 	DateRaised       shared.Date
 	AdjustmentType   string
-	AdjustmentAmount string
+	AdjustmentAmount int
 	Notes            string
 	Status           string
 	CreatedBy        int
@@ -53,7 +54,7 @@ func (h *InvoiceAdjustmentsHandler) transform(in shared.InvoiceAdjustments) Invo
 			Invoice:          adjustment.InvoiceRef,
 			DateRaised:       adjustment.RaisedDate,
 			AdjustmentType:   h.transformType(adjustment.AdjustmentType),
-			AdjustmentAmount: shared.IntToDecimalString(int(math.Abs(float64(adjustment.Amount)))),
+			AdjustmentAmount: int(math.Abs(float64(adjustment.Amount))),
 			Notes:            adjustment.Notes,
 			Status:           h.transformStatus(adjustment.Status),
 			CreatedBy:        adjustment.CreatedBy,

@@ -2,11 +2,12 @@ package server
 
 import (
 	"errors"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPendingInvoiceAdjustments(t *testing.T) {
@@ -42,7 +43,7 @@ func TestPendingInvoiceAdjustments(t *testing.T) {
 			Id:               "3",
 			Invoice:          "N2000001/20",
 			Status:           "Pending",
-			AdjustmentAmount: "2.32",
+			AdjustmentAmount: 232,
 			DateRaised:       shared.NewDate("01/04/2222"),
 			AdjustmentType:   "Credit",
 			Notes:            "Some notes",

@@ -21,7 +21,7 @@
             {{ else }}
                 {{ range . }}
                     <tr class="govuk-table__row">
-                        <td class="govuk-table__cell" data-cy="ledger-amount-data">£{{ .Amount }}</td>
+                        <td class="govuk-table__cell" data-cy="ledger-amount-data">{{ toCurrency .Amount }}</td>
                         <td class="govuk-table__cell" data-cy="ledger-received-date-data">{{ .ReceivedDate }}</td>
                         <td class="govuk-table__cell" data-cy="ledger-transaction-type-data">{{ .TransactionType}}</td>
                         <td class="govuk-table__cell" data-cy="ledger-status-data">{{ .Status }}</td>

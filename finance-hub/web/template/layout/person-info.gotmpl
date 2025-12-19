@@ -7,8 +7,8 @@
             <span data-cy="court-ref" class="govuk-caption-m  govuk-!-margin-bottom-1">Court reference: <a
                         href="{{ sirius (printf "/supervision/#/clients/%s" .FinanceClient.ClientId) }}"
                         class="govuk-link">{{ .FinanceClient.CourtRef }}</a></span>
-            <span data-cy="total-outstanding-balance" class="govuk-caption-m  govuk-!-margin-bottom-1">Total outstanding balance: £{{ .FinanceClient.OutstandingBalance }}</span>
-            <span data-cy="total-credit-balance" class="govuk-caption-m  govuk-!-margin-bottom-1">Total credit balance: £{{ .FinanceClient.CreditBalance }}</span>
+            <span data-cy="total-outstanding-balance" class="govuk-caption-m  govuk-!-margin-bottom-1">Total outstanding balance: {{ toCurrency .FinanceClient.OutstandingBalance }}</span>
+            <span data-cy="total-credit-balance" class="govuk-caption-m  govuk-!-margin-bottom-1">Total credit balance: {{ toCurrency .FinanceClient.CreditBalance }}</span>
             <span data-cy="payment-method"
                   class="govuk-caption-m  govuk-!-margin-bottom-1">Payment method: {{ .FinanceClient.PaymentMethod }}</span>
         </div>

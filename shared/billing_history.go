@@ -44,8 +44,10 @@ func (b *BillingHistory) UnmarshalJSON(data []byte) (err error) {
 		b.Event = new(PaymentProcessed)
 	case EventTypeReappliedCredit:
 		b.Event = new(ReappliedCredit)
-	case EventTypeRefundCreated, EventTypeRefundCancelled, EventTypeRefundFulfilled, EventTypeRefundStatusUpdated, EventTypeRefundProcessing, EventTypeRefundApproved:
+	case EventTypeRefundCreated, EventTypeRefundCancelled, EventTypeRefundStatusUpdated, EventTypeRefundProcessing, EventTypeRefundApproved:
 		b.Event = new(RefundEvent)
+	case EventTypeRefundProcessed:
+		b.Event = new(RefundProcessed)
 	case EventTypeDirectDebitCollectionScheduled:
 		b.Event = new(DirectDebitEvent)
 	case EventTypeDirectDebitMandateCreated, EventTypeDirectDebitMandateCancelled:
@@ -158,6 +160,10 @@ type PaymentProcessed struct {
 	TransactionEvent
 }
 
+type RefundProcessed struct {
+	TransactionEvent
+}
+
 type ReappliedCredit struct {
 	TransactionEvent
 }
@@ -178,7 +184,7 @@ const (
 	EventTypeRefundApproved
 	EventTypeRefundCreated
 	EventTypeRefundCancelled
-	EventTypeRefundFulfilled
+	EventTypeRefundProcessed
 	EventTypeRefundProcessing
 	EventTypeRefundStatusUpdated
 	EventTypeDirectDebitMandateCreated
@@ -200,7 +206,7 @@ var eventTypeMap = map[string]BillingEventType{
 	"REFUND_APPROVED":                   EventTypeRefundApproved,
 	"REFUND_CREATED":                    EventTypeRefundCreated,
 	"REFUND_CANCELLED":                  EventTypeRefundCancelled,
-	"REFUND_FULFILLED":                  EventTypeRefundFulfilled,
+	"REFUND_PROCESSED":                  EventTypeRefundProcessed,
 	"REFUND_PROCESSING":                 EventTypeRefundProcessing,
 	"REFUND_STATUS_UPDATED":             EventTypeRefundStatusUpdated,
 	"DIRECT_DEBIT_CREATED":              EventTypeDirectDebitMandateCreated,
@@ -234,8 +240,8 @@ func (b BillingEventType) String() string {
 		return "REFUND_CREATED"
 	case EventTypeRefundCancelled:
 		return "REFUND_CANCELLED"
-	case EventTypeRefundFulfilled:
-		return "REFUND_FULFILLED"
+	case EventTypeRefundProcessed:
+		return "REFUND_PROCESSED"
 	case EventTypeRefundProcessing:
 		return "REFUND_PROCESSING"
 	case EventTypeRefundStatusUpdated:
