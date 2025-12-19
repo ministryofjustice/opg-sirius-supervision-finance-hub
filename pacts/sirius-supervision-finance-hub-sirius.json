@@ -5,6 +5,49 @@
   "interactions": [
     {
       "description": "A request for client",
+      "providerState": "A supervision client exists",
+      "request": {
+        "headers": {
+          "Accept": "application/json"
+        },
+        "matchingRules": {
+          "$.path": {
+            "match": "regex",
+            "regex": "\\/supervision-api\\/v1\\/clients\\/\\d+"
+          }
+        },
+        "method": "GET",
+        "path": "/supervision-api/v1/clients/123"
+      },
+      "response": {
+        "body": {
+          "caseRecNumber": "22222222",
+          "firstname": "Ian",
+          "id": 1,
+          "surname": "Finance"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "$.body.caseRecNumber": {
+            "match": "type"
+          },
+          "$.body.firstname": {
+            "match": "type"
+          },
+          "$.body.id": {
+            "match": "type"
+          },
+          "$.body.surname": {
+            "match": "type"
+          }
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "A request for client",
       "providerState": "Client exists",
       "request": {
         "headers": {
