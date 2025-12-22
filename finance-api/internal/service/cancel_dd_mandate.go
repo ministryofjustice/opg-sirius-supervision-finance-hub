@@ -53,6 +53,8 @@ func (s *Service) CancelDirectDebitMandate(ctx context.Context, clientID int32, 
 		return err
 	}
 
+	closureDate, _ = time.Parse("2006-01-02", "2026-01-27")
+
 	// update allpay
 	clientDetails := allpay.ClientDetails{
 		ClientReference: cancelMandate.ClientReference,
@@ -110,15 +112,7 @@ func (s *Service) calculateClosureDate(ctx context.Context, collections []store.
 func (s *Service) cancelPendingCollections(ctx context.Context, closureDate time.Time, clientDetails allpay.ClientDetails, collections []store.GetPendingCollectionsRow) error {
 	for _, pc := range collections {
 		if pc.CollectionDate.Time.After(closureDate) {
-			err := s.allpay.RemoveScheduledPayment(ctx, &allpay.RemoveScheduledPaymentRequest{
-				CollectionDate: pc.CollectionDate.Time,
-				Amount:         pc.Amount,
-				ClientDetails:  clientDetails,
-			})
-			if err != nil {
-				return err
-			}
-			err = s.store.CancelPendingCollection(ctx, pc.ID)
+			err := s.store.CancelPendingCollection(ctx, pc.ID)
 			if err != nil {
 				return err
 			}
