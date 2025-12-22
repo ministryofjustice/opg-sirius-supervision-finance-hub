@@ -143,13 +143,13 @@ resources:
       statusCode: 200
       file: data/failed_payments_page_3.json
 
-  - path: "/AllpayApi/BankAccounts"
+  - path: "/AllpayApi/BankAccounts/"
     method: get
     response:
       statusCode: 200
       file: data/mod_check_success.json
 
-  - path: "/AllpayApi/BankAccounts"
+  - path: "/AllpayApi/BankAccounts/"
     method: get
     queryParams:
       accountnumber: 99999999
@@ -157,7 +157,7 @@ resources:
       statusCode: 200
       file: data/mod_check_invalid_combo.json
 
-  - path: "/AllpayApi/BankAccounts"
+  - path: "/AllpayApi/BankAccounts/"
     method: get
     queryParams:
       sortcode: 99-99-99
@@ -165,7 +165,7 @@ resources:
       statusCode: 200
       file: data/mod_check_invalid_sortcode.json
 
-  - path: "/AllpayApi/BankAccounts"
+  - path: "/AllpayApi/BankAccounts/"
     method: get
     queryParams:
       sortcode: 00-00-00
