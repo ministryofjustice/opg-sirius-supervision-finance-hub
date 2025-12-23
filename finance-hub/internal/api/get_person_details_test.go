@@ -97,7 +97,7 @@ func TestGetPersonDetails_contract(t *testing.T) {
 				"id":            matchers.Like(1),
 				"firstname":     matchers.Like("Ian"),
 				"surname":       matchers.Like("Finance"),
-				"caseRecNumber": matchers.Like("22222222"),
+				"caseRecNumber": matchers.Like("11223344"),
 			})
 		}).
 		ExecuteTest(t, func(config consumer.MockServerConfig) error {
