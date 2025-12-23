@@ -103,7 +103,7 @@ func TestGetPersonDetails_contract(t *testing.T) {
 		ExecuteTest(t, func(config consumer.MockServerConfig) error {
 			client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{fmt.Sprintf("http://%s:%d", config.Host, config.Port), ""})
 
-			person, err := client.GetPersonDetails(testContext(), 1)
+			person, err := client.GetPersonDetails(testContext(), 123)
 			if err != nil {
 				return err
 			}
