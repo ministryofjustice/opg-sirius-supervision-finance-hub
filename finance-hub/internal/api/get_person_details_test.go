@@ -94,10 +94,10 @@ func TestGetPersonDetails_contract(t *testing.T) {
 		WillRespondWith(200, func(b *consumer.V2ResponseBuilder) {
 			b.Header("Content-Type", matchers.S("application/json"))
 			b.JSONBody(matchers.MapMatcher{
-				"id":            matchers.Like(1),
+				"id":            matchers.Like(123),
 				"firstname":     matchers.Like("Ian"),
 				"surname":       matchers.Like("Finance"),
-				"caseRecNumber": matchers.Like("22222222"),
+				"caseRecNumber": matchers.Like("11223344"),
 			})
 		}).
 		ExecuteTest(t, func(config consumer.MockServerConfig) error {
@@ -109,10 +109,10 @@ func TestGetPersonDetails_contract(t *testing.T) {
 			}
 
 			assert.EqualValues(t, shared.Person{
-				ID:        1,
+				ID:        123,
 				FirstName: "Ian",
 				Surname:   "Finance",
-				CourtRef:  "22222222",
+				CourtRef:  "11223344",
 			}, person)
 
 			return nil

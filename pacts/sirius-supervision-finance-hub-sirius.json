@@ -21,9 +21,9 @@
       },
       "response": {
         "body": {
-          "caseRecNumber": "22222222",
+          "caseRecNumber": "11223344",
           "firstname": "Ian",
-          "id": 1,
+          "id": 123,
           "surname": "Finance"
         },
         "headers": {
