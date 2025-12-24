@@ -85,7 +85,7 @@ func TestGetPersonDetails_contract(t *testing.T) {
 
 	err = pact.
 		AddInteraction().
-		Given("A supervision client exists").
+		Given("A supervision client exists with ID 123").
 		UponReceiving("A request for client").
 		WithRequestPathMatcher("GET", matchers.Regex("/supervision-api/v1/clients/123", `\/supervision-api\/v1\/clients\/\d+`),
 			func(b *consumer.V2RequestBuilder) {
