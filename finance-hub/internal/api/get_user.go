@@ -3,8 +3,9 @@ package api
 import (
 	"context"
 	"encoding/json"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"net/http"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
 func (c *Client) GetUser(ctx context.Context, userId int) (shared.User, error) {
