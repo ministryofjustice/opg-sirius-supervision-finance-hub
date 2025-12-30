@@ -25,6 +25,14 @@
     margin-bottom: 2em;
   }
 
+  .moj-sub-navigation__link {
+    cursor: pointer;
+  }
+
+  .moj-success-banner {
+    cursor: pointer;
+  }
+
   #overview {
     display: flex;
     justify-content: flex-start;
