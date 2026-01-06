@@ -105,3 +105,7 @@ func (d Date) CalculateFinanceYear() string {
 
 	return strconv.Itoa(financialYearOneStartYear % 100)
 }
+
+func GetCurrentDateWithoutTime() time.Time {
+	return time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 0, 0, 0, 0, time.Local)
+}

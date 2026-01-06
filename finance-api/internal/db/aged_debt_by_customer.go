@@ -1,28 +1,45 @@
 package db
 
-// AgedDebtByCustomer generates a report of all customers with outstanding debt, broken down into ageing buckets.
-type AgedDebtByCustomer struct{ ReportQuery }
+import (
+	"time"
+)
 
-func NewAgedDebtByCustomer() ReportQuery {
+// AgedDebtByCustomer generates a report of all customers with outstanding debt, broken down into ageing buckets.
+type AgedDebtByCustomer struct {
+	ReportQuery
+	AgedDebtByCustomerInput
+}
+
+type AgedDebtByCustomerInput struct {
+	Date time.Time
+}
+
+func NewAgedDebtByCustomer(input AgedDebtByCustomerInput) ReportQuery {
 	return &AgedDebtByCustomer{
-		ReportQuery: NewReportQuery(AgedDebtByCustomerQuery),
+		ReportQuery:             NewReportQuery(AgedDebtByCustomerQuery),
+		AgedDebtByCustomerInput: input,
 	}
+}
+
+func (a *AgedDebtByCustomer) GetParams() []any {
+
+	return []any{a.Date.Format("2006-01-02")}
 }
 
 const AgedDebtByCustomerQuery = `WITH outstanding_invoices AS (SELECT i.id AS invoice_id,
                                      i.finance_client_id,
                                      i.amount - COALESCE(transactions.received, 0) AS outstanding,
                                      CASE
-                                         WHEN NOW()::DATE - i.raiseddate::DATE < 31 THEN 0
-                                         WHEN NOW()::DATE - i.raiseddate::DATE < 52 THEN 1
-                                         WHEN NOW()::DATE - i.raiseddate::DATE < 66 THEN 2
-                                         WHEN NOW()::DATE - i.raiseddate::DATE < 96 THEN 3
-                                         WHEN NOW()::DATE - i.raiseddate::DATE < 121 THEN 4
-                                         WHEN NOW()::DATE - i.raiseddate::DATE < 151 THEN 5
-                                         WHEN NOW()::DATE - i.raiseddate::DATE < 365 THEN 6
-                                         WHEN NOW()::DATE - i.raiseddate::DATE < 761 THEN 7
-                                         WHEN NOW()::DATE - i.raiseddate::DATE < 1126 THEN 8
-                                         WHEN NOW()::DATE - i.raiseddate::DATE < 1826 THEN 9
+                                         WHEN DATE($1) - i.raiseddate::DATE < 31 THEN 0
+                                         WHEN DATE($1) - i.raiseddate::DATE < 52 THEN 1
+                                         WHEN DATE($1) - i.raiseddate::DATE < 66 THEN 2
+                                         WHEN DATE($1) - i.raiseddate::DATE < 96 THEN 3
+                                         WHEN DATE($1) - i.raiseddate::DATE < 121 THEN 4
+                                         WHEN DATE($1) - i.raiseddate::DATE < 151 THEN 5
+                                         WHEN DATE($1) - i.raiseddate::DATE < 365 THEN 6
+                                         WHEN DATE($1) - i.raiseddate::DATE < 761 THEN 7
+                                         WHEN DATE($1) - i.raiseddate::DATE < 1126 THEN 8
+                                         WHEN DATE($1) - i.raiseddate::DATE < 1826 THEN 9
                                          ELSE 10
                                          END                                AS overdue_banding
                               FROM supervision_finance.invoice i

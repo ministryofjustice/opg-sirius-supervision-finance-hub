@@ -18,7 +18,8 @@ type AgedDebt struct {
 }
 
 type AgedDebtInput struct {
-	ToDate *shared.Date
+	ToDate    *shared.Date
+	DateToday time.Time
 }
 
 func NewAgedDebt(input AgedDebtInput) ReportQuery {
@@ -40,8 +41,8 @@ const AgedDebtQuery = `WITH outstanding_invoices AS (SELECT i.id,
                                      i.raiseddate + '30 days'::INTERVAL AS due_date,
                                      ((i.amount / 100.0)::NUMERIC(10, 2))::VARCHAR(255) AS amount,
                                      (((i.amount - COALESCE(transactions.received, 0)) / 100.00)::NUMERIC(10, 2))::VARCHAR(255) AS outstanding,
-									 DATE_PART('year', AGE(NOW(), (i.raiseddate + '30 days'::INTERVAL))) + 
-									 DATE_PART('month', AGE(NOW(), (i.raiseddate + '30 days'::INTERVAL))) / 12.0 AS age
+									 DATE_PART('year', AGE(DATE($2), (i.raiseddate + '30 days'::INTERVAL))) + 
+									 DATE_PART('month', AGE(DATE($2), (i.raiseddate + '30 days'::INTERVAL))) / 12.0 AS age
                               FROM supervision_finance.invoice i
 									   LEFT JOIN LATERAL (
 								  SELECT SUM(la.amount) AS received
@@ -90,10 +91,10 @@ SELECT CONCAT(p.firstname, ' ', p.surname)                 AS "Customer name",
        oi.amount                             AS "Original amount",
        oi.outstanding                        AS "Outstanding amount",
        CASE
-           WHEN NOW() < (oi.due_date + '1 day'::INTERVAL) THEN oi.outstanding
+           WHEN DATE($2) < (oi.due_date + '1 day'::INTERVAL) THEN oi.outstanding
            ELSE '0' END                                      AS "Current",
        CASE
-           WHEN NOW() > oi.due_date AND oi.age < 1 THEN oi.outstanding
+           WHEN DATE($2) > oi.due_date AND oi.age < 1 THEN oi.outstanding
            ELSE '0' END                                      AS "0-1 years",
        CASE WHEN oi.age > 1 AND oi.age <= 2 THEN oi.outstanding ELSE '0' END AS "1-2 years",
        CASE WHEN oi.age > 2 AND oi.age <= 3 THEN oi.outstanding ELSE '0' END AS "2-3 years",
@@ -162,10 +163,10 @@ func (a *AgedDebt) GetParams() []any {
 	)
 
 	if a.ToDate == nil || a.ToDate.IsNull() {
-		to = time.Now()
+		to = a.DateToday
 	} else {
 		to = a.ToDate.Time
 	}
 
-	return []any{to.Format("2006-01-02")}
+	return []any{to.Format("2006-01-02"), a.DateToday.Format("2006-01-02")}
 }

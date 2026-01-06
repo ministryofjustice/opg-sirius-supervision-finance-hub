@@ -240,3 +240,13 @@ func TestDate_calculateFinanceYear(t *testing.T) {
 		})
 	}
 }
+
+func TestDate_getCurrentDateWithoutTime(t *testing.T) {
+	assert.Equal(t, time.Now().Year(), GetCurrentDateWithoutTime().Year())
+	assert.Equal(t, time.Now().Month(), GetCurrentDateWithoutTime().Month())
+	assert.Equal(t, time.Now().Day(), GetCurrentDateWithoutTime().Day())
+	assert.Equal(t, 0, GetCurrentDateWithoutTime().Hour())
+	assert.Equal(t, 0, GetCurrentDateWithoutTime().Minute())
+	assert.Equal(t, 0, GetCurrentDateWithoutTime().Second())
+	assert.Equal(t, 0, GetCurrentDateWithoutTime().Nanosecond())
+}

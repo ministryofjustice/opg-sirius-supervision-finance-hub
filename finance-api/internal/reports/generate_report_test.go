@@ -105,7 +105,8 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			},
 			expectedQuery: &db.AgedDebt{
 				AgedDebtInput: db.AgedDebtInput{
-					ToDate: &toDate,
+					ToDate:    &toDate,
+					DateToday: shared.GetCurrentDateWithoutTime(),
 				},
 				ReportQuery: db.NewReportQuery(db.AgedDebtQuery)},
 			expectedFilename: "AgedDebt_01:01:2024.csv",
@@ -118,8 +119,10 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				AccountsReceivableType: toPtr(shared.AccountsReceivableTypeAgedDebt),
 			},
 			expectedQuery: &db.AgedDebt{
-				AgedDebtInput: db.AgedDebtInput{},
-				ReportQuery:   db.NewReportQuery(db.AgedDebtQuery)},
+				AgedDebtInput: db.AgedDebtInput{
+					DateToday: shared.GetCurrentDateWithoutTime(),
+				},
+				ReportQuery: db.NewReportQuery(db.AgedDebtQuery)},
 			expectedFilename: "AgedDebt_02:02:2024.csv",
 			expectedTemplate: reportRequestedTemplateId,
 		},
@@ -129,7 +132,10 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				ReportType:             shared.ReportsTypeAccountsReceivable,
 				AccountsReceivableType: toPtr(shared.AccountsReceivableTypeAgedDebtByCustomer),
 			},
-			expectedQuery:    &db.AgedDebtByCustomer{ReportQuery: db.NewReportQuery(db.AgedDebtByCustomerQuery)},
+			expectedQuery: &db.AgedDebtByCustomer{
+				AgedDebtByCustomerInput: db.AgedDebtByCustomerInput{Date: shared.GetCurrentDateWithoutTime()},
+				ReportQuery:             db.NewReportQuery(db.AgedDebtByCustomerQuery),
+			},
 			expectedFilename: "AgedDebtByCustomer_02:02:2024.csv",
 			expectedTemplate: reportRequestedTemplateId,
 		},
