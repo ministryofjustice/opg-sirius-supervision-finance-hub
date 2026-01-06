@@ -76,8 +76,8 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	to := shared.NewDate(yesterday.String())
 
 	rows, err := c.Run(ctx, NewAgedDebt(AgedDebtInput{
-		ToDate:    &to,
-		DateToday: suite.seeder.Today().Date(),
+		ToDate: &to,
+		Today:  suite.seeder.Today().Date(),
 	}))
 
 	assert.NoError(suite.T(), err)
@@ -252,21 +252,34 @@ func TestAgedDebt_GetParams(t *testing.T) {
 	}{
 		{
 			name:   "nil ToDate defaults to today",
-			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: nil, DateToday: shared.GetCurrentDateWithoutTime()}},
+			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: nil, Today: time.Now()}},
 			want:   []any{time.Now().Format("2006-01-02"), time.Now().Format("2006-01-02")},
 		},
 		{
 			name:   "empty ToDate defaults to today",
-			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: &shared.Date{}, DateToday: shared.GetCurrentDateWithoutTime()}},
+			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: &shared.Date{}, Today: time.Now()}},
 			want:   []any{time.Now().Format("2006-01-02"), time.Now().Format("2006-01-02")},
+		},
+		{
+			name:   "will pull through other date to overwrite today and default date if required",
+			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: &shared.Date{}, Today: time.Now().AddDate(-1, 0, 0)}},
+			want:   []any{time.Now().AddDate(-1, 0, 0).Format("2006-01-02"), time.Now().AddDate(-1, 0, 0).Format("2006-01-02")},
 		},
 		{
 			name: "valid ToDate returns formatted date",
 			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: func() *shared.Date {
 				d := shared.NewDate("2023-05-01")
 				return &d
-			}(), DateToday: shared.GetCurrentDateWithoutTime()}},
+			}(), Today: time.Now()}},
 			want: []any{"2023-05-01", time.Now().Format("2006-01-02")},
+		},
+		{
+			name: "will pull through other date to overwrite today and leave preset default date",
+			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: func() *shared.Date {
+				d := shared.NewDate("2023-05-01")
+				return &d
+			}(), Today: time.Now().AddDate(-1, 0, 0)}},
+			want: []any{"2023-05-01", time.Now().AddDate(-1, 0, 0).Format("2006-01-02")},
 		},
 	}
 	for _, tt := range tests {

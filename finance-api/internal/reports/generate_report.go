@@ -96,11 +96,11 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 				reportDate = reportRequest.ToDate.Time.Format("02:01:2006")
 			}
 			query = db.NewAgedDebt(db.AgedDebtInput{
-				ToDate:    reportRequest.ToDate,
-				DateToday: shared.GetCurrentDateWithoutTime(),
+				ToDate: reportRequest.ToDate,
+				Today:  time.Now(),
 			})
 		case shared.AccountsReceivableTypeAgedDebtByCustomer:
-			query = db.NewAgedDebtByCustomer(db.AgedDebtByCustomerInput{Date: shared.GetCurrentDateWithoutTime()})
+			query = db.NewAgedDebtByCustomer(db.AgedDebtByCustomerInput{Today: time.Now()})
 		case shared.AccountsReceivableTypeARPaidInvoice:
 			query = db.NewPaidInvoices(db.PaidInvoicesInput{
 				FromDate:   reportRequest.FromDate,

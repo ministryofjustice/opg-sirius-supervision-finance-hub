@@ -18,8 +18,8 @@ type AgedDebt struct {
 }
 
 type AgedDebtInput struct {
-	ToDate    *shared.Date
-	DateToday time.Time
+	ToDate *shared.Date
+	Today  time.Time
 }
 
 func NewAgedDebt(input AgedDebtInput) ReportQuery {
@@ -163,10 +163,10 @@ func (a *AgedDebt) GetParams() []any {
 	)
 
 	if a.ToDate == nil || a.ToDate.IsNull() {
-		to = a.DateToday
+		to = a.Today
 	} else {
 		to = a.ToDate.Time
 	}
 
-	return []any{to.Format("2006-01-02"), a.DateToday.Format("2006-01-02")}
+	return []any{to.Format("2006-01-02"), a.Today.Format("2006-01-02")}
 }

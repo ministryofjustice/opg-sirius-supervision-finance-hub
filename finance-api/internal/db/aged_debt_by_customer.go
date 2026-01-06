@@ -11,7 +11,7 @@ type AgedDebtByCustomer struct {
 }
 
 type AgedDebtByCustomerInput struct {
-	Date time.Time
+	Today time.Time
 }
 
 func NewAgedDebtByCustomer(input AgedDebtByCustomerInput) ReportQuery {
@@ -23,7 +23,7 @@ func NewAgedDebtByCustomer(input AgedDebtByCustomerInput) ReportQuery {
 
 func (a *AgedDebtByCustomer) GetParams() []any {
 
-	return []any{a.Date.Format("2006-01-02")}
+	return []any{a.Today.Format("2006-01-02")}
 }
 
 const AgedDebtByCustomerQuery = `WITH outstanding_invoices AS (SELECT i.id AS invoice_id,

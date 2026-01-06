@@ -55,7 +55,7 @@ func (suite *IntegrationSuite) Test_aged_debt_by_customer() {
 
 	c := Client{suite.seeder.Conn}
 
-	rows, err := c.Run(ctx, NewAgedDebtByCustomer(AgedDebtByCustomerInput{Date: suite.seeder.Today().Date()}))
+	rows, err := c.Run(ctx, NewAgedDebtByCustomer(AgedDebtByCustomerInput{Today: suite.seeder.Today().Date()}))
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), 4, len(rows))
 
