@@ -13,9 +13,7 @@ INSERT INTO finance_client VALUES (3001, 3, 'add-manual-invoice', 'DEMANDED', nu
 
 -- adjust-invoice
 INSERT INTO finance_client VALUES (4001, 4, 'adjust-invoice', 'DEMANDED', null, '44444444');
-
 INSERT INTO invoice VALUES (1, 4, 4001, 'AD', 'AD11111/19', '2019-04-01', '2020-03-31', 10000, null, '2020-03-20', 10, '2020-03-16', null, null, null, '2019-06-06', 99); -- add credit
-
 INSERT INTO invoice VALUES (2, 4, 4001, 'S2', 'S203532/24', '2023-04-01', '2024-03-31', 32000, null, '2024-03-31', 10, '2024-03-31', null, null, null, '2024-03-31', 99); -- write off
 
 INSERT INTO invoice VALUES (3, 4, 4001, 'AD', 'AD03532/24', '2023-04-01', '2024-03-31', 10000, null, '2024-03-31', 10, '2023-04-01', null, null, null, '2024-03-31', 99); -- add debit
@@ -181,7 +179,7 @@ INSERT INTO ledger_allocation VALUES (20, 16, 22, '2025-09-30T08:36:40+00:00', 6
 INSERT INTO ledger VALUES (17, 'dd payment 2', '2025-10-08T08:36:40+00:00', '', 4000, '', 'DIRECT DEBIT PAYMENT', 'CONFIRMED', 28001, null, null, '2025-10-08', '2025-10-08', 1, '', '', 1, '2025-10-08 12:01:58', 2);
 INSERT INTO ledger_allocation VALUES (21, 17, 22, '2025-10-08T08:36:40+00:00', 4000, 'ALLOCATED', null, '', '2025-10-08', null);
 
--- allpay e2e - create mandate and collect
+-- allpay e2e
 INSERT INTO finance_client VALUES (29001, 29, 'allpaye2e', 'DEMANDED', null, '29292900');
 INSERT INTO invoice VALUES (23, 29, 29001, 'AD', 'AD292929/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-05-11T12:01:59+00:00', 2);
 

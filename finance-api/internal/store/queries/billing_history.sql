@@ -80,3 +80,34 @@ FROM refund r
         JOIN finance_client fc ON fc.id = r.finance_client_id
 WHERE fc.client_id = $1
 ORDER BY r.created_at DESC;
+
+-- name: GetPaymentMethodsForBillingHistory :many
+SELECT pm.id,
+    finance_client_id,
+    type,
+    created_by,
+    created_at
+FROM payment_method pm
+     JOIN finance_client fc ON fc.id = pm.finance_client_id
+WHERE fc.client_id = $1
+ORDER BY pm.id DESC;
+
+-- name: GetDirectDebitPaymentsForBillingHistory :many
+SELECT pc.finance_client_id,
+       pc.collection_date,
+       pc.amount,
+       pc.status,
+       pc.ledger_id,
+       pc.created_at,
+       pc.created_by,
+       ledger.amount AS l_amount,
+       ledger.reference AS l_reference,
+       ledger_allocation.invoice_id AS la_invoice_id,
+       ledger_allocation.amount AS la_amount,
+       ledger_allocation.reference As la_reference
+FROM pending_collection pc
+    JOIN finance_client fc ON fc.id = pc.finance_client_id
+    LEFT JOIN ledger ON pc.ledger_id = ledger.id
+    LEFT JOIN ledger_allocation ON pc.ledger_id = ledger_allocation.ledger_id
+WHERE fc.client_id = $1
+ORDER BY pc.created_at DESC;
