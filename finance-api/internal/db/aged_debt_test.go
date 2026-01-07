@@ -2,12 +2,13 @@ package db
 
 import (
 	"fmt"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/testhelpers"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"github.com/stretchr/testify/assert"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/testhelpers"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"github.com/stretchr/testify/assert"
 )
 
 func (suite *IntegrationSuite) Test_aged_debt() {
@@ -77,7 +78,7 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 
 	rows, err := c.Run(ctx, NewAgedDebt(AgedDebtInput{
 		ToDate: &to,
-		Today:  suite.seeder.Today().Date(),
+		Today:  suite.seeder.Today().Add(1, 0, 0).Date(), // ran a year in the future to ensure data is independent of when it is generated
 	}))
 
 	assert.NoError(suite.T(), err)
@@ -253,17 +254,17 @@ func TestAgedDebt_GetParams(t *testing.T) {
 		{
 			name:   "nil ToDate defaults to today",
 			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: nil, Today: time.Now()}},
-			want:   []any{time.Now().Format("2006-01-02"), time.Now().Format("2006-01-02")},
+			want:   []any{time.Now().Format("2006-01-02")},
 		},
 		{
 			name:   "empty ToDate defaults to today",
 			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: &shared.Date{}, Today: time.Now()}},
-			want:   []any{time.Now().Format("2006-01-02"), time.Now().Format("2006-01-02")},
+			want:   []any{time.Now().Format("2006-01-02")},
 		},
 		{
 			name:   "will pull through other date to overwrite today and default date if required",
 			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: &shared.Date{}, Today: time.Now().AddDate(-1, 0, 0)}},
-			want:   []any{time.Now().AddDate(-1, 0, 0).Format("2006-01-02"), time.Now().AddDate(-1, 0, 0).Format("2006-01-02")},
+			want:   []any{time.Now().AddDate(-1, 0, 0).Format("2006-01-02")},
 		},
 		{
 			name: "valid ToDate returns formatted date",
@@ -271,15 +272,7 @@ func TestAgedDebt_GetParams(t *testing.T) {
 				d := shared.NewDate("2023-05-01")
 				return &d
 			}(), Today: time.Now()}},
-			want: []any{"2023-05-01", time.Now().Format("2006-01-02")},
-		},
-		{
-			name: "will pull through other date to overwrite today and leave preset default date",
-			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: func() *shared.Date {
-				d := shared.NewDate("2023-05-01")
-				return &d
-			}(), Today: time.Now().AddDate(-1, 0, 0)}},
-			want: []any{"2023-05-01", time.Now().AddDate(-1, 0, 0).Format("2006-01-02")},
+			want: []any{"2023-05-01"},
 		},
 	}
 	for _, tt := range tests {

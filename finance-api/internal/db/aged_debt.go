@@ -12,6 +12,8 @@ import (
 // fully paid after the provided date will appear as outstanding.
 // The report also calculates the age of the debt based on the due date (30 days after the raised date) and categorises
 // the debt into ageing buckets (current, 0-1 years, 1-2 years, etc.).
+// This report is a snapshot of debt as of the specified date and as a result, the ageing buckets reflect the age of the
+// debt at that time, not the current age of the debt, or if it is indeed still debt.
 type AgedDebt struct {
 	ReportQuery
 	AgedDebtInput
@@ -41,8 +43,8 @@ const AgedDebtQuery = `WITH outstanding_invoices AS (SELECT i.id,
                                      i.raiseddate + '30 days'::INTERVAL AS due_date,
                                      ((i.amount / 100.0)::NUMERIC(10, 2))::VARCHAR(255) AS amount,
                                      (((i.amount - COALESCE(transactions.received, 0)) / 100.00)::NUMERIC(10, 2))::VARCHAR(255) AS outstanding,
-									 DATE_PART('year', AGE(DATE($2), (i.raiseddate + '30 days'::INTERVAL))) + 
-									 DATE_PART('month', AGE(DATE($2), (i.raiseddate + '30 days'::INTERVAL))) / 12.0 AS age
+									 DATE_PART('year', AGE($1::DATE, (i.raiseddate + '30 days'::INTERVAL))) + 
+									 DATE_PART('month', AGE($1::DATE, (i.raiseddate + '30 days'::INTERVAL))) / 12.0 AS age
                               FROM supervision_finance.invoice i
 									   LEFT JOIN LATERAL (
 								  SELECT SUM(la.amount) AS received
@@ -91,11 +93,11 @@ SELECT CONCAT(p.firstname, ' ', p.surname)                 AS "Customer name",
        oi.amount                             AS "Original amount",
        oi.outstanding                        AS "Outstanding amount",
        CASE
-           WHEN DATE($2) < (oi.due_date + '1 day'::INTERVAL) THEN oi.outstanding
-           ELSE '0' END                                      AS "Current",
-       CASE
-           WHEN DATE($2) > oi.due_date AND oi.age < 1 THEN oi.outstanding
-           ELSE '0' END                                      AS "0-1 years",
+			WHEN $1::DATE <= oi.due_date::DATE THEN oi.outstanding
+			ELSE '0' END AS "Current",
+		CASE
+			WHEN $1::DATE > oi.due_date::DATE AND oi.age < 1 THEN oi.outstanding
+	   		ELSE '0' END AS "0-1 years",
        CASE WHEN oi.age > 1 AND oi.age <= 2 THEN oi.outstanding ELSE '0' END AS "1-2 years",
        CASE WHEN oi.age > 2 AND oi.age <= 3 THEN oi.outstanding ELSE '0' END AS "2-3 years",
        CASE WHEN oi.age > 3 AND oi.age <= 5 THEN oi.outstanding ELSE '0' END AS "3-5 years",
@@ -168,5 +170,5 @@ func (a *AgedDebt) GetParams() []any {
 		to = a.ToDate.Time
 	}
 
-	return []any{to.Format("2006-01-02"), a.Today.Format("2006-01-02")}
+	return []any{to.Format("2006-01-02")}
 }
