@@ -10,7 +10,7 @@ type DateHelper struct {
 }
 
 func (s *Seeder) Today() DateHelper {
-	date := DateHelper{date: time.Now()}
+	date := DateHelper{date: time.Date(2025, 11, 30, 0, 0, 0, 0, time.UTC)}
 	return date
 }
 
