@@ -106,6 +106,7 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			expectedQuery: &db.AgedDebt{
 				AgedDebtInput: db.AgedDebtInput{
 					ToDate: &toDate,
+					Today:  time.Now(),
 				},
 				ReportQuery: db.NewReportQuery(db.AgedDebtQuery)},
 			expectedFilename: "AgedDebt_01:01:2024.csv",
@@ -118,8 +119,10 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				AccountsReceivableType: toPtr(shared.AccountsReceivableTypeAgedDebt),
 			},
 			expectedQuery: &db.AgedDebt{
-				AgedDebtInput: db.AgedDebtInput{},
-				ReportQuery:   db.NewReportQuery(db.AgedDebtQuery)},
+				AgedDebtInput: db.AgedDebtInput{
+					Today: time.Now(),
+				},
+				ReportQuery: db.NewReportQuery(db.AgedDebtQuery)},
 			expectedFilename: "AgedDebt_02:02:2024.csv",
 			expectedTemplate: reportRequestedTemplateId,
 		},
@@ -129,7 +132,10 @@ func TestGenerateAndUploadReport(t *testing.T) {
 				ReportType:             shared.ReportsTypeAccountsReceivable,
 				AccountsReceivableType: toPtr(shared.AccountsReceivableTypeAgedDebtByCustomer),
 			},
-			expectedQuery:    &db.AgedDebtByCustomer{ReportQuery: db.NewReportQuery(db.AgedDebtByCustomerQuery)},
+			expectedQuery: &db.AgedDebtByCustomer{
+				AgedDebtByCustomerInput: db.AgedDebtByCustomerInput{Today: time.Now()},
+				ReportQuery:             db.NewReportQuery(db.AgedDebtByCustomerQuery),
+			},
 			expectedFilename: "AgedDebtByCustomer_02:02:2024.csv",
 			expectedTemplate: reportRequestedTemplateId,
 		},
@@ -456,11 +462,17 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			switch expected := tt.expectedQuery.(type) {
 			case *db.AgedDebt:
 				actual, ok := mockDb.query.(*db.AgedDebt)
+				//ignore milliseconds of difference in the queries for sanity
+				actual.Today = actual.Today.Truncate(time.Second)
+				expected.Today = expected.Today.Truncate(time.Second)
 				assert.True(t, ok)
 				assert.Equal(t, expected, actual)
 				assert.Equal(t, tt.expectedTemplate, mockNotify.payload.TemplateId)
 			case *db.AgedDebtByCustomer:
 				actual, ok := mockDb.query.(*db.AgedDebtByCustomer)
+				//ignore milliseconds of difference in the queries for sanity
+				actual.Today = actual.Today.Truncate(time.Second)
+				expected.Today = expected.Today.Truncate(time.Second)
 				assert.True(t, ok)
 				assert.Equal(t, expected, actual)
 				assert.Equal(t, tt.expectedTemplate, mockNotify.payload.TemplateId)
