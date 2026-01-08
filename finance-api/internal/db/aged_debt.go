@@ -51,7 +51,7 @@ const AgedDebtQuery = `WITH outstanding_invoices AS (SELECT i.id,
 								  FROM supervision_finance.ledger_allocation la
 								  		 JOIN supervision_finance.ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
 									WHERE la.status NOT IN ('PENDING', 'UN ALLOCATED')
-									AND l.datetime::DATE <= $1
+									AND l.datetime::DATE <= $1::DATE
 								    AND la.invoice_id = i.id
 								  ) transactions ON TRUE
                                        LEFT JOIN LATERAL (
@@ -61,7 +61,7 @@ const AgedDebtQuery = `WITH outstanding_invoices AS (SELECT i.id,
                                   ORDER BY id DESC
                                   LIMIT 1
                                   ) sl ON TRUE
-							WHERE i.raiseddate <= $1 AND i.amount > COALESCE(transactions.received, 0)),
+							WHERE i.raiseddate <= $1::DATE AND i.amount > COALESCE(transactions.received, 0)),
      age_per_client AS (SELECT fc.client_id, MAX(oi.age) AS age
                         FROM supervision_finance.finance_client fc
                                  JOIN outstanding_invoices oi ON fc.id = oi.finance_client_id
@@ -96,17 +96,17 @@ SELECT CONCAT(p.firstname, ' ', p.surname)                 AS "Customer name",
 			WHEN $1::DATE <= oi.due_date::DATE THEN oi.outstanding
 			ELSE '0' END AS "Current",
 		CASE
-			WHEN $1::DATE > oi.due_date::DATE AND oi.age < 1 THEN oi.outstanding
+			WHEN $1::DATE > oi.due_date::DATE AND oi.age <= 1 THEN oi.outstanding
 	   		ELSE '0' END AS "0-1 years",
        CASE WHEN oi.age > 1 AND oi.age <= 2 THEN oi.outstanding ELSE '0' END AS "1-2 years",
        CASE WHEN oi.age > 2 AND oi.age <= 3 THEN oi.outstanding ELSE '0' END AS "2-3 years",
        CASE WHEN oi.age > 3 AND oi.age <= 5 THEN oi.outstanding ELSE '0' END AS "3-5 years",
        CASE WHEN oi.age > 5 THEN oi.outstanding ELSE '0' END AS "5+ years",
        CASE
-           WHEN apc.age < 2 THEN '="0-1"'
-           WHEN apc.age BETWEEN 1 AND 2 THEN '="1-2"'
-           WHEN apc.age BETWEEN 2 AND 3 THEN '="2-3"'
-           WHEN apc.age BETWEEN 3 AND 5 THEN '="3-5"'
+           WHEN apc.age < 1 THEN '="0-1"'
+		   WHEN apc.age >= 1 AND apc.age < 2 THEN '="1-2"'
+		   WHEN apc.age >= 2 AND apc.age < 3 THEN '="2-3"'
+		   WHEN apc.age >= 3 AND apc.age < 5 THEN '="3-5"'
            ELSE '="5+"' END                                   AS "Debt impairment years"
 FROM supervision_finance.finance_client fc
          JOIN outstanding_invoices oi ON fc.id = oi.finance_client_id
