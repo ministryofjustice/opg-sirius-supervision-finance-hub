@@ -164,6 +164,11 @@ func TestNextWorkingDayOnOrAfterX(t *testing.T) {
 			date:     time.Date(2025, 12, 25, 0, 0, 0, 0, time.UTC),
 			expected: time.Date(2026, 1, 26, 0, 0, 0, 0, time.UTC),
 		},
+		{
+			name:     "current day is after X and greater than max days in next month",
+			date:     time.Date(2026, 01, 29, 0, 0, 0, 0, time.UTC),
+			expected: time.Date(2026, 02, 24, 0, 0, 0, 0, time.UTC),
+		},
 	}
 
 	for _, tt := range tests {
