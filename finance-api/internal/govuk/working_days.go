@@ -127,16 +127,16 @@ func (c *Client) NextWorkingDayOnOrAfterX(ctx context.Context, date time.Time, d
 		c.caches.updateHolidays(holidays)
 	}
 
+	next := time.Date(date.Year(), date.Month(), dayOfMonth, 0, 0, 0, 0, time.UTC)
+
 	if date.Day() > dayOfMonth {
-		date = date.AddDate(0, 1, 0)
+		next = next.AddDate(0, 1, 0)
 	}
 
-	date = time.Date(date.Year(), date.Month(), dayOfMonth, 0, 0, 0, 0, time.UTC)
-
 	for {
-		if b := c.isWorkingDay(date); b {
-			return date, nil
+		if b := c.isWorkingDay(next); b {
+			return next, nil
 		}
-		date = date.AddDate(0, 0, 1)
+		next = next.AddDate(0, 0, 1)
 	}
 }
