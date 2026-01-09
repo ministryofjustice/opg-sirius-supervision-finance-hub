@@ -92,14 +92,15 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 		reportDate := requestedDate.Format("02:01:2006")
 		switch *reportRequest.AccountsReceivableType {
 		case shared.AccountsReceivableTypeAgedDebt:
-			if reportRequest.ToDate != nil {
+			if reportRequest.ToDate != nil && !reportRequest.ToDate.IsNull() {
 				reportDate = reportRequest.ToDate.Time.Format("02:01:2006")
 			}
 			query = db.NewAgedDebt(db.AgedDebtInput{
 				ToDate: reportRequest.ToDate,
+				Today:  time.Now(),
 			})
 		case shared.AccountsReceivableTypeAgedDebtByCustomer:
-			query = db.NewAgedDebtByCustomer()
+			query = db.NewAgedDebtByCustomer(db.AgedDebtByCustomerInput{Today: time.Now()})
 		case shared.AccountsReceivableTypeARPaidInvoice:
 			query = db.NewPaidInvoices(db.PaidInvoicesInput{
 				FromDate:   reportRequest.FromDate,
@@ -124,7 +125,12 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 				ToDate:   reportRequest.ToDate,
 			})
 		case shared.AccountsReceivableTypeUnappliedReceipts:
-			query = db.NewCustomerCredit()
+			if reportRequest.ToDate != nil && !reportRequest.ToDate.IsNull() {
+				reportDate = reportRequest.ToDate.Time.Format("02:01:2006")
+			}
+			query = db.NewCustomerCredit(db.CustomerCreditInput{
+				ToDate: reportRequest.ToDate,
+			})
 		case shared.AccountsReceivableTypeFeeAccrual:
 			return filename, reportName, nil, nil
 		default:
@@ -138,8 +144,12 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 		switch *reportRequest.JournalType {
 		case shared.JournalTypeNonReceiptTransactions:
 			query = db.NewNonReceiptTransactions(db.NonReceiptTransactionsInput{Date: reportRequest.TransactionDate})
+		case shared.JournalTypeNonReceiptTransactionsHistoric:
+			query = db.NewNonReceiptTransactionsHistoric(db.NonReceiptTransactionsHistoricInput{Date: reportRequest.TransactionDate})
 		case shared.JournalTypeReceiptTransactions:
 			query = db.NewReceiptTransactions(db.ReceiptTransactionsInput{Date: reportRequest.TransactionDate})
+		case shared.JournalTypeReceiptTransactionsHistoric:
+			query = db.NewReceiptTransactionsHistoric(db.ReceiptTransactionsHistoricInput{Date: reportRequest.TransactionDate})
 		case shared.JournalTypeUnappliedTransactions:
 			query = db.NewUnappliedTransactions(db.UnappliedTransactionsInput{Date: reportRequest.TransactionDate})
 		default:

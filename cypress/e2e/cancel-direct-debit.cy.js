@@ -1,4 +1,4 @@
-describe("Direct debit form", () => {
+describe("Cancel Direct Debit", () => {
     it("should have no accessibility violations",() => {
         cy.visit("/clients/19/direct-debit/cancel");
         cy.checkAccessibility();

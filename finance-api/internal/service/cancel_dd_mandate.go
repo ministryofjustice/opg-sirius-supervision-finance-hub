@@ -6,7 +6,9 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/allpay"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
@@ -19,10 +21,21 @@ func (s *Service) CancelDirectDebitMandate(ctx context.Context, clientID int32, 
 	}
 	defer tx.Rollback(ctx)
 
+	var (
+		paymentMethod pgtype.Text
+		id            pgtype.Int4
+		createdBy     pgtype.Int4
+	)
+
+	_ = paymentMethod.Scan(shared.PaymentMethodDemanded.Key())
+	_ = store.ToInt4(&id, clientID)
+	_ = store.ToInt4(&createdBy, ctx.(auth.Context).User.ID)
+
 	// update payment method first, in case this fails
-	err = tx.UpdatePaymentMethod(ctx, store.UpdatePaymentMethodParams{
-		PaymentMethod: shared.PaymentMethodDemanded.Key(),
-		ClientID:      clientID,
+	err = tx.SetPaymentMethod(ctx, store.SetPaymentMethodParams{
+		PaymentMethod: paymentMethod,
+		ClientID:      id,
+		CreatedBy:     createdBy,
 	})
 	if err != nil {
 		return err

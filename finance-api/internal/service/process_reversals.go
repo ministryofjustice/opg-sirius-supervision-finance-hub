@@ -53,6 +53,7 @@ func (s *Service) ProcessPaymentReversals(ctx context.Context, records [][]strin
 						LedgerType:   details.PaymentType,
 						ReceivedDate: details.ReceivedDate,
 						CreatedBy:    details.CreatedBy,
+						PisNumber:    details.PisNumber,
 					})
 					if err != nil {
 						return nil, err
@@ -194,7 +195,6 @@ func getReversalLines(ctx context.Context, record []string, uploadType shared.Re
 			(*failedLines)[index] = validation.UploadErrorAmountParse
 			return shared.ReversalDetails{}
 		}
-
 	default:
 		(*failedLines)[index] = validation.UploadErrorUnknownUploadType
 	}
@@ -350,6 +350,14 @@ func (s *Service) ProcessReversalUploadLine(ctx context.Context, tx *store.Tx, d
 		if remaining == 0 {
 			break
 		}
+	}
+
+	if details.PaymentType == shared.TransactionTypeRefund {
+		return tx.CreateLedgerAllocation(ctx, store.CreateLedgerAllocationParams{
+			Amount:   remaining,
+			Status:   "UNAPPLIED",
+			LedgerID: ledgerID,
+		})
 	}
 
 	if remaining != 0 {

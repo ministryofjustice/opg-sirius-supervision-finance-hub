@@ -49,6 +49,7 @@ To generate migration files with `goose`, install it locally with `brew install 
 `goose -dir ./migrations create <name-of-migration> sql`
 
 Or copy the up and down files and increment them.
+Do a make down/ up to update the local database. 
 
 ## Adding seed data
 In general, look to keep tests self-contained by having them create (and clear) the data they require for testing. However,
@@ -56,6 +57,16 @@ there are instances where we need to seed the data in advance in order to test i
 data is driven by Sirius, e.g. Cypress tests asserting on the client header.
 
 To seed this data, add the inserts to `/test-data.sql`.
+
+## Sending EventBridge events locally
+In the event that we want to test EventBridge event handling locally, we can use the `send-event`, passing in the following
+parameters:
+* `SOURCE`: e.g: `"opg.supervision.infra"`
+* `DETAIL_TYPE`: e.g. `"scheduled-event"`
+* `DETAIL`: e.g. `'{"trigger":"refund-expiry"}'`
+* `OVERRIDE`: e.g. `'{"date":"2000-01-01"}'` (this is used in AWS to manually override the event date for testing or issuing retries)
+
+For simplicity, the scheduled events sent from AWS have been scripted as their own `make` commands. See `Makefile` for details.
 
 -----
 ## Run the unit/integration tests

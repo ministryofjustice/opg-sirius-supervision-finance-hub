@@ -2,12 +2,13 @@ package service
 
 import (
 	"context"
-	"log/slog"
+	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/allpay"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
@@ -15,14 +16,14 @@ import (
 func (s *Service) ProcessFailedDirectDebitCollections(ctx context.Context, collectionDate time.Time) error {
 	logger := s.Logger(ctx)
 
-	fromDate, err := s.govUK.AddWorkingDays(ctx, collectionDate, 7)
+	fromDate, err := s.govUK.SubWorkingDays(ctx, collectionDate, 7)
 	if err != nil {
 		return err
 	}
 
 	payments, err := s.allpay.FetchFailedPayments(ctx, allpay.FetchFailedPaymentsInput{
-		From: collectionDate,
-		To:   fromDate,
+		From: fromDate,
+		To:   collectionDate,
 	})
 	if err != nil {
 		return err
@@ -39,18 +40,44 @@ func (s *Service) ProcessFailedDirectDebitCollections(ctx context.Context, colle
 	}
 	defer tx.Rollback(ctx)
 
+	processed := make(map[int32]allpay.FailedPayment, len(payments))
+
 	for _, payment := range payments {
-		details := s.validateFailedCollectionLine(ctx, logger, payment)
+		details := s.validateFailedCollectionLine(ctx, payment)
 		if details != nil {
 			err = s.ProcessReversalUploadLine(ctx, tx, *details)
-			logger.Error("process failed direct debit collections", "error", err)
+			if err != nil {
+				logger.Error(fmt.Sprintf("error processing failed direct debit collection for client reference %s on collection date %s", payment.ClientReference, payment.CollectionDate), "error", err)
+				continue
+			}
+
+			var courtRef pgtype.Text
+			_ = courtRef.Scan(payment.ClientReference)
+			client, _ := s.store.GetClientByCourtRef(ctx, courtRef) // unchecked errors as inputs have already been confirmed via payment processing
+			processed[client.ClientID] = payment
 		}
 	}
 
-	return tx.Commit(ctx)
+	err = tx.Commit(ctx)
+	if err != nil {
+		logger.Error("error committing failed direct debit collections", "error", err)
+		return err
+	}
+
+	for clientID, payment := range processed {
+		err = s.dispatch.DirectDebitCollectionFailed(ctx, event.DirectDebitCollectionFailed{
+			ClientID: int(clientID),
+			Reason:   payment.ReasonCode,
+		})
+		if err != nil {
+			logger.Error("error dispatching \"direct-debit-collection-failed\" event", "error", err)
+		}
+	}
+
+	return nil
 }
 
-func (s *Service) validateFailedCollectionLine(ctx context.Context, logger *slog.Logger, payment allpay.FailedPayment) *shared.ReversalDetails {
+func (s *Service) validateFailedCollectionLine(ctx context.Context, payment allpay.FailedPayment) *shared.ReversalDetails {
 	var (
 		courtRef       pgtype.Text
 		collectionDate pgtype.Date
@@ -83,7 +110,7 @@ func (s *Service) validateFailedCollectionLine(ctx context.Context, logger *slog
 	})
 
 	if ledgerCount == 0 {
-		logger.Error("unable to match failed collection to original direct debit payment", "courtRef", courtRef, "collectionDate", collectionDate)
+		s.Logger(ctx).Error("unable to match failed collection to original direct debit payment", "courtRef", courtRef, "collectionDate", collectionDate)
 		return nil
 	}
 
@@ -96,7 +123,7 @@ func (s *Service) validateFailedCollectionLine(ctx context.Context, logger *slog
 	})
 
 	if reversalCount >= ledgerCount {
-		logger.Info("failed direct debit collection already reversed", "courtRef", courtRef, "collectionDate", collectionDate)
+		s.Logger(ctx).Info("failed direct debit collection already reversed", "courtRef", courtRef, "collectionDate", collectionDate)
 		return nil
 	}
 

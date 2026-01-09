@@ -6,6 +6,10 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
+// PaidInvoices generates a report of all paid invoices for a given date range, and includes each transaction that led to
+// the debt reaching zero. This includes only positive transactions (payments, adjustments, reapplied credit), not negative
+// transactions (unapplies, reversals).
+// If the date range is not provided, it defaults to the system go-live date and the current date respectively.
 type PaidInvoices struct {
 	ReportQuery
 	PaidInvoicesInput

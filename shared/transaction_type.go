@@ -14,6 +14,8 @@ var paymentTransactionTypes = []TransactionType{
 	TransactionTypeOPGBACSPayment,
 	TransactionTypeDirectDebitPayment,
 	TransactionTypeSupervisionChequePayment,
+	TransactionTypeSOPUnallocatedPayment,
+	TransactionTypeRefund,
 }
 
 var reversalTransactionTypes = []TransactionType{
@@ -147,12 +149,12 @@ func (t TransactionType) Key() string {
 	}
 }
 
-func (u TransactionType) IsPayment() bool {
-	return slices.Contains(paymentTransactionTypes, u)
+func (t TransactionType) IsPayment() bool {
+	return slices.Contains(paymentTransactionTypes, t)
 }
 
-func (u TransactionType) IsReversalType() bool {
-	return slices.Contains(reversalTransactionTypes, u)
+func (t TransactionType) IsReversalType() bool {
+	return slices.Contains(reversalTransactionTypes, t)
 }
 
 func (t TransactionType) Valid() bool {

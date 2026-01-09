@@ -39,7 +39,6 @@ func (h *SetupDirectDebitHandler) render(v AppVars, w http.ResponseWriter, r *ht
 	switch {
 	case errors.As(err, &ve):
 		{
-
 			data = AppVars{Errors: util.RenameErrors(ve.Errors)}
 			w.WriteHeader(http.StatusUnprocessableEntity)
 		}

@@ -96,7 +96,7 @@ func (s *Service) ProcessFulfilledRefundsLine(ctx context.Context, tx *store.Tx,
 
 	params := store.CreateLedgerForCourtRefParams{
 		CourtRef:     details.CourtRef,
-		Amount:       details.Amount.Int32,
+		Amount:       -details.Amount.Int32,
 		Type:         shared.TransactionTypeRefund.Key(),
 		Status:       "CONFIRMED",
 		CreatedBy:    details.UploadedBy,
