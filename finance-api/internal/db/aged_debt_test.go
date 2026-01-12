@@ -2,12 +2,13 @@ package db
 
 import (
 	"fmt"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/testhelpers"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"github.com/stretchr/testify/assert"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/testhelpers"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"github.com/stretchr/testify/assert"
 )
 
 func (suite *IntegrationSuite) Test_aged_debt() {
@@ -15,6 +16,7 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	today := suite.seeder.Today()
 	yesterday := today.Sub(0, 0, 1)
 	twoMonthsAgo := today.Sub(0, 2, 0)
+	elevenMonthsAgo := yesterday.Sub(0, 11, 0) // age will be ~0.917 years
 	oneYearAgo := today.Sub(1, 0, 0)
 	twoYearsAgo := today.Sub(2, 0, 0)
 	fourYearsAgo := today.Sub(4, 0, 0)
@@ -71,17 +73,23 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	_, c4i1Ref := suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeAD, nil, oneYearAgo.StringPtr(), nil, nil, nil, nil)
 	suite.seeder.CreatePayment(ctx, 10000, today.Date(), "44444444", shared.TransactionTypeMotoCardPayment, today.Date(), 0)
 
+	// client with invoice ~11 months old (age between 0.9 and 1 year) to test edge case
+	client5ID := suite.seeder.CreateClient(ctx, "Eddie", "Edge-Case", "55555555", "5555", "ACTIVE")
+	suite.seeder.CreateDeputy(ctx, client5ID, "Emma", "Deputy", "LAY")
+	suite.seeder.CreateOrder(ctx, client5ID)
+	_, c5i1Ref := suite.seeder.CreateInvoice(ctx, client5ID, shared.InvoiceTypeAD, nil, elevenMonthsAgo.StringPtr(), nil, nil, nil, nil)
+
 	c := Client{suite.seeder.Conn}
 
 	to := shared.NewDate(yesterday.String())
 
 	rows, err := c.Run(ctx, NewAgedDebt(AgedDebtInput{
 		ToDate: &to,
-		Today:  suite.seeder.Today().Date(),
+		Today:  suite.seeder.Today().Add(1, 0, 0).Date(), // ran a year in the future to ensure data is independent of when it is generated
 	}))
 
 	assert.NoError(suite.T(), err)
-	assert.Equal(suite.T(), 6, len(rows))
+	assert.Equal(suite.T(), 7, len(rows))
 
 	results := mapByHeader(rows)
 	assert.NotEmpty(suite.T(), results)
@@ -238,6 +246,37 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	assert.Equal(suite.T(), "0", results[4]["3-5 years"], "3-5 years - client 4")
 	assert.Equal(suite.T(), "0", results[4]["5+ years"], "5+ years - client 4")
 	assert.Equal(suite.T(), "=\"0-1\"", results[4]["Debt impairment years"], "Debt impairment years - client 4")
+
+	// client 5 - invoice with age ~0.917 years (11 months old)
+	assert.Equal(suite.T(), "Eddie Edge-Case", results[5]["Customer name"], "Customer Name - client 5")
+	assert.Equal(suite.T(), "55555555", results[5]["Customer number"], "Customer number - client 5")
+	assert.Equal(suite.T(), "5555", results[5]["SOP number"], "SOP number - client 5")
+	assert.Equal(suite.T(), "LAY", results[5]["Deputy type"], "Deputy type - client 5")
+	assert.Equal(suite.T(), "Yes", results[5]["Active case?"], "Active case? - client 5")
+	assert.Equal(suite.T(), "=\"0470\"", results[5]["Entity"], "Entity - client 5")
+	assert.Equal(suite.T(), "99999999", results[5]["Receivable cost centre"], "Receivable cost centre - client 5")
+	assert.Equal(suite.T(), "BALANCE SHEET", results[5]["Receivable cost centre description"], "Receivable cost centre description - client 5")
+	assert.Equal(suite.T(), "1816102003", results[5]["Receivable account code"], "Receivable account code - client 5")
+	assert.Equal(suite.T(), "10482009", results[5]["Revenue cost centre"], "Revenue cost centre - client 5")
+	assert.Equal(suite.T(), "Supervision Investigations", results[5]["Revenue cost centre description"], "Revenue cost centre description - client 5")
+	assert.Equal(suite.T(), "4481102093", results[5]["Revenue account code"], "Revenue account code - client 5")
+	assert.Equal(suite.T(), "INC - RECEIPT OF FEES AND CHARGES - Appoint Deputy", results[5]["Revenue account code description"], "Revenue account code description - client 5")
+	assert.Equal(suite.T(), "AD", results[5]["Invoice type"], "Invoice type - client 5")
+	assert.Equal(suite.T(), c5i1Ref, results[5]["Trx number"], "Trx number - client 5")
+	assert.Equal(suite.T(), "AD - Assessment deputy invoice", results[5]["Transaction description"], "Transaction Description - client 5")
+	assert.Equal(suite.T(), elevenMonthsAgo.String(), results[5]["Invoice date"], "Invoice date - client 5")
+	assert.Equal(suite.T(), elevenMonthsAgo.Add(0, 0, 30).String(), results[5]["Due date"], "Due date - client 5")
+	assert.Equal(suite.T(), elevenMonthsAgo.FinancialYear(), results[5]["Financial year"], "Financial year - client 5")
+	assert.Equal(suite.T(), "30 NET", results[5]["Payment terms"], "Payment terms - client 5")
+	assert.Equal(suite.T(), "100.00", results[5]["Original amount"], "Original amount - client 5")
+	assert.Equal(suite.T(), "100.00", results[5]["Outstanding amount"], "Outstanding amount - client 5")
+	assert.Equal(suite.T(), "0", results[5]["Current"], "Current - client 5")
+	assert.Equal(suite.T(), "100.00", results[5]["0-1 years"], "0-1 years - client 5")
+	assert.Equal(suite.T(), "0", results[5]["1-2 years"], "1-2 years - client 5")
+	assert.Equal(suite.T(), "0", results[5]["2-3 years"], "2-3 years - client 5")
+	assert.Equal(suite.T(), "0", results[5]["3-5 years"], "3-5 years - client 5")
+	assert.Equal(suite.T(), "0", results[5]["5+ years"], "5+ years - client 5")
+	assert.Equal(suite.T(), "=\"0-1\"", results[5]["Debt impairment years"], "Debt impairment years - client 5")
 }
 
 func TestAgedDebt_GetParams(t *testing.T) {
@@ -253,17 +292,17 @@ func TestAgedDebt_GetParams(t *testing.T) {
 		{
 			name:   "nil ToDate defaults to today",
 			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: nil, Today: time.Now()}},
-			want:   []any{time.Now().Format("2006-01-02"), time.Now().Format("2006-01-02")},
+			want:   []any{time.Now().Format("2006-01-02")},
 		},
 		{
 			name:   "empty ToDate defaults to today",
 			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: &shared.Date{}, Today: time.Now()}},
-			want:   []any{time.Now().Format("2006-01-02"), time.Now().Format("2006-01-02")},
+			want:   []any{time.Now().Format("2006-01-02")},
 		},
 		{
 			name:   "will pull through other date to overwrite today and default date if required",
 			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: &shared.Date{}, Today: time.Now().AddDate(-1, 0, 0)}},
-			want:   []any{time.Now().AddDate(-1, 0, 0).Format("2006-01-02"), time.Now().AddDate(-1, 0, 0).Format("2006-01-02")},
+			want:   []any{time.Now().AddDate(-1, 0, 0).Format("2006-01-02")},
 		},
 		{
 			name: "valid ToDate returns formatted date",
@@ -271,15 +310,7 @@ func TestAgedDebt_GetParams(t *testing.T) {
 				d := shared.NewDate("2023-05-01")
 				return &d
 			}(), Today: time.Now()}},
-			want: []any{"2023-05-01", time.Now().Format("2006-01-02")},
-		},
-		{
-			name: "will pull through other date to overwrite today and leave preset default date",
-			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: func() *shared.Date {
-				d := shared.NewDate("2023-05-01")
-				return &d
-			}(), Today: time.Now().AddDate(-1, 0, 0)}},
-			want: []any{"2023-05-01", time.Now().AddDate(-1, 0, 0).Format("2006-01-02")},
+			want: []any{"2023-05-01"},
 		},
 	}
 	for _, tt := range tests {
