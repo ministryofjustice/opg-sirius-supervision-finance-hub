@@ -15,7 +15,7 @@ resources:
   - path: "/AllpayApi/Customers/{SchemeCode}/VariableMandates/Create"
     method: post
     requestBody:
-      jsonPath: $.LastName
+      jsonPath: $.Customer.LastName
       value: allpay_mandate_validation
       operator: contains
     response:
@@ -25,7 +25,7 @@ resources:
   - path: "/AllpayApi/Customers/{SchemeCode}/VariableMandates/Create"
     method: post
     requestBody:
-      jsonPath: $.LastName
+      jsonPath: $.Customer.LastName
       value: allpay_mandate_fail
       operator: contains
     response:
@@ -78,10 +78,9 @@ resources:
 
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/{Date}"
     method: delete
-    requestBody:
-      jsonPath: $.LastName
-      value: allpay_cancel_fail
-      operator: contains
+    pathParams:
+      # allpay_cancel_fail
+      Surname: YWxscGF5X2NhbmNlbF9mYWls
     response:
       statusCode: 400
       content: "Bad Request - Please check the format of your body request"

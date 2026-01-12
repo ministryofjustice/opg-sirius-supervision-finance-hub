@@ -13,10 +13,8 @@ import (
 )
 
 type schedule struct {
-	Date          string `json:"ScheduleDate"`
-	Amount        int32  `json:"Amount"`
-	Frequency     string `json:"Frequency"`
-	TotalPayments int    `json:"TotalPayments"`
+	Date   string `json:"ScheduleDate"`
+	Amount int32  `json:"Amount"`
 }
 
 type createScheduleRequest struct {
@@ -36,10 +34,8 @@ func (c *Client) CreateSchedule(ctx context.Context, data *CreateScheduleInput) 
 
 	s := createScheduleRequest{
 		Schedules: []schedule{{
-			Date:          data.Date.Format("2006-01-02"),
-			Amount:        data.Amount,
-			Frequency:     "1",
-			TotalPayments: 1,
+			Date:   data.Date.Format("2006-01-02"),
+			Amount: data.Amount,
 		}},
 	}
 
