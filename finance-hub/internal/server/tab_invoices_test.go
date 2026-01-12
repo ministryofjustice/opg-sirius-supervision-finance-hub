@@ -163,6 +163,13 @@ func Test_translate(t *testing.T) {
 			want:       "Unapplied Payment",
 		},
 		{
+			name:       "returns a correct value for unapplied adjustment",
+			ledgerType: shared.AdjustmentTypeCreditMemo.Key(),
+			amount:     -1000,
+			status:     "UNAPPLIED",
+			want:       "Unapplied Payment",
+		},
+		{
 			name:       "returns a correct value for REAPPLIED",
 			ledgerType: shared.FeeReductionTypeRemission.Key(),
 			amount:     -1000,
