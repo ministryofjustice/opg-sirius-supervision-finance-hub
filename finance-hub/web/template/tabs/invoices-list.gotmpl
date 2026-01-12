@@ -52,11 +52,11 @@
                                 </details>
                             </td>
                             <td class="govuk-table__cell" data-cy="invoice-status">{{ .Status }}</td>
-                            <td class="govuk-table__cell" data-cy="invoice-amount">£{{ .Amount }}</td>
+                            <td class="govuk-table__cell" data-cy="invoice-amount">{{ toCurrency .Amount }}</td>
                             <td class="govuk-table__cell" data-cy="invoice-raised-date">{{ .RaisedDate }}</td>
-                            <td class="govuk-table__cell" data-cy="invoice-received">£{{ .Received }}</td>
+                            <td class="govuk-table__cell" data-cy="invoice-received">{{ toCurrency .Received }}</td>
                             <td class="govuk-table__cell" data-cy="invoice-outstanding-balance">
-                                £{{ .OutstandingBalance }}</td>
+                                {{ toCurrency .OutstandingBalance }}</td>
                             <td class="govuk-table__cell">
                                 {{ if $user.IsFinanceUser }}
                                     <div class="moj-button-menu">
