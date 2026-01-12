@@ -1,20 +1,11 @@
 SET SEARCH_PATH TO supervision_finance;
 
--- name: GetPendingInvoiceAdjustments :many
-SELECT ia.invoice_id, i.reference, ia.adjustment_type, ia.amount, ia.notes, ia.created_at, ia.created_by
+-- name: GetInvoiceAdjustmentEvents :many
+SELECT ia.invoice_id, i.reference, ia.adjustment_type, ia.amount, ia.notes, ia.created_at, ia.created_by, ia.status, ia.updated_at, ia.updated_by
 FROM invoice_adjustment ia
          JOIN invoice i ON i.id = ia.invoice_id
          JOIN finance_client fc ON fc.id = ia.finance_client_id
 WHERE fc.client_id = $1
-ORDER BY ia.raised_date DESC;
-
--- name: GetRejectedInvoiceAdjustments :many
-SELECT ia.invoice_id, i.reference, ia.adjustment_type, ia.amount, ia.notes, ia.updated_at, ia.updated_by
-FROM invoice_adjustment ia
-         JOIN invoice i ON i.id = ia.invoice_id
-         JOIN finance_client fc ON fc.id = ia.finance_client_id
-WHERE fc.client_id = $1
-AND status = 'REJECTED'
 ORDER BY ia.raised_date DESC;
 
 -- name: GetGeneratedInvoices :many

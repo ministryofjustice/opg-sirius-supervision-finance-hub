@@ -3,11 +3,12 @@ package service
 import (
 	"context"
 	"fmt"
+	"log/slog"
+
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"log/slog"
 )
 
 func (s *Service) AddInvoiceAdjustment(ctx context.Context, clientId int32, invoiceId int32, adjustment *shared.AddInvoiceAdjustmentRequest) (*shared.InvoiceReference, error) {
@@ -55,7 +56,7 @@ func (s *Service) validateAdjustmentAmount(ctx context.Context, adjustment *shar
 	switch adjustment.AdjustmentType {
 	case shared.AdjustmentTypeCreditMemo:
 		if adjustment.Amount-balance.Outstanding > balance.Initial {
-			return apierror.BadRequestError("Amount", fmt.Sprintf("Amount entered must be equal to or less than £%s", shared.IntToDecimalString(int(balance.Initial+balance.Outstanding))), nil)
+			return apierror.BadRequestError("Amount", fmt.Sprintf("Amount entered must be equal to or less than %s", shared.IntToCurrency(int(balance.Initial+balance.Outstanding))), nil)
 		}
 	case shared.AdjustmentTypeDebitMemo:
 		var maxBalance int32
@@ -65,7 +66,7 @@ func (s *Service) validateAdjustmentAmount(ctx context.Context, adjustment *shar
 			maxBalance = 32000
 		}
 		if adjustment.Amount+balance.Outstanding > maxBalance {
-			return apierror.BadRequestError("Amount", fmt.Sprintf("Amount entered must be equal to or less than £%s", shared.IntToDecimalString(int(maxBalance-balance.Outstanding))), nil)
+			return apierror.BadRequestError("Amount", fmt.Sprintf("Amount entered must be equal to or less than %s", shared.IntToCurrency(int(maxBalance-balance.Outstanding))), nil)
 		}
 	case shared.AdjustmentTypeWriteOff:
 		if balance.Outstanding < 1 {
@@ -77,7 +78,7 @@ func (s *Service) validateAdjustmentAmount(ctx context.Context, adjustment *shar
 				return apierror.BadRequestError("Amount", "The write-off reversal amount cannot be zero", nil)
 			}
 			if adjustment.Amount > balance.WriteOffAmount {
-				return apierror.BadRequestError("Amount", fmt.Sprintf("The write-off reversal amount must be £%s or less", shared.IntToDecimalString(int(balance.WriteOffAmount))), nil)
+				return apierror.BadRequestError("Amount", fmt.Sprintf("The write-off reversal amount must be %s or less", shared.IntToCurrency(int(balance.WriteOffAmount))), nil)
 			}
 		} else {
 			if adjustment.Amount > 0 {
@@ -90,7 +91,7 @@ func (s *Service) validateAdjustmentAmount(ctx context.Context, adjustment *shar
 	case shared.AdjustmentTypeFeeReductionReversal:
 		unreversedFeeReductionTotal := feeReductionDetails.FeeReductionTotal.Int64 - feeReductionDetails.ReversalTotal.Int64
 		if int64(adjustment.Amount) > unreversedFeeReductionTotal {
-			return apierror.BadRequestError("Amount", fmt.Sprintf("The fee reduction reversal amount must be £%s or less", shared.IntToDecimalString(int(unreversedFeeReductionTotal))), nil)
+			return apierror.BadRequestError("Amount", fmt.Sprintf("The fee reduction reversal amount must be %s or less", shared.IntToCurrency(int(unreversedFeeReductionTotal))), nil)
 		}
 	default:
 		return apierror.BadRequestError("AdjustmentType", "Unimplemented adjustment type", nil)

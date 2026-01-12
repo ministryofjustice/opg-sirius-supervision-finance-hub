@@ -9,7 +9,7 @@
             </p>
         </div>
         <p class="moj-timeline__date">
-            {{ printf "Outstanding balance: £%v Credit balance: £%v" .OutstandingBalance .CreditBalance }}
+            {{ printf "Outstanding balance: %v Credit balance: %v" (toCurrency .OutstandingBalance) (toCurrency .CreditBalance) }}
         </p>
         <div class="moj-timeline__description">
         </div>

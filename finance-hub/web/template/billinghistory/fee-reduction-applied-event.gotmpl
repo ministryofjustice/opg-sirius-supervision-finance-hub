@@ -2,24 +2,24 @@
     <div class="moj-timeline__item">
         <div class="moj-timeline__header">
             <h2 class="moj-timeline__title">
-                {{ .Event.TransactionType }} credit of £{{ toCurrency .Event.Amount }} applied to {{ (index .Event.Breakdown 0).InvoiceReference.Reference }}
+                {{ .Event.TransactionType }} credit of {{ toCurrency .Event.Amount }} applied to {{ (index .Event.Breakdown 0).InvoiceReference.Reference }}
             </h2>
             <p class="moj-timeline__byline">
                 {{ printf "by %v, %v" .User .Date }}
             </p>
         </div>
         <p class="moj-timeline__date">
-            {{ printf "Outstanding balance: £%v Credit balance: £%v" .OutstandingBalance .CreditBalance }}
+            {{ printf "Outstanding balance: %v Credit balance: %v" (toCurrency .OutstandingBalance) (toCurrency .CreditBalance) }}
         </p>
         <div class="moj-timeline__description">
             <ul class="govuk-list govuk-list--bullet">
                 {{ range .Event.Breakdown }}
                     <li>
                         {{ if eq .Status "ALLOCATED" }}
-                            {{ printf "£%v applied to %v" (toCurrency .Amount) .InvoiceReference.Reference }}
+                            {{ printf "%v applied to %v" (toCurrency .Amount) .InvoiceReference.Reference }}
                         {{ end }}
                         {{ if eq .Status "UNAPPLIED" }}
-                            {{ printf "£%v excess credit unapplied" (toCurrency .Amount) }}
+                            {{ printf "%v excess credit unapplied" (toCurrency .Amount) }}
                         {{ end }}
                     </li>
                 {{ end }}
