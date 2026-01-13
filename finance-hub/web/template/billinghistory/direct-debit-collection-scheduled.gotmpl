@@ -9,11 +9,11 @@
             </p>
         </div>
         <p class="moj-timeline__date">
-            {{ printf "Outstanding balance: £%v Credit balance: £%v" .OutstandingBalance .CreditBalance }}
+            {{ printf "Outstanding balance: %v Credit balance: %v" (toCurrency .OutstandingBalance) (toCurrency .CreditBalance) }}
         </p>
         <div class="moj-timeline__description">
             <ul class="govuk-list govuk-list--bullet">
-                <li> {{ printf "Direct debit payment for £%v scheduled for %v" (toCurrency .Event.Amount) .Event.CollectionDate }} </li>
+                <li> {{ printf "Direct debit payment for %v scheduled for %v" (toCurrency .Event.Amount) .Event.CollectionDate }} </li>
             </ul>
         </div>
     </div>

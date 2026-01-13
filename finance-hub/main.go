@@ -177,7 +177,7 @@ func createTemplates(envVars *Envs) map[string]*template.Template {
 			return envVars.showDirectDebits
 		},
 		"toCurrency": func(amount int) string {
-			return shared.IntToDecimalString(amount)
+			return shared.IntToCurrency(amount)
 		},
 		"toNegative": func(input int) int {
 			return -input
