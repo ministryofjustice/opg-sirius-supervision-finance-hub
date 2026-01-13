@@ -1,9 +1,10 @@
 package server
 
 import (
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"net/http"
 	"strconv"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
 type Refunds []Refund
@@ -12,7 +13,7 @@ type Refund struct {
 	ID            string
 	DateRaised    shared.Date
 	DateFulfilled *shared.Date
-	Amount        string
+	Amount        int
 	BankDetails   *BankDetails
 	Notes         string
 	CreatedBy     int
@@ -74,7 +75,7 @@ func (h *RefundsHandler) transform(in shared.Refunds) Refunds {
 		refund := Refund{
 			ID:         strconv.Itoa(r.ID),
 			DateRaised: r.RaisedDate,
-			Amount:     shared.IntToDecimalString(r.Amount),
+			Amount:     r.Amount,
 			Notes:      r.Notes,
 			CreatedBy:  r.CreatedBy,
 			Status:     r.Status.String(),

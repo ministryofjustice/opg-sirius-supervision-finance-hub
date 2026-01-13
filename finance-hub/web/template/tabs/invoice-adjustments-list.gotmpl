@@ -31,7 +31,7 @@
                     <td class="govuk-table__cell">{{.Invoice}}</td>
                     <td class="govuk-table__cell">{{.DateRaised}}</td>
                     <td class="govuk-table__cell">{{.AdjustmentType}}</td>
-                    <td class="govuk-table__cell">£{{.AdjustmentAmount}}</td>
+                    <td class="govuk-table__cell">{{ toCurrency .AdjustmentAmount }}</td>
                     <td class="govuk-table__cell">{{.Notes}}</td>
                     <td class="govuk-table__cell">{{.Status}}</td>
                     <td class="govuk-table__cell">
