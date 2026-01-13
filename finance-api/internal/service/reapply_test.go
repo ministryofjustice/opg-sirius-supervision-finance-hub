@@ -23,12 +23,12 @@ func (suite *IntegrationSuite) TestService_reapplyCredit_noInvoices() {
 
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (1, 1, 'no-invoice', 'DEMANDED', NULL);",
-		"INSERT INTO ledger VALUES (1, '1', '2022-04-02T00:00:00+00:00', '', -10000, 'Overpayment', 'CARD PAYMENT', 'CONFIRMED', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2020-05-05', 1);",
+		"INSERT INTO ledger VALUES (1, '1', '2022-04-02T00:00:00+00:00', '', -10000, 'Overpayment', 'ONLINE CARD PAYMENT', 'CONFIRMED', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2020-05-05', 1);",
 		"INSERT INTO ledger_allocation VALUES (1, 1, NULL, '2022-04-02T00:00:00+00:00', -10000, 'UNAPPLIED', NULL, '', '2022-04-02', NULL);",
 
 		// only invoice is settled
 		"INSERT INTO invoice VALUES (1, 1, 1, 'S2', 'S200001/20', '2020-04-02', '2020-04-02', 10000, NULL, NULL, NULL, '2020-04-02', NULL, NULL, 0, '2020-04-02', 1);",
-		"INSERT INTO ledger VALUES (2, '2', '2020-04-02T00:00:00+00:00', '', 10000, 'Settled', 'CARD PAYMENT', 'CONFIRMED', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2020-05-05', 1);",
+		"INSERT INTO ledger VALUES (2, '2', '2020-04-02T00:00:00+00:00', '', 10000, 'Settled', 'ONLINE CARD PAYMENT', 'CONFIRMED', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2020-05-05', 1);",
 		"INSERT INTO ledger_allocation VALUES (2, 2, 1, '2020-04-02T00:00:00+00:00', 10000, 'ALLOCATED', NULL, '', '2020-04-02', NULL);",
 		"ALTER SEQUENCE ledger_id_seq RESTART WITH 3;",
 		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 3;",
@@ -57,7 +57,7 @@ func (suite *IntegrationSuite) TestService_reapplyCredit_oldestFirst() {
 
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (1, 1, 'no-invoice', 'DEMANDED', NULL);",
-		"INSERT INTO ledger VALUES (1, '1', '2022-04-02T00:00:00+00:00', '', 8000, 'Overpayment', 'CARD PAYMENT', 'CONFIRMED', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2020-05-05', 1);",
+		"INSERT INTO ledger VALUES (1, '1', '2022-04-02T00:00:00+00:00', '', 8000, 'Overpayment', 'ONLINE CARD PAYMENT', 'CONFIRMED', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2020-05-05', 1);",
 		"INSERT INTO ledger_allocation VALUES (1, 1, NULL, '2022-04-02T00:00:00+00:00', -8000, 'UNAPPLIED', NULL, '', '2022-04-02', NULL);",
 
 		// two invoices partially paid
@@ -111,7 +111,7 @@ func (suite *IntegrationSuite) TestService_reapplyCredit_requiresApprovedLedger(
 
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (1, 1, 'no-invoice', 'DEMANDED', NULL);",
-		"INSERT INTO ledger VALUES (1, '1', '2022-04-02T00:00:00+00:00', '', 15000, 'Overpayment', 'CARD PAYMENT', 'CONFIRMED', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2020-05-05', 1);",
+		"INSERT INTO ledger VALUES (1, '1', '2022-04-02T00:00:00+00:00', '', 15000, 'Overpayment', 'ONLINE CARD PAYMENT', 'CONFIRMED', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2020-05-05', 1);",
 		"INSERT INTO ledger_allocation VALUES (1, 1, NULL, '2022-04-02T00:00:00+00:00', -15000, 'UNAPPLIED', NULL, '', '2022-04-02', NULL);",
 
 		// invoice partially paid with approved (not confirmed) credit memo
