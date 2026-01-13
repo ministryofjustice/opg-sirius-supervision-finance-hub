@@ -150,8 +150,6 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 			query = db.NewReceiptTransactions(db.ReceiptTransactionsInput{Date: reportRequest.TransactionDate})
 		case shared.JournalTypeReceiptTransactionsHistoric:
 			query = db.NewReceiptTransactionsHistoric(db.ReceiptTransactionsHistoricInput{Date: reportRequest.TransactionDate})
-		case shared.JournalTypeUnappliedTransactions:
-			query = db.NewUnappliedTransactions(db.UnappliedTransactionsInput{Date: reportRequest.TransactionDate})
 		default:
 			return "", reportName, nil, fmt.Errorf("unimplemented journal query: %s", reportRequest.JournalType.Key())
 		}

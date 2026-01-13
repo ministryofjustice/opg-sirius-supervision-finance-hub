@@ -6,7 +6,6 @@ const (
 	JournalTypeUnknown JournalType = iota
 	JournalTypeReceiptTransactions
 	JournalTypeNonReceiptTransactions
-	JournalTypeUnappliedTransactions
 	JournalTypeNonReceiptTransactionsHistoric
 	JournalTypeReceiptTransactionsHistoric
 )
@@ -14,7 +13,6 @@ const (
 var journalTypeMap = map[string]JournalType{
 	"ReceiptTransactions":            JournalTypeReceiptTransactions,
 	"NonReceiptTransactions":         JournalTypeNonReceiptTransactions,
-	"RefundUnappliedTransactions":    JournalTypeUnappliedTransactions,
 	"NonReceiptTransactionsHistoric": JournalTypeNonReceiptTransactionsHistoric,
 	"ReceiptTransactionsHistoric":    JournalTypeReceiptTransactionsHistoric,
 }
@@ -31,8 +29,6 @@ func (j JournalType) Translation() string {
 		return "Receipt Transactions"
 	case JournalTypeNonReceiptTransactions:
 		return "Non Receipt Transactions"
-	case JournalTypeUnappliedTransactions:
-		return "Refunds & Unapplied Transactions"
 	case JournalTypeNonReceiptTransactionsHistoric:
 		return "Non Receipt Transactions (Historic)"
 	case JournalTypeReceiptTransactionsHistoric:
@@ -48,8 +44,6 @@ func (j JournalType) Key() string {
 		return "ReceiptTransactions"
 	case JournalTypeNonReceiptTransactions:
 		return "NonReceiptTransactions"
-	case JournalTypeUnappliedTransactions:
-		return "RefundUnappliedTransactions"
 	case JournalTypeNonReceiptTransactionsHistoric:
 		return "NonReceiptTransactionsHistoric"
 	case JournalTypeReceiptTransactionsHistoric:
