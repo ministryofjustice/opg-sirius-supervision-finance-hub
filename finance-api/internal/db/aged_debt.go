@@ -51,7 +51,10 @@ const AgedDebtQuery = `WITH outstanding_invoices AS (SELECT i.id,
 								  FROM supervision_finance.ledger_allocation la
 								  		 JOIN supervision_finance.ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
 									WHERE la.status NOT IN ('PENDING', 'UN ALLOCATED')
-									AND l.datetime::DATE <= $1::DATE
+									AND (
+										 (l.type IN ('MOTO CARD PAYMENT', 'ONLINE CARD PAYMENT', 'OPG BACS', 'SUPERVISION BACS', 'DIRECT DEBIT PAYMENT', 'SUPERVISION CHEQUE PAYMENT', 'REFUND') AND l.created_at <= $1::DATE)
+										OR (l.type NOT IN ('MOTO CARD PAYMENT', 'ONLINE CARD PAYMENT', 'OPG BACS', 'SUPERVISION BACS', 'DIRECT DEBIT PAYMENT', 'SUPERVISION CHEQUE PAYMENT', 'REFUND') AND l.datetime <= $1::DATE)
+									 )
 								    AND la.invoice_id = i.id
 								  ) transactions ON TRUE
                                        LEFT JOIN LATERAL (
@@ -112,7 +115,7 @@ FROM supervision_finance.finance_client fc
          JOIN outstanding_invoices oi ON fc.id = oi.finance_client_id
          JOIN age_per_client apc ON fc.client_id = apc.client_id
          JOIN supervision_finance.transaction_type tt
-              ON oi.feetype = tt.fee_type AND oi.supervision_level = tt.supervision_level
+              ON oi.feetype = tt.fee_type AND oi.supervision_level = tt.supervision_level 
          JOIN supervision_finance.account a ON tt.account_code = a.code
          JOIN supervision_finance.cost_centre cc ON cc.code = a.cost_centre
          JOIN public.persons p ON fc.client_id = p.id
