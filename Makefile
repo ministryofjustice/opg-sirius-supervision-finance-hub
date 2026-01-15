@@ -101,6 +101,9 @@ test-migrations:
 cypress: setup-directories clean start-and-seed
 	docker compose run cypress
 
+cypress-single: setup-directories clean start-and-seed
+	docker compose run --rm cypress run --spec e2e/$(SPEC)
+
 export ACTIVE_SCAN ?= true
 export ACTIVE_SCAN_TIMEOUT ?= 600
 export SERVICE_NAME ?= FinanceHub
