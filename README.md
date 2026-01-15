@@ -72,12 +72,16 @@ For simplicity, the scheduled events sent from AWS have been scripted as their o
 ## Run the unit/integration tests
 `make test`
 
-## Run the Cypress tests
-`make build-all`
-`make cypress`
+## Run *all* Cypress tests headless
+```spec
+make build-all (optional)
+make cypress
+```
+
+## Run *one* Cypress test headless
+`make cypress-single SPEC=add-fee-reduction.cy.js`
 
 Or to run interactively:
-
 ```
 cd cypress
 npx cypress open baseUrl=http://localhost:8888/finance
