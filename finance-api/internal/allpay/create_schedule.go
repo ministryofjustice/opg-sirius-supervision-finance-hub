@@ -57,6 +57,8 @@ func (c *Client) CreateSchedule(ctx context.Context, data *CreateScheduleInput) 
 		return ErrorAPI{}
 	}
 
+	logger.Info("sending create schedule request", "url", req.URL.String(), "query", req.URL.RawQuery)
+
 	resp, err := c.http.Do(req)
 	if err != nil {
 		logger.Error("unable to send create schedule request", "error", err)

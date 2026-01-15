@@ -57,6 +57,8 @@ func (c *Client) CreateMandate(ctx context.Context, data *CreateMandateRequest) 
 		return ErrorAPI{}
 	}
 
+	logger.Info("sending create mandate request", "url", req.URL.String(), "query", req.URL.RawQuery)
+
 	resp, err := c.http.Do(req)
 	if err != nil {
 		logger.Error("unable to send create mandate request", "error", err)

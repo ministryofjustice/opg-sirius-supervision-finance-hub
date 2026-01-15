@@ -32,6 +32,8 @@ func (c *Client) CancelMandate(ctx context.Context, data *CancelMandateRequest) 
 		return ErrorAPI{}
 	}
 
+	logger.Info("sending cancel mandate request", "url", req.URL.String(), "query", req.URL.RawQuery)
+
 	resp, err := c.http.Do(req)
 	if err != nil {
 		logger.Error("unable to send cancel mandate request", "error", err)
