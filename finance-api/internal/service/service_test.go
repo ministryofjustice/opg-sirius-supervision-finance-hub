@@ -136,12 +136,6 @@ func (m *mockAllpay) FetchFailedPayments(ctx context.Context, input allpay.Fetch
 	return m.failedPayments, m.errs["FetchFailedPayments"]
 }
 
-func (m *mockAllpay) RemoveScheduledPayment(ctx context.Context, data *allpay.RemoveScheduledPaymentRequest) error {
-	m.called = append(m.called, "RemoveScheduledPayment")
-	m.lastCalledParams = []interface{}{data}
-	return m.errs["RemoveScheduledPayment"]
-}
-
 type mockGovUK struct {
 	called         []string
 	errs           map[string]error

@@ -131,6 +131,12 @@ func (e *ScheduledEvent) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
+	// Check if override is empty or null
+	if len(raw.Override) == 0 || string(raw.Override) == "" || string(raw.Override) == "\"\"" {
+		e.Override = nil
+		return nil
+	}
+
 	switch e.Trigger {
 	case ScheduledEventDirectDebitCollection, ScheduledEventFailedCollections:
 		var override DateOverride
@@ -141,7 +147,7 @@ func (e *ScheduledEvent) UnmarshalJSON(data []byte) error {
 	case ScheduledEventRefundExpiry:
 		e.Override = nil
 	default:
-		return fmt.Errorf("unknown override type: %s", e.Override)
+		return fmt.Errorf("unknown trigger type: %s", e.Trigger)
 	}
 
 	return nil
