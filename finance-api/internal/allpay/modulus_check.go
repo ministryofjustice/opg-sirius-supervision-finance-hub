@@ -23,7 +23,7 @@ func (c *Client) ModulusCheck(ctx context.Context, sortCode string, accountNumbe
 		return ErrorAPI{}
 	}
 
-	logger.Info("sending modulus check request", "url", req.URL.String(), "query", req.URL.RawQuery)
+	logger.Info("sending modulus check request", "url", req.URL.String(), "query", req.URL.RawQuery, "content-type", req.Header.Get("Content-Type"))
 
 	resp, err := c.http.Do(req)
 	if err != nil {
