@@ -35,6 +35,8 @@ func (suite *IntegrationSuite) Test_processPayments() {
 		"INSERT INTO finance_client VALUES (2, 2, 'invoice-2', 'DEMANDED', NULL, '12345');",
 		"INSERT INTO finance_client VALUES (3, 3, 'invoice-3', 'DEMANDED', NULL, '123456');",
 		"INSERT INTO finance_client VALUES (4, 4, 'invoice-4', 'DEMANDED', NULL, '1234567');",
+		"INSERT INTO finance_client VALUES (5, 5, 'duplicate-1', 'DEMANDED', NULL, '12345678');",
+		"INSERT INTO finance_client VALUES (6, 6, 'duplicate-2', 'DEMANDED', NULL, '12345678');",
 		"INSERT INTO invoice VALUES (1, 1, 1, 'AD', 'AD11223/19', '2023-04-01', '2025-03-31', 15000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 		"INSERT INTO invoice VALUES (2, 2, 2, 'AD', 'AD11224/19', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 		"INSERT INTO invoice VALUES (3, 3, 3, 'AD', 'AD11225/19', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
@@ -56,6 +58,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 		expectedLedgerAllocations []createdLedgerAllocation
 		expectedFailedLines       map[int]string
 		expectedDispatch          any
+		ledgerCount               int
 		want                      error
 	}{
 		{
@@ -66,6 +69,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 			paymentType:      shared.ReportTypeUploadDirectDebitsCollections,
 			bankDate:         shared.NewDate("2024-01-17"),
 			expectedClientId: 1,
+			ledgerCount:      1,
 			expectedLedgerAllocations: []createdLedgerAllocation{
 				{
 					10000,
@@ -90,6 +94,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 			bankDate:         shared.NewDate("2024-01-17"),
 			pisNumber:        150,
 			expectedClientId: 2,
+			ledgerCount:      1,
 			expectedLedgerAllocations: []createdLedgerAllocation{
 				{
 					25010,
@@ -124,6 +129,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 			paymentType:      shared.ReportTypeUploadPaymentsMOTOCard,
 			bankDate:         shared.NewDate("2024-01-17"),
 			expectedClientId: 3,
+			ledgerCount:      1,
 			expectedLedgerAllocations: []createdLedgerAllocation{
 				{
 					5000,
@@ -152,6 +158,18 @@ func (suite *IntegrationSuite) Test_processPayments() {
 				1: "CLIENT_NOT_FOUND",
 				2: "DUPLICATE_PAYMENT",
 			},
+		},
+		{
+			name: "duplicate ledger prevention",
+			records: [][]string{
+				{"Ordercode", "Date", "Amount"},
+				{"12345678", "01/01/2024", "50"},
+			},
+			paymentType:         shared.ReportTypeUploadPaymentsMOTOCard,
+			bankDate:            shared.NewDate("2024-01-01"),
+			expectedClientId:    3,
+			expectedFailedLines: map[int]string{},
+			ledgerCount:         1,
 		},
 	}
 	for _, tt := range tests {
@@ -182,6 +200,12 @@ func (suite *IntegrationSuite) Test_processPayments() {
 			}
 
 			assert.Equal(t, tt.expectedLedgerAllocations, createdLedgerAllocations)
+
+			var ledgerCount int
+			_ = seeder.QueryRow(suite.ctx,
+				`SELECT COUNT(*) FROM ledger WHERE id > $1`, currentLedgerId).Scan(&ledgerCount)
+			assert.Equal(t, tt.ledgerCount, ledgerCount)
+
 			assert.Equal(t, tt.expectedDispatch, dispatch.event)
 		})
 	}
