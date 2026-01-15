@@ -270,21 +270,6 @@ type Refund struct {
 	CancelledBy     pgtype.Int4
 }
 
-type Report struct {
-	ID          int32
-	Batchnumber int32
-	// (DC2Type:refdata)
-	Type        string
-	Datetime    pgtype.Timestamp
-	Count       int32
-	Invoicedate pgtype.Timestamp
-	// (DC2Type:money)
-	Totalamount           pgtype.Int4
-	Firstinvoicereference pgtype.Text
-	Lastinvoicereference  pgtype.Text
-	CreatedbyuserID       pgtype.Int4
-}
-
 type TransactionType struct {
 	ID               int32
 	FeeType          string
