@@ -13,7 +13,7 @@ func TestModulusCheck(t *testing.T) {
 		if r.Method != http.MethodGet {
 			t.Errorf("Expected GET, got %s", r.Method)
 		}
-		if r.URL.RequestURI() != "/AllpayApi/BankAccounts?sortcode=11-22-33&accountnumber=12345678" {
+		if r.URL.RequestURI() != "/AllpayApi/BankAccounts/?sortcode=11-22-33&accountnumber=12345678" {
 			t.Errorf("Unexpected URL path: %s", r.URL.Path)
 		}
 

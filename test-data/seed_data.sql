@@ -153,7 +153,7 @@ INSERT INTO finance_client VALUES (22001, 22, 'createdirectdebit', 'DEMANDED', n
 INSERT INTO invoice VALUES (18, 22, 22001, 'AD', 'AD222200/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-04-10T08:36:40+00:00', 99);
 
 -- failed direct debit allpay validation
-INSERT INTO finance_client VALUES (23001, 23, 'allpayvalidation', 'DIRECT DEBIT', null, '23232300');
+INSERT INTO finance_client VALUES (23001, 23, 'allpay_mandate_fail', 'DIRECT DEBIT', null, '23232300');
 INSERT INTO invoice VALUES (19, 23, 23001, 'AD', 'AD232300/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-04-10T08:36:40+00:00', 99);
 INSERT INTO finance_client VALUES (23003, 25, 'allpayvalidation', 'DIRECT DEBIT', null, '23232301');
 INSERT INTO invoice VALUES (20, 25, 23003, 'AD', 'AD2323003/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-04-10T08:36:40+00:00', 99);

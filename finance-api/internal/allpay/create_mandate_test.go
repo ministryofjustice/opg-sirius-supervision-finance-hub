@@ -24,7 +24,7 @@ func TestCreateMandate_Success(t *testing.T) {
 		if err := json.Unmarshal(body, &req); err != nil {
 			t.Errorf("Invalid JSON body: %v", err)
 		}
-		if req.SchemeCode != schemeCode {
+		if req.Customer.SchemeCode != schemeCode {
 			t.Errorf("Expected schemeCode to be added, got %s", schemeCode)
 		}
 		w.WriteHeader(http.StatusOK)
@@ -40,13 +40,16 @@ func TestCreateMandate_Success(t *testing.T) {
 	}
 
 	err := c.CreateMandate(testContext(), &CreateMandateRequest{
-		ClientReference: "REF123",
-		Surname:         "Doe",
-		Address: Address{
-			Line1:    "1 Street",
-			Town:     "Townville",
-			PostCode: "TO1 2ST",
+		Customer: Customer{
+			ClientReference: "REF123",
+			Surname:         "Doe",
+			Address: Address{
+				Line1:    "1 Street",
+				Town:     "Townville",
+				PostCode: "TO1 2ST",
+			},
 		},
+
 		BankAccount: struct {
 			BankDetails BankDetails `json:"BankDetails"`
 		}{
@@ -71,9 +74,7 @@ func TestCreateMandate_RequestCreationFails(t *testing.T) {
 		},
 	}
 
-	err := c.CreateMandate(testContext(), &CreateMandateRequest{
-		SchemeCode: "SCHEME123",
-	})
+	err := c.CreateMandate(testContext(), &CreateMandateRequest{})
 	if err == nil {
 		t.Error("Expected error due to request creation failure")
 	}
@@ -93,9 +94,7 @@ func TestCreateMandate_UnexpectedStatus(t *testing.T) {
 		},
 	}
 
-	err := c.CreateMandate(testContext(), &CreateMandateRequest{
-		SchemeCode: "SCHEME123",
-	})
+	err := c.CreateMandate(testContext(), &CreateMandateRequest{})
 	if err == nil {
 		t.Error("Expected error due to unexpected status code")
 	}
@@ -119,9 +118,7 @@ func TestCreateMandate_ValidationErrorValidJSON(t *testing.T) {
 		},
 	}
 
-	err := c.CreateMandate(testContext(), &CreateMandateRequest{
-		SchemeCode: "SCHEME123",
-	})
+	err := c.CreateMandate(testContext(), &CreateMandateRequest{})
 	var validationErr ErrorValidation
 	if !errors.As(err, &validationErr) {
 		t.Errorf("Expected ErrorValidation, got %v", err)

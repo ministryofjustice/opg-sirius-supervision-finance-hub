@@ -30,10 +30,8 @@ func TestCreateSchedule_Success(t *testing.T) {
 		expected := createScheduleRequest{
 			Schedules: []schedule{
 				{
-					Date:          time.Time{}.Format("2006-01-02"),
-					Amount:        12345,
-					Frequency:     "1",
-					TotalPayments: 1,
+					Date:   time.Time{}.Format("2006-01-02"),
+					Amount: 12345,
 				},
 			},
 		}

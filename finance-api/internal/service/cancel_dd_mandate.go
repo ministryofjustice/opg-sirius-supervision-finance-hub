@@ -110,15 +110,7 @@ func (s *Service) calculateClosureDate(ctx context.Context, collections []store.
 func (s *Service) cancelPendingCollections(ctx context.Context, closureDate time.Time, clientDetails allpay.ClientDetails, collections []store.GetPendingCollectionsRow) error {
 	for _, pc := range collections {
 		if pc.CollectionDate.Time.After(closureDate) {
-			err := s.allpay.RemoveScheduledPayment(ctx, &allpay.RemoveScheduledPaymentRequest{
-				CollectionDate: pc.CollectionDate.Time,
-				Amount:         pc.Amount,
-				ClientDetails:  clientDetails,
-			})
-			if err != nil {
-				return err
-			}
-			err = s.store.CancelPendingCollection(ctx, pc.ID)
+			err := s.store.CancelPendingCollection(ctx, pc.ID)
 			if err != nil {
 				return err
 			}
