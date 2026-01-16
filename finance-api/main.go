@@ -125,8 +125,8 @@ func parseEnvs() (*Envs, error) {
 		webDir:             "web",
 		eventBridgeAPIKey:  envs["EVENT_BRIDGE_API_KEY"],
 		notifyUrl:          notifyUrl,
-		allpayHost:         "https://www.postb.in/1768555774691-8576370847877", // TODO: move to checked values once live
-		allpayAPIKey:       "TEST_KEY",                                         // TODO: move to checked values once live
+		allpayHost:         os.Getenv("ALLPAY_HOST"),    // TODO: move to checked values once live
+		allpayAPIKey:       os.Getenv("ALLPAY_API_KEY"), // TODO: move to checked values once live
 		allpaySchemeCode:   "OPGB",
 		holidayAPIURL:      os.Getenv("HOLIDAY_API_URL"),
 	}, nil
