@@ -34,7 +34,9 @@ SELECT NEXTVAL('ledger_id_seq'),
        '',
        @pis_number
 FROM finance_client fc
+JOIN public.persons p ON p.id = fc.client_id
 WHERE court_ref = @court_ref
+AND p.clientstatus != 'OPEN'
 RETURNING id;
 
 -- name: GetLedgerForPayment :one
