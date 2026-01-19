@@ -50,10 +50,11 @@ const AgedDebtQuery = `WITH outstanding_invoices AS (SELECT i.id,
 								  SELECT SUM(la.amount) AS received
 								  FROM supervision_finance.ledger_allocation la
 								  		 JOIN supervision_finance.ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
+										 LEFT JOIN supervision_finance.transaction_type tt ON tt.ledger_type = l.type
 									WHERE la.status NOT IN ('PENDING', 'UN ALLOCATED')
 									AND (
-										 (l.type IN ('MOTO CARD PAYMENT', 'ONLINE CARD PAYMENT', 'OPG BACS PAYMENT', 'SUPERVISION BACS PAYMENT', 'DIRECT DEBIT PAYMENT', 'SUPERVISION CHEQUE PAYMENT', 'REFUND') AND l.created_at <= $1::DATE)
-										OR (l.type NOT IN ('MOTO CARD PAYMENT', 'ONLINE CARD PAYMENT', 'OPG BACS PAYMENT', 'SUPERVISION BACS PAYMENT', 'DIRECT DEBIT PAYMENT', 'SUPERVISION CHEQUE PAYMENT', 'REFUND') AND l.datetime <= $1::DATE)
+										 (tt.is_receipt IS TRUE AND l.created_at <= $1::DATE)
+										OR (tt.is_receipt IS FALSE AND l.datetime <= $1::DATE)
 									 )
 								    AND la.invoice_id = i.id
 								  ) transactions ON TRUE
