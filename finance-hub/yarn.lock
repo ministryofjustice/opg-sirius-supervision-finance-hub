@@ -928,10 +928,10 @@ node-addon-api@^7.0.0:
   resolved "https://registry.yarnpkg.com/node-addon-api/-/node-addon-api-7.1.1.tgz#1aba6693b0f255258a049d621329329322aad558"
   integrity sha512-5m3bsyrjFWE1xf7nz7YXdN4udnVtXK6/Yfgn5qnahL6bCkf2yKt4k3nuTKAtT4r3IG8JNR2ncsIMdZuAzJjHQQ==
 
-"opg-sirius-header@ministryofjustice/opg-sirius-header#semver:v0.52.8":
+"opg-sirius-header@ministryofjustice/opg-sirius-header#semver:v0.52.11":
   version "1.0.0"
-  uid "52910375a563fadb860f87e4ebeffdb7e98363e3"
-  resolved "https://codeload.github.com/ministryofjustice/opg-sirius-header/tar.gz/52910375a563fadb860f87e4ebeffdb7e98363e3"
+  uid "42f65af417d2ed07841057b50d672b2a1318c4c0"
+  resolved "https://codeload.github.com/ministryofjustice/opg-sirius-header/tar.gz/42f65af417d2ed07841057b50d672b2a1318c4c0"
 
 optionator@^0.9.3:
   version "0.9.4"
