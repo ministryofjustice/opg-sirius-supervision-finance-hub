@@ -45,24 +45,24 @@ const AgedDebtQuery = `WITH outstanding_invoices AS (SELECT i.id,
                                      (((i.amount - COALESCE(transactions.received, 0)) / 100.00)::NUMERIC(10, 2))::VARCHAR(255) AS outstanding,
 									 DATE_PART('year', AGE($1::DATE, (i.raiseddate + '30 days'::INTERVAL))) + 
 									 DATE_PART('month', AGE($1::DATE, (i.raiseddate + '30 days'::INTERVAL))) / 12.0 AS age
-									FROM supervision_finance.invoice i
-									   LEFT JOIN LATERAL (
-										  SELECT SUM(la.amount) AS received
-										  FROM supervision_finance.ledger_allocation la
-											WHERE la.status NOT IN ('PENDING', 'UN ALLOCATED')
-											AND la.ledger_id IN (
-												SELECT l.id
-												FROM supervision_finance.ledger l
-													JOIN supervision_finance.transaction_type tt ON tt.ledger_type = l.type
-												WHERE la.ledger_id = l.id
-													AND la.invoice_id = i.id
-													AND l.status = 'CONFIRMED'
-													AND (
-														(tt.is_receipt IS TRUE AND l.created_at <= $1::DATE)
-														OR (tt.is_receipt IS FALSE AND l.datetime <= $1::DATE)
-													)
+									 FROM supervision_finance.invoice i
+								     LEFT JOIN LATERAL (
+									    SELECT SUM(la.amount) AS received
+									    FROM supervision_finance.ledger_allocation la
+										   WHERE la.status NOT IN ('PENDING', 'UN ALLOCATED')
+										   AND la.ledger_id IN (
+											 SELECT l.id
+											 FROM supervision_finance.ledger l
+												JOIN supervision_finance.transaction_type ltt ON ltt.ledger_type = l.type
+											WHERE la.ledger_id = l.id
+											AND la.invoice_id = i.id
+											AND l.status = 'CONFIRMED'
+											AND (
+												(ltt.is_receipt IS TRUE AND l.created_at <= $1::DATE)
+												OR (ltt.is_receipt IS FALSE AND l.datetime <= $1::DATE)
 											)
-								  	) transactions ON TRUE
+										)
+									 ) transactions ON TRUE
 									LEFT JOIN LATERAL (
 									  SELECT ifr.supervisionlevel AS supervision_level
 									  FROM supervision_finance.invoice_fee_range ifr
