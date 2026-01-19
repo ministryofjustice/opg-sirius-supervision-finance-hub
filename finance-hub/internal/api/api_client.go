@@ -58,6 +58,7 @@ func (c *Client) newSiriusRequest(ctx context.Context, method, path string, body
 	addCookiesFromContext(ctx, req)
 	addXsrfFromContext(ctx, req)
 	req.Header.Add("OPG-Bypass-Membrane", "1")
+	req.Header.Add("accept", "application/json")
 
 	return req, err
 }
@@ -70,6 +71,7 @@ func (c *Client) newBackendRequest(ctx context.Context, method, path string, bod
 
 	addCookiesFromContext(ctx, req)
 	req.Header.Add("Authorization", "Bearer "+c.jwt.CreateJWT(ctx))
+	req.Header.Add("accept", "application/json")
 
 	return req, err
 }
@@ -82,6 +84,7 @@ func (c *Client) newSessionRequest(ctx context.Context) (*http.Request, error) {
 
 	addCookiesFromContext(ctx, req)
 	req.Header.Add("OPG-Bypass-Membrane", "1")
+	req.Header.Add("accept", "application/json")
 
 	return req, err
 }
