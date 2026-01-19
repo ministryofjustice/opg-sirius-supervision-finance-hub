@@ -2,12 +2,16 @@ package api
 
 import (
 	"bytes"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"github.com/stretchr/testify/assert"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"github.com/pact-foundation/pact-go/v2/consumer"
+	"github.com/pact-foundation/pact-go/v2/matchers"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGetPersonDetails(t *testing.T) {
@@ -68,4 +72,51 @@ func TestPersonDetailsReturns500Error(t *testing.T) {
 		URL:    svr.URL + "/supervision-api/v1/clients/1",
 		Method: http.MethodGet,
 	}, err)
+}
+
+func TestGetPersonDetails_contract(t *testing.T) {
+	pact, err := consumer.NewV2Pact(consumer.MockHTTPProviderConfig{
+		Consumer: "sirius-supervision-finance-hub",
+		Provider: "sirius",
+		LogDir:   "../../../logs",
+		PactDir:  "../../../pacts",
+	})
+	assert.NoError(t, err)
+
+	err = pact.
+		AddInteraction().
+		Given("A supervision client exists with ID 123").
+		UponReceiving("A request for client").
+		WithRequestPathMatcher("GET", matchers.Regex("/supervision-api/v1/clients/123", `\/supervision-api\/v1\/clients\/\d+`),
+			func(b *consumer.V2RequestBuilder) {
+				b.Header("Accept", matchers.S("application/json"))
+			}).
+		WillRespondWith(200, func(b *consumer.V2ResponseBuilder) {
+			b.Header("Content-Type", matchers.S("application/json"))
+			b.JSONBody(matchers.MapMatcher{
+				"id":            matchers.Like(123),
+				"firstname":     matchers.Like("Ian"),
+				"surname":       matchers.Like("Finance"),
+				"caseRecNumber": matchers.Like("11223344"),
+			})
+		}).
+		ExecuteTest(t, func(config consumer.MockServerConfig) error {
+			client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{fmt.Sprintf("http://%s:%d", config.Host, config.Port), ""})
+
+			person, err := client.GetPersonDetails(testContext(), 123)
+			if err != nil {
+				return err
+			}
+
+			assert.EqualValues(t, shared.Person{
+				ID:        123,
+				FirstName: "Ian",
+				Surname:   "Finance",
+				CourtRef:  "11223344",
+			}, person)
+
+			return nil
+		})
+
+	assert.NoError(t, err)
 }
