@@ -111,7 +111,9 @@ SELECT NEXTVAL('ledger_id_seq'),
        '',
        $8
 FROM finance_client fc
+JOIN persons p ON p.id = fc.client_id
 WHERE court_ref = $9
+AND p.client_status != 'OPEN'
 RETURNING id
 `
 
