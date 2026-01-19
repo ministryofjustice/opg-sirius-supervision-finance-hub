@@ -45,25 +45,31 @@ const AgedDebtQuery = `WITH outstanding_invoices AS (SELECT i.id,
                                      (((i.amount - COALESCE(transactions.received, 0)) / 100.00)::NUMERIC(10, 2))::VARCHAR(255) AS outstanding,
 									 DATE_PART('year', AGE($1::DATE, (i.raiseddate + '30 days'::INTERVAL))) + 
 									 DATE_PART('month', AGE($1::DATE, (i.raiseddate + '30 days'::INTERVAL))) / 12.0 AS age
-                              FROM supervision_finance.invoice i
+									FROM supervision_finance.invoice i
 									   LEFT JOIN LATERAL (
-								  SELECT SUM(la.amount) AS received
-								  FROM supervision_finance.ledger_allocation la
-								  		 JOIN supervision_finance.ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
-									WHERE la.status NOT IN ('PENDING', 'UN ALLOCATED')
-									AND (
-										 (l.type IN ('MOTO CARD PAYMENT', 'ONLINE CARD PAYMENT', 'OPG BACS PAYMENT', 'SUPERVISION BACS PAYMENT', 'DIRECT DEBIT PAYMENT', 'SUPERVISION CHEQUE PAYMENT', 'REFUND') AND l.created_at <= $1::DATE)
-										OR (l.type NOT IN ('MOTO CARD PAYMENT', 'ONLINE CARD PAYMENT', 'OPG BACS PAYMENT', 'SUPERVISION BACS PAYMENT', 'DIRECT DEBIT PAYMENT', 'SUPERVISION CHEQUE PAYMENT', 'REFUND') AND l.datetime <= $1::DATE)
-									 )
-								    AND la.invoice_id = i.id
-								  ) transactions ON TRUE
-                                       LEFT JOIN LATERAL (
-                                  SELECT ifr.supervisionlevel AS supervision_level
-                                  FROM supervision_finance.invoice_fee_range ifr
-                                  WHERE ifr.invoice_id = i.id
-                                  ORDER BY id DESC
-                                  LIMIT 1
-                                  ) sl ON TRUE
+										  SELECT SUM(la.amount) AS received
+										  FROM supervision_finance.ledger_allocation la
+											WHERE la.status NOT IN ('PENDING', 'UN ALLOCATED')
+											AND la.ledger_id IN (
+												SELECT l.id
+												FROM supervision_finance.ledger l
+													JOIN supervision_finance.transaction_type tt ON tt.ledger_type = l.type
+												WHERE la.ledger_id = l.id
+													AND la.invoice_id = i.id
+													AND l.status = 'CONFIRMED'
+													AND (
+														(tt.is_receipt IS TRUE AND l.created_at <= $1::DATE)
+														OR (tt.is_receipt IS FALSE AND l.datetime <= $1::DATE)
+													)
+											)
+								  	) transactions ON TRUE
+									LEFT JOIN LATERAL (
+									  SELECT ifr.supervisionlevel AS supervision_level
+									  FROM supervision_finance.invoice_fee_range ifr
+									  WHERE ifr.invoice_id = i.id
+									  ORDER BY id DESC
+									  LIMIT 1
+									  ) sl ON TRUE
 							WHERE i.raiseddate <= $1::DATE AND i.amount > COALESCE(transactions.received, 0)),
      age_per_client AS (SELECT fc.client_id, MAX(oi.age) AS age
                         FROM supervision_finance.finance_client fc
