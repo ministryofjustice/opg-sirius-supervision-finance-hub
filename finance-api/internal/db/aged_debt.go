@@ -58,15 +58,17 @@ outstanding_invoices AS (SELECT i.id,
 								  		 JOIN supervision_finance.ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
 									WHERE la.status NOT IN ('PENDING', 'UN ALLOCATED')
 								    AND la.invoice_id = i.id
-								    AND la.ledger_id IN (
-										SELECT l.id FROM supervision_finance.ledger l
+								    AND (
+										SELECT
+											CASE
+												WHEN l.type IN (SELECT ledger_type FROM receipt_ledger_types) THEN l.created_at <= $1::DATE
+												WHEN l.type IN (SELECT ledger_type FROM non_receipt_ledger_types) THEN l.datetime <= $1::DATE
+												ELSE false
+											END
+										FROM supervision_finance.ledger l
 										WHERE l.id = la.ledger_id
 										AND l.status = 'CONFIRMED'
-										AND (
-											(l.type IN (SELECT ledger_type FROM receipt_ledger_types) AND l.created_at <= $1::DATE)
-											OR (l.type IN (SELECT ledger_type FROM non_receipt_ledger_types) AND l.datetime <= $1::DATE)
-										)
-									)
+									) IS TRUE
 								  ) transactions ON TRUE
                                        LEFT JOIN LATERAL (
                                   SELECT ifr.supervisionlevel AS supervision_level
