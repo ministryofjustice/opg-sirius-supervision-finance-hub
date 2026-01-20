@@ -31,13 +31,7 @@ func NewAgedDebt(input AgedDebtInput) ReportQuery {
 	}
 }
 
-const AgedDebtQuery = `WITH receipt_ledger_types AS (
-    SELECT ledger_type FROM supervision_finance.transaction_type WHERE is_receipt IS TRUE
-),
-non_receipt_ledger_types AS (
-    SELECT ledger_type FROM supervision_finance.transaction_type WHERE is_receipt IS FALSE
-),
-outstanding_invoices AS (SELECT i.id,
+const AgedDebtQuery = `WITH outstanding_invoices AS (SELECT i.id,
                                      i.finance_client_id,
                                      i.feetype,
                                      CASE 
@@ -63,8 +57,8 @@ outstanding_invoices AS (SELECT i.id,
 										WHERE l.id = la.ledger_id
 										AND l.status = 'CONFIRMED'
 										AND (
-											(l.type IN (SELECT ledger_type FROM receipt_ledger_types) AND l.created_at <= $1::DATE)
-											OR (l.type IN (SELECT ledger_type FROM non_receipt_ledger_types) AND l.datetime <= $1::DATE)
+											(l.type IN (SELECT ledger_type FROM supervision_finance.transaction_type WHERE is_receipt IS TRUE) AND l.created_at <= $1::DATE)
+											OR (l.type IN (SELECT ledger_type FROM supervision_finance.transaction_type WHERE is_receipt IS FALSE) AND l.datetime <= $1::DATE)
 										)
 									)
 								  ) transactions ON TRUE
