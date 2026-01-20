@@ -31,7 +31,11 @@ func NewAgedDebt(input AgedDebtInput) ReportQuery {
 	}
 }
 
-const AgedDebtQuery = `WITH outstanding_invoices AS (SELECT i.id,
+const AgedDebtQuery = `
+	WITH receipt_ledger_types AS (
+		SELECT ledger_type FROM supervision_finance.transaction_type WHERE is_receipt IS TRUE
+	),
+	outstanding_invoices AS (SELECT i.id,
                                      i.finance_client_id,
                                      i.feetype,
                                      CASE 
@@ -57,8 +61,8 @@ const AgedDebtQuery = `WITH outstanding_invoices AS (SELECT i.id,
 											AND la.invoice_id = i.id
 											AND l.status = 'CONFIRMED'
 											AND (
-												(l.type IN (SELECT ltt.ledger_type FROM supervision_finance.transaction_type ltt WHERE ltt.is_receipt IS TRUE) AND l.created_at <= $1::DATE)
-												OR (l.type IN (SELECT ltt.ledger_type FROM supervision_finance.transaction_type ltt WHERE ltt.is_receipt IS FALSE) AND l.datetime <= $1::DATE)
+												(l.type IN (SELECT * FROM receipt_ledger_types) AND l.created_at <= $1::DATE)
+												OR (l.type NOT IN (SELECT * FROM receipt_ledger_types) AND l.datetime <= $1::DATE)
 											)
 										)
 									 ) transactions ON TRUE
@@ -120,7 +124,7 @@ FROM supervision_finance.finance_client fc
          JOIN outstanding_invoices oi ON fc.id = oi.finance_client_id
          JOIN age_per_client apc ON fc.client_id = apc.client_id
          JOIN supervision_finance.transaction_type tt
-              ON oi.feetype = tt.fee_type AND oi.supervision_level = tt.supervision_level 
+              ON oi.feetype = tt.fee_type AND oi.supervision_level = tt.supervision_level
          JOIN supervision_finance.account a ON tt.account_code = a.code
          JOIN supervision_finance.cost_centre cc ON cc.code = a.cost_centre
          JOIN public.persons p ON fc.client_id = p.id
