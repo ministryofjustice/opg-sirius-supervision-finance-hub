@@ -31,10 +31,7 @@ func NewAgedDebt(input AgedDebtInput) ReportQuery {
 	}
 }
 
-const AgedDebtQuery = `WITH receipt_ledger_types AS (
-	SELECT ledger_type FROM supervision_finance.transaction_type WHERE is_receipt IS TRUE
-),
-outstanding_invoices AS (SELECT i.id,
+const AgedDebtQuery = `WITH outstanding_invoices AS (SELECT i.id,
                                      i.finance_client_id,
                                      i.feetype,
                                      CASE 
@@ -56,8 +53,8 @@ outstanding_invoices AS (SELECT i.id,
 									WHERE la.status NOT IN ('PENDING', 'UN ALLOCATED')
 								    AND la.invoice_id = i.id
 									AND (
-										(l.type IN (SELECT * FROM receipt_ledger_types) AND l.created_at <= $1::DATE)
-										OR (l.type NOT IN (SELECT * FROM receipt_ledger_types) AND l.datetime <= $1::DATE)
+										(l.type IN ('MOTO CARD PAYMENT', 'ONLINE CARD PAYMENT', 'OPG BACS PAYMENT', 'SUPERVISION BACS PAYMENT', 'DIRECT DEBIT PAYMENT', 'SUPERVISION CHEQUE PAYMENT', 'REFUND') AND l.created_at <= $1::DATE)
+										OR (l.type NOT IN ('MOTO CARD PAYMENT', 'ONLINE CARD PAYMENT', 'OPG BACS PAYMENT', 'SUPERVISION BACS PAYMENT', 'DIRECT DEBIT PAYMENT', 'SUPERVISION CHEQUE PAYMENT', 'REFUND') AND l.datetime <= $1::DATE)
 									)
 								  ) transactions ON TRUE
                                        LEFT JOIN LATERAL (
