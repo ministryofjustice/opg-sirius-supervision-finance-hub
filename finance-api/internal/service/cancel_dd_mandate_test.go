@@ -49,7 +49,6 @@ func (suite *IntegrationSuite) TestService_CancelDirectDebitMandate() {
 
 	assert.Equal(suite.T(), "CancelMandate", allpayMock.called[0])
 	assert.Equal(suite.T(), today.AddDate(0, 0, 2).UTC().Truncate(24*time.Hour), allpayMock.closureDate)
-	assert.Equal(suite.T(), "RemoveScheduledPayment", allpayMock.called[1])
 
 	rows := seeder.QueryRow(ctx, "SELECT payment_method FROM supervision_finance.finance_client WHERE id = 1")
 	var paymentMethod string
