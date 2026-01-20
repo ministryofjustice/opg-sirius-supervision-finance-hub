@@ -22,7 +22,7 @@ func (i PaymentMethod) String() string {
 	case PaymentMethodDemanded:
 		return "Demanded"
 	case PaymentMethodDirectDebit:
-		return "Direct debit"
+		return "Direct Debit"
 	default:
 		return ""
 	}
