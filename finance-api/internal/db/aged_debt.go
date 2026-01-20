@@ -58,8 +58,8 @@ const AgedDebtQuery = `WITH outstanding_invoices AS (SELECT i.id,
 											AND la.invoice_id = i.id
 											AND l.status = 'CONFIRMED'
 											AND (
-												(ltt.is_receipt IS TRUE AND l.created_at <= $1::DATE)
-												OR (ltt.is_receipt IS FALSE AND l.datetime <= $1::DATE)
+												(l.type IN (SELECT tt.ledger_type FROM supervision_finance.transaction_type WHERE tt.is_receipt IS TRUE) AND l.created_at <= $1::DATE)
+												OR (l.type IN (SELECT tt.ledger_type FROM supervision_finance.transaction_type WHERE tt.is_receipt IS FALSE) AND l.datetime <= $1::DATE)
 											)
 										)
 									 ) transactions ON TRUE
