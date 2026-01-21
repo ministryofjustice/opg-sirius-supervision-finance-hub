@@ -379,7 +379,7 @@ func hasPaymentToReverse(processedRecords []shared.ReversalDetails, details shar
 }
 
 /**
- * shouldSkipBankDate returns true if the upload is for failed direct debit or cheque payment, as they are different
+ * shouldSkipBankDate returns true if the upload is for failed Direct Debit or cheque payment, as they are different
  * transactions on OPG bank statements
  */
 func shouldSkipBankDate(uploadType shared.ReportUploadType, pisNumber pgtype.Int4) pgtype.Bool {

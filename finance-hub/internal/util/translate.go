@@ -109,7 +109,7 @@ var validationMappings = map[string]map[string]pair{
 		"invalid": pair{"AccountDetails", "The account number and sort code are not a valid combination."},
 	},
 	"Allpay": {
-		"invalid": pair{"Allpay", "Direct debit cannot be setup due to an unexpected response from AllPay. Please try again later."},
+		"invalid": pair{"Allpay", "Direct Debit cannot be setup due to an unexpected response from AllPay. Please try again later."},
 	},
 }
 
