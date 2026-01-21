@@ -442,7 +442,7 @@ func (suite *IntegrationSuite) Test_processReversals() {
 			},
 		},
 		{
-			name: "failed Direct Debit collection",
+			name: "failed direct debit collection",
 			records: [][]string{
 				{"Court reference", "Bank date", "Received date", "Amount"},
 				{"1212", "13/11/2025", "02/01/2025", "50.00"}, // different bank date as this should not be matched on
