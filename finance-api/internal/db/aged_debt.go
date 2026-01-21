@@ -31,7 +31,10 @@ func NewAgedDebt(input AgedDebtInput) ReportQuery {
 	}
 }
 
-const AgedDebtQuery = `WITH outstanding_invoices AS (SELECT i.id,
+const AgedDebtQuery = `WITH receipt_transactions_types AS (
+    SELECT ledger_type FROM supervision_finance.transaction_type WHERE is_receipt IS TRUE
+),
+outstanding_invoices AS (SELECT i.id,
                                      i.finance_client_id,
                                      i.feetype,
                                      CASE 
@@ -47,21 +50,16 @@ const AgedDebtQuery = `WITH outstanding_invoices AS (SELECT i.id,
 									 DATE_PART('month', AGE($1::DATE, (i.raiseddate + '30 days'::INTERVAL))) / 12.0 AS age
                               FROM supervision_finance.invoice i
 									   LEFT JOIN LATERAL (
-								  SELECT SUM(la.amount) AS received
-								  FROM supervision_finance.ledger_allocation la
-								  		 JOIN supervision_finance.ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
-									WHERE la.status NOT IN ('PENDING', 'UN ALLOCATED')
-								    AND la.invoice_id = i.id
-								    AND la.ledger_id IN (
-										SELECT l.id FROM supervision_finance.ledger l
-										WHERE l.id = la.ledger_id
-										AND l.status = 'CONFIRMED'
+									  SELECT SUM(la.amount) AS received
+									  FROM supervision_finance.ledger_allocation la
+											JOIN supervision_finance.ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
+									  WHERE la.status NOT IN ('PENDING', 'UN ALLOCATED')
+										AND la.invoice_id = i.id
 										AND (
-											(l.type IN (SELECT ledger_type FROM supervision_finance.transaction_type WHERE is_receipt IS TRUE) AND l.created_at <= $1::DATE)
-											OR (l.type IN (SELECT ledger_type FROM supervision_finance.transaction_type WHERE is_receipt IS FALSE) AND l.datetime <= $1::DATE)
+											(l.type IN (SELECT * FROM receipt_transactions_types) AND l.created_at::DATE <= $1::DATE) OR
+											(l.type NOT IN (SELECT * FROM receipt_transactions_types) AND l.datetime::DATE <= $1::DATE)
 										)
-									)
-								  ) transactions ON TRUE
+									  ) transactions ON TRUE
                                        LEFT JOIN LATERAL (
                                   SELECT ifr.supervisionlevel AS supervision_level
                                   FROM supervision_finance.invoice_fee_range ifr
