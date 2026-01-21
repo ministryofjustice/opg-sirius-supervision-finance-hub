@@ -21,7 +21,7 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 
 		// event 1 - invoice created
 		"INSERT INTO supervision_finance.invoice VALUES (1,11,1,'AD','AD000001/24','2024-01-01','2024-01-01',10000,NULL,'2024-01-01',NULL,'2024-01-01','Created manually',NULL,NULL,'2024-01-01 09:31:44',1);",
-		// event 2 - direct debit mandate created
+		// event 2 - Direct Debit mandate created
 		"INSERT INTO supervision_finance.payment_method VALUES (1, 1, 'DIRECT DEBIT', '2024-01-02 00:00:00', 1);",
 		// event 3 - invoice adjustment created, event 4 - invoice adjustment rejected
 		"INSERT INTO supervision_finance.invoice_adjustment VALUES (1,1,1,'2024-01-03','CREDIT WRITE OFF',10000,'Writing off','REJECTED','2024-01-03 09:32:23',1,'2024-01-04 09:33:24',1)",

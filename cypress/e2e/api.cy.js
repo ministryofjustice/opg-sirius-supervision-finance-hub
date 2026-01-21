@@ -176,7 +176,7 @@ describe('API Tests', () => {
                  .first().contains("Closed");
          });
 
-         it('reverses failed direct debit payments', () => {
+         it('reverses failed Direct Debit payments', () => {
              cy.visit("/clients/28/invoices");
              cy.get("table#invoices > tbody").contains("AD282828/24").click();
              cy.get("table#ledger-allocations > tbody")

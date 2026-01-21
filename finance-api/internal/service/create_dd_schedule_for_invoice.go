@@ -22,7 +22,7 @@ func (s *Service) CreateDirectDebitScheduleForInvoice(ctx context.Context, clien
 	}
 
 	if s.pendingScheduleExists(ctx, clientID) {
-		logger.Info(fmt.Sprintf("skipping direct debit schedule creation for client %d as a schedule already exists", clientID))
+		logger.Info(fmt.Sprintf("skipping Direct Debit schedule creation for client %d as a schedule already exists", clientID))
 		return nil
 	}
 

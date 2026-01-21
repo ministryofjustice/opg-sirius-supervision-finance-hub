@@ -2,7 +2,7 @@ describe("Setup Direct Debit", () => {
     it("Successfully changes payment method to Direct Debit and creates first payment schedule", () => {
         cy.visit("/clients/22/invoices");
         cy.contains('[data-cy="payment-method"]', "Demanded");
-        cy.contains(".govuk-button", "Set up direct debit").click();
+        cy.contains(".govuk-button", "Set up Direct Debit").click();
         cy.url().should("include", "/clients/22/direct-debit/setup");
         cy.get("#f-AccountName").contains("Name").type("Mrs Account Holder");
         cy.get("#f-SortCode").contains("Sort code").type("010000");
@@ -66,6 +66,6 @@ describe("Setup Direct Debit", () => {
 
         cy.contains(".govuk-button", "Save and continue").click();
 
-        cy.get(".govuk-error-summary").contains("Direct debit cannot be setup due to an unexpected response from AllPay.");
+        cy.get(".govuk-error-summary").contains("Direct Debit cannot be setup due to an unexpected response from AllPay.");
     });
 });

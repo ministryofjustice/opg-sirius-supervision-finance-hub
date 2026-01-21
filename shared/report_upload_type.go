@@ -98,7 +98,7 @@ func (u ReportUploadType) Translation() string {
 	case ReportTypeUploadFulfilledRefunds:
 		return "Fulfilled refunds"
 	case ReportTypeUploadFailedDirectDebitCollections:
-		return "Payment Reversals - Failed direct debit collections"
+		return "Payment Reversals - Failed Direct Debit collections"
 	case ReportTypeUploadSOPUnallocated:
 		return "SOP Unallocated"
 	case ReportTypeUploadReverseFulfilledRefunds:

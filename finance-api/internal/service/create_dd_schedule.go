@@ -47,7 +47,7 @@ func (s *Service) CreateDirectDebitSchedule(ctx context.Context, clientID int32,
 		return pc, err
 	}
 	if balance < 1 {
-		logger.Info(fmt.Sprintf("skipping direct debit schedule creation for client %d as there is no balance outstanding", clientID), "balance", balance)
+		logger.Info(fmt.Sprintf("skipping Direct Debit schedule creation for client %d as there is no balance outstanding", clientID), "balance", balance)
 		return pc, nil
 	}
 
@@ -67,7 +67,7 @@ func (s *Service) CreateDirectDebitSchedule(ctx context.Context, clientID int32,
 		CreatedBy:      ctx.(auth.Context).User.ID,
 	})
 	if err != nil {
-		logger.Error("failed to create pending collection for direct debit schedule, aborting", "error", err)
+		logger.Error("failed to create pending collection for Direct Debit schedule, aborting", "error", err)
 		return pc, err
 	}
 

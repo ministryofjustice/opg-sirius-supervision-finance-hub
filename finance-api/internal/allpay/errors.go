@@ -8,7 +8,7 @@ import (
 type ErrorAPI struct{}
 
 func (e ErrorAPI) Error() string {
-	return "Direct debit cannot be setup due to an unexpected response from AllPay."
+	return "Direct Debit cannot be setup due to an unexpected response from AllPay."
 }
 
 type ErrorValidation struct {
