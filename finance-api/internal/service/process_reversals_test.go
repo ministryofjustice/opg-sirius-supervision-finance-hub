@@ -29,7 +29,11 @@ func (suite *IntegrationSuite) Test_processReversals() {
 	seeder := suite.cm.Seeder(ctx, suite.T())
 
 	seeder.SeedData(
+	    // Seed persons table to match finance_client court refs due to join in updated CreateLedgerForCourtRef query
+
 		// test 1
+		"INSERT INTO public.persons VALUES (1, NULL, NULL, NULL, '1111', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
+		"INSERT INTO public.persons VALUES (2, NULL, NULL, NULL, '2222', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
 		"INSERT INTO finance_client VALUES (1, 1, 'test 1', 'DEMANDED', NULL, '1111');",
 		"INSERT INTO finance_client VALUES (2, 2, 'test 1 - replacement', 'DEMANDED', NULL, '2222');",
 		"INSERT INTO invoice VALUES (1, 1, 1, 'AD', 'test 1 paid', '2023-04-01', '2025-03-31', 15000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
@@ -38,6 +42,8 @@ func (suite *IntegrationSuite) Test_processReversals() {
 		"INSERT INTO invoice VALUES (2, 2, 2, 'AD', 'test 1 replacement unpaid', '2023-04-01', '2025-03-31', 15000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 
 		//test 2
+		"INSERT INTO public.persons VALUES (3, NULL, NULL, NULL, '3333', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
+		"INSERT INTO public.persons VALUES (4, NULL, NULL, NULL, '4444', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
 		"INSERT INTO finance_client VALUES (3, 3, 'test 2', 'DEMANDED', NULL, '3333');",
 		"INSERT INTO finance_client VALUES (4, 4, 'test 2 - replacement', 'DEMANDED', NULL, '4444');",
 		"INSERT INTO invoice VALUES (3, 3, 3, 'AD', 'test 2 paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
@@ -52,6 +58,8 @@ func (suite *IntegrationSuite) Test_processReversals() {
 		"INSERT INTO ledger_allocation VALUES (5, 3, 5, '2025-01-03 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-03', NULL);",
 
 		// test 3
+		"INSERT INTO public.persons VALUES (5, NULL, NULL, NULL, '5555', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
+		"INSERT INTO public.persons VALUES (6, NULL, NULL, NULL, '6666', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
 		"INSERT INTO finance_client VALUES (5, 5, 'test 3', 'DEMANDED', NULL, '5555');",
 		"INSERT INTO finance_client VALUES (6, 6, 'test 3 - replacement', 'DEMANDED', NULL, '6666');",
 		"INSERT INTO invoice VALUES (6, 5, 5, 'AD', 'test 3 paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
@@ -61,18 +69,21 @@ func (suite *IntegrationSuite) Test_processReversals() {
 		"INSERT INTO invoice VALUES (7, 6, 6, 'AD', 'test 3 replacement', '2023-04-01', '2025-03-31', 15000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 
 		// bounced cheque
+		"INSERT INTO public.persons VALUES (7, NULL, NULL, NULL, '7777', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
 		"INSERT INTO finance_client VALUES (7, 7, 'bounced cheque', 'DEMANDED', NULL, '7777');",
 		"INSERT INTO invoice VALUES (8, 7, 7, 'AD', 'bounced cheque paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 		"INSERT INTO ledger VALUES (5, 'bounced cheque', '2025-01-02 15:32:10', '', 10000, 'payment 4', 'SUPERVISION CHEQUE PAYMENT', 'CONFIRMED', 7, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1, 123);",
 		"INSERT INTO ledger_allocation VALUES (8, 5, 8, '2025-01-02 15:32:10', 10000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
 
 		// duplicate payment
+		"INSERT INTO public.persons VALUES (8, NULL, NULL, NULL, '8888', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
 		"INSERT INTO finance_client VALUES (8, 8, 'test 4', 'DEMANDED', NULL, '8888');",
 		"INSERT INTO invoice VALUES (9, 8, 8, 'AD', 'test 4 paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 		"INSERT INTO ledger VALUES (6, 'test 4', '2025-01-02 15:32:10', '', 5000, 'payment 4', 'ONLINE CARD PAYMENT', 'CONFIRMED', 8, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
 		"INSERT INTO ledger_allocation VALUES (9, 6, 9, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
 
 		// invalid duplicate reversal, same reversal in previous upload
+		"INSERT INTO public.persons VALUES (9, NULL, NULL, NULL, '9999', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
 		"INSERT INTO finance_client VALUES (9, 9, 'test 5', 'DEMANDED', NULL, '9999');",
 		"INSERT INTO invoice VALUES (10, 9, 9, 'AD', 'test 5 paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 		"INSERT INTO ledger VALUES (7, 'test 5', '2025-01-02 15:32:10', '', 5000, 'payment 5', 'ONLINE CARD PAYMENT', 'CONFIRMED', 9, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
@@ -81,12 +92,14 @@ func (suite *IntegrationSuite) Test_processReversals() {
 		"INSERT INTO ledger_allocation VALUES (11, 8, 10, '2025-01-02 15:32:10', -5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
 
 		// invalid duplicate reversal, same reversal in upload
+		"INSERT INTO public.persons VALUES (10, NULL, NULL, NULL, '1010', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
 		"INSERT INTO finance_client VALUES (10, 10, 'test 6', 'DEMANDED', NULL, '1010');",
 		"INSERT INTO invoice VALUES (11, 10, 10, 'AD', 'test 6 paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 		"INSERT INTO ledger VALUES (9, 'test 6', '2025-01-02 15:32:10', '', 5000, 'payment 6', 'ONLINE CARD PAYMENT', 'CONFIRMED', 10, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
 		"INSERT INTO ledger_allocation VALUES (12, 9, 11, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
 
 		// valid duplicate reversal for duplicate payment upload
+		"INSERT INTO public.persons VALUES (11, NULL, NULL, NULL, '1011', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
 		"INSERT INTO finance_client VALUES (11, 11, 'test 8', 'DEMANDED', NULL, '1011');",
 		"INSERT INTO invoice VALUES (12, 11, 11, 'AD', 'test 8 paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 		"INSERT INTO ledger VALUES (10, 'test 8', '2025-01-02 15:32:10', '', 5000, 'payment 8', 'ONLINE CARD PAYMENT', 'CONFIRMED', 11, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
@@ -95,12 +108,14 @@ func (suite *IntegrationSuite) Test_processReversals() {
 		"INSERT INTO ledger_allocation VALUES (14, 11, 12, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
 
 		// failed direct debit collection
+		"INSERT INTO public.persons VALUES (12, NULL, NULL, NULL, '1212', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
 		"INSERT INTO finance_client VALUES (12, 12, 'test 12', 'DEMANDED', NULL, '1212');",
 		"INSERT INTO invoice VALUES (13, 12, 12, 'AD', 'test 12 paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 		"INSERT INTO ledger VALUES (12, 'test 12', '2025-01-02 15:32:10', '', 5000, 'payment 12', 'DIRECT DEBIT PAYMENT', 'CONFIRMED', 12, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
 		"INSERT INTO ledger_allocation VALUES (15, 12, 13, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
 
 		// failed reversal due to insufficient debt position
+		"INSERT INTO public.persons VALUES (13, NULL, NULL, NULL, '1313', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
 		"INSERT INTO finance_client VALUES (13, 13, 'test 13', 'DEMANDED', NULL, '1313');",
 		"INSERT INTO invoice VALUES (14, 13, 13, 'AD', 'test 13 paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 		"INSERT INTO ledger VALUES (13, 'test 13', '2025-01-02 15:32:10', '', 10000, 'payment 13', 'ONLINE CARD PAYMENT', 'CONFIRMED', 13, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
@@ -109,6 +124,7 @@ func (suite *IntegrationSuite) Test_processReversals() {
 		"INSERT INTO ledger_allocation VALUES (17, 14, 14, '2025-01-02 15:32:10', -10000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
 
 		// client in credit but payment being reversed only covers invoice
+		"INSERT INTO public.persons VALUES (14, NULL, NULL, NULL, '1414', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
 		"INSERT INTO finance_client VALUES (14, 14, 'test 14', 'DEMANDED', NULL, '1414');",
 		"INSERT INTO invoice VALUES (15, 14, 14, 'AD', 'test 14 paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 		"INSERT INTO ledger VALUES (15, 'test 14.1', '2025-01-02 15:32:10', '', 5000, 'payment 14 being reversed', 'ONLINE CARD PAYMENT', 'CONFIRMED', 14, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
@@ -118,16 +134,19 @@ func (suite *IntegrationSuite) Test_processReversals() {
 		"INSERT INTO ledger_allocation VALUES (20, 16, 15, '2025-01-02 15:32:10', -5000, 'UNAPPLIED', NULL, '', '2025-01-02', NULL);",
 
 		// failed direct debit collection
+		"INSERT INTO public.persons VALUES (15, NULL, NULL, NULL, '1515', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
 		"INSERT INTO finance_client VALUES (15, 15, 'test 15', 'DEMANDED', NULL, '1515');",
 		"INSERT INTO invoice VALUES (16, 15, 15, 'AD', 'test 15 paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 		"INSERT INTO ledger VALUES (17, 'test 15', '2025-01-02 15:32:10', '', 5000, 'payment 15', 'REFUND', 'CONFIRMED', 15, NULL, NULL, NULL, '2025-01-01', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
 		"INSERT INTO ledger_allocation VALUES (21, 17, 16, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
 
 		// misapplied cheque passes through PIS number
+		"INSERT INTO public.persons VALUES (16, NULL, NULL, NULL, '1616', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
 		"INSERT INTO finance_client VALUES (16, 16, 'test 16', 'DEMANDED', NULL, '1616');",
 		"INSERT INTO invoice VALUES (17, 16, 16, 'AD', 'test 16 unpaid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 		"INSERT INTO ledger VALUES (19, 'test 16', '2025-01-02 15:32:10', '', 5000, 'payment 15 being reversed', 'SUPERVISION CHEQUE PAYMENT', 'CONFIRMED', 16, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1, 101);",
 		"INSERT INTO ledger_allocation VALUES (23, 19, 17, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
+		"INSERT INTO public.persons VALUES (17, NULL, NULL, NULL, '1717', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
 		"INSERT INTO finance_client VALUES (17, 17, 'test 17', 'DEMANDED', NULL, '1717');",
 		"INSERT INTO invoice VALUES (18, 17, 17, 'AD', 'test 17 unpaid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 

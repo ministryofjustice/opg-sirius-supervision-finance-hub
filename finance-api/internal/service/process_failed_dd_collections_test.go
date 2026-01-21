@@ -27,6 +27,10 @@ func (suite *IntegrationSuite) Test_ProcessFailedDirectDebitCollections() {
 	seeder := suite.cm.Seeder(ctx, suite.T())
 
 	seeder.SeedData(
+	    // Seed persons table to match finance_client court refs due to join in updated CreateLedgerForCourtRef query
+	    "INSERT INTO public.persons VALUES (22, NULL, NULL, NULL, 'reverse', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
+        "INSERT INTO public.persons VALUES (33, NULL, NULL, NULL, 'reverse too', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
+
 		"INSERT INTO finance_client VALUES (2, 22, '', 'DIRECT DEBIT', NULL, 'reverse');",
 		"INSERT INTO finance_client VALUES (3, 33, '', 'DIRECT DEBIT', NULL, 'reverse too');",
 

@@ -16,6 +16,8 @@ func (suite *IntegrationSuite) Test_processRefundReversals() {
 	bankDate := shared.NewDate("2024-12-12")
 
 	seeder.SeedData(
+        // Seed persons table to match finance_client court refs due to join in updated CreateLedgerForCourtRef query
+	    "INSERT INTO public.persons VALUES (11, NULL, NULL, NULL, '12345678', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
 		"INSERT INTO finance_client VALUES (1, 11, '1234', 'DEMANDED', NULL, '12345678');",
 		"INSERT INTO ledger VALUES (1, 'payment-1', '2024-01-01 15:30:27', '', 5000, 'payment', 'SUPERVISION DIRECT DEBIT', 'CONFIRMED', 1, NULL, NULL, NULL, '2024-01-01', NULL, NULL, NULL, NULL, '2020-05-05', 1);",
 		"INSERT INTO ledger_allocation VALUES (1, 1, NULL, '2024-01-01 15:30:27', -5000, 'UNAPPLIED', NULL, '', '2024-01-01', NULL);",
@@ -26,6 +28,7 @@ func (suite *IntegrationSuite) Test_processRefundReversals() {
 		"INSERT INTO invoice VALUES (1, 11, 1, 's3', 'new invoice', '2023-04-01', '2025-03-31', 1000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 
 		// already processed reversal
+		"INSERT INTO public.persons VALUES (22, NULL, NULL, NULL, '87654321', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
 		"INSERT INTO finance_client VALUES (2, 22, '8765', 'DEMANDED', NULL, '87654321');",
 		"INSERT INTO ledger VALUES (3, 'payment-2', '2024-01-01 15:30:27', '', 5000, 'payment', 'SUPERVISION DIRECT DEBIT', 'CONFIRMED', 2, NULL, NULL, NULL, '2024-01-01', NULL, NULL, NULL, NULL, '2020-05-05', 1);",
 		"INSERT INTO ledger_allocation VALUES (3, 3, NULL, '2024-01-01 15:30:27', -5000, 'UNAPPLIED', NULL, '', '2024-01-01', NULL);",

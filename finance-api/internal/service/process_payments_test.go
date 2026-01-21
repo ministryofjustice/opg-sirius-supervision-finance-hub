@@ -31,6 +31,15 @@ func (suite *IntegrationSuite) Test_processPayments() {
 	seeder := suite.cm.Seeder(ctx, suite.T())
 
 	seeder.SeedData(
+        // Seed persons table to match finance_client court refs due to join in updated CreateLedgerForCourtRef query
+         "INSERT INTO public.persons VALUES (1, NULL, NULL, NULL, '1234', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
+         "INSERT INTO public.persons VALUES (2, NULL, NULL, NULL, '12345', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
+         "INSERT INTO public.persons VALUES (3, NULL, NULL, NULL, '123456', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
+         "INSERT INTO public.persons VALUES (4, NULL, NULL, NULL, '1234567', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
+         "INSERT INTO public.persons VALUES (5, NULL, 'Dup', 'Client5', '12345678', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
+         "INSERT INTO public.persons VALUES (6, NULL, 'Dup2', 'Client6', '12345678', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'OPEN');",
+
+        // Existing finance_client and other seed data
 		"INSERT INTO finance_client VALUES (1, 1, 'invoice-1', 'DEMANDED', NULL, '1234');",
 		"INSERT INTO finance_client VALUES (2, 2, 'invoice-2', 'DEMANDED', NULL, '12345');",
 		"INSERT INTO finance_client VALUES (3, 3, 'invoice-3', 'DEMANDED', NULL, '123456');",
@@ -42,6 +51,7 @@ func (suite *IntegrationSuite) Test_processPayments() {
 		"INSERT INTO invoice VALUES (3, 3, 3, 'AD', 'AD11225/19', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 		"INSERT INTO invoice VALUES (4, 3, 3, 'AD', 'AD11226/19', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 		"INSERT INTO invoice VALUES (5, 4, 4, 'AD', 'AD11227/19', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
+		"INSERT INTO invoice VALUES (6, 5, 5, 'AD', 'AD11228/19', '2023-04-01', '2025-03-31', 5000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 		"INSERT INTO ledger VALUES (1, 'ref', '2024-01-01 15:30:27', '', 10000, 'payment', 'MOTO CARD PAYMENT', 'CONFIRMED', 4, NULL, NULL, NULL, '2024-01-01', NULL, NULL, NULL, NULL, '2020-05-05', 1);",
 		"INSERT INTO ledger_allocation VALUES (1, 1, 5, '2024-01-01 15:30:27', 10000, 'ALLOCATED', NULL, '', '2024-01-01', NULL);",
 		"ALTER SEQUENCE ledger_id_seq RESTART WITH 2;",

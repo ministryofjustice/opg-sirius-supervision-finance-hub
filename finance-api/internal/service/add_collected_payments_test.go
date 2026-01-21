@@ -21,6 +21,11 @@ func (suite *IntegrationSuite) Test_AddCollectedPayments() {
 	seeder := suite.cm.Seeder(ctx, suite.T())
 
 	seeder.SeedData(
+        // Seed persons table to match finance_client court refs due to join in updated CreateLedgerForCourtRef query
+	    "INSERT INTO public.persons VALUES (101, NULL, NULL, NULL, '1234', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
+	    "INSERT INTO public.persons VALUES (201, NULL, NULL, NULL, '12345', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
+	    "INSERT INTO public.persons VALUES (301, NULL, NULL, NULL, '12345', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
+
 		"INSERT INTO finance_client VALUES (1, 101, 'not-processed', 'DIRECT DEBIT', NULL, '1234');",
 		"INSERT INTO finance_client VALUES (2, 201, 'processed-1', 'DIRECT DEBIT', NULL, '12345');",
 		"INSERT INTO finance_client VALUES (3, 301, 'processed-2', 'DIRECT DEBIT', NULL, '12345');",

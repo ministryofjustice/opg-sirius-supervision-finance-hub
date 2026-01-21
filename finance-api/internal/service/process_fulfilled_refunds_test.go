@@ -18,6 +18,11 @@ func (suite *IntegrationSuite) Test_processFulfilledRefunds() {
 	seeder := suite.cm.Seeder(ctx, suite.T())
 
 	seeder.SeedData(
+        // Seed persons table to match finance_client court refs due to join in updated CreateLedgerForCourtRef query
+	    "INSERT INTO public.persons VALUES (1, NULL, NULL, NULL, '12345678', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
+	    "INSERT INTO public.persons VALUES (2, NULL, NULL, NULL, '87654321', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
+	    "INSERT INTO public.persons VALUES (3, NULL, NULL, NULL, '66666666', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
+
 		"INSERT INTO finance_client VALUES (99, 1, 'ian-test', 'DEMANDED', NULL, '12345678');",
 		"INSERT INTO finance_client VALUES (2, 2, 'mary-missing', 'DEMANDED', NULL, '87654321');",
 		"INSERT INTO finance_client VALUES (3, 3, 'conrad-cancelled', 'DEMANDED', NULL, '66666666');",
