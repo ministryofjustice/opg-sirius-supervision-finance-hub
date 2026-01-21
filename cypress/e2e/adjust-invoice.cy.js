@@ -124,7 +124,7 @@ describe("Adjust invoice form", () => {
         cy.checkAccessibility();
     });
 
-   it("should not show direct debit button when viewing the adjust invoice form",() => {
+   it("should not show Direct Debit button when viewing the adjust invoice form",() => {
         cy.visit("/clients/4/invoices/3/adjustments");
         cy.get("#direct-debit-button").should('exist');
         cy.get("#direct-debit-button").should('not.be.visible');

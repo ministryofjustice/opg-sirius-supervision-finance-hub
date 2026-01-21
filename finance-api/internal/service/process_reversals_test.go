@@ -107,7 +107,7 @@ func (suite *IntegrationSuite) Test_processReversals() {
 		"INSERT INTO ledger VALUES (11, 'test 9', '2025-01-02 15:32:10', '', 5000, 'payment 9', 'ONLINE CARD PAYMENT', 'CONFIRMED', 11, NULL, NULL, NULL, '2025-01-02', NULL, NULL, NULL, NULL, '2025-01-02', 1);",
 		"INSERT INTO ledger_allocation VALUES (14, 11, 12, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
 
-		// failed direct debit collection
+		// failed Direct Debit collection
 		"INSERT INTO public.persons VALUES (12, NULL, NULL, NULL, '1212', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
 		"INSERT INTO finance_client VALUES (12, 12, 'test 12', 'DEMANDED', NULL, '1212');",
 		"INSERT INTO invoice VALUES (13, 12, 12, 'AD', 'test 12 paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
@@ -133,7 +133,7 @@ func (suite *IntegrationSuite) Test_processReversals() {
 		"INSERT INTO ledger_allocation VALUES (19, 16, 15, '2025-01-02 15:32:10', 5000, 'ALLOCATED', NULL, '', '2025-01-02', NULL);",
 		"INSERT INTO ledger_allocation VALUES (20, 16, 15, '2025-01-02 15:32:10', -5000, 'UNAPPLIED', NULL, '', '2025-01-02', NULL);",
 
-		// failed direct debit collection
+		// failed Direct Debit collection
 		"INSERT INTO public.persons VALUES (15, NULL, NULL, NULL, '1515', NULL, NULL, NULL, false, false, NULL, NULL, 'Client', 'ACTIVE');",
 		"INSERT INTO finance_client VALUES (15, 15, 'test 15', 'DEMANDED', NULL, '1515');",
 		"INSERT INTO invoice VALUES (16, 15, 15, 'AD', 'test 15 paid', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', NULL, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
@@ -442,7 +442,7 @@ func (suite *IntegrationSuite) Test_processReversals() {
 			},
 		},
 		{
-			name: "failed direct debit collection",
+			name: "failed Direct Debit collection",
 			records: [][]string{
 				{"Court reference", "Bank date", "Received date", "Amount"},
 				{"1212", "13/11/2025", "02/01/2025", "50.00"}, // different bank date as this should not be matched on
