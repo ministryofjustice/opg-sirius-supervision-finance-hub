@@ -105,8 +105,9 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			},
 			expectedQuery: &db.AgedDebt{
 				AgedDebtInput: db.AgedDebtInput{
-					ToDate: &toDate,
-					Today:  time.Now(),
+					ToDate:     &toDate,
+					Today:      time.Now(),
+					GoLiveDate: shared.NewDate("2020-01-01"),
 				},
 				ReportQuery: db.NewReportQuery(db.AgedDebtQuery)},
 			expectedFilename: "AgedDebt_01:01:2024.csv",
@@ -120,7 +121,8 @@ func TestGenerateAndUploadReport(t *testing.T) {
 			},
 			expectedQuery: &db.AgedDebt{
 				AgedDebtInput: db.AgedDebtInput{
-					Today: time.Now(),
+					Today:      time.Now(),
+					GoLiveDate: shared.NewDate("2020-01-01"),
 				},
 				ReportQuery: db.NewReportQuery(db.AgedDebtQuery)},
 			expectedFilename: "AgedDebt_02:02:2024.csv",

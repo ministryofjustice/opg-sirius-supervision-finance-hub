@@ -84,8 +84,9 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	to := shared.NewDate(yesterday.String())
 
 	rows, err := c.Run(ctx, NewAgedDebt(AgedDebtInput{
-		ToDate: &to,
-		Today:  suite.seeder.Today().Add(1, 0, 0).Date(), // ran a year in the future to ensure data is independent of when it is generated
+		ToDate:     &to,
+		Today:      suite.seeder.Today().Add(1, 0, 0).Date(), // ran a year in the future to ensure data is independent of when it is generated
+		GoLiveDate: to,
 	}))
 
 	assert.NoError(suite.T(), err)
@@ -291,17 +292,17 @@ func TestAgedDebt_GetParams(t *testing.T) {
 	}{
 		{
 			name:   "nil ToDate defaults to today",
-			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: nil, Today: time.Now()}},
+			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: nil, Today: time.Now(), GoLiveDate: shared.NewDate("2020-01-01")}},
 			want:   []any{time.Now().Format("2006-01-02")},
 		},
 		{
 			name:   "empty ToDate defaults to today",
-			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: &shared.Date{}, Today: time.Now()}},
+			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: &shared.Date{}, Today: time.Now(), GoLiveDate: shared.NewDate("2020-01-01")}},
 			want:   []any{time.Now().Format("2006-01-02")},
 		},
 		{
 			name:   "will pull through other date to overwrite today and default date if required",
-			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: &shared.Date{}, Today: time.Now().AddDate(-1, 0, 0)}},
+			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: &shared.Date{}, Today: time.Now().AddDate(-1, 0, 0), GoLiveDate: shared.NewDate("2020-01-01")}},
 			want:   []any{time.Now().AddDate(-1, 0, 0).Format("2006-01-02")},
 		},
 		{
@@ -309,7 +310,7 @@ func TestAgedDebt_GetParams(t *testing.T) {
 			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: func() *shared.Date {
 				d := shared.NewDate("2023-05-01")
 				return &d
-			}(), Today: time.Now()}},
+			}(), Today: time.Now(), GoLiveDate: shared.NewDate("2020-01-01")}},
 			want: []any{"2023-05-01"},
 		},
 	}
