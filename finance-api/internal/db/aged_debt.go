@@ -61,8 +61,8 @@ outstanding_invoices AS (SELECT i.id,
 										AND la.invoice_id = i.id
 						        		AND $1::DATE >= (
 											CASE
-										  		WHEN (l.type IN (SELECT * FROM receipt_transactions_types) AND (l.datetime > $2::DATE)) THEN l.created_at::DATE
-												WHEN (l.type IN (SELECT * FROM receipt_transactions_types) AND (l.datetime <= $2::DATE)) THEN l.datetime::DATE
+										  		WHEN (l.type IN (SELECT * FROM receipt_transactions_types) AND (l.datetime > '2025-04-01'::DATE)) THEN l.created_at::DATE
+												WHEN (l.type IN (SELECT * FROM receipt_transactions_types) AND (l.datetime <= '2025-04-01'::DATE)) THEN l.datetime::DATE
 												ELSE l.datetime::DATE
 											END
 										)
@@ -183,5 +183,5 @@ func (a *AgedDebt) GetParams() []any {
 		to = a.ToDate.Time
 	}
 
-	return []any{to.Format("2006-01-02"), a.GoLiveDate.Time}
+	return []any{to.Format("2006-01-02")}
 }
