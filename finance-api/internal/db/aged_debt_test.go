@@ -280,6 +280,181 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	assert.Equal(suite.T(), "=\"0-1\"", results[5]["Debt impairment years"], "Debt impairment years - client 5")
 }
 
+func (suite *IntegrationSuite) Test_aged_debt_brings_in_invoices_based_on_dates1() {
+	ctx := suite.ctx
+	//today := suite.seeder.Today()
+	//yesterday := today.Sub(0, 0, 1)
+	FirstJan := shared.NewDate("01/01/2025")
+	FirstJan24 := "01/01/2024"
+	//twoMonthsAgo := today.Sub(0, 2, 0)
+	//FirstJan := shared.NewDate("01/01/2025")
+	general := "320.00"
+
+	// receipt type on a ledger generated after the go live date will use the ledger created at date to apply
+	// this client will not show on report as ledger created at is AFTER the report run date (despite the ledger date time being before report run date)
+	cliID := suite.seeder.CreateClient(ctx, "Ken", "Testington", "22334455", "2582", "ACTIVE")
+	suite.seeder.CreateDeputy(ctx, cliID, "Barborosa", "Deputy", "LAY")
+	suite.seeder.CreateOrder(ctx, cliID)
+	unpaidInvoiceID, cli1Ref := suite.seeder.CreateInvoice(ctx, cliID, shared.InvoiceTypeGA, &general, &FirstJan24, nil, nil, nil, nil)
+	suite.seeder.SeedData(
+		fmt.Sprintf("INSERT INTO supervision_finance.ledger VALUES (97, 'ledger-ref', '2025-04-11T08:36:40+00:00', '', 123, '', 'BACS TRANSFER', 'CONFIRMED', '%d', NULL, NULL, '11/04/2022', '12/04/2022', 1254, '', '', 1, '01/02/2025', 2);", cliID),
+		fmt.Sprintf("INSERT INTO supervision_finance.ledger_allocation VALUES (97, 97, '%d', '2022-04-11T08:36:40+00:00', 123, 'ALLOCATED', NULL, 'Notes here', '2022-04-11', NULL);", unpaidInvoiceID),
+	)
+	c := Client{suite.seeder.Conn}
+
+	rows, err := c.Run(ctx, NewAgedDebt(AgedDebtInput{
+		ToDate:     &FirstJan,
+		Today:      suite.seeder.Today().Add(1, 0, 0).Date(), // ran a year in the future to ensure data is independent of when it is generated
+		GoLiveDate: shared.NewDate("01/04/2024"),
+	}))
+
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), 2, len(rows))
+
+	fmt.Print("Rows")
+	fmt.Println(rows)
+
+	results := mapByHeader(rows)
+	assert.NotEmpty(suite.T(), results)
+
+	// client 1
+	assert.Equal(suite.T(), "Ken Testington", results[0]["Customer name"], "Customer name - client 1")
+	assert.Equal(suite.T(), "22334455", results[0]["Customer number"], "Customer number - client 1")
+	assert.Equal(suite.T(), "2582", results[0]["SOP number"], "SOP number - client 1")
+	assert.Equal(suite.T(), "LAY", results[0]["Deputy type"], "Deputy type - client 1")
+	assert.Equal(suite.T(), "Yes", results[0]["Active case?"], "Active case? - client 1")
+	assert.Equal(suite.T(), "=\"0470\"", results[0]["Entity"], "Entity - client 1")
+	assert.Equal(suite.T(), "99999999", results[0]["Receivable cost centre"], "Receivable cost centre - client 1")
+	assert.Equal(suite.T(), "BALANCE SHEET", results[0]["Receivable cost centre description"], "Receivable cost centre description - client 1")
+	assert.Equal(suite.T(), "1816102003", results[0]["Receivable account code"], "Receivable account code - client 1")
+	assert.Equal(suite.T(), "10486000", results[0]["Revenue cost centre"], "Revenue cost centre - client 1")
+	assert.Equal(suite.T(), "Allocations, HW & SIS BISD", results[0]["Revenue cost centre description"], "Revenue cost centre description - client 1")
+	assert.Equal(suite.T(), "4481102104", results[0]["Revenue account code"], "Revenue account code - client 1")
+	assert.Equal(suite.T(), "INC - RECEIPT OF FEES AND CHARGES - GUARDIANSHIP ASSESS", results[0]["Revenue account code description"], "Revenue account code description - client 1")
+	assert.Equal(suite.T(), "GA", results[0]["Invoice type"], "Invoice type - client 1")
+	assert.Equal(suite.T(), cli1Ref, results[0]["Trx number"], "Trx number - client 1")
+	assert.Equal(suite.T(), "Guardianship assess invoice", results[0]["Transaction description"], "Transaction description - client 1")
+	assert.Equal(suite.T(), "2024-01-01", results[0]["Invoice date"], "Invoice date - client 1")
+	assert.Equal(suite.T(), "2024-01-31", results[0]["Due date"], "Due date - client 1")
+	assert.Equal(suite.T(), "2023/24", results[0]["Financial year"], "Financial year - client 1")
+	assert.Equal(suite.T(), "30 NET", results[0]["Payment terms"], "Payment terms - client 1")
+	assert.Equal(suite.T(), "200.00", results[0]["Original amount"], "Original amount - client 1")
+	assert.Equal(suite.T(), "200.00", results[0]["Outstanding amount"], "Outstanding amount - client 1")
+	assert.Equal(suite.T(), "0", results[0]["Current"], "Current - client 1")
+	assert.Equal(suite.T(), "200.00", results[0]["0-1 years"], "0-1 years - client 1")
+	assert.Equal(suite.T(), "0", results[0]["1-2 years"], "1-2 years - client 1")
+	assert.Equal(suite.T(), "0", results[0]["2-3 years"], "2-3 years - client 1")
+	assert.Equal(suite.T(), "0", results[0]["3-5 years"], "3-5 years - client 1")
+	assert.Equal(suite.T(), "0", results[0]["5+ years"], "5+ years - client 1")
+	assert.Equal(suite.T(), "=\"0-1\"", results[0]["Debt impairment years"], "Debt impairment years - client 1")
+}
+
+func (suite *IntegrationSuite) Test_aged_debt_brings_in_invoices_based_on_dates2() {
+	ctx := suite.ctx
+	FirstJan := shared.NewDate("01/01/2025")
+	FirstJan24 := "01/01/2024"
+	general := "320.00"
+
+	// receipt type on a ledger generated after the go live date will use the ledger created at date to apply
+	// this client will show on report as ledger created at is BEFORE the report run date
+	cli2ID := suite.seeder.CreateClient(ctx, "Tod", "Testilla", "33445566", "5825", "ACTIVE")
+	suite.seeder.CreateDeputy(ctx, cli2ID, "Duncan", "Deputy", "LAY")
+	suite.seeder.CreateOrder(ctx, cli2ID)
+	unpaidInvoiceID, cli2Ref := suite.seeder.CreateInvoice(ctx, cli2ID, shared.InvoiceTypeGA, &general, &FirstJan24, nil, nil, nil, nil)
+	suite.seeder.SeedData(
+		fmt.Sprintf("INSERT INTO supervision_finance.ledger VALUES (97, 'ledger-ref', '2025-04-11T08:36:40+00:00', '', 123, '', 'OPG BACS PAYMENT', 'CONFIRMED', '%d', NULL, NULL, '11/04/2022', '12/04/2022', 1254, '', '', 1, '01/12/2024', 2);", cli2ID),
+		fmt.Sprintf("INSERT INTO supervision_finance.ledger_allocation VALUES (97, 97, '%d', '2022-04-11T08:36:40+00:00', 123, 'ALLOCATED', NULL, 'Notes here', '2022-04-11', NULL);", unpaidInvoiceID),
+	)
+
+	// non receipt type on a ledger generated after the go live date will use the ledger date time
+	// non receipt type on a ledger generated before the go live date will use the ledger date time
+
+	c := Client{suite.seeder.Conn}
+
+	rows, err := c.Run(ctx, NewAgedDebt(AgedDebtInput{
+		ToDate:     &FirstJan,
+		Today:      suite.seeder.Today().Add(1, 0, 0).Date(), // ran a year in the future to ensure data is independent of when it is generated
+		GoLiveDate: shared.NewDate("01/04/2024"),
+	}))
+
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), 2, len(rows))
+
+	fmt.Print("Rows")
+	fmt.Println(rows)
+
+	results := mapByHeader(rows)
+	assert.NotEmpty(suite.T(), results)
+
+	// client 1
+	assert.Equal(suite.T(), "Tod Testilla", results[0]["Customer name"], "Customer name - client 1")
+	assert.Equal(suite.T(), "33445566", results[0]["Customer number"], "Customer number - client 1")
+	assert.Equal(suite.T(), "5825", results[0]["SOP number"], "SOP number - client 1")
+	assert.Equal(suite.T(), "LAY", results[0]["Deputy type"], "Deputy type - client 1")
+	assert.Equal(suite.T(), cli2Ref, results[0]["Trx number"], "Trx number - client 1")
+	assert.Equal(suite.T(), "200.00", results[0]["Original amount"], "Original amount - client 1")
+	assert.Equal(suite.T(), "198.77", results[0]["Outstanding amount"], "Outstanding amount - client 1")
+	assert.Equal(suite.T(), "0", results[0]["Current"], "Current - client 1")
+	assert.Equal(suite.T(), "198.77", results[0]["0-1 years"], "0-1 years - client 1")
+	assert.Equal(suite.T(), "0", results[0]["1-2 years"], "1-2 years - client 1")
+	assert.Equal(suite.T(), "0", results[0]["2-3 years"], "2-3 years - client 1")
+	assert.Equal(suite.T(), "0", results[0]["3-5 years"], "3-5 years - client 1")
+	assert.Equal(suite.T(), "0", results[0]["5+ years"], "5+ years - client 1")
+}
+
+func (suite *IntegrationSuite) Test_aged_debt_brings_in_invoices_based_on_dates3() {
+	ctx := suite.ctx
+	FirstJan := shared.NewDate("01/01/2025")
+	FirstJan24 := "01/01/2024"
+	general := "320.00"
+
+	// non receipt type on a ledger generated after the go live date will use the ledger date time
+	// this client will show on report as ledger created at is BEFORE the report run date
+	cli3ID := suite.seeder.CreateClient(ctx, "Dan", "Testzilla", "44556677", "8258", "ACTIVE")
+	suite.seeder.CreateDeputy(ctx, cli3ID, "Duncan", "Deputy", "LAY")
+	suite.seeder.CreateOrder(ctx, cli3ID)
+	unpaidInvoiceID, cli2Ref := suite.seeder.CreateInvoice(ctx, cli3ID, shared.InvoiceTypeGA, &general, &FirstJan24, nil, nil, nil, nil)
+	suite.seeder.SeedData(
+		fmt.Sprintf("INSERT INTO supervision_finance.transaction_type VALUES (DEFAULT, 'MCR', 'AD', 'MOTO CARD PAYMENT', 4481102093, 'Manual Credit', 'AD Manual credit', false);"),
+		fmt.Sprintf("INSERT INTO supervision_finance.ledger VALUES (90, 'ledger-ref', '2025-04-11T08:36:40+00:00', '', 333, '', 'DEBIT MEMO', 'CONFIRMED', '%d', NULL, NULL, '11/04/2022', '12/04/2022', 1254, '', '', 1, '01/12/2024', 2);", cli3ID),
+		fmt.Sprintf("INSERT INTO supervision_finance.ledger_allocation VALUES (90, 90, '%d', '2022-04-11T08:36:40+00:00', 333, 'ALLOCATED', NULL, 'Notes here', '2022-04-11', NULL);", unpaidInvoiceID),
+	)
+
+	// non receipt type on a ledger generated before the go live date will use the ledger date time
+
+	c := Client{suite.seeder.Conn}
+
+	rows, err := c.Run(ctx, NewAgedDebt(AgedDebtInput{
+		ToDate:     &FirstJan,
+		Today:      suite.seeder.Today().Add(1, 0, 0).Date(), // ran a year in the future to ensure data is independent of when it is generated
+		GoLiveDate: shared.NewDate("01/04/2024"),
+	}))
+
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), 2, len(rows))
+
+	fmt.Print("Rows")
+	fmt.Println(rows)
+
+	results := mapByHeader(rows)
+	assert.NotEmpty(suite.T(), results)
+
+	// client 1
+	assert.Equal(suite.T(), "Dan Testzilla", results[0]["Customer name"], "Customer name - client 1")
+	assert.Equal(suite.T(), "44556677", results[0]["Customer number"], "Customer number - client 1")
+	assert.Equal(suite.T(), "8258", results[0]["SOP number"], "SOP number - client 1")
+	assert.Equal(suite.T(), "LAY", results[0]["Deputy type"], "Deputy type - client 1")
+	assert.Equal(suite.T(), cli2Ref, results[0]["Trx number"], "Trx number - client 1")
+	assert.Equal(suite.T(), "200.00", results[0]["Original amount"], "Original amount - client 1")
+	assert.Equal(suite.T(), "200.00", results[0]["Outstanding amount"], "Outstanding amount - client 1")
+	assert.Equal(suite.T(), "0", results[0]["Current"], "Current - client 1")
+	assert.Equal(suite.T(), "200.00", results[0]["0-1 years"], "0-1 years - client 1")
+	assert.Equal(suite.T(), "0", results[0]["1-2 years"], "1-2 years - client 1")
+	assert.Equal(suite.T(), "0", results[0]["2-3 years"], "2-3 years - client 1")
+	assert.Equal(suite.T(), "0", results[0]["3-5 years"], "3-5 years - client 1")
+	assert.Equal(suite.T(), "0", results[0]["5+ years"], "5+ years - client 1")
+}
+
 func TestAgedDebt_GetParams(t *testing.T) {
 	type fields struct {
 		ReportQuery   ReportQuery

@@ -35,6 +35,9 @@ func NewAgedDebt(input AgedDebtInput) ReportQuery {
 const AgedDebtQuery = `WITH receipt_transactions_types AS (
     SELECT ledger_type FROM supervision_finance.transaction_type WHERE is_receipt IS TRUE
 ),
+non_receipt_transactions_types AS (
+    SELECT ledger_type FROM supervision_finance.transaction_type WHERE is_receipt IS FALSE
+),
 outstanding_invoices AS (SELECT i.id,
                                      i.finance_client_id,
                                      i.feetype,
