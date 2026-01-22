@@ -35,6 +35,9 @@ func NewAgedDebt(input AgedDebtInput) ReportQuery {
 const AgedDebtQuery = `WITH receipt_transactions_types AS (
     SELECT ledger_type FROM supervision_finance.transaction_type WHERE is_receipt IS TRUE
 ),
+non_receipt_transactions_types AS (
+    SELECT ledger_type FROM supervision_finance.transaction_type WHERE is_receipt IS FALSE
+),
 outstanding_invoices AS (SELECT i.id,
                                      i.finance_client_id,
                                      i.feetype,
@@ -58,9 +61,9 @@ outstanding_invoices AS (SELECT i.id,
 										AND la.invoice_id = i.id
 						        		AND $1::DATE >= (
 											CASE
-										  		WHEN (l.type IN (SELECT * FROM receipt_transactions_types) AND (l.datetime >= $2::DATE)) THEN l.created_at::DATE
+										  		WHEN (l.type IN (SELECT * FROM receipt_transactions_types) AND (l.datetime > $2::DATE)) THEN l.created_at::DATE
 												WHEN (l.type IN (SELECT * FROM receipt_transactions_types) AND (l.datetime <= $2::DATE)) THEN l.datetime::DATE
-												WHEN (l.type NOT IN (SELECT * FROM receipt_transactions_types)) THEN l.datetime::DATE
+												ELSE l.datetime::DATE
 											END
 										)
 									  ) transactions ON TRUE
