@@ -54,7 +54,8 @@ type GovUKClient interface {
 }
 
 type Env struct {
-	AsyncBucket string
+	AsyncBucket   string
+	AllpayEnabled bool
 }
 
 type Service struct {

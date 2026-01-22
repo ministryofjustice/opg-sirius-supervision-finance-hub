@@ -54,6 +54,7 @@ services:
       EVENT_BRIDGE_API_KEY: test
       ALLPAY_HOST: http://allpay-mock:8080
       ALLPAY_API_KEY: test-key
+      ALLPAY_ENABLED: 1
       HOLIDAYS_API_URL: http://holidays-api-mock:8080/bank-holidays.json
     depends_on:
       allpay-mock:
