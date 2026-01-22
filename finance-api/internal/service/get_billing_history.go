@@ -70,7 +70,7 @@ func (s *Service) GetBillingHistory(ctx context.Context, clientID int32) ([]shar
 
 	directDebitEvents, err := s.store.GetDirectDebitPaymentsForBillingHistory(ctx, clientID)
 	if err != nil {
-		s.Logger(ctx).Error(fmt.Sprintf("Error in getting direct debit payments in billing history for client %d", clientID), slog.String("err", err.Error()))
+		s.Logger(ctx).Error(fmt.Sprintf("Error in getting Direct Debit payments in billing history for client %d", clientID), slog.String("err", err.Error()))
 		return nil, err
 	}
 
@@ -250,7 +250,7 @@ func processDirectDebitEvents(directDebitEvents []store.GetDirectDebitPaymentsFo
 			},
 		}
 
-		// balance is only adjusted by ledgers, not direct debit events
+		// balance is only adjusted by ledgers, not Direct Debit events
 		history = append(history, historyHolder{
 			billingHistory: bh,
 		})
@@ -432,7 +432,7 @@ func computeBillingHistory(history []historyHolder) []shared.BillingHistory {
 	// reverse order to allow for balance to be calculated
 	sort.Slice(history, func(i, j int) bool {
 		if history[i].billingHistory.Date.Time.Equal(history[j].billingHistory.Date.Time) {
-			// direct debit mandate created should always appear before the schedule creation
+			// Direct Debit mandate created should always appear before the schedule creation
 			if history[i].billingHistory.Event.GetType() == shared.EventTypeDirectDebitCollectionScheduled {
 				return history[j].billingHistory.Event.GetType() != shared.EventTypeDirectDebitMandateCreated
 			}

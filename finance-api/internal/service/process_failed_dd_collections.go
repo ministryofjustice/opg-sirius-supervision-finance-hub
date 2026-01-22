@@ -47,7 +47,7 @@ func (s *Service) ProcessFailedDirectDebitCollections(ctx context.Context, colle
 		if details != nil {
 			err = s.ProcessReversalUploadLine(ctx, tx, *details)
 			if err != nil {
-				logger.Error(fmt.Sprintf("error processing failed direct debit collection for client reference %s on collection date %s", payment.ClientReference, payment.CollectionDate), "error", err)
+				logger.Error(fmt.Sprintf("error processing failed Direct Debit collection for client reference %s on collection date %s", payment.ClientReference, payment.CollectionDate), "error", err)
 				continue
 			}
 
@@ -60,7 +60,7 @@ func (s *Service) ProcessFailedDirectDebitCollections(ctx context.Context, colle
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		logger.Error("error committing failed direct debit collections", "error", err)
+		logger.Error("error committing failed Direct Debit collections", "error", err)
 		return err
 	}
 
@@ -110,7 +110,7 @@ func (s *Service) validateFailedCollectionLine(ctx context.Context, payment allp
 	})
 
 	if ledgerCount == 0 {
-		s.Logger(ctx).Error("unable to match failed collection to original direct debit payment", "courtRef", courtRef, "collectionDate", collectionDate)
+		s.Logger(ctx).Error("unable to match failed collection to original Direct Debit payment", "courtRef", courtRef, "collectionDate", collectionDate)
 		return nil
 	}
 
@@ -123,7 +123,7 @@ func (s *Service) validateFailedCollectionLine(ctx context.Context, payment allp
 	})
 
 	if reversalCount >= ledgerCount {
-		s.Logger(ctx).Info("failed direct debit collection already reversed", "courtRef", courtRef, "collectionDate", collectionDate)
+		s.Logger(ctx).Info("failed Direct Debit collection already reversed", "courtRef", courtRef, "collectionDate", collectionDate)
 		return nil
 	}
 
