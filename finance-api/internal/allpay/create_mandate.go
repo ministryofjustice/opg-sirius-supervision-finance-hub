@@ -6,8 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-
-	"github.com/ministryofjustice/opg-go-common/telemetry"
 )
 
 type BankDetails struct {
@@ -37,7 +35,7 @@ type CreateMandateRequest struct {
 }
 
 func (c *Client) CreateMandate(ctx context.Context, data *CreateMandateRequest) error {
-	logger := telemetry.LoggerFromContext(ctx)
+	logger := c.logger(ctx)
 
 	// add scheme code here instead of leaking it outside the client
 	data.Customer.SchemeCode = c.schemeCode

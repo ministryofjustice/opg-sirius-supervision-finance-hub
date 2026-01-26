@@ -8,8 +8,6 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-
-	"github.com/ministryofjustice/opg-go-common/telemetry"
 )
 
 type schedule struct {
@@ -28,7 +26,7 @@ type CreateScheduleInput struct {
 }
 
 func (c *Client) CreateSchedule(ctx context.Context, data *CreateScheduleInput) error {
-	logger := telemetry.LoggerFromContext(ctx)
+	logger := c.logger(ctx)
 
 	var body bytes.Buffer
 

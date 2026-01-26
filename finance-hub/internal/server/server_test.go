@@ -2,10 +2,13 @@ package server
 
 import (
 	"context"
+	"io"
+	"log/slog"
+	"net/http"
+
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/api"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"io"
-	"net/http"
 )
 
 type mockTemplate struct {
@@ -47,6 +50,10 @@ func (r *mockRoute) execute(w http.ResponseWriter, req *http.Request, data any) 
 	r.lastW = w
 	r.data = data
 	return r.error
+}
+
+func (r *mockRoute) logger(ctx context.Context) *slog.Logger {
+	return telemetry.LoggerFromContext(ctx).With("category", "handler")
 }
 
 type mockApiClient struct {

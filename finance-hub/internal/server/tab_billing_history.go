@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
@@ -40,7 +39,7 @@ func (h *BillingHistoryHandler) render(v AppVars, w http.ResponseWriter, r *http
 }
 
 func (h *BillingHistoryHandler) transform(ctx context.Context, in []shared.BillingHistory) []BillingHistory {
-	logger := telemetry.LoggerFromContext(ctx)
+	logger := h.logger(ctx)
 
 	var out []BillingHistory
 
