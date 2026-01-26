@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
 	"time"
 
 	"github.com/ministryofjustice/opg-go-common/telemetry"
@@ -96,8 +97,9 @@ func (c *Client) generateReport(ctx context.Context, reportRequest shared.Report
 				reportDate = reportRequest.ToDate.Time.Format("02:01:2006")
 			}
 			query = db.NewAgedDebt(db.AgedDebtInput{
-				ToDate: reportRequest.ToDate,
-				Today:  time.Now(),
+				ToDate:     reportRequest.ToDate,
+				Today:      time.Now(),
+				GoLiveDate: shared.NewDate(os.Getenv("FINANCE_HUB_LIVE_DATE")),
 			})
 		case shared.AccountsReceivableTypeAgedDebtByCustomer:
 			query = db.NewAgedDebtByCustomer(db.AgedDebtByCustomerInput{Today: time.Now()})
