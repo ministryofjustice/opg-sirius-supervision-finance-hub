@@ -62,7 +62,6 @@ outstanding_invoices AS (SELECT i.id,
 						        		AND $1::DATE >= (
 											CASE
 										  		WHEN (l.type IN (SELECT * FROM receipt_transactions_types) AND (l.datetime > $2::DATE)) THEN l.created_at::DATE
-												WHEN (l.type IN (SELECT * FROM receipt_transactions_types) AND (l.datetime <= $2::DATE)) THEN l.datetime::DATE
 												ELSE l.datetime::DATE
 											END
 										)
