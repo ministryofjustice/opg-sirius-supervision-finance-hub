@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"net/http"
 )
 
 func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
@@ -33,6 +34,13 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
 	} else if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeClientCreated {
 		if detail, ok := event.Detail.(shared.ClientCreatedEvent); ok {
 			err := s.service.UpdateClient(ctx, detail.ClientID, detail.CourtRef)
+			if err != nil {
+				return err
+			}
+		}
+	} else if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeOrderCreated {
+		if detail, ok := event.Detail.(shared.OrderCreatedEvent); ok {
+			err := s.service.CheckPaymentMethod(ctx, detail.ClientID)
 			if err != nil {
 				return err
 			}

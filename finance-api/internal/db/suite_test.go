@@ -46,6 +46,10 @@ func (m *mockDispatch) DirectDebitCollectionFailed(ctx context.Context, event ev
 	return nil
 }
 
+func (m *mockDispatch) DirectDebitMandateReview(ctx context.Context, event event.DirectDebitMandateReview) error {
+	return nil
+}
+
 func (suite *IntegrationSuite) SetupSuite() {
 	suite.ctx = auth.Context{
 		Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test")),
