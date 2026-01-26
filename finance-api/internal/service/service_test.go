@@ -97,6 +97,11 @@ func (m *mockDispatch) DirectDebitCollection(ctx context.Context, event event.Di
 	return nil
 }
 
+func (m *mockDispatch) DirectDebitMandateReview(ctx context.Context, event event.DirectDebitMandateReview) error {
+	m.event = event
+	return nil
+}
+
 type mockAllpay struct {
 	called           []string
 	failedPayments   allpay.FailedPayments
