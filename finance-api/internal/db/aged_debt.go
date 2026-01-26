@@ -20,8 +20,9 @@ type AgedDebt struct {
 }
 
 type AgedDebtInput struct {
-	ToDate *shared.Date
-	Today  time.Time
+	ToDate     *shared.Date
+	Today      time.Time
+	GoLiveDate shared.Date
 }
 
 func NewAgedDebt(input AgedDebtInput) ReportQuery {
@@ -31,7 +32,10 @@ func NewAgedDebt(input AgedDebtInput) ReportQuery {
 	}
 }
 
-const AgedDebtQuery = `WITH outstanding_invoices AS (SELECT i.id,
+const AgedDebtQuery = `WITH receipt_transactions_types AS (
+    SELECT ledger_type FROM supervision_finance.transaction_type WHERE is_receipt IS TRUE
+),
+outstanding_invoices AS (SELECT i.id,
                                      i.finance_client_id,
                                      i.feetype,
                                      CASE 
@@ -51,12 +55,14 @@ const AgedDebtQuery = `WITH outstanding_invoices AS (SELECT i.id,
 								  FROM supervision_finance.ledger_allocation la
 								  		 JOIN supervision_finance.ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
 									WHERE la.status NOT IN ('PENDING', 'UN ALLOCATED')
-								    AND la.invoice_id = i.id
-									AND (
-										(l.type IN ('MOTO CARD PAYMENT', 'ONLINE CARD PAYMENT', 'OPG BACS PAYMENT', 'SUPERVISION BACS PAYMENT', 'DIRECT DEBIT PAYMENT', 'SUPERVISION CHEQUE PAYMENT', 'REFUND') AND l.created_at <= $1::DATE)
-										OR (l.type NOT IN ('MOTO CARD PAYMENT', 'ONLINE CARD PAYMENT', 'OPG BACS PAYMENT', 'SUPERVISION BACS PAYMENT', 'DIRECT DEBIT PAYMENT', 'SUPERVISION CHEQUE PAYMENT', 'REFUND') AND l.datetime <= $1::DATE)
-									)
-								  ) transactions ON TRUE
+										AND la.invoice_id = i.id
+						        		AND $1::DATE >= (
+											CASE
+										  		WHEN (l.type IN (SELECT * FROM receipt_transactions_types) AND (l.datetime > $2::DATE)) THEN l.created_at::DATE
+												ELSE l.datetime::DATE
+											END
+										)
+									  ) transactions ON TRUE
                                        LEFT JOIN LATERAL (
                                   SELECT ifr.supervisionlevel AS supervision_level
                                   FROM supervision_finance.invoice_fee_range ifr
@@ -173,5 +179,5 @@ func (a *AgedDebt) GetParams() []any {
 		to = a.ToDate.Time
 	}
 
-	return []any{to.Format("2006-01-02")}
+	return []any{to.Format("2006-01-02"), a.GoLiveDate.Time}
 }
