@@ -36,6 +36,8 @@
                        hx-push-url="{{ prefix (printf "/clients/%s/direct-debit/cancel" .FinanceClient.ClientId) }}">
                         Cancel Direct Debit
                     </a>
+                {{ else }}
+                    <h1>DEBUG! PAYMENT METHOD = "{{.FinanceClient.PaymentMethod}}"</h1>
                  {{ end }}
             {{ else }}
                 <a class="govuk-button moj-button-menu__item govuk-button--secondary govuk-!-margin-top-5"
