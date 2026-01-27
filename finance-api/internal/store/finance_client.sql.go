@@ -125,6 +125,19 @@ func (q *Queries) GetCreditBalanceByCourtRef(ctx context.Context, courtRef pgtyp
 	return credit, err
 }
 
+const getPaymentMethod = `-- name: GetPaymentMethod :one
+SELECT payment_method
+FROM finance_client
+WHERE client_id = $1
+`
+
+func (q *Queries) GetPaymentMethod(ctx context.Context, clientID int32) (string, error) {
+	row := q.db.QueryRow(ctx, getPaymentMethod, clientID)
+	var payment_method string
+	err := row.Scan(&payment_method)
+	return payment_method, err
+}
+
 const getReversibleBalanceByCourtRef = `-- name: GetReversibleBalanceByCourtRef :one
 WITH ledger_data AS (
     SELECT

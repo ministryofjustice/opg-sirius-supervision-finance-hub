@@ -220,6 +220,12 @@ func (s *mockService) ProcessFailedDirectDebitCollections(ctx context.Context, d
 	return s.errs["ProcessFailedDirectDebitCollections"]
 }
 
+func (s *mockService) CheckPaymentMethod(ctx context.Context, clientID int32) error {
+	s.called = append(s.called, "CheckPaymentMethod")
+	s.lastCalledParams = []interface{}{clientID}
+	return s.errs["CheckPaymentMethod"]
+}
+
 type mockFileStorage struct {
 	versionId  string
 	bucketname string
