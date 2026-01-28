@@ -8,8 +8,6 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-
-	"github.com/ministryofjustice/opg-go-common/telemetry"
 )
 
 type schedule struct {
@@ -28,7 +26,7 @@ type CreateScheduleInput struct {
 }
 
 func (c *Client) CreateSchedule(ctx context.Context, data *CreateScheduleInput) error {
-	logger := telemetry.LoggerFromContext(ctx)
+	logger := c.logger(ctx)
 
 	var body bytes.Buffer
 
@@ -56,8 +54,6 @@ func (c *Client) CreateSchedule(ctx context.Context, data *CreateScheduleInput) 
 		logger.Error("unable to build create schedule request", "error", err)
 		return ErrorAPI{}
 	}
-
-	logger.Info("sending create schedule request", "url", req.URL.String(), "query", req.URL.RawQuery)
 
 	resp, err := c.http.Do(req)
 	if err != nil {

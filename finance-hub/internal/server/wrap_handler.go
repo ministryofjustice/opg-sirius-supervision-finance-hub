@@ -4,12 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/api"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
 	"log/slog"
 	"net/http"
 	"time"
+
+	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/api"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
 )
 
 type ErrorVars struct {
@@ -43,7 +44,7 @@ func wrapHandler(errTmpl Template, errPartial string, envVars Envs) func(next Ha
 			vars := NewAppVars(r, envVars)
 			err := next.render(vars, w, r)
 
-			logger := telemetry.LoggerFromContext(ctx)
+			logger := telemetry.LoggerFromContext(ctx).With("category", "handler")
 
 			logger.Info(
 				"page request",

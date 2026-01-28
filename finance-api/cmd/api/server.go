@@ -177,7 +177,7 @@ func (s *Server) getPathID(r *http.Request, key string) (int32, error) {
 }
 
 func (s *Server) Logger(ctx context.Context) *slog.Logger {
-	return telemetry.LoggerFromContext(ctx)
+	return telemetry.LoggerFromContext(ctx).With("category", "api")
 }
 
 func (s *Server) copyCtx(r *http.Request) context.Context {

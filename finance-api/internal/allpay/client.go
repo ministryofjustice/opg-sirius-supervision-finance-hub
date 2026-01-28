@@ -3,7 +3,10 @@ package allpay
 import (
 	"context"
 	"io"
+	"log/slog"
 	"net/http"
+
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 )
 
 type Envs struct {
@@ -31,6 +34,10 @@ func NewClient(httpClient HTTPClient, apiHost string, apiKey string, schemeCode 
 			schemeCode: schemeCode,
 		},
 	}
+}
+
+func (c *Client) logger(ctx context.Context) *slog.Logger {
+	return telemetry.LoggerFromContext(ctx).With("category", "allpay")
 }
 
 type HTTPClient interface {

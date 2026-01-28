@@ -58,7 +58,7 @@ type Auth struct {
 func (a *Auth) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := newContext(r)
-		logger := telemetry.LoggerFromContext(ctx)
+		logger := telemetry.LoggerFromContext(ctx).With("category", "auth")
 
 		user, err := a.Client.GetUserSession(ctx)
 		if err != nil {

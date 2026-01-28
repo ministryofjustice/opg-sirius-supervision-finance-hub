@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-
-	"github.com/ministryofjustice/opg-go-common/telemetry"
 )
 
 type CancelMandateRequest struct {
@@ -17,7 +15,7 @@ type CancelMandateRequest struct {
 }
 
 func (c *Client) CancelMandate(ctx context.Context, data *CancelMandateRequest) error {
-	logger := telemetry.LoggerFromContext(ctx)
+	logger := c.logger(ctx)
 
 	req, err := c.newRequest(ctx, http.MethodDelete,
 		fmt.Sprintf("/Customers/%s/%s/%s/Mandates/%s",
@@ -31,8 +29,6 @@ func (c *Client) CancelMandate(ctx context.Context, data *CancelMandateRequest) 
 		logger.Error("unable to build cancel mandate request", "error", err)
 		return ErrorAPI{}
 	}
-
-	logger.Info("sending cancel mandate request", "url", req.URL.String(), "query", req.URL.RawQuery)
 
 	resp, err := c.http.Do(req)
 	if err != nil {
