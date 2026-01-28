@@ -40,9 +40,9 @@
     "@babel/helper-validator-identifier" "^7.28.5"
 
 "@cypress/grep@^5.0.0":
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/@cypress/grep/-/grep-5.0.1.tgz#5265d91c94a2759a2699fa999f49a1c2005365f4"
-  integrity sha512-4oyOiggHnjzIPadH7EQ9C96VDTpk0YPrvB3Jz6oER3VofHkJq4YJ9lIUT7w9gUdQ06nUfSRJ4iva5ex2y4gcEw==
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/@cypress/grep/-/grep-5.1.0.tgz#9ca3565f51fde6721e3c00a6bdddfbf34b42378a"
+  integrity sha512-n/8m5g2AuZf4thHhuo+rp7Fgkfm06k0uM9NlP0GrfWE5vaIJJ+8U10SOtjVj9bapjYI7l9RZiT87XSBU3wBFOA==
   dependencies:
     debug "^4.3.4"
     find-test-names "^1.28.18"
@@ -102,9 +102,9 @@
     fastq "^1.6.0"
 
 "@types/node@*":
-  version "25.0.9"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-25.0.9.tgz#81ce3579ddf67cae812a9d49c8a0ab90c82e7782"
-  integrity sha512-/rpCXHlCWeqClNBwUhDcusJxXYDjZTyE8v5oTO7WbL8eij2nKhUeU89/6xgjU7N4/Vh3He0BtyhJdQbDyhiXAw==
+  version "25.0.10"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-25.0.10.tgz#4864459c3c9459376b8b75fd051315071c8213e7"
+  integrity sha512-zWW5KPngR/yvakJgGOmZ5vTBemDoSqF3AcV/LrO5u5wTWyEAVVh+IT39G4gtyAkh3CtTZs8aX/yRM82OfzHJRg==
   dependencies:
     undici-types "~7.16.0"
 
@@ -996,9 +996,9 @@ lodash.once@^4.1.1:
   integrity sha512-Sb487aTOCr9drQVL8pIxOzVhafOjZN9UU54hiN8PU3uAiSV7lx1yYNpbNmex2PK6dSJoNTSJUUswT651yww3Mg==
 
 lodash@^4.17.21:
-  version "4.17.21"
-  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
-  integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
+  version "4.17.23"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.23.tgz#f113b0378386103be4f6893388c73d0bde7f2c5a"
+  integrity sha512-LgVTMpQtIopCi79SJeDiP0TfWi5CNEc/L/aRdTh3yIvmZXTnheWpKjSZhnvMl8iXbC1tFg9gdHHDMLoV7CnG+w==
 
 log-symbols@^4.0.0:
   version "4.1.0"
@@ -1380,9 +1380,9 @@ supports-color@^8.1.1:
     has-flag "^4.0.0"
 
 systeminformation@^5.27.14:
-  version "5.30.4"
-  resolved "https://registry.yarnpkg.com/systeminformation/-/systeminformation-5.30.4.tgz#372b0803f44b0ffd2760e91ff86b344fce175658"
-  integrity sha512-6Zi6NZRuEnK8Uv8R5s6+iz2NvamrxpYdpxhF7ANpzjlTfDRPQEJJh1cz2Car5KT+L1EWv6zGzECITKTinfL47g==
+  version "5.30.6"
+  resolved "https://registry.yarnpkg.com/systeminformation/-/systeminformation-5.30.6.tgz#c100cb632bbb955fc44ba033f624da22c3a6a5be"
+  integrity sha512-LEIyK1aEv5P3BhAPW3swdlIyCihxwEq/Gki+kcONieU4PIeRCSLDuGkk0Va/56PSBgjVgEksOM88dmY6YqOyfQ==
 
 throttleit@^1.0.0:
   version "1.0.1"
