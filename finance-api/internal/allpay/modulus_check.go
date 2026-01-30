@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-
-	"github.com/ministryofjustice/opg-go-common/telemetry"
 )
 
 type modulusCheckResponse struct {
@@ -15,15 +13,13 @@ type modulusCheckResponse struct {
 }
 
 func (c *Client) ModulusCheck(ctx context.Context, sortCode string, accountNumber string) error {
-	logger := telemetry.LoggerFromContext(ctx)
+	logger := c.logger(ctx)
 	req, err := c.newRequest(ctx, http.MethodGet, fmt.Sprintf("/BankAccounts/?sortcode=%s&accountnumber=%s", sortCode, accountNumber), nil)
 
 	if err != nil {
 		logger.Error("unable to build modulus check request", "error", err)
 		return ErrorAPI{}
 	}
-
-	logger.Info("sending modulus check request", "url", req.URL.String(), "query", req.URL.RawQuery, "content-type", req.Header.Get("Content-Type"))
 
 	resp, err := c.http.Do(req)
 	if err != nil {

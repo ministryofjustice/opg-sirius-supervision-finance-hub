@@ -1,9 +1,12 @@
 package server
 
 import (
+	"context"
+	"log/slog"
 	"net/http"
 	"strconv"
 
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"golang.org/x/sync/errgroup"
@@ -185,6 +188,10 @@ func (r route) transformFinanceClient(person shared.Person, accountInfo shared.A
 		CreditBalance:      accountInfo.CreditBalance,
 		PaymentMethod:      cases.Title(language.English).String(accountInfo.PaymentMethod),
 	}
+}
+
+func (r route) logger(ctx context.Context) *slog.Logger {
+	return telemetry.LoggerFromContext(ctx).With("category", "handler")
 }
 
 func getClientID(req *http.Request) int {

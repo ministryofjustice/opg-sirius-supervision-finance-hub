@@ -55,7 +55,8 @@ type GovUKClient interface {
 }
 
 type Env struct {
-	AsyncBucket string
+	AsyncBucket   string
+	AllpayEnabled bool
 }
 
 type Service struct {
@@ -98,5 +99,5 @@ func (s *Service) BeginStoreTx(ctx context.Context) (*store.Tx, error) {
 }
 
 func (s *Service) Logger(ctx context.Context) *slog.Logger {
-	return telemetry.LoggerFromContext(ctx)
+	return telemetry.LoggerFromContext(ctx).With("category", "application")
 }
