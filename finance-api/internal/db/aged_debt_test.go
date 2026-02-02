@@ -178,12 +178,12 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	assert.Equal(suite.T(), fourYearsAgo.FinancialYear(), results[2]["Financial year"], "Financial year - client 2, invoice 1")
 	assert.Equal(suite.T(), "30 NET", results[2]["Payment terms"], "Payment terms - client 2, invoice 1")
 	assert.Equal(suite.T(), "100.00", results[2]["Original amount"], "Original amount - client 2, invoice 1")
-	assert.Equal(suite.T(), "50.00", results[2]["Outstanding amount"], "Outstanding amount - client 2, invoice 1")
+	assert.Equal(suite.T(), "100.00", results[2]["Outstanding amount"], "Outstanding amount - client 2, invoice 1")
 	assert.Equal(suite.T(), "0", results[2]["Current"], "Current - client 2, invoice 1")
 	assert.Equal(suite.T(), "0", results[2]["0-1 years"], "0-1 years - client 2, invoice 1")
 	assert.Equal(suite.T(), "0", results[2]["1-2 years"], "1-2 years - client 2, invoice 1")
 	assert.Equal(suite.T(), "0", results[2]["2-3 years"], "2-3 years - client 2, invoice 1")
-	assert.Equal(suite.T(), "50.00", results[2]["3-5 years"], "3-5 years - client 2, invoice 1")
+	assert.Equal(suite.T(), "100.00", results[2]["3-5 years"], "3-5 years - client 2, invoice 1")
 	assert.Equal(suite.T(), "0", results[2]["5+ years"], "5+ years - client 2, invoice 1")
 	assert.Equal(suite.T(), "=\"3-5\"", results[2]["Debt impairment years"], "Debt impairment years - client 2, invoice 1")
 
@@ -291,25 +291,25 @@ func (suite *IntegrationSuite) Test_aged_debt_received_amount_considers_ledger_t
 	general := "320.00"
 	tenYearsAgo := today.Sub(10, 0, 0).String()
 
-	// non receipt type ledger will compare using the ledger date time
-	// this ledger amount will be subtracted from the invoice amount on the report as the ledger date time (two months ago) is BEFORE the report run date
+	// non receipt type ledger will compare using the ledger created_at
+	// this ledger amount will be subtracted from the invoice amount on the report as the ledger created_at (two months ago) is BEFORE the report run date
 	cli1ID := suite.seeder.CreateClient(ctx, "Dan", "Testzilla", "44556677", "8258", "ACTIVE")
 	unpaidInvoiceID3, cli1Ref := suite.seeder.CreateInvoice(ctx, cli1ID, shared.InvoiceTypeGA, &general, &oneYearAgo, nil, nil, nil, nil)
 	suite.seeder.SeedData(
-		fmt.Sprintf("INSERT INTO supervision_finance.ledger VALUES (1, 'ledger-ref1', '%s', '', 125, '', 'CREDIT MEMO', 'CONFIRMED', '%d', NULL, NULL, '%s', '%s', 1222, '', '', 1, '%s', 2);", twoMonthsAgo, cli1ID, twoMonthsAgo, twoMonthsAgo, oneMonthAgo),
+		fmt.Sprintf("INSERT INTO supervision_finance.ledger VALUES (1, 'ledger-ref1', '%s', '', 125, '', 'CREDIT MEMO', 'CONFIRMED', '%d', NULL, NULL, '%s', '%s', 1222, '', '', 1, '%s', 2);", oneMonthAgo, cli1ID, twoMonthsAgo, twoMonthsAgo, twoMonthsAgo),
 		fmt.Sprintf("INSERT INTO supervision_finance.ledger_allocation VALUES (1, 1, '%d', '%s', 125, 'ALLOCATED', NULL, 'Notes here', '%s', NULL);", unpaidInvoiceID3, twoMonthsAgo, twoMonthsAgo),
 	)
 
 	// non receipt type ledger will compare using the ledger date time
-	// this ledger amount will NOT be subtracted from the invoice amount on the report as the ledger date time (one week ago) is AFTER the report run date
+	// this ledger amount will NOT be subtracted from the invoice amount on the report as the ledger created_at (one week ago) is AFTER the report run date
 	cli2ID := suite.seeder.CreateClient(ctx, "Ted", "Testington", "99551122", "4714", "ACTIVE")
 	unpaidInvoiceID2, cli2Ref := suite.seeder.CreateInvoice(ctx, cli2ID, shared.InvoiceTypeGA, &general, &oneYearAgo, nil, nil, nil, nil)
 	suite.seeder.SeedData(
-		fmt.Sprintf("INSERT INTO supervision_finance.ledger VALUES (2, 'ledger-ref2', '%s', '', 125, '', 'CREDIT MEMO', 'CONFIRMED', '%d', NULL, NULL, '%s', '%s', 1222, '', '', 2, '%s', 2);", oneWeekAgo, cli2ID, oneWeekAgo, oneWeekAgo, oneMonthAgo),
+		fmt.Sprintf("INSERT INTO supervision_finance.ledger VALUES (2, 'ledger-ref2', '%s', '', 125, '', 'CREDIT MEMO', 'CONFIRMED', '%d', NULL, NULL, '%s', '%s', 1222, '', '', 2, '%s', 2);", oneMonthAgo, cli2ID, oneWeekAgo, oneWeekAgo, oneWeekAgo),
 		fmt.Sprintf("INSERT INTO supervision_finance.ledger_allocation VALUES (2, 2, '%d', '%s', 125, 'ALLOCATED', NULL, 'Notes here', '%s', NULL);", unpaidInvoiceID2, oneWeekAgo, oneWeekAgo),
 	)
 
-	// receipt type ledger generated before the finance hub go live date (01/04/25) will compare using the ledger created at time
+	// receipt type ledger generated before the finance hub go live date (01/04/25) will have a null created_at date and should use the ledger date time
 	// this ledger amount will be subtracted from the invoice amount as the ledger datetime (ten years ago) is BEFORE the report run date
 	cli3ID := suite.seeder.CreateClient(ctx, "Tod", "Testilla", "33445566", "5825", "ACTIVE")
 	unpaidInvoiceID3, cli3Ref := suite.seeder.CreateInvoice(ctx, cli3ID, shared.InvoiceTypeGA, &general, &oneYearAgo, nil, nil, nil, nil)
@@ -318,7 +318,7 @@ func (suite *IntegrationSuite) Test_aged_debt_received_amount_considers_ledger_t
 		fmt.Sprintf("INSERT INTO supervision_finance.ledger_allocation VALUES (3, 3, '%d', '%s', 300, 'ALLOCATED', NULL, 'Notes here', '%s', NULL);", unpaidInvoiceID3, twoMonthsAgo, twoMonthsAgo),
 	)
 
-	// receipt type ledger generated after the finance hub go live date (01/04/25) will use the ledger created at date
+	// receipt type ledger generated after the finance hub go live date (01/04/25) should have a created_at date and will use that
 	// this ledger amount will be subtracted from the invoice amount on the report as the ledger created at date (one month ago) is BEFORE the report run date (two weeks ago)
 	cli4ID := suite.seeder.CreateClient(ctx, "Odin", "Testania", "55667788", "2582", "ACTIVE")
 	unpaidInvoiceID4, cli4Ref := suite.seeder.CreateInvoice(ctx, cli4ID, shared.InvoiceTypeGA, &general, &oneYearAgo, nil, nil, nil, nil)
@@ -327,7 +327,7 @@ func (suite *IntegrationSuite) Test_aged_debt_received_amount_considers_ledger_t
 		fmt.Sprintf("INSERT INTO supervision_finance.ledger_allocation VALUES (4, 4, '%d', '%s', 125, 'ALLOCATED', NULL, 'Notes here', '%s', NULL);", unpaidInvoiceID4, twoMonthsAgo, twoMonthsAgo),
 	)
 
-	// receipt type ledger generated after the finance hub go live date (01/04/25) will use the ledger created at date
+	// receipt type ledger generated after the finance hub go live date (01/04/25) should have a created_at date and will use that
 	// this ledger amount will NOT be subtracted from the invoice amount on the report as the ledger created at date (one week ago) is AFTER the report run date (two weeks ago)
 	cli5ID := suite.seeder.CreateClient(ctx, "Tanya", "Testilla", "33445566", "9963", "ACTIVE")
 	unpaidInvoiceID5, cli5Ref := suite.seeder.CreateInvoice(ctx, cli5ID, shared.InvoiceTypeGA, &general, &oneYearAgo, nil, nil, nil, nil)
@@ -339,9 +339,8 @@ func (suite *IntegrationSuite) Test_aged_debt_received_amount_considers_ledger_t
 	c := Client{suite.seeder.Conn}
 
 	rows, err := c.Run(ctx, NewAgedDebt(AgedDebtInput{
-		ToDate:     &twoWeeksAgoDate,
-		Today:      suite.seeder.Today().Add(1, 0, 0).Date(), // ran a year in the future to ensure data is independent of when it is generated
-		GoLiveDate: shared.NewDate("01/04/2024"),
+		ToDate: &twoWeeksAgoDate,
+		Today:  suite.seeder.Today().Add(1, 0, 0).Date(), // ran a year in the future to ensure data is independent of when it is generated
 	}))
 
 	assert.NoError(suite.T(), err)
@@ -436,26 +435,26 @@ func TestAgedDebt_GetParams(t *testing.T) {
 	}{
 		{
 			name:   "nil ToDate defaults to today",
-			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: nil, Today: time.Now(), GoLiveDate: shared.NewDate("2020-01-01")}},
-			want:   []any{time.Now().Format("2006-01-02"), shared.NewDate("2020-01-01").Time},
+			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: nil, Today: time.Now()}},
+			want:   []any{time.Now().Format("2006-01-02")},
 		},
 		{
 			name:   "empty ToDate defaults to today",
-			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: &shared.Date{}, Today: time.Now(), GoLiveDate: shared.NewDate("2020-01-01")}},
-			want:   []any{time.Now().Format("2006-01-02"), shared.NewDate("01/01/2020").Time},
+			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: &shared.Date{}, Today: time.Now()}},
+			want:   []any{time.Now().Format("2006-01-02")},
 		},
 		{
 			name:   "will pull through other date to overwrite today and default date if required",
-			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: &shared.Date{}, Today: time.Now().AddDate(-1, 0, 0), GoLiveDate: shared.NewDate("2020-01-01")}},
-			want:   []any{time.Now().AddDate(-1, 0, 0).Format("2006-01-02"), shared.NewDate("01/01/2020").Time},
+			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: &shared.Date{}, Today: time.Now().AddDate(-1, 0, 0)}},
+			want:   []any{time.Now().AddDate(-1, 0, 0).Format("2006-01-02")},
 		},
 		{
 			name: "valid ToDate returns formatted date",
 			fields: fields{AgedDebtInput: AgedDebtInput{ToDate: func() *shared.Date {
 				d := shared.NewDate("2023-05-01")
 				return &d
-			}(), Today: time.Now(), GoLiveDate: shared.NewDate("2020-01-01")}},
-			want: []any{"2023-05-01", shared.NewDate("01/01/2020").Time},
+			}(), Today: time.Now()}},
+			want: []any{"2023-05-01"},
 		},
 	}
 	for _, tt := range tests {
