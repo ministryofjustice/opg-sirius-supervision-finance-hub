@@ -20,7 +20,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions_historic() {
 
 	// client with one AD invoice, one minimal S3 invoice, a GS invoice, an exemption and a moto card payment. The payment creates an unapply.
 	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234", "ACTIVE")
-	suite.seeder.CreateOrder(ctx, client1ID)
+	suite.seeder.CreateOrder(ctx, client1ID, "pfa")
 
 	invoice1ID, _ := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, yesterday.StringPtr())
 	invoice2ID, _ := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeS3, valToPtr("320.00"), threeMonthsAgo.StringPtr(), nil, nil, valToPtr("MINIMAL"), yesterday.StringPtr())
@@ -34,7 +34,7 @@ func (suite *IntegrationSuite) Test_non_receipt_transactions_historic() {
 
 	// client with one AD invoice, an S2 invoice, a GA invoice, a hardship and a direct debit payment
 	client2ID := suite.seeder.CreateClient(ctx, "Barry", "Test", "87654321", "4321", "ACTIVE")
-	suite.seeder.CreateOrder(ctx, client1ID)
+	suite.seeder.CreateOrder(ctx, client1ID, "pfa")
 
 	_, _ = suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, yesterday.StringPtr())
 	invoice7ID, _ := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, valToPtr("300.00"), threeMonthsAgo.StringPtr(), nil, nil, valToPtr("GENERAL"), yesterday.StringPtr())
