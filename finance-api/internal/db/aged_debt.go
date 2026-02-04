@@ -51,8 +51,8 @@ const AgedDebtQuery = `WITH outstanding_invoices AS (SELECT i.id,
 								  FROM supervision_finance.ledger_allocation la
 								  		 JOIN supervision_finance.ledger l ON la.ledger_id = l.id AND l.status = 'CONFIRMED'
 									WHERE la.status NOT IN ('PENDING', 'UN ALLOCATED')
-									AND l.datetime::DATE <= $1::DATE
 								    AND la.invoice_id = i.id
+									AND $1::DATE >= COALESCE(l.created_at, l.datetime)::DATE
 								  ) transactions ON TRUE
                                        LEFT JOIN LATERAL (
                                   SELECT ifr.supervisionlevel AS supervision_level

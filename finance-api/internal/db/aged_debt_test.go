@@ -31,8 +31,8 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234", "ACTIVE")
 	suite.seeder.CreateDeputy(ctx, client1ID, "Suzie", "Deputy", "LAY")
 	suite.seeder.CreateOrder(ctx, client1ID)
-	unpaidInvoiceID, c1i1Ref := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeGA, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
-	paidInvoiceID, _ := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
+	unpaidInvoiceID, c1i1Ref := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeGA, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, twoMonthsAgo.StringPtr())
+	paidInvoiceID, _ := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, twoMonthsAgo.StringPtr())
 	suite.seeder.CreateAdjustment(ctx, client1ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 0, "Written off", yesterday.DatePtr())
 	// ignore these as legacy data with APPROVED ledger status
 	suite.seeder.SeedData(
@@ -51,8 +51,8 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	suite.seeder.CreateDeputy(ctx, client2ID, "Jane", "Deputy", "PRO")
 	suite.seeder.CreateClosedOrder(ctx, client2ID, today.Date(), "")
 	_ = suite.seeder.CreateFeeReduction(ctx, client2ID, shared.FeeReductionTypeRemission, strconv.Itoa(fiveYearsAgo.Date().Year()), 2, "A reduction", fiveYearsAgo.Date())
-	_, c2i1Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeAD, nil, fourYearsAgo.StringPtr(), nil, nil, nil, nil)
-	_, c2i2Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, &general, twoYearsAgo.StringPtr(), twoYearsAgo.StringPtr(), nil, nil, nil)
+	_, c2i1Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeAD, nil, fourYearsAgo.StringPtr(), nil, nil, nil, fourYearsAgo.StringPtr())
+	_, c2i2Ref := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, &general, twoYearsAgo.StringPtr(), twoYearsAgo.StringPtr(), nil, nil, twoYearsAgo.StringPtr())
 
 	// one client with:
 	// split invoice
@@ -60,7 +60,7 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	client3ID := suite.seeder.CreateClient(ctx, "Freddy", "Splitz", "11111111", "1111", "ACTIVE")
 	suite.seeder.CreateDeputy(ctx, client3ID, "Frank", "Deputy", "LAY")
 	suite.seeder.CreateOrder(ctx, client3ID)
-	c3i1ID, c3i1Ref := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeS2, &i3amount, oneYearAgo.StringPtr(), oneYearAgo.StringPtr(), nil, nil, nil)
+	c3i1ID, c3i1Ref := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeS2, &i3amount, oneYearAgo.StringPtr(), oneYearAgo.StringPtr(), nil, nil, oneYearAgo.StringPtr())
 	suite.seeder.AddFeeRanges(ctx, c3i1ID, []testhelpers.FeeRange{
 		{FromDate: oneYearAgo.Date(), ToDate: oneYearAgo.Add(0, 6, 0).Date(), SupervisionLevel: "GENERAL", Amount: 16000},
 		{FromDate: oneYearAgo.Add(0, 6, 0).Date(), ToDate: oneYearAgo.Add(0, 11, 0).Date(), SupervisionLevel: "GENERAL", Amount: 1000},
@@ -70,14 +70,14 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	client4ID := suite.seeder.CreateClient(ctx, "Penny", "Paid-Today", "44444444", "4444", "ACTIVE")
 	suite.seeder.CreateDeputy(ctx, client4ID, "Franny", "Deputy", "LAY")
 	suite.seeder.CreateOrder(ctx, client4ID)
-	_, c4i1Ref := suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeAD, nil, oneYearAgo.StringPtr(), nil, nil, nil, nil)
+	_, c4i1Ref := suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeAD, nil, oneYearAgo.StringPtr(), nil, nil, nil, oneYearAgo.StringPtr())
 	suite.seeder.CreatePayment(ctx, 10000, today.Date(), "44444444", shared.TransactionTypeMotoCardPayment, today.Date(), 0)
 
 	// client with invoice ~11 months old (age between 0.9 and 1 year) to test edge case
 	client5ID := suite.seeder.CreateClient(ctx, "Eddie", "Edge-Case", "55555555", "5555", "ACTIVE")
 	suite.seeder.CreateDeputy(ctx, client5ID, "Emma", "Deputy", "LAY")
 	suite.seeder.CreateOrder(ctx, client5ID)
-	_, c5i1Ref := suite.seeder.CreateInvoice(ctx, client5ID, shared.InvoiceTypeAD, nil, elevenMonthsAgo.StringPtr(), nil, nil, nil, nil)
+	_, c5i1Ref := suite.seeder.CreateInvoice(ctx, client5ID, shared.InvoiceTypeAD, nil, elevenMonthsAgo.StringPtr(), nil, nil, nil, elevenMonthsAgo.StringPtr())
 
 	c := Client{suite.seeder.Conn}
 
@@ -277,6 +277,150 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	assert.Equal(suite.T(), "0", results[5]["3-5 years"], "3-5 years - client 5")
 	assert.Equal(suite.T(), "0", results[5]["5+ years"], "5+ years - client 5")
 	assert.Equal(suite.T(), "=\"0-1\"", results[5]["Debt impairment years"], "Debt impairment years - client 5")
+}
+
+func (suite *IntegrationSuite) Test_aged_debt_received_amount_considers_ledger_type_when_comparing_dates() {
+	ctx := suite.ctx
+	today := suite.seeder.Today()
+	oneYearAgo := today.Sub(1, 0, 0).String()
+	oneMonthAgo := today.Sub(0, 1, 0).String()
+	twoWeeksAgo := today.Sub(0, 0, 14)
+	twoWeeksAgoDate := shared.NewDate(twoWeeksAgo.String())
+	oneWeekAgo := today.Sub(0, 0, 7)
+	twoMonthsAgo := today.Sub(0, 2, 0)
+	general := "320.00"
+	tenYearsAgo := today.Sub(10, 0, 0).String()
+
+	// non receipt type ledger will compare using the ledger created_at
+	// this ledger amount will be subtracted from the invoice amount on the report as the ledger created_at (two months ago) is BEFORE the report run date
+	cli1ID := suite.seeder.CreateClient(ctx, "Dan", "Testzilla", "44556677", "8258", "ACTIVE")
+	unpaidInvoiceID3, cli1Ref := suite.seeder.CreateInvoice(ctx, cli1ID, shared.InvoiceTypeGA, &general, &oneYearAgo, nil, nil, nil, nil)
+	suite.seeder.SeedData(
+		fmt.Sprintf("INSERT INTO supervision_finance.ledger VALUES (1, 'ledger-ref1', '%s', '', 125, '', 'CREDIT MEMO', 'CONFIRMED', '%d', NULL, NULL, '%s', '%s', 1222, '', '', 1, '%s', 2);", oneMonthAgo, cli1ID, twoMonthsAgo, twoMonthsAgo, twoMonthsAgo),
+		fmt.Sprintf("INSERT INTO supervision_finance.ledger_allocation VALUES (1, 1, '%d', '%s', 125, 'ALLOCATED', NULL, 'Notes here', '%s', NULL);", unpaidInvoiceID3, twoMonthsAgo, twoMonthsAgo),
+	)
+
+	// non receipt type ledger will compare using the ledger date time
+	// this ledger amount will NOT be subtracted from the invoice amount on the report as the ledger created_at (one week ago) is AFTER the report run date
+	cli2ID := suite.seeder.CreateClient(ctx, "Ted", "Testington", "99551122", "4714", "ACTIVE")
+	unpaidInvoiceID2, cli2Ref := suite.seeder.CreateInvoice(ctx, cli2ID, shared.InvoiceTypeGA, &general, &oneYearAgo, nil, nil, nil, nil)
+	suite.seeder.SeedData(
+		fmt.Sprintf("INSERT INTO supervision_finance.ledger VALUES (2, 'ledger-ref2', '%s', '', 125, '', 'CREDIT MEMO', 'CONFIRMED', '%d', NULL, NULL, '%s', '%s', 1222, '', '', 2, '%s', 2);", oneMonthAgo, cli2ID, oneWeekAgo, oneWeekAgo, oneWeekAgo),
+		fmt.Sprintf("INSERT INTO supervision_finance.ledger_allocation VALUES (2, 2, '%d', '%s', 125, 'ALLOCATED', NULL, 'Notes here', '%s', NULL);", unpaidInvoiceID2, oneWeekAgo, oneWeekAgo),
+	)
+
+	// receipt type ledger generated before the finance hub go live date (01/04/25) will have a null created_at date and should use the ledger date time
+	// this ledger amount will be subtracted from the invoice amount as the ledger datetime (ten years ago) is BEFORE the report run date
+	cli3ID := suite.seeder.CreateClient(ctx, "Tod", "Testilla", "33445566", "5825", "ACTIVE")
+	unpaidInvoiceID3, cli3Ref := suite.seeder.CreateInvoice(ctx, cli3ID, shared.InvoiceTypeGA, &general, &oneYearAgo, nil, nil, nil, nil)
+	suite.seeder.SeedData(
+		fmt.Sprintf("INSERT INTO supervision_finance.ledger VALUES (3, 'ledger-ref3', '%s', '', 300, '', 'OPG BACS PAYMENT', 'CONFIRMED', '%d', NULL, NULL, '%s', '%s', 1254, '', '', 3, null, 2);", tenYearsAgo, cli3ID, twoMonthsAgo, twoMonthsAgo),
+		fmt.Sprintf("INSERT INTO supervision_finance.ledger_allocation VALUES (3, 3, '%d', '%s', 300, 'ALLOCATED', NULL, 'Notes here', '%s', NULL);", unpaidInvoiceID3, twoMonthsAgo, twoMonthsAgo),
+	)
+
+	// receipt type ledger generated after the finance hub go live date (01/04/25) should have a created_at date and will use that
+	// this ledger amount will be subtracted from the invoice amount on the report as the ledger created at date (one month ago) is BEFORE the report run date (two weeks ago)
+	cli4ID := suite.seeder.CreateClient(ctx, "Odin", "Testania", "55667788", "2582", "ACTIVE")
+	unpaidInvoiceID4, cli4Ref := suite.seeder.CreateInvoice(ctx, cli4ID, shared.InvoiceTypeGA, &general, &oneYearAgo, nil, nil, nil, nil)
+	suite.seeder.SeedData(
+		fmt.Sprintf("INSERT INTO supervision_finance.ledger VALUES (4, 'ledger-ref-4', '%s', '', 125, '', 'OPG BACS PAYMENT', 'CONFIRMED', '%d', NULL, NULL, '%s', '%s', 1254, '', '', 4, '%s', 2);", twoMonthsAgo, cli4ID, twoMonthsAgo, twoMonthsAgo, oneMonthAgo),
+		fmt.Sprintf("INSERT INTO supervision_finance.ledger_allocation VALUES (4, 4, '%d', '%s', 125, 'ALLOCATED', NULL, 'Notes here', '%s', NULL);", unpaidInvoiceID4, twoMonthsAgo, twoMonthsAgo),
+	)
+
+	// receipt type ledger generated after the finance hub go live date (01/04/25) should have a created_at date and will use that
+	// this ledger amount will NOT be subtracted from the invoice amount on the report as the ledger created at date (one week ago) is AFTER the report run date (two weeks ago)
+	cli5ID := suite.seeder.CreateClient(ctx, "Tanya", "Testilla", "33445566", "9963", "ACTIVE")
+	unpaidInvoiceID5, cli5Ref := suite.seeder.CreateInvoice(ctx, cli5ID, shared.InvoiceTypeGA, &general, &oneYearAgo, nil, nil, nil, nil)
+	suite.seeder.SeedData(
+		fmt.Sprintf("INSERT INTO supervision_finance.ledger VALUES (5, 'ledger-ref', '%s', '', 123, '', 'OPG BACS PAYMENT', 'CONFIRMED', '%d', NULL, NULL, '%s', '%s', 1254, '', '', 5, '%s', 2);", twoMonthsAgo, cli5ID, twoMonthsAgo, twoMonthsAgo, oneWeekAgo),
+		fmt.Sprintf("INSERT INTO supervision_finance.ledger_allocation VALUES (5, 5, '%d', '%s', 123, 'ALLOCATED', NULL, 'Notes here', '%s', NULL);", unpaidInvoiceID5, twoMonthsAgo, twoMonthsAgo),
+	)
+
+	c := Client{suite.seeder.Conn}
+
+	rows, err := c.Run(ctx, NewAgedDebt(AgedDebtInput{
+		ToDate: &twoWeeksAgoDate,
+		Today:  suite.seeder.Today().Add(1, 0, 0).Date(), // ran a year in the future to ensure data is independent of when it is generated
+	}))
+
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), 6, len(rows))
+
+	fmt.Print("Rows")
+	fmt.Println(rows)
+
+	results := mapByHeader(rows)
+	assert.NotEmpty(suite.T(), results)
+
+	// client 1 - non receipt - should apply
+	assert.Equal(suite.T(), "Dan Testzilla", results[0]["Customer name"], "Customer name - client 1")
+	assert.Equal(suite.T(), "44556677", results[0]["Customer number"], "Customer number - client 1")
+	assert.Equal(suite.T(), "8258", results[0]["SOP number"], "SOP number - client 1")
+	assert.Equal(suite.T(), cli1Ref, results[0]["Trx number"], "Trx number - client 1")
+	assert.Equal(suite.T(), "200.00", results[0]["Original amount"], "Original amount - client 1")
+	assert.Equal(suite.T(), "198.75", results[0]["Outstanding amount"], "Outstanding amount - client 1")
+	assert.Equal(suite.T(), "0", results[0]["Current"], "Current - client 1")
+	assert.Equal(suite.T(), "198.75", results[0]["0-1 years"], "0-1 years - client 1")
+	assert.Equal(suite.T(), "0", results[0]["1-2 years"], "1-2 years - client 1")
+	assert.Equal(suite.T(), "0", results[0]["2-3 years"], "2-3 years - client 1")
+	assert.Equal(suite.T(), "0", results[0]["3-5 years"], "3-5 years - client 1")
+	assert.Equal(suite.T(), "0", results[0]["5+ years"], "5+ years - client 1")
+
+	// client 2 - non receipt - should not apply
+	assert.Equal(suite.T(), "Ted Testington", results[1]["Customer name"], "Customer name - client 1")
+	assert.Equal(suite.T(), "99551122", results[1]["Customer number"], "Customer number - client 1")
+	assert.Equal(suite.T(), "4714", results[1]["SOP number"], "SOP number - client 1")
+	assert.Equal(suite.T(), cli2Ref, results[1]["Trx number"], "Trx number - client 1")
+	assert.Equal(suite.T(), "200.00", results[1]["Original amount"], "Original amount - client 1")
+	assert.Equal(suite.T(), "200.00", results[1]["Outstanding amount"], "Outstanding amount - client 1")
+	assert.Equal(suite.T(), "0", results[1]["Current"], "Current - client 1")
+	assert.Equal(suite.T(), "200.00", results[1]["0-1 years"], "0-1 years - client 1")
+	assert.Equal(suite.T(), "0", results[1]["1-2 years"], "1-2 years - client 1")
+	assert.Equal(suite.T(), "0", results[1]["2-3 years"], "2-3 years - client 1")
+	assert.Equal(suite.T(), "0", results[1]["3-5 years"], "3-5 years - client 1")
+	assert.Equal(suite.T(), "0", results[1]["5+ years"], "5+ years - client 1")
+
+	//client 3 - receipt before finance hub live - should apply
+	assert.Equal(suite.T(), "Tod Testilla", results[2]["Customer name"], "Customer name - client 2")
+	assert.Equal(suite.T(), "33445566", results[2]["Customer number"], "Customer number - client 2")
+	assert.Equal(suite.T(), "5825", results[2]["SOP number"], "SOP number - client 2")
+	assert.Equal(suite.T(), cli3Ref, results[2]["Trx number"], "Trx number - client 1")
+	assert.Equal(suite.T(), "200.00", results[2]["Original amount"], "Original amount - client 1")
+	assert.Equal(suite.T(), "197.00", results[2]["Outstanding amount"], "Outstanding amount - client 1")
+	assert.Equal(suite.T(), "0", results[2]["Current"], "Current - client 1")
+	assert.Equal(suite.T(), "197.00", results[2]["0-1 years"], "0-1 years - client 1")
+	assert.Equal(suite.T(), "0", results[2]["1-2 years"], "1-2 years - client 1")
+	assert.Equal(suite.T(), "0", results[2]["2-3 years"], "2-3 years - client 1")
+	assert.Equal(suite.T(), "0", results[2]["3-5 years"], "3-5 years - client 1")
+	assert.Equal(suite.T(), "0", results[2]["5+ years"], "5+ years - client 1")
+
+	//client 4 - receipt after finance hub live - should apply
+	assert.Equal(suite.T(), "Odin Testania", results[3]["Customer name"], "Customer name - client 1")
+	assert.Equal(suite.T(), "55667788", results[3]["Customer number"], "Customer number - client 1")
+	assert.Equal(suite.T(), "2582", results[3]["SOP number"], "SOP number - client 1")
+	assert.Equal(suite.T(), cli4Ref, results[3]["Trx number"], "Trx number - client 1")
+	assert.Equal(suite.T(), "200.00", results[3]["Original amount"], "Original amount - client 1")
+	assert.Equal(suite.T(), "198.75", results[3]["Outstanding amount"], "Outstanding amount - client 1")
+	assert.Equal(suite.T(), "0", results[3]["Current"], "Current - client 1")
+	assert.Equal(suite.T(), "198.75", results[3]["0-1 years"], "0-1 years - client 1")
+	assert.Equal(suite.T(), "0", results[3]["1-2 years"], "1-2 years - client 1")
+	assert.Equal(suite.T(), "0", results[3]["2-3 years"], "2-3 years - client 1")
+	assert.Equal(suite.T(), "0", results[3]["3-5 years"], "3-5 years - client 1")
+	assert.Equal(suite.T(), "0", results[3]["5+ years"], "5+ years - client 1")
+
+	//client 4 - receipt after finance hub live - should not apply
+	assert.Equal(suite.T(), "Tanya Testilla", results[4]["Customer name"], "Customer name - client 1")
+	assert.Equal(suite.T(), "33445566", results[4]["Customer number"], "Customer number - client 1")
+	assert.Equal(suite.T(), "9963", results[4]["SOP number"], "SOP number - client 1")
+	assert.Equal(suite.T(), cli5Ref, results[4]["Trx number"], "Trx number - client 1")
+	assert.Equal(suite.T(), "200.00", results[4]["Original amount"], "Original amount - client 1")
+	assert.Equal(suite.T(), "200.00", results[4]["Outstanding amount"], "Outstanding amount - client 1")
+	assert.Equal(suite.T(), "0", results[4]["Current"], "Current - client 1")
+	assert.Equal(suite.T(), "200.00", results[4]["0-1 years"], "0-1 years - client 1")
+	assert.Equal(suite.T(), "0", results[4]["1-2 years"], "1-2 years - client 1")
+	assert.Equal(suite.T(), "0", results[4]["2-3 years"], "2-3 years - client 1")
+	assert.Equal(suite.T(), "0", results[4]["3-5 years"], "3-5 years - client 1")
+	assert.Equal(suite.T(), "0", results[4]["5+ years"], "5+ years - client 1")
 }
 
 func TestAgedDebt_GetParams(t *testing.T) {
