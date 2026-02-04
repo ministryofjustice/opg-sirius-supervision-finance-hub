@@ -193,7 +193,7 @@ func run(ctx context.Context, logger *slog.Logger) error {
 
 	goLiveDate, _ := time.Parse("2006-01-02", envs.goLiveDate)
 
-	reportDb, err := setupDbPool(ctx, logger, "supervision_finance,public", envs, true)
+	reportDb, err := setupDbPool(ctx, logger, "supervision_finance,supervision,public", envs, true)
 	if err != nil {
 		return err
 	}

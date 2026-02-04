@@ -285,6 +285,15 @@ type Report struct {
 	CreatedbyuserID       pgtype.Int4
 }
 
+type SupervisionOrderDeputy struct {
+	ID                   int32
+	Order_id int32
+	Deputy_id int32
+	Deputytype           pgtype.Text
+	Statusoncase         pgtype.Text
+	Statusoncaseoverride pgtype.Text
+}
+
 type TransactionType struct {
 	ID               int32
 	FeeType          string

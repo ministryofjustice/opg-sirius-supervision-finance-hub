@@ -55,7 +55,7 @@ func (suite *IntegrationSuite) SetupSuite() {
 		Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test")),
 		User:    &shared.User{ID: 1},
 	}
-	suite.cm = testhelpers.Init(suite.ctx, "public,supervision_finance")
+	suite.cm = testhelpers.Init(suite.ctx, "public,supervision,supervision_finance")
 	seeder := suite.cm.Seeder(suite.ctx, suite.T())
 	serv := service.NewService(seeder.Conn, &mockDispatch{}, nil, nil, nil, nil, nil)
 	suite.seeder = seeder.WithService(serv)

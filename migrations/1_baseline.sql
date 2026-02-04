@@ -36,7 +36,9 @@ CREATE TABLE public.cases
             REFERENCES public.persons,
     orderstatus        VARCHAR(255) DEFAULT NULL,
     closedondate       TIMESTAMP    DEFAULT NULL,
-    orderclosurereason VARCHAR(255) DEFAULT NULL
+    orderclosurereason VARCHAR(255) DEFAULT NULL,
+    howdeputyappointed VARCHAR(255) DEFAULT NULL,
+    casesubtype        VARCHAR(255) DEFAULT NULL
 );
 
 CREATE INDEX cases_orderstatus_index ON public.cases (orderstatus);
@@ -127,6 +129,44 @@ ALTER SEQUENCE public.addresses_id_seq OWNER TO api;
 CREATE SEQUENCE public.warnings_id_seq;
 
 ALTER SEQUENCE public.warnings_id_seq OWNER TO api;
+
+CREATE SCHEMA supervision;
+
+SET SEARCH_PATH TO supervision;
+
+CREATE TABLE supervision.order_deputy
+(
+    id                                           INTEGER NOT NULL
+        PRIMARY KEY,
+    order_id INTEGER
+        CONSTRAINT fk_eb757b4a8d9f6d38
+            REFERENCES public.cases
+            ON DELETE CASCADE,
+    deputy_id INTEGER
+        CONSTRAINT fk_eb757b4a4b6f93bb
+            REFERENCES public.persons
+            ON DELETE CASCADE,
+    deputytype                                   VARCHAR(255) DEFAULT NULL,
+    statusoncase                                 VARCHAR(255) DEFAULT NULL,
+    statusoncaseoverride                         VARCHAR(255) DEFAULT NULL
+);
+
+ALTER TABLE supervision.order_deputy
+    OWNER TO api;
+
+CREATE TABLE supervision.deputy_important_information
+(
+    id                                           INTEGER NOT NULL
+        PRIMARY KEY,
+    deputy_id INTEGER
+        CONSTRAINT fk_9462a6184b6f93bb
+            REFERENCES public.persons
+            ON DELETE CASCADE,
+    annualbillinginvoice                                   VARCHAR(255) DEFAULT NULL
+);
+
+ALTER TABLE supervision.deputy_important_information
+    OWNER TO api;
 
 CREATE SCHEMA supervision_finance;
 GRANT ALL ON SCHEMA supervision_finance TO api;
