@@ -22,7 +22,7 @@ func (suite *IntegrationSuite) Test_aged_debt_by_customer() {
 	// - one active invoice (today)
 	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234", "ACTIVE")
 	suite.seeder.CreateDeputy(ctx, client1ID, "Suzie", "Deputy", "LAY")
-	suite.seeder.CreateOrder(ctx, client1ID)
+	suite.seeder.CreateOrder(ctx, client1ID, "pfa")
 	unpaidInvoiceID, _ := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, today.StringPtr(), nil, nil, nil, nil)
 	paidInvoiceID, _ := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, today.StringPtr(), nil, nil, nil, nil)
 	suite.seeder.CreateAdjustment(ctx, client1ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 0, "Written off", nil)
@@ -50,7 +50,7 @@ func (suite *IntegrationSuite) Test_aged_debt_by_customer() {
 	// - one active invoice (two months old)
 	client3ID := suite.seeder.CreateClient(ctx, "Billy", "Client", "23456789", "2345", "ACTIVE")
 	suite.seeder.CreateDeputy(ctx, client3ID, "Local", "Authority", "PA")
-	suite.seeder.CreateOrder(ctx, client3ID)
+	suite.seeder.CreateOrder(ctx, client3ID, "pfa")
 	suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
 
 	c := Client{suite.seeder.Conn}

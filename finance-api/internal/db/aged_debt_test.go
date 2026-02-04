@@ -30,7 +30,7 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	// - one active invoice (2024)
 	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "12345678", "1234", "ACTIVE")
 	suite.seeder.CreateDeputy(ctx, client1ID, "Suzie", "Deputy", "LAY")
-	suite.seeder.CreateOrder(ctx, client1ID)
+	suite.seeder.CreateOrder(ctx, client1ID, "pfa")
 	unpaidInvoiceID, c1i1Ref := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeGA, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
 	paidInvoiceID, _ := suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, nil)
 	suite.seeder.CreateAdjustment(ctx, client1ID, paidInvoiceID, shared.AdjustmentTypeWriteOff, 0, "Written off", yesterday.DatePtr())
@@ -59,7 +59,7 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	i3amount := "170.00"
 	client3ID := suite.seeder.CreateClient(ctx, "Freddy", "Splitz", "11111111", "1111", "ACTIVE")
 	suite.seeder.CreateDeputy(ctx, client3ID, "Frank", "Deputy", "LAY")
-	suite.seeder.CreateOrder(ctx, client3ID)
+	suite.seeder.CreateOrder(ctx, client3ID, "pfa")
 	c3i1ID, c3i1Ref := suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeS2, &i3amount, oneYearAgo.StringPtr(), oneYearAgo.StringPtr(), nil, nil, nil)
 	suite.seeder.AddFeeRanges(ctx, c3i1ID, []testhelpers.FeeRange{
 		{FromDate: oneYearAgo.Date(), ToDate: oneYearAgo.Add(0, 6, 0).Date(), SupervisionLevel: "GENERAL", Amount: 16000},
@@ -69,14 +69,14 @@ func (suite *IntegrationSuite) Test_aged_debt() {
 	// invoice paid off today but still included as debt, as received date is after to date
 	client4ID := suite.seeder.CreateClient(ctx, "Penny", "Paid-Today", "44444444", "4444", "ACTIVE")
 	suite.seeder.CreateDeputy(ctx, client4ID, "Franny", "Deputy", "LAY")
-	suite.seeder.CreateOrder(ctx, client4ID)
+	suite.seeder.CreateOrder(ctx, client4ID, "pfa")
 	_, c4i1Ref := suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeAD, nil, oneYearAgo.StringPtr(), nil, nil, nil, nil)
 	suite.seeder.CreatePayment(ctx, 10000, today.Date(), "44444444", shared.TransactionTypeMotoCardPayment, today.Date(), 0)
 
 	// client with invoice ~11 months old (age between 0.9 and 1 year) to test edge case
 	client5ID := suite.seeder.CreateClient(ctx, "Eddie", "Edge-Case", "55555555", "5555", "ACTIVE")
 	suite.seeder.CreateDeputy(ctx, client5ID, "Emma", "Deputy", "LAY")
-	suite.seeder.CreateOrder(ctx, client5ID)
+	suite.seeder.CreateOrder(ctx, client5ID, "pfa")
 	_, c5i1Ref := suite.seeder.CreateInvoice(ctx, client5ID, shared.InvoiceTypeAD, nil, elevenMonthsAgo.StringPtr(), nil, nil, nil, nil)
 
 	c := Client{suite.seeder.Conn}

@@ -19,7 +19,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions_historic() {
 
 	// one client with an invoice with a MOTO card payment, supervision BACS payment and an AD invoice with an exemption. This also creates an unapply.
 	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "11111111", "1234", "ACTIVE")
-	suite.seeder.CreateOrder(ctx, client1ID)
+	suite.seeder.CreateOrder(ctx, client1ID, "pfa")
 	_, _ = suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, twoMonthsAgo.StringPtr())
 
 	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "11111111", shared.TransactionTypeMotoCardPayment, yesterday.Date(), 0)
@@ -29,7 +29,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions_historic() {
 
 	// one client with an invoice with a MOTO card payment, an OPG BACS payment and an S2 invoice with an approved credit memo
 	client2ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "22222222", "4321", "ACTIVE")
-	suite.seeder.CreateOrder(ctx, client2ID)
+	suite.seeder.CreateOrder(ctx, client2ID, "pfa")
 	invoice2ID, _ := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, &general, twoMonthsAgo.StringPtr(), nil, nil, nil, twoMonthsAgo.StringPtr())
 
 	suite.seeder.CreatePayment(ctx, 120, yesterday.Date(), "22222222", shared.TransactionTypeOPGBACSPayment, yesterday.Date(), 0)
@@ -39,7 +39,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions_historic() {
 
 	// one client with GA invoice, direct debit payment, online card payment
 	client3ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "33333333", "2314", "ACTIVE")
-	suite.seeder.CreateOrder(ctx, client2ID)
+	suite.seeder.CreateOrder(ctx, client2ID, "pfa")
 	_, _ = suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeGA, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, twoMonthsAgo.StringPtr())
 
 	suite.seeder.CreatePayment(ctx, 4020, yesterday.Date(), "33333333", shared.TransactionTypeDirectDebitPayment, yesterday.Date(), 0)
@@ -62,7 +62,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions_historic() {
 
 	// one client with an S2 invoice, two cheques payments for the same PIS number and one cheque payment for another PIS number
 	client7ID := suite.seeder.CreateClient(ctx, "Gilgamesh", "Test", "77777777", "9999", "ACTIVE")
-	suite.seeder.CreateOrder(ctx, client7ID)
+	suite.seeder.CreateOrder(ctx, client7ID, "pfa")
 	_, _ = suite.seeder.CreateInvoice(ctx, client7ID, shared.InvoiceTypeS2, &general, twoMonthsAgo.StringPtr(), nil, nil, nil, twoMonthsAgo.StringPtr())
 
 	pisNumber1 := int32(100023)

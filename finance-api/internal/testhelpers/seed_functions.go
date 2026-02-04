@@ -37,8 +37,8 @@ func (s *Seeder) CreateDeputy(ctx context.Context, clientId int32, firstName str
 	return deputyId
 }
 
-func (s *Seeder) CreateOrder(ctx context.Context, clientId int32) {
-	_, err := s.Conn.Exec(ctx, "INSERT INTO public.cases (id, client_id, orderstatus) VALUES (NEXTVAL('public.cases_id_seq'), $1, 'ACTIVE')", clientId)
+func (s *Seeder) CreateOrder(ctx context.Context, clientId int32, casesubtype string) {
+	_, err := s.Conn.Exec(ctx, "INSERT INTO public.cases (id, client_id, orderstatus, casesubtype) VALUES (NEXTVAL('public.cases_id_seq'), $1, 'ACTIVE', $2)", clientId, casesubtype)
 	assert.NoError(s.t, err, "failed to add order: %v", err)
 }
 
@@ -57,6 +57,11 @@ func (s *Seeder) UpdateHowDeputyAppointed(ctx context.Context, orderId int, howD
 func (s *Seeder) CreateDeputyOrder(ctx context.Context, deputyId int32, orderId int) {
 	_, err := s.Conn.Exec(ctx, "INSERT INTO supervision.order_deputy(order_id, deputy_id, id) VALUES ($1, $2, NEXTVAL('supervision.order_deputy_id_seq'))", orderId, deputyId)
 	assert.NoError(s.t, err, "failed to add deputy order: %v", err)
+}
+
+func (s *Seeder) UpdateDeputyOrderStatusOnCaseOverride(ctx context.Context, orderId int, statusOnCaseOverride string) {
+	_, err := s.Conn.Exec(ctx, "UPDATE supervision.order_deputy SET statusoncaseoverride = $1 WHERE id = $2", statusOnCaseOverride, orderId)
+	assert.NoError(s.t, err, "failed to update order_deputy statusoncaseoverride with value: %s error: %v", statusOnCaseOverride, err)
 }
 
 func (s *Seeder) CreateDeputyImportantInformation(ctx context.Context, deputyId int32, annualBillingInvoice string) {

@@ -52,7 +52,8 @@ type Case struct {
 	Orderstatus        pgtype.Text
 	Closedondate       pgtype.Timestamp
 	Orderclosurereason pgtype.Text
-	Howdeputyappointed  pgtype.Text
+	Howdeputyappointed pgtype.Text
+	Casesubtype        pgtype.Text
 }
 
 type CostCentre struct {
@@ -286,10 +287,16 @@ type Report struct {
 	CreatedbyuserID       pgtype.Int4
 }
 
+type SupervisionDeputyImportantInformation struct {
+	ID                   int32
+	DeputyID             pgtype.Int4
+	Annualbillinginvoice pgtype.Text
+}
+
 type SupervisionOrderDeputy struct {
 	ID                   int32
-	Order_id int32
-	Deputy_id int32
+	OrderID              pgtype.Int4
+	DeputyID             pgtype.Int4
 	Deputytype           pgtype.Text
 	Statusoncase         pgtype.Text
 	Statusoncaseoverride pgtype.Text
