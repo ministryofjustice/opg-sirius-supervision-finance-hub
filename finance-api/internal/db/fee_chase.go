@@ -28,7 +28,7 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
 				CASE WHEN do_not_invoice_warning_count.count >= 1 THEN 'Yes' ELSE 'No' END  AS "Do_not_chase",
 				INITCAP(fc.payment_method) AS "Payment_method",
 				COALESCE(p.deputytype, '') AS "Deputy_type",
-				COALESCE(p.deputytype, '') AS "Appt_type",
+				COALESCE(cases.how_deputy_appointed, '') AS "Appt_type",
 				COALESCE(deputyImportantInformation.annualbillinginvoice, '') AS "Billing_preference",
 				COALESCE(p.deputynumber::VARCHAR, '') AS "Deputy_no",
 				CASE WHEN a.isairmailrequired IS TRUE THEN 'Yes' ELSE 'No' END AS "Airmail",
@@ -51,6 +51,16 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
                 LEFT JOIN LATERAL (
                        SELECT a.* FROM public.addresses a WHERE a.person_id = p.id ORDER BY a.id DESC LIMIT 1
                 ) a ON TRUE
+                LEFT JOIN LATERAL (
+                    SELECT c.howdeputyappointed AS how_deputy_appointed
+					FROM supervision.order_deputy od
+					INNER JOIN public.cases c ON od.order_id = c.id
+					WHERE od.deputy_id = p.id
+					AND c.client_id = cl.id
+					AND c.orderstatus = 'ACTIVE'
+					AND od.statusoncaseoverride IS NULL
+					ORDER BY c.casesubtype DESC LIMIT 1
+                ) cases ON TRUE
                 LEFT JOIN LATERAL (
                 	SELECT dii.annualbillinginvoice 
                     FROM supervision.deputy_important_information dii

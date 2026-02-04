@@ -151,6 +151,14 @@ CREATE TABLE supervision.order_deputy
     statusoncaseoverride                         VARCHAR(255) DEFAULT NULL
 );
 
+CREATE SEQUENCE supervision.order_deputy_id_seq;
+
+ALTER SEQUENCE supervision.order_deputy_id_seq OWNER TO api;
+
+CREATE SEQUENCE supervision.deputy_important_information_id_seq;
+
+ALTER SEQUENCE supervision.deputy_important_information_id_seq OWNER TO api;
+
 ALTER TABLE supervision.order_deputy
     OWNER TO api;
 

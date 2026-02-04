@@ -52,6 +52,7 @@ type Case struct {
 	Orderstatus        pgtype.Text
 	Closedondate       pgtype.Timestamp
 	Orderclosurereason pgtype.Text
+	Howdeputyappointed  pgtype.Text
 }
 
 type CostCentre struct {
