@@ -28,6 +28,8 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
 				CASE WHEN do_not_invoice_warning_count.count >= 1 THEN 'Yes' ELSE 'No' END  AS "Do_not_chase",
 				INITCAP(fc.payment_method) AS "Payment_method",
 				COALESCE(p.deputytype, '') AS "Deputy_type",
+				apptType.howdeputyappointed AS "Appt_type",
+				deputyImportantInformation.annualbillinginvoice AS "Billing_preference",
 				COALESCE(p.deputynumber::VARCHAR, '') AS "Deputy_no",
 				CASE WHEN a.isairmailrequired IS TRUE THEN 'Yes' ELSE 'No' END AS "Airmail",
 				COALESCE(p.salutation, '') AS "Deputy_title",
@@ -49,6 +51,19 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
                 LEFT JOIN LATERAL (
                        SELECT a.* FROM public.addresses a WHERE a.person_id = p.id ORDER BY a.id DESC LIMIT 1
                 ) a ON TRUE
+                LEFT JOIN LATERAL (
+                    SELECT c.howdeputyappointed
+                    FROM supervision.order_deputy od
+                    INNER JOIN public.cases c ON od.order_id = c.id
+                    WHERE od.deputy_id = cl.feepayer_id
+                    AND c.client_id = cl.id
+                    AND c.orderstatus = 'ACTIVE'
+                    ORDER BY c.casesubtype DESC LIMIT 1
+                ) apptType ON TRUE
+                LEFT JOIN LATERAL (
+                   SELECT dii.annualbillinginvoice FROM supervision.deputy_important_information dii
+			        WHERE dii.deputy_id = cl.feepayer_id
+                ) deputyImportantInformation ON TRUE
            , LATERAL (
             SELECT 
                 JSON_AGG(
