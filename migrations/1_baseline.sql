@@ -131,8 +131,12 @@ CREATE SEQUENCE public.warnings_id_seq;
 ALTER SEQUENCE public.warnings_id_seq OWNER TO api;
 
 CREATE SCHEMA supervision;
-
+GRANT ALL ON SCHEMA supervision TO api;
 SET SEARCH_PATH TO supervision;
+
+CREATE SEQUENCE supervision.order_deputy_id_seq;
+
+ALTER SEQUENCE supervision.order_deputy_id_seq OWNER TO api;
 
 CREATE TABLE supervision.order_deputy
 (
@@ -151,16 +155,23 @@ CREATE TABLE supervision.order_deputy
     statusoncaseoverride                         VARCHAR(255) DEFAULT NULL
 );
 
-CREATE SEQUENCE supervision.order_deputy_id_seq;
+COMMENT ON COLUMN supervision.order_deputy.deputytype IS '(DC2Type:refdata)';
+COMMENT ON COLUMN supervision.order_deputy.statusoncase IS '(DC2Type:refdata)';
+COMMENT ON COLUMN supervision.order_deputy.statusoncaseoverride IS '(DC2Type:refdata)';
 
-ALTER SEQUENCE supervision.order_deputy_id_seq OWNER TO api;
+ALTER TABLE supervision.order_deputy
+    OWNER TO api;
+
+CREATE INDEX idx_60ea33258d9f6d38
+    ON supervision.order_deputy (order_id);
+
+CREATE INDEX idx_60ea33254b6f93bb
+    ON supervision.order_deputy (deputy_id);
 
 CREATE SEQUENCE supervision.deputy_important_information_id_seq;
 
 ALTER SEQUENCE supervision.deputy_important_information_id_seq OWNER TO api;
 
-ALTER TABLE supervision.order_deputy
-    OWNER TO api;
 
 CREATE TABLE supervision.deputy_important_information
 (
@@ -173,8 +184,13 @@ CREATE TABLE supervision.deputy_important_information
     annualbillinginvoice                                   VARCHAR(255) DEFAULT NULL
 );
 
+COMMENT ON COLUMN supervision.deputy_important_information.annualbillinginvoice IS '(DC2Type:refdata)';
+
 ALTER TABLE supervision.deputy_important_information
     OWNER TO api;
+
+CREATE INDEX uniq_d24d06934b6f93bb
+    ON supervision.deputy_important_information (deputy_id);
 
 CREATE SCHEMA supervision_finance;
 GRANT ALL ON SCHEMA supervision_finance TO api;

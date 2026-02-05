@@ -288,17 +288,21 @@ type Report struct {
 }
 
 type SupervisionDeputyImportantInformation struct {
-	ID                   int32
-	DeputyID             pgtype.Int4
+	ID       int32
+	DeputyID pgtype.Int4
+	// (DC2Type:refdata)
 	Annualbillinginvoice pgtype.Text
 }
 
 type SupervisionOrderDeputy struct {
-	ID                   int32
-	OrderID              pgtype.Int4
-	DeputyID             pgtype.Int4
-	Deputytype           pgtype.Text
-	Statusoncase         pgtype.Text
+	ID       int32
+	OrderID  pgtype.Int4
+	DeputyID pgtype.Int4
+	// (DC2Type:refdata)
+	Deputytype pgtype.Text
+	// (DC2Type:refdata)
+	Statusoncase pgtype.Text
+	// (DC2Type:refdata)
 	Statusoncaseoverride pgtype.Text
 }
 
