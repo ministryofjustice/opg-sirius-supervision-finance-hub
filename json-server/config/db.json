@@ -429,6 +429,194 @@
       "caseRecNumber": "20202020"
     },
     {
+      "id": 21,
+      "firstname": "Penelope",
+      "surname": "Pending",
+      "caseRecNumber": "21212100"
+    },
+    {
+      "id": 22,
+      "firstname": "Ceri",
+      "surname": "Collections",
+      "caseRecNumber": "22222200",
+      "addressLine1": "1 Main Street",
+      "addressLine2": "Mainville",
+      "town": "Mainopolis",
+      "postcode": "MP1 2PM",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
+      "id": 23,
+      "firstname": "Derek",
+      "surname": "Direct_allpay_mandate_validation",
+      "caseRecNumber": "23232300",
+      "addressLine1": "1 Main Street",
+      "addressLine2": "Mainville",
+      "town": "Mainopolis",
+      "postcode": "MP1 2PM",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
+      "id": 24,
+      "firstname": "Annie",
+      "surname": "Approved",
+      "caseRecNumber": "24242400"
+    },
+    {
+      "id": 25,
+      "firstname": "Odin",
+      "surname": "allpay_mandate_fail",
+      "caseRecNumber": "25252500",
+      "addressLine1": "123 Fake Street",
+      "addressLine2": "Mainville",
+      "town": "Springfield",
+      "postcode": "S1 1FF",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
+      "id": 26,
+      "firstname": "Marina",
+      "surname": "allpay_schedule_fail",
+      "caseRecNumber": "26262600",
+      "addressLine1": "321 Fake Street",
+      "addressLine2": "",
+      "town": "Pueblo",
+      "postcode": "P1 1FF",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
+      "id": 27,
+      "firstname": "Gomez",
+      "surname": "allpay_schedule_validation",
+      "caseRecNumber": "27272700",
+      "addressLine1": "333 Fake Street",
+      "addressLine2": "",
+      "town": "Pueblo",
+      "postcode": "P1 1FF",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
+      "id": 28,
+      "firstname": "Felicity",
+      "surname": "Failed-Payments",
+      "caseRecNumber": "28282800",
+      "addressLine1": "333 Fake Street",
+      "addressLine2": "",
+      "town": "Pueblo",
+      "postcode": "P1 1FF",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
+      "id": 29,
+      "firstname": "Ernie",
+      "surname": "E2E",
+      "caseRecNumber": "29292900",
+      "addressLine1": "333 Fake Street",
+      "addressLine2": "",
+      "town": "Pueblo",
+      "postcode": "P1 1FF",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
+      "id": 30,
+      "firstname": "Ruby",
+      "surname": "E2E",
+      "caseRecNumber": "29292900",
+      "addressLine1": "333 Fake Street",
+      "addressLine2": "",
+      "town": "Pueblo",
+      "postcode": "P1 1FF",
+      "feePayer": {
+        "id": 1,
+        "deputyStatus": "Active"
+      },
+      "activeCaseType": {
+        "handle": "HW",
+        "label": "Health & Welfare"
+      },
+      "clientStatus": {
+        "handle": "ACTIVE",
+        "label": "Active"
+      }
+    },
+    {
       "id": 99,
       "firstname": "Nelly",
       "surname": "Nullman",
@@ -451,12 +639,6 @@
       }
     }
   ],
-  "tasks": {
-    "personId": 1,
-    "type": "FPIA",
-    "dueDate": "15/09/2025",
-    "assigneeId": 41,
-    "description": "Pending credit memo added to AD000001/24 requires manager approval"
-  },
-  "notify": []
+  "notify": [],
+  "tasks": []
 }

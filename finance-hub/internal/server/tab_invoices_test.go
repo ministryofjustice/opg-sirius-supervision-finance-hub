@@ -2,11 +2,12 @@ package server
 
 import (
 	"errors"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestInvoice(t *testing.T) {
@@ -58,13 +59,13 @@ func TestInvoice(t *testing.T) {
 			Id:                 3,
 			Ref:                "N2000001/20",
 			Status:             "Unpaid",
-			Amount:             "2.32",
+			Amount:             232,
 			RaisedDate:         "01/04/2222",
-			Received:           "0.22",
-			OutstandingBalance: "2.10",
+			Received:           22,
+			OutstandingBalance: 210,
 			Ledgers: []LedgerAllocation{
 				{
-					Amount:          "123",
+					Amount:          12300,
 					ReceivedDate:    shared.NewDate("01/05/2222"),
 					TransactionType: "Online Card Payment",
 					Status:          "Applied",
@@ -73,7 +74,7 @@ func TestInvoice(t *testing.T) {
 			SupervisionLevels: []SupervisionLevel{
 				{
 					Level:  "General",
-					Amount: "320",
+					Amount: 32000,
 					From:   shared.NewDate("01/04/2019"),
 					To:     shared.NewDate("31/03/2020"),
 				},
@@ -155,14 +156,32 @@ func Test_translate(t *testing.T) {
 			want:       "BACS payment (Supervision account) reversal",
 		},
 		{
-			name:   "returns a correct value for UNAPPLIED",
-			status: "UNAPPLIED",
-			want:   "Unapplied Payment",
+			name:       "returns a correct value for UNAPPLIED",
+			ledgerType: shared.FeeReductionTypeHardship.Key(),
+			amount:     -1000,
+			status:     "UNAPPLIED",
+			want:       "Unapplied Payment",
 		},
 		{
-			name:   "returns a correct value for REAPPLIED",
-			status: "REAPPLIED",
-			want:   "Reapplied Payment",
+			name:       "returns a correct value for unapplied adjustment",
+			ledgerType: shared.AdjustmentTypeCreditMemo.Key(),
+			amount:     -1000,
+			status:     "UNAPPLIED",
+			want:       "Unapplied Payment",
+		},
+		{
+			name:       "returns a correct value for REAPPLIED",
+			ledgerType: shared.FeeReductionTypeRemission.Key(),
+			amount:     -1000,
+			status:     "REAPPLIED",
+			want:       "Reapplied Payment",
+		},
+		{
+			name:       "returns Refund Reversal",
+			ledgerType: shared.TransactionTypeRefund.Key(),
+			amount:     -32000,
+			status:     "UNAPPLIED",
+			want:       "Refund reversal",
 		},
 	}
 	for _, tt := range tests {
@@ -269,13 +288,13 @@ func TestInvoicesHandler_transform(t *testing.T) {
 					Id:                 3,
 					Ref:                "N2000001/33",
 					Status:             "Unpaid",
-					Amount:             "2.32",
+					Amount:             232,
 					RaisedDate:         "01/04/3333",
-					Received:           "0.22",
-					OutstandingBalance: "2.10",
+					Received:           22,
+					OutstandingBalance: 210,
 					Ledgers: []LedgerAllocation{
 						{
-							Amount:          "123",
+							Amount:          12300,
 							ReceivedDate:    shared.NewDate("01/05/2222"),
 							TransactionType: "Online Card Payment",
 							Status:          "Applied",
@@ -284,7 +303,7 @@ func TestInvoicesHandler_transform(t *testing.T) {
 					SupervisionLevels: []SupervisionLevel{
 						{
 							Level:  "General",
-							Amount: "320",
+							Amount: 32000,
 							From:   shared.NewDate("01/04/2019"),
 							To:     shared.NewDate("31/03/2020"),
 						},
@@ -295,13 +314,13 @@ func TestInvoicesHandler_transform(t *testing.T) {
 					Id:                 2,
 					Ref:                "N2000001/22",
 					Status:             "Unpaid",
-					Amount:             "2.32",
+					Amount:             232,
 					RaisedDate:         "01/04/2222",
-					Received:           "0.22",
-					OutstandingBalance: "2.10",
+					Received:           22,
+					OutstandingBalance: 210,
 					Ledgers: []LedgerAllocation{
 						{
-							Amount:          "123",
+							Amount:          12300,
 							ReceivedDate:    shared.NewDate("01/05/2222"),
 							TransactionType: "Online Card Payment",
 							Status:          "Applied",
@@ -310,7 +329,7 @@ func TestInvoicesHandler_transform(t *testing.T) {
 					SupervisionLevels: []SupervisionLevel{
 						{
 							Level:  "General",
-							Amount: "320",
+							Amount: 32000,
 							From:   shared.NewDate("01/04/2019"),
 							To:     shared.NewDate("31/03/2020"),
 						},
@@ -321,13 +340,13 @@ func TestInvoicesHandler_transform(t *testing.T) {
 					Id:                 1,
 					Ref:                "N2000001/11",
 					Status:             "Unpaid",
-					Amount:             "2.32",
+					Amount:             232,
 					RaisedDate:         "01/04/1111",
-					Received:           "0.22",
-					OutstandingBalance: "2.10",
+					Received:           22,
+					OutstandingBalance: 210,
 					Ledgers: []LedgerAllocation{
 						{
-							Amount:          "123",
+							Amount:          12300,
 							ReceivedDate:    shared.NewDate("01/05/2222"),
 							TransactionType: "Online Card Payment",
 							Status:          "Applied",
@@ -336,7 +355,7 @@ func TestInvoicesHandler_transform(t *testing.T) {
 					SupervisionLevels: []SupervisionLevel{
 						{
 							Level:  "General",
-							Amount: "320",
+							Amount: 32000,
 							From:   shared.NewDate("01/04/2019"),
 							To:     shared.NewDate("31/03/2020"),
 						},

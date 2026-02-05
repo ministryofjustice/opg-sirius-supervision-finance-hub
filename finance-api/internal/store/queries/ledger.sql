@@ -52,7 +52,7 @@ LIMIT 1;
 SELECT COUNT(*)
 FROM ledger l
         JOIN finance_client fc ON fc.id = l.finance_client_id
-WHERE (l.amount = @amount)
+WHERE l.amount = @amount
  AND l.status = 'CONFIRMED'
  AND (@skip_bank_date IS TRUE OR l.bankdate = @bank_date)
  AND l.datetime::DATE = (@received_date::TIMESTAMP)::DATE

@@ -3,6 +3,8 @@ package auth
 import (
 	"context"
 	"fmt"
+	"net/http"
+
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
@@ -10,6 +12,12 @@ import (
 type Context struct {
 	context.Context
 	User *shared.User
+}
+
+func NewContext(r *http.Request) Context {
+	return Context{
+		Context: r.Context(),
+	}
 }
 
 func (c Context) WithContext(ctx context.Context) Context {

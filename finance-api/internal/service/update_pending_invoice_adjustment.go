@@ -3,21 +3,20 @@ package service
 import (
 	"context"
 	"fmt"
+	"log/slog"
+
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"log/slog"
 )
 
 func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId int32, adjustmentId int32, status shared.AdjustmentStatus) error {
-	ctx, cancelTx := s.WithCancel(ctx)
-	defer cancelTx()
-
 	tx, err := s.BeginStoreTx(ctx)
 	if err != nil {
 		return err
 	}
+	defer tx.Rollback(ctx)
 
 	var updatedBy pgtype.Int4
 	_ = store.ToInt4(&updatedBy, ctx.(auth.Context).User.ID)
@@ -45,14 +44,13 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId i
 		})
 
 		ledgerID, err := tx.CreateLedgerForAdjustment(ctx, store.CreateLedgerForAdjustmentParams{
-			ClientID:       ledger.ClientID,
-			Amount:         ledger.Amount,
-			Notes:          ledger.Notes,
-			Type:           ledger.Type,
-			Status:         ledger.Status,
-			FeeReductionID: ledger.FeeReductionID,
-			CreatedBy:      ledger.CreatedBy,
-			ID:             adjustmentId,
+			ClientID:  ledger.ClientID,
+			Amount:    ledger.Amount,
+			Notes:     ledger.Notes,
+			Type:      ledger.Type,
+			Status:    ledger.Status,
+			CreatedBy: ledger.CreatedBy,
+			ID:        adjustmentId,
 		})
 		if err != nil {
 			s.Logger(ctx).Error(fmt.Sprintf("Error creating ledger for adjustment with id of %d for client %d", adjustmentId, clientId), slog.String("err", err.Error()))

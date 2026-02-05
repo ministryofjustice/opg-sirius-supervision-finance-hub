@@ -13,10 +13,11 @@ import (
 
 const cancelRefund = `-- name: CancelRefund :exec
 UPDATE refund
-SET cancelled_at = NOW(), cancelled_by = $1
+SET cancelled_at = NOW(),
+    cancelled_by = $1
 WHERE id = $2
   AND finance_client_id = (SELECT id FROM finance_client WHERE client_id = $3)
-  AND processed_at IS NOT NULL AND fulfilled_at IS NULL
+  AND fulfilled_at IS NULL
 `
 
 type CancelRefundParams struct {
@@ -28,6 +29,28 @@ type CancelRefundParams struct {
 func (q *Queries) CancelRefund(ctx context.Context, arg CancelRefundParams) error {
 	_, err := q.db.Exec(ctx, cancelRefund, arg.CancelledBy, arg.RefundID, arg.ClientID)
 	return err
+}
+
+const checkRefundForReversalExists = `-- name: CheckRefundForReversalExists :one
+SELECT EXISTS (SELECT 1
+               FROM refund r
+                        JOIN supervision_finance.finance_client fc ON fc.id = r.finance_client_id
+               WHERE fc.court_ref = $1
+                 AND r.fulfilled_at::DATE = $2::DATE
+                 AND r.amount = $3)
+`
+
+type CheckRefundForReversalExistsParams struct {
+	CourtRef      pgtype.Text
+	FulfilledDate pgtype.Date
+	Amount        pgtype.Int4
+}
+
+func (q *Queries) CheckRefundForReversalExists(ctx context.Context, arg CheckRefundForReversalExistsParams) (bool, error) {
+	row := q.db.QueryRow(ctx, checkRefundForReversalExists, arg.CourtRef, arg.FulfilledDate, arg.Amount)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }
 
 const createRefund = `-- name: CreateRefund :one

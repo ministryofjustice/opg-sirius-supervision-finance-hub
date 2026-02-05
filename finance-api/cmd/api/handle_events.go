@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"net/http"
 )
 
 func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
@@ -19,9 +20,13 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
 		return apierror.BadRequestError("event", "unable to parse event", err)
 	}
 
-	if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeDebtPositionChanged {
-		if detail, ok := event.Detail.(shared.DebtPositionChangedEvent); ok {
+	if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeInvoiceCreated {
+		if detail, ok := event.Detail.(shared.InvoiceCreatedEvent); ok {
 			err := s.service.ReapplyCredit(ctx, detail.ClientID, nil)
+			if err != nil {
+				return err
+			}
+			err = s.service.CreateDirectDebitScheduleForInvoice(ctx, detail.ClientID)
 			if err != nil {
 				return err
 			}
@@ -29,6 +34,24 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
 	} else if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeClientCreated {
 		if detail, ok := event.Detail.(shared.ClientCreatedEvent); ok {
 			err := s.service.UpdateClient(ctx, detail.ClientID, detail.CourtRef)
+			if err != nil {
+				return err
+			}
+		}
+	} else if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeOrderCreated {
+		if detail, ok := event.Detail.(shared.OrderCreatedEvent); ok {
+			err := s.service.CheckPaymentMethod(ctx, detail.ClientID)
+			if err != nil {
+				return err
+			}
+		}
+	} else if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeClientMadeInactive {
+		if detail, ok := event.Detail.(shared.ClientMadeInactiveEvent); ok {
+			allPayCustomer := shared.AllPayCustomer{
+				Surname:         detail.Surname,
+				ClientReference: detail.CourtRef,
+			}
+			err := s.service.CancelDirectDebitMandate(ctx, detail.ClientID, shared.CancelMandate{AllPayCustomer: allPayCustomer})
 			if err != nil {
 				return err
 			}

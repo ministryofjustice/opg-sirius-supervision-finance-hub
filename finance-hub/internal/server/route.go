@@ -1,21 +1,25 @@
 package server
 
 import (
+	"context"
+	"log/slog"
+	"net/http"
+	"strconv"
+
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
-	"net/http"
-	"strconv"
 )
 
 type FinanceClient struct {
 	FirstName          string
 	Surname            string
 	CourtRef           string
-	OutstandingBalance string
-	CreditBalance      string
+	OutstandingBalance int
+	CreditBalance      int
 	PaymentMethod      string
 	ClientId           string
 }
@@ -180,10 +184,14 @@ func (r route) transformFinanceClient(person shared.Person, accountInfo shared.A
 		FirstName:          person.FirstName,
 		Surname:            person.Surname,
 		CourtRef:           person.CourtRef,
-		OutstandingBalance: shared.IntToDecimalString(accountInfo.OutstandingBalance),
-		CreditBalance:      shared.IntToDecimalString(accountInfo.CreditBalance),
+		OutstandingBalance: accountInfo.OutstandingBalance,
+		CreditBalance:      accountInfo.CreditBalance,
 		PaymentMethod:      cases.Title(language.English).String(accountInfo.PaymentMethod),
 	}
+}
+
+func (r route) logger(ctx context.Context) *slog.Logger {
+	return telemetry.LoggerFromContext(ctx).With("category", "handler")
 }
 
 func getClientID(req *http.Request) int {

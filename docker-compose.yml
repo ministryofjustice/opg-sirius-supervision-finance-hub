@@ -15,8 +15,6 @@ services:
       SUPERVISION_BILLING_TEAM_ID: 41
       JWT_SECRET: mysupersecrettestkeythatis128bits
       FINANCE_HUB_LIVE_DATE: 01/01/2024
-      ALLPAY_HOST: http://allpay-mock:4010
-      ALLPAY_API_KEY: test-key
       SHOW_DIRECT_DEBITS: 1
     depends_on:
       finance-api:
@@ -54,7 +52,15 @@ services:
       OPG_NOTIFY_API_KEY: test
       OPG_SUPERVISION_SYSTEM_USER_ID: 1
       EVENT_BRIDGE_API_KEY: test
+      ALLPAY_HOST: http://allpay-mock:8080
+      ALLPAY_API_KEY: test-key
+      ALLPAY_ENABLED: 1
+      HOLIDAYS_API_URL: http://holidays-api-mock:8080/bank-holidays.json
     depends_on:
+      allpay-mock:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
       sirius-db:
         condition: service_healthy
 
@@ -79,11 +85,11 @@ services:
         condition: service_healthy
 
   go-lint:
-    image: golangci/golangci-lint:v2.4.0
+    image: golangci/golangci-lint:v2.6.2
     working_dir: /go/src/app
     volumes:
       - ./:/go/src/app
-      - ./.cache/golangci-lint/v2.2.1:/root/.cache
+      - ./.cache/golangci-lint/v2.4.0:/root/.cache
     command: golangci-lint run -v --timeout 5m
 
   gosec:
@@ -161,7 +167,7 @@ services:
     command: "up"
 
   localstack:
-    image: localstack/localstack:4.7
+    image: localstack/localstack:4.11
     volumes:
       - "./scripts/localstack/init:/etc/localstack/init/ready.d"
       - "./scripts/localstack/files:/scripts/files"
@@ -177,9 +183,34 @@ services:
       retries: 50
 
   allpay-mock:
-    image: stoplight/prism:5
-    volumes:
-      - ./allpay-mock/allpay.yaml:/openapi.yaml:ro
-    command: mock /openapi.yaml -h 0.0.0.0 --errors
+    image: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-allpay-mock:latest
+    build:
+      context: .
+      dockerfile: docker/allpay/Dockerfile
+    healthcheck:
+      test: [ "CMD", "imposter", "list", "-x" ]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+
+  holidays-api-mock:
+    build:
+      context: .
+      dockerfile: docker/holidays-api/Dockerfile
     ports:
-      - "4010:4010"
+      - "8080:8080"
+
+  pact-cli:
+    image: pactfoundation/pact-cli:1.4.0.8
+    working_dir: /go/src/app
+    volumes:
+      - ./pacts:/go/src/app/pacts
+
+  hub-test-runner:
+    build:
+      context: docker/test-runner/
+    command: gotestsum --junitfile test-results/hub-unit-tests.xml -- ./finance-hub/... -coverprofile=test-results/hub-coverage.txt
+    working_dir: /go/src/app
+    volumes:
+      - ./:/go/src/app
+      - ./.gocache:/go/pkg/mod

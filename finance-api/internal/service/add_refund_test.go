@@ -1,18 +1,20 @@
 package service
 
 import (
+	"time"
+
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"time"
 )
 
 func (suite *IntegrationSuite) TestService_AddRefund() {
 	ctx := suite.ctx
 	seeder := suite.cm.Seeder(ctx, suite.T())
 	dispatch := &mockDispatch{}
-	s := NewService(seeder.Conn, dispatch, nil, nil, nil)
+	s := Service{store: store.New(seeder.Conn), dispatch: dispatch}
 
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (24, 2401, '1234', 'DEMANDED', NULL);",
@@ -72,7 +74,7 @@ func (suite *IntegrationSuite) TestService_AddRefund() {
 func (suite *IntegrationSuite) TestService_AddRefund_noCreditToRefund() {
 	ctx := suite.ctx
 	seeder := suite.cm.Seeder(ctx, suite.T())
-	s := NewService(seeder.Conn, nil, nil, nil, nil)
+	s := Service{store: store.New(seeder.Conn)}
 
 	seeder.SeedData(
 		"INSERT INTO finance_client VALUES (24, 24, '1234', 'DEMANDED', NULL);",

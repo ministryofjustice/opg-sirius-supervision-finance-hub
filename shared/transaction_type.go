@@ -14,6 +14,13 @@ var paymentTransactionTypes = []TransactionType{
 	TransactionTypeOPGBACSPayment,
 	TransactionTypeDirectDebitPayment,
 	TransactionTypeSupervisionChequePayment,
+	TransactionTypeSOPUnallocatedPayment,
+	TransactionTypeLegacyCardPayment,
+}
+
+var reversalTransactionTypes = []TransactionType{
+	TransactionTypeFeeReductionReversal,
+	TransactionTypeWriteOffReversal,
 }
 
 const (
@@ -22,6 +29,7 @@ const (
 	TransactionTypeCreditMemo
 	TransactionTypeDebitMemo
 	TransactionTypeWriteOffReversal
+	TransactionTypeFeeReductionReversal
 	TransactionTypeExemption
 	TransactionTypeHardship
 	TransactionTypeRemission
@@ -34,6 +42,7 @@ const (
 	TransactionTypeSupervisionChequePayment
 	TransactionTypeSOPUnallocatedPayment
 	TransactionTypeRefund
+	TransactionTypeLegacyCardPayment
 )
 
 var TransactionTypeMap = map[string]TransactionType{
@@ -41,9 +50,13 @@ var TransactionTypeMap = map[string]TransactionType{
 	"CREDIT MEMO":                TransactionTypeCreditMemo,
 	"DEBIT MEMO":                 TransactionTypeDebitMemo,
 	"WRITE OFF REVERSAL":         TransactionTypeWriteOffReversal,
+	"FEE REDUCTION REVERSAL":     TransactionTypeFeeReductionReversal,
 	"EXEMPTION":                  TransactionTypeExemption,
+	"CREDIT EXEMPTION":           TransactionTypeExemption,
 	"HARDSHIP":                   TransactionTypeHardship,
+	"CREDIT HARDSHIP":            TransactionTypeHardship,
 	"REMISSION":                  TransactionTypeRemission,
+	"CREDIT REMISSION":           TransactionTypeRemission,
 	"CREDIT REAPPLY":             TransactionTypeReapply,
 	"MOTO CARD PAYMENT":          TransactionTypeMotoCardPayment,
 	"ONLINE CARD PAYMENT":        TransactionTypeOnlineCardPayment,
@@ -53,6 +66,7 @@ var TransactionTypeMap = map[string]TransactionType{
 	"SUPERVISION CHEQUE PAYMENT": TransactionTypeSupervisionChequePayment,
 	"SOP UNALLOCATED":            TransactionTypeSOPUnallocatedPayment,
 	"REFUND":                     TransactionTypeRefund,
+	"CARD PAYMENT":               TransactionTypeLegacyCardPayment,
 }
 
 func (t TransactionType) String() string {
@@ -65,6 +79,8 @@ func (t TransactionType) String() string {
 		return "Debit memo"
 	case TransactionTypeWriteOffReversal:
 		return "Write off reversal"
+	case TransactionTypeFeeReductionReversal:
+		return "Fee reduction reversal"
 	case TransactionTypeExemption:
 		return "Exemption"
 	case TransactionTypeHardship:
@@ -89,6 +105,8 @@ func (t TransactionType) String() string {
 		return "SOP Unallocated"
 	case TransactionTypeRefund:
 		return "Refund"
+	case TransactionTypeLegacyCardPayment:
+		return "(Legacy) Card payment"
 	default:
 		return ""
 	}
@@ -104,6 +122,8 @@ func (t TransactionType) Key() string {
 		return "DEBIT MEMO"
 	case TransactionTypeWriteOffReversal:
 		return "WRITE OFF REVERSAL"
+	case TransactionTypeFeeReductionReversal:
+		return "FEE REDUCTION REVERSAL"
 	case TransactionTypeExemption:
 		return "EXEMPTION"
 	case TransactionTypeHardship:
@@ -128,13 +148,23 @@ func (t TransactionType) Key() string {
 		return "SOP UNALLOCATED"
 	case TransactionTypeRefund:
 		return "REFUND"
+	case TransactionTypeLegacyCardPayment:
+		return "CARD PAYMENT"
 	default:
 		return ""
 	}
 }
 
-func (u TransactionType) IsPayment() bool {
-	return slices.Contains(paymentTransactionTypes, u)
+func (t TransactionType) IsPayment() bool {
+	return slices.Contains(paymentTransactionTypes, t)
+}
+
+func (t TransactionType) IsReceiptTransaction() bool {
+	return slices.Contains(paymentTransactionTypes, t) || t == TransactionTypeRefund
+}
+
+func (t TransactionType) IsReversalType() bool {
+	return slices.Contains(reversalTransactionTypes, t)
 }
 
 func (t TransactionType) Valid() bool {

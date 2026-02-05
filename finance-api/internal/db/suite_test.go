@@ -2,6 +2,8 @@ package db
 
 import (
 	"context"
+	"testing"
+
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
@@ -9,7 +11,6 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/testhelpers"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/suite"
-	"testing"
 )
 
 type IntegrationSuite struct {
@@ -33,6 +34,22 @@ func (m *mockDispatch) RefundAdded(ctx context.Context, event event.RefundAdded)
 	return nil
 }
 
+func (m *mockDispatch) DirectDebitScheduleFailed(ctx context.Context, event event.DirectDebitScheduleFailed) error {
+	return nil
+}
+
+func (m *mockDispatch) DirectDebitCollection(ctx context.Context, event event.DirectDebitCollection) error {
+	return nil
+}
+
+func (m *mockDispatch) DirectDebitCollectionFailed(ctx context.Context, event event.DirectDebitCollectionFailed) error {
+	return nil
+}
+
+func (m *mockDispatch) DirectDebitMandateReview(ctx context.Context, event event.DirectDebitMandateReview) error {
+	return nil
+}
+
 func (suite *IntegrationSuite) SetupSuite() {
 	suite.ctx = auth.Context{
 		Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test")),
@@ -40,7 +57,7 @@ func (suite *IntegrationSuite) SetupSuite() {
 	}
 	suite.cm = testhelpers.Init(suite.ctx, "public,supervision_finance")
 	seeder := suite.cm.Seeder(suite.ctx, suite.T())
-	serv := service.NewService(seeder.Conn, &mockDispatch{}, nil, nil, nil)
+	serv := service.NewService(seeder.Conn, &mockDispatch{}, nil, nil, nil, nil, nil)
 	suite.seeder = seeder.WithService(serv)
 }
 

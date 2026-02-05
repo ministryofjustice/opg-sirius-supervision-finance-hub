@@ -9,7 +9,10 @@ describe('API Tests', () => {
     const notifyUrl = `${jsonServerUrl}/v2/notifications/email`;
     const generateReportSuccessTemplateId = "bade69e4-0eb1-4896-a709-bd8f8371a629";
     const processingSuccessTemplateId = "8c85cf6c-695f-493a-a25f-77b4fb5f6a8e";
-
+    const user = {
+        id: 2,
+        roles: ['Finance Reporting']
+    };
     // removes all notify emails from json-server to prevent them getting committed
     after(() => {
         cy.request({
@@ -20,13 +23,13 @@ describe('API Tests', () => {
                 cy.request({
                     method: 'DELETE',
                     url: `${jsonServerUrl}/clean/${item.id}`,
+                    failOnStatusCode: false
                 });
             });
         });
     })
 
     describe('Report generation', () => {
-        const user = {id: 2, roles: ['Finance Reporting']};
 
         it('should generate and upload a report', () => {
             const reportRequest = {
@@ -65,7 +68,6 @@ describe('API Tests', () => {
         });
 
         it('should handle report validation errors', () => {
-            const user = {id: 2, roles: ['Finance Reporting']};
             const reportRequest = {
                 ReportType: 'AccountsReceivable',
                 AccountsReceivableType: 'AgedDebt',
@@ -92,11 +94,6 @@ describe('API Tests', () => {
 
      describe('Payment processing', () => {
          it('processes payment file from API', () => {
-              const user = {
-                     id: 2,
-                     roles: ['Finance Manager']
-                 };
-
              cy.visit("/clients/13/invoices");
              cy.get("table#invoices > tbody").contains("AD33333/24")
                  .parentsUntil("tr").siblings()
@@ -139,6 +136,83 @@ describe('API Tests', () => {
              cy.get("table#invoices > tbody").contains("AD33333/24")
                  .parentsUntil("tr").siblings()
                  .first().contains("Closed");
+         });
+     });
+
+     describe('Direct Debit events', () => {
+         it('creates ledgers for payments that have passed their collection date', () => {
+             cy.visit("/clients/21/invoices");
+             cy.get("table#invoices > tbody").contains("AD212100/24")
+                 .parentsUntil("tr").siblings()
+                 .first().contains("Unpaid");
+
+             const event = {
+                 source: "opg.supervision.infra",
+                 "detail-type": "scheduled-event",
+                 detail: {
+                     trigger: "direct-debit-collection",
+                     override: {
+                         date: "2025-08-01"
+                     }
+                 }
+             };
+
+             cy.request({
+                 method: 'POST',
+                 url: `${apiUrl}/events`,
+                 body: event,
+                 headers: {
+                     Authorization: `Bearer test`
+                 }
+             }).then((response) => {
+                 expect(response.status).to.eq(200);
+             });
+
+             cy.wait(1000); // async process so give it a second to complete
+
+             cy.visit("/clients/21/invoices");
+             cy.get("table#invoices > tbody").contains("AD212100/24")
+                 .parentsUntil("tr").siblings()
+                 .first().contains("Closed");
+         });
+
+         it('reverses failed Direct Debit payments', () => {
+             cy.visit("/clients/28/invoices");
+             cy.get("table#invoices > tbody").contains("AD282828/24").click();
+             cy.get("table#ledger-allocations > tbody")
+                 .within(el => {
+                     cy.get("tr").should('have.length', 2);
+                 });
+
+             const event = {
+                 source: "opg.supervision.infra",
+                 "detail-type": "scheduled-event",
+                 detail: {
+                     trigger: "failed-direct-debit-collections",
+                     override: {
+                         date: "2025-09-30"
+                     }
+                 }
+             };
+
+             cy.request({
+                 method: 'POST',
+                 url: `${apiUrl}/events`,
+                 body: event,
+                 headers: {
+                     Authorization: `Bearer test`
+                 }
+             }).then((response) => {
+                 expect(response.status).to.eq(200);
+             });
+
+             cy.visit("/clients/28/invoices");
+
+             cy.get("table#invoices > tbody").contains("AD282828/24").click();
+             cy.get("table#ledger-allocations > tbody")
+                 .within(el => {
+                     cy.get("tr").should('have.length', 4);
+                 });
          });
      });
 });

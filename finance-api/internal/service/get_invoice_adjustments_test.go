@@ -1,11 +1,13 @@
 package service
 
 import (
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"github.com/stretchr/testify/assert"
 )
 
 func (suite *IntegrationSuite) TestService_GetInvoiceAdjustments() {
@@ -26,7 +28,7 @@ func (suite *IntegrationSuite) TestService_GetInvoiceAdjustments() {
 
 	dateString := "2022-04-02"
 	date, _ := time.Parse("2006-01-02", dateString)
-	s := NewService(seeder.Conn, nil, nil, nil, nil)
+	s := Service{store: store.New(seeder.Conn)}
 
 	tests := []struct {
 		name    string

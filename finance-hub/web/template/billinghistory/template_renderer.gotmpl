@@ -35,14 +35,23 @@
     {{ if eq .Event.Type.String "REFUND_CANCELLED" }}
         {{ template "refund-cancelled-event" . }}
     {{ end }}
-    {{ if eq .Event.Type.String "REFUND_FULFILLED" }}
-        {{ template "refund-fulfilled-event" . }}
-    {{ end }}
     {{ if eq .Event.Type.String "REFUND_PROCESSING" }}
         {{ template "refund-processing-event" . }}
     {{ end }}
+    {{ if eq .Event.Type.String "REFUND_PROCESSED" }}
+        {{ template "refund-processed-event" . }}
+    {{ end }}
     {{ if eq .Event.Type.String "REFUND_STATUS_UPDATED" }}
         {{ template "refund-rejected-event" . }}
+    {{ end }}
+    {{ if eq .Event.Type.String "DIRECT_DEBIT_CREATED" }}
+        {{ template "direct-debit-setup-event" . }}
+    {{ end }}
+    {{ if eq .Event.Type.String "DIRECT_DEBIT_CANCELLED" }}
+        {{ template "direct-debit-cancelled-event" . }}
+    {{ end }}
+    {{ if eq .Event.Type.String "DIRECT_DEBIT_COLLECTION_SCHEDULED" }}
+        {{ template "direct-debit-collection-scheduled-event" . }}
     {{ end }}
     {{ if eq .Event.Type.String "UNKNOWN" }}
         {{ template "unknown-event" . }}

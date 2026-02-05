@@ -4,9 +4,11 @@
     >
         <a
                 class="moj-sub-navigation__link no-underline"
+                href="{{ prefix .BasePath }}"
                 hx-get="{{ prefix .BasePath }}"
                 hx-target="#main-content"
                 hx-push-url="{{ prefix .BasePath }}"
+                hx-indicator="this"
                 {{ if .Selected }}
                     aria-current="page"
                 {{ end }}

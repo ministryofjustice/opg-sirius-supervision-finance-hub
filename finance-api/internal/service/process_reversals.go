@@ -3,24 +3,23 @@ package service
 import (
 	"context"
 	"errors"
+	"time"
+
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"time"
 )
 
 func (s *Service) ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType) (map[int]string, error) {
 	failedLines := make(map[int]string)
 
-	ctx, cancelTx := s.WithCancel(ctx)
-	defer cancelTx()
-
 	tx, err := s.BeginStoreTx(ctx)
 	if err != nil {
 		return nil, err
 	}
+	defer tx.Rollback(ctx)
 
 	var processedRecords []shared.ReversalDetails
 
@@ -47,13 +46,14 @@ func (s *Service) ProcessPaymentReversals(ctx context.Context, records [][]strin
 				processedRecords = append(processedRecords, details)
 
 				if uploadType == shared.ReportTypeUploadMisappliedPayments {
-					err = s.ProcessPaymentsUploadLine(ctx, tx, shared.PaymentDetails{
+					_, err = s.ProcessPaymentsUploadLine(ctx, tx, shared.PaymentDetails{
 						Amount:       details.Amount,
 						BankDate:     details.BankDate,
 						CourtRef:     details.CorrectCourtRef,
 						LedgerType:   details.PaymentType,
 						ReceivedDate: details.ReceivedDate,
 						CreatedBy:    details.CreatedBy,
+						PisNumber:    details.PisNumber,
 					})
 					if err != nil {
 						return nil, err
@@ -195,7 +195,6 @@ func getReversalLines(ctx context.Context, record []string, uploadType shared.Re
 			(*failedLines)[index] = validation.UploadErrorAmountParse
 			return shared.ReversalDetails{}
 		}
-
 	default:
 		(*failedLines)[index] = validation.UploadErrorUnknownUploadType
 	}
@@ -210,6 +209,7 @@ func getReversalLines(ctx context.Context, record []string, uploadType shared.Re
 		ReceivedDate:    receivedDate,
 		Amount:          amount,
 		PisNumber:       pisNumber,
+		CreatedBy:       createdBy,
 		SkipBankDate:    shouldSkipBankDate(uploadType, pisNumber),
 	}
 }
@@ -288,6 +288,7 @@ func (s *Service) ProcessReversalUploadLine(ctx context.Context, tx *store.Tx, d
 		BankDate:     details.BankDate,
 		ReceivedDate: details.ReceivedDate,
 		PisNumber:    details.PisNumber,
+		Notes:        details.Notes,
 	})
 
 	if err != nil {
@@ -351,6 +352,14 @@ func (s *Service) ProcessReversalUploadLine(ctx context.Context, tx *store.Tx, d
 		}
 	}
 
+	if details.PaymentType == shared.TransactionTypeRefund {
+		return tx.CreateLedgerAllocation(ctx, store.CreateLedgerAllocationParams{
+			Amount:   remaining,
+			Status:   "UNAPPLIED",
+			LedgerID: ledgerID,
+		})
+	}
+
 	if remaining != 0 {
 		s.Logger(ctx).Error("process reversal upload line failed as amount remaining after applying to all available invoices", "amount", remaining)
 		return errors.New("unexpected error - remaining not zero")
@@ -370,7 +379,7 @@ func hasPaymentToReverse(processedRecords []shared.ReversalDetails, details shar
 }
 
 /**
- * shouldSkipBankDate returns true if the upload is for failed direct debit or cheque payment, as they are different
+ * shouldSkipBankDate returns true if the upload is for failed Direct Debit or cheque payment, as they are different
  * transactions on OPG bank statements
  */
 func shouldSkipBankDate(uploadType shared.ReportUploadType, pisNumber pgtype.Int4) pgtype.Bool {

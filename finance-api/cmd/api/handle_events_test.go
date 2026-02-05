@@ -3,15 +3,16 @@ package api
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestServer_handleEvents(t *testing.T) {
@@ -23,11 +24,11 @@ func TestServer_handleEvents(t *testing.T) {
 		expectedHandler string
 	}{
 		{
-			name: "reapply event",
+			name: "invoice created event",
 			event: shared.Event{
 				Source:     "opg.supervision.sirius",
-				DetailType: "debt-position-changed",
-				Detail:     shared.DebtPositionChangedEvent{ClientID: 1},
+				DetailType: "invoice-created",
+				Detail:     shared.InvoiceCreatedEvent{ClientID: 1},
 			},
 			expectedErr:     nil,
 			expectedHandler: "ReapplyCredit",
@@ -43,11 +44,31 @@ func TestServer_handleEvents(t *testing.T) {
 			expectedHandler: "UpdateClient",
 		},
 		{
+			name: "order created event",
+			event: shared.Event{
+				Source:     "opg.supervision.sirius",
+				DetailType: "order-created",
+				Detail:     shared.OrderCreatedEvent{ClientID: 1},
+			},
+			expectedErr:     nil,
+			expectedHandler: "CheckPaymentMethod",
+		},
+		{
+			name: "client made inactive event",
+			event: shared.Event{
+				Source:     "opg.supervision.sirius",
+				DetailType: "client-made-inactive",
+				Detail:     shared.ClientMadeInactiveEvent{ClientID: 1, CourtRef: "12345678", Surname: "Smith"},
+			},
+			expectedErr:     nil,
+			expectedHandler: "CancelDirectDebitMandate",
+		},
+		{
 			name: "adhoc event",
 			event: shared.Event{
 				Source:     "opg.supervision.finance.adhoc",
 				DetailType: "finance-adhoc",
-				Detail:     shared.AdhocEvent{Task: "RebalanceCCB"},
+				Detail:     shared.AdhocEvent{Task: "UpdateRefundLedgerAmounts"},
 			},
 			expectedErr:     nil,
 			expectedHandler: "ProcessAdhocEvent",
@@ -94,7 +115,11 @@ func TestServer_handleEvents(t *testing.T) {
 			} else {
 				assert.Nil(t, err)
 			}
-			assert.Equal(t, test.expectedHandler, mock.lastCalled)
+			if test.expectedHandler != "" {
+				assert.Equal(t, test.expectedHandler, mock.called[0])
+			} else {
+				assert.Len(t, mock.called, 0)
+			}
 		})
 	}
 }

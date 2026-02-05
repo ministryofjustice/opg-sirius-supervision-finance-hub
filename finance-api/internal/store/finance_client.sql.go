@@ -81,6 +81,34 @@ func (q *Queries) GetClientByCourtRef(ctx context.Context, courtRef pgtype.Text)
 	return i, err
 }
 
+const getClientById = `-- name: GetClientById :one
+SELECT fc.id AS finance_client_id, fc.client_id, fc.court_ref, fc.payment_method, c.surname
+FROM finance_client fc
+INNER JOIN public.persons c ON fc.client_id = c.id
+WHERE fc.client_id = $1
+`
+
+type GetClientByIdRow struct {
+	FinanceClientID int32
+	ClientID        int32
+	CourtRef        pgtype.Text
+	PaymentMethod   string
+	Surname         pgtype.Text
+}
+
+func (q *Queries) GetClientById(ctx context.Context, clientID int32) (GetClientByIdRow, error) {
+	row := q.db.QueryRow(ctx, getClientById, clientID)
+	var i GetClientByIdRow
+	err := row.Scan(
+		&i.FinanceClientID,
+		&i.ClientID,
+		&i.CourtRef,
+		&i.PaymentMethod,
+		&i.Surname,
+	)
+	return i, err
+}
+
 const getCreditBalanceByCourtRef = `-- name: GetCreditBalanceByCourtRef :one
 SELECT ABS(COALESCE(SUM(la.amount), 0))::INT AS credit
 FROM finance_client fc
@@ -97,14 +125,29 @@ func (q *Queries) GetCreditBalanceByCourtRef(ctx context.Context, courtRef pgtyp
 	return credit, err
 }
 
+const getPaymentMethod = `-- name: GetPaymentMethod :one
+SELECT payment_method
+FROM finance_client
+WHERE client_id = $1
+`
+
+func (q *Queries) GetPaymentMethod(ctx context.Context, clientID int32) (string, error) {
+	row := q.db.QueryRow(ctx, getPaymentMethod, clientID)
+	var payment_method string
+	err := row.Scan(&payment_method)
+	return payment_method, err
+}
+
 const getReversibleBalanceByCourtRef = `-- name: GetReversibleBalanceByCourtRef :one
 WITH ledger_data AS (
     SELECT
         fc.id AS client_id,
         fc.court_ref,
         SUM(CASE
-                WHEN la.status NOT IN ('PENDING', 'UN ALLOCATED') AND l.status = 'CONFIRMED'
-                    AND la.invoice_id IS NOT NULL THEN la.amount
+                WHEN la.status = 'ALLOCATED'
+                    THEN la.amount
+                WHEN la.status IN ('REAPPLIED') AND la.invoice_id IS NULL -- refund
+                    THEN la.amount
                 ELSE 0
             END) AS received,
         SUM(CASE

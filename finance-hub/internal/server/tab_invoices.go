@@ -2,13 +2,14 @@ package server
 
 import (
 	"fmt"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 	"math"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 type Invoices []Invoice
@@ -16,7 +17,7 @@ type Invoices []Invoice
 type LedgerAllocations []LedgerAllocation
 
 type LedgerAllocation struct {
-	Amount          string
+	Amount          int
 	ReceivedDate    shared.Date
 	TransactionType string
 	Status          string
@@ -26,7 +27,7 @@ type SupervisionLevels []SupervisionLevel
 
 type SupervisionLevel struct {
 	Level  string
-	Amount string
+	Amount int
 	From   shared.Date
 	To     shared.Date
 }
@@ -35,10 +36,10 @@ type Invoice struct {
 	Id                 int
 	Ref                string
 	Status             string
-	Amount             string
+	Amount             int
 	RaisedDate         string
-	Received           string
-	OutstandingBalance string
+	Received           int
+	OutstandingBalance int
 	Ledgers            LedgerAllocations
 	SupervisionLevels  SupervisionLevels
 	ClientId           int
@@ -77,10 +78,10 @@ func (h *InvoicesHandler) transform(in shared.Invoices, clientId int) Invoices {
 			Id:                 invoice.Id,
 			Ref:                invoice.Ref,
 			Status:             caser.String(invoice.Status),
-			Amount:             shared.IntToDecimalString(invoice.Amount),
+			Amount:             invoice.Amount,
 			RaisedDate:         invoice.RaisedDate.String(),
-			Received:           shared.IntToDecimalString(invoice.Received),
-			OutstandingBalance: shared.IntToDecimalString(invoice.OutstandingBalance),
+			Received:           invoice.Received,
+			OutstandingBalance: invoice.OutstandingBalance,
 			Ledgers:            h.transformLedgers(invoice.Ledgers, caser),
 			SupervisionLevels:  h.transformSupervisionLevels(invoice.SupervisionLevels, caser),
 			ClientId:           clientId,
@@ -94,7 +95,7 @@ func (h *InvoicesHandler) transformSupervisionLevels(in []shared.SupervisionLeve
 	for _, supervisionLevel := range in {
 		out = append(out, SupervisionLevel{
 			Level:  caser.String(supervisionLevel.Level),
-			Amount: shared.IntToDecimalString(supervisionLevel.Amount),
+			Amount: supervisionLevel.Amount,
 			From:   supervisionLevel.From,
 			To:     supervisionLevel.To,
 		})
@@ -106,7 +107,7 @@ func (h *InvoicesHandler) transformLedgers(ledgers []shared.Ledger, caser cases.
 	var out LedgerAllocations
 	for _, ledger := range ledgers {
 		out = append(out, LedgerAllocation{
-			Amount:          shared.IntToDecimalString(int(math.Abs(float64(ledger.Amount)))),
+			Amount:          int(math.Abs(float64(ledger.Amount))),
 			ReceivedDate:    ledger.ReceivedDate,
 			TransactionType: translate(ledger.TransactionType, ledger.Status, ledger.Amount),
 			Status:          caser.String(ledger.Status),
@@ -116,6 +117,13 @@ func (h *InvoicesHandler) transformLedgers(ledgers []shared.Ledger, caser cases.
 }
 
 func translate(transactionType string, status string, amount int) string {
+	parsedTransactionType := shared.ParseTransactionType(transactionType)
+
+	if (amount < 0 && parsedTransactionType.IsPayment()) || // don't need to rename reversal types
+		parsedTransactionType == shared.TransactionTypeRefund { // refund transactions applied to invoices will always be reversals
+		return fmt.Sprintf("%s reversal", parsedTransactionType.String())
+	}
+
 	switch status {
 	case "UNAPPLIED":
 		return "Unapplied Payment"
@@ -132,20 +140,16 @@ func translate(transactionType string, status string, amount int) string {
 		return "Manual Debit"
 	}
 
-	parsedTransactionType := shared.ParseTransactionType(transactionType)
-	if parsedTransactionType != shared.TransactionTypeUnknown {
-		if amount < 0 && parsedTransactionType != shared.TransactionTypeWriteOffReversal {
-			return fmt.Sprintf("%s reversal", parsedTransactionType.String())
+	if parsedTransactionType == shared.TransactionTypeUnknown {
+		caser := cases.Title(language.English)
+		words := strings.Fields(transactionType)
+		for i, word := range words {
+			if strings.ToUpper(word) != word {
+				words[i] = caser.String(word)
+			}
 		}
-		return parsedTransactionType.String()
+		return strings.Join(words, " ")
 	}
 
-	caser := cases.Title(language.English)
-	words := strings.Fields(transactionType)
-	for i, word := range words {
-		if strings.ToUpper(word) != word {
-			words[i] = caser.String(word)
-		}
-	}
-	return strings.Join(words, " ")
+	return parsedTransactionType.String()
 }

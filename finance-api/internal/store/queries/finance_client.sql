@@ -50,8 +50,10 @@ WITH ledger_data AS (
         fc.id AS client_id,
         fc.court_ref,
         SUM(CASE
-                WHEN la.status NOT IN ('PENDING', 'UN ALLOCATED') AND l.status = 'CONFIRMED'
-                    AND la.invoice_id IS NOT NULL THEN la.amount
+                WHEN la.status = 'ALLOCATED'
+                    THEN la.amount
+                WHEN la.status IN ('REAPPLIED') AND la.invoice_id IS NULL -- refund
+                    THEN la.amount
                 ELSE 0
             END) AS received,
         SUM(CASE
@@ -68,7 +70,6 @@ SELECT
 FROM ledger_data
 WHERE ledger_data.court_ref = $1;
 
-
 -- name: GetCreditBalanceByCourtRef :one
 SELECT ABS(COALESCE(SUM(la.amount), 0))::INT AS credit
 FROM finance_client fc
@@ -76,3 +77,14 @@ FROM finance_client fc
          LEFT JOIN ledger_allocation la ON l.id = la.ledger_id
 WHERE fc.court_ref = $1
   AND la.status IN ('UNAPPLIED', 'REAPPLIED');
+
+-- name: GetClientById :one
+SELECT fc.id AS finance_client_id, fc.client_id, fc.court_ref, fc.payment_method, c.surname
+FROM finance_client fc
+INNER JOIN public.persons c ON fc.client_id = c.id
+WHERE fc.client_id = @client_id;
+
+-- name: GetPaymentMethod :one
+SELECT payment_method
+FROM finance_client
+WHERE client_id = $1;

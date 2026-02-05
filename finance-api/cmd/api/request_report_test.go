@@ -4,16 +4,17 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestRequestReport(t *testing.T) {
@@ -65,7 +66,7 @@ func TestRequestReport(t *testing.T) {
 	assert.Equal(t, http.StatusCreated, w.Code)
 
 	assert.EqualValues(t, downloadForm, reports.requestedReport)
-	assert.Equal(t, "PostReportActions", service.lastCalled)
+	assert.Equal(t, "PostReportActions", service.called[0])
 }
 
 func TestRequestReportNoEmail(t *testing.T) {

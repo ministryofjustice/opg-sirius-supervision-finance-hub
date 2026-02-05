@@ -2,11 +2,15 @@ package api
 
 import (
 	"bytes"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
+	"github.com/pact-foundation/pact-go/v2/consumer"
+	"github.com/pact-foundation/pact-go/v2/matchers"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -14,7 +18,7 @@ import (
 func TestGetUser_cacheHit(t *testing.T) {
 	mockClient := SetUpTest()
 	mockJWT := mockJWTClient{}
-	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", "http://localhost:8181"}, nil)
+	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", "http://localhost:8181"})
 
 	user := shared.User{
 		ID:          1,
@@ -34,7 +38,7 @@ func TestGetUser_cacheHit(t *testing.T) {
 func TestGetUser_cacheRefresh(t *testing.T) {
 	mockClient := SetUpTest()
 	mockJWT := mockJWTClient{}
-	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", "http://localhost:8181"}, nil)
+	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", "http://localhost:8181"})
 
 	json := `[
 				{
@@ -96,7 +100,7 @@ func TestGetUser_cacheRefresh(t *testing.T) {
 func TestGetUser_cacheMiss(t *testing.T) {
 	mockClient := SetUpTest()
 	mockJWT := mockJWTClient{}
-	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", "http://localhost:8181"}, nil)
+	client := NewClient(mockClient, &mockJWT, Envs{"http://localhost:3000", "http://localhost:8181"})
 
 	json := `[]`
 
@@ -131,7 +135,7 @@ func TestGetUserReturnsUnauthorisedClientError(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 	_, err := client.GetUser(testContext(), 1)
 	assert.Equal(t, ErrUnauthorized, err)
 }
@@ -142,7 +146,7 @@ func TestGetUserReturns500Error(t *testing.T) {
 	}))
 	defer svr.Close()
 
-	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL}, nil)
+	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
 	_, err := client.GetUser(testContext(), 1)
 	assert.Equal(t, StatusError{
@@ -150,4 +154,48 @@ func TestGetUserReturns500Error(t *testing.T) {
 		URL:    svr.URL + "/supervision-api/v1/users",
 		Method: http.MethodGet,
 	}, err)
+}
+
+func TestGetUsers_contract(t *testing.T) {
+	pact, err := consumer.NewV2Pact(consumer.MockHTTPProviderConfig{
+		Consumer: "sirius-supervision-finance-hub",
+		Provider: "sirius",
+		LogDir:   "../../../logs",
+		PactDir:  "../../../pacts",
+	})
+	assert.NoError(t, err)
+
+	err = pact.
+		AddInteraction().
+		Given("Users exists").
+		UponReceiving("A request for users").
+		WithRequest("GET", "/supervision-api/v1/users", func(b *consumer.V2RequestBuilder) {
+			b.Header("Accept", matchers.S("application/json"))
+		}).
+		WillRespondWith(200, func(b *consumer.V2ResponseBuilder) {
+			b.Header("Content-Type", matchers.S("application/json"))
+			b.JSONBody(matchers.EachLike(matchers.MapMatcher{
+				"id":          matchers.Like(1),
+				"displayName": matchers.Like("Colin Case"),
+				"roles":       matchers.EachLike("Case Manager", 1),
+			}, 1))
+		}).
+		ExecuteTest(t, func(config consumer.MockServerConfig) error {
+			client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{fmt.Sprintf("http://%s:%d", config.Host, config.Port), ""})
+
+			user, err := client.GetUser(testContext(), 1)
+			if err != nil {
+				return err
+			}
+
+			assert.EqualValues(t, shared.User{
+				ID:          1,
+				DisplayName: "Colin Case",
+				Roles:       []string{"Case Manager"},
+			}, user)
+
+			return nil
+		})
+
+	assert.NoError(t, err)
 }

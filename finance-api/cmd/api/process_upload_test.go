@@ -5,15 +5,16 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 func Test_processUpload(t *testing.T) {
@@ -68,11 +69,6 @@ func Test_processUpload(t *testing.T) {
 }
 
 func Test_processUploadFile(t *testing.T) {
-	notifyClient := &mockNotify{}
-	service := &mockService{}
-
-	server := NewServer(service, nil, nil, notifyClient, nil, nil, nil)
-
 	tests := []struct {
 		name                string
 		upload              Upload
@@ -166,6 +162,22 @@ func Test_processUploadFile(t *testing.T) {
 			expectedServiceCall: "ProcessFulfilledRefunds",
 		},
 		{
+			name: "Reverse refund",
+			upload: Upload{
+				UploadType:   shared.ReportTypeUploadReverseFulfilledRefunds,
+				EmailAddress: "test@email.com",
+				FileBytes:    bytes.NewReader([]byte("col1, col2\nabc,1")),
+			},
+			expectedPayload: notify.Payload{
+				EmailAddress: "test@email.com",
+				TemplateId:   notify.ProcessingSuccessTemplateId,
+				Personalisation: struct {
+					UploadType string `json:"upload_type"`
+				}{"Reverse fulfilled refunds"},
+			},
+			expectedServiceCall: "ProcessRefundReversals",
+		},
+		{
 			name: "Known direct upload",
 			upload: Upload{
 				UploadType:   shared.ReportTypeUploadDebtChase,
@@ -183,14 +195,23 @@ func Test_processUploadFile(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		notifyClient := &mockNotify{}
+		service := &mockService{}
+
+		server := NewServer(service, nil, nil, notifyClient, nil, nil, nil)
+
 		ctx := auth.Context{
 			Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test")),
 			User:    &shared.User{ID: 1},
 		}
 
 		server.processUploadFile(ctx, tt.upload)
-		assert.Equal(t, tt.expectedPayload, notifyClient.payload)
-		assert.Equal(t, tt.expectedServiceCall, service.lastCalled)
+		assert.Equal(t, tt.expectedPayload, notifyClient.payload, tt.name)
+		if tt.expectedServiceCall != "" {
+			assert.Equal(t, tt.expectedServiceCall, service.called[0], tt.name)
+		} else {
+			assert.Len(t, service.called, 0, tt.name)
+		}
 	}
 }
 
@@ -218,6 +239,39 @@ func Test_formatFailedLines(t *testing.T) {
 				"Line 3: Could not find a client with this court reference",
 				"Line 5: Unable to parse date - please use the format DD/MM/YYYY",
 				"Line 8: Duplicate payment line",
+			},
+		},
+		{
+			name: "All error types",
+			failedLines: map[int]string{
+				1:  "DATE_PARSE_ERROR",
+				2:  "DATE_TIME_PARSE_ERROR",
+				3:  "AMOUNT_PARSE_ERROR",
+				4:  "CLIENT_NOT_FOUND",
+				5:  "PAYMENT_TYPE_PARSE_ERROR",
+				6:  "UNKNOWN_UPLOAD_TYPE",
+				7:  "NO_MATCHED_PAYMENT",
+				8:  "REVERSAL_CLIENT_NOT_FOUND",
+				9:  "DUPLICATE_REVERSAL",
+				10: "REFUND_NOT_FOUND_OR_DUPLICATE",
+				11: "REFUND_NOT_FOUND_FOR_REVERSAL",
+				12: "MAXIMUM_DEBT",
+				13: "DUPLICATE_PAYMENT",
+			},
+			want: []string{
+				"Line 1: Unable to parse date - please use the format DD/MM/YYYY",
+				"Line 2: Unable to parse date - please use the format YYYY-MM-DD HH:MM:SS",
+				"Line 3: Unable to parse amount - please use the format 320.00",
+				"Line 4: Could not find a client with this court reference",
+				"Line 5: Unable to parse payment type",
+				"Line 6: Unknown upload type",
+				"Line 7: Unable to find a matched payment to reverse",
+				"Line 8: Could not find client with this court reference [New (correct) court reference]",
+				"Line 9: This payment has already been reversed",
+				"Line 10: The refund could not be found - either the data does not match or the refund has been cancelled",
+				"Line 11: The refund to reverse could not be found - either the data does not match or the refund has not been fulfilled",
+				"Line 12: Payment could not be reversed - maximum invoice debt exceeded",
+				"Line 13: Duplicate payment line",
 			},
 		},
 	}

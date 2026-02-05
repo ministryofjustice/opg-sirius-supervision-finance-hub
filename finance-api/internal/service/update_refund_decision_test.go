@@ -1,10 +1,12 @@
 package service
 
 import (
+	"testing"
+
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func (suite *IntegrationSuite) TestService_UpdateRefundDecision() {
@@ -22,7 +24,7 @@ func (suite *IntegrationSuite) TestService_UpdateRefundDecision() {
 		"INSERT INTO bank_details VALUES (3, 3, 'Clint Client', '12345678', '11-22-33');",
 	)
 
-	s := NewService(seeder.Conn, nil, nil, nil, nil)
+	s := Service{store: store.New(seeder.Conn), tx: seeder.Conn}
 
 	type args struct {
 		clientId int32

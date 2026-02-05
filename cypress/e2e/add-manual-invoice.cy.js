@@ -50,4 +50,10 @@ describe("Add manual invoice form", () => {
         cy.visit("/clients/3/invoices/add");
         cy.checkAccessibility();
     });
+
+    it("should not show Direct Debit button when viewing the add manual invoice form",() => {
+        cy.visit("/clients/3/invoices/add");
+        cy.get("#direct-debit-button").should('exist');
+        cy.get("#direct-debit-button").should('not.be.visible');
+    });
 });

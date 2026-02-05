@@ -1,0 +1,20 @@
+{{ define "direct-debit-setup-event" }}
+    <div class="moj-timeline__item">
+        <div class="moj-timeline__header">
+             <h2 class="moj-timeline__title">
+                 Direct Debit Instruction created
+             </h2>
+            <p class="moj-timeline__byline">
+                {{ printf "by %v, %v" .User .Date }}
+            </p>
+        </div>
+        <p class="moj-timeline__date">
+            {{ printf "Outstanding balance: %v Credit balance: %v" (toCurrency .OutstandingBalance) (toCurrency .CreditBalance) }}
+        </p>
+        <div class="moj-timeline__description">
+            <ul class="govuk-list govuk-list--bullet">
+                <li> Payment method updated to Direct Debit </li>
+            </ul>
+        </div>
+    </div>
+{{ end }}

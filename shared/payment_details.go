@@ -15,15 +15,17 @@ type PaymentDetails struct {
 }
 
 type ReversalDetails struct {
-	PaymentType     TransactionType
-	ErroredCourtRef pgtype.Text
-	CorrectCourtRef pgtype.Text
-	BankDate        pgtype.Date
-	ReceivedDate    pgtype.Timestamp
-	Amount          int32
-	CreatedBy       pgtype.Int4
-	PisNumber       pgtype.Int4
-	SkipBankDate    pgtype.Bool
+	PaymentType      TransactionType
+	ErroredCourtRef  pgtype.Text
+	CorrectCourtRef  pgtype.Text
+	BankDate         pgtype.Date
+	ReceivedDate     pgtype.Timestamp
+	Amount           int32
+	CreatedBy        pgtype.Int4
+	PisNumber        pgtype.Int4
+	SkipBankDate     pgtype.Bool
+	Notes            pgtype.Text
+	SkipReceivedDate pgtype.Bool
 }
 
 type FulfilledRefundDetails struct {

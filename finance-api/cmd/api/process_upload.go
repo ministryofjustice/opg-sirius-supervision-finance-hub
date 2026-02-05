@@ -7,16 +7,17 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"io"
+	"log/slog"
+	"net/http"
+	"slices"
+
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"io"
-	"log/slog"
-	"net/http"
-	"slices"
 )
 
 type Upload struct {
@@ -35,12 +36,12 @@ func (s *Server) processUpload(w http.ResponseWriter, r *http.Request) error {
 	defer unchecked(r.Body.Close)
 
 	if err := json.NewDecoder(r.Body).Decode(&upload); err != nil {
-		return apierror.BadRequestError("event", "unable to parse upload", err)
+		return apierror.BadRequestError("upload", "unable to parse upload", err)
 	}
 
 	fileBytes, err := base64.StdEncoding.DecodeString(upload.Base64Data)
 	if err != nil {
-		return apierror.BadRequestError("event", "Invalid file data", err)
+		return apierror.BadRequestError("upload", "Invalid file data", err)
 	}
 
 	logger := s.Logger(ctx)
@@ -48,11 +49,8 @@ func (s *Server) processUpload(w http.ResponseWriter, r *http.Request) error {
 	logger.Info(fmt.Sprintf("processing %s upload", upload.UploadType))
 
 	go func(logger *slog.Logger) {
-		ctx := telemetry.ContextWithLogger(context.Background(), logger)
-		ctx = auth.Context{
-			Context: ctx,
-			User:    r.Context().(auth.Context).User,
-		}
+		ctx := s.copyCtx(r)
+		ctx.(auth.Context).WithContext(telemetry.ContextWithLogger(context.Background(), logger))
 		s.processUploadFile(ctx, Upload{
 			UploadType:   upload.UploadType,
 			EmailAddress: upload.EmailAddress,
@@ -118,6 +116,14 @@ func (s *Server) processUploadFile(ctx context.Context, upload Upload) {
 				logger.Error(fmt.Sprintf("unable to process fulfilled refunds due to %d failed lines", len(failedLines)))
 			}
 			payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, err, failedLines)
+		} else if upload.UploadType.IsRefundReversal() {
+			failedLines, perr := s.service.ProcessRefundReversals(ctx, records, upload.UploadDate)
+			if perr != nil {
+				logger.Error("unable to process reverse refunds due to error", "err", perr)
+			} else if len(failedLines) > 0 {
+				logger.Error(fmt.Sprintf("unable to process reverse refunds due to %d failed lines", len(failedLines)))
+			}
+			payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, err, failedLines)
 		} else {
 			logger.Error("invalid upload type", "type", upload.UploadType)
 			payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, fmt.Errorf("invalid upload type"), map[int]string{})
@@ -165,6 +171,8 @@ func formatFailedLines(failedLines map[int]string) []string {
 			errorMessage = "This payment has already been reversed"
 		case validation.UploadErrorRefundNotFound:
 			errorMessage = "The refund could not be found - either the data does not match or the refund has been cancelled"
+		case validation.UploadErrorRefundForReversalNotFound:
+			errorMessage = "The refund to reverse could not be found - either the data does not match or the refund has not been fulfilled"
 		case validation.UploadErrorMaximumDebt:
 			errorMessage = "Payment could not be reversed - maximum invoice debt exceeded"
 		case validation.UploadErrorDuplicatePayment:

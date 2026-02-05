@@ -128,7 +128,16 @@ FROM expired_refunds;
 
 -- name: CancelRefund :exec
 UPDATE refund
-SET cancelled_at = NOW(), cancelled_by = @cancelled_by
+SET cancelled_at = NOW(),
+    cancelled_by = @cancelled_by
 WHERE id = @refund_id
   AND finance_client_id = (SELECT id FROM finance_client WHERE client_id = @client_id)
-  AND processed_at IS NOT NULL AND fulfilled_at IS NULL;
+  AND fulfilled_at IS NULL;
+
+-- name: CheckRefundForReversalExists :one
+SELECT EXISTS (SELECT 1
+               FROM refund r
+                        JOIN supervision_finance.finance_client fc ON fc.id = r.finance_client_id
+               WHERE fc.court_ref = @court_ref
+                 AND r.fulfilled_at::DATE = @fulfilled_date::DATE
+                 AND r.amount = @amount);

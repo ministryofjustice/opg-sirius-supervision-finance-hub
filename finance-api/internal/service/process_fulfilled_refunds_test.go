@@ -2,13 +2,15 @@ package service
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"testing"
-	"time"
 )
 
 func (suite *IntegrationSuite) Test_processFulfilledRefunds() {
@@ -29,7 +31,7 @@ func (suite *IntegrationSuite) Test_processFulfilledRefunds() {
 	)
 
 	dispatch := &mockDispatch{}
-	s := NewService(seeder.Conn, dispatch, nil, nil, nil)
+	s := Service{store: store.New(seeder.Conn), dispatch: dispatch, tx: seeder.Conn}
 
 	records := [][]string{
 		{"Court reference", "Amount", "Bank account name", "Bank account number", "Bank account sort code", "Created by", "Approved by"},
@@ -72,7 +74,7 @@ func (suite *IntegrationSuite) Test_processFulfilledRefunds() {
 
 		assert.Equal(t, 1, len(createdLedgerAllocations))
 		assert.Equal(t, createdLedgerAllocation{
-			ledgerAmount:     32000,
+			ledgerAmount:     -32000,
 			ledgerType:       shared.TransactionTypeRefund.Key(),
 			ledgerStatus:     "CONFIRMED",
 			datetime:         bankDate,
@@ -88,7 +90,7 @@ func (suite *IntegrationSuite) Test_processFulfilledRefunds() {
 		assert.NotEqual(t, fulfilledAt, time.Time{})
 
 		var count int
-		_ = seeder.QueryRow(suite.ctx, `SELECT COUNT(*) FROM bank_details where refund_id = 1`).Scan(&count)
+		_ = seeder.QueryRow(suite.ctx, `SELECT COUNT(*) FROM bank_details WHERE refund_id = 1`).Scan(&count)
 		assert.Equal(t, 0, count)
 	})
 }

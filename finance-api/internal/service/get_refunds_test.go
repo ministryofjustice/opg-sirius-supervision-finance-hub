@@ -1,10 +1,12 @@
 package service
 
 import (
+	"testing"
+
 	"github.com/google/go-cmp/cmp"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func (suite *IntegrationSuite) TestService_GetRefunds() {
@@ -40,7 +42,7 @@ func (suite *IntegrationSuite) TestService_GetRefunds() {
 		"INSERT INTO finance_client VALUES (99, 99, 'empty', 'DEMANDED', 99)",
 	)
 
-	s := NewService(seeder.Conn, nil, nil, nil, nil)
+	s := Service{store: store.New(seeder.Conn)}
 
 	fulfilledDate := "2026-06-05"
 

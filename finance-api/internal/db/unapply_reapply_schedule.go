@@ -4,6 +4,9 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
+// UnapplyReapplySchedule generates a report of all unapply or reapply transactions for a given date.
+// This is used by the Cash Control team to reconcile unapply and reapply transactions, and each schedule should correlate
+// to a line in the non-receipts transactions journal by line description.
 type UnapplyReapplySchedule struct {
 	ReportQuery
 	UnapplyReapplyScheduleInput
@@ -30,7 +33,7 @@ const UnapplyReapplyScheduleQuery = `SELECT
 	    JOIN supervision_finance.ledger_allocation la ON l.id = la.ledger_id
 	    JOIN supervision_finance.finance_client fc ON fc.id = l.finance_client_id
 	    JOIN supervision_finance.invoice i ON i.id = la.invoice_id
-	WHERE l.created_at::DATE = $1 AND la.status = $2;
+	WHERE l.created_at::DATE = $1 AND la.status = $2 AND l.type <> 'REFUND';
 `
 
 func (u *UnapplyReapplySchedule) GetHeaders() []string {

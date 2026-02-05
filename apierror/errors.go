@@ -17,7 +17,7 @@ func BadRequestError(field string, reason string, error error) *BadRequest {
 }
 
 func (b BadRequest) Error() string {
-	return b.Reason
+	return fmt.Sprintf("bad request: field=%s reason=%s", b.Field, b.Reason)
 }
 
 func (b BadRequest) HTTPStatus() int { return http.StatusBadRequest }

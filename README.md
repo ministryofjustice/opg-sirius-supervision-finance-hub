@@ -4,7 +4,7 @@
 - [Go](https://golang.org/) (>= 1.22)
 - [docker compose](https://docs.docker.com/compose/install/) (>= 2.26.0)
 - [sqlc](https://github.com/sqlc-dev/sqlc?tab=readme-ov-file) (>=1.25.0)
-- [goose](https://github.com/pressly/goose) (3.20.0)
+- [goose](https://github.com/pressly/goose) (3.26.0)
 - [htmx](https://htmx.org/) (2.0.0)
 - [pgx](https://github.com/jackc/pgx) (5.5.5)
 - [validator](https://github.com/go-playground/validator) (10.19.0)
@@ -49,6 +49,7 @@ To generate migration files with `goose`, install it locally with `brew install 
 `goose -dir ./migrations create <name-of-migration> sql`
 
 Or copy the up and down files and increment them.
+Do a make down/ up to update the local database. 
 
 ## Adding seed data
 In general, look to keep tests self-contained by having them create (and clear) the data they require for testing. However,
@@ -57,15 +58,30 @@ data is driven by Sirius, e.g. Cypress tests asserting on the client header.
 
 To seed this data, add the inserts to `/test-data.sql`.
 
+## Sending EventBridge events locally
+In the event that we want to test EventBridge event handling locally, we can use the `send-event`, passing in the following
+parameters:
+* `SOURCE`: e.g: `"opg.supervision.infra"`
+* `DETAIL_TYPE`: e.g. `"scheduled-event"`
+* `DETAIL`: e.g. `'{"trigger":"refund-expiry"}'`
+* `OVERRIDE`: e.g. `'{"date":"2000-01-01"}'` (this is used in AWS to manually override the event date for testing or issuing retries)
+
+For simplicity, the scheduled events sent from AWS have been scripted as their own `make` commands. See `Makefile` for details.
+
 -----
 ## Run the unit/integration tests
 `make test`
 
-## Run the Cypress tests
-`make cypress`
+## Run *all* Cypress tests headless
+```spec
+make build-all (optional)
+make cypress
+```
+
+## Run *one* Cypress test headless
+`make cypress-single SPEC=add-fee-reduction.cy.js`
 
 Or to run interactively:
-
 ```
 cd cypress
 npx cypress open baseUrl=http://localhost:8888/finance
@@ -103,7 +119,23 @@ loaded. To avoid this, you can force event listeners to register on every HTMX l
 HTMX also includes a range of utility functions that can be used in place of more unwieldy native DOM functions.
 
 -----
-## AllPay API
-AllPay is OPG's Direct Debit broker, and we will be using their API for creating and cancelling mandates, issuing payment
-schedules, and querying failed payments. To enable us to do so in development without hitting their API, we use Prism to
-run a simple mock based off an OpenAPI specification.
+## Mock APIs
+This service integrates with multiple APIs, and we have a number of different approaches to mock responses.
+
+### Sirius
+Sirius endpoints are mocked using [json-server](https://github.com/typicode/json-server). This is a simple Express app that
+reads responses from a JSON file. The config files are located in `/json-server`, with routes specified in `routes.json`
+and the data in `db.json`. Additional middleware can be written in JS to intercept requests.
+
+### Allpay
+The Allpay Direct Debit API is mocked using [imposter](https://docs.imposter.sh/). This applies a config to an OpenAPI spec
+and responds with a file or string based on request data. Config files are located in `/api-mocks/allpay`.
+
+Note that Allpay requires client reference and surname path parameters in the URL to be base64 encoded, as these strings 
+may include invalid characters (e.g. whitespace, reserved symbols). When the mock switches response based on a path parameter,
+the value will need to be the base64 encoded string, with the actual value included as a comment in the line above.
+
+### Bank Holiday API
+We use the GovUK bank holidays endpoint in order to calculate working days. This is just a JSON file, but to avoid calling
+this repeatedly during testing, there is a simple Go file to serve it instead, located in `/api-mocks/holidays-api`. The
+`bank-holidays.json` file contains all dates from 2024-2027, and this can be manually updates as new dates are available.

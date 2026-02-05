@@ -11,6 +11,75 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const getDirectDebitPaymentsForBillingHistory = `-- name: GetDirectDebitPaymentsForBillingHistory :many
+SELECT pc.finance_client_id,
+       pc.collection_date,
+       pc.amount,
+       pc.status,
+       pc.ledger_id,
+       pc.created_at,
+       pc.created_by,
+       ledger.amount AS l_amount,
+       ledger.reference AS l_reference,
+       ledger_allocation.invoice_id AS la_invoice_id,
+       ledger_allocation.amount AS la_amount,
+       ledger_allocation.reference As la_reference
+FROM pending_collection pc
+    JOIN finance_client fc ON fc.id = pc.finance_client_id
+    LEFT JOIN ledger ON pc.ledger_id = ledger.id
+    LEFT JOIN ledger_allocation ON pc.ledger_id = ledger_allocation.ledger_id
+WHERE fc.client_id = $1
+ORDER BY pc.created_at DESC
+`
+
+type GetDirectDebitPaymentsForBillingHistoryRow struct {
+	FinanceClientID pgtype.Int4
+	CollectionDate  pgtype.Date
+	Amount          int32
+	Status          string
+	LedgerID        pgtype.Int4
+	CreatedAt       pgtype.Timestamp
+	CreatedBy       int32
+	LAmount         pgtype.Int4
+	LReference      pgtype.Text
+	LaInvoiceID     pgtype.Int4
+	LaAmount        pgtype.Int4
+	LaReference     pgtype.Text
+}
+
+func (q *Queries) GetDirectDebitPaymentsForBillingHistory(ctx context.Context, clientID int32) ([]GetDirectDebitPaymentsForBillingHistoryRow, error) {
+	rows, err := q.db.Query(ctx, getDirectDebitPaymentsForBillingHistory, clientID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetDirectDebitPaymentsForBillingHistoryRow
+	for rows.Next() {
+		var i GetDirectDebitPaymentsForBillingHistoryRow
+		if err := rows.Scan(
+			&i.FinanceClientID,
+			&i.CollectionDate,
+			&i.Amount,
+			&i.Status,
+			&i.LedgerID,
+			&i.CreatedAt,
+			&i.CreatedBy,
+			&i.LAmount,
+			&i.LReference,
+			&i.LaInvoiceID,
+			&i.LaAmount,
+			&i.LaReference,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getFeeReductionEvents = `-- name: GetFeeReductionEvents :many
 SELECT fr.type,
        fr.startdate,
@@ -119,6 +188,59 @@ func (q *Queries) GetGeneratedInvoices(ctx context.Context, clientID int32) ([]G
 	return items, nil
 }
 
+const getInvoiceAdjustmentEvents = `-- name: GetInvoiceAdjustmentEvents :many
+SELECT ia.invoice_id, i.reference, ia.adjustment_type, ia.amount, ia.notes, ia.created_at, ia.created_by, ia.status, ia.updated_at, ia.updated_by
+FROM invoice_adjustment ia
+         JOIN invoice i ON i.id = ia.invoice_id
+         JOIN finance_client fc ON fc.id = ia.finance_client_id
+WHERE fc.client_id = $1
+ORDER BY ia.raised_date DESC
+`
+
+type GetInvoiceAdjustmentEventsRow struct {
+	InvoiceID      int32
+	Reference      string
+	AdjustmentType string
+	Amount         int32
+	Notes          string
+	CreatedAt      pgtype.Timestamp
+	CreatedBy      int32
+	Status         string
+	UpdatedAt      pgtype.Timestamp
+	UpdatedBy      pgtype.Int4
+}
+
+func (q *Queries) GetInvoiceAdjustmentEvents(ctx context.Context, clientID int32) ([]GetInvoiceAdjustmentEventsRow, error) {
+	rows, err := q.db.Query(ctx, getInvoiceAdjustmentEvents, clientID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetInvoiceAdjustmentEventsRow
+	for rows.Next() {
+		var i GetInvoiceAdjustmentEventsRow
+		if err := rows.Scan(
+			&i.InvoiceID,
+			&i.Reference,
+			&i.AdjustmentType,
+			&i.Amount,
+			&i.Notes,
+			&i.CreatedAt,
+			&i.CreatedBy,
+			&i.Status,
+			&i.UpdatedAt,
+			&i.UpdatedBy,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getLedgerAllocationsForClient = `-- name: GetLedgerAllocationsForClient :many
 SELECT l.id AS ledger_id,
        la.invoice_id,
@@ -183,42 +305,41 @@ func (q *Queries) GetLedgerAllocationsForClient(ctx context.Context, clientID in
 	return items, nil
 }
 
-const getPendingInvoiceAdjustments = `-- name: GetPendingInvoiceAdjustments :many
-SELECT ia.invoice_id, i.reference, ia.adjustment_type, ia.amount, ia.notes, ia.created_at, ia.created_by
-FROM invoice_adjustment ia
-         JOIN invoice i ON i.id = ia.invoice_id
-         JOIN finance_client fc ON fc.id = ia.finance_client_id
+const getPaymentMethodsForBillingHistory = `-- name: GetPaymentMethodsForBillingHistory :many
+SELECT pm.id,
+    finance_client_id,
+    type,
+    created_by,
+    created_at
+FROM payment_method pm
+     JOIN finance_client fc ON fc.id = pm.finance_client_id
 WHERE fc.client_id = $1
-ORDER BY ia.raised_date DESC
+ORDER BY pm.id DESC
 `
 
-type GetPendingInvoiceAdjustmentsRow struct {
-	InvoiceID      int32
-	Reference      string
-	AdjustmentType string
-	Amount         int32
-	Notes          string
-	CreatedAt      pgtype.Timestamp
-	CreatedBy      int32
+type GetPaymentMethodsForBillingHistoryRow struct {
+	ID              int32
+	FinanceClientID int32
+	Type            string
+	CreatedBy       int32
+	CreatedAt       pgtype.Timestamp
 }
 
-func (q *Queries) GetPendingInvoiceAdjustments(ctx context.Context, clientID int32) ([]GetPendingInvoiceAdjustmentsRow, error) {
-	rows, err := q.db.Query(ctx, getPendingInvoiceAdjustments, clientID)
+func (q *Queries) GetPaymentMethodsForBillingHistory(ctx context.Context, clientID int32) ([]GetPaymentMethodsForBillingHistoryRow, error) {
+	rows, err := q.db.Query(ctx, getPaymentMethodsForBillingHistory, clientID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetPendingInvoiceAdjustmentsRow
+	var items []GetPaymentMethodsForBillingHistoryRow
 	for rows.Next() {
-		var i GetPendingInvoiceAdjustmentsRow
+		var i GetPaymentMethodsForBillingHistoryRow
 		if err := rows.Scan(
-			&i.InvoiceID,
-			&i.Reference,
-			&i.AdjustmentType,
-			&i.Amount,
-			&i.Notes,
-			&i.CreatedAt,
+			&i.ID,
+			&i.FinanceClientID,
+			&i.Type,
 			&i.CreatedBy,
+			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -289,54 +410,6 @@ func (q *Queries) GetRefundsForBillingHistory(ctx context.Context, clientID int3
 			&i.CancelledAt,
 			&i.FulfilledAt,
 			&i.CancelledBy,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getRejectedInvoiceAdjustments = `-- name: GetRejectedInvoiceAdjustments :many
-SELECT ia.invoice_id, i.reference, ia.adjustment_type, ia.amount, ia.notes, ia.updated_at, ia.updated_by
-FROM invoice_adjustment ia
-         JOIN invoice i ON i.id = ia.invoice_id
-         JOIN finance_client fc ON fc.id = ia.finance_client_id
-WHERE fc.client_id = $1
-AND status = 'REJECTED'
-ORDER BY ia.raised_date DESC
-`
-
-type GetRejectedInvoiceAdjustmentsRow struct {
-	InvoiceID      int32
-	Reference      string
-	AdjustmentType string
-	Amount         int32
-	Notes          string
-	UpdatedAt      pgtype.Timestamp
-	UpdatedBy      pgtype.Int4
-}
-
-func (q *Queries) GetRejectedInvoiceAdjustments(ctx context.Context, clientID int32) ([]GetRejectedInvoiceAdjustmentsRow, error) {
-	rows, err := q.db.Query(ctx, getRejectedInvoiceAdjustments, clientID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetRejectedInvoiceAdjustmentsRow
-	for rows.Next() {
-		var i GetRejectedInvoiceAdjustmentsRow
-		if err := rows.Scan(
-			&i.InvoiceID,
-			&i.Reference,
-			&i.AdjustmentType,
-			&i.Amount,
-			&i.Notes,
-			&i.UpdatedAt,
-			&i.UpdatedBy,
 		); err != nil {
 			return nil, err
 		}

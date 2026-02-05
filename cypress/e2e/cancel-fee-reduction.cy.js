@@ -35,4 +35,10 @@ describe("Cancel fee reduction form", () => {
         cy.visit("/clients/6/fee-reductions/2/cancel");
         cy.checkAccessibility();
     });
+
+    it("should not show Direct Debit button when viewing the cancel fee reduction form",() => {
+        cy.visit("/clients/6/fee-reductions/2/cancel");
+        cy.get("#direct-debit-button").should('exist');
+        cy.get("#direct-debit-button").should('not.be.visible');
+    });
 });

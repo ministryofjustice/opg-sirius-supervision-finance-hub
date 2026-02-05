@@ -2,12 +2,11 @@ package api
 
 import (
 	"context"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/allpay"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
-	"log/slog"
 	"net/http"
 	"testing"
+
+	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -31,30 +30,6 @@ type mockJWTClient struct {
 
 func (m *mockJWTClient) CreateJWT(ctx context.Context) string {
 	return "jwt"
-}
-
-type mockAllPayClient struct {
-	modulusCalled       bool
-	modulusError        error
-	createMandateCalled bool
-	createMandateError  error
-	cancelMandateCalled bool
-	cancelMandateError  error
-}
-
-func (m *mockAllPayClient) ModulusCheck(ctx context.Context, sortCode string, accountNumber string) error {
-	m.modulusCalled = true
-	return m.modulusError
-}
-
-func (m *mockAllPayClient) CreateMandate(ctx context.Context, data *allpay.CreateMandateRequest) error {
-	m.createMandateCalled = true
-	return m.createMandateError
-}
-
-func (m *mockAllPayClient) CancelMandate(ctx context.Context, data *allpay.CancelMandateRequest) error {
-	m.cancelMandateCalled = true
-	return m.cancelMandateError
 }
 
 func TestClientError(t *testing.T) {
@@ -83,11 +58,5 @@ func SetUpTest() *MockClient {
 func testContext() auth.Context {
 	return auth.Context{
 		Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-hub-test")),
-	}
-}
-
-func testContextWithLogger(h slog.Handler) context.Context {
-	return auth.Context{
-		Context: telemetry.ContextWithLogger(context.Background(), slog.New(h)),
 	}
 }

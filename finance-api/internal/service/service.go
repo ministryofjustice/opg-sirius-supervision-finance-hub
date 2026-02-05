@@ -2,16 +2,18 @@ package service
 
 import (
 	"context"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"io"
 	"log/slog"
 	"net/http"
+	"time"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/allpay"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 )
 
 type TX interface {
@@ -21,7 +23,11 @@ type TX interface {
 type Dispatch interface {
 	CreditOnAccount(ctx context.Context, event event.CreditOnAccount) error
 	PaymentMethodChanged(ctx context.Context, event event.PaymentMethod) error
+	DirectDebitScheduleFailed(ctx context.Context, event event.DirectDebitScheduleFailed) error
 	RefundAdded(ctx context.Context, event event.RefundAdded) error
+	DirectDebitCollection(ctx context.Context, event event.DirectDebitCollection) error
+	DirectDebitMandateReview(ctx context.Context, event event.DirectDebitMandateReview) error
+	DirectDebitCollectionFailed(ctx context.Context, event event.DirectDebitCollectionFailed) error
 }
 
 type FileStorage interface {
@@ -34,8 +40,23 @@ type NotifyClient interface {
 	Send(ctx context.Context, payload notify.Payload) error
 }
 
+type AllpayClient interface {
+	CancelMandate(ctx context.Context, data *allpay.CancelMandateRequest) error
+	CreateMandate(ctx context.Context, data *allpay.CreateMandateRequest) error
+	ModulusCheck(ctx context.Context, sortCode string, accountNumber string) error
+	CreateSchedule(ctx context.Context, data *allpay.CreateScheduleInput) error
+	FetchFailedPayments(ctx context.Context, data allpay.FetchFailedPaymentsInput) (allpay.FailedPayments, error)
+}
+
+type GovUKClient interface {
+	AddWorkingDays(ctx context.Context, d time.Time, n int) (time.Time, error)
+	SubWorkingDays(ctx context.Context, d time.Time, n int) (time.Time, error)
+	NextWorkingDayOnOrAfterX(ctx context.Context, date time.Time, dayOfMonth int) (time.Time, error)
+}
+
 type Env struct {
-	AsyncBucket string
+	AsyncBucket   string
+	AllpayEnabled bool
 }
 
 type Service struct {
@@ -43,6 +64,8 @@ type Service struct {
 	dispatch    Dispatch
 	fileStorage FileStorage
 	notify      NotifyClient
+	allpay      AllpayClient
+	govUK       GovUKClient
 	tx          TX
 	env         *Env
 }
@@ -51,12 +74,14 @@ type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-func NewService(conn *pgxpool.Pool, dispatch Dispatch, fileStorage FileStorage, notify NotifyClient, env *Env) *Service {
+func NewService(conn *pgxpool.Pool, dispatch Dispatch, fileStorage FileStorage, notify NotifyClient, allpay AllpayClient, govUK GovUKClient, env *Env) *Service {
 	return &Service{
 		store:       store.New(conn),
 		dispatch:    dispatch,
 		fileStorage: fileStorage,
 		notify:      notify,
+		allpay:      allpay,
+		govUK:       govUK,
 		tx:          conn,
 		env:         env,
 	}
@@ -74,10 +99,5 @@ func (s *Service) BeginStoreTx(ctx context.Context) (*store.Tx, error) {
 }
 
 func (s *Service) Logger(ctx context.Context) *slog.Logger {
-	return telemetry.LoggerFromContext(ctx)
-}
-
-func (*Service) WithCancel(ctx context.Context) (context.Context, context.CancelFunc) {
-	cancelCtx, cancelTx := context.WithCancel(ctx)
-	return ctx.(auth.Context).WithContext(cancelCtx), cancelTx
+	return telemetry.LoggerFromContext(ctx).With("category", "application")
 }

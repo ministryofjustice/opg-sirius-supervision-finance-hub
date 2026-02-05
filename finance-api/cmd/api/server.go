@@ -2,29 +2,37 @@ package api
 
 import (
 	"context"
+	"io"
+	"log/slog"
+	"net/http"
+	"strconv"
+	"time"
+
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/ministryofjustice/opg-go-common/securityheaders"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/service"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	"io"
-	"log/slog"
-	"net/http"
-	"strconv"
-	"time"
 )
 
 type Service interface {
+	AddCollectedPayments(ctx context.Context, date time.Time) error
 	AddFeeReduction(ctx context.Context, clientId int32, data shared.AddFeeReduction) error
 	AddInvoiceAdjustment(ctx context.Context, clientId int32, invoiceId int32, ledgerEntry *shared.AddInvoiceAdjustmentRequest) (*shared.InvoiceReference, error)
 	AddManualInvoice(ctx context.Context, clientId int32, invoice shared.AddManualInvoice) error
 	AddRefund(ctx context.Context, clientId int32, refund shared.AddRefund) error
 	CancelFeeReduction(ctx context.Context, id int32, cancelledFeeReduction shared.CancelFeeReduction) error
+	CancelDirectDebitMandate(ctx context.Context, id int32, cancelMandate shared.CancelMandate) error
+	CreateDirectDebitMandate(ctx context.Context, id int32, createMandate shared.CreateMandate) error
+	CreateDirectDebitSchedule(ctx context.Context, clientID int32, data shared.CreateSchedule) (service.PendingCollection, error)
+	CreateDirectDebitScheduleForInvoice(ctx context.Context, clientID int32) error
+	CheckPaymentMethod(ctx context.Context, clientID int32) error
 	ExpireRefunds(ctx context.Context) error
 	GetAccountInformation(ctx context.Context, id int32) (*shared.AccountInformation, error)
 	GetBillingHistory(ctx context.Context, id int32) ([]shared.BillingHistory, error)
@@ -33,17 +41,20 @@ type Service interface {
 	GetInvoiceAdjustments(ctx context.Context, clientId int32) (shared.InvoiceAdjustments, error)
 	GetPermittedAdjustments(ctx context.Context, invoiceId int32) ([]shared.AdjustmentType, error)
 	GetRefunds(ctx context.Context, clientId int32) (shared.Refunds, error)
-	ProcessPayments(ctx context.Context, records [][]string, uploadType shared.ReportUploadType, bankDate shared.Date, pisNumber int) (map[int]string, error)
-	ProcessAdhocEvent(ctx context.Context) error
-	ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType) (map[int]string, error)
 	PostReportActions(ctx context.Context, report shared.ReportRequest)
-	ProcessFulfilledRefunds(ctx context.Context, records [][]string, date shared.Date) (map[int]string, error)
+	ProcessAdhocEvent(ctx context.Context) error
 	ProcessDirectUploadReport(ctx context.Context, filename string, fileBytes io.Reader, uploadType shared.ReportUploadType) error
+	ProcessFailedDirectDebitCollections(ctx context.Context, date time.Time) error
+	ProcessFulfilledRefunds(ctx context.Context, records [][]string, date shared.Date) (map[int]string, error)
+	ProcessPayments(ctx context.Context, records [][]string, uploadType shared.ReportUploadType, bankDate shared.Date, pisNumber int) (map[int]string, error)
+	ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType) (map[int]string, error)
+	ProcessRefundReversals(ctx context.Context, records [][]string, date shared.Date) (map[int]string, error)
 	ReapplyCredit(ctx context.Context, clientID int32, tx *store.Tx) error
 	UpdateClient(ctx context.Context, clientID int32, courtRef string) error
 	UpdatePaymentMethod(ctx context.Context, clientID int32, paymentMethod shared.PaymentMethod) error
 	UpdatePendingInvoiceAdjustment(ctx context.Context, clientId int32, adjustmentId int32, status shared.AdjustmentStatus) error
 	UpdateRefundDecision(ctx context.Context, clientId int32, refundId int32, status shared.RefundStatus) error
+	SendDirectDebitCollectionEvent(ctx context.Context, id int32, pendingCollection service.PendingCollection) error
 }
 type FileStorage interface {
 	GetFile(ctx context.Context, bucketName string, filename string) (io.ReadCloser, error)
@@ -116,16 +127,18 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 	authFunc("POST /clients/{clientId}/fee-reductions", shared.RoleFinanceUser, s.addFeeReduction)
 	authFunc("PUT /clients/{clientId}/fee-reductions/{feeReductionId}/cancel", shared.RoleFinanceManager, s.cancelFeeReduction)
 	authFunc("POST /clients/{clientId}/invoices", shared.RoleFinanceManager, s.addManualInvoice)
-	authFunc("POST /clients/{clientId}/invoices/{invoiceId}/invoice-adjustments", shared.RoleFinanceUser, s.AddInvoiceAdjustment)
+	authFunc("POST /clients/{clientId}/invoices/{invoiceId}/invoice-adjustments", shared.RoleFinanceUser, s.addInvoiceAdjustment)
 	authFunc("PUT /clients/{clientId}/invoice-adjustments/{adjustmentId}", shared.RoleFinanceManager, s.updatePendingInvoiceAdjustment)
 	authFunc("PUT /clients/{clientId}/payment-method", shared.RoleFinanceUser, s.updatePaymentMethod)
 	authFunc("POST /clients/{clientId}/refunds", shared.RoleFinanceUser, s.addRefund)
 	authFunc("PUT /clients/{clientId}/refunds/{refundId}", shared.RoleFinanceManager, s.updateRefundDecision)
+	authFunc("POST /clients/{clientId}/direct-debit", shared.RoleFinanceUser, s.createDirectDebitMandate)
+	authFunc("DELETE /clients/{clientId}/direct-debit", shared.RoleFinanceUser, s.cancelDirectDebitMandate)
 
 	authFunc("GET /download", shared.RoleFinanceReporting, s.download)
 	authFunc("HEAD /download", shared.RoleFinanceReporting, s.checkDownload)
 	authFunc("POST /reports", shared.RoleFinanceReporting, s.requestReport)
-	authFunc("POST /uploads", shared.RoleFinanceManager, s.processUpload)
+	authFunc("POST /uploads", shared.RoleFinanceReporting, s.processUpload)
 
 	// unauthenticated as request is coming from EventBridge
 	eventFunc := func(pattern string, h handlerFunc) {
@@ -164,7 +177,7 @@ func (s *Server) getPathID(r *http.Request, key string) (int32, error) {
 }
 
 func (s *Server) Logger(ctx context.Context) *slog.Logger {
-	return telemetry.LoggerFromContext(ctx)
+	return telemetry.LoggerFromContext(ctx).With("category", "api")
 }
 
 func (s *Server) copyCtx(r *http.Request) context.Context {

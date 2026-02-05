@@ -21,8 +21,17 @@ go-lint:
 gosec: setup-directories
 	docker compose run --rm gosec
 
-unit-test: setup-directories
-	go run gotest.tools/gotestsum@latest --format testname  --junitfile test-results/unit-tests.xml -- ./... -coverprofile=test-results/test-coverage.txt
+hub-tests: setup-directories
+	docker compose run --rm hub-test-runner
+
+api-tests: setup-directories
+	go run gotest.tools/gotestsum@latest --format testname  --junitfile test-results/api-unit-tests.xml -- ./finance-api/... -coverprofile=test-results/api-coverage.txt
+
+combine-coverage:
+	cat test-results/hub-coverage.txt > test-results/coverage.txt
+	tail -n +2 test-results/api-coverage.txt >> test-results/coverage.txt
+
+unit-test: hub-tests api-tests combine-coverage
 
 build: build-api build-hub build-migrations
 build-api:
@@ -36,7 +45,7 @@ build-dev:
 	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml build --parallel finance-hub finance-api yarn
 
 build-all:
-	docker compose build --parallel finance-hub finance-api finance-migration json-server cypress sirius-db allpay-mock
+	docker compose build --parallel finance-hub finance-api finance-migration json-server cypress sirius-db allpay-mock holidays-api-mock
 
 scan: scan-api scan-hub scan-migrations
 scan-api: setup-directories
@@ -79,7 +88,7 @@ start-and-seed:
 	$(MAKE) build-migrations
 	$(MAKE) migrate
 	docker compose exec sirius-db psql -U user -d finance -a -f ./seed_data.sql
-	docker compose up -d localstack json-server allpay-mock
+	docker compose up -d localstack json-server allpay-mock holidays-api-mock
 
 test-migrations:
 	docker compose pull finance-migration
@@ -92,6 +101,9 @@ test-migrations:
 cypress: setup-directories clean start-and-seed
 	docker compose run cypress
 
+cypress-single: setup-directories clean start-and-seed
+	docker compose run --rm cypress run --spec e2e/$(SPEC)
+
 export ACTIVE_SCAN ?= true
 export ACTIVE_SCAN_TIMEOUT ?= 600
 export SERVICE_NAME ?= FinanceHub
@@ -101,3 +113,18 @@ cypress-zap: clean start-and-seed
 	docker compose -f docker-compose.yml -f zap/docker-compose.zap.yml exec -u root zap-proxy bash -c "apk add --no-cache jq"
 	docker compose -f docker-compose.yml -f zap/docker-compose.zap.yml exec zap-proxy bash -c "/zap/wrk/scan.sh"
 	docker compose -f docker-compose.yml -f zap/docker-compose.zap.yml down
+
+send-event:
+	./scripts/send_eventbridge_event.sh "$(SOURCE)" "$(DETAIL_TYPE)" '$(DETAIL)' '$(OVERRIDE)' $(API_URL)
+
+OVERRIDE ?= "" ## '{date: "2022-04-02"}'
+send-event-refund-expiry:
+	$(MAKE) send-event SOURCE="opg.supervision.infra" DETAIL_TYPE="scheduled-event" DETAIL='{"trigger":"refund-expiry"}'
+
+OVERRIDE ?= "" ## '{date: "2022-04-02"}'
+send-event-direct-debit-collection:
+	$(MAKE) send-event SOURCE="opg.supervision.infra" DETAIL_TYPE="scheduled-event" DETAIL='{"trigger":"direct-debit-collection"}'
+
+OVERRIDE ?= "" ## '{date: "2022-04-02"}'
+send-event-failed-direct-debit-collections:
+	$(MAKE) send-event SOURCE="opg.supervision.infra" DETAIL_TYPE="scheduled-event" DETAIL='{"trigger":"failed-direct-debit-collections"}'

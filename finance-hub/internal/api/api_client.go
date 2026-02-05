@@ -3,10 +3,10 @@ package api
 import (
 	"context"
 	"fmt"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/allpay"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
 	"io"
 	"net/http"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
 )
 
 const ErrUnauthorized ClientError = "unauthorized"
@@ -26,26 +26,18 @@ type JWTClient interface {
 	CreateJWT(ctx context.Context) string
 }
 
-type AllPay interface {
-	CancelMandate(ctx context.Context, data *allpay.CancelMandateRequest) error
-	CreateMandate(ctx context.Context, data *allpay.CreateMandateRequest) error
-	ModulusCheck(ctx context.Context, sortCode string, accountNumber string) error
-}
-
 type Client struct {
-	http         HTTPClient
-	caches       *Caches
-	jwt          JWTClient
-	allpayClient AllPay
+	http   HTTPClient
+	caches *Caches
+	jwt    JWTClient
 	Envs
 }
 
-func NewClient(httpClient HTTPClient, jwt JWTClient, envs Envs, allpayClient AllPay) *Client {
+func NewClient(httpClient HTTPClient, jwt JWTClient, envs Envs) *Client {
 	return &Client{
-		http:         httpClient,
-		caches:       newCaches(),
-		jwt:          jwt,
-		allpayClient: allpayClient,
+		http:   httpClient,
+		caches: newCaches(),
+		jwt:    jwt,
 		Envs: Envs{
 			SiriusURL:  envs.SiriusURL,
 			BackendURL: envs.BackendURL,
@@ -66,6 +58,7 @@ func (c *Client) newSiriusRequest(ctx context.Context, method, path string, body
 	addCookiesFromContext(ctx, req)
 	addXsrfFromContext(ctx, req)
 	req.Header.Add("OPG-Bypass-Membrane", "1")
+	req.Header.Add("accept", "application/json")
 
 	return req, err
 }
@@ -78,6 +71,7 @@ func (c *Client) newBackendRequest(ctx context.Context, method, path string, bod
 
 	addCookiesFromContext(ctx, req)
 	req.Header.Add("Authorization", "Bearer "+c.jwt.CreateJWT(ctx))
+	req.Header.Add("accept", "application/json")
 
 	return req, err
 }
@@ -90,6 +84,7 @@ func (c *Client) newSessionRequest(ctx context.Context) (*http.Request, error) {
 
 	addCookiesFromContext(ctx, req)
 	req.Header.Add("OPG-Bypass-Membrane", "1")
+	req.Header.Add("accept", "application/json")
 
 	return req, err
 }

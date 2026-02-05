@@ -39,4 +39,10 @@ describe("Add Refunds", () => {
         cy.visit("/clients/15/refunds/add");
         cy.checkAccessibility();
     });
+
+    it("should not show Direct Debit button when viewing the add refund form",() => {
+        cy.visit("/clients/15/refunds/add");
+        cy.get("#direct-debit-button").should('exist');
+        cy.get("#direct-debit-button").should('not.be.visible');
+    });
 });

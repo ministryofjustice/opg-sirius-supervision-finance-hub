@@ -3,14 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"github.com/ministryofjustice/opg-go-common/env"
-	"github.com/ministryofjustice/opg-go-common/paginate"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/allpay"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/api"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/server"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"html/template"
 	"log/slog"
 	"net/http"
@@ -22,6 +14,14 @@ import (
 	"syscall"
 	"time"
 	"unicode"
+
+	"github.com/ministryofjustice/opg-go-common/env"
+	"github.com/ministryofjustice/opg-go-common/paginate"
+	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/api"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/auth"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/server"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
 type Envs struct {
@@ -34,9 +34,6 @@ type Envs struct {
 	jwtSecret        string
 	billingTeamID    int
 	showDirectDebits bool
-	allpayHost       string
-	allpayAPIKey     string
-	allpaySchemeCode string
 }
 
 func parseEnvs() (*Envs, error) {
@@ -76,9 +73,6 @@ func parseEnvs() (*Envs, error) {
 		webDir:           "web",
 		port:             envs["PORT"],
 		showDirectDebits: os.Getenv("SHOW_DIRECT_DEBITS") == "1",
-		allpayHost:       os.Getenv("ALLPAY_HOST"),
-		allpayAPIKey:     os.Getenv("ALLPAY_API_KEY"),
-		allpaySchemeCode: "OPGB",
 	}, nil
 }
 
@@ -107,18 +101,12 @@ func run(ctx context.Context, logger *slog.Logger) error {
 		return err
 	}
 
-	alllpayClient := allpay.NewClient(http.DefaultClient, envs.allpayHost, envs.allpayAPIKey, envs.allpaySchemeCode)
-
-	client := api.NewClient(
-		http.DefaultClient,
-		&auth.JWT{
-			Secret: envs.jwtSecret,
-		},
-		api.Envs{
-			SiriusURL:  envs.siriusURL,
-			BackendURL: envs.backendURL,
-		},
-		alllpayClient)
+	client := api.NewClient(http.DefaultClient, &auth.JWT{
+		Secret: envs.jwtSecret,
+	}, api.Envs{
+		SiriusURL:  envs.siriusURL,
+		BackendURL: envs.backendURL,
+	})
 
 	templates := createTemplates(envs)
 
@@ -189,7 +177,7 @@ func createTemplates(envVars *Envs) map[string]*template.Template {
 			return envVars.showDirectDebits
 		},
 		"toCurrency": func(amount int) string {
-			return shared.IntToDecimalString(amount)
+			return shared.IntToCurrency(amount)
 		},
 		"toNegative": func(input int) int {
 			return -input

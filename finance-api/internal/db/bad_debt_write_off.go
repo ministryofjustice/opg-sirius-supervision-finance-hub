@@ -1,10 +1,13 @@
 package db
 
 import (
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"time"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
+// BadDebtWriteOff generates a report of bad debt that has been written-off within a specified date range.
+// If the date range is not provided, it defaults to from the system go-live date to the current date.
 type BadDebtWriteOff struct {
 	ReportQuery
 	BadDebtWriteOffInput
@@ -79,13 +82,13 @@ func (b *BadDebtWriteOff) GetParams() []any {
 		from, to time.Time
 	)
 
-	if b.FromDate == nil {
+	if b.FromDate == nil || b.FromDate.IsNull() {
 		from = b.GoLiveDate
 	} else {
 		from = b.FromDate.Time
 	}
 
-	if b.ToDate == nil {
+	if b.ToDate == nil || b.ToDate.IsNull() {
 		to = time.Now()
 	} else {
 		to = b.ToDate.Time

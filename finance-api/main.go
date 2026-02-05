@@ -4,18 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/jackc/pgx/v5/pgxpool"
-	_ "github.com/lib/pq"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/cmd/api"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/filestorage"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/reports"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/service"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -24,6 +12,21 @@ import (
 	"strconv"
 	"syscall"
 	"time"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/lib/pq"
+	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/cmd/api"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/allpay"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/filestorage"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/govuk"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/notify"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/reports"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/service"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 )
@@ -51,6 +54,11 @@ type Envs struct {
 	systemUserID       int32
 	eventBridgeAPIKey  string
 	notifyUrl          string
+	allpayHost         string
+	allpayAPIKey       string
+	allpaySchemeCode   string
+	holidayAPIURL      string
+	allpayEnabled      bool
 }
 
 func parseEnvs() (*Envs, error) {
@@ -118,6 +126,11 @@ func parseEnvs() (*Envs, error) {
 		webDir:             "web",
 		eventBridgeAPIKey:  envs["EVENT_BRIDGE_API_KEY"],
 		notifyUrl:          notifyUrl,
+		allpayHost:         os.Getenv("ALLPAY_HOST"),    // TODO: move to checked values once live
+		allpayAPIKey:       os.Getenv("ALLPAY_API_KEY"), // TODO: move to checked values once live
+		allpayEnabled:      os.Getenv("ALLPAY_ENABLED") == "1",
+		allpaySchemeCode:   "OPGB",
+		holidayAPIURL:      os.Getenv("HOLIDAY_API_URL"),
 	}, nil
 }
 
@@ -165,16 +178,13 @@ func run(ctx context.Context, logger *slog.Logger) error {
 	}
 
 	notifyClient := notify.NewClient(envs.notifyKey, envs.notifyUrl)
+	allpayClient := allpay.NewClient(http.DefaultClient, envs.allpayHost, envs.allpayAPIKey, envs.allpaySchemeCode)
+	govUKClient := govuk.NewClient(http.DefaultClient, envs.holidayAPIURL)
 
-	Service := service.NewService(
-		dbPool,
-		eventClient,
-		fileStorageClient,
-		notifyClient,
-		&service.Env{
-			AsyncBucket: envs.asyncBucket,
-		},
-	)
+	Service := service.NewService(dbPool, eventClient, fileStorageClient, notifyClient, allpayClient, govUKClient, &service.Env{
+		AsyncBucket:   envs.asyncBucket,
+		AllpayEnabled: envs.allpayEnabled,
+	})
 
 	validator, err := validation.New()
 	if err != nil {

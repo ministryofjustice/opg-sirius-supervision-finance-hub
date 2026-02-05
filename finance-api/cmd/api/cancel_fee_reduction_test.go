@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 func TestServer_cancelFeeReduction(t *testing.T) {
@@ -78,7 +79,7 @@ func TestServer_cancelFeeReductions500Error(t *testing.T) {
 
 	validator, _ := validation.New()
 
-	mock := &mockService{cancelFeeReduction: cancelFeeReductionInfo, err: errors.New("Something is wrong")}
+	mock := &mockService{cancelFeeReduction: cancelFeeReductionInfo, errs: map[string]error{"CancelFeeReduction": errors.New("something is wrong")}}
 	server := NewServer(mock, nil, nil, nil, nil, validator, nil)
 	err := server.cancelFeeReduction(w, req)
 

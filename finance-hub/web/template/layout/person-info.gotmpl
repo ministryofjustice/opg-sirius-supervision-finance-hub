@@ -7,13 +7,14 @@
             <span data-cy="court-ref" class="govuk-caption-m  govuk-!-margin-bottom-1">Court reference: <a
                         href="{{ sirius (printf "/supervision/#/clients/%s" .FinanceClient.ClientId) }}"
                         class="govuk-link">{{ .FinanceClient.CourtRef }}</a></span>
-            <span data-cy="total-outstanding-balance" class="govuk-caption-m  govuk-!-margin-bottom-1">Total outstanding balance: £{{ .FinanceClient.OutstandingBalance }}</span>
-            <span data-cy="total-credit-balance" class="govuk-caption-m  govuk-!-margin-bottom-1">Total credit balance: £{{ .FinanceClient.CreditBalance }}</span>
+            <span data-cy="total-outstanding-balance" class="govuk-caption-m  govuk-!-margin-bottom-1">Total outstanding balance: {{ toCurrency .FinanceClient.OutstandingBalance }}</span>
+            <span data-cy="total-credit-balance" class="govuk-caption-m  govuk-!-margin-bottom-1">Total credit balance: {{ toCurrency .FinanceClient.CreditBalance }}</span>
             <span data-cy="payment-method"
                   class="govuk-caption-m  govuk-!-margin-bottom-1">Payment method: {{ .FinanceClient.PaymentMethod }}</span>
         </div>
     </div>
     {{ if .User.IsFinanceUser }}
+        <div id="direct-debit-button">
             {{ if eq showDirectDebits true }}
                 {{ if eq .FinanceClient.PaymentMethod "Demanded" }}
                      <a class="govuk-button moj-button-menu__item govuk-button--secondary govuk-!-margin-top-5"
@@ -23,7 +24,7 @@
                            hx-get="{{ prefix (printf "/clients/%s/direct-debit/setup" .FinanceClient.ClientId) }}"
                            hx-target="#main-content"
                            hx-push-url="{{ prefix (printf "/clients/%s/direct-debit/setup" .FinanceClient.ClientId) }}">
-                           Set up direct debit
+                           Set up Direct Debit
                     </a>
                  {{ else if eq .FinanceClient.PaymentMethod "Direct Debit"}}
                     <a class="govuk-button moj-button-menu__item govuk-button--secondary govuk-!-margin-top-5"
@@ -33,7 +34,7 @@
                        hx-get="{{ prefix (printf "/clients/%s/direct-debit/cancel" .FinanceClient.ClientId) }}"
                        hx-target="#main-content"
                        hx-push-url="{{ prefix (printf "/clients/%s/direct-debit/cancel" .FinanceClient.ClientId) }}">
-                        Cancel direct debit
+                        Cancel Direct Debit
                     </a>
                  {{ end }}
             {{ else }}
@@ -47,5 +48,6 @@
                    Edit payment method
                 </a>
             {{ end }}
+        </div>
     {{ end }}
 {{ end }}

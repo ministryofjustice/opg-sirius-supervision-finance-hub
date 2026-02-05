@@ -1,0 +1,46 @@
+{{ define "refund-processed-event" }}
+    {{ $isReversal := false }}
+    {{ $amount := .Event.Amount }}
+    {{ if not (eq (index .Event.Breakdown 0).Status "REAPPLIED") }}
+        {{ $isReversal = gt $amount 0}}
+    {{ end }}
+
+    <div class="moj-timeline__item">
+        <div class="moj-timeline__header">
+            <h2 class="moj-timeline__title">
+                {{ if not $isReversal }}
+                    {{ printf "Refund of %v fulfilled" (toCurrency (toNegative $amount)) }}
+                {{ else }}
+                    {{ printf "Refund of %v reversed" (toCurrency $amount) }}
+                {{ end }}
+            </h2>
+            <p class="moj-timeline__byline">
+                {{ printf "by %v, %v" .User .Date }}
+            </p>
+        </div>
+        <p class="moj-timeline__date">
+            {{ printf "Outstanding balance: %v Credit balance: %v" (toCurrency .OutstandingBalance) (toCurrency .CreditBalance) }}
+        </p>
+        <div class="moj-timeline__description">
+            <ul class="govuk-list govuk-list--bullet">
+                {{ range .Event.Breakdown }}
+                    <li>
+                        {{ if $isReversal }}
+                            {{if eq .Status "ALLOCATED" }}
+                                {{ printf "%v allocated to %v" (toCurrency .Amount) .InvoiceReference.Reference }}
+                            {{ else }}
+                                {{ printf "%v unallocated" (toCurrency .Amount) }}
+                            {{ end }}
+                        {{ else }}
+                            {{if eq .Status "ALLOCATED" }}
+                                {{ printf "%v refunded against %v" (toCurrency .Amount) .InvoiceReference.Reference }}
+                            {{ else }}
+                                {{ printf "%v refunded" (toCurrency .Amount) }}
+                            {{ end }}
+                        {{ end }}
+                    </li>
+                {{ end }}
+            </ul>
+        </div>
+    </div>
+{{ end }}

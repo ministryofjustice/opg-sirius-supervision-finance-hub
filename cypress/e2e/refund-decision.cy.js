@@ -23,17 +23,31 @@ describe("Refunds tab", () => {
         cy.get(".moj-banner__message").contains("You have rejected the refund");
     });
 
-    it("cancels a refund", () => {
+    it("cancels an approved refund", () => {
         cy.visit("/clients/18/refunds");
 
         cy.get("table#refunds > tbody")
-            .contains("Cancel me").parent("tr").as("cancelRow");
+            .contains("Cancel me 1").parent("tr").as("cancelRow");
 
         cy.get("@cancelRow")
             .find(".form-button-menu")
             .contains("Cancel").click();
 
-        cy.get("@cancelRow").contains("Cancel");
+        cy.get("@cancelRow").contains("Cancelled");
+        cy.get(".moj-banner__message").contains("You have cancelled the refund");
+    });
+
+    it("cancels a processed refund", () => {
+        cy.visit("/clients/24/refunds");
+
+        cy.get("table#refunds > tbody")
+            .contains("Cancel me 2").parent("tr").as("cancelRow");
+
+        cy.get("@cancelRow")
+            .find(".form-button-menu")
+            .contains("Cancel").click();
+
+        cy.get("@cancelRow").contains("Cancelled");
         cy.get(".moj-banner__message").contains("You have cancelled the refund");
     });
 });

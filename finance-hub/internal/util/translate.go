@@ -63,8 +63,8 @@ var validationMappings = map[string]map[string]pair{
 		"required": pair{"AccountHolder", "Select the account holder"},
 	},
 	"AccountName": {
-		"required":    pair{"AccountName", "Enter the name on the account"},
-		"gteEighteen": pair{"AccountName", "Account name can not be over 18 characters"},
+		"required": pair{"AccountName", "Enter the name on the account"},
+		"lte":      pair{"AccountName", "Account name can not be over 18 characters"},
 	},
 	"SortCode": {
 		"len":      pair{"SortCode", "Sort code must consist of 6 digits in the format 00-00-00"},
@@ -94,25 +94,22 @@ var validationMappings = map[string]map[string]pair{
 		"no-credit-to-refund": pair{"Amount", "Client has no credit balance to refund"},
 	},
 	"FeePayer": {
-		"inactive": pair{"FeePayer", "There is no active fee payer deputy for this client. Please check the client's record before setting up the Direct Debit."},
+		"inactive": pair{"FeePayer", "There is no active fee payer deputy for this client."},
 	},
 	"ActiveOrder": {
-		"required": pair{"ActiveOrder", "The client has no active court order. Please check the order details before setting up the Direct Debit."},
+		"required": pair{"ActiveOrder", "The client has no active court order."},
 	},
 	"ClientStatus": {
-		"inactive": pair{"ClientStatus", "The client status is not active. Please check the client's record before setting up the Direct Debit."},
+		"inactive": pair{"ClientStatus", "The client status is not active."},
 	},
-	"AddressLine1": {
-		"required": pair{"Address", "The client's address: Line 1 is required and must be 40 characters or less. This is needed to set up the Direct Debit. Please update the client address."},
-	},
-	"Town": {
-		"required": pair{"Address", "The client's address: Town is required and must be 40 characters or less. This is needed to set up the Direct Debit. Please update the client address."},
-	},
-	"PostCode": {
-		"required": pair{"Address", "The client's address: Post code is required and must be 10 characters or less. This is needed to set up the Direct Debit. Please update the client address."},
+	"AccountHolderAddress": {
+		"required": pair{"Address", "The client requires a valid address that includes Address Line 1 and Town (no more than 40 characters) and a UK postcode."},
 	},
 	"AccountDetails": {
-		"invalid": pair{"AccountDetails", "The account number and sort code are not a valid combination. Please check they have been input correctly."},
+		"invalid": pair{"AccountDetails", "The account number and sort code are not a valid combination."},
+	},
+	"Allpay": {
+		"invalid": pair{"Allpay", "Direct Debit cannot be setup due to an unexpected response from AllPay. Please try again later."},
 	},
 }
 

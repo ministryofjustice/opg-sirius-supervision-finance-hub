@@ -1,13 +1,19 @@
-describe("Direct debit form", () => {
+describe("Cancel Direct Debit", () => {
     it("should have no accessibility violations",() => {
         cy.visit("/clients/19/direct-debit/cancel");
         cy.checkAccessibility();
     });
 
+    it("should not show Direct Debit button when viewing the cancel Direct Debit form",() => {
+        cy.visit("/clients/19/direct-debit/cancel");
+        cy.get("#direct-debit-button").should('exist');
+        cy.get("#direct-debit-button").should('not.be.visible');
+    });
+
     it("redirects on success with banner", () => {
         cy.visit("/clients/19/invoices");
         cy.contains('[data-cy="payment-method"]', "Direct Debit");
-        cy.contains(".govuk-button", "Cancel direct debit").click();
+        cy.contains(".govuk-button", "Cancel Direct Debit").click();
         cy.url().should("include", "/clients/19/direct-debit/cancel");
         cy.get("#cancel-direct-debit-form").contains(".govuk-button", "Cancel Direct Debit").click();
         cy.url().should("include", "/clients/19/invoices?success=cancel-direct-debit");
