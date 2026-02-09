@@ -61,7 +61,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
         with:
-          go-version: 1.25.6
+          go-version: 1.25.7
         id: go
 
       - name: Check out code
@@ -137,7 +137,7 @@ jobs:
         run: make gosec
       - name: Upload GoSec results to GitHub Security tab
         if: ${{ always() }}
-        uses: github/codeql-action/upload-sarif@6bc82e05fd0ea64601dd4b465378bbcf57de0314 # v4.32.1
+        uses: github/codeql-action/upload-sarif@45cbd0c69e560cd9e7cd7f8c32362050c9b7ded2 # v4.32.2
         with:
           sarif_file: 'test-results/gosec.sarif'
           category: gosec
@@ -176,7 +176,7 @@ jobs:
         with:
           fetch-depth: '0'
       - name: Configure OIDC AWS credentials for ECR Pull
-        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
           role-to-assume: arn:aws:iam::311462405659:role/sirius-component-ecr-role
           role-session-name: opg-sirius-supervision-finance-hub-github-actions-ecr-push
@@ -260,7 +260,7 @@ jobs:
           docker load -i /tmp/images/${{ matrix.service_name }}-multi-arch.tar
 
       - name: Configure OIDC AWS credentials for ECR push
-        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
           role-to-assume: arn:aws:iam::311462405659:role/sirius-component-ecr-role
           role-session-name: opg-sirius-supervision-finance-hub-github-actions-ecr-push
@@ -284,7 +284,7 @@ jobs:
 
       - name: Upload Trivy scan results to GitHub Security tab
         if: matrix.scan == 1
-        uses: github/codeql-action/upload-sarif@6bc82e05fd0ea64601dd4b465378bbcf57de0314 # v4.32.1
+        uses: github/codeql-action/upload-sarif@45cbd0c69e560cd9e7cd7f8c32362050c9b7ded2 # v4.32.2
         with:
           sarif_file: 'test-results/'
           category: trivy-docker-${{ matrix.service_name }}
@@ -326,7 +326,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Configure OIDC AWS credentials for SSM
-        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
           role-to-assume: arn:aws:iam::997462338508:role/sirius-component-ssm-role
           role-session-name: opg-sirius-supervision-finance-hub-github-actions-ssm-push
