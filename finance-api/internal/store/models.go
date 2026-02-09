@@ -52,6 +52,8 @@ type Case struct {
 	Orderstatus        pgtype.Text
 	Closedondate       pgtype.Timestamp
 	Orderclosurereason pgtype.Text
+	Howdeputyappointed pgtype.Text
+	Casesubtype        pgtype.Text
 }
 
 type CostCentre struct {
@@ -268,6 +270,25 @@ type Refund struct {
 	CancelledAt     pgtype.Timestamp
 	FulfilledAt     pgtype.Timestamp
 	CancelledBy     pgtype.Int4
+}
+
+type SupervisionDeputyImportantInformation struct {
+	ID       int32
+	DeputyID pgtype.Int4
+	// (DC2Type:refdata)
+	Annualbillinginvoice pgtype.Text
+}
+
+type SupervisionOrderDeputy struct {
+	ID       int32
+	OrderID  pgtype.Int4
+	DeputyID pgtype.Int4
+	// (DC2Type:refdata)
+	Deputytype pgtype.Text
+	// (DC2Type:refdata)
+	Statusoncase pgtype.Text
+	// (DC2Type:refdata)
+	Statusoncaseoverride pgtype.Text
 }
 
 type TransactionType struct {

@@ -19,7 +19,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 
 	// one client with an invoice with a MOTO card payment, supervision BACS payment and an AD invoice with an exemption. This also creates an unapply.
 	client1ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "11111111", "1234", "ACTIVE")
-	suite.seeder.CreateOrder(ctx, client1ID)
+	suite.seeder.CreateOrder(ctx, client1ID, "pfa")
 	_, _ = suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeAD, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, twoMonthsAgo.StringPtr())
 
 	suite.seeder.CreatePayment(ctx, 1500, yesterday.Date(), "11111111", shared.TransactionTypeMotoCardPayment, yesterday.Date(), 0)
@@ -29,7 +29,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 
 	// one client with an invoice with a MOTO card payment, an OPG BACS payment and an S2 invoice with an approved credit memo
 	client2ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "22222222", "4321", "ACTIVE")
-	suite.seeder.CreateOrder(ctx, client2ID)
+	suite.seeder.CreateOrder(ctx, client2ID, "pfa")
 	invoice2ID, _ := suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, &general, twoMonthsAgo.StringPtr(), nil, nil, nil, twoMonthsAgo.StringPtr())
 
 	suite.seeder.CreatePayment(ctx, 120, yesterday.Date(), "22222222", shared.TransactionTypeOPGBACSPayment, yesterday.Date(), 0)
@@ -39,7 +39,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 
 	// one client with GA invoice, direct debit payment, online card payment
 	client3ID := suite.seeder.CreateClient(ctx, "Ian", "Test", "33333333", "2314", "ACTIVE")
-	suite.seeder.CreateOrder(ctx, client2ID)
+	suite.seeder.CreateOrder(ctx, client2ID, "pfa")
 	_, _ = suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeGA, nil, twoMonthsAgo.StringPtr(), nil, nil, nil, twoMonthsAgo.StringPtr())
 
 	suite.seeder.CreatePayment(ctx, 4020, yesterday.Date(), "33333333", shared.TransactionTypeDirectDebitPayment, yesterday.Date(), 0)
@@ -53,7 +53,7 @@ func (suite *IntegrationSuite) Test_receipt_transactions() {
 
 	// one client with an S2 invoice, two cheques payments for the same PIS number and one cheque payment for another PIS number
 	client7ID := suite.seeder.CreateClient(ctx, "Gilgamesh", "Test", "77777777", "7777", "ACTIVE")
-	suite.seeder.CreateOrder(ctx, client7ID)
+	suite.seeder.CreateOrder(ctx, client7ID, "pfa")
 	_, _ = suite.seeder.CreateInvoice(ctx, client7ID, shared.InvoiceTypeS2, &general, twoMonthsAgo.StringPtr(), nil, nil, nil, twoMonthsAgo.StringPtr())
 
 	pisNumber1 := int32(100023)
@@ -281,25 +281,25 @@ func (suite *IntegrationSuite) Test_receipt_transactions_reversals() {
 
 	// Scenario 1: Client with invoice has misapplied cheque payment and overpayment, that is then reversed to the correct client, resulting in different overpayment
 	client1ID := suite.seeder.CreateClient(ctx, "Misapplied", "Cheque", "11111111", "1111", "ACTIVE")
-	suite.seeder.CreateOrder(ctx, client1ID)
+	suite.seeder.CreateOrder(ctx, client1ID, "pfa")
 	_, _ = suite.seeder.CreateInvoice(ctx, client1ID, shared.InvoiceTypeS2, &invoice1Amount, yesterday.StringPtr(), nil, nil, nil, yesterday.StringPtr())
 	pisNumber1 := int32(100001)
 	suite.seeder.CreatePayment(ctx, 25000, yesterday.Date(), "11111111", shared.TransactionTypeSupervisionChequePayment, yesterday.Date(), pisNumber1)
 
 	client2ID := suite.seeder.CreateClient(ctx, "Reversed", "Cheque", "22222222", "2222", "ACTIVE")
-	suite.seeder.CreateOrder(ctx, client2ID)
+	suite.seeder.CreateOrder(ctx, client2ID, "pfa")
 	_, _ = suite.seeder.CreateInvoice(ctx, client2ID, shared.InvoiceTypeS2, &invoice2Amount, yesterday.StringPtr(), nil, nil, nil, yesterday.StringPtr())
 	suite.seeder.ReversePayment(ctx, "11111111", "22222222", "250.00", yesterday.Date(), yesterday.Date(), shared.TransactionTypeSupervisionChequePayment, yesterday.Date(), "100001")
 
 	// Scenario 2: Same as above but the original payment occurs in the past
 	client3ID := suite.seeder.CreateClient(ctx, "Misapplied", "Cheque", "33333333", "3333", "ACTIVE")
-	suite.seeder.CreateOrder(ctx, client3ID)
+	suite.seeder.CreateOrder(ctx, client3ID, "pfa")
 	_, _ = suite.seeder.CreateInvoice(ctx, client3ID, shared.InvoiceTypeS2, &invoice1Amount, twoMonthsAgo.StringPtr(), nil, nil, nil, twoMonthsAgo.StringPtr())
 	pisNumber2 := int32(100002)
 	suite.seeder.CreatePayment(ctx, 25000, twoMonthsAgo.Date(), "33333333", shared.TransactionTypeSupervisionChequePayment, twoMonthsAgo.Date(), pisNumber2)
 
 	client4ID := suite.seeder.CreateClient(ctx, "Reversed", "Cheque", "44444444", "4444", "ACTIVE")
-	suite.seeder.CreateOrder(ctx, client4ID)
+	suite.seeder.CreateOrder(ctx, client4ID, "pfa")
 	_, _ = suite.seeder.CreateInvoice(ctx, client4ID, shared.InvoiceTypeS2, &invoice2Amount, yesterday.StringPtr(), nil, nil, nil, yesterday.StringPtr())
 	suite.seeder.ReversePayment(ctx, "33333333", "44444444", "250.00", twoMonthsAgo.Date(), twoMonthsAgo.Date(), shared.TransactionTypeSupervisionChequePayment, yesterday.Date(), "100002")
 

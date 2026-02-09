@@ -37,9 +37,36 @@ func (s *Seeder) CreateDeputy(ctx context.Context, clientId int32, firstName str
 	return deputyId
 }
 
-func (s *Seeder) CreateOrder(ctx context.Context, clientId int32) {
-	_, err := s.Conn.Exec(ctx, "INSERT INTO public.cases (id, client_id, orderstatus) VALUES (NEXTVAL('public.cases_id_seq'), $1, 'ACTIVE')", clientId)
+func (s *Seeder) CreateOrder(ctx context.Context, clientId int32, casesubtype string) {
+	_, err := s.Conn.Exec(ctx, "INSERT INTO public.cases (id, client_id, orderstatus, casesubtype) VALUES (NEXTVAL('public.cases_id_seq'), $1, 'ACTIVE', $2)", clientId, casesubtype)
 	assert.NoError(s.t, err, "failed to add order: %v", err)
+}
+
+func (s *Seeder) GetLastOrderIdForClient(ctx context.Context, clientId int32) int {
+	var latestOrderId int
+	err := s.Conn.QueryRow(ctx, "SELECT id FROM public.cases WHERE client_id = $1 ORDER BY id DESC LIMIT 1", clientId).Scan(&latestOrderId)
+	assert.NoError(s.t, err, "failed to find latest order id: %v", err)
+	return latestOrderId
+}
+
+func (s *Seeder) UpdateHowDeputyAppointed(ctx context.Context, orderId int, howDeputyAppointed string) {
+	_, err := s.Conn.Exec(ctx, "UPDATE public.cases SET howdeputyappointed = $1 WHERE id = $2", howDeputyAppointed, orderId)
+	assert.NoError(s.t, err, "failed to update cases: howdeputyappointed : %v", err)
+}
+
+func (s *Seeder) CreateDeputyOrder(ctx context.Context, deputyId int32, orderId int) {
+	_, err := s.Conn.Exec(ctx, "INSERT INTO supervision.order_deputy(order_id, deputy_id, id) VALUES ($1, $2, NEXTVAL('supervision.order_deputy_id_seq'))", orderId, deputyId)
+	assert.NoError(s.t, err, "failed to add deputy order: %v", err)
+}
+
+func (s *Seeder) UpdateDeputyOrderStatusOnCaseOverride(ctx context.Context, orderId int, statusOnCaseOverride string) {
+	_, err := s.Conn.Exec(ctx, "UPDATE supervision.order_deputy SET statusoncaseoverride = $1 WHERE id = $2", statusOnCaseOverride, orderId)
+	assert.NoError(s.t, err, "failed to update order_deputy statusoncaseoverride with value: %s error: %v", statusOnCaseOverride, err)
+}
+
+func (s *Seeder) CreateDeputyImportantInformation(ctx context.Context, deputyId int32, annualBillingInvoice string) {
+	_, err := s.Conn.Exec(ctx, "INSERT INTO supervision.deputy_important_information(id, deputy_id, annualbillinginvoice) VALUES (NEXTVAL('supervision.deputy_important_information_id_seq'), $1, $2)", deputyId, annualBillingInvoice)
+	assert.NoError(s.t, err, "failed to add deputy important information: %v", err)
 }
 
 func (s *Seeder) CreateClosedOrder(ctx context.Context, clientId int32, closedOn time.Time, reason string) {
