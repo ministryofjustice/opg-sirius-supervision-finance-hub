@@ -15,7 +15,7 @@ WHERE i.startdate::DATE >= $1::DATE
   AND i.feetype NOT IN ('N2', 'N3')
   AND (
     (
-        ies.invoice_id IS NULL
+      ies.invoice_id IS NULL
       AND o.orderstatus = 'ACTIVE'
       AND c.clientstatus <> 'DEATH_NOTIFIED'
     )
