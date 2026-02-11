@@ -8,17 +8,21 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
-func (s *Service) GetAnnualBillingInfo(ctx context.Context) (map[string]interface{}, error) {
+func (s *Service) GetAnnualBillingInfo(ctx context.Context) (shared.AnnualBillingInformation, error) {
 	annualBillingYear, err := s.store.GetAnnualBillingYear(ctx)
 	if err != nil {
-		return nil, err
+		return shared.AnnualBillingInformation{}, err
 	}
 	//leave for testing remove and add error handling for live
 	if annualBillingYear == "" {
 		annualBillingYear = "2025"
 	}
+
+	fmt.Println("billing year is:")
+	fmt.Println(annualBillingYear)
 
 	billingYearStartDate := annualBillingYear + "-04-01"
 
@@ -32,15 +36,28 @@ func (s *Service) GetAnnualBillingInfo(ctx context.Context) (map[string]interfac
 
 	info, err := s.store.GetAnnualBillingLettersInformation(ctx, store.GetAnnualBillingLettersInformationParams{Column1: startDate, Column2: endDate})
 	if err != nil {
-		return nil, err
+		return shared.AnnualBillingInformation{}, err
 	}
 
-	fmt.Println(info)
-	response := make(map[string]interface{})
+	fmt.Println("info:")
+	response := shared.AnnualBillingInformation{
+		AnnualBillingYear: annualBillingYear,
+	}
 
-	response["expectedCount"] = 3
-	response["issuedCount"] = 4
-	response["skippedCount"] = 1
+	for i, _ := range info {
+		println("info")
+		println(info[i].Status.String)
+
+		if info[i].Status.String == "UNPROCESSED" {
+			response.ExpectedCount = info[i].Count
+		} else if info[i].Status.String == "SKIPPED" {
+			response.ExpectedCount = info[i].Count
+		} else {
+			response.ExpectedCount = info[i].Count
+		}
+	}
+	fmt.Print("response")
+	fmt.Println(response)
 
 	return response, nil
 }
