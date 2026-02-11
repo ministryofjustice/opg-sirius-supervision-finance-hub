@@ -49,11 +49,11 @@ func (s *Service) GetAnnualBillingInfo(ctx context.Context) (shared.AnnualBillin
 		println(info[i].Status.String)
 
 		if info[i].Status.String == "UNPROCESSED" {
-			response.ExpectedCount = info[i].Count
+			response.ExpectedCount = info[i].Count.Int64
 		} else if info[i].Status.String == "SKIPPED" {
-			response.ExpectedCount = info[i].Count
+			response.SkippedCount = info[i].Count.Int64
 		} else {
-			response.ExpectedCount = info[i].Count
+			response.IssuedCount = response.IssuedCount + info[i].Count.Int64
 		}
 	}
 	fmt.Print("response")
