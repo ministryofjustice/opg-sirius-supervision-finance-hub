@@ -14,6 +14,7 @@ import (
 
 type mockService struct {
 	accountInfo        *shared.AccountInformation
+	annualBillingInfo  map[string]interface{}
 	invoices           shared.Invoices
 	feeReductions      shared.FeeReductions
 	invoiceReference   *shared.InvoiceReference
@@ -120,6 +121,11 @@ func (s *mockService) GetRefunds(ctx context.Context, id int32) (shared.Refunds,
 	s.expectedIds = []int{int(id)}
 	s.called = append(s.called, "GetRefunds")
 	return s.refunds, s.errs["GetRefunds"]
+}
+
+func (s *mockService) GetAnnualBillingInfo(ctx context.Context) (map[string]interface{}, error) {
+	s.called = append(s.called, "GetAnnualBillingInfo")
+	return s.annualBillingInfo, s.errs["GetAnnualBillingInfo"]
 }
 
 func (s *mockService) AddRefund(ctx context.Context, id int32, refund shared.AddRefund) error {
