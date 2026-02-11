@@ -123,7 +123,7 @@ func (s *mockService) GetRefunds(ctx context.Context, id int32) (shared.Refunds,
 	return s.refunds, s.errs["GetRefunds"]
 }
 
-func (s *mockService) GetAnnualBillingInfo(ctx context.Context) (map[string]interface{}, error) {
+func (s *mockService) GetAnnualBillingInfo(ctx context.Context) (shared.GetAnnualBillingInfo, error) {
 	s.called = append(s.called, "GetAnnualBillingInfo")
 	return s.annualBillingInfo, s.errs["GetAnnualBillingInfo"]
 }
