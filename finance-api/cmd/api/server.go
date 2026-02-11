@@ -35,7 +35,7 @@ type Service interface {
 	CheckPaymentMethod(ctx context.Context, clientID int32) error
 	ExpireRefunds(ctx context.Context) error
 	GetAccountInformation(ctx context.Context, id int32) (*shared.AccountInformation, error)
-	GetAnnualBillingInfo(ctx context.Context) (map[string]interface{}, error)
+	GetAnnualBillingInfo(ctx context.Context) (shared.AnnualBillingInformation, error)
 	GetBillingHistory(ctx context.Context, id int32) ([]shared.BillingHistory, error)
 	GetFeeReductions(ctx context.Context, invoiceId int32) (shared.FeeReductions, error)
 	GetInvoices(ctx context.Context, clientId int32) (shared.Invoices, error)

@@ -21,11 +21,7 @@ func (s *Service) GetAnnualBillingInfo(ctx context.Context) (shared.AnnualBillin
 		annualBillingYear = "2025"
 	}
 
-	fmt.Println("billing year is:")
-	fmt.Println(annualBillingYear)
-
 	billingYearStartDate := annualBillingYear + "-04-01"
-
 	thisYear, _ := strconv.Atoi(annualBillingYear)
 	nextYear := thisYear + 1
 	billingYearEndDate := strconv.Itoa(nextYear) + "-03-31"
@@ -44,20 +40,15 @@ func (s *Service) GetAnnualBillingInfo(ctx context.Context) (shared.AnnualBillin
 		AnnualBillingYear: annualBillingYear,
 	}
 
-	for i, _ := range info {
-		println("info")
-		println(info[i].Status.String)
-
-		if info[i].Status.String == "UNPROCESSED" {
-			response.ExpectedCount = info[i].Count
-		} else if info[i].Status.String == "SKIPPED" {
-			response.ExpectedCount = info[i].Count
-		} else {
-			response.ExpectedCount = info[i].Count
+	for i := range info {
+		switch info[i].Status.String {
+		case "UNPROCESSED":
+			response.ExpectedCount = info[i].Count.Int64
+		case "SKIPPED":
+			response.SkippedCount = info[i].Count.Int64
+		default:
+			response.IssuedCount = response.IssuedCount + info[i].Count.Int64
 		}
 	}
-	fmt.Print("response")
-	fmt.Println(response)
-
 	return response, nil
 }
