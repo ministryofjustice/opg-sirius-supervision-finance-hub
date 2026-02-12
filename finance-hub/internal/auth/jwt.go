@@ -2,16 +2,17 @@ package auth
 
 import (
 	"context"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"strconv"
 	"time"
+
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 )
 
 const expiry = 5
 
 type JWT struct {
-	Secret string
+	Secret string `json:"-"`
 }
 
 type Claims struct {

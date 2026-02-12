@@ -5,13 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
-	"io"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 const emailEndpoint = "v2/notifications/email"
@@ -62,7 +60,7 @@ func parseNotifyApiKey(notifyApiKey string) (string, string) {
 }
 
 func (c *Client) Send(ctx context.Context, payload Payload) error {
-	logger := telemetry.LoggerFromContext(ctx)
+	//logger := telemetry.LoggerFromContext(ctx)
 
 	signedToken, err := c.createSignedJwtToken()
 	if err != nil {
@@ -85,35 +83,36 @@ func (c *Client) Send(ctx context.Context, payload Payload) error {
 	r.Header.Add("Content-Type", "application/json")
 	r.Header.Add("Authorization", "Bearer "+signedToken)
 
-	resp, err := c.http.Do(r)
-	if err != nil {
-		return err
-	}
-
-	logger.Info("payload sent to notify", "templateID", payload.TemplateId)
-
-	defer func(Body io.ReadCloser) {
-		_ = Body.Close()
-	}(resp.Body)
-
-	switch resp.StatusCode {
-	case http.StatusOK:
-		return nil
-	case http.StatusCreated:
-		return nil
-	case http.StatusUnauthorized:
-		return apierror.Unauthorized{}
-	case http.StatusBadRequest:
-		return apierror.BadRequest{}
-	case http.StatusForbidden:
-		return apierror.Forbidden{}
-	case http.StatusNotFound:
-		return apierror.NotFound{}
-	case http.StatusInternalServerError:
-		return apierror.InternalServer{}
-	default:
-		return apierror.StatusError{StatusCode: resp.StatusCode}
-	}
+	//resp, err := c.http.Do(r)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//logger.Info("payload sent to notify", "templateID", payload.TemplateId)
+	//
+	//defer func(Body io.ReadCloser) {
+	//	_ = Body.Close()
+	//}(resp.Body)
+	//
+	//switch resp.StatusCode {
+	//case http.StatusOK:
+	//	return nil
+	//case http.StatusCreated:
+	//	return nil
+	//case http.StatusUnauthorized:
+	//	return apierror.Unauthorized{}
+	//case http.StatusBadRequest:
+	//	return apierror.BadRequest{}
+	//case http.StatusForbidden:
+	//	return apierror.Forbidden{}
+	//case http.StatusNotFound:
+	//	return apierror.NotFound{}
+	//case http.StatusInternalServerError:
+	//	return apierror.InternalServer{}
+	//default:
+	//	return apierror.StatusError{StatusCode: resp.StatusCode}
+	//}
+	return nil
 }
 
 func (c *Client) createSignedJwtToken() (string, error) {

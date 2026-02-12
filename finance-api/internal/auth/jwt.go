@@ -28,7 +28,7 @@ func (c Context) WithContext(ctx context.Context) Context {
 }
 
 type JWT struct {
-	Secret string
+	Secret string `json:"-"`
 }
 
 type Claims struct {
