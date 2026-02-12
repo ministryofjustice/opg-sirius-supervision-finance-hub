@@ -68,8 +68,8 @@ func (suite *IntegrationSuite) TestService_GetAnnualBillingInformation() {
 	}
 	got, _ := s.GetAnnualBillingInfo(suite.ctx)
 
-	assert.Equal(suite.T(), int64(1), got.ExpectedCount)
-	assert.Equal(suite.T(), int64(4), got.IssuedCount)
-	assert.Equal(suite.T(), int64(1), got.SkippedCount)
+	assert.Equal(suite.T(), int64(1), got.DemandedExpectedCount)
+	assert.Equal(suite.T(), int64(4), got.DemandedIssuedCount)
+	assert.Equal(suite.T(), int64(1), got.DemandedSkippedCount)
 	assert.Equal(suite.T(), "2025", got.AnnualBillingYear)
 }

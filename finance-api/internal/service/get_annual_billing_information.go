@@ -16,10 +16,10 @@ func (s *Service) GetAnnualBillingInfo(ctx context.Context) (shared.AnnualBillin
 	if err != nil {
 		return shared.AnnualBillingInformation{}, err
 	}
-	//leave for testing remove and add error handling for live
-	if annualBillingYear == "" {
-		annualBillingYear = "2025"
-	}
+	////leave for testing remove and add error handling for live
+	//if annualBillingYear == "" {
+	//	annualBillingYear = "2025"
+	//}
 
 	billingYearStartDate := annualBillingYear + "-04-01"
 	thisYear, _ := strconv.Atoi(annualBillingYear)
@@ -41,13 +41,25 @@ func (s *Service) GetAnnualBillingInfo(ctx context.Context) (shared.AnnualBillin
 	}
 
 	for i := range info {
-		switch info[i].Status.String {
-		case "UNPROCESSED":
-			response.ExpectedCount = info[i].Count.Int64
-		case "SKIPPED":
-			response.SkippedCount = info[i].Count.Int64
-		default:
-			response.IssuedCount = response.IssuedCount + info[i].Count.Int64
+		if info[i].PaymentMethod == "DIRECT_DEBIT" {
+			switch info[i].Status.String {
+			case "UNPROCESSED":
+				response.DirectDebitExpectedCount = info[i].Count.Int64
+			case "SKIPPED":
+				response.DirectDebitSkippedCount = info[i].Count.Int64
+			default:
+				response.DirectDebitIssuedCount = response.DirectDebitIssuedCount + info[i].Count.Int64
+			}
+		}
+		if info[i].PaymentMethod == "DEMANDED" {
+			switch info[i].Status.String {
+			case "UNPROCESSED":
+				response.DemandedExpectedCount = info[i].Count.Int64
+			case "SKIPPED":
+				response.DemandedSkippedCount = info[i].Count.Int64
+			default:
+				response.DemandedIssuedCount = response.DemandedIssuedCount + info[i].Count.Int64
+			}
 		}
 	}
 	return response, nil

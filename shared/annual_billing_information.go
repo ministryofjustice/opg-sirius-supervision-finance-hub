@@ -1,8 +1,11 @@
 package shared
 
 type AnnualBillingInformation struct {
-	AnnualBillingYear string
-	ExpectedCount     int64
-	IssuedCount       int64
-	SkippedCount      int64
+	AnnualBillingYear        string
+	DemandedExpectedCount    int64
+	DemandedIssuedCount      int64
+	DemandedSkippedCount     int64
+	DirectDebitExpectedCount int64
+	DirectDebitIssuedCount   int64
+	DirectDebitSkippedCount  int64
 }
