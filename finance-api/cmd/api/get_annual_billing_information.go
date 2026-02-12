@@ -5,10 +5,10 @@ import (
 	"net/http"
 )
 
-func (s *Server) getAnnualBillingLettersCount(w http.ResponseWriter, r *http.Request) error {
+func (s *Server) getAnnualBillingInformation(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 
-	accountInfo, err := s.service.GetAnnualBillingInfo(ctx)
+	accountInfo, err := s.service.GetAnnualBillingInformation(ctx)
 
 	if err != nil {
 		return err

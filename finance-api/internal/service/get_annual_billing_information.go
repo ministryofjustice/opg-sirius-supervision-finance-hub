@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"time"
 
@@ -11,15 +10,11 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
-func (s *Service) GetAnnualBillingInfo(ctx context.Context) (shared.AnnualBillingInformation, error) {
+func (s *Service) GetAnnualBillingInformation(ctx context.Context) (shared.AnnualBillingInformation, error) {
 	annualBillingYear, err := s.store.GetAnnualBillingYear(ctx)
 	if err != nil {
 		return shared.AnnualBillingInformation{}, err
 	}
-	////leave for testing remove and add error handling for live
-	//if annualBillingYear == "" {
-	//	annualBillingYear = "2025"
-	//}
 
 	billingYearStartDate := annualBillingYear + "-04-01"
 	thisYear, _ := strconv.Atoi(annualBillingYear)
@@ -35,18 +30,15 @@ func (s *Service) GetAnnualBillingInfo(ctx context.Context) (shared.AnnualBillin
 		return shared.AnnualBillingInformation{}, err
 	}
 
-	fmt.Println("info:")
 	response := shared.AnnualBillingInformation{
 		AnnualBillingYear: annualBillingYear,
 	}
 
 	for i := range info {
-		if info[i].PaymentMethod == "DIRECT_DEBIT" {
+		if info[i].PaymentMethod == "DIRECT DEBIT" {
 			switch info[i].Status.String {
 			case "UNPROCESSED":
 				response.DirectDebitExpectedCount = info[i].Count.Int64
-			case "SKIPPED":
-				response.DirectDebitSkippedCount = info[i].Count.Int64
 			default:
 				response.DirectDebitIssuedCount = response.DirectDebitIssuedCount + info[i].Count.Int64
 			}
