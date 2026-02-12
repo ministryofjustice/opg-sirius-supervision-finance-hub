@@ -1,0 +1,12 @@
+{
+  "exclude-rules": [
+    {
+      "path": ".gocache",
+      "rules": ["*"]
+    },
+    {
+      "path": "/app/healthcheck/main.go",
+      "rules": ["G704"]
+    }
+  ]
+}

@@ -1,9 +1,16 @@
 package notify
 
 import (
-	"testing"
-
+	"bytes"
+	"context"
+	"github.com/ministryofjustice/opg-go-common/telemetry"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
+	"io"
+	"net/http"
+	"testing"
 )
 
 func Test_parseNotifyApiKey(t *testing.T) {
@@ -41,61 +48,61 @@ func Test_parseNotifyApiKey(t *testing.T) {
 	}
 }
 
-//type MockRoundTripper struct {
-//	RoundTripFunc func(req *http.Request) *http.Response
-//}
+type MockRoundTripper struct {
+	RoundTripFunc func(req *http.Request) *http.Response
+}
 
-//func (m *MockRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
-//	return m.RoundTripFunc(req), nil
-//}
+func (m *MockRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	return m.RoundTripFunc(req), nil
+}
 
-//func Test_SendEmailToNotify(t *testing.T) {
-//	tests := []struct {
-//		name        string
-//		status      int
-//		expectedErr error
-//	}{
-//		{
-//			name:        "Status created",
-//			status:      http.StatusCreated,
-//			expectedErr: nil,
-//		},
-//		{
-//			name:        "Status unauthorized",
-//			status:      http.StatusUnauthorized,
-//			expectedErr: apierror.Unauthorized{},
-//		},
-//		{
-//			name:        "Status OK",
-//			status:      http.StatusOK,
-//			expectedErr: nil,
-//		},
-//	}
-//	for _, tt := range tests {
-//		t.Run(tt.name, func(t *testing.T) {
-//			mockClient := &http.Client{
-//				Transport: &MockRoundTripper{
-//					RoundTripFunc: func(req *http.Request) *http.Response {
-//						return &http.Response{
-//							StatusCode: tt.status,
-//							Body:       io.NopCloser(bytes.NewReader([]byte{})),
-//							Request:    req,
-//						}
-//					},
-//				},
-//			}
-//			sut := Client{http: mockClient}
-//			ctx := auth.Context{
-//				Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test")),
-//				User:    &shared.User{ID: 10},
-//			}
-//
-//			err := sut.Send(ctx, Payload{
-//				EmailAddress:    "test@email.com",
-//				TemplateId:      ProcessingSuccessTemplateId,
-//				Personalisation: nil,
-//			})
-//			assert.Equal(t, tt.expectedErr, err)
-//		})
-//	}
-//}
+func Test_SendEmailToNotify(t *testing.T) {
+	tests := []struct {
+		name        string
+		status      int
+		expectedErr error
+	}{
+		{
+			name:        "Status created",
+			status:      http.StatusCreated,
+			expectedErr: nil,
+		},
+		{
+			name:        "Status unauthorized",
+			status:      http.StatusUnauthorized,
+			expectedErr: apierror.Unauthorized{},
+		},
+		{
+			name:        "Status OK",
+			status:      http.StatusOK,
+			expectedErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockClient := &http.Client{
+				Transport: &MockRoundTripper{
+					RoundTripFunc: func(req *http.Request) *http.Response {
+						return &http.Response{
+							StatusCode: tt.status,
+							Body:       io.NopCloser(bytes.NewReader([]byte{})),
+							Request:    req,
+						}
+					},
+				},
+			}
+			sut := Client{http: mockClient}
+			ctx := auth.Context{
+				Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test")),
+				User:    &shared.User{ID: 10},
+			}
+
+			err := sut.Send(ctx, Payload{
+				EmailAddress:    "test@email.com",
+				TemplateId:      ProcessingSuccessTemplateId,
+				Personalisation: nil,
+			})
+			assert.Equal(t, tt.expectedErr, err)
+		})
+	}
+}
