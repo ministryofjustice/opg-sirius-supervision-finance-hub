@@ -2,12 +2,15 @@ SET SEARCH_PATH TO supervision_finance;
 -- name: GetAnnualBillingYear :one
 SELECT value FROM supervision_finance.property WHERE key = 'AnnualBillingYear' LIMIT 1;
 
+-- non direct debit counts - is this still accurate?
 -- name: GetAnnualBillingLettersInformation :many
 SELECT
     COUNT(DISTINCT i.id) AS count,
-    COALESCE(ies.status, 'UNPROCESSED') AS status
+    COALESCE(ies.status, 'UNPROCESSED') AS status,
+    fc.payment_method AS payment_method
 FROM supervision_finance.invoice i
     JOIN public.persons c ON i.person_id = c.id
+    JOIN supervision_finance.finance_client fc ON fc.client_id = c.id
     JOIN public.cases o ON o.client_id = i.person_id
     LEFT JOIN supervision_finance.invoice_email_status ies ON i.id = ies.invoice_id
 WHERE i.startdate::DATE >= $1::DATE
@@ -21,4 +24,4 @@ WHERE i.startdate::DATE >= $1::DATE
     )
     OR ies.invoice_id IS NOT NULL
 )
-GROUP BY ies.status;
+GROUP BY ies.status, fc.payment_method;
