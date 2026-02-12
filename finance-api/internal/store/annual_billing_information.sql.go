@@ -14,9 +14,11 @@ import (
 const getAnnualBillingLettersInformation = `-- name: GetAnnualBillingLettersInformation :many
 SELECT
     COUNT(DISTINCT i.id) AS count,
-    COALESCE(ies.status, 'UNPROCESSED') AS status
+    COALESCE(ies.status, 'UNPROCESSED') AS status,
+    fc.payment_method AS payment_method
 FROM supervision_finance.invoice i
     JOIN public.persons c ON i.person_id = c.id
+    JOIN supervision_finance.finance_client fc ON i.finance_client_id = fc.id
     JOIN public.cases o ON o.client_id = i.person_id
     LEFT JOIN supervision_finance.invoice_email_status ies ON i.id = ies.invoice_id
 WHERE i.startdate::DATE >= $1::DATE
@@ -30,7 +32,7 @@ WHERE i.startdate::DATE >= $1::DATE
     )
     OR ies.invoice_id IS NOT NULL
 )
-GROUP BY ies.status
+GROUP BY ies.status, fc.payment_method
 `
 
 type GetAnnualBillingLettersInformationParams struct {
@@ -39,10 +41,12 @@ type GetAnnualBillingLettersInformationParams struct {
 }
 
 type GetAnnualBillingLettersInformationRow struct {
-	Count  pgtype.Int8
-	Status pgtype.Text
+	Count         pgtype.Int8
+	Status        pgtype.Text
+	PaymentMethod string
 }
 
+// non direct debit counts - is this still accurate?
 func (q *Queries) GetAnnualBillingLettersInformation(ctx context.Context, arg GetAnnualBillingLettersInformationParams) ([]GetAnnualBillingLettersInformationRow, error) {
 	rows, err := q.db.Query(ctx, getAnnualBillingLettersInformation, arg.Column1, arg.Column2)
 	if err != nil {
@@ -52,7 +56,7 @@ func (q *Queries) GetAnnualBillingLettersInformation(ctx context.Context, arg Ge
 	var items []GetAnnualBillingLettersInformationRow
 	for rows.Next() {
 		var i GetAnnualBillingLettersInformationRow
-		if err := rows.Scan(&i.Count, &i.Status); err != nil {
+		if err := rows.Scan(&i.Count, &i.Status, &i.PaymentMethod); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
