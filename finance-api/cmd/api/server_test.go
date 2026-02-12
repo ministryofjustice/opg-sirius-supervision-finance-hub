@@ -13,25 +13,25 @@ import (
 )
 
 type mockService struct {
-	accountInfo        *shared.AccountInformation
-	annualBillingInfo  shared.AnnualBillingInformation
-	invoices           shared.Invoices
-	feeReductions      shared.FeeReductions
-	invoiceReference   *shared.InvoiceReference
-	invoiceAdjustments shared.InvoiceAdjustments
-	feeReduction       *shared.AddFeeReduction
-	cancelFeeReduction *shared.CancelFeeReduction
-	ledger             *shared.AddInvoiceAdjustmentRequest
-	manualInvoice      *shared.AddManualInvoice
-	adjustmentTypes    []shared.AdjustmentType
-	billingHistory     []shared.BillingHistory
-	refunds            shared.Refunds
-	addRefund          shared.AddRefund
-	pendingCollection  service.PendingCollection
-	expectedIds        []int
-	called             []string
-	errs               map[string]error
-	lastCalledParams   []interface{}
+	accountInfo              *shared.AccountInformation
+	annualBillingInformation shared.AnnualBillingInformation
+	invoices                 shared.Invoices
+	feeReductions            shared.FeeReductions
+	invoiceReference         *shared.InvoiceReference
+	invoiceAdjustments       shared.InvoiceAdjustments
+	feeReduction             *shared.AddFeeReduction
+	cancelFeeReduction       *shared.CancelFeeReduction
+	ledger                   *shared.AddInvoiceAdjustmentRequest
+	manualInvoice            *shared.AddManualInvoice
+	adjustmentTypes          []shared.AdjustmentType
+	billingHistory           []shared.BillingHistory
+	refunds                  shared.Refunds
+	addRefund                shared.AddRefund
+	pendingCollection        service.PendingCollection
+	expectedIds              []int
+	called                   []string
+	errs                     map[string]error
+	lastCalledParams         []interface{}
 }
 
 func (s *mockService) AddCollectedPayments(ctx context.Context, date time.Time) error {
@@ -123,9 +123,9 @@ func (s *mockService) GetRefunds(ctx context.Context, id int32) (shared.Refunds,
 	return s.refunds, s.errs["GetRefunds"]
 }
 
-func (s *mockService) GetAnnualBillingInfo(ctx context.Context) (shared.AnnualBillingInformation, error) {
-	s.called = append(s.called, "GetAnnualBillingInfo")
-	return s.annualBillingInfo, s.errs["GetAnnualBillingInfo"]
+func (s *mockService) GetAnnualBillingInformation(ctx context.Context) (shared.AnnualBillingInformation, error) {
+	s.called = append(s.called, "GetAnnualBillingInformation")
+	return s.annualBillingInformation, s.errs["GetAnnualBillingInformation"]
 }
 
 func (s *mockService) AddRefund(ctx context.Context, id int32, refund shared.AddRefund) error {
