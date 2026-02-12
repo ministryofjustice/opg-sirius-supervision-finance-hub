@@ -7,5 +7,4 @@ type AnnualBillingInformation struct {
 	DemandedSkippedCount     int64
 	DirectDebitExpectedCount int64
 	DirectDebitIssuedCount   int64
-	DirectDebitSkippedCount  int64
 }

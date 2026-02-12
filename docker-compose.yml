@@ -97,7 +97,7 @@ services:
     working_dir: /app
     volumes:
       - .:/app
-    command: -exclude-dir=.gocache -exclude-generated -fmt=sarif -out=/app/test-results/gosec.sarif -stdout -verbose=text /app/...
+    command: -conf gosecConfig.json -exclude-dir=.gocache -exclude-generated -fmt=sarif -out=/app/test-results/gosec.sarif -stdout -verbose=text /app/...
 
   trivy:
     image: aquasec/trivy:latest

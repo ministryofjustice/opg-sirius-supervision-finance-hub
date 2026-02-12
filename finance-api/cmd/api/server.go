@@ -35,7 +35,7 @@ type Service interface {
 	CheckPaymentMethod(ctx context.Context, clientID int32) error
 	ExpireRefunds(ctx context.Context) error
 	GetAccountInformation(ctx context.Context, id int32) (*shared.AccountInformation, error)
-	GetAnnualBillingInfo(ctx context.Context) (shared.AnnualBillingInformation, error)
+	GetAnnualBillingInformation(ctx context.Context) (shared.AnnualBillingInformation, error)
 	GetBillingHistory(ctx context.Context, id int32) ([]shared.BillingHistory, error)
 	GetFeeReductions(ctx context.Context, invoiceId int32) (shared.FeeReductions, error)
 	GetInvoices(ctx context.Context, clientId int32) (shared.Invoices, error)
@@ -140,7 +140,7 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 	authFunc("HEAD /download", shared.RoleFinanceReporting, s.checkDownload)
 	authFunc("POST /reports", shared.RoleFinanceReporting, s.requestReport)
 	authFunc("POST /uploads", shared.RoleFinanceReporting, s.processUpload)
-	authFunc("GET /annual-billing-letters", shared.RoleFinanceReporting, s.getAnnualBillingLettersCount)
+	authFunc("GET /annual-billing-letters", shared.RoleFinanceReporting, s.getAnnualBillingInformation)
 
 	// unauthenticated as request is coming from EventBridge
 	eventFunc := func(pattern string, h handlerFunc) {
