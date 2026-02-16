@@ -7,10 +7,6 @@
     {
       "path": "/app/healthcheck/main.go",
       "rules": ["G704"]
-    },
-    {
-      "path": "/app/finance-api/internal/notify/client.go",
-      "rules": ["G704"]
     }
   ]
 }
