@@ -1,66 +1,34 @@
 package service
 
 import (
+	"fmt"
+
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/testhelpers"
 	"github.com/stretchr/testify/assert"
 )
 
-func (suite *IntegrationSuite) TestService_GetAnnualBillingInformation_ForDemandedClients() {
+func (suite *IntegrationSuite) TestService_GetAnnualBillingInformation() {
 	seeder := suite.cm.Seeder(suite.ctx, suite.T())
+	suite.dataSeedingForYear(seeder, "2025")
 
 	//invoice with skipped status should update skipped count
-	seeder.SeedData(
-		"INSERT INTO supervision_finance.property (id, key, value) VALUES (1, 'AnnualBillingYear', '2025');",
-		"INSERT INTO public.persons VALUES (111, NULL, NULL, 'Scheduleson', NULL, NULL, NULL, NULL, FALSE, FALSE, NULL, NULL, 'actor_client', 'ACTIVE');",
-		"INSERT INTO public.cases (id, client_id, orderstatus) VALUES (101, 111, 'ACTIVE');",
-		"INSERT INTO supervision_finance.finance_client (id, client_id, sop_number, payment_method, batchnumber, court_ref) VALUES (222, 111, '1234', 'DEMANDED', NULL, '1234567T');",
-		"INSERT INTO supervision_finance.invoice VALUES (333, 111, 222, 'S2', 'S200123/25', '2025-04-02', '2026-03-31', 5000, NULL, '2025-04-02', NULL, '2025-04-02');",
-		"INSERT INTO supervision_finance.invoice_email_status VALUES (1, 333, 'SKIPPED', 'af1');",
-	)
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DEMANDED", "SKIPPED", 0, "S2", "2025-04-02", "2026-03-31")
 
 	//invoice on active order for non deceased client and with no record in invoice_email_status table should return expected (i.e. unprocessed)
-	seeder.SeedData(
-		"INSERT INTO public.persons VALUES (666, NULL, NULL, 'Scheduleson', NULL, NULL, NULL, NULL, FALSE, FALSE, NULL, NULL, 'actor_client', 'ACTIVE');",
-		"INSERT INTO public.cases (id, client_id, orderstatus) VALUES (109, 666, 'ACTIVE');",
-		"INSERT INTO supervision_finance.finance_client (id, client_id, sop_number, payment_method, batchnumber, court_ref) VALUES (878, 666, '1234', 'DEMANDED', NULL, '9898567T');",
-		"INSERT INTO supervision_finance.invoice VALUES (356, 666, 878, 'S2', 'S255523/25', '2025-04-02', '2026-03-31', 5000, NULL, '2025-04-02', NULL, '2025-04-02');",
-	)
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DEMANDED", "", 1, "S2", "2025-04-02", "2026-03-31")
 
 	//invoice with processed status should update issued count
-	seeder.SeedData(
-		"INSERT INTO public.persons VALUES (555, NULL, NULL, 'Scheduleson', NULL, NULL, NULL, NULL, FALSE, FALSE, NULL, NULL, 'actor_client', 'ACTIVE');",
-		"INSERT INTO public.cases (id, client_id, orderstatus) VALUES (102, 555, 'ACTIVE');",
-		"INSERT INTO supervision_finance.finance_client (id, client_id, sop_number, payment_method, batchnumber, court_ref) VALUES (999, 555, '2222', 'DEMANDED', NULL, '3334567T');",
-		"INSERT INTO supervision_finance.invoice VALUES (334, 555, 999, 'S2', 'S200125/25', '2025-04-02', '2026-03-31', 5000, NULL, '2025-04-02', NULL, '2025-04-02');",
-		"INSERT INTO supervision_finance.invoice_email_status VALUES (2, 334, 'PROCESSED', 'af2');",
-	)
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DEMANDED", "PROCESSED", 2, "S2", "2025-04-02", "2026-03-31")
 
 	//invoice with in progress status should update issued count
-	seeder.SeedData(
-		"INSERT INTO public.persons VALUES (556, NULL, NULL, 'Scheduleson', NULL, NULL, NULL, NULL, FALSE, FALSE, NULL, NULL, 'actor_client', 'ACTIVE');",
-		"INSERT INTO public.cases (id, client_id, orderstatus) VALUES (103, 556, 'ACTIVE');",
-		"INSERT INTO supervision_finance.finance_client (id, client_id, sop_number, payment_method, batchnumber, court_ref) VALUES (998, 556, '2323', 'DEMANDED', NULL, '3234567T');",
-		"INSERT INTO supervision_finance.invoice VALUES (335, 556, 998, 'S2', 'S211135/25', '2025-04-02', '2026-03-31', 5000, NULL, '2025-04-02', NULL, '2025-04-02');",
-		"INSERT INTO supervision_finance.invoice_email_status VALUES (3, 335, 'IN_PROGRESS', 'af2');",
-	)
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DEMANDED", "IN_PROGRESS", 3, "S2", "2025-04-02", "2026-03-31")
 
 	//invoice with error status should update issued count
-	seeder.SeedData(
-		"INSERT INTO public.persons VALUES (557, NULL, NULL, 'Scheduleson', NULL, NULL, NULL, NULL, FALSE, FALSE, NULL, NULL, 'actor_client', 'ACTIVE');",
-		"INSERT INTO public.cases (id, client_id, orderstatus) VALUES (104, 557, 'ACTIVE');",
-		"INSERT INTO supervision_finance.finance_client (id, client_id, sop_number, payment_method, batchnumber, court_ref) VALUES (997, 557, '2221', 'DEMANDED', NULL, '1134567T');",
-		"INSERT INTO supervision_finance.invoice VALUES (332, 557, 997, 'S2', 'S200225/25', '2025-04-02', '2026-03-31', 5000, NULL, '2025-04-02', NULL, '2025-04-02');",
-		"INSERT INTO supervision_finance.invoice_email_status VALUES (4, 332, 'ERROR', 'af2');",
-	)
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DEMANDED", "ERROR", 4, "S2", "2025-04-02", "2026-03-31")
 
 	//invoice with none status should update issued count
-	seeder.SeedData(
-		"INSERT INTO public.persons VALUES (558, NULL, NULL, 'Scheduleson', NULL, NULL, NULL, NULL, FALSE, FALSE, NULL, NULL, 'actor_client', 'ACTIVE');",
-		"INSERT INTO public.cases (id, client_id, orderstatus) VALUES (105, 558, 'ACTIVE');",
-		"INSERT INTO supervision_finance.finance_client (id, client_id, sop_number, payment_method, batchnumber, court_ref) VALUES (996, 558, '2441', 'DEMANDED', NULL, '3334567T');",
-		"INSERT INTO supervision_finance.invoice VALUES (402, 558, 996, 'S2', 'S243225/25', '2025-04-02', '2026-03-31', 5000, NULL, '2025-04-02', NULL, '2025-04-02');",
-		"INSERT INTO supervision_finance.invoice_email_status VALUES (5, 402, 'ERROR', 'af2');",
-	)
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DEMANDED", "NONE", 5, "S2", "2025-04-02", "2026-03-31")
 
 	Store := store.New(seeder)
 	s := &Service{
@@ -68,59 +36,30 @@ func (suite *IntegrationSuite) TestService_GetAnnualBillingInformation_ForDemand
 	}
 	got, _ := s.GetAnnualBillingInformation(suite.ctx)
 
-	assert.Equal(suite.T(), int64(1), got.DemandedExpectedCount)
-	assert.Equal(suite.T(), int64(4), got.DemandedIssuedCount)
-	assert.Equal(suite.T(), int64(1), got.DemandedSkippedCount)
+	assert.Equal(suite.T(), 1, got.DemandedExpectedCount)
+	assert.Equal(suite.T(), 4, got.DemandedIssuedCount)
+	assert.Equal(suite.T(), 1, got.DemandedSkippedCount)
 	assert.Equal(suite.T(), "2025", got.AnnualBillingYear)
 }
 
 func (suite *IntegrationSuite) TestService_GetAnnualBillingInformationForDirectDebitClients() {
 	seeder := suite.cm.Seeder(suite.ctx, suite.T())
+	suite.dataSeedingForYear(seeder, "2025")
 
 	//invoice on active order for non deceased client and with no record in invoice_email_status table should return expected (i.e. unprocessed)
-	seeder.SeedData(
-		"INSERT INTO supervision_finance.property (id, key, value) VALUES (1, 'AnnualBillingYear', '2024');",
-		"INSERT INTO public.persons VALUES (666, NULL, NULL, 'Scheduleson', NULL, NULL, NULL, NULL, FALSE, FALSE, NULL, NULL, 'actor_client', 'ACTIVE');",
-		"INSERT INTO public.cases (id, client_id, orderstatus) VALUES (109, 666, 'ACTIVE');",
-		"INSERT INTO supervision_finance.finance_client (id, client_id, sop_number, payment_method, batchnumber, court_ref) VALUES (878, 666, '1234', 'DIRECT DEBIT', NULL, '9898567T');",
-		"INSERT INTO supervision_finance.invoice VALUES (356, 666, 878, 'S2', 'S255523/24', '2024-04-02', '2025-03-31', 5000, NULL, '2024-04-02', NULL, '2024-04-02');",
-	)
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DIRECT DEBIT", "", 0, "S2", "2025-04-02", "2026-03-31")
 
 	//invoice with processed status should update issued count
-	seeder.SeedData(
-		"INSERT INTO public.persons VALUES (555, NULL, NULL, 'Scheduleson', NULL, NULL, NULL, NULL, FALSE, FALSE, NULL, NULL, 'actor_client', 'ACTIVE');",
-		"INSERT INTO public.cases (id, client_id, orderstatus) VALUES (102, 555, 'ACTIVE');",
-		"INSERT INTO supervision_finance.finance_client (id, client_id, sop_number, payment_method, batchnumber, court_ref) VALUES (999, 555, '2222', 'DIRECT DEBIT', NULL, '3334567T');",
-		"INSERT INTO supervision_finance.invoice VALUES (334, 555, 999, 'S2', 'S200125/24', '2024-04-02', '2025-03-31', 5000, NULL, '2024-04-02', NULL, '2024-04-02');",
-		"INSERT INTO supervision_finance.invoice_email_status VALUES (2, 334, 'PROCESSED', 'af2');",
-	)
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DIRECT DEBIT", "PROCESSED", 1, "S2", "2025-04-02", "2026-03-31")
 
 	//invoice with in progress status should update issued count
-	seeder.SeedData(
-		"INSERT INTO public.persons VALUES (556, NULL, NULL, 'Scheduleson', NULL, NULL, NULL, NULL, FALSE, FALSE, NULL, NULL, 'actor_client', 'ACTIVE');",
-		"INSERT INTO public.cases (id, client_id, orderstatus) VALUES (103, 556, 'ACTIVE');",
-		"INSERT INTO supervision_finance.finance_client (id, client_id, sop_number, payment_method, batchnumber, court_ref) VALUES (998, 556, '2323', 'DIRECT DEBIT', NULL, '3234567T');",
-		"INSERT INTO supervision_finance.invoice VALUES (335, 556, 998, 'S2', 'S211135/24', '2024-04-02', '2025-03-31', 5000, NULL, '2024-04-02', NULL, '2024-04-02');",
-		"INSERT INTO supervision_finance.invoice_email_status VALUES (3, 335, 'IN_PROGRESS', 'af2');",
-	)
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DIRECT DEBIT", "IN_PROGRESS", 2, "S2", "2025-04-02", "2026-03-31")
 
 	//invoice with error status should update issued count
-	seeder.SeedData(
-		"INSERT INTO public.persons VALUES (557, NULL, NULL, 'Scheduleson', NULL, NULL, NULL, NULL, FALSE, FALSE, NULL, NULL, 'actor_client', 'ACTIVE');",
-		"INSERT INTO public.cases (id, client_id, orderstatus) VALUES (104, 557, 'ACTIVE');",
-		"INSERT INTO supervision_finance.finance_client (id, client_id, sop_number, payment_method, batchnumber, court_ref) VALUES (997, 557, '2221', 'DIRECT DEBIT', NULL, '1134567T');",
-		"INSERT INTO supervision_finance.invoice VALUES (332, 557, 997, 'S2', 'S200225/24', '2024-04-02', '2025-03-31', 5000, NULL, '2024-04-02', NULL, '2024-04-02');",
-		"INSERT INTO supervision_finance.invoice_email_status VALUES (4, 332, 'ERROR', 'af2');",
-	)
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DIRECT DEBIT", "ERROR", 3, "S2", "2025-04-02", "2026-03-31")
 
 	//invoice with none status should update issued count
-	seeder.SeedData(
-		"INSERT INTO public.persons VALUES (558, NULL, NULL, 'Scheduleson', NULL, NULL, NULL, NULL, FALSE, FALSE, NULL, NULL, 'actor_client', 'ACTIVE');",
-		"INSERT INTO public.cases (id, client_id, orderstatus) VALUES (105, 558, 'ACTIVE');",
-		"INSERT INTO supervision_finance.finance_client (id, client_id, sop_number, payment_method, batchnumber, court_ref) VALUES (996, 558, '2441', 'DIRECT DEBIT', NULL, '3334567T');",
-		"INSERT INTO supervision_finance.invoice VALUES (402, 558, 996, 'S2', 'S243225/24', '2024-04-02', '2025-03-31', 5000, NULL, '2024-04-02', NULL, '2024-04-02');",
-		"INSERT INTO supervision_finance.invoice_email_status VALUES (5, 402, 'ERROR', 'af2');",
-	)
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DIRECT DEBIT", "ERROR", 4, "S2", "2025-04-02", "2026-03-31")
 
 	Store := store.New(seeder)
 	s := &Service{
@@ -128,54 +67,38 @@ func (suite *IntegrationSuite) TestService_GetAnnualBillingInformationForDirectD
 	}
 	got, _ := s.GetAnnualBillingInformation(suite.ctx)
 
-	assert.Equal(suite.T(), int64(4), got.DirectDebitIssuedCount)
-	assert.Equal(suite.T(), int64(1), got.DirectDebitExpectedCount)
-	assert.Equal(suite.T(), "2024", got.AnnualBillingYear)
+	assert.Equal(suite.T(), 4, got.DirectDebitIssuedCount)
+	assert.Equal(suite.T(), 1, got.DirectDebitExpectedCount)
+	assert.Equal(suite.T(), "2025", got.AnnualBillingYear)
 }
 
 func (suite *IntegrationSuite) TestService_GetAnnualBillingInformationWillNotCountInvalidCases() {
 	seeder := suite.cm.Seeder(suite.ctx, suite.T())
+	suite.dataSeedingForYear(seeder, "2025")
 
-	//will ignore cases which are not active
-	seeder.SeedData(
-		"INSERT INTO supervision_finance.property (id, key, value) VALUES (1, 'AnnualBillingYear', '2025');",
-		"INSERT INTO public.persons VALUES (666, NULL, NULL, 'Scheduleson', NULL, NULL, NULL, NULL, FALSE, FALSE, NULL, NULL, 'actor_client', 'ACTIVE');",
-		"INSERT INTO public.cases (id, client_id, orderstatus) VALUES (109, 666, 'CLOSED');",
-		"INSERT INTO supervision_finance.finance_client (id, client_id, sop_number, payment_method, batchnumber, court_ref) VALUES (878, 666, '1234', 'DIRECT DEBIT', NULL, '9898567T');",
-		"INSERT INTO supervision_finance.invoice VALUES (356, 666, 878, 'S2', 'S255523/25', '2025-04-02', '2026-03-31', 5000, NULL, '2025-04-02', NULL, '2025-04-02');",
-	)
+	//will ignore cases which are not active - closed
+	suite.dataSeedingForGetBillingInformation(seeder, "CLOSED", "DIRECT DEBIT", "", 0, "S2", "2025-04-02", "2026-03-31")
+
+	//will ignore cases which are not active - open
+	suite.dataSeedingForGetBillingInformation(seeder, "OPEN", "DEMANDED", "", 1, "S2", "2025-04-02", "2026-03-31")
+
+	//will ignore cases which are not active - duplicate
+	suite.dataSeedingForGetBillingInformation(seeder, "DUPLICATE", "DIRECT DEBIT", "", 2, "S2", "2025-04-02", "2026-03-31")
 
 	//will ignore death notified clients
-	seeder.SeedData(
-		"INSERT INTO public.persons VALUES (555, NULL, NULL, 'Scheduleson', NULL, NULL, NULL, NULL, FALSE, FALSE, NULL, NULL, 'actor_client', 'ACTIVE');",
-		"INSERT INTO public.cases (id, client_id, orderstatus) VALUES (102, 555, 'DEATH_NOTIFIED');",
-		"INSERT INTO supervision_finance.finance_client (id, client_id, sop_number, payment_method, batchnumber, court_ref) VALUES (999, 555, '2222', 'DEMANDED', NULL, '3334567T');",
-		"INSERT INTO supervision_finance.invoice VALUES (334, 555, 999, 'S2', 'S200125/25', '2025-04-02', '2026-03-31', 5000, NULL, '2025-04-02', NULL, '2025-04-02');",
-	)
+	suite.dataSeedingForGetBillingInformation(seeder, "DEATH_NOTIFIED", "DIRECT DEBIT", "", 3, "S2", "2025-04-02", "2026-03-31")
 
 	//will ignore N2 type fee
-	seeder.SeedData(
-		"INSERT INTO public.persons VALUES (556, NULL, NULL, 'Scheduleson', NULL, NULL, NULL, NULL, FALSE, FALSE, NULL, NULL, 'actor_client', 'ACTIVE');",
-		"INSERT INTO public.cases (id, client_id, orderstatus) VALUES (103, 556, 'ACTIVE');",
-		"INSERT INTO supervision_finance.finance_client (id, client_id, sop_number, payment_method, batchnumber, court_ref) VALUES (998, 556, '2323', 'DIRECT DEBIT', NULL, '3234567T');",
-		"INSERT INTO supervision_finance.invoice VALUES (335, 556, 998, 'N2', 'N211135/25', '2025-04-02', '2026-03-31', 5000, NULL, '2025-04-02', NULL, '2025-04-02');",
-	)
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DEMANDED", "", 4, "N2", "2025-04-02", "2026-03-31")
+
+	//will ignore N3 type fee
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DIRECT DEBIT", "", 5, "N3", "2025-04-02", "2026-03-31")
 
 	//will ignore invoice from before period starts
-	seeder.SeedData(
-		"INSERT INTO public.persons VALUES (557, NULL, NULL, 'Scheduleson', NULL, NULL, NULL, NULL, FALSE, FALSE, NULL, NULL, 'actor_client', 'ACTIVE');",
-		"INSERT INTO public.cases (id, client_id, orderstatus) VALUES (104, 557, 'ACTIVE');",
-		"INSERT INTO supervision_finance.finance_client (id, client_id, sop_number, payment_method, batchnumber, court_ref) VALUES (997, 557, '2221', 'DEMANDED', NULL, '1134567T');",
-		"INSERT INTO supervision_finance.invoice VALUES (332, 557, 997, 'S2', 'S288225/25', '2024-04-02', '2025-03-31', 5000, NULL, '2024-04-02', NULL, '2024-04-02');",
-	)
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DEMANDED", "", 6, "S2", "2024-04-02", "2025-03-31")
 
 	//will ignore invoice from after end of period
-	seeder.SeedData(
-		"INSERT INTO public.persons VALUES (558, NULL, NULL, 'Scheduleson', NULL, NULL, NULL, NULL, FALSE, FALSE, NULL, NULL, 'actor_client', 'ACTIVE');",
-		"INSERT INTO public.cases (id, client_id, orderstatus) VALUES (105, 558, 'ACTIVE');",
-		"INSERT INTO supervision_finance.finance_client (id, client_id, sop_number, payment_method, batchnumber, court_ref) VALUES (996, 558, '2441', 'DIRECT DEBIT', NULL, '3334567T');",
-		"INSERT INTO supervision_finance.invoice VALUES (402, 558, 996, 'S2', 'S243225/25', '2026-04-02', '2027-03-31', 5000, NULL, '2026-04-02', NULL, '2026-04-02');",
-	)
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DIRECT DEBIT", "", 7, "S2", "2026-04-02", "2027-03-31")
 
 	Store := store.New(seeder)
 	s := &Service{
@@ -183,10 +106,50 @@ func (suite *IntegrationSuite) TestService_GetAnnualBillingInformationWillNotCou
 	}
 	got, _ := s.GetAnnualBillingInformation(suite.ctx)
 
-	assert.Equal(suite.T(), int64(0), got.DirectDebitExpectedCount)
-	assert.Equal(suite.T(), int64(0), got.DemandedExpectedCount)
-	assert.Equal(suite.T(), int64(0), got.DirectDebitIssuedCount)
-	assert.Equal(suite.T(), int64(0), got.DemandedIssuedCount)
-	assert.Equal(suite.T(), int64(0), got.DemandedSkippedCount)
+	assert.Equal(suite.T(), 0, got.DirectDebitExpectedCount)
+	assert.Equal(suite.T(), 0, got.DemandedExpectedCount)
+	assert.Equal(suite.T(), 0, got.DirectDebitIssuedCount)
+	assert.Equal(suite.T(), 0, got.DemandedIssuedCount)
+	assert.Equal(suite.T(), 0, got.DemandedSkippedCount)
 	assert.Equal(suite.T(), "2025", got.AnnualBillingYear)
+}
+
+func (suite *IntegrationSuite) dataSeedingForYear(
+	seeder *testhelpers.Seeder,
+	annualBillingYear string,
+) {
+	seeder.SeedData(
+		fmt.Sprintf("INSERT INTO supervision_finance.property (id, key, value) VALUES (1, 'AnnualBillingYear', %s);", annualBillingYear),
+	)
+}
+
+func (suite *IntegrationSuite) dataSeedingForGetBillingInformation(
+	seeder *testhelpers.Seeder,
+	orderStatus string,
+	paymentMethod string,
+	invoiceEmailStatus string,
+	uniqueClientAddition int,
+	invoiceFeeType string,
+	invoiceStartDate string,
+	invoiceEndDate string,
+) {
+	clientId := 665 + uniqueClientAddition
+	caseId := 100 + uniqueClientAddition
+	fcId := 50 + uniqueClientAddition
+	invoiceId := 20 + uniqueClientAddition
+	invoiceEmailId := 1 + uniqueClientAddition
+	invoiceRef := "S" + fmt.Sprintf("%d", uniqueClientAddition) + "1111/25"
+	courtRef := fmt.Sprintf("%d", uniqueClientAddition) + "998567T"
+
+	seeder.SeedData(
+		fmt.Sprintf("INSERT INTO public.persons (id, salutation, firstname, surname, caserecnumber, feepayer_id, deputytype, deputynumber, correspondencebywelsh, specialcorrespondencerequirements_largeprint, organisationname, email, type, clientstatus) VALUES (%d, NULL, NULL, 'Scheduleson', NULL, NULL, NULL, NULL, FALSE, FALSE, NULL, NULL, 'actor_client', 'ACTIVE');", clientId),
+		fmt.Sprintf("INSERT INTO public.cases (id, client_id, orderstatus) VALUES (%d, %d, '%s');", caseId, clientId, orderStatus),
+		fmt.Sprintf("INSERT INTO supervision_finance.finance_client (id, client_id, sop_number, payment_method, batchnumber, court_ref) VALUES (%d, %d, '1234', '%s', NULL, '%s');", fcId, clientId, paymentMethod, courtRef),
+		fmt.Sprintf("INSERT INTO supervision_finance.invoice VALUES (%d, %d, %d, '%s', '%s', '%s', '%s', 5000, NULL, '2025-04-02', NULL, '2025-04-02');", invoiceId, clientId, fcId, invoiceFeeType, invoiceRef, invoiceStartDate, invoiceEndDate),
+	)
+	if invoiceEmailStatus != "" {
+		seeder.SeedData(
+			fmt.Sprintf("INSERT INTO supervision_finance.invoice_email_status VALUES (%d, %d, '%s', 'af2');", invoiceEmailId, invoiceId, invoiceEmailStatus),
+		)
+	}
 }

@@ -25,7 +25,7 @@ func (s *Service) GetAnnualBillingInformation(ctx context.Context) (shared.Annua
 	startDate := pgtype.Date{Time: start, Valid: true}
 	endDate := pgtype.Date{Time: end, Valid: true}
 
-	info, err := s.store.GetAnnualBillingLettersInformation(ctx, store.GetAnnualBillingLettersInformationParams{Column1: startDate, Column2: endDate})
+	info, err := s.store.GetAnnualBillingLettersInformation(ctx, store.GetAnnualBillingLettersInformationParams{Startdate: startDate, Enddate: endDate})
 	if err != nil {
 		return shared.AnnualBillingInformation{}, err
 	}
@@ -34,23 +34,23 @@ func (s *Service) GetAnnualBillingInformation(ctx context.Context) (shared.Annua
 		AnnualBillingYear: annualBillingYear,
 	}
 
-	for i := range info {
-		if info[i].PaymentMethod == "DIRECT DEBIT" {
-			switch info[i].Status.String {
+	for _, el := range info {
+		if el.PaymentMethod == "DIRECT DEBIT" {
+			switch el.Status.String {
 			case "UNPROCESSED":
-				response.DirectDebitExpectedCount = info[i].Count.Int64
+				response.DirectDebitExpectedCount = int(el.Count.Int64)
 			default:
-				response.DirectDebitIssuedCount = response.DirectDebitIssuedCount + info[i].Count.Int64
+				response.DirectDebitIssuedCount = response.DirectDebitIssuedCount + int(el.Count.Int64)
 			}
 		}
-		if info[i].PaymentMethod == "DEMANDED" {
-			switch info[i].Status.String {
+		if el.PaymentMethod == "DEMANDED" {
+			switch el.Status.String {
 			case "UNPROCESSED":
-				response.DemandedExpectedCount = info[i].Count.Int64
+				response.DemandedExpectedCount = int(el.Count.Int64)
 			case "SKIPPED":
-				response.DemandedSkippedCount = info[i].Count.Int64
+				response.DemandedSkippedCount = int(el.Count.Int64)
 			default:
-				response.DemandedIssuedCount = response.DemandedIssuedCount + info[i].Count.Int64
+				response.DemandedIssuedCount = response.DemandedIssuedCount + int(el.Count.Int64)
 			}
 		}
 	}

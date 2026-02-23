@@ -21,8 +21,8 @@ FROM supervision_finance.invoice i
     JOIN supervision_finance.finance_client fc ON i.finance_client_id = fc.id
     JOIN public.cases o ON o.client_id = i.person_id
     LEFT JOIN supervision_finance.invoice_email_status ies ON i.id = ies.invoice_id
-WHERE i.startdate::DATE >= $1::DATE
-  AND i.enddate::DATE <= $2::DATE
+WHERE i.startdate::DATE >= ($1)::DATE
+  AND i.enddate::DATE <= ($2)::DATE
   AND i.feetype NOT IN ('N2', 'N3')
   AND (
     (
@@ -36,8 +36,8 @@ GROUP BY ies.status, fc.payment_method
 `
 
 type GetAnnualBillingLettersInformationParams struct {
-	Column1 pgtype.Date
-	Column2 pgtype.Date
+	Startdate pgtype.Date
+	Enddate   pgtype.Date
 }
 
 type GetAnnualBillingLettersInformationRow struct {
@@ -46,9 +46,8 @@ type GetAnnualBillingLettersInformationRow struct {
 	PaymentMethod string
 }
 
-// non direct debit counts - is this still accurate?
 func (q *Queries) GetAnnualBillingLettersInformation(ctx context.Context, arg GetAnnualBillingLettersInformationParams) ([]GetAnnualBillingLettersInformationRow, error) {
-	rows, err := q.db.Query(ctx, getAnnualBillingLettersInformation, arg.Column1, arg.Column2)
+	rows, err := q.db.Query(ctx, getAnnualBillingLettersInformation, arg.Startdate, arg.Enddate)
 	if err != nil {
 		return nil, err
 	}

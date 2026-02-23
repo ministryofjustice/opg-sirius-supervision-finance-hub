@@ -12,7 +12,7 @@ import (
 )
 
 func TestServer_getAnnualBillingInformation(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/annual-billing-letters", nil)
+	req := httptest.NewRequest(http.MethodGet, "/annual-billing-letters-information", nil)
 	w := httptest.NewRecorder()
 
 	billingInfo := shared.AnnualBillingInformation{
@@ -38,7 +38,7 @@ func TestServer_getAnnualBillingInformation(t *testing.T) {
 }
 
 func TestServer_getAnnualBillingInformation_returnsEmpty(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/annual-billing-letters", nil)
+	req := httptest.NewRequest(http.MethodGet, "/annual-billing-letters-information", nil)
 	w := httptest.NewRecorder()
 
 	billingInfo := shared.AnnualBillingInformation{}
@@ -57,7 +57,7 @@ func TestServer_getAnnualBillingInformation_returnsEmpty(t *testing.T) {
 }
 
 func TestServer_getAnnualBillingInformation_error(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/annual-billing-letters", nil)
+	req := httptest.NewRequest(http.MethodGet, "/annual-billing-letters-information", nil)
 	w := httptest.NewRecorder()
 
 	mock := &mockService{errs: map[string]error{"GetAnnualBillingInformation": pgx.ErrTooManyRows}}
