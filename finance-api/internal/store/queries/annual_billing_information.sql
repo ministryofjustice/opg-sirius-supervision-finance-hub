@@ -1,6 +1,6 @@
 SET SEARCH_PATH TO supervision_finance;
 -- name: GetAnnualBillingYear :one
-SELECT value FROM supervision_finance.property WHERE key = 'AnnualBillingYear' LIMIT 1;
+SELECT (value)::INT FROM supervision_finance.property WHERE key = 'AnnualBillingYear' LIMIT 1;
 
 -- name: GetAnnualBillingLettersInformation :many
 SELECT
