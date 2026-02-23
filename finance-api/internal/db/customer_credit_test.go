@@ -1,8 +1,11 @@
 package db
 
 import (
+	"context"
+	"fmt"
 	"strconv"
 
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/testhelpers"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 )
@@ -85,4 +88,89 @@ func (suite *IntegrationSuite) Test_customer_credit() {
 	assert.Equal(suite.T(), "87654321", results[2]["Customer number"], "Customer number - client 3")
 	assert.Equal(suite.T(), "4321", results[2]["SOP number"], "SOP number - client 3")
 	assert.Equal(suite.T(), "90.00", results[2]["Credit balance"], "Credit balance - client 3")
+}
+
+func (suite *IntegrationSuite) Test_customer_credit_uses_correct_ledger_date() {
+	ctx := suite.ctx
+	today := suite.seeder.Today()
+	yesterday := today.Sub(0, 0, 1)
+	oneMonthAgo := today.Sub(0, 1, 0).String()
+	twoMonthsAgo := today.Sub(0, 2, 0)
+
+	// ledger will compare using the ledger created_at where it exists
+	// this ledger amount will be included in the credit amount on the report as the ledger created_at (two months ago) is BEFORE the report run date
+	cli1ID := suite.seeder.CreateClient(ctx, "Beryl", "1", "12345678", "1234", "ACTIVE")
+	suite.SetUpCaseForCustomerCredit(ctx, 101, cli1ID, oneMonthAgo, true, twoMonthsAgo, "UNAPPLIED", "12345678")
+	//
+	// ledger will compare using the ledger created_at where it exists
+	// this ledger amount will NOT be included in the credit amount on the report as the ledger created_at (today) is AFTER the report run date
+	cli2ID := suite.seeder.CreateClient(ctx, "Ian", "2", "22345678", "2234", "ACTIVE")
+	suite.SetUpCaseForCustomerCredit(ctx, 2, cli2ID, oneMonthAgo, true, today, "UNAPPLIED", "22345678")
+	//
+	// ledger will compare using the ledger datetime when no ledger created_at it exists
+	// this ledger amount will be included in the credit amount on the report as the ledger date time (one month ago) is BEFORE the report run date and the created_at is NULL
+	cli3ID := suite.seeder.CreateClient(ctx, "Olivia", "3", "32345678", "3234", "ACTIVE")
+	suite.SetUpCaseForCustomerCredit(ctx, 3, cli3ID, oneMonthAgo, false, testhelpers.DateHelper{}, "UNAPPLIED", "32345678")
+
+	// ledger will compare using the ledger datetime when no ledger created_at it exists
+	// this ledger amount will NOT be included in the credit amount on the report as the ledger date time (today) is AFTER the report run date and the created_at is NULL
+	cli4ID := suite.seeder.CreateClient(ctx, "Daniel", "4", "42345678", "4234", "ACTIVE")
+	suite.SetUpCaseForCustomerCredit(ctx, 4, cli4ID, today.String(), false, testhelpers.DateHelper{}, "UNAPPLIED", "42345678")
+
+	// only consider ledger allocations with a status on unapplied or reapplied
+	// this ledger amount will NOT be included in the credit amount on the report as the status is ALLOCATED
+	cli5ID := suite.seeder.CreateClient(ctx, "Edmond", "5", "52345678", "5234", "ACTIVE")
+	suite.SetUpCaseForCustomerCredit(ctx, 5, cli5ID, twoMonthsAgo.String(), true, twoMonthsAgo, "ALLOCATED", "52345678")
+
+	c := Client{suite.seeder.Conn}
+	to := shared.NewDate(yesterday.String())
+	rows, err := c.Run(ctx, NewCustomerCredit(CustomerCreditInput{
+		ToDate: &to,
+	}))
+
+	assert.NoError(suite.T(), err)
+	//assert.Equal(suite.T(), 3, len(rows))
+
+	results := mapByHeader(rows)
+	assert.NotEmpty(suite.T(), results)
+
+	// client 1
+	assert.Equal(suite.T(), "Beryl 1", results[0]["Customer name"], "Customer name - client 1")
+	assert.Equal(suite.T(), "12345678", results[0]["Customer number"], "Customer number - client 1")
+	assert.Equal(suite.T(), "1234", results[0]["SOP number"], "SOP number - client 1")
+	assert.Equal(suite.T(), "12.55", results[0]["Credit balance"], "Credit balance - client 1")
+
+	// client 3
+	assert.Equal(suite.T(), "Olivia 3", results[1]["Customer name"], "Customer name - client 2")
+	assert.Equal(suite.T(), "32345678", results[1]["Customer number"], "Customer number - client 2")
+	assert.Equal(suite.T(), "3234", results[1]["SOP number"], "SOP number - client 2")
+	assert.Equal(suite.T(), "12.55", results[1]["Credit balance"], "Credit balance - client 2")
+}
+
+func (suite *IntegrationSuite) SetUpCaseForCustomerCredit(
+	ctx context.Context,
+	ledgerId int,
+	clientID int32,
+	ledgerDateTime string,
+	hasLedgerCreatedAtDate bool,
+	ledgerCreatedAtDate testhelpers.DateHelper,
+	ledgerAllocationStatus string,
+	courtRef string,
+) {
+	today := suite.seeder.Today()
+	oneYearAgo := today.Sub(1, 0, 0).String()
+
+	ledgerRef := fmt.Sprintf("ledger-ref%d", ledgerId)
+	unpaidInvoiceID, _ := suite.seeder.CreateInvoice(ctx, clientID, shared.InvoiceTypeGA, nil, &oneYearAgo, nil, nil, nil, nil)
+	if hasLedgerCreatedAtDate == false {
+		suite.seeder.SeedData(
+			fmt.Sprintf("INSERT INTO supervision_finance.ledger VALUES ('%d', '%s', '%s', '', 1255, '', 'CREDIT MEMO', 'CONFIRMED', '%d', NULL, NULL, '%s', '%s', 1222, '', '', 1, NULL, 2);", ledgerId, ledgerRef, ledgerDateTime, clientID, ledgerDateTime, ledgerDateTime),
+			fmt.Sprintf("INSERT INTO supervision_finance.ledger_allocation VALUES ('%d', '%d', '%d', '%s', -1255, '%s', NULL, 'Notes here', '%s', NULL);", ledgerId, ledgerId, unpaidInvoiceID, ledgerDateTime, ledgerAllocationStatus, ledgerDateTime),
+		)
+	} else {
+		suite.seeder.SeedData(
+			fmt.Sprintf("INSERT INTO supervision_finance.ledger VALUES ('%d', '%s', '%s', '', 1255, '', 'CREDIT MEMO', 'CONFIRMED', '%d', NULL, NULL, '%s', '%s', 1222, '', '', 1, '%s', 2);", ledgerId, ledgerRef, ledgerDateTime, clientID, ledgerDateTime, ledgerDateTime, ledgerCreatedAtDate),
+			fmt.Sprintf("INSERT INTO supervision_finance.ledger_allocation VALUES ('%d', '%d', '%d', '%s', -1255, '%s', NULL, 'Notes here', '%s', NULL);", ledgerId, ledgerId, unpaidInvoiceID, ledgerDateTime, ledgerAllocationStatus, ledgerDateTime),
+		)
+	}
 }

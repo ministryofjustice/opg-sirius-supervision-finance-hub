@@ -34,7 +34,7 @@ const CustomerCreditQuery = `SELECT CONCAT(p.firstname, ' ', p.surname)   AS "Cu
 									 JOIN supervision_finance.ledger l ON fc.id = l.finance_client_id
 									 JOIN supervision_finance.ledger_allocation la ON l.id = la.ledger_id
 							WHERE la.status IN ('UNAPPLIED', 'REAPPLIED')
-							AND l.datetime::DATE <= $1
+							AND $1::DATE >= COALESCE(l.created_at, l.datetime)::DATE
 							GROUP BY p.caserecnumber, CONCAT(p.firstname, ' ', p.surname), fc.sop_number
 							HAVING SUM(la.amount) < 0;` // #nosec G101 -- False Positive
 
