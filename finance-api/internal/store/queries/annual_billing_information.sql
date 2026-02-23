@@ -13,8 +13,8 @@ FROM supervision_finance.invoice i
     JOIN supervision_finance.finance_client fc ON i.finance_client_id = fc.id
     JOIN public.cases o ON o.client_id = i.person_id
     LEFT JOIN supervision_finance.invoice_email_status ies ON i.id = ies.invoice_id
-WHERE i.startdate::DATE >= $1::DATE
-  AND i.enddate::DATE <= $2::DATE
+WHERE i.startdate::DATE >= @startDate::DATE
+  AND i.enddate::DATE <= @endDate::DATE
   AND i.feetype NOT IN ('N2', 'N3')
   AND (
     (

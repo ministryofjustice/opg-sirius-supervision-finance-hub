@@ -25,7 +25,7 @@ func (s *Service) GetAnnualBillingInformation(ctx context.Context) (shared.Annua
 	startDate := pgtype.Date{Time: start, Valid: true}
 	endDate := pgtype.Date{Time: end, Valid: true}
 
-	info, err := s.store.GetAnnualBillingLettersInformation(ctx, store.GetAnnualBillingLettersInformationParams{Column1: startDate, Column2: endDate})
+	info, err := s.store.GetAnnualBillingLettersInformation(ctx, store.GetAnnualBillingLettersInformationParams{Startdate: startDate, Enddate: endDate})
 	if err != nil {
 		return shared.AnnualBillingInformation{}, err
 	}
