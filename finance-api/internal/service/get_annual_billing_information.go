@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"strconv"
-	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
@@ -20,10 +19,9 @@ func (s *Service) GetAnnualBillingInformation(ctx context.Context) (shared.Annua
 	thisYear, _ := strconv.Atoi(annualBillingYear)
 	nextYear := thisYear + 1
 	billingYearEndDate := strconv.Itoa(nextYear) + "-03-31"
-	start, _ := time.Parse("2006-01-02", billingYearStartDate)
-	end, _ := time.Parse("2006-01-02", billingYearEndDate)
-	startDate := pgtype.Date{Time: start, Valid: true}
-	endDate := pgtype.Date{Time: end, Valid: true}
+	var startDate, endDate pgtype.Date
+	_ = startDate.Scan(billingYearStartDate)
+	_ = endDate.Scan(billingYearEndDate)
 
 	info, err := s.store.GetAnnualBillingLettersInformation(ctx, store.GetAnnualBillingLettersInformationParams{Startdate: startDate, Enddate: endDate})
 	if err != nil {
