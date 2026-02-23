@@ -67,12 +67,12 @@ func (q *Queries) GetAnnualBillingLettersInformation(ctx context.Context, arg Ge
 }
 
 const getAnnualBillingYear = `-- name: GetAnnualBillingYear :one
-SELECT value FROM supervision_finance.property WHERE key = 'AnnualBillingYear' LIMIT 1
+SELECT (value)::INT FROM supervision_finance.property WHERE key = 'AnnualBillingYear' LIMIT 1
 `
 
-func (q *Queries) GetAnnualBillingYear(ctx context.Context) (string, error) {
+func (q *Queries) GetAnnualBillingYear(ctx context.Context) (pgtype.Int4, error) {
 	row := q.db.QueryRow(ctx, getAnnualBillingYear)
-	var value string
+	var value pgtype.Int4
 	err := row.Scan(&value)
 	return value, err
 }

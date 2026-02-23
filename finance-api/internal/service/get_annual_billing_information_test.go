@@ -39,7 +39,7 @@ func (suite *IntegrationSuite) TestService_GetAnnualBillingInformation() {
 	assert.Equal(suite.T(), 1, got.DemandedExpectedCount)
 	assert.Equal(suite.T(), 4, got.DemandedIssuedCount)
 	assert.Equal(suite.T(), 1, got.DemandedSkippedCount)
-	assert.Equal(suite.T(), "2025", got.AnnualBillingYear)
+	assert.Equal(suite.T(), 2025, got.AnnualBillingYear)
 }
 
 func (suite *IntegrationSuite) TestService_GetAnnualBillingInformationForDirectDebitClients() {
@@ -69,7 +69,7 @@ func (suite *IntegrationSuite) TestService_GetAnnualBillingInformationForDirectD
 
 	assert.Equal(suite.T(), 4, got.DirectDebitIssuedCount)
 	assert.Equal(suite.T(), 1, got.DirectDebitExpectedCount)
-	assert.Equal(suite.T(), "2025", got.AnnualBillingYear)
+	assert.Equal(suite.T(), 2025, got.AnnualBillingYear)
 }
 
 func (suite *IntegrationSuite) TestService_GetAnnualBillingInformationWillNotCountInvalidCases() {
@@ -111,7 +111,7 @@ func (suite *IntegrationSuite) TestService_GetAnnualBillingInformationWillNotCou
 	assert.Equal(suite.T(), 0, got.DirectDebitIssuedCount)
 	assert.Equal(suite.T(), 0, got.DemandedIssuedCount)
 	assert.Equal(suite.T(), 0, got.DemandedSkippedCount)
-	assert.Equal(suite.T(), "2025", got.AnnualBillingYear)
+	assert.Equal(suite.T(), 2025, got.AnnualBillingYear)
 }
 
 func (suite *IntegrationSuite) dataSeedingForYear(

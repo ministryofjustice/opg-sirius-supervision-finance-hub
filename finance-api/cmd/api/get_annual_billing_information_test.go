@@ -16,7 +16,7 @@ func TestServer_getAnnualBillingInformation(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	billingInfo := shared.AnnualBillingInformation{
-		AnnualBillingYear:        "2023",
+		AnnualBillingYear:        2023,
 		DemandedExpectedCount:    6,
 		DemandedIssuedCount:      12,
 		DemandedSkippedCount:     1,
@@ -31,7 +31,7 @@ func TestServer_getAnnualBillingInformation(t *testing.T) {
 	res := w.Result()
 	defer unchecked(res.Body.Close)
 
-	expected := `{"AnnualBillingYear":"2023","DemandedExpectedCount":6,"DemandedIssuedCount":12,"DemandedSkippedCount":1,"DirectDebitExpectedCount":4,"DirectDebitIssuedCount":2}`
+	expected := `{"AnnualBillingYear":2023,"DemandedExpectedCount":6,"DemandedIssuedCount":12,"DemandedSkippedCount":1,"DirectDebitExpectedCount":4,"DirectDebitIssuedCount":2}`
 
 	assert.Equal(t, strings.TrimSpace(expected), strings.TrimSpace(w.Body.String()))
 	assert.Equal(t, "application/json", res.Header.Get("Content-Type"))
@@ -50,7 +50,7 @@ func TestServer_getAnnualBillingInformation_returnsEmpty(t *testing.T) {
 	res := w.Result()
 	defer unchecked(res.Body.Close)
 
-	expected := `{"AnnualBillingYear":"","DemandedExpectedCount":0,"DemandedIssuedCount":0,"DemandedSkippedCount":0,"DirectDebitExpectedCount":0,"DirectDebitIssuedCount":0}`
+	expected := `{"AnnualBillingYear":0,"DemandedExpectedCount":0,"DemandedIssuedCount":0,"DemandedSkippedCount":0,"DirectDebitExpectedCount":0,"DirectDebitIssuedCount":0}`
 
 	assert.Equal(t, strings.TrimSpace(expected), strings.TrimSpace(w.Body.String()))
 	assert.Equal(t, "application/json", res.Header.Get("Content-Type"))

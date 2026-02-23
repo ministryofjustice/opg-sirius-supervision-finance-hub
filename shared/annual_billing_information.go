@@ -1,7 +1,7 @@
 package shared
 
 type AnnualBillingInformation struct {
-	AnnualBillingYear        string
+	AnnualBillingYear        int
 	DemandedExpectedCount    int
 	DemandedIssuedCount      int
 	DemandedSkippedCount     int
