@@ -16,13 +16,13 @@ import (
 )
 
 type ApiClient interface {
-	CancelDirectDebitMandate(context.Context, int) error
-	CreateDirectDebitMandate(context.Context, int, api.AccountDetails) error
 	AddFeeReduction(context.Context, int, string, string, string, string, string) error
 	AddInvoiceAdjustment(context.Context, int, int, int, string, string, string, bool) error
 	AddManualInvoice(context.Context, int, string, *string, *string, *string, *string, *string, *string) error
 	AddRefund(context.Context, int, string, string, string, string) error
 	CancelFeeReduction(context.Context, int, int, string) error
+	CancelDirectDebitMandate(context.Context, int) error
+	CreateDirectDebitMandate(context.Context, int, api.AccountDetails) error
 	GetAccountInformation(context.Context, int) (shared.AccountInformation, error)
 	GetBillingHistory(context.Context, int) ([]shared.BillingHistory, error)
 	GetFeeReductions(context.Context, int) (shared.FeeReductions, error)
