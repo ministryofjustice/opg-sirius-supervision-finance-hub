@@ -21,6 +21,9 @@ WHERE i.startdate::DATE >= (@startDate)::DATE
       AND o.orderstatus = 'ACTIVE'
       AND c.clientstatus <> 'DEATH_NOTIFIED'
     )
-    OR ies.invoice_id IS NOT NULL
+    OR (
+        ies.invoice_id IS NOT NULL
+        AND ies.templateid IN ('AF1', 'AF2', 'AF3')
+    )
 )
 GROUP BY ies.status, fc.payment_method;
