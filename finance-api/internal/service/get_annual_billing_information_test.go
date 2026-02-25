@@ -13,22 +13,25 @@ func (suite *IntegrationSuite) TestService_GetAnnualBillingInformation() {
 	suite.dataSeedingForYear(seeder, "2025")
 
 	//invoice with skipped status should update skipped count
-	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DEMANDED", "SKIPPED", 0, "S2", "2025-04-02", "2026-03-31")
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DEMANDED", "SKIPPED", "AF3", 0, "S2", "2025-04-02", "2026-03-31")
 
 	//invoice on active order for non deceased client and with no record in invoice_email_status table should return expected (i.e. unprocessed)
-	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DEMANDED", "", 1, "S2", "2025-04-02", "2026-03-31")
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DEMANDED", "", "", 1, "S2", "2025-04-02", "2026-03-31")
+
+	//invoice with invoice_email_status entry other than af1, af2, af3 should not be counted
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DEMANDED", "PROCESSED", "FF2", 2, "S2", "2025-04-02", "2026-03-31")
 
 	//invoice with processed status should update issued count
-	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DEMANDED", "PROCESSED", 2, "S2", "2025-04-02", "2026-03-31")
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DEMANDED", "PROCESSED", "AF3", 3, "S2", "2025-04-02", "2026-03-31")
 
 	//invoice with in progress status should update issued count
-	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DEMANDED", "IN_PROGRESS", 3, "S2", "2025-04-02", "2026-03-31")
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DEMANDED", "IN_PROGRESS", "AF3", 4, "S2", "2025-04-02", "2026-03-31")
 
 	//invoice with error status should update issued count
-	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DEMANDED", "ERROR", 4, "S2", "2025-04-02", "2026-03-31")
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DEMANDED", "ERROR", "AF3", 5, "S2", "2025-04-02", "2026-03-31")
 
 	//invoice with none status should update issued count
-	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DEMANDED", "NONE", 5, "S2", "2025-04-02", "2026-03-31")
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DEMANDED", "NONE", "AF3", 6, "S2", "2025-04-02", "2026-03-31")
 
 	Store := store.New(seeder)
 	s := &Service{
@@ -47,19 +50,22 @@ func (suite *IntegrationSuite) TestService_GetAnnualBillingInformationForDirectD
 	suite.dataSeedingForYear(seeder, "2025")
 
 	//invoice on active order for non deceased client and with no record in invoice_email_status table should return expected (i.e. unprocessed)
-	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DIRECT DEBIT", "", 0, "S2", "2025-04-02", "2026-03-31")
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DIRECT DEBIT", "", "", 0, "S2", "2025-04-02", "2026-03-31")
+
+	//invoice with invoice_email_status entry other than af1, af2, af3 should not be counted
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DIRECT DEBIT", "PROCESSED", "FF1", 1, "S2", "2025-04-02", "2026-03-31")
 
 	//invoice with processed status should update issued count
-	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DIRECT DEBIT", "PROCESSED", 1, "S2", "2025-04-02", "2026-03-31")
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DIRECT DEBIT", "PROCESSED", "AF2", 2, "S2", "2025-04-02", "2026-03-31")
 
 	//invoice with in progress status should update issued count
-	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DIRECT DEBIT", "IN_PROGRESS", 2, "S2", "2025-04-02", "2026-03-31")
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DIRECT DEBIT", "IN_PROGRESS", "AF2", 3, "S2", "2025-04-02", "2026-03-31")
 
 	//invoice with error status should update issued count
-	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DIRECT DEBIT", "ERROR", 3, "S2", "2025-04-02", "2026-03-31")
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DIRECT DEBIT", "ERROR", "AF2", 4, "S2", "2025-04-02", "2026-03-31")
 
 	//invoice with none status should update issued count
-	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DIRECT DEBIT", "ERROR", 4, "S2", "2025-04-02", "2026-03-31")
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DIRECT DEBIT", "ERROR", "AF2", 5, "S2", "2025-04-02", "2026-03-31")
 
 	Store := store.New(seeder)
 	s := &Service{
@@ -77,28 +83,28 @@ func (suite *IntegrationSuite) TestService_GetAnnualBillingInformationWillNotCou
 	suite.dataSeedingForYear(seeder, "2025")
 
 	//will ignore cases which are not active - closed
-	suite.dataSeedingForGetBillingInformation(seeder, "CLOSED", "DIRECT DEBIT", "", 0, "S2", "2025-04-02", "2026-03-31")
+	suite.dataSeedingForGetBillingInformation(seeder, "CLOSED", "DIRECT DEBIT", "", "", 0, "S2", "2025-04-02", "2026-03-31")
 
 	//will ignore cases which are not active - open
-	suite.dataSeedingForGetBillingInformation(seeder, "OPEN", "DEMANDED", "", 1, "S2", "2025-04-02", "2026-03-31")
+	suite.dataSeedingForGetBillingInformation(seeder, "OPEN", "DEMANDED", "", "", 1, "S2", "2025-04-02", "2026-03-31")
 
 	//will ignore cases which are not active - duplicate
-	suite.dataSeedingForGetBillingInformation(seeder, "DUPLICATE", "DIRECT DEBIT", "", 2, "S2", "2025-04-02", "2026-03-31")
+	suite.dataSeedingForGetBillingInformation(seeder, "DUPLICATE", "DIRECT DEBIT", "", "", 2, "S2", "2025-04-02", "2026-03-31")
 
 	//will ignore death notified clients
-	suite.dataSeedingForGetBillingInformation(seeder, "DEATH_NOTIFIED", "DIRECT DEBIT", "", 3, "S2", "2025-04-02", "2026-03-31")
+	suite.dataSeedingForGetBillingInformation(seeder, "DEATH_NOTIFIED", "DIRECT DEBIT", "", "", 3, "S2", "2025-04-02", "2026-03-31")
 
 	//will ignore N2 type fee
-	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DEMANDED", "", 4, "N2", "2025-04-02", "2026-03-31")
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DEMANDED", "", "", 4, "N2", "2025-04-02", "2026-03-31")
 
 	//will ignore N3 type fee
-	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DIRECT DEBIT", "", 5, "N3", "2025-04-02", "2026-03-31")
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DIRECT DEBIT", "", "", 5, "N3", "2025-04-02", "2026-03-31")
 
 	//will ignore invoice from before period starts
-	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DEMANDED", "", 6, "S2", "2024-04-02", "2025-03-31")
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DEMANDED", "", "", 6, "S2", "2024-04-02", "2025-03-31")
 
 	//will ignore invoice from after end of period
-	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DIRECT DEBIT", "", 7, "S2", "2026-04-02", "2027-03-31")
+	suite.dataSeedingForGetBillingInformation(seeder, "ACTIVE", "DIRECT DEBIT", "", "", 7, "S2", "2026-04-02", "2027-03-31")
 
 	Store := store.New(seeder)
 	s := &Service{
@@ -128,6 +134,7 @@ func (suite *IntegrationSuite) dataSeedingForGetBillingInformation(
 	orderStatus string,
 	paymentMethod string,
 	invoiceEmailStatus string,
+	invoiceLetterType string,
 	uniqueClientAddition int,
 	invoiceFeeType string,
 	invoiceStartDate string,
@@ -149,7 +156,7 @@ func (suite *IntegrationSuite) dataSeedingForGetBillingInformation(
 	)
 	if invoiceEmailStatus != "" {
 		seeder.SeedData(
-			fmt.Sprintf("INSERT INTO supervision_finance.invoice_email_status VALUES (%d, %d, '%s', 'af2');", invoiceEmailId, invoiceId, invoiceEmailStatus),
+			fmt.Sprintf("INSERT INTO supervision_finance.invoice_email_status VALUES (%d, %d, '%s', '%s');", invoiceEmailId, invoiceId, invoiceEmailStatus, invoiceLetterType),
 		)
 	}
 }
