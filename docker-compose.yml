@@ -113,7 +113,7 @@ services:
       - TRIVY_PASSWORD=${DOCKER_PASSWORD}
 
   yarn:
-    image: node:22-alpine3.19
+    image: node:24-alpine3.23
     working_dir: /home/node/app
     entrypoint: yarn
     volumes:
