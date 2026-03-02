@@ -10,13 +10,12 @@
     "clean": "rm -rf web/static",
     "test-sirius": "cd internal/sirius && go test",
     "test-server": "cd internal/server && go test",
-    "lint": "prettier --check .",
-    "prettier": "prettier --write .",
+    "lint": "eslint web/assets",
     "fmt": "prettier --write .",
     "watch": "yarn build:css && yarn build:js --watch=forever"
   },
   "dependencies": {
-    "@cypress/grep": "^5.0.0",
+    "@cypress/grep": "^6.0.0",
     "@ministryofjustice/frontend": "^5.0.0",
     "govuk-frontend": "^5.0.0",
     "opg-sirius-header": "ministryofjustice/opg-sirius-header#semver:v0.52.8",
@@ -25,7 +24,10 @@
   },
   "devDependencies": {
     "esbuild": "^0.27.0",
-    "eslint": "^9.0.0",
+    "eslint": "^10.0.0",
+    "@eslint/eslintrc": "^3.3.3",
+    "@eslint/js": "^10.0.1",
+    "prettier": "^3.0.0",
     "sass": "^1.70.0"
   },
   "resolutions": {
