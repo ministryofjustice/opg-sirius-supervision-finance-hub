@@ -211,6 +211,58 @@ func Test_validateStartDate(t *testing.T) {
 	}
 }
 
+func Test_validateRaisedDate(t *testing.T) {
+	type args struct {
+		raisedDate shared.Date
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "returns false if the raised date is today",
+			args: args{
+				raisedDate: shared.Date{Time: time.Now().Add(time.Hour * 1)},
+			},
+			want: false,
+		},
+		{
+			name: "returns false if the raised date is start of today",
+			args: args{
+				raisedDate: shared.Date{Time: time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 0, 0, 0, 0, time.UTC)},
+			},
+			want: false,
+		},
+		{
+			name: "returns false if the raised date is end of today",
+			args: args{
+				raisedDate: shared.Date{Time: time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 23, 59, 59, 58, time.UTC)},
+			},
+			want: false,
+		},
+		{
+			name: "returns true if the raised date is tomorrow",
+			args: args{
+				raisedDate: shared.Date{Time: time.Now().Add(time.Hour * 24)},
+			},
+			want: true,
+		},
+		{
+			name: "returns true if the raised date is start of day tomorrow",
+			args: args{
+				raisedDate: shared.Date{Time: time.Date(time.Now().Year(), time.Now().Month(), time.Now().Add(time.Hour*24).Day(), 0, 0, 0, 0, time.UTC)},
+			},
+			want: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, validateRaisedDate(tt.args.raisedDate), "validateRaisedDate(%v)", tt.args.raisedDate)
+		})
+	}
+}
+
 func (suite *IntegrationSuite) TestService_AddLedgerAndAllocationsForAnADInvoice() {
 	ctx := suite.ctx
 	seeder := suite.cm.Seeder(ctx, suite.T())
