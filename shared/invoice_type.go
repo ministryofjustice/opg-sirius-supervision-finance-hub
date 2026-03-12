@@ -153,3 +153,12 @@ func (i InvoiceType) RequiresSameFinancialYearValidation() bool {
 		return false
 	}
 }
+
+func (i InvoiceType) AllowsFutureRaisedDateValidation() bool {
+	switch i {
+	case InvoiceTypeS2, InvoiceTypeS3, InvoiceTypeB2, InvoiceTypeB3:
+		return false
+	default:
+		return true
+	}
+}
