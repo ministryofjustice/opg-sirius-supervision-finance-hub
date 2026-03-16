@@ -2,19 +2,22 @@ package service
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"testing"
-	"time"
 )
 
 func (suite *IntegrationSuite) TestService_AddInvoiceAdjustment() {
 	ctx := suite.ctx
+	dispatch := &mockDispatch{}
 	seeder := suite.cm.Seeder(ctx, suite.T())
 
 	seeder.SeedData(
@@ -26,7 +29,7 @@ func (suite *IntegrationSuite) TestService_AddInvoiceAdjustment() {
 		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 2;",
 	)
 
-	s := Service{store: store.New(seeder.Conn)}
+	s := Service{store: store.New(seeder.Conn), dispatch: dispatch}
 
 	testCases := []struct {
 		name      string
@@ -104,6 +107,8 @@ func (suite *IntegrationSuite) TestService_AddInvoiceAdjustment() {
 			}
 
 			assert.EqualValues(t, expected, pendingAdjustment)
+			assert.Equal(suite.T(), int(tt.clientId), dispatch.event.(event.PendingInvoiceAdjustment).ClientID)
+			assert.Equal(suite.T(), tt.data.AdjustmentType.Key(), dispatch.event.(event.PendingInvoiceAdjustment).AdjustmentType)
 		})
 	}
 }

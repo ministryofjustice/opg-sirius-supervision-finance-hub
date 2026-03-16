@@ -7,6 +7,7 @@ import (
 
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
@@ -46,6 +47,16 @@ func (s *Service) AddInvoiceAdjustment(ctx context.Context, clientId int32, invo
 	invoiceReference, err := s.store.CreatePendingInvoiceAdjustment(ctx, params)
 	if err != nil {
 		s.Logger(ctx).Error("Error creating pending invoice adjustment", slog.String("err", err.Error()))
+		return nil, err
+	}
+
+	err = s.dispatch.PendingInvoiceAdjustment(ctx, event.PendingInvoiceAdjustment{
+		ClientID:         int(clientId),
+		AdjustmentType:   adjustment.AdjustmentType.Key(),
+		InvoiceReference: invoiceReference,
+	})
+
+	if err != nil {
 		return nil, err
 	}
 
