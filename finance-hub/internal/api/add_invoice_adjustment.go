@@ -5,9 +5,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"net/http"
 )
 
 func (c *Client) AddInvoiceAdjustment(ctx context.Context, clientId int, supervisionBillingTeamId int, invoiceId int, adjustmentType string, notes string, amount string, managerOverride bool) error {
@@ -42,11 +43,6 @@ func (c *Client) AddInvoiceAdjustment(ctx context.Context, clientId int, supervi
 	if resp.StatusCode == http.StatusCreated {
 		var response shared.InvoiceReference
 		if err = json.NewDecoder(resp.Body).Decode(&response); err != nil {
-			return err
-		}
-
-		err := c.CreatePendingInvoiceAdjustmentTask(ctx, clientId, supervisionBillingTeamId, response.InvoiceRef, adjustmentType)
-		if err != nil {
 			return err
 		}
 

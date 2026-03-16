@@ -2,8 +2,9 @@ package api
 
 import (
 	"encoding/json"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"net/http"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
 func (s *Server) addInvoiceAdjustment(w http.ResponseWriter, r *http.Request) error {
