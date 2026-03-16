@@ -50,6 +50,10 @@ func (m *mockDispatch) DirectDebitMandateReview(ctx context.Context, event event
 	return nil
 }
 
+func (m *mockDispatch) PendingInvoiceAdjustment(ctx context.Context, event event.PendingInvoiceAdjustment) error {
+	return nil
+}
+
 func (suite *IntegrationSuite) SetupSuite() {
 	suite.ctx = auth.Context{
 		Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test")),

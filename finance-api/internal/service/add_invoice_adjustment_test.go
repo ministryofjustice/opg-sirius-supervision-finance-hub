@@ -2,6 +2,9 @@ package service
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
@@ -9,8 +12,6 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
-	"testing"
-	"time"
 )
 
 func (suite *IntegrationSuite) TestService_AddInvoiceAdjustment() {
