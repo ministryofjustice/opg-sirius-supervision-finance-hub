@@ -174,6 +174,13 @@ func (s *Service) validateManualInvoice(data shared.AddManualInvoice) apierror.V
 		}
 	}
 
+	if !data.InvoiceType.AllowsFutureRaisedDateValidation() {
+		hasRaisedDateError := validateRaisedDate(data.RaisedDate.Value)
+		if hasRaisedDateError {
+			validationErrors["RaisedDate"] = map[string]string{"RaisedDate": "Raised date not in the future"}
+		}
+	}
+
 	if data.InvoiceType.RequiresSameFinancialYearValidation() {
 		isSameFinancialYear := validateSameFinancialYear(data.StartDate.Value, data.EndDate.Value)
 		if !isSameFinancialYear {
@@ -213,4 +220,8 @@ func validateStartDate(startDate shared.Date, endDate shared.Date) bool {
 
 func validateSameFinancialYear(startDate shared.Date, endDate shared.Date) bool {
 	return startDate.IsSameFinancialYear(endDate)
+}
+
+func validateRaisedDate(raisedDate shared.Date) bool {
+	return raisedDate.Time.After(time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 23, 59, 59, 59, time.UTC))
 }
