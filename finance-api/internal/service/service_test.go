@@ -62,6 +62,12 @@ type mockDispatch struct {
 	event  any
 }
 
+func (m *mockDispatch) PendingInvoiceAdjustmentAdded(ctx context.Context, event event.PendingInvoiceAdjustment) error {
+	m.event = event
+	m.called = append(m.called, "pending-invoice-adjustment")
+	return nil
+}
+
 func (m *mockDispatch) PaymentMethodChanged(ctx context.Context, event event.PaymentMethod) error {
 	m.event = event
 	m.called = append(m.called, "PaymentMethodChanged")
