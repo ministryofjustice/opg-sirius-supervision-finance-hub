@@ -59,9 +59,9 @@ jobs:
 
     steps:
       - name: Set up Go
-        uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6.2.0
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
         with:
-          go-version: 1.26.0
+          go-version: 1.26.1
         id: go
 
       - name: Check out code
@@ -137,7 +137,7 @@ jobs:
         run: make gosec
       - name: Upload GoSec results to GitHub Security tab
         if: ${{ always() }}
-        uses: github/codeql-action/upload-sarif@9e907b5e64f6b83e7804b09294d44122997950d6 # v4.32.3
+        uses: github/codeql-action/upload-sarif@0d579ffd059c29b07949a3cce3983f0780820c98 # v4.32.6
         with:
           sarif_file: 'test-results/gosec.sarif'
           category: gosec
@@ -184,7 +184,7 @@ jobs:
           aws-region: eu-west-1
       - name: ECR Login
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+        uses: aws-actions/amazon-ecr-login@c962da2960ed15f492addc26fffa274485265950 # v2.0.2
         with:
           registries: 311462405659
       - name: Test Migrations
@@ -208,7 +208,7 @@ jobs:
             service_name: allpay-mock
             build_options: --file docker/allpay/Dockerfile
     name: Build ${{ matrix.service_name }}
-    uses: ministryofjustice/opg-github-workflows/.github/workflows/build-multi-architecture-image.yml@361d19a6d7b291dab5d46f04765239341a4ca86b # v3.16.0
+    uses: ministryofjustice/opg-github-workflows/.github/workflows/build-multi-architecture-image.yml@775636910c06dbeb813ab4d83b55142d1bb94d28 # v3.17.0
     with:
       image_name: ${{ matrix.image_name }}
       artifact_name: ${{ matrix.service_name }}-multi-arch
@@ -269,7 +269,7 @@ jobs:
 
       - name: ECR Login
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+        uses: aws-actions/amazon-ecr-login@c962da2960ed15f492addc26fffa274485265950 # v2.0.2
         with:
           registries: 311462405659
 
@@ -284,7 +284,7 @@ jobs:
 
       - name: Upload Trivy scan results to GitHub Security tab
         if: matrix.scan == 1
-        uses: github/codeql-action/upload-sarif@9e907b5e64f6b83e7804b09294d44122997950d6 # v4.32.3
+        uses: github/codeql-action/upload-sarif@0d579ffd059c29b07949a3cce3983f0780820c98 # v4.32.6
         with:
           sarif_file: 'test-results/'
           category: trivy-docker-${{ matrix.service_name }}
