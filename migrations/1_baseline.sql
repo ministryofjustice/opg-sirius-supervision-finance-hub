@@ -81,7 +81,7 @@ CREATE TABLE warnings
     id           INTEGER                   NOT NULL
         PRIMARY KEY,
     warningtype  VARCHAR(255) DEFAULT NULL::CHARACTER VARYING,
-    systemstatus BOOLEAN      DEFAULT TRUE NOT NULL
+    isactive BOOLEAN      DEFAULT TRUE NOT NULL
 );
 
 ALTER TABLE warnings

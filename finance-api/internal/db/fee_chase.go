@@ -94,7 +94,7 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
             FROM public.person_warning pw
             INNER JOIN public.warnings w ON pw.warning_id = w.id
             WHERE pw.person_id = cl.id
-              AND w.systemstatus = TRUE
+              AND w.isactive = TRUE
               AND w.warningtype = 'Do not invoice'
             ) AS do_not_invoice_warning_count
             WHERE cl.type = 'actor_client'
