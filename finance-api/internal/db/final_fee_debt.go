@@ -75,7 +75,7 @@ const FinalFeeDebtQuery = `SELECT client.caserecnumber AS "Case_no",
             FROM public.person_warning pw
             INNER JOIN public.warnings w ON pw.warning_id = w.id
             WHERE pw.person_id = client.id
-              AND w.systemstatus = TRUE
+              AND w.isActive = TRUE
               AND w.warningtype = 'Do not invoice'
             ) AS do_not_invoice_warning_count
         LEFT JOIN LATERAL (

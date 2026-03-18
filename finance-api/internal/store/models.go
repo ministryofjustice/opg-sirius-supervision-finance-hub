@@ -311,5 +311,5 @@ type TransactionTypeUpdate struct {
 type Warning struct {
 	ID           int32
 	Warningtype  pgtype.Text
-	Systemstatus bool
+	IsActive bool
 }
