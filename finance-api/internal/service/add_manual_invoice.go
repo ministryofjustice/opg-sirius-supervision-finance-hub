@@ -2,12 +2,14 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
@@ -49,13 +51,11 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int32, data sha
 	}
 	defer tx.Rollback(ctx)
 
-	counter, err := tx.GetInvoiceCounter(ctx, strconv.Itoa(data.StartDate.Value.Time.Year())+"InvoiceNumber")
+	reference, err := generateInvoiceReference(ctx, tx, data.InvoiceType, data.StartDate.Value)
 	if err != nil {
-		s.Logger(ctx).Error("Get invoice counter has an issue " + err.Error())
+		s.Logger(ctx).Error("Generate invoice reference has an issue " + err.Error())
 		return err
 	}
-
-	invoiceRef := addLeadingZeros(counter)
 
 	var (
 		personID   pgtype.Int4
@@ -73,12 +73,10 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int32, data sha
 	_ = source.Scan("Created manually")
 	_ = store.ToInt4(&createdBy, ctx.(auth.Context).User.ID)
 
-	calculateFinanceYear := data.StartDate.Value.CalculateFinanceYear()
-
 	invoiceParams := store.AddInvoiceParams{
 		PersonID:   personID,
 		Feetype:    data.InvoiceType.Key(),
-		Reference:  data.InvoiceType.Key() + invoiceRef + "/" + calculateFinanceYear,
+		Reference:  reference,
 		Startdate:  startDate,
 		Enddate:    endDate,
 		Amount:     data.Amount.Value,
@@ -163,6 +161,33 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int32, data sha
 	}
 
 	return tx.Commit(ctx)
+}
+
+// generateInvoiceReference generates a unique invoice reference for the given invoice type and start date.
+// It uses pessimistic locking (SELECT FOR UPDATE) on the counter row to prevent race conditions where
+// concurrent requests could read the same counter value before either has incremented it, resulting in
+// duplicate references that would violate the unique constraint on invoice.reference.
+func generateInvoiceReference(ctx context.Context, tx *store.Tx, invoiceType shared.InvoiceType, startDate shared.Date) (string, error) {
+	key := strconv.Itoa(startDate.Time.Year()) + "InvoiceNumber"
+
+	counter, err := tx.LockInvoiceCounter(ctx, key)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			counter, err = tx.CreateInvoiceCounter(ctx, key)
+			if err != nil {
+				return "", err
+			}
+		} else {
+			return "", err
+		}
+	} else {
+		counter, err = tx.IncrementInvoiceCounter(ctx, key)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	return invoiceType.Key() + addLeadingZeros(strconv.Itoa(int(counter))) + "/" + startDate.CalculateFinanceYear(), nil
 }
 
 func (s *Service) validateManualInvoice(data shared.AddManualInvoice) apierror.ValidationErrors {

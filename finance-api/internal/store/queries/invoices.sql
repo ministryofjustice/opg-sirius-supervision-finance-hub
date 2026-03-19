@@ -167,9 +167,19 @@ VALUES (NEXTVAL('invoice_id_seq'),
         $9)
 RETURNING *;
 
--- name: GetInvoiceCounter :one
+-- name: LockInvoiceCounter :one
+SELECT counter
+FROM counter
+WHERE key = $1
+FOR UPDATE;
+
+-- name: CreateInvoiceCounter :one
 INSERT INTO counter (id, key, counter)
 VALUES (NEXTVAL('counter_id_seq'), $1, 1)
-ON CONFLICT (key) DO UPDATE
-    SET counter = counter.counter + 1
-RETURNING counter::VARCHAR;
+RETURNING counter;
+
+-- name: IncrementInvoiceCounter :one
+UPDATE counter
+SET counter = counter + 1
+WHERE key = $1
+RETURNING counter;
