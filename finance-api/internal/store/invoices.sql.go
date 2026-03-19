@@ -77,6 +77,19 @@ func (q *Queries) AddInvoice(ctx context.Context, arg AddInvoiceParams) (Invoice
 	return i, err
 }
 
+const createInvoiceCounter = `-- name: CreateInvoiceCounter :one
+INSERT INTO counter (id, key, counter)
+VALUES (NEXTVAL('counter_id_seq'), $1, 1)
+RETURNING counter
+`
+
+func (q *Queries) CreateInvoiceCounter(ctx context.Context, key string) (int32, error) {
+	row := q.db.QueryRow(ctx, createInvoiceCounter, key)
+	var counter int32
+	err := row.Scan(&counter)
+	return counter, err
+}
+
 const getInvoiceBalanceDetails = `-- name: GetInvoiceBalanceDetails :one
 WITH ledger_sums AS (SELECT la.invoice_id,
                             SUM(CASE
@@ -180,47 +193,6 @@ func (q *Queries) GetInvoiceBalancesForFeeReductionRange(ctx context.Context, id
 		return nil, err
 	}
 	return items, nil
-}
-
-const lockInvoiceCounter = `-- name: LockInvoiceCounter :one
-SELECT counter
-FROM counter
-WHERE key = $1
-FOR UPDATE
-`
-
-func (q *Queries) LockInvoiceCounter(ctx context.Context, key string) (int32, error) {
-	row := q.db.QueryRow(ctx, lockInvoiceCounter, key)
-	var counter int32
-	err := row.Scan(&counter)
-	return counter, err
-}
-
-const createInvoiceCounter = `-- name: CreateInvoiceCounter :one
-INSERT INTO counter (id, key, counter)
-VALUES (NEXTVAL('counter_id_seq'), $1, 1)
-RETURNING counter
-`
-
-func (q *Queries) CreateInvoiceCounter(ctx context.Context, key string) (int32, error) {
-	row := q.db.QueryRow(ctx, createInvoiceCounter, key)
-	var counter int32
-	err := row.Scan(&counter)
-	return counter, err
-}
-
-const incrementInvoiceCounter = `-- name: IncrementInvoiceCounter :one
-UPDATE counter
-SET counter = counter + 1
-WHERE key = $1
-RETURNING counter
-`
-
-func (q *Queries) IncrementInvoiceCounter(ctx context.Context, key string) (int32, error) {
-	row := q.db.QueryRow(ctx, incrementInvoiceCounter, key)
-	var counter int32
-	err := row.Scan(&counter)
-	return counter, err
 }
 
 const getInvoiceFeeReductionReversalDetails = `-- name: GetInvoiceFeeReductionReversalDetails :one
@@ -497,4 +469,32 @@ func (q *Queries) GetUnpaidInvoicesByCourtRef(ctx context.Context, courtRef pgty
 		return nil, err
 	}
 	return items, nil
+}
+
+const incrementInvoiceCounter = `-- name: IncrementInvoiceCounter :one
+UPDATE counter
+SET counter = counter + 1
+WHERE key = $1
+RETURNING counter
+`
+
+func (q *Queries) IncrementInvoiceCounter(ctx context.Context, key string) (int32, error) {
+	row := q.db.QueryRow(ctx, incrementInvoiceCounter, key)
+	var counter int32
+	err := row.Scan(&counter)
+	return counter, err
+}
+
+const lockInvoiceCounter = `-- name: LockInvoiceCounter :one
+SELECT counter
+FROM counter
+WHERE key = $1
+FOR UPDATE
+`
+
+func (q *Queries) LockInvoiceCounter(ctx context.Context, key string) (int32, error) {
+	row := q.db.QueryRow(ctx, lockInvoiceCounter, key)
+	var counter int32
+	err := row.Scan(&counter)
+	return counter, err
 }
