@@ -170,7 +170,9 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int32, data sha
 func generateInvoiceReference(ctx context.Context, tx *store.Tx, invoiceType shared.InvoiceType, startDate shared.Date) (string, error) {
 	key := strconv.Itoa(startDate.Time.Year()) + "InvoiceNumber"
 
-	counter, err := tx.LockInvoiceCounter(ctx, key)
+	var counter int32
+
+	_, err := tx.LockInvoiceCounter(ctx, key)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			counter, err = tx.CreateInvoiceCounter(ctx, key)

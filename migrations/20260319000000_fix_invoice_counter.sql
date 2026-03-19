@@ -9,7 +9,7 @@ SET counter = subquery.max_counter
 FROM (
     SELECT
         EXTRACT(YEAR FROM startdate)::TEXT || 'InvoiceNumber' AS key,
-        MAX(CAST(SUBSTRING(reference, 3, 6) AS INTEGER))      AS max_counter
+        MAX(CAST(SUBSTRING(SPLIT_PART(reference, '/', 1), 3) AS INTEGER)) AS max_counter
     FROM invoice
     GROUP BY EXTRACT(YEAR FROM startdate)
 ) subquery
