@@ -168,7 +168,8 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int32, data sha
 // concurrent requests could read the same counter value before either has incremented it, resulting in
 // duplicate references that would violate the unique constraint on invoice.reference.
 func generateInvoiceReference(ctx context.Context, tx *store.Tx, invoiceType shared.InvoiceType, startDate shared.Date) (string, error) {
-	key := strconv.Itoa(startDate.Time.Year()) + "InvoiceNumber"
+	financialYear := startDate.CalculateFinancialYear()
+	key := strconv.Itoa(financialYear) + "InvoiceNumber"
 
 	var counter int32
 
@@ -189,7 +190,7 @@ func generateInvoiceReference(ctx context.Context, tx *store.Tx, invoiceType sha
 		}
 	}
 
-	return invoiceType.Key() + addLeadingZeros(strconv.Itoa(int(counter))) + "/" + startDate.CalculateFinanceYear(), nil
+	return invoiceType.Key() + addLeadingZeros(strconv.Itoa(int(counter))) + "/" + strconv.Itoa(financialYear%100), nil
 }
 
 func (s *Service) validateManualInvoice(data shared.AddManualInvoice) apierror.ValidationErrors {
