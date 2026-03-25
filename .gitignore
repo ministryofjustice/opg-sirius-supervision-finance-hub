@@ -25,5 +25,3 @@ zap/FinanceHubReport.*
 .DS_Store
 .cache
 .gocache
-.trivy-cache
-
