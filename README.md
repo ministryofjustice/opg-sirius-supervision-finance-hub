@@ -10,7 +10,7 @@
 - [validator](https://github.com/go-playground/validator) (10.19.0)
 
 ### Walkthrough
-A [walkthrough](docs/walkthrough.md) of this project has been written for the Golang Community of Practice, describing 
+A [walkthrough](docs/walkthrough.md) of this project has been written for the Golang Community of Practice, describing
 the package structure and some technical aspects of the codebase.
 
 #### Installing dependencies locally:
@@ -49,11 +49,11 @@ To generate migration files with `goose`, install it locally with `brew install 
 `goose -dir ./migrations create <name-of-migration> sql`
 
 Or copy the up and down files and increment them.
-Do a make down/ up to update the local database. 
+Do a make down/ up to update the local database.
 
 ## Adding seed data
 In general, look to keep tests self-contained by having them create (and clear) the data they require for testing. However,
-there are instances where we need to seed the data in advance in order to test it, such as where the method for adding the 
+there are instances where we need to seed the data in advance in order to test it, such as where the method for adding the
 data is driven by Sirius, e.g. Cypress tests asserting on the client header.
 
 To seed this data, add the inserts to `/test-data.sql`.
@@ -87,9 +87,6 @@ cd cypress
 npx cypress open baseUrl=http://localhost:8888/finance
 ```
 
-## Run Trivy scanning
-`make scan`
-
 ## Run adhoc tasks
 To create an adhoc task to be against the service in a live environment:
 * Validate the task name in `service/process_adhoc_event.go`. If more than one adhoc task is needed, use this service to
@@ -111,9 +108,9 @@ in the first ADR.
 
 -----
 ## HTMX & JS
-This project uses [HTMX](https://htmx.org/) to render partial HTML instead of reloading the whole page on each request. 
-However, this can mean that event listeners added on page load may fail to register/get deregistered when a partial is 
-loaded. To avoid this, you can force event listeners to register on every HTMX load event by putting them within the 
+This project uses [HTMX](https://htmx.org/) to render partial HTML instead of reloading the whole page on each request.
+However, this can mean that event listeners added on page load may fail to register/get deregistered when a partial is
+loaded. To avoid this, you can force event listeners to register on every HTMX load event by putting them within the
 `htmx.onLoad` function.
 
 HTMX also includes a range of utility functions that can be used in place of more unwieldy native DOM functions.
@@ -131,7 +128,7 @@ and the data in `db.json`. Additional middleware can be written in JS to interce
 The Allpay Direct Debit API is mocked using [imposter](https://docs.imposter.sh/). This applies a config to an OpenAPI spec
 and responds with a file or string based on request data. Config files are located in `/api-mocks/allpay`.
 
-Note that Allpay requires client reference and surname path parameters in the URL to be base64 encoded, as these strings 
+Note that Allpay requires client reference and surname path parameters in the URL to be base64 encoded, as these strings
 may include invalid characters (e.g. whitespace, reserved symbols). When the mock switches response based on a path parameter,
 the value will need to be the base64 encoded string, with the actual value included as a comment in the line above.
 
