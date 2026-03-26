@@ -1,10 +1,11 @@
-FROM alpine AS build
+FROM alpine:3.23.3 AS build
 
 RUN apk add --no-cache curl
 
 RUN curl -fsSL \
     https://raw.githubusercontent.com/pressly/goose/master/install.sh |\
     sh
+
 COPY migrations/ /database/
 RUN rm /database/1_baseline.sql
 
