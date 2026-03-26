@@ -217,7 +217,7 @@ jobs:
 
   push:
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         include:
           - ecr_repository: sirius-finance-api
