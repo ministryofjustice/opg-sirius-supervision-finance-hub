@@ -1,3 +1,18 @@
 version: v1.25.1
-ignore: {}
-patch: {}
+ignore:
+    SNYK-GOLANG-GOOGLEGOLANGORGGRPC-15691172:
+        - usr > local > bin > goose:
+            reason: "waiting for goose update to fix the issue"
+            expires: "2026-04-02T00:00:00Z"
+            created: "2026-03-36T14:14:00Z"
+    snyk:lic:golang:github.com:go-sql-driver:mysql:MPL-2.0:
+        - usr > local > bin > goose:
+            reason: "waiting for goose update to fix the issue"
+            expires: "2026-04-02T00:00:00Z"
+            created: "2026-03-36T14:14:00Z"
+    SNYK-GOLANG-GOLANGORGXNETHTTP2-15363313:
+        - usr > local > bin > goose:
+            reason: "waiting for goose update to fix the issue"
+            expires: "2026-04-02T00:00:00Z"
+            created: "2026-03-36T14:14:00Z"
+patch:
