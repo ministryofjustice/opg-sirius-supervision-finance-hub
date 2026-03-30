@@ -16,6 +16,11 @@ import (
 )
 
 func (s *Service) CreateDirectDebitMandate(ctx context.Context, clientID int32, createMandate shared.CreateMandate) error {
+	if !s.env.AllpayEnabled {
+		s.Logger(ctx).Info("skipping create direct debit mandate as Allpay is disabled in this environment")
+		return nil
+	}
+
 	bankDetails := createMandate.BankAccount.BankDetails
 	err := s.allpay.ModulusCheck(ctx, bankDetails.SortCode, bankDetails.AccountNumber)
 	if err != nil {

@@ -12,6 +12,10 @@ import (
 
 func (s *Service) AddCollectedPayments(ctx context.Context, date time.Time) error {
 	logger := s.Logger(ctx)
+	if !s.env.AllpayEnabled {
+		logger.Info("skipping add collected payments as Allpay is disabled in this environment")
+		return nil
+	}
 
 	var (
 		collectionDate pgtype.Date

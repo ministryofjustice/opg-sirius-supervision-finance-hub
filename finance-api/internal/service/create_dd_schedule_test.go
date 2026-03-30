@@ -24,7 +24,13 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitSchedule() {
 
 	allPayMock := &mockAllpay{}
 	govUKMock := &mockGovUK{}
-	s := Service{store: store.New(seeder.Conn), allpay: allPayMock, govUK: govUKMock, tx: seeder.Conn}
+	s := Service{
+		store:  store.New(seeder.Conn),
+		allpay: allPayMock,
+		govUK:  govUKMock,
+		tx:     seeder.Conn,
+		env:    &Env{AllpayEnabled: true},
+	}
 
 	pc, err := s.CreateDirectDebitSchedule(ctx, 11, shared.CreateSchedule{
 		AllPayCustomer: shared.AllPayCustomer{
@@ -84,7 +90,13 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitSchedule_pendingBala
 
 	allPayMock := &mockAllpay{}
 	govUKMock := &mockGovUK{}
-	s := Service{store: store.New(seeder.Conn), allpay: allPayMock, govUK: govUKMock, tx: seeder.Conn}
+	s := Service{
+		store:  store.New(seeder.Conn),
+		allpay: allPayMock,
+		govUK:  govUKMock,
+		tx:     seeder.Conn,
+		env:    &Env{AllpayEnabled: true},
+	}
 
 	_, err := s.CreateDirectDebitSchedule(ctx, 99, shared.CreateSchedule{
 		AllPayCustomer: shared.AllPayCustomer{
@@ -111,7 +123,13 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitSchedule_noPendingBa
 
 	allpayMock := &mockAllpay{}
 	govUKMock := &mockGovUK{}
-	s := Service{store: store.New(seeder.Conn), allpay: allpayMock, govUK: govUKMock, tx: seeder.Conn}
+	s := Service{
+		store:  store.New(seeder.Conn),
+		allpay: allpayMock,
+		govUK:  govUKMock,
+		tx:     seeder.Conn,
+		env:    &Env{AllpayEnabled: true},
+	}
 
 	pc, err := s.CreateDirectDebitSchedule(ctx, 11, shared.CreateSchedule{
 		AllPayCustomer: shared.AllPayCustomer{
@@ -140,7 +158,13 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitSchedule_workingDayF
 
 	allPayMock := &mockAllpay{}
 	govUKMock := &mockGovUK{errs: map[string]error{"AddWorkingDays": errors.New("AddWorkingDays error")}}
-	s := Service{store: store.New(seeder.Conn), allpay: allPayMock, govUK: govUKMock, tx: seeder.Conn}
+	s := Service{
+		store:  store.New(seeder.Conn),
+		allpay: allPayMock,
+		govUK:  govUKMock,
+		tx:     seeder.Conn,
+		env:    &Env{AllpayEnabled: true},
+	}
 
 	_, err := s.CreateDirectDebitSchedule(ctx, 11, shared.CreateSchedule{
 		AllPayCustomer: shared.AllPayCustomer{
@@ -169,7 +193,14 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitSchedule_createSched
 	allPayMock := &mockAllpay{errs: map[string]error{"CreateSchedule": errors.New("CreateSchedule error")}}
 	govUKMock := &mockGovUK{}
 	dispatchMock := &mockDispatch{}
-	s := Service{store: store.New(seeder.Conn), allpay: allPayMock, govUK: govUKMock, tx: seeder.Conn, dispatch: dispatchMock}
+	s := Service{
+		store:    store.New(seeder.Conn),
+		allpay:   allPayMock,
+		govUK:    govUKMock,
+		tx:       seeder.Conn,
+		dispatch: dispatchMock,
+		env:      &Env{AllpayEnabled: true},
+	}
 
 	_, err := s.CreateDirectDebitSchedule(ctx, 11, shared.CreateSchedule{
 		AllPayCustomer: shared.AllPayCustomer{

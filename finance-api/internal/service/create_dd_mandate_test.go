@@ -27,6 +27,7 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitMandate() {
 		allpay:   &allpayMock,
 		dispatch: &dispatchMock,
 		tx:       seeder.Conn,
+		env:      &Env{AllpayEnabled: true},
 	}
 
 	err := s.CreateDirectDebitMandate(ctx, 11, shared.CreateMandate{
@@ -88,6 +89,7 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitMandate_modulusCheck
 		allpay:   &allpayMock,
 		dispatch: &dispatchMock,
 		tx:       seeder.Conn,
+		env:      &Env{AllpayEnabled: true},
 	}
 
 	err := s.CreateDirectDebitMandate(ctx, 11, shared.CreateMandate{
@@ -146,6 +148,7 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitMandate_createMandat
 		allpay:   &allpayMock,
 		dispatch: &dispatchMock,
 		tx:       seeder.Conn,
+		env:      &Env{AllpayEnabled: true},
 	}
 
 	err := s.CreateDirectDebitMandate(ctx, 11, shared.CreateMandate{

@@ -70,7 +70,12 @@ func (suite *IntegrationSuite) Test_AddCollectedPayments() {
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
 			dispatch := &mockDispatch{}
-			s := &Service{store: store.New(seeder.Conn), dispatch: dispatch, tx: seeder.Conn}
+			s := &Service{
+				store:    store.New(seeder.Conn),
+				dispatch: dispatch,
+				tx:       seeder.Conn,
+				env:      &Env{AllpayEnabled: true},
+			}
 
 			err := s.AddCollectedPayments(suite.ctx, tt.collectionDate)
 			assert.Equal(t, tt.expectedErr, err)

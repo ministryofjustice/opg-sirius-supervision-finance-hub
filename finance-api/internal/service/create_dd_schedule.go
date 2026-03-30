@@ -32,6 +32,11 @@ func (s *Service) CalculateScheduleCollectionDate(ctx context.Context) (time.Tim
 }
 
 func (s *Service) CreateDirectDebitSchedule(ctx context.Context, clientID int32, data shared.CreateSchedule) (PendingCollection, error) {
+	if !s.env.AllpayEnabled {
+		s.Logger(ctx).Info("skipping Direct Debit schedule creation as Allpay is disabled in this environment")
+		return PendingCollection{}, nil
+	}
+
 	var pc PendingCollection
 	logger := s.Logger(ctx)
 
