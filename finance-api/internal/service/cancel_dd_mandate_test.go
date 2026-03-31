@@ -21,6 +21,7 @@ func (suite *IntegrationSuite) TestService_CancelDirectDebitMandate() {
 	today := time.Now()
 
 	seeder.SeedData(
+		"INSERT INTO public.persons VALUES (11, NULL, NULL, 'Person', NULL, NULL, NULL, NULL, FALSE, FALSE, NULL, NULL, 'Client', NULL);",
 		"INSERT INTO finance_client VALUES (1, 11, '1234', 'DIRECT DEBIT', NULL, '1234567T');",
 		fmt.Sprintf("INSERT INTO pending_collection VALUES (1, 1, '%s', 12300, 'PENDING', NULL, '2025-10-10', 1)", today.AddDate(0, 0, 1).Format("2006-01-02")),  // don't cancel but use for closure date calc
 		fmt.Sprintf("INSERT INTO pending_collection VALUES (2, 1, '%s', 12300, 'PENDING', NULL, '2025-10-10', 1)", today.AddDate(0, 0, 10).Format("2006-01-02")), // cancel
@@ -74,6 +75,7 @@ func (suite *IntegrationSuite) TestService_CancelDirectDebitMandate_fails() {
 	seeder := suite.cm.Seeder(ctx, suite.T())
 
 	seeder.SeedData(
+		"INSERT INTO public.persons VALUES (11, NULL, NULL, 'Person', NULL, NULL, NULL, NULL, FALSE, FALSE, NULL, NULL, 'Client', NULL);",
 		"INSERT INTO finance_client VALUES (1, 11, '1234', 'DIRECT DEBIT', NULL, '1234567T');",
 	)
 
