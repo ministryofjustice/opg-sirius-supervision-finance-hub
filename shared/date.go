@@ -1,7 +1,6 @@
 package shared
 
 import (
-	"strconv"
 	"strings"
 	"time"
 )
@@ -97,11 +96,11 @@ func (d Date) MarshalJSON() ([]byte, error) {
 	return []byte(`"` + d.Time.Format("02\\/01\\/2006") + `"`), nil
 }
 
-func (d Date) CalculateFinanceYear() string {
-	financialYearOneStartYear := d.Time.Year()
+func (d Date) CalculateFinancialYear() int {
+	fy := d.Time.Year()
 	if d.Time.Month() >= time.January && d.Time.Month() < time.April {
-		financialYearOneStartYear = d.Time.Year() - 1
+		fy = d.Time.Year() - 1
 	}
 
-	return strconv.Itoa(financialYearOneStartYear % 100)
+	return fy
 }

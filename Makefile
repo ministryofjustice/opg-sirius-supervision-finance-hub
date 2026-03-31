@@ -11,7 +11,7 @@ all:
 test: go-lint gosec unit-test test-migrations
 
 test-results:
-	mkdir -p -m 0777 test-results cypress/screenshots .trivy-cache .go-cache
+	mkdir -p -m 0777 test-results cypress/screenshots .go-cache
 
 setup-directories: test-results
 
@@ -46,17 +46,6 @@ build-dev:
 
 build-all:
 	docker compose build --parallel finance-hub finance-api finance-migration json-server cypress sirius-db allpay-mock holidays-api-mock
-
-scan: scan-api scan-hub scan-migrations
-scan-api: setup-directories
-	docker compose run --rm trivy image --format table --exit-code 0 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-api:latest
-	docker compose run --rm trivy image --format sarif --output /test-results/api.sarif --exit-code 1 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-api:latest
-scan-hub: setup-directories
-	docker compose run --rm trivy image --format table --exit-code 0 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-hub:latest
-	docker compose run --rm trivy image --format sarif --output /test-results/hub.sarif --exit-code 1 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-hub:latest
-scan-migrations: setup-directories
-	docker compose run --rm trivy image --format table --exit-code 0 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-migration:latest
-	docker compose run --rm trivy image --format sarif --output /test-results/migrations.sarif --exit-code 1 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/sirius-finance-migration:latest
 
 clean:
 	docker compose down
