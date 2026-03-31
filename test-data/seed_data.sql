@@ -1,3 +1,37 @@
+SET SEARCH_PATH TO public;
+
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (1, 'Test', 'Client', '1234', 'ACTIVE');
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (2, 'Test', 'AddFeeReduction', 'add-fee-reduction', 'ACTIVE');
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (3, 'Test', 'AddManualInvoice', 'add-manual-invoice', 'ACTIVE');
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (4, 'Test', 'AdjustInvoice', 'adjust-invoice', 'ACTIVE');
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (5, 'Test', 'BillingHistory', 'billing-history', 'ACTIVE');
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (6, 'Test', 'CancelFeeReduction', 'cancel-fee-reduction', 'ACTIVE');
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (7, 'Test', 'CustomerCreditBalance', 'customer-credit-balance', 'ACTIVE');
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (8, 'Test', 'FeeReductions', 'fee-reductions', 'ACTIVE');
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (9, 'Test', 'Invoices', 'invoices', 'ACTIVE');
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (10, 'Test', 'InvoiceAdjustments', 'invoice-adjustments', 'ACTIVE');
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (11, 'Test', 'Permissions', 'permissions', 'ACTIVE');
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (12, 'Test', 'Payments', 'payments', 'ACTIVE');
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (13, 'Test', 'PaymentsApi', 'paymentsapi', 'ACTIVE');
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (14, 'Test', 'Refunds', 'refunds', 'ACTIVE');
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (15, 'Test', 'AddRefunds', 'addrefunds', 'ACTIVE');
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (16, 'Test', 'AddRefundsNoCredit', 'addrefundsnocredit', 'ACTIVE');
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (17, 'Test', 'RefundDecision', 'refunddecision', 'ACTIVE');
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (18, 'Test', 'CancelRefund', 'cancelrefund', 'ACTIVE');
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (19, 'Test', 'CancelDirectDebit', 'canceldirectdebit', 'ACTIVE');
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (20, 'Test', 'PaymentEvents', 'paymentevents', 'ACTIVE');
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (21, 'Test', 'PendingCollection', 'pendingcollection', 'ACTIVE');
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (22, 'Test', 'CreateDirectDebit', 'createdirectdebit', 'ACTIVE');
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (23, 'Test', 'AllpayMandateFail', 'allpay_mandate_fail', 'ACTIVE');
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (24, 'Test', 'CancelApprovedRefund', 'cancelapprovedrefund', 'ACTIVE');
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (25, 'Test', 'AllpayValidation', 'allpayvalidation', 'ACTIVE');
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (26, 'Test', 'AllpayValidation2', 'allpayvalidation2', 'ACTIVE');
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (27, 'Test', 'AllpayScheduleValidation', 'allpay_schedule_validation', 'ACTIVE');
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (28, 'Test', 'FailedDdPayment', 'failedddpayment', 'ACTIVE');
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (29, 'Test', 'AllpayE2e', 'allpaye2e', 'ACTIVE');
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (30, 'Test', 'RefundsE2e', 'refundse2e', 'ACTIVE');
+INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (99, 'Test', 'EmptyClient', 'no entries', 'ACTIVE');
+
 SET SEARCH_PATH TO supervision_finance;
 
 INSERT INTO finance_client VALUES (1001, 1, '1234', 'DEMANDED', null, '11111111'); -- main test client
@@ -191,6 +225,7 @@ INSERT INTO ledger_allocation VALUES (23, 18, null, '2024-06-11T08:36:40+00:00',
 -- TEST CLIENT DATA: Add data for default client here
 
 -- UPDATE SEQUENCES
+SELECT setval('public.persons_id_seq', (SELECT MAX(id) FROM public.persons));
 SELECT setval('finance_client_id_seq', (SELECT MAX(id) FROM finance_client));
 SELECT setval('fee_reduction_id_seq', (SELECT MAX(id) FROM fee_reduction));
 SELECT setval('invoice_id_seq', (SELECT MAX(id) FROM invoice));
