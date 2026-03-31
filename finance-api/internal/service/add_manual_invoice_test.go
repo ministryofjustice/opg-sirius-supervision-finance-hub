@@ -251,7 +251,7 @@ func Test_validateRaisedDate(t *testing.T) {
 		{
 			name: "returns true if the raised date is start of day tomorrow",
 			args: args{
-				raisedDate: shared.Date{Time: time.Date(time.Now().Year(), time.Now().Month(), time.Now().Add(time.Hour*24).Day(), 0, 0, 0, 0, time.UTC)},
+				raisedDate: shared.Date{Time: time.Now().Add(time.Hour * 24).Round(time.Hour * 24).UTC()},
 			},
 			want: true,
 		},
