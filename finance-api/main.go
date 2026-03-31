@@ -58,7 +58,6 @@ type Envs struct {
 	allpayAPIKey       string
 	allpaySchemeCode   string
 	holidayAPIURL      string
-	allpayEnabled      bool
 }
 
 func parseEnvs() (*Envs, error) {
@@ -128,7 +127,6 @@ func parseEnvs() (*Envs, error) {
 		notifyUrl:          notifyUrl,
 		allpayHost:         os.Getenv("ALLPAY_HOST"),    // TODO: move to checked values once live
 		allpayAPIKey:       os.Getenv("ALLPAY_API_KEY"), // TODO: move to checked values once live
-		allpayEnabled:      os.Getenv("ALLPAY_ENABLED") == "1",
 		allpaySchemeCode:   "OPGB",
 		holidayAPIURL:      os.Getenv("HOLIDAY_API_URL"),
 	}, nil
@@ -182,8 +180,7 @@ func run(ctx context.Context, logger *slog.Logger) error {
 	govUKClient := govuk.NewClient(http.DefaultClient, envs.holidayAPIURL)
 
 	Service := service.NewService(dbPool, eventClient, fileStorageClient, notifyClient, allpayClient, govUKClient, &service.Env{
-		AsyncBucket:   envs.asyncBucket,
-		AllpayEnabled: envs.allpayEnabled,
+		AsyncBucket: envs.asyncBucket,
 	})
 
 	validator, err := validation.New()

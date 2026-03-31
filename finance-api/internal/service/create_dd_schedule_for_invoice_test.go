@@ -22,7 +22,7 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitSchedule_SkipsDemand
 
 	allPayMock := &mockAllpay{}
 	govUKMock := &mockGovUK{}
-	s := Service{store: store.New(seeder.Conn), allpay: allPayMock, govUK: govUKMock, tx: seeder.Conn, env: &Env{AllpayEnabled: true}}
+	s := Service{store: store.New(seeder.Conn), allpay: allPayMock, govUK: govUKMock, tx: seeder.Conn}
 
 	err := s.CreateDirectDebitScheduleForInvoice(ctx, 11)
 	assert.Nil(suite.T(), err)
@@ -48,7 +48,7 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitScheduleForInvoice()
 	govUKMock := &mockGovUK{}
 	dispatchMock := &mockDispatch{}
 
-	s := Service{store: store.New(seeder.Conn), allpay: allPayMock, govUK: govUKMock, tx: seeder.Conn, dispatch: dispatchMock, env: &Env{AllpayEnabled: true}}
+	s := Service{store: store.New(seeder.Conn), allpay: allPayMock, govUK: govUKMock, tx: seeder.Conn, dispatch: dispatchMock}
 
 	err := s.CreateDirectDebitScheduleForInvoice(ctx, 11)
 
@@ -103,7 +103,7 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitScheduleForInvoice_s
 		"INSERT INTO invoice VALUES (1, 11, 1, 'S2', 'S200123/24', '2024-01-01', '2025-03-31', 10000, NULL, '2024-01-01', NULL, '2024-01-01')",
 	)
 
-	s := Service{store: store.New(seeder.Conn), allpay: allPayMock, govUK: govUKMock, tx: seeder.Conn, env: &Env{AllpayEnabled: true}}
+	s := Service{store: store.New(seeder.Conn), allpay: allPayMock, govUK: govUKMock, tx: seeder.Conn}
 
 	scheduleDate, _ := s.CalculateScheduleCollectionDate(ctx)
 

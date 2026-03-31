@@ -14,11 +14,6 @@ func (s *Service) CreateDirectDebitScheduleForInvoice(ctx context.Context, clien
 
 	logger := s.Logger(ctx)
 
-	if !s.env.AllpayEnabled {
-		logger.Info(fmt.Sprintf("skipping Direct Debit schedule creation for client id %d as Allpay is disabled in this environment", clientID))
-		return nil
-	}
-
 	client, err := s.store.GetClientById(ctx, clientID)
 	if err != nil {
 		return err
