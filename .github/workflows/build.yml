@@ -70,12 +70,6 @@ jobs:
       - name: Run unit tests
         run: make unit-test
 
-      - name: Test Summary
-        uses: test-summary/action@31493c76ec9e7aa675f1585d3ed6f1da69269a86 # v2.4
-        with:
-          paths: "test-results/*-unit-tests.xml"
-        if: always()
-
       - name: Publish pacts
         if: github.actor != 'dependabot[bot]'
         run: |
