@@ -15,8 +15,18 @@ import (
 )
 
 func (s *Service) CancelDirectDebitMandate(ctx context.Context, clientID int32, cancelMandate shared.CancelMandate) error {
+	logger := s.Logger(ctx)
+
 	if !s.env.AllpayEnabled {
-		s.Logger(ctx).Info(fmt.Sprintf("skipping mandate cancellation for client id %d as Allpay is disabled in this environment", clientID))
+		logger.Info(fmt.Sprintf("skipping Direct Debit schedule creation for client id %d as Allpay is disabled in this environment", clientID))
+		return nil
+	}
+
+	client, err := s.store.GetClientById(ctx, clientID)
+	if err != nil {
+		return err
+	}
+	if client.PaymentMethod != shared.PaymentMethodDirectDebit.Key() {
 		return nil
 	}
 
