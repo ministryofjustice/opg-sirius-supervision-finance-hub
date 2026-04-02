@@ -254,7 +254,7 @@ jobs:
       - name: Configure OIDC AWS credentials for ECR push
         uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
-          role-to-assume: arn:aws:iam::311462405659:role/sirius-component-ecr-role
+          role-to-assume: arn:aws:iam::311462405659:role/sirius-supervision-component-ecr-role
           role-session-name: opg-sirius-supervision-finance-hub-github-actions-ecr-push
           role-duration-seconds: 900
           aws-region: eu-west-1
@@ -271,6 +271,7 @@ jobs:
         with:
           SNYK_TEST_IMAGE: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/${{ matrix.ecr_repository }}:latest
           SNYK_TOKEN: ${{ secrets.SNYK_OPG_ORG_TOKEN }}
+          snyk_policy_path: ./.snyk
 
       - name: Upload Snyk scan results to GitHub Security tab
         if: matrix.scan == 1 && always()
@@ -278,7 +279,6 @@ jobs:
         with:
           sarif_file: 'test-results/snyk.sarif'
           category: snyk-docker-${{ matrix.service_name }}
-          snyk_policy_path: ./.snyk
 
       - name: Push Container
         run: |
