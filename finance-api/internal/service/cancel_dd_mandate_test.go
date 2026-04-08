@@ -37,6 +37,7 @@ func (suite *IntegrationSuite) TestService_CancelDirectDebitMandate() {
 		dispatch: &dispatchMock,
 		govUK:    govUKMock,
 		tx:       seeder.Conn,
+		env:      &Env{AllpayEnabled: true},
 	}
 
 	err := s.CancelDirectDebitMandate(ctx, 11, shared.CancelMandate{
@@ -89,6 +90,7 @@ func (suite *IntegrationSuite) TestService_CancelDirectDebitMandate_fails() {
 		dispatch: &dispatchMock,
 		govUK:    govUKMock,
 		tx:       seeder.Conn,
+		env:      &Env{AllpayEnabled: true},
 	}
 
 	err := s.CancelDirectDebitMandate(ctx, 11, shared.CancelMandate{
