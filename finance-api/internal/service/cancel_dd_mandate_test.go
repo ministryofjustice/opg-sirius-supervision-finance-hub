@@ -37,6 +37,7 @@ func (suite *IntegrationSuite) TestService_CancelDirectDebitMandate() {
 		dispatch: &dispatchMock,
 		govUK:    govUKMock,
 		tx:       seeder.Conn,
+		env:      &Env{AllpayEnabled: true},
 	}
 
 	err := s.CancelDirectDebitMandate(ctx, 11, shared.CancelMandate{
@@ -89,6 +90,7 @@ func (suite *IntegrationSuite) TestService_CancelDirectDebitMandate_fails() {
 		dispatch: &dispatchMock,
 		govUK:    govUKMock,
 		tx:       seeder.Conn,
+		env:      &Env{AllpayEnabled: true},
 	}
 
 	err := s.CancelDirectDebitMandate(ctx, 11, shared.CancelMandate{
@@ -107,6 +109,51 @@ func (suite *IntegrationSuite) TestService_CancelDirectDebitMandate_fails() {
 
 	assert.Equal(suite.T(), "DIRECT DEBIT", paymentMethod) // not changed when unable to update in allpay
 	assert.Nil(suite.T(), dispatchMock.event)              // event should not have been sent
+}
+
+func (suite *IntegrationSuite) TestService_CancelDirectDebitMandate_skips_allpay_when_disabled() {
+	ctx := suite.ctx
+	seeder := suite.cm.Seeder(ctx, suite.T())
+
+	today := time.Now()
+
+	seeder.SeedData(
+		"INSERT INTO finance_client VALUES (1, 11, '1234', 'DIRECT DEBIT', NULL, '1234567T');",
+		fmt.Sprintf("INSERT INTO pending_collection VALUES (1, 1, '%s', 12300, 'PENDING', NULL, '2025-10-10', 1)", today.AddDate(0, 0, 10).Format("2006-01-02")),
+	)
+
+	Store := store.New(seeder.Conn)
+	allpayMock := mockAllpay{errs: map[string]error{"CancelMandate": errors.New("should not be called")}}
+	dispatchMock := mockDispatch{}
+	govUKMock := &mockGovUK{}
+
+	s := &Service{
+		store:    Store,
+		allpay:   &allpayMock,
+		dispatch: &dispatchMock,
+		govUK:    govUKMock,
+		tx:       seeder.Conn,
+		env:      &Env{AllpayEnabled: false},
+	}
+
+	err := s.CancelDirectDebitMandate(ctx, 11, shared.CancelMandate{
+		AllPayCustomer: shared.AllPayCustomer{
+			ClientReference: "1234567T",
+			Surname:         "Nameson",
+		},
+	})
+	assert.NoError(suite.T(), err)
+	assert.Empty(suite.T(), allpayMock.called)
+
+	rows := seeder.QueryRow(ctx, "SELECT payment_method FROM supervision_finance.finance_client WHERE id = 1")
+	var paymentMethod string
+	_ = rows.Scan(&paymentMethod)
+	assert.Equal(suite.T(), "DEMANDED", paymentMethod)
+
+	assert.Equal(suite.T(), event.PaymentMethod{
+		ClientID:      11,
+		PaymentMethod: shared.PaymentMethodDemanded,
+	}, dispatchMock.event)
 }
 
 func TestCalculateClosureDate(t *testing.T) {
