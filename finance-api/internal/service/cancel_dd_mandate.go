@@ -74,14 +74,20 @@ func (s *Service) CancelDirectDebitMandate(ctx context.Context, clientID int32, 
 		Surname:         cancelMandate.Surname,
 	}
 
-	err = s.allpay.CancelMandate(ctx, &allpay.CancelMandateRequest{
-		ClosureDate:   closureDate,
-		ClientDetails: clientDetails,
-	})
+	if s.env.AllpayEnabled {
+		err = s.allpay.CancelMandate(ctx, &allpay.CancelMandateRequest{
+			ClosureDate:   closureDate,
+			ClientDetails: clientDetails,
+		})
 
-	if err != nil {
-		s.Logger(ctx).Error(fmt.Sprintf("Error cancelling mandate with allpay, rolling back payment method change for client : %d", clientID), slog.String("err", err.Error()))
-		return err
+		if err != nil {
+			s.Logger(ctx).Error(fmt.Sprintf("Error cancelling mandate with allpay, rolling back payment method change for client : %d", clientID), slog.String("err", err.Error()))
+			return err
+		}
+	} else {
+		s.Logger(ctx).Info(
+			fmt.Sprintf("Skipping direct debit mandate closure for client id %d as Allpay is disabled in this environment", clientID),
+		)
 	}
 
 	err = s.dispatch.PaymentMethodChanged(ctx, event.PaymentMethod{
