@@ -90,13 +90,12 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
 			GROUP BY i.person_id
             ) AS gi
             , LATERAL (
-            SELECT COUNT(w.id)
-            FROM public.person_warning pw
-            INNER JOIN public.warnings w ON pw.warning_id = w.id
-            WHERE pw.person_id = cl.id
-              AND w.isactive = TRUE
-              AND w.warningtype = 'Do not invoice'
-            ) AS do_not_invoice_warning_count
+			SELECT COUNT(w.id)
+				FROM supervision.supervision_warnings w
+				WHERE w.client_id = cl.id
+				  AND w.isactive = TRUE
+				  AND w.warningtype = 'Do not invoice'
+			) AS do_not_invoice_warning_count
             WHERE cl.type = 'actor_client'
 			AND cl.clientstatus = 'ACTIVE'
 			AND gi.total IS NOT NULL AND gi.total > 0;`

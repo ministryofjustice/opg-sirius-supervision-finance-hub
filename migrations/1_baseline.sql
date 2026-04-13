@@ -76,40 +76,6 @@ CREATE INDEX idx_6fca7516217bbb47
 CREATE INDEX idx_address_postcode
     ON addresses (postcode);
 
-CREATE TABLE warnings
-(
-    id           INTEGER                   NOT NULL
-        PRIMARY KEY,
-    warningtype  VARCHAR(255) DEFAULT NULL::CHARACTER VARYING,
-    isactive BOOLEAN      DEFAULT TRUE NOT NULL
-);
-
-ALTER TABLE warnings
-    OWNER TO api;
-
-CREATE TABLE person_warning
-(
-    person_id  INTEGER NOT NULL
-        CONSTRAINT fk_62d02f4f217bbb47
-            REFERENCES public.persons
-            ON DELETE CASCADE,
-    warning_id INTEGER NOT NULL
-        CONSTRAINT fk_62d02f4fbff38603
-            REFERENCES public.warnings
-            ON DELETE CASCADE,
-    PRIMARY KEY (person_id, warning_id)
-);
-
-ALTER TABLE person_warning
-    OWNER TO api;
-
-CREATE INDEX idx_62d02f4f217bbb47
-    ON person_warning (person_id);
-
-CREATE INDEX idx_62d02f4fbff38603
-    ON person_warning (warning_id);
-
-
 CREATE SEQUENCE public.persons_id_seq;
 
 ALTER SEQUENCE public.persons_id_seq OWNER TO api;
@@ -126,13 +92,30 @@ CREATE SEQUENCE public.addresses_id_seq;
 
 ALTER SEQUENCE public.addresses_id_seq OWNER TO api;
 
-CREATE SEQUENCE public.warnings_id_seq;
-
-ALTER SEQUENCE public.warnings_id_seq OWNER TO api;
-
 CREATE SCHEMA supervision;
 GRANT ALL ON SCHEMA supervision TO api;
 SET SEARCH_PATH TO supervision;
+
+CREATE SEQUENCE supervision.supervision_warnings_id_seq;
+
+ALTER SEQUENCE supervision.supervision_warnings_id_seq OWNER TO api;
+
+CREATE TABLE supervision.supervision_warnings
+(
+    id           INTEGER                   NOT NULL
+        PRIMARY KEY,
+    warningtype  VARCHAR(255) DEFAULT NULL::CHARACTER VARYING,
+    isactive BOOLEAN      DEFAULT TRUE NOT NULL,
+    client_id INTEGER NOT NULL
+        CONSTRAINT fk_725c6d5a19eb6921
+        REFERENCES public.persons
+        ON DELETE CASCADE
+);
+
+COMMENT ON COLUMN supervision.supervision_warning.warningtype IS '(DC2Type:refdata)';
+
+ALTER TABLE supervision.supervision_warnings
+    OWNER TO api;
 
 CREATE SEQUENCE supervision.order_deputy_id_seq;
 
