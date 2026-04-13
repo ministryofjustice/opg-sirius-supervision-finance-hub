@@ -235,11 +235,6 @@ type Person struct {
 	Clientstatus                                pgtype.Text
 }
 
-type PersonWarning struct {
-	PersonID  int32
-	WarningID int32
-}
-
 type Property struct {
 	ID    int32
 	Key   string
@@ -291,6 +286,13 @@ type SupervisionOrderDeputy struct {
 	Statusoncaseoverride pgtype.Text
 }
 
+type SupervisionSupervisionWarning struct {
+	ID          int32
+	Warningtype pgtype.Text
+	Isactive    bool
+	ClientID    int32
+}
+
 type TransactionType struct {
 	ID               int32
 	FeeType          string
@@ -306,10 +308,4 @@ type TransactionTypeUpdate struct {
 	TransactionTypeID     int32
 	LineDescriptionUpdate pgtype.Text
 	IsReceiptUpdate       pgtype.Bool
-}
-
-type Warning struct {
-	ID          int32
-	Warningtype pgtype.Text
-	Isactive    bool
 }
