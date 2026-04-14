@@ -24,7 +24,7 @@ COPY finance-hub/web/assets web/assets
 COPY finance-hub/package.json .
 COPY finance-hub/yarn.lock .
 
-RUN yarn install
+RUN yarn install --frozen-lockfile --ignore-scripts
 RUN yarn build
 
 FROM base AS healthcheck-build

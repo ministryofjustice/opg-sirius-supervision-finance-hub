@@ -2,10 +2,11 @@ package shared
 
 import (
 	"encoding/json"
-	"github.com/stretchr/testify/assert"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type testJsonDateStruct struct {
@@ -204,39 +205,39 @@ func TestDate_UnmarshalJSON(t *testing.T) {
 	}
 }
 
-func TestDate_calculateFinanceYear(t *testing.T) {
+func TestDate_CalculateFinancialYear(t *testing.T) {
 	type args struct {
 		startDate Date
 	}
 	tests := []struct {
 		name string
 		args args
-		want string
+		want int
 	}{
 		{
 			name: "start date is in April",
 			args: args{
 				startDate: NewDate("01/04/2024"),
 			},
-			want: "24",
+			want: 2024,
 		},
 		{
 			name: "start date and is in January",
 			args: args{
 				startDate: NewDate("01/01/2025"),
 			},
-			want: "24",
+			want: 2024,
 		}, {
 			name: "start date and is in March",
 			args: args{
 				startDate: NewDate("31/03/2025"),
 			},
-			want: "24",
+			want: 2024,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, tt.args.startDate.CalculateFinanceYear(), "calculateFinanceYear(%v)", tt.args.startDate)
+			assert.Equalf(t, tt.want, tt.args.startDate.CalculateFinancialYear(), "calculateFinanceYear(%v)", tt.args.startDate)
 		})
 	}
 }
