@@ -38,7 +38,7 @@ func Test_processAdhocEvent(t *testing.T) {
 		{
 			name: "adhoc event",
 			adhocProcessName: shared.AdhocEvent{
-				Task: "UpdateRefundLedgerAmounts",
+				Task: "InvalidatePendingCollections",
 			},
 			expectedResponse: nil,
 			hasError:         false,

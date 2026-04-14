@@ -1,5 +1,2 @@
--- name: UpdateRefundLedgerAmounts :execrows
-UPDATE ledger
-SET amount = -amount
-WHERE type = 'REFUND'
-  AND amount > 0;
+-- name: PurgePendingCollections :execrows
+DELETE FROM pending_collection WHERE status <> 'COLLECTED';

@@ -12,16 +12,16 @@ import (
 func (s *Service) ProcessAdhocEvent(ctx context.Context) error {
 	// perform async so request context doesn't cancel before process is complete
 	go func(logger *slog.Logger) {
-		logger.Info("UpdateRefundLedgerAmounts: started")
+		logger.Info("InvalidatePendingCollections: started")
 		funcCtx := telemetry.ContextWithLogger(context.Background(), logger)
 		funcCtx = ctx.(auth.Context).WithContext(funcCtx)
-		count, err := s.store.UpdateRefundLedgerAmounts(funcCtx)
+		count, err := s.store.PurgePendingCollections(funcCtx)
 		if err != nil {
-			logger.Error("UpdateRefundLedgerAmounts: failed", "error", err)
+			logger.Error("InvalidatePendingCollections: failed", "error", err)
 			return
 		}
 
-		logger.Info(fmt.Sprintf("UpdateRefundLedgerAmounts: %d ledgers updated", count))
+		logger.Info(fmt.Sprintf("InvalidatePendingCollections: %d pending collections deleted", count))
 	}(telemetry.LoggerFromContext(ctx))
 
 	return nil

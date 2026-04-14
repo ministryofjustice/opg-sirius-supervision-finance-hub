@@ -8,7 +8,7 @@ import (
 )
 
 func (s *Server) processAdhocEvent(ctx context.Context, event shared.AdhocEvent) error {
-	if event.Task != "UpdateRefundLedgerAmounts" {
+	if event.Task != "InvalidatePendingCollections" {
 		return fmt.Errorf("invalid adhoc process: %s", event.Task)
 	}
 
