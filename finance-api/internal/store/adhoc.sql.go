@@ -9,15 +9,12 @@ import (
 	"context"
 )
 
-const updateRefundLedgerAmounts = `-- name: UpdateRefundLedgerAmounts :execrows
-UPDATE ledger
-SET amount = -amount
-WHERE type = 'REFUND'
-  AND amount > 0
+const purgePendingCollections = `-- name: PurgePendingCollections :execrows
+DELETE FROM pending_collection WHERE status <> 'COLLECTED'
 `
 
-func (q *Queries) UpdateRefundLedgerAmounts(ctx context.Context) (int64, error) {
-	result, err := q.db.Exec(ctx, updateRefundLedgerAmounts)
+func (q *Queries) PurgePendingCollections(ctx context.Context) (int64, error) {
+	result, err := q.db.Exec(ctx, purgePendingCollections)
 	if err != nil {
 		return 0, err
 	}
