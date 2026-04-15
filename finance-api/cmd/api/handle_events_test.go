@@ -28,7 +28,7 @@ func TestServer_handleEvents(t *testing.T) {
 			event: shared.Event{
 				Source:     "opg.supervision.sirius",
 				DetailType: "invoice-created",
-				Detail:     shared.InvoiceCreatedEvent{ClientID: 1},
+				Detail:     shared.InvoiceCreatedEvent{ClientID: 1, InvoiceID: 2, InvoiceType: shared.InvoiceTypeB2},
 			},
 			expectedErr:     nil,
 			expectedHandler: "ReapplyCredit",

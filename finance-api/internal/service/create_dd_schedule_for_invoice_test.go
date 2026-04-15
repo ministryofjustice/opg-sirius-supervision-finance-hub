@@ -7,6 +7,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/allpay"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,7 +25,30 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitSchedule_SkipsDemand
 	govUKMock := &mockGovUK{}
 	s := Service{store: store.New(seeder.Conn), allpay: allPayMock, govUK: govUKMock, tx: seeder.Conn, env: &Env{AllpayEnabled: true}}
 
-	err := s.CreateDirectDebitScheduleForInvoice(ctx, 11)
+	err := s.CreateDirectDebitScheduleForInvoice(ctx, shared.InvoiceCreatedEvent{ClientID: 11, InvoiceID: 1, InvoiceType: shared.InvoiceTypeB2})
+	assert.Nil(suite.T(), err)
+
+	var c int
+	_ = seeder.QueryRow(ctx, "SELECT COUNT(*) FROM pending_collection").Scan(&c)
+	assert.Equal(suite.T(), 0, c)
+	assert.Len(suite.T(), allPayMock.called, 0)
+}
+
+func (suite *IntegrationSuite) TestService_CreateDirectDebitScheduleForInvoice_SkipsNonDirectDebitInvoiceType() {
+	ctx := suite.ctx
+	seeder := suite.cm.Seeder(ctx, suite.T())
+
+	seeder.SeedData(
+		"INSERT INTO public.persons VALUES (11, NULL, NULL, 'Scheduleson', NULL, NULL, NULL, NULL, FALSE, FALSE, NULL, NULL, 'Client', NULL);",
+		"INSERT INTO finance_client (id, client_id, sop_number, payment_method, batchnumber, court_ref) VALUES (1, 11, '1234', 'DIRECT DEBIT', NULL, '1234567T');",
+		"INSERT INTO invoice VALUES (1, 11, 1, 'S2', 'S200123/24', '2024-01-01', '2025-03-31', 5000, NULL, '2024-01-01', NULL, '2024-01-01')",
+	)
+
+	allPayMock := &mockAllpay{}
+	govUKMock := &mockGovUK{}
+	s := Service{store: store.New(seeder.Conn), allpay: allPayMock, govUK: govUKMock, tx: seeder.Conn, env: &Env{AllpayEnabled: true}}
+
+	err := s.CreateDirectDebitScheduleForInvoice(ctx, shared.InvoiceCreatedEvent{ClientID: 11, InvoiceID: 1, InvoiceType: shared.InvoiceTypeS2})
 	assert.Nil(suite.T(), err)
 
 	var c int
@@ -50,7 +74,7 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitScheduleForInvoice()
 
 	s := Service{store: store.New(seeder.Conn), allpay: allPayMock, govUK: govUKMock, tx: seeder.Conn, dispatch: dispatchMock, env: &Env{AllpayEnabled: true}}
 
-	err := s.CreateDirectDebitScheduleForInvoice(ctx, 11)
+	err := s.CreateDirectDebitScheduleForInvoice(ctx, shared.InvoiceCreatedEvent{ClientID: 11, InvoiceID: 1, InvoiceType: shared.InvoiceTypeB2})
 
 	assert.Nil(suite.T(), err)
 
@@ -112,7 +136,7 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitScheduleForInvoice_s
 		"ALTER SEQUENCE supervision_finance.pending_collection_id_seq RESTART WITH 2",
 	)
 
-	err := s.CreateDirectDebitScheduleForInvoice(ctx, 11)
+	err := s.CreateDirectDebitScheduleForInvoice(ctx, shared.InvoiceCreatedEvent{ClientID: 11, InvoiceID: 1, InvoiceType: shared.InvoiceTypeB2})
 	assert.Nil(suite.T(), err)
 
 	var c int
