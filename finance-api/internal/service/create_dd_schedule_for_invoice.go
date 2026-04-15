@@ -9,17 +9,21 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
-func (s *Service) CreateDirectDebitScheduleForInvoice(ctx context.Context, clientID int32) error {
+func (s *Service) CreateDirectDebitScheduleForInvoice(ctx context.Context, details shared.InvoiceCreatedEvent) error {
 	var err error
 
 	logger := s.Logger(ctx)
 
 	if !s.env.AllpayEnabled {
-		logger.Info(fmt.Sprintf("skipping Direct Debit schedule creation for client id %d as Allpay is disabled in this environment", clientID))
+		logger.Info(fmt.Sprintf("skipping Direct Debit schedule creation for client id %d as Allpay is disabled in this environment", details.ClientID))
 		return nil
 	}
 
-	client, err := s.store.GetClientById(ctx, clientID)
+	if !details.InvoiceType.IsDirectDebitInvoice() {
+		return nil
+	}
+
+	client, err := s.store.GetClientById(ctx, details.ClientID)
 	if err != nil {
 		return err
 	}
@@ -27,8 +31,8 @@ func (s *Service) CreateDirectDebitScheduleForInvoice(ctx context.Context, clien
 		return nil
 	}
 
-	if s.pendingScheduleExists(ctx, clientID) {
-		logger.Info(fmt.Sprintf("skipping Direct Debit schedule creation for client %d as a schedule already exists", clientID))
+	if s.pendingScheduleExists(ctx, details.ClientID) {
+		logger.Info(fmt.Sprintf("skipping Direct Debit schedule creation for client %d as a schedule already exists", details.ClientID))
 		return nil
 	}
 
@@ -36,7 +40,7 @@ func (s *Service) CreateDirectDebitScheduleForInvoice(ctx context.Context, clien
 		Surname:         client.Surname.String,
 		ClientReference: client.CourtRef.String,
 	}
-	_, err = s.CreateDirectDebitSchedule(ctx, clientID, shared.CreateSchedule{AllPayCustomer: allPayCustomer})
+	_, err = s.CreateDirectDebitSchedule(ctx, details.ClientID, shared.CreateSchedule{AllPayCustomer: allPayCustomer})
 	if err != nil {
 		return err
 	}
