@@ -31,7 +31,7 @@ type Service interface {
 	CancelDirectDebitMandate(ctx context.Context, id int32, cancelMandate shared.CancelMandate) error
 	CreateDirectDebitMandate(ctx context.Context, id int32, createMandate shared.CreateMandate) error
 	CreateDirectDebitSchedule(ctx context.Context, clientID int32, data shared.CreateSchedule) (service.PendingCollection, error)
-	CreateDirectDebitScheduleForInvoice(ctx context.Context, clientID int32) error
+	CreateDirectDebitScheduleForInvoice(ctx context.Context, details shared.InvoiceCreatedEvent) error
 	CheckPaymentMethod(ctx context.Context, clientID int32) error
 	ExpireRefunds(ctx context.Context) error
 	GetAccountInformation(ctx context.Context, id int32) (*shared.AccountInformation, error)

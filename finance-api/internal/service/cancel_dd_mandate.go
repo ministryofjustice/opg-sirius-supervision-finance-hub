@@ -15,6 +15,14 @@ import (
 )
 
 func (s *Service) CancelDirectDebitMandate(ctx context.Context, clientID int32, cancelMandate shared.CancelMandate) error {
+	client, err := s.store.GetClientById(ctx, clientID)
+	if err != nil {
+		return err
+	}
+	if client.PaymentMethod != shared.PaymentMethodDirectDebit.Key() {
+		return nil
+	}
+
 	tx, err := s.BeginStoreTx(ctx)
 	if err != nil {
 		return err

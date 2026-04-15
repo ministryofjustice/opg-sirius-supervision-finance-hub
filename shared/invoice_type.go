@@ -162,3 +162,12 @@ func (i InvoiceType) AllowsFutureRaisedDateValidation() bool {
 		return true
 	}
 }
+
+func (i InvoiceType) IsDirectDebitInvoice() bool {
+	switch i {
+	case InvoiceTypeB2, InvoiceTypeB3:
+		return true
+	default:
+		return false
+	}
+}

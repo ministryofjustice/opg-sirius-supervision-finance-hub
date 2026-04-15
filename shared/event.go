@@ -93,7 +93,9 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 }
 
 type InvoiceCreatedEvent struct {
-	ClientID int32 `json:"clientId"`
+	ClientID    int32       `json:"clientId"`
+	InvoiceID   int32       `json:"invoiceId"`
+	InvoiceType InvoiceType `json:"invoiceType"`
 }
 
 type ClientCreatedEvent struct {
