@@ -288,6 +288,7 @@ type SupervisionOrderDeputy struct {
 
 type SupervisionSupervisionWarning struct {
 	ID          int32
+	// (DC2Type:refdata)
 	Warningtype pgtype.Text
 	Isactive    bool
 	ClientID    int32
