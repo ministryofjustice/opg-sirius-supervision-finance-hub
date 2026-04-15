@@ -107,12 +107,9 @@ CREATE TABLE supervision.supervision_warnings
     warningtype  VARCHAR(255) DEFAULT NULL::CHARACTER VARYING,
     isactive BOOLEAN      DEFAULT TRUE NOT NULL,
     client_id INTEGER NOT NULL
-        CONSTRAINT fk_725c6d5a19eb6921
-        REFERENCES public.persons
-        ON DELETE CASCADE
 );
 
-COMMENT ON COLUMN supervision.supervision_warning.warningtype IS '(DC2Type:refdata)';
+COMMENT ON COLUMN supervision.supervision_warnings.warningtype IS '(DC2Type:refdata)';
 
 ALTER TABLE supervision.supervision_warnings
     OWNER TO api;
