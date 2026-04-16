@@ -269,13 +269,8 @@ func (s *Seeder) AddFeeRanges(ctx context.Context, invoiceId int32, ranges []Fee
 
 func (s *Seeder) CreateWarning(ctx context.Context, personId int32, warningType string) {
 	var warningId int
-	err := s.Conn.QueryRow(ctx, "INSERT INTO public.warnings VALUES (NEXTVAL('public.warnings_id_seq'), $1, TRUE) RETURNING id", warningType).Scan(&warningId)
+	err := s.Conn.QueryRow(ctx, "INSERT INTO supervision.warnings VALUES (NEXTVAL('supervision.warnings_id_seq'), $1, TRUE, $2) RETURNING id", warningType, personId).Scan(&warningId)
 	assert.NoError(s.t, err, "failed to add warning: %v", err)
-
-	_, err = s.Conn.Exec(ctx,
-		"INSERT INTO public.person_warning VALUES ($1, $2)",
-		personId, warningId)
-	assert.NoError(s.t, err, "failed to add person warning: %v", err)
 }
 
 func (s *Seeder) CreateRefund(ctx context.Context, clientId int32, accountName string, accountNumber string, sortCode string, createdDate time.Time) int32 {
