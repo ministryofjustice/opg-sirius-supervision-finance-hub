@@ -96,11 +96,11 @@ CREATE SCHEMA supervision;
 GRANT ALL ON SCHEMA supervision TO api;
 SET SEARCH_PATH TO supervision;
 
-CREATE SEQUENCE supervision.supervision_warnings_id_seq;
+CREATE SEQUENCE supervision.warnings_id_seq;
 
-ALTER SEQUENCE supervision.supervision_warnings_id_seq OWNER TO api;
+ALTER SEQUENCE supervision.warnings_id_seq OWNER TO api;
 
-CREATE TABLE supervision.supervision_warnings
+CREATE TABLE supervision.warnings
 (
     id           INTEGER                   NOT NULL
         PRIMARY KEY,
@@ -109,9 +109,9 @@ CREATE TABLE supervision.supervision_warnings
     client_id INTEGER NOT NULL
 );
 
-COMMENT ON COLUMN supervision.supervision_warnings.warningtype IS '(DC2Type:refdata)';
+COMMENT ON COLUMN supervision.warnings.warningtype IS '(DC2Type:refdata)';
 
-ALTER TABLE supervision.supervision_warnings
+ALTER TABLE supervision.warnings
     OWNER TO api;
 
 CREATE SEQUENCE supervision.order_deputy_id_seq;

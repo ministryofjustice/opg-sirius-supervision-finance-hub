@@ -286,7 +286,7 @@ type SupervisionOrderDeputy struct {
 	Statusoncaseoverride pgtype.Text
 }
 
-type SupervisionSupervisionWarning struct {
+type SupervisionWarning struct {
 	ID int32
 	// (DC2Type:refdata)
 	Warningtype pgtype.Text

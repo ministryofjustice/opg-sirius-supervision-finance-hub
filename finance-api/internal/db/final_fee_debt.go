@@ -72,7 +72,7 @@ const FinalFeeDebtQuery = `SELECT client.caserecnumber AS "Case_no",
             ) AS gi
             , LATERAL (
 			SELECT COUNT(w.id)
-			FROM supervision.supervision_warnings w
+			FROM supervision.warnings w
 			WHERE w.client_id = client.id
 			  AND w.isactive = TRUE
 			  AND w.warningtype = 'Do not invoice'
