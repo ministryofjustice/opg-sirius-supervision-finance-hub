@@ -214,9 +214,7 @@
     "@types/json-schema" "^7.0.15"
 
 "@eslint/eslintrc@^3.3.3":
-  version "3.3.4"
-  resolved "https://registry.yarnpkg.com/@eslint/eslintrc/-/eslintrc-3.3.4.tgz#e402b1920f7c1f5a15342caa432b1348cacbb641"
-  integrity sha512-4h4MVF8pmBsncB60r0wSJiIeUKTSD4m7FmTFThG8RHlsg9ajqckLm9OraguFGZE4vVdpiI1Q4+hFnisopmG6gQ==
+  version "3.3.5"
   dependencies:
     ajv "^6.14.0"
     debug "^4.3.2"
@@ -591,9 +589,7 @@ eslint-visitor-keys@^5.0.1:
   integrity sha512-tD40eHxA35h0PEIZNeIjkHoDR4YjjJp34biM0mDvplBe//mB+IHCqHDGV7pxF+7MklTvighcCPPZC7ynWyjdTA==
 
 eslint@^10.0.0:
-  version "10.0.2"
-  resolved "https://registry.yarnpkg.com/eslint/-/eslint-10.0.2.tgz#1009263467591810320f2e1ad52b8a750d1acbab"
-  integrity sha512-uYixubwmqJZH+KLVYIVKY1JQt7tysXhtj21WSvjcSmU5SVNzMus1bgLe+pAt816yQ8opKfheVVoPLqvVMGejYw==
+  version "10.2.0"
   dependencies:
     "@eslint-community/eslint-utils" "^4.8.0"
     "@eslint-community/regexpp" "^4.12.2"
@@ -1000,9 +996,7 @@ prelude-ls@^1.2.1:
   integrity sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==
 
 prettier@^3.0.0:
-  version "3.8.1"
-  resolved "https://registry.yarnpkg.com/prettier/-/prettier-3.8.1.tgz#edf48977cf991558f4fcbd8a3ba6015ba2a3a173"
-  integrity sha512-UOnG6LftzbdaHZcKoPFtOcCKztrQ57WkHDeRD9t/PTQtmT0NHSeWWepj6pS0z/N7+08BHFDQVUrfmfMRcZwbMg==
+  version "3.8.2"
 
 punycode@^2.1.0:
   version "2.3.1"
@@ -1037,9 +1031,7 @@ run-parallel@^1.1.9:
     queue-microtask "^1.2.2"
 
 sass@^1.70.0:
-  version "1.97.3"
-  resolved "https://registry.yarnpkg.com/sass/-/sass-1.97.3.tgz#9cb59339514fa7e2aec592b9700953ac6e331ab2"
-  integrity sha512-fDz1zJpd5GycprAbu4Q2PV/RprsRtKC/0z82z0JLgdytmcq0+ujJbJ/09bPGDxCLkKY3Np5cRAOcWiVkLXJURg==
+  version "1.99.0"
   dependencies:
     chokidar "^4.0.0"
     immutable "^5.0.2"
