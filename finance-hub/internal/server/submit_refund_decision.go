@@ -15,6 +15,10 @@ type SubmitRefundDecisionHandler struct {
 func (h *SubmitRefundDecisionHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 	clientID := getClientID(r)
+
+	// Limit request body size to 10MB to prevent memory exhaustion
+	r.Body = http.MaxBytesReader(w, r.Body, 10<<20)
+
 	var (
 		refundID, _ = strconv.Atoi(r.PathValue("refundId"))
 		decision    = r.PostFormValue("decision")

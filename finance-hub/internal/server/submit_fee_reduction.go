@@ -18,6 +18,9 @@ func (h *SubmitFeeReductionsHandler) render(v AppVars, w http.ResponseWriter, r 
 	ctx := r.Context()
 	clientID := getClientID(r)
 
+	// Limit request body size to 10MB to prevent memory exhaustion
+	r.Body = http.MaxBytesReader(w, r.Body, 10<<20)
+
 	var (
 		feeType       = r.PostFormValue("feeType")
 		startYear     = r.PostFormValue("startYear")

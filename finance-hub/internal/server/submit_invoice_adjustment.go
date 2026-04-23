@@ -3,11 +3,12 @@ package server
 import (
 	"errors"
 	"fmt"
+	"net/http"
+	"strconv"
+
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/util"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"net/http"
-	"strconv"
 )
 
 type SubmitInvoiceAdjustmentHandler struct {
@@ -23,6 +24,9 @@ type InvoiceAdjustmentForm struct {
 func (h *SubmitInvoiceAdjustmentHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 	clientID := getClientID(r)
+
+	// Limit request body size to 10MB to prevent memory exhaustion
+	r.Body = http.MaxBytesReader(w, r.Body, 10<<20)
 
 	var (
 		invoiceId, _    = strconv.Atoi(r.PathValue("invoiceId"))
