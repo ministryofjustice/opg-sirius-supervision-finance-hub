@@ -1,13 +1,14 @@
 package server
 
 import (
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSubmitInvoiceAdjustmentSuccess(t *testing.T) {
@@ -85,7 +86,7 @@ func TestAddTaskValidationErrors(t *testing.T) {
 	}
 
 	w := httptest.NewRecorder()
-	r, _ := http.NewRequest(http.MethodPost, "/adjustments", nil)
+	r, _ := http.NewRequest(http.MethodPost, "/adjustments", strings.NewReader(""))
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	r.SetPathValue("clientId", "1")
 
@@ -107,7 +108,7 @@ func TestAddTaskBadRequest(t *testing.T) {
 	client.error = *apierror.BadRequestError("Amount", "Too high", nil)
 
 	w := httptest.NewRecorder()
-	r, _ := http.NewRequest(http.MethodPost, "/adjustments", nil)
+	r, _ := http.NewRequest(http.MethodPost, "/adjustments", strings.NewReader(""))
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	r.SetPathValue("clientId", "1")
 

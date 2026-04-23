@@ -57,7 +57,7 @@ func TestAddRefundValidationErrors(t *testing.T) {
 	}
 
 	w := httptest.NewRecorder()
-	r, _ := http.NewRequest(http.MethodPost, "/add", nil)
+	r, _ := http.NewRequest(http.MethodPost, "/add", strings.NewReader(""))
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	r.SetPathValue("clientId", "1")
 

@@ -2,10 +2,12 @@ package server
 
 import (
 	"errors"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCancelDirectDebitSuccess(t *testing.T) {
@@ -13,7 +15,7 @@ func TestCancelDirectDebitSuccess(t *testing.T) {
 	ro := &mockRoute{client: client}
 
 	w := httptest.NewRecorder()
-	r, _ := http.NewRequest(http.MethodPost, "/cancel", nil)
+	r, _ := http.NewRequest(http.MethodPost, "/cancel", strings.NewReader(""))
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	r.SetPathValue("clientId", "1")
 
@@ -38,7 +40,7 @@ func TestCancelDirectDebitErrors(t *testing.T) {
 	ro := &mockRoute{client: client}
 
 	w := httptest.NewRecorder()
-	r, _ := http.NewRequest(http.MethodPost, "/cancel", nil)
+	r, _ := http.NewRequest(http.MethodPost, "/cancel", strings.NewReader(""))
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	r.SetPathValue("clientId", "1")
 
