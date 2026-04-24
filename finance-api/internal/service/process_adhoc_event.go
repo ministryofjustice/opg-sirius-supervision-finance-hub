@@ -13,7 +13,9 @@ func (s *Service) ProcessAdhocEvent(ctx context.Context) error {
 	// perform async so request context doesn't cancel before process is complete
 	go func(logger *slog.Logger) {
 		logger.Info("InvalidatePendingCollections: started")
-		funcCtx := telemetry.ContextWithLogger(context.Background(), logger)
+
+		//replaced context.Background with ctx to avoid cancellation, deadlines and logging context.
+		funcCtx := telemetry.ContextWithLogger(ctx, logger)
 		funcCtx = ctx.(auth.Context).WithContext(funcCtx)
 		count, err := s.store.PurgePendingCollections(funcCtx)
 		if err != nil {

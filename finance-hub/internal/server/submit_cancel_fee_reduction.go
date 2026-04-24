@@ -3,11 +3,12 @@ package server
 import (
 	"errors"
 	"fmt"
+	"net/http"
+	"strconv"
+
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/api"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/util"
-	"net/http"
-	"strconv"
 )
 
 type SubmitCancelFeeReductionsHandler struct {
@@ -17,6 +18,9 @@ type SubmitCancelFeeReductionsHandler struct {
 func (h *SubmitCancelFeeReductionsHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 	clientID := getClientID(r)
+
+	// Limit request body size to 10MB to prevent memory exhaustion
+	r.Body = http.MaxBytesReader(w, r.Body, 10<<20)
 
 	var (
 		notes             = r.PostFormValue("cancellation-reason")

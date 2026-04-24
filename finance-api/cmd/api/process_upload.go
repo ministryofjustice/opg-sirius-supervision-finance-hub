@@ -50,7 +50,9 @@ func (s *Server) processUpload(w http.ResponseWriter, r *http.Request) error {
 
 	go func(logger *slog.Logger) {
 		ctx := s.copyCtx(r)
-		ctx.(auth.Context).WithContext(telemetry.ContextWithLogger(context.Background(), logger))
+
+		//replaced context.Background to ensure goroutine inherits the correct request-scoped context
+		ctx.(auth.Context).WithContext(telemetry.ContextWithLogger(ctx, logger))
 		s.processUploadFile(ctx, Upload{
 			UploadType:   upload.UploadType,
 			EmailAddress: upload.EmailAddress,
