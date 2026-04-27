@@ -4,18 +4,19 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/jackc/pgx/v5/pgxpool"
-	_ "github.com/jackc/pgx/v5/stdlib"
-	"github.com/pressly/goose/v3"
-	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/modules/postgres"
-	"github.com/testcontainers/testcontainers-go/wait"
 	"log"
 	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/pressly/goose/v3"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/modules/postgres"
+	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 const (
@@ -52,7 +53,7 @@ func Init(ctx context.Context, searchPath string) *ContainerManager {
 
 	container, err := postgres.Run(
 		ctx,
-		"docker.io/postgres:14-alpine",
+		"docker.io/postgres:17-alpine",
 		postgres.WithDatabase(dbname),
 		postgres.WithUsername(user),
 		postgres.WithPassword(password),
