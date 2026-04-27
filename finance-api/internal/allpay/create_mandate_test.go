@@ -16,7 +16,7 @@ func TestCreateMandate_Success(t *testing.T) {
 		if r.Method != http.MethodPost {
 			t.Errorf("Expected POST, got %s", r.Method)
 		}
-		if r.URL.Path != "/AllpayApi/Customers/SCHEME123/VariableMandates/Create" {
+		if r.URL.Path != "/AllpayApi/Customers/SCHEME123/Mandates/Create" {
 			t.Errorf("Unexpected URL path: %s", r.URL.Path)
 		}
 		body, _ := io.ReadAll(r.Body)

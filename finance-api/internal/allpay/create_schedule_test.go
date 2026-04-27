@@ -19,7 +19,7 @@ func TestCreateSchedule_Success(t *testing.T) {
 		if r.Method != http.MethodPost {
 			t.Errorf("Expected POST, got %s", r.Method)
 		}
-		if r.URL.Path != "/AllpayApi/Customers/SCHEME123/UkVGMTIz/RG9l/VariableMandates" {
+		if r.URL.Path != "/AllpayApi/Customers/SCHEME123/UkVGMTIz/RG9l/Mandates" {
 			t.Errorf("Unexpected URL path: %s", r.URL.Path)
 		}
 		body, _ := io.ReadAll(r.Body)
@@ -30,8 +30,10 @@ func TestCreateSchedule_Success(t *testing.T) {
 		expected := createScheduleRequest{
 			Schedules: []schedule{
 				{
-					Date:   time.Time{}.Format("2006-01-02"),
-					Amount: 12345,
+					Date:          time.Time{}.Format("2006-01-02"),
+					Amount:        12345,
+					Frequency:     "1",
+					TotalPayments: 1,
 				},
 			},
 		}
