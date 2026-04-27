@@ -2,13 +2,14 @@ package filestorage
 
 import (
 	"context"
+	"io"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
-	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
+	"github.com/aws/aws-sdk-go-v2/feature/s3/transfermanager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
-	"io"
 )
 
 type S3Client interface {
@@ -18,7 +19,7 @@ type S3Client interface {
 }
 
 type Uploader interface {
-	Upload(ctx context.Context, input *s3.PutObjectInput, opts ...func(*manager.Uploader)) (*manager.UploadOutput, error)
+	UploadObject(ctx context.Context, input *transfermanager.UploadObjectInput, opts ...func(*transfermanager.Options)) (*transfermanager.UploadObjectOutput, error)
 }
 
 type Client struct {
@@ -52,7 +53,7 @@ func NewClient(ctx context.Context, region string, iamRole string, endpoint stri
 		}
 	})
 
-	uploader := manager.NewUploader(s3Client)
+	uploader := transfermanager.New(s3Client)
 
 	return &Client{
 		s3:       s3Client,
@@ -87,13 +88,13 @@ func (c *Client) GetFileWithVersion(ctx context.Context, bucketName string, file
 }
 
 func (c *Client) StreamFile(ctx context.Context, bucketName string, fileName string, stream io.ReadCloser) (*string, error) {
-	output, err := c.uploader.Upload(ctx, &s3.PutObjectInput{
+	output, err := c.uploader.UploadObject(ctx, &transfermanager.UploadObjectInput{
 		Bucket:               aws.String(bucketName),
 		Key:                  aws.String(fileName),
 		Body:                 stream,
 		ContentType:          aws.String("text/csv"),
 		ServerSideEncryption: "aws:kms",
-		SSEKMSKeyId:          aws.String(c.kmsKey),
+		SSEKMSKeyID:          aws.String(c.kmsKey),
 	})
 
 	if err != nil {
