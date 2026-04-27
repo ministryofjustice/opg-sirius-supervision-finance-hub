@@ -1,4 +1,4 @@
-FROM outofcoffee/imposter:4.9.1
+FROM outofcoffee/imposter:4.9.2
 
 COPY api-mocks/allpay/allpay-config.yml /opt/imposter/config/allpay-config.yml
 COPY api-mocks/allpay/openapi.yml /opt/imposter/config/openapi.yml
