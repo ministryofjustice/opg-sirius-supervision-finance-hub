@@ -32,6 +32,33 @@ resources:
       statusCode: 400
       content: "Bad Request - Please check the format of your body request"
 
+  - path: "/AllpayApi/Customers/{SchemeCode}/Mandates/Create"
+    method: post
+    response:
+      statusCode: 200
+      file: data/success.json
+      template: true
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/Mandates/Create"
+    method: post
+    requestBody:
+      jsonPath: $.Customer.LastName
+      value: allpay_mandate_validation
+      operator: contains
+    response:
+      statusCode: 422
+      file: data/validation.json
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/Mandates/Create"
+    method: post
+    requestBody:
+      jsonPath: $.Customer.LastName
+      value: allpay_mandate_fail
+      operator: contains
+    response:
+      statusCode: 400
+      content: "Bad Request - Please check the format of your body request"
+
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/VariableMandates"
     method: post
     capture:
@@ -61,6 +88,43 @@ resources:
       file: data/validation.json
 
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/VariableMandates"
+    method: post
+    pathParams:
+      # allpay_schedule_fail
+      Surname: YWxscGF5X3NjaGVkdWxlX2ZhaWw=
+    response:
+      statusCode: 400
+      content: "Bad Request - Please check the format of your body request"
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates"
+    method: post
+    capture:
+      clientRef:
+        store: schedules
+        pathParam: ClientRef
+      amount:
+        store: schedules
+        requestBody:
+          jsonPath: $.Schedules[0].Amount
+      date:
+        store: schedules
+        requestBody:
+          jsonPath: $.Schedules[0].ScheduleDate
+    response:
+      statusCode: 200
+      file: data/success.json
+      template: true
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates"
+    method: post
+    pathParams:
+      # allpay_schedule_validation
+       Surname: YWxscGF5X3NjaGVkdWxlX3ZhbGlkYXRpb24=
+    response:
+      statusCode: 422
+      file: data/validation.json
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates"
     method: post
     pathParams:
       # allpay_schedule_fail
