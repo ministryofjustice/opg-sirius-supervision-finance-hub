@@ -53,7 +53,7 @@ func TestCreateSchedule_Success(t *testing.T) {
 	err := c.CreateSchedule(testContext(), &CreateScheduleInput{
 		ClientDetails: ClientDetails{
 			ClientReference: "REF123",
-			Surname:         "Doe",
+			Surname:         " Doe ", // whitespace should be stripped before encoding
 		},
 		Date:   time.Time{},
 		Amount: 12345,
