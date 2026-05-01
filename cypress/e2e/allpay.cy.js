@@ -12,6 +12,8 @@ describe("Allpay end-to-end", () => {
     });
 
     it("collects scheduled payment", () => {
+        const holidayApiUrl = Cypress.env('HOLIDAY_API_URL') ?? 'http://localhost:8080/bank-holidays.json';
+
         const sendEvent = (date) => cy.request({
             method: 'POST',
             url: `${apiUrl}/events`,
@@ -30,9 +32,14 @@ describe("Allpay end-to-end", () => {
             }
         });
 
-        sendEvent(getCollectionDate(0));
-        // send a second time in case it was delayed until the next month
-        sendEvent(getCollectionDate(1));
+        cy.request(holidayApiUrl).then((response) => {
+            const bankHolidays = new Set(
+                response.body['england-and-wales'].events.map(e => e.date)
+            );
+            sendEvent(getCollectionDate(0, bankHolidays));
+            // send a second time in case it was delayed until the next month
+            sendEvent(getCollectionDate(1, bankHolidays));
+        });
 
         cy.wait(1000); // async process so give it a second to complete
 
@@ -116,7 +123,7 @@ describe("Allpay end-to-end", () => {
 });
 
 
-function getCollectionDate(offset) {
+function getCollectionDate(offset, bankHolidays = new Set()) {
     const today = new Date();
     let year = today.getFullYear();
     let month = today.getMonth() + offset; // 0-indexed
@@ -131,19 +138,20 @@ function getCollectionDate(offset) {
         year++;
     }
 
+    // Find the first working day on or after the 24th
     let collectionDate = new Date(year, month, 24);
 
-    // Get the day of the week (0 = Sunday, 6 = Saturday)
-    const dayOfWeek = collectionDate.getDay();
+    while (true) {
+        const dayOfWeek = collectionDate.getDay();
+        const dateStr = `${collectionDate.getFullYear()}-${String(collectionDate.getMonth() + 1).padStart(2, '0')}-${String(collectionDate.getDate()).padStart(2, '0')}`;
 
-    // If it's Saturday (6), move to Monday (25th)
-    if (dayOfWeek === 6) {
-        collectionDate.setDate(26);
-    }
-    // If it's Sunday (0), move to Monday (25th)
-    else if (dayOfWeek === 0) {
-        collectionDate.setDate(25);
-    }
+        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+        const isBankHoliday = bankHolidays.has(dateStr);
 
-    return `${collectionDate.getFullYear()}-${String(collectionDate.getMonth() + 1).padStart(2, '0')}-${String(collectionDate.getDate()).padStart(2, '0')}`;
+        if (!isWeekend && !isBankHoliday) {
+            return dateStr;
+        }
+
+        collectionDate.setDate(collectionDate.getDate() + 1);
+    }
 }
