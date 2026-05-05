@@ -5,6 +5,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 )
@@ -60,4 +61,14 @@ func (c *Client) newRequest(ctx context.Context, method, path string, body io.Re
 // occur when the process is likely to already be unrecoverable
 func unchecked(f func() error) {
 	_ = f()
+}
+
+// trimChars removes whitespace and then limits string to a certain number of characters
+func trimChars(s string, limit int) string {
+	trimmed := strings.TrimSpace(s)
+	runes := []rune(trimmed)
+	if len(runes) > limit {
+		return string(runes[:limit])
+	}
+	return trimmed
 }

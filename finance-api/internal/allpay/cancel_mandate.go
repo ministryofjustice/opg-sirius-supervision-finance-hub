@@ -21,7 +21,7 @@ func (c *Client) CancelMandate(ctx context.Context, data *CancelMandateRequest) 
 		fmt.Sprintf("/Customers/%s/%s/%s/Mandates/%s",
 			c.schemeCode,
 			base64.StdEncoding.EncodeToString([]byte(data.ClientReference)),
-			base64.StdEncoding.EncodeToString([]byte(data.Surname)),
+			base64.StdEncoding.EncodeToString([]byte(trimChars(data.Surname, 19))),
 			data.ClosureDate.Format("2006-01-02"),
 		), nil)
 
