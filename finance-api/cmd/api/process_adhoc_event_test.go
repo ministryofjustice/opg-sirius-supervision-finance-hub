@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/ministryofjustice/opg-go-common/telemetry"
@@ -20,37 +19,23 @@ func Test_processAdhocEvent(t *testing.T) {
 	service := &mockService{}
 
 	server := NewServer(service, nil, nil, nil, nil, nil, nil)
+	err := server.processAdhocEvent(ctx, shared.AdhocEvent{
+		Task: "SomeEvent",
+	})
+	assert.Nil(t, err)
+}
 
-	tests := []struct {
-		name             string
-		adhocProcessName shared.AdhocEvent
-		expectedResponse error
-		hasError         bool
-	}{
-		{
-			name: "Unknown report",
-			adhocProcessName: shared.AdhocEvent{
-				Task: "unknown",
-			},
-			expectedResponse: fmt.Errorf("invalid adhoc process: unknown"),
-			hasError:         true,
-		},
-		{
-			name: "adhoc event",
-			adhocProcessName: shared.AdhocEvent{
-				Task: "InvalidatePendingCollections",
-			},
-			expectedResponse: nil,
-			hasError:         false,
-		},
+func Test_processAdhocEvent_error(t *testing.T) {
+	ctx := auth.Context{
+		Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test")),
+		User:    &shared.User{ID: 1},
 	}
-	for _, tt := range tests {
-		err := server.processAdhocEvent(ctx, shared.AdhocEvent{
-			Task: tt.adhocProcessName.Task,
-		})
-		if tt.hasError {
-			assert.Error(t, err)
-		}
-		assert.Equal(t, tt.expectedResponse, err)
-	}
+
+	service := &mockService{errs: map[string]error{"ProcessAdhocEvent": assert.AnError}}
+
+	server := NewServer(service, nil, nil, nil, nil, nil, nil)
+	err := server.processAdhocEvent(ctx, shared.AdhocEvent{
+		Task: "SomeEvent",
+	})
+	assert.Error(t, err)
 }
