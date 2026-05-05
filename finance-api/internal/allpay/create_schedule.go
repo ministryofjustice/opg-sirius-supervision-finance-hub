@@ -51,7 +51,7 @@ func (c *Client) CreateSchedule(ctx context.Context, data *CreateScheduleInput) 
 		fmt.Sprintf("/Customers/%s/%s/%s/Mandates",
 			c.schemeCode,
 			base64.StdEncoding.EncodeToString([]byte(data.ClientReference)),
-			base64.StdEncoding.EncodeToString([]byte(data.Surname)),
+			base64.StdEncoding.EncodeToString([]byte(trimChars(data.Surname, 19))),
 		), &body)
 
 	if err != nil {

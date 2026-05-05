@@ -34,11 +34,22 @@ type CreateMandateRequest struct {
 	} `json:"BankAccount"`
 }
 
-func (c *Client) CreateMandate(ctx context.Context, data *CreateMandateRequest) error {
+func (c *Client) CreateMandate(ctx context.Context, input *CreateMandateRequest) error {
 	logger := c.logger(ctx)
 
-	// add scheme code here instead of leaking it outside the client
-	data.Customer.SchemeCode = c.schemeCode
+	data := CreateMandateRequest{
+		Customer: Customer{
+			ClientReference: input.Customer.ClientReference,
+			Surname:         trimChars(input.Customer.Surname, 18),
+			Address: Address{
+				Line1:    trimChars(input.Customer.Address.Line1, 40),
+				Town:     trimChars(input.Customer.Address.Town, 40),
+				PostCode: trimChars(input.Customer.Address.PostCode, 10),
+			},
+			SchemeCode: c.schemeCode, // add scheme code here instead of leaking it outside the client
+		},
+		BankAccount: input.BankAccount,
+	}
 
 	var body bytes.Buffer
 

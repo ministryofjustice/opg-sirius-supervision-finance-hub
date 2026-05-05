@@ -11,15 +11,15 @@ the mock is deployed:
 Surname parameters
 ---
 To trigger these responses, include the value in the client's surname, e.g. update the client in Sirius to change the
-surname from "Smith" to "Smith_allpay_mandate_validation".
+surname from "Smith" to "Smith_mandate_validation".
 
 | Value                        | Function        | Trigger                 |
 |------------------------------|-----------------|-------------------------|
-| `allpay_mandate_validation`  | Create Mandate  | Validation response     |
-| `allpay_mandate_fail`        | Create Mandate  | Allpay failure response |
-| `allpay_schedule_validation` | Create Schedule | Validation response     |
-| `allpay_schedule_fail`       | Create Schedule | Allpay failure response |
-| `allpay_cancel_fail`         | Cancel Mandate  | Allpay failure response |
+| `mandate_validation`  | Create Mandate  | Validation response     |
+| `mandate_fail`        | Create Mandate  | Allpay failure response |
+| `schedule_validation` | Create Schedule | Validation response     |
+| `schedule_fail`       | Create Schedule | Allpay failure response |
+| `cancel_fail`         | Cancel Mandate  | Allpay failure response |
 
 Modulus check
 ---

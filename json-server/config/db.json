@@ -459,7 +459,7 @@
     {
       "id": 23,
       "firstname": "Derek",
-      "surname": "Direct_allpay_mandate_validation",
+      "surname": "mandate_validation",
       "caseRecNumber": "23232300",
       "addressLine1": "1 Main Street",
       "addressLine2": "Mainville",
@@ -487,7 +487,7 @@
     {
       "id": 25,
       "firstname": "Odin",
-      "surname": "allpay_mandate_fail",
+      "surname": "mandate_fail",
       "caseRecNumber": "25252500",
       "addressLine1": "123 Fake Street",
       "addressLine2": "Mainville",
@@ -509,7 +509,7 @@
     {
       "id": 26,
       "firstname": "Marina",
-      "surname": "allpay_schedule_fail",
+      "surname": "schedule_fail",
       "caseRecNumber": "26262600",
       "addressLine1": "321 Fake Street",
       "addressLine2": "",
@@ -531,7 +531,7 @@
     {
       "id": 27,
       "firstname": "Gomez",
-      "surname": "allpay_schedule_validation",
+      "surname": "schedule_validation",
       "caseRecNumber": "27272700",
       "addressLine1": "333 Fake Street",
       "addressLine2": "",

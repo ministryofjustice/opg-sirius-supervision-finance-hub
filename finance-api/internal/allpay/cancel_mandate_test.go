@@ -36,7 +36,7 @@ func TestCancelMandate_Success(t *testing.T) {
 		ClosureDate: date,
 		ClientDetails: ClientDetails{
 			ClientReference: "12345678",
-			Surname:         "Cancelman",
+			Surname:         " Cancelman ", // whitespace should be stripped before encoding
 		},
 	})
 	if err != nil {
