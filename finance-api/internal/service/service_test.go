@@ -149,7 +149,7 @@ func (m *mockAllpay) CreateSchedule(ctx context.Context, data *allpay.CreateSche
 	return m.errs["CreateSchedule"]
 }
 
-func (m *mockAllpay) RemoveSchedule(ctx context.Context, data *allpay.RemoveScheduleRequest) error {
+func (m *mockAllpay) RemoveSchedule(ctx context.Context, data *allpay.RemoveScheduleInput) error {
 	m.called = append(m.called, "RemoveSchedule")
 	m.lastCalledParams = []interface{}{data}
 	return m.errs["RemoveSchedule"]

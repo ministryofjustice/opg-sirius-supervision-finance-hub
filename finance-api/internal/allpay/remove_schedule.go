@@ -9,13 +9,13 @@ import (
 	"time"
 )
 
-type RemoveScheduleRequest struct {
+type RemoveScheduleInput struct {
 	ClosureDate time.Time
 	Amount      int
 	ClientDetails
 }
 
-func (c *Client) RemoveSchedule(ctx context.Context, data *RemoveScheduleRequest) error {
+func (c *Client) RemoveSchedule(ctx context.Context, data *RemoveScheduleInput) error {
 	logger := c.logger(ctx)
 
 	req, err := c.newRequest(ctx, http.MethodDelete,

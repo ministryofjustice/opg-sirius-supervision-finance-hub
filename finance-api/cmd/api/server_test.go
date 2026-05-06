@@ -236,6 +236,11 @@ func (s *mockService) QueueScheduleRemovals(ctx context.Context, schedules [][]s
 	s.called = append(s.called, "QueueScheduleRemovals")
 }
 
+func (s *mockService) RemoveDirectDebitSchedule(ctx context.Context, data shared.RemoveSchedule) error {
+	s.called = append(s.called, "RemoveDirectDebitSchedule")
+	return s.errs["RemoveDirectDebitSchedule"]
+}
+
 type mockFileStorage struct {
 	versionId  string
 	bucketname string

@@ -34,7 +34,7 @@ func TestRemoveSchedule_Success(t *testing.T) {
 		},
 	}
 
-	err := c.RemoveSchedule(testContext(), &RemoveScheduleRequest{
+	err := c.RemoveSchedule(testContext(), &RemoveScheduleInput{
 		ClosureDate: date,
 		Amount:      amount,
 		ClientDetails: ClientDetails{
@@ -56,7 +56,7 @@ func TestRemoveSchedule_RequestCreationFails(t *testing.T) {
 		},
 	}
 
-	err := c.RemoveSchedule(testContext(), &RemoveScheduleRequest{
+	err := c.RemoveSchedule(testContext(), &RemoveScheduleInput{
 		ClosureDate: time.Now(),
 		Amount:      12345,
 		ClientDetails: ClientDetails{
@@ -83,7 +83,7 @@ func TestRemoveSchedule_UnexpectedStatus(t *testing.T) {
 		},
 	}
 
-	err := c.RemoveSchedule(testContext(), &RemoveScheduleRequest{
+	err := c.RemoveSchedule(testContext(), &RemoveScheduleInput{
 		ClosureDate: time.Now(),
 		Amount:      12345,
 		ClientDetails: ClientDetails{

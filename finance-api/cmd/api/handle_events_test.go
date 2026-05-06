@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
@@ -82,6 +83,20 @@ func TestServer_handleEvents(t *testing.T) {
 			},
 			expectedErr:     nil,
 			expectedHandler: "ExpireRefunds",
+		},
+		{
+			name: "remove schedule event",
+			event: shared.Event{
+				Source:     "opg.supervision.finance",
+				DetailType: "schedule-to-remove",
+				Detail: shared.RemoveSchedule{
+					AllPayCustomer: shared.AllPayCustomer{},
+					Amount:         0,
+					CollectionDate: time.Time{},
+				},
+			},
+			expectedErr:     nil,
+			expectedHandler: "RemoveDirectDebitSchedule",
 		},
 		{
 			name: "unknown event",
