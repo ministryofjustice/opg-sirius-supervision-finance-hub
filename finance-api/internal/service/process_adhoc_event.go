@@ -58,6 +58,15 @@ func (s *Service) processAdhocSetDemanded(ctx context.Context) {
 			12884246,
 			20090340,
 			20043623,
+			20051524,
+			20044715,
+			20083594,
+			20098074,
+			13811367,
+			40131241,
+			20114931,
+			20090340,
+			10478906,
 		}
 
 		//replaced context.Background with ctx to avoid cancellation, deadlines and logging context.
