@@ -89,12 +89,12 @@ func TestCreateMandate_DataFormatting(t *testing.T) {
 			expectedPostCode: "SW1A 1AA",
 		},
 		{
-			name: "truncates surname to 18 characters",
+			name: "truncates surname to 19 characters",
 			input: CreateMandateRequest{Customer: Customer{
 				Surname: "VeryLongSurnameExceedingLimit",
 				Address: Address{},
 			}},
-			expectedSurname: "VeryLongSurnameExc",
+			expectedSurname: "VeryLongSurnameExce",
 		},
 		{
 			name: "truncates address line1 to 40 characters",
