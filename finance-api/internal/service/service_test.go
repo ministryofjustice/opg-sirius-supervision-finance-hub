@@ -100,11 +100,19 @@ func (m *mockDispatch) DirectDebitCollectionFailed(ctx context.Context, event ev
 
 func (m *mockDispatch) DirectDebitCollection(ctx context.Context, event event.DirectDebitCollection) error {
 	m.event = event
+	m.called = append(m.called, "DirectDebitCollection")
 	return nil
 }
 
 func (m *mockDispatch) DirectDebitMandateReview(ctx context.Context, event event.DirectDebitMandateReview) error {
 	m.event = event
+	m.called = append(m.called, "DirectDebitMandateReview")
+	return nil
+}
+
+func (m *mockDispatch) ScheduleToRemove(ctx context.Context, event event.ScheduleToRemove) error {
+	m.event = event
+	m.called = append(m.called, "ScheduleToRemove")
 	return nil
 }
 
@@ -139,6 +147,12 @@ func (m *mockAllpay) CreateSchedule(ctx context.Context, data *allpay.CreateSche
 	m.called = append(m.called, "CreateSchedule")
 	m.lastCalledParams = []interface{}{data}
 	return m.errs["CreateSchedule"]
+}
+
+func (m *mockAllpay) RemoveSchedule(ctx context.Context, data *allpay.RemoveScheduleRequest) error {
+	m.called = append(m.called, "RemoveSchedule")
+	m.lastCalledParams = []interface{}{data}
+	return m.errs["RemoveSchedule"]
 }
 
 func (m *mockAllpay) FetchFailedPayments(ctx context.Context, input allpay.FetchFailedPaymentsInput) (allpay.FailedPayments, error) {

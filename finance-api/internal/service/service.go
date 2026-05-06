@@ -29,6 +29,7 @@ type Dispatch interface {
 	DirectDebitMandateReview(ctx context.Context, event event.DirectDebitMandateReview) error
 	DirectDebitCollectionFailed(ctx context.Context, event event.DirectDebitCollectionFailed) error
 	PendingInvoiceAdjustment(ctx context.Context, event event.PendingInvoiceAdjustment) error
+	ScheduleToRemove(ctx context.Context, event event.ScheduleToRemove) error
 }
 
 type FileStorage interface {
@@ -47,6 +48,7 @@ type AllpayClient interface {
 	ModulusCheck(ctx context.Context, sortCode string, accountNumber string) error
 	CreateSchedule(ctx context.Context, data *allpay.CreateScheduleInput) error
 	FetchFailedPayments(ctx context.Context, data allpay.FetchFailedPaymentsInput) (allpay.FailedPayments, error)
+	RemoveSchedule(ctx context.Context, data *allpay.RemoveScheduleRequest) error
 }
 
 type GovUKClient interface {

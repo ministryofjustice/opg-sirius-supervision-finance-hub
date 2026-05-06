@@ -232,6 +232,10 @@ func (s *mockService) CheckPaymentMethod(ctx context.Context, clientID int32) er
 	return s.errs["CheckPaymentMethod"]
 }
 
+func (s *mockService) QueueScheduleRemovals(ctx context.Context, schedules [][]string, scheduleDate shared.Date) {
+	s.called = append(s.called, "QueueScheduleRemovals")
+}
+
 type mockFileStorage struct {
 	versionId  string
 	bucketname string

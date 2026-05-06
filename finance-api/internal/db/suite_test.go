@@ -54,6 +54,10 @@ func (m *mockDispatch) PendingInvoiceAdjustment(ctx context.Context, event event
 	return nil
 }
 
+func (m *mockDispatch) ScheduleToRemove(ctx context.Context, event event.ScheduleToRemove) error {
+	return nil
+}
+
 func (suite *IntegrationSuite) SetupSuite() {
 	suite.ctx = auth.Context{
 		Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("finance-api-test")),
