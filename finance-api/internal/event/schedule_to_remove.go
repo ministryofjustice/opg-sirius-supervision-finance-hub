@@ -9,7 +9,7 @@ import (
 type ScheduleToRemove struct {
 	CourtRef string      `json:"courtRef"`
 	Surname  string      `json:"surname"`
-	Amount   int         `json:"amount"`
+	Amount   int32       `json:"amount"`
 	Date     shared.Date `json:"date"`
 }
 

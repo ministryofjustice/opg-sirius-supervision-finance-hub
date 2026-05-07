@@ -2,19 +2,35 @@ package service
 
 import (
 	"context"
-	"strconv"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
-func (s *Service) QueueScheduleRemovals(ctx context.Context, schedules [][]string, scheduleDate shared.Date) {
+func (s *Service) QueueScheduleRemovals(ctx context.Context, schedules [][]string, scheduleDate shared.Date) map[int]string {
+	failedLines := make(map[int]string)
+
 	for i, schedule := range schedules {
 		if i == 0 { // skip header
 			continue
 		}
-		amount, _ := strconv.Atoi(schedule[2])
-		err := s.dispatch.ScheduleToRemove(ctx, event.ScheduleToRemove{
+
+		var courtRef pgtype.Text
+
+		_ = courtRef.Scan(schedule[0])
+
+		_, err := s.store.GetClientByCourtRef(ctx, courtRef)
+		if err != nil {
+			failedLines[i] = validation.UploadErrorClientNotFound
+		}
+
+		amount, err := parseAmount(safeRead(schedule, 2))
+		if err != nil {
+			failedLines[i] = validation.UploadErrorAmountParse
+		}
+		err = s.dispatch.ScheduleToRemove(ctx, event.ScheduleToRemove{
 			CourtRef: schedule[0],
 			Surname:  schedule[1],
 			Amount:   amount,
@@ -24,4 +40,5 @@ func (s *Service) QueueScheduleRemovals(ctx context.Context, schedules [][]strin
 			s.Logger(ctx).Error("failed to queue schedule removal", "err", err, "category", "allpay")
 		}
 	}
+	return failedLines
 }
