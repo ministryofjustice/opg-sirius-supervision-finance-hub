@@ -40,7 +40,7 @@ func (c *Client) CreateMandate(ctx context.Context, input *CreateMandateRequest)
 	data := CreateMandateRequest{
 		Customer: Customer{
 			ClientReference: input.Customer.ClientReference,
-			Surname:         trimChars(input.Customer.Surname, 18),
+			Surname:         trimChars(input.Customer.Surname, 19),
 			Address: Address{
 				Line1:    trimChars(input.Customer.Address.Line1, 40),
 				Town:     trimChars(input.Customer.Address.Town, 40),
