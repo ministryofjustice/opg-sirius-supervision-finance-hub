@@ -44,7 +44,7 @@ type Service interface {
 	GetPermittedAdjustments(ctx context.Context, invoiceId int32) ([]shared.AdjustmentType, error)
 	GetRefunds(ctx context.Context, clientId int32) (shared.Refunds, error)
 	PostReportActions(ctx context.Context, report shared.ReportRequest)
-	ProcessAdhocEvent(ctx context.Context) error
+	ProcessAdhocEvent(ctx context.Context, event shared.AdhocEvent) error
 	ProcessDirectUploadReport(ctx context.Context, filename string, fileBytes io.Reader, uploadType shared.ReportUploadType) error
 	ProcessFailedDirectDebitCollections(ctx context.Context, date time.Time) error
 	ProcessFulfilledRefunds(ctx context.Context, records [][]string, date shared.Date) (map[int]string, error)

@@ -40,7 +40,7 @@ func (s *mockService) AddCollectedPayments(ctx context.Context, date time.Time) 
 	return s.errs["AddCollectedPayments"]
 }
 
-func (s *mockService) ProcessAdhocEvent(ctx context.Context) error {
+func (s *mockService) ProcessAdhocEvent(ctx context.Context, event shared.AdhocEvent) error {
 	s.called = append(s.called, "ProcessAdhocEvent")
 	return s.errs["ProcessAdhocEvent"]
 }
