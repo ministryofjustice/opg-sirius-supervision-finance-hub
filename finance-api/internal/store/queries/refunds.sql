@@ -106,7 +106,7 @@ FROM expired_refunds;
 WITH expired_refunds AS (
     UPDATE refund
         SET cancelled_at = NOW(), cancelled_by = $1
-        WHERE processed_at IS NULL AND decision_at::DATE < CURRENT_DATE - INTERVAL '14 days'
+        WHERE processed_at IS NULL AND decision = 'APPROVED' AND decision_at::DATE < CURRENT_DATE - INTERVAL '14 days'
         RETURNING id),
      deleted_bank_details AS (DELETE
          FROM bank_details

@@ -44,7 +44,7 @@ func (b *BillingHistory) UnmarshalJSON(data []byte) (err error) {
 		b.Event = new(PaymentProcessed)
 	case EventTypeReappliedCredit:
 		b.Event = new(ReappliedCredit)
-	case EventTypeRefundCreated, EventTypeRefundCancelled, EventTypeRefundStatusUpdated, EventTypeRefundProcessing, EventTypeRefundApproved:
+	case EventTypeRefundCreated, EventTypeRefundCancelled, EventTypeRefundRejected, EventTypeRefundProcessing, EventTypeRefundApproved:
 		b.Event = new(RefundEvent)
 	case EventTypeRefundProcessed:
 		b.Event = new(RefundProcessed)
@@ -186,7 +186,7 @@ const (
 	EventTypeRefundCancelled
 	EventTypeRefundProcessed
 	EventTypeRefundProcessing
-	EventTypeRefundStatusUpdated
+	EventTypeRefundRejected
 	EventTypeDirectDebitMandateCreated
 	EventTypeDirectDebitMandateCancelled
 	EventTypeDirectDebitCollectionScheduled
@@ -208,7 +208,7 @@ var eventTypeMap = map[string]BillingEventType{
 	"REFUND_CANCELLED":                  EventTypeRefundCancelled,
 	"REFUND_PROCESSED":                  EventTypeRefundProcessed,
 	"REFUND_PROCESSING":                 EventTypeRefundProcessing,
-	"REFUND_STATUS_UPDATED":             EventTypeRefundStatusUpdated,
+	"REFUND_REJECTED":                   EventTypeRefundRejected,
 	"DIRECT_DEBIT_CREATED":              EventTypeDirectDebitMandateCreated,
 	"DIRECT_DEBIT_CANCELLED":            EventTypeDirectDebitMandateCancelled,
 	"DIRECT_DEBIT_COLLECTION_SCHEDULED": EventTypeDirectDebitCollectionScheduled,
@@ -244,8 +244,8 @@ func (b BillingEventType) String() string {
 		return "REFUND_PROCESSED"
 	case EventTypeRefundProcessing:
 		return "REFUND_PROCESSING"
-	case EventTypeRefundStatusUpdated:
-		return "REFUND_STATUS_UPDATED"
+	case EventTypeRefundRejected:
+		return "REFUND_REJECTED"
 	case EventTypeDirectDebitMandateCancelled:
 		return "DIRECT_DEBIT_CANCELLED"
 	case EventTypeDirectDebitMandateCreated:
