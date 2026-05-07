@@ -41,7 +41,7 @@
     {{ if eq .Event.Type.String "REFUND_PROCESSED" }}
         {{ template "refund-processed-event" . }}
     {{ end }}
-    {{ if eq .Event.Type.String "REFUND_STATUS_UPDATED" }}
+    {{ if eq .Event.Type.String "REFUND_REJECTED" }}
         {{ template "refund-rejected-event" . }}
     {{ end }}
     {{ if eq .Event.Type.String "DIRECT_DEBIT_CREATED" }}
