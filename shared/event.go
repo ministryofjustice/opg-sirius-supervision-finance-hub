@@ -9,12 +9,14 @@ const (
 	EventSourceSirius                   = "opg.supervision.sirius"
 	EventSourceFinanceAdhoc             = "opg.supervision.finance.adhoc"
 	EventSourceInfra                    = "opg.supervision.infra"
+	EventSourceFinance                  = "opg.supervision.finance"
 	DetailTypeFinanceAdhoc              = "finance-adhoc"
 	DetailTypeInvoiceCreated            = "invoice-created"
 	DetailTypeClientCreated             = "client-created"
 	DetailTypeOrderCreated              = "order-created"
 	DetailTypeClientMadeInactive        = "client-made-inactive"
 	DetailTypeFinanceAdminUpload        = "finance-admin-upload"
+	DetailTypeScheduleToRemove          = "schedule-to-remove"
 	DetailTypeScheduledEvent            = "scheduled-event"
 	ScheduledEventRefundExpiry          = "refund-expiry"
 	ScheduledEventDirectDebitCollection = "direct-debit-collection"
@@ -85,6 +87,12 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		e.Detail = detail
+	case DetailTypeScheduleToRemove:
+		var detail ScheduleToRemoveEvent
+		if err := json.Unmarshal(raw.Detail, &detail); err != nil {
+			return err
+		}
+		e.Detail = detail
 	default:
 		return fmt.Errorf("unknown detail type: %s", e.DetailType)
 	}
@@ -119,6 +127,13 @@ type FinanceAdminUploadEvent struct {
 	UploadType   ReportUploadType `json:"uploadType"`
 	UploadDate   Date             `json:"uploadDate"`
 	PisNumber    int              `json:"pisNumber"`
+}
+
+type ScheduleToRemoveEvent struct {
+	CourtRef string `json:"courtRef"`
+	Surname  string `json:"surname"`
+	Amount   int    `json:"amount"`
+	Date     Date   `json:"date"`
 }
 
 type AdhocEvent struct {

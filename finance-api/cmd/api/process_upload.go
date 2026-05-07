@@ -126,6 +126,12 @@ func (s *Server) processUploadFile(ctx context.Context, upload Upload) {
 				logger.Error(fmt.Sprintf("unable to process reverse refunds due to %d failed lines", len(failedLines)))
 			}
 			payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, err, failedLines)
+		} else if upload.UploadType.IsScheduleRemoval() {
+			failedLines := s.service.QueueScheduleRemovals(ctx, records, upload.UploadDate)
+			if len(failedLines) > 0 {
+				logger.Error(fmt.Sprintf("unable to process schedule removal due to %d failed lines", len(failedLines)))
+			}
+			payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, err, failedLines)
 		} else {
 			logger.Error("invalid upload type", "type", upload.UploadType)
 			payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, fmt.Errorf("invalid upload type"), map[int]string{})

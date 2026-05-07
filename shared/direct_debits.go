@@ -1,5 +1,7 @@
 package shared
 
+import "time"
+
 type AllPayCustomer struct {
 	Surname         string `json:"Surname" validate:"required"`
 	ClientReference string `json:"ClientReference" validate:"required"`
@@ -36,4 +38,10 @@ type CreateSchedule struct {
 type CreateScheduleForInvoice struct {
 	CreateSchedule
 	InvoiceId int32 `json:"invoiceId"`
+}
+
+type RemoveSchedule struct {
+	AllPayCustomer
+	Amount         int       `json:"amount"`
+	CollectionDate time.Time `json:"collectionDate"`
 }
