@@ -127,8 +127,11 @@ func (s *Server) processUploadFile(ctx context.Context, upload Upload) {
 			}
 			payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, err, failedLines)
 		} else if upload.UploadType.IsScheduleRemoval() {
-			s.service.QueueScheduleRemovals(ctx, records, upload.UploadDate)
-			payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, nil, nil)
+			failedLines := s.service.QueueScheduleRemovals(ctx, records, upload.UploadDate)
+			if len(failedLines) > 0 {
+				logger.Error(fmt.Sprintf("unable to process schedule removal due to %d failed lines", len(failedLines)))
+			}
+			payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, err, failedLines)
 		} else {
 			logger.Error("invalid upload type", "type", upload.UploadType)
 			payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, fmt.Errorf("invalid upload type"), map[int]string{})

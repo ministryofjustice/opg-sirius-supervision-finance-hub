@@ -232,8 +232,9 @@ func (s *mockService) CheckPaymentMethod(ctx context.Context, clientID int32) er
 	return s.errs["CheckPaymentMethod"]
 }
 
-func (s *mockService) QueueScheduleRemovals(ctx context.Context, schedules [][]string, scheduleDate shared.Date) {
+func (s *mockService) QueueScheduleRemovals(ctx context.Context, schedules [][]string, scheduleDate shared.Date) map[int]string {
 	s.called = append(s.called, "QueueScheduleRemovals")
+	return nil
 }
 
 func (s *mockService) RemoveDirectDebitSchedule(ctx context.Context, data shared.RemoveSchedule) error {
