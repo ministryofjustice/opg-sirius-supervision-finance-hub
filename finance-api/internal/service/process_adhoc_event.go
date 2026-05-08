@@ -7,7 +7,6 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
@@ -29,9 +28,7 @@ func (s *Service) processAdhocChangePendingCollectionDate(ctx context.Context) {
 	go func(logger *slog.Logger) {
 		logger.Info("ChangePendingCollectionDate: started")
 
-		//replaced context.Background with ctx to avoid cancellation, deadlines and logging context.
-		funcCtx := telemetry.ContextWithLogger(ctx, logger)
-		funcCtx = ctx.(auth.Context).WithContext(funcCtx)
+		funcCtx := telemetry.ContextWithLogger(context.WithoutCancel(ctx), logger)
 		count, err := s.store.ChangePendingCollectionDate(funcCtx)
 		if err != nil {
 			logger.Error("ChangePendingCollectionDate: failed", "error", err)
@@ -70,9 +67,7 @@ func (s *Service) processAdhocSetDemanded(ctx context.Context) {
 			20104998,
 		}
 
-		//replaced context.Background with ctx to avoid cancellation, deadlines and logging context.
-		funcCtx := telemetry.ContextWithLogger(ctx, logger)
-		funcCtx = ctx.(auth.Context).WithContext(funcCtx)
+		funcCtx := telemetry.ContextWithLogger(context.WithoutCancel(ctx), logger)
 
 		var count int
 		for _, cid := range clientIDs {
