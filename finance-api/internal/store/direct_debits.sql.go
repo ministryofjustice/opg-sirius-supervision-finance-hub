@@ -22,6 +22,26 @@ func (q *Queries) CancelPendingCollection(ctx context.Context, id int32) error {
 	return err
 }
 
+const cancelPendingCollectionByCourtRefAndDate = `-- name: CancelPendingCollectionByCourtRefAndDate :exec
+UPDATE pending_collection pc
+SET status = 'CANCELLED'
+FROM supervision_finance.finance_client fc
+WHERE pc.finance_client_id = fc.id
+  AND fc.court_ref = $1
+  AND pc.collection_date = $2
+  AND pc.status = 'PENDING'
+`
+
+type CancelPendingCollectionByCourtRefAndDateParams struct {
+	CourtRef       pgtype.Text
+	CollectionDate pgtype.Date
+}
+
+func (q *Queries) CancelPendingCollectionByCourtRefAndDate(ctx context.Context, arg CancelPendingCollectionByCourtRefAndDateParams) error {
+	_, err := q.db.Exec(ctx, cancelPendingCollectionByCourtRefAndDate, arg.CourtRef, arg.CollectionDate)
+	return err
+}
+
 const checkPendingCollection = `-- name: CheckPendingCollection :one
 SELECT EXISTS (SELECT 1
                FROM pending_collection pc

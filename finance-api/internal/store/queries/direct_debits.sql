@@ -71,3 +71,12 @@ ORDER BY pc.collection_date;
 UPDATE pending_collection
 SET status = 'CANCELLED'
 WHERE id = @id;
+
+-- name: CancelPendingCollectionByCourtRefAndDate :exec
+UPDATE pending_collection pc
+SET status = 'CANCELLED'
+FROM supervision_finance.finance_client fc
+WHERE pc.finance_client_id = fc.id
+  AND fc.court_ref = @court_ref
+  AND pc.collection_date = @collection_date
+  AND pc.status = 'PENDING';
