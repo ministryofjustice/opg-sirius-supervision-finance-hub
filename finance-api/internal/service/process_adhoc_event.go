@@ -12,6 +12,7 @@ import (
 )
 
 func (s *Service) ProcessAdhocEvent(ctx context.Context, event shared.AdhocEvent) error {
+	s.Logger(ctx).Info(fmt.Sprintf("Processing adhoc event: %s", event.Task))
 	switch event.Task {
 	case "ChangePendingCollectionDate":
 		s.processAdhocChangePendingCollectionDate(ctx)
@@ -51,25 +52,28 @@ func (s *Service) processAdhocSetDemanded(ctx context.Context) {
 			20083594,
 			20098074,
 			46667347,
-			13475723,
-			12884246,
+			40131241,
+			20114931,
 			20090340,
 			20043623,
 			20051524,
 			20044715,
 			20083594,
 			20098074,
-			13811367,
+			46667347,
 			40131241,
 			20114931,
 			20090340,
-			10478906,
+			20043623,
 			20104998,
 		}
 
 		funcCtx := telemetry.ContextWithLogger(context.WithoutCancel(ctx), logger)
 
-		var count int
+		var (
+			count int
+			errs  int
+		)
 		for _, cid := range clientIDs {
 			var (
 				paymentMethod pgtype.Text
@@ -88,10 +92,11 @@ func (s *Service) processAdhocSetDemanded(ctx context.Context) {
 			})
 			if err != nil {
 				logger.Error("SetDemanded: failed", "error", err, "clientID", cid)
+				errs++
 			}
 			count++
 		}
 
-		logger.Info(fmt.Sprintf("SetDemanded: %d clients set to demanded", count))
+		logger.Info(fmt.Sprintf("SetDemanded: %d clients set to demanded, %d errored", count, errs))
 	}(telemetry.LoggerFromContext(ctx))
 }
