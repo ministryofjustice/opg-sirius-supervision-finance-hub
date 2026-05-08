@@ -29,8 +29,7 @@ func (s *Service) processAdhocChangePendingCollectionDate(ctx context.Context) {
 	go func(logger *slog.Logger) {
 		logger.Info("ChangePendingCollectionDate: started")
 
-		//replaced context.Background with ctx to avoid cancellation, deadlines and logging context.
-		funcCtx := telemetry.ContextWithLogger(ctx, logger)
+		funcCtx := telemetry.ContextWithLogger(context.Background(), logger)
 		funcCtx = ctx.(auth.Context).WithContext(funcCtx)
 		count, err := s.store.ChangePendingCollectionDate(funcCtx)
 		if err != nil {
@@ -70,8 +69,7 @@ func (s *Service) processAdhocSetDemanded(ctx context.Context) {
 			20104998,
 		}
 
-		//replaced context.Background with ctx to avoid cancellation, deadlines and logging context.
-		funcCtx := telemetry.ContextWithLogger(ctx, logger)
+		funcCtx := telemetry.ContextWithLogger(context.Background(), logger)
 		funcCtx = ctx.(auth.Context).WithContext(funcCtx)
 
 		var count int
