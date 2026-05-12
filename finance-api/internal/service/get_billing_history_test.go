@@ -1111,7 +1111,7 @@ func Test_getRefundEventTypeAndDate(t *testing.T) {
 				FulfilledAt: pgtype.Timestamp{},
 				CancelledBy: pgtype.Int4{},
 			},
-			wantEventType: shared.EventTypeRefundStatusUpdated,
+			wantEventType: shared.EventTypeRefundRejected,
 			wantEventDate: now.Add(24 * time.Hour),
 		},
 		{
@@ -1250,7 +1250,7 @@ func Test_getUserForEventType(t *testing.T) {
 				FulfilledAt: pgtype.Timestamp{},
 				CancelledBy: pgtype.Int4{},
 			},
-			eventType:      shared.EventTypeRefundStatusUpdated,
+			eventType:      shared.EventTypeRefundRejected,
 			expectedResult: 1,
 		},
 		{
@@ -1406,7 +1406,7 @@ func Test_makeRefundEvent(t *testing.T) {
 							ClientId:         45,
 							Amount:           23,
 							Notes:            "Existing timeline event",
-							BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundStatusUpdated},
+							BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundRejected},
 						},
 						OutstandingBalance: 0,
 					},
@@ -1423,7 +1423,7 @@ func Test_makeRefundEvent(t *testing.T) {
 							ClientId:         45,
 							Amount:           23,
 							Notes:            "Existing timeline event",
-							BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundStatusUpdated},
+							BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundRejected},
 						},
 						OutstandingBalance: 0,
 					},
@@ -1590,7 +1590,7 @@ func Test_processRefundEvents(t *testing.T) {
 					ClientId:         33,
 					Amount:           33,
 					Notes:            "Rejected timeline event",
-					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundStatusUpdated},
+					BaseBillingEvent: shared.BaseBillingEvent{Type: shared.EventTypeRefundRejected},
 				},
 				OutstandingBalance: 0,
 			},
@@ -1838,7 +1838,8 @@ func Test_processRefundEvents(t *testing.T) {
 		},
 	}
 
-	assert.Equalf(t, expected, processRefundEvents(refunds, 33), "processRefundEvents(%v)", refunds)
+	events := processRefundEvents(refunds, 33)
+	assert.Equalf(t, expected, events, "processRefundEvents(%v)", refunds)
 }
 
 func Test_processPaymentMethodsEvents(t *testing.T) {

@@ -168,7 +168,7 @@ func getRefundEventTypeAndDate(refund store.GetRefundsForBillingHistoryRow) (sha
 	if refund.CancelledAt.Valid {
 		return shared.EventTypeRefundCancelled, refund.CancelledAt.Time
 	} else if refund.Decision == "REJECTED" {
-		return shared.EventTypeRefundStatusUpdated, refund.DecisionAt.Time
+		return shared.EventTypeRefundRejected, refund.DecisionAt.Time
 	} else if refund.ProcessedAt.Valid {
 		//	approved status with decision at has a date and processed at is set makes processing event
 		return shared.EventTypeRefundProcessing, refund.ProcessedAt.Time
@@ -219,11 +219,16 @@ func processRefundEvents(refunds []store.GetRefundsForBillingHistoryRow, clientI
 			history = makeRefundEvent(re, user, eventType, date, clientID, history)
 
 			if eventType == shared.EventTypeRefundCancelled {
-				//	ensure there is a second timeline event for the approved and processing events
+				//	ensure there is a timeline for processing events
 				if re.ProcessedAt.Valid {
 					history = makeRefundEvent(re, re.DecisionBy.Int32, shared.EventTypeRefundProcessing, re.ProcessedAt.Time, clientID, history)
 				}
-				history = makeRefundEvent(re, re.DecisionBy.Int32, shared.EventTypeRefundApproved, re.DecisionAt.Time, clientID, history)
+				// and decision events
+				if re.Decision == "APPROVED" {
+					history = makeRefundEvent(re, re.DecisionBy.Int32, shared.EventTypeRefundApproved, re.DecisionAt.Time, clientID, history)
+				} else {
+					history = makeRefundEvent(re, re.DecisionBy.Int32, shared.EventTypeRefundRejected, re.DecisionAt.Time, clientID, history)
+				}
 			}
 
 			if eventType == shared.EventTypeRefundProcessing {
