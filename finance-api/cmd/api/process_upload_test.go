@@ -193,6 +193,22 @@ func Test_processUploadFile(t *testing.T) {
 			},
 			expectedServiceCall: "ProcessDirectUploadReport",
 		},
+		{
+			name: "Schedule removal",
+			upload: Upload{
+				UploadType:   shared.ReportTypeUploadRemoveSchedules,
+				EmailAddress: "test@email.com",
+				FileBytes:    bytes.NewReader([]byte("col1, col2\nabc,1")),
+			},
+			expectedPayload: notify.Payload{
+				EmailAddress: "test@email.com",
+				TemplateId:   notify.ProcessingSuccessTemplateId,
+				Personalisation: struct {
+					UploadType string `json:"upload_type"`
+				}{"Remove Schedules"},
+			},
+			expectedServiceCall: "QueueScheduleRemovals",
+		},
 	}
 	for _, tt := range tests {
 		notifyClient := &mockNotify{}

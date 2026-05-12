@@ -5,33 +5,6 @@ validation:
   request: true
 
 resources:
-  - path: "/AllpayApi/Customers/{SchemeCode}/VariableMandates/Create"
-    method: post
-    response:
-      statusCode: 200
-      file: data/success.json
-      template: true
-
-  - path: "/AllpayApi/Customers/{SchemeCode}/VariableMandates/Create"
-    method: post
-    requestBody:
-      jsonPath: $.Customer.LastName
-      value: mandate_validation
-      operator: contains
-    response:
-      statusCode: 422
-      file: data/validation.json
-
-  - path: "/AllpayApi/Customers/{SchemeCode}/VariableMandates/Create"
-    method: post
-    requestBody:
-      jsonPath: $.Customer.LastName
-      value: mandate_fail
-      operator: contains
-    response:
-      statusCode: 400
-      content: "Bad Request - Please check the format of your body request"
-
   - path: "/AllpayApi/Customers/{SchemeCode}/Mandates/Create"
     method: post
     response:
@@ -55,43 +28,6 @@ resources:
       jsonPath: $.Customer.LastName
       value: mandate_fail
       operator: contains
-    response:
-      statusCode: 400
-      content: "Bad Request - Please check the format of your body request"
-
-  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/VariableMandates"
-    method: post
-    capture:
-      clientRef:
-        store: schedules
-        pathParam: ClientRef
-      amount:
-        store: schedules
-        requestBody:
-          jsonPath: $.Schedules[0].Amount
-      date:
-        store: schedules
-        requestBody:
-          jsonPath: $.Schedules[0].ScheduleDate
-    response:
-      statusCode: 200
-      file: data/success.json
-      template: true
-
-  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/VariableMandates"
-    method: post
-    pathParams:
-      # schedule_validation
-       Surname: c2NoZWR1bGVfdmFsaWRhdGlvbg==
-    response:
-      statusCode: 422
-      file: data/validation.json
-
-  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/VariableMandates"
-    method: post
-    pathParams:
-      # schedule_fail
-      Surname: c2NoZWR1bGVfZmFpbA==
     response:
       statusCode: 400
       content: "Bad Request - Please check the format of your body request"
@@ -149,13 +85,13 @@ resources:
       statusCode: 400
       content: "Bad Request - Please check the format of your body request"
 
-  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/{Date}/{Amount}"
+  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/Schedule/{Date}/{Amount}"
     method: delete
     response:
       statusCode: 200
       file: data/success.json
 
-  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/{Date}/{Amount}"
+  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/Schedule/{Date}/{Amount}"
     method: delete
     pathParams:
       # remove_validation

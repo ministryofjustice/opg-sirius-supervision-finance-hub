@@ -56,6 +56,21 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
 				return err
 			}
 		}
+	} else if event.Source == shared.EventSourceFinance && event.DetailType == shared.DetailTypeScheduleToRemove {
+		if detail, ok := event.Detail.(shared.ScheduleToRemoveEvent); ok {
+			allPayCustomer := shared.AllPayCustomer{
+				Surname:         detail.Surname,
+				ClientReference: detail.CourtRef,
+			}
+			err := s.service.RemoveDirectDebitSchedule(ctx, shared.RemoveSchedule{
+				AllPayCustomer: allPayCustomer,
+				Amount:         detail.Amount,
+				CollectionDate: detail.Date.Time,
+			})
+			if err != nil {
+				return err
+			}
+		}
 	} else if event.Source == shared.EventSourceFinanceAdhoc && event.DetailType == shared.DetailTypeFinanceAdhoc {
 		if detail, ok := event.Detail.(shared.AdhocEvent); ok {
 			err := s.processAdhocEvent(ctx, detail)

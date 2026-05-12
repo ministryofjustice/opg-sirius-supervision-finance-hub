@@ -29,6 +29,7 @@ FROM pending_collection pc
     LEFT JOIN ledger ON pc.ledger_id = ledger.id
     LEFT JOIN ledger_allocation ON pc.ledger_id = ledger_allocation.ledger_id
 WHERE fc.client_id = $1
+AND pc.status != 'CANCELLED'
 ORDER BY pc.created_at DESC
 `
 
