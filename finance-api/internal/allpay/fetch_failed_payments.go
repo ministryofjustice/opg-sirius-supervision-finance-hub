@@ -51,20 +51,20 @@ func (c *Client) fetchFailedPaymentsForPage(ctx context.Context, input FetchFail
 
 	if err != nil {
 		logger.Error("unable to build failed payments request", "error", err)
-		return nil, err
+		return nil, apiError("Failed payments cannot be fetched due to an unexpected system error.")
 	}
 
 	resp, err := c.http.Do(req)
 	if err != nil {
 		logger.Error("unable to send failed payments request", "error", err)
-		return nil, err
+		return nil, apiError("Failed payments cannot be fetched due to an unexpected system error.")
 	}
 
 	defer unchecked(resp.Body.Close)
 
 	if resp.StatusCode != http.StatusOK {
 		logger.Error("failed payments request returned unexpected status code", "status", resp.Status)
-		return nil, ErrorAPI{}
+		return nil, apiError("Failed payments cannot be fetched due to an unexpected response from AllPay.")
 	}
 
 	var body FailedPaymentsOutput
@@ -72,7 +72,8 @@ func (c *Client) fetchFailedPaymentsForPage(ctx context.Context, input FetchFail
 	err = json.NewDecoder(resp.Body).Decode(&body)
 	if err != nil {
 		logger.Error("unable to parse failed payments response", "error", err)
-		return nil, err
+		return nil, apiError("Failed payments cannot be fetched due to an unexpected response from AllPay.")
+
 	}
 
 	return &body, nil

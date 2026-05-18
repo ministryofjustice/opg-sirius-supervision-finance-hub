@@ -5,7 +5,13 @@ import (
 	"strings"
 )
 
-type ErrorAPI struct{}
+type ErrorAPI struct {
+	message string
+}
+
+func apiError(message string) ErrorAPI {
+	return ErrorAPI{message: message}
+}
 
 func (e ErrorAPI) Error() string {
 	return "Direct Debit cannot be setup due to an unexpected response from AllPay."
