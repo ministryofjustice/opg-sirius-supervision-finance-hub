@@ -133,14 +133,14 @@ func TestUpdateClientDetails_DataFormatting(t *testing.T) {
 			if tt.expectedSurname != "" && captured.Address.LastName != tt.expectedSurname {
 				t.Errorf("LastName: expected %q, got %q", tt.expectedSurname, captured.Address.LastName)
 			}
-			if tt.expectedLine1 != "" && captured.Address.Address.Line1 != tt.expectedLine1 {
-				t.Errorf("Line1: expected %q, got %q", tt.expectedLine1, captured.Address.Address.Line1)
+			if tt.expectedLine1 != "" && captured.Address.Line1 != tt.expectedLine1 {
+				t.Errorf("Line1: expected %q, got %q", tt.expectedLine1, captured.Address.Line1)
 			}
-			if tt.expectedTown != "" && captured.Address.Address.Town != tt.expectedTown {
-				t.Errorf("Town: expected %q, got %q", tt.expectedTown, captured.Address.Address.Town)
+			if tt.expectedTown != "" && captured.Address.Town != tt.expectedTown {
+				t.Errorf("Town: expected %q, got %q", tt.expectedTown, captured.Address.Town)
 			}
-			if tt.expectedPostCode != "" && captured.Address.Address.PostCode != tt.expectedPostCode {
-				t.Errorf("PostCode: expected %q, got %q", tt.expectedPostCode, captured.Address.Address.PostCode)
+			if tt.expectedPostCode != "" && captured.Address.PostCode != tt.expectedPostCode {
+				t.Errorf("PostCode: expected %q, got %q", tt.expectedPostCode, captured.Address.PostCode)
 			}
 		})
 	}

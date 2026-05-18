@@ -242,6 +242,11 @@ func (s *mockService) RemoveDirectDebitSchedule(ctx context.Context, data shared
 	return s.errs["RemoveDirectDebitSchedule"]
 }
 
+func (s *mockService) UpdateClientMandateDetails(ctx context.Context, id int32, detail shared.ClientUpdatedEvent) error {
+	s.called = append(s.called, "UpdateClientMandateDetails")
+	return s.errs["UpdateClientMandateDetails"]
+}
+
 type mockFileStorage struct {
 	versionId  string
 	bucketname string

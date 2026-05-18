@@ -15,7 +15,7 @@ func (suite *IntegrationSuite) TestService_UpdateClientMandateDetails() {
 
 	seeder.SeedData(
 		"INSERT INTO public.persons VALUES (11, NULL, NULL, 'Smith', NULL, NULL, NULL, NULL, FALSE, FALSE, NULL, NULL, 'Client', NULL);",
-		`INSERT INTO public.addresses VALUES (1, 11, '["1 Test Street"]', 'Testtown', NULL, 'TE1 1ST', NULL, NULL, NULL, NULL);`,
+		`INSERT INTO public.addresses VALUES (1, 11, '["1 Test Street"]', 'Testtown', NULL, 'TE1 1ST', NULL);`,
 		"INSERT INTO finance_client VALUES (1, 11, '1234', 'DIRECT DEBIT', NULL, '1234567T');",
 	)
 
@@ -51,7 +51,7 @@ func (suite *IntegrationSuite) TestService_UpdateClientMandateDetails_skips_when
 
 	seeder.SeedData(
 		"INSERT INTO public.persons VALUES (11, NULL, NULL, 'Smith', NULL, NULL, NULL, NULL, FALSE, FALSE, NULL, NULL, 'Client', NULL);",
-		`INSERT INTO public.addresses VALUES (1, 11, '["1 Test Street"]', 'Testtown', NULL, 'TE1 1ST', NULL, NULL, NULL, NULL);`,
+		`INSERT INTO public.addresses VALUES (1, 11, '["1 Test Street"]', 'Testtown', NULL, 'TE1 1ST', NULL);`,
 		"INSERT INTO finance_client VALUES (1, 11, '1234', 'DEMANDED', NULL, '1234567T');",
 	)
 
@@ -78,7 +78,7 @@ func (suite *IntegrationSuite) TestService_UpdateClientMandateDetails_fails_when
 
 	seeder.SeedData(
 		"INSERT INTO public.persons VALUES (11, NULL, NULL, 'Smith', NULL, NULL, NULL, NULL, FALSE, FALSE, NULL, NULL, 'Client', NULL);",
-		`INSERT INTO public.addresses VALUES (1, 11, '["1 Test Street"]', 'Testtown', NULL, 'TE1 1ST', NULL, NULL, NULL, NULL);`,
+		`INSERT INTO public.addresses VALUES (1, 11, '["1 Test Street"]', 'Testtown', NULL, 'TE1 1ST', NULL);`,
 		"INSERT INTO finance_client VALUES (1, 11, '1234', 'DIRECT DEBIT', NULL, '1234567T');",
 	)
 
@@ -100,4 +100,3 @@ func (suite *IntegrationSuite) TestService_UpdateClientMandateDetails_fails_when
 	assert.Error(suite.T(), err)
 	assert.Equal(suite.T(), []string{"UpdateClientDetails"}, allpayMock.called)
 }
-
