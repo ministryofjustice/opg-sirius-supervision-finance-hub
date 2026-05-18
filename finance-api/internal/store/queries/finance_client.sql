@@ -80,7 +80,7 @@ WHERE fc.court_ref = $1
 -- name: GetClientById :one
 SELECT fc.id AS finance_client_id, fc.client_id, fc.court_ref::VARCHAR "court_ref", fc.payment_method,
        c.surname::VARCHAR "surname",
-       (a.address_lines -> 0)::VARCHAR "line_1", a.town::VARCHAR "town", a.postcode::VARCHAR "postcode"
+       (a.address_lines ->> 0)::VARCHAR "line_1", a.town::VARCHAR "town", a.postcode::VARCHAR "postcode"
 FROM finance_client fc
 JOIN public.persons c ON fc.client_id = c.id
 JOIN public.addresses a ON c.id = a.person_id
