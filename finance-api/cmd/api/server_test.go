@@ -152,7 +152,7 @@ func (s *mockService) ProcessFinanceAdminUpload(ctx context.Context, detail shar
 	return s.errs["ProcessFinanceAdminUpload"]
 }
 
-func (s *mockService) UpdateClient(ctx context.Context, clientId int32, courtRef string) error {
+func (s *mockService) SetCourtReference(ctx context.Context, clientId int32, courtRef string) error {
 	s.called = append(s.called, "UpdateClient")
 	return s.errs["UpdateClient"]
 }

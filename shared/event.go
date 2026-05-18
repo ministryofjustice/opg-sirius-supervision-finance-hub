@@ -13,6 +13,7 @@ const (
 	DetailTypeFinanceAdhoc              = "finance-adhoc"
 	DetailTypeInvoiceCreated            = "invoice-created"
 	DetailTypeClientCreated             = "client-created"
+	DetailTypeClientUpdated             = "client-updated"
 	DetailTypeOrderCreated              = "order-created"
 	DetailTypeClientMadeInactive        = "client-made-inactive"
 	DetailTypeFinanceAdminUpload        = "finance-admin-upload"
@@ -109,6 +110,16 @@ type InvoiceCreatedEvent struct {
 type ClientCreatedEvent struct {
 	ClientID int32  `json:"clientId"`
 	CourtRef string `json:"courtRef"`
+}
+
+type ClientChanges struct {
+	Old string `json:"old"`
+	New string `json:"new"`
+}
+
+type ClientUpdatedEvent struct {
+	ClientID int32         `json:"clientId"`
+	Surname  ClientChanges `json:"surname"`
 }
 
 type OrderCreatedEvent struct {

@@ -21,7 +21,7 @@ func (s *Service) QueueScheduleRemovals(ctx context.Context, schedules [][]strin
 
 		_ = courtRef.Scan(schedule[0])
 
-		_, err := s.store.GetClientByCourtRef(ctx, courtRef)
+		_, err := s.store.GetClientIdsByCourtRef(ctx, courtRef)
 		if err != nil {
 			failedLines[i] = validation.UploadErrorClientNotFound
 			continue

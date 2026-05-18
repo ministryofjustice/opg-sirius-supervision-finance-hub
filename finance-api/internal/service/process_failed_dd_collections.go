@@ -53,7 +53,7 @@ func (s *Service) ProcessFailedDirectDebitCollections(ctx context.Context, colle
 
 			var courtRef pgtype.Text
 			_ = courtRef.Scan(payment.ClientReference)
-			client, _ := s.store.GetClientByCourtRef(ctx, courtRef) // unchecked errors as inputs have already been confirmed via payment processing
+			client, _ := s.store.GetClientIdsByCourtRef(ctx, courtRef) // unchecked errors as inputs have already been confirmed via payment processing
 			processed[client.ClientID] = payment
 		}
 	}

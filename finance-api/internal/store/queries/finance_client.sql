@@ -40,9 +40,8 @@ WHERE client_id = $2;
 -- name: CheckClientExistsByCourtRef :one
 SELECT EXISTS (SELECT 1 FROM finance_client WHERE court_ref = $1);
 
--- name: GetClientByCourtRef :one
+-- name: GetClientIdsByCourtRef :one
 SELECT id AS finance_client_id, client_id FROM finance_client WHERE court_ref = $1;
-
 
 -- name: GetReversibleBalanceByCourtRef :one
 WITH ledger_data AS (
@@ -79,9 +78,12 @@ WHERE fc.court_ref = $1
   AND la.status IN ('UNAPPLIED', 'REAPPLIED');
 
 -- name: GetClientById :one
-SELECT fc.id AS finance_client_id, fc.client_id, fc.court_ref, fc.payment_method, c.surname
+SELECT fc.id AS finance_client_id, fc.client_id, fc.court_ref::VARCHAR "court_ref", fc.payment_method,
+       c.surname::VARCHAR "surname",
+       (a.address_lines -> 0)::VARCHAR "line_1", a.town::VARCHAR "town", a.postcode::VARCHAR "postcode"
 FROM finance_client fc
-INNER JOIN public.persons c ON fc.client_id = c.id
+JOIN public.persons c ON fc.client_id = c.id
+JOIN public.addresses a ON c.id = a.person_id
 WHERE fc.client_id = @client_id;
 
 -- name: GetPaymentMethod :one

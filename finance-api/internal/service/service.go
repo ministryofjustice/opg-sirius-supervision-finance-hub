@@ -49,6 +49,7 @@ type AllpayClient interface {
 	CreateSchedule(ctx context.Context, data *allpay.CreateScheduleInput) error
 	FetchFailedPayments(ctx context.Context, data allpay.FetchFailedPaymentsInput) (allpay.FailedPayments, error)
 	RemoveSchedule(ctx context.Context, data *allpay.RemoveScheduleInput) error
+	UpdateClientDetails(ctx context.Context, data *allpay.UpdateClientDetailsInput) error
 }
 
 type GovUKClient interface {

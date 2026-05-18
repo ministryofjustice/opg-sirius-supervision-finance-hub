@@ -52,12 +52,13 @@ type Service interface {
 	ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType) (map[int]string, error)
 	ProcessRefundReversals(ctx context.Context, records [][]string, date shared.Date) (map[int]string, error)
 	ReapplyCredit(ctx context.Context, clientID int32, tx *store.Tx) error
-	UpdateClient(ctx context.Context, clientID int32, courtRef string) error
+	SetCourtReference(ctx context.Context, clientID int32, courtRef string) error
 	UpdatePaymentMethod(ctx context.Context, clientID int32, paymentMethod shared.PaymentMethod) error
 	UpdatePendingInvoiceAdjustment(ctx context.Context, clientId int32, adjustmentId int32, status shared.AdjustmentStatus) error
 	UpdateRefundDecision(ctx context.Context, clientId int32, refundId int32, status shared.RefundStatus) error
 	SendDirectDebitCollectionEvent(ctx context.Context, id int32, pendingCollection service.PendingCollection) error
 	QueueScheduleRemovals(ctx context.Context, schedules [][]string, scheduleDate shared.Date) map[int]string
+	UpdateClientMandateDetails(ctx context.Context, id int32, detail shared.ClientUpdatedEvent) error
 }
 type FileStorage interface {
 	GetFile(ctx context.Context, bucketName string, filename string) (io.ReadCloser, error)
