@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -42,13 +43,19 @@ func (c *Client) CancelMandate(ctx context.Context, data *CancelMandateRequest) 
 		var ve ErrorValidation
 
 		err = json.NewDecoder(resp.Body).Decode(&ve)
-		if err != nil {
-			logger.Error("unable to parse cancel mandate validation response", "error", err)
-			return ErrorAPI{}
-		}
 
-		logger.Error("cancel mandate request returned validation errors", "errors", ve)
-		return ve
+		//if isAlreadyCancelledValidationError(ve) {
+		logger.Info("mandate already cancelled in Allpay, treating as success", "messages", ve.Messages)
+		return nil
+		//}
+
+		//if err != nil {
+		//	logger.Error("unable to parse cancel mandate validation response", "error", err)
+		//	return ErrorAPI{}
+		//}
+		//
+		//logger.Error("cancel mandate request returned validation errors", "errors", ve)
+		//return ve
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -57,4 +64,15 @@ func (c *Client) CancelMandate(ctx context.Context, data *CancelMandateRequest) 
 	}
 
 	return nil
+}
+
+func isAlreadyCancelledValidationError(err ErrorValidation) bool {
+	for _, message := range err.Messages {
+		formatted := strings.ToLower(message)
+		if strings.Contains(formatted, "no active mandate") {
+			return true
+		}
+	}
+
+	return false
 }

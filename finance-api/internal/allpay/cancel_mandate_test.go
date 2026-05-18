@@ -90,3 +90,43 @@ func TestCancelMandate_UnexpectedStatus(t *testing.T) {
 		t.Error("Expected error due to unexpected status code")
 	}
 }
+
+// HTPP level test to check that if mockAllPay returns a specific HTTP response then the CancelMandateRequest returns nil, not an error
+func TestCancelMandateWhenAlreadyCancelled_ReturnsNil(t *testing.T) {
+	schemeCode := "SCHEME123"
+
+	date := time.Now()
+	//alreadyCancelled := ErrorValidation{Messages: []string{"No active mandate found"}}
+	//body, _ := json.Marshal(alreadyCancelled)
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodDelete {
+			t.Errorf("Expected DELETE, got %s", r.Method)
+		}
+		today := date.Format("2006-01-02")
+		if r.URL.Path != "/AllpayApi/Customers/SCHEME123/MTIzNDU2Nzg=/Q2FuY2VsbWFu/Mandates/"+today {
+			t.Errorf("Unexpected URL path: %s", r.URL.Path)
+		}
+		w.WriteHeader(http.StatusUnprocessableEntity)
+	}))
+	defer ts.Close()
+
+	c := &Client{
+		http: ts.Client(),
+		Envs: Envs{
+			schemeCode: schemeCode,
+			apiHost:    ts.URL,
+		},
+	}
+
+	err := c.CancelMandate(testContext(), &CancelMandateRequest{
+		ClosureDate: date,
+		ClientDetails: ClientDetails{
+			ClientReference: "12345678",
+			Surname:         " Cancelman ", // whitespace should be stripped before encoding
+		},
+	})
+	if err != nil {
+		t.Errorf("Expected no error, got %v", err)
+	}
+}
