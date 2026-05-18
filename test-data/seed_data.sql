@@ -32,6 +32,38 @@ INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES
 INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (30, 'Ruby', 'E2E', 'refundse2e', 'ACTIVE');
 INSERT INTO persons (id, firstname, surname, caserecnumber, clientstatus) VALUES (99, 'Nelly', 'Nullman', 'no entries', 'ACTIVE');
 
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (1, 1, '["1 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (2, 2, '["2 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (3, 3, '["3 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (4, 4, '["4 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (5, 5, '["5 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (6, 6, '["6 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (7, 7, '["7 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (8, 8, '["8 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (9, 9, '["9 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (10, 10, '["10 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (11, 11, '["11 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (12, 12, '["12 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (13, 13, '["13 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (14, 14, '["14 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (15, 15, '["15 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (16, 16, '["16 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (17, 17, '["17 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (18, 18, '["18 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (19, 19, '["19 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (20, 20, '["20 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (21, 21, '["21 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (22, 22, '["22 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (23, 23, '["23 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (24, 24, '["24 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (25, 25, '["25 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (26, 26, '["26 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (27, 27, '["27 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (28, 28, '["28 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (29, 29, '["29 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (30, 30, '["30 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+INSERT INTO addresses (id, person_id, address_lines, town, county, postcode, isairmailrequired) VALUES (99, 99, '["99 Finance Street"]', 'Financeton', NULL, 'FI1 1FI', FALSE);
+
 SET SEARCH_PATH TO supervision_finance;
 
 INSERT INTO finance_client VALUES (1001, 1, '1234', 'DEMANDED', null, '11111111'); -- main test client
@@ -226,6 +258,7 @@ INSERT INTO ledger_allocation VALUES (23, 18, null, '2024-06-11T08:36:40+00:00',
 
 -- UPDATE SEQUENCES
 SELECT setval('public.persons_id_seq', (SELECT MAX(id) FROM public.persons));
+SELECT setval('public.addresses_id_seq', (SELECT MAX(id) FROM public.addresses));
 SELECT setval('finance_client_id_seq', (SELECT MAX(id) FROM finance_client));
 SELECT setval('fee_reduction_id_seq', (SELECT MAX(id) FROM fee_reduction));
 SELECT setval('invoice_id_seq', (SELECT MAX(id) FROM invoice));
