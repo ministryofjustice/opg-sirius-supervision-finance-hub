@@ -367,7 +367,7 @@ func (s *Service) ProcessReversalUploadLine(ctx context.Context, tx *store.Tx, d
 	}
 
 	if details.PaymentType == shared.TransactionTypeDirectDebitPayment {
-		client, err := tx.GetClientByCourtRef(ctx, details.ErroredCourtRef)
+		client, err := tx.GetClientIdsByCourtRef(ctx, details.ErroredCourtRef)
 		if err != nil {
 			return err
 		}
