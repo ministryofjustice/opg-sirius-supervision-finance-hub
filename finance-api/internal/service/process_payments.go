@@ -287,7 +287,7 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 	}
 
 	if remaining > 0 {
-		client, _ := tx.GetClientByCourtRef(ctx, details.CourtRef)
+		client, _ := tx.GetClientIdsByCourtRef(ctx, details.CourtRef)
 		err = s.dispatch.CreditOnAccount(ctx, event.CreditOnAccount{
 			ClientID:        int(client.ClientID),
 			CreditRemaining: int(remaining),

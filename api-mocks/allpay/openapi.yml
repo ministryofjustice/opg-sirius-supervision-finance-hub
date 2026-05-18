@@ -136,6 +136,95 @@ paths:
                   - 'TitleInitials must not start with a comma'
                   - 'PostCode - Only alphanumeric characters and spaces allowed'
 
+  /AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}:
+    put:
+      summary: Update client details
+      parameters:
+        - name: SchemeCode
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: ClientRef
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Base64-encoded client reference
+        - name: Surname
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Base64-encoded surname
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                Address:
+                  type: object
+                  properties:
+                    TitleInitials:
+                      type: string
+                    Line1:
+                      type: string
+                      required: true
+                    Line2:
+                      type: string
+                    Town:
+                      type: string
+                      required: true
+                    County:
+                      type: string
+                    PostCode:
+                      type: string
+                      required: true
+                    LastName:
+                      type: string
+                      required: true
+      responses:
+        '200':
+          description: Client details amended
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  SchemeCode:
+                    type: string
+                  LastName:
+                    type: string
+                  ClientReference:
+                    type: string
+              example:
+                SchemeCode: OPGB
+                LastName: Smith
+                ClientReference: ABC123XYZ
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Error:
+                    type: boolean
+                  Messages:
+                    type: array
+                    items:
+                      type: string
+                required:
+                  - Error
+                  - Messages
+              example:
+                Error: true
+                Messages:
+                  - 'TitleInitials must not start with a comma'
+                  - 'PostCode - Only alphanumeric characters and spaces allowed'
+
   /AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates:
     post:
       summary: Add a payment schedule to a standard mandate
