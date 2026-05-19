@@ -3,10 +3,8 @@ package allpay
 import (
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 )
 
@@ -42,17 +40,17 @@ func (c *Client) CancelMandate(ctx context.Context, data *CancelMandateRequest) 
 	if resp.StatusCode == http.StatusUnprocessableEntity {
 		var ve ErrorValidation
 
-		err = json.NewDecoder(resp.Body).Decode(&ve)
-    
-    //if isAlreadyCancelledValidationError(ve) {
 		logger.Info("mandate already cancelled in Allpay, treating as success", "messages", ve.Messages)
 		return nil
+
+		//err = json.NewDecoder(resp.Body).Decode(&ve)
+
+		//if err != nil {
+		//	logger.Error("unable to parse cancel mandate validation response", "error", err)
+		//	return apiError("Direct Debit cannot be cancelled due to an unexpected response from AllPay.")
 		//}
-    
-// 		if err != nil {
-// 			logger.Error("unable to parse cancel mandate validation response", "error", err)
-// 			return apiError("Direct Debit cannot be cancelled due to an unexpected response from AllPay.")
-// 		}
+		//
+		//logger.Error("cancel mandate request returned validation errors", "errors", ve)
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -63,13 +61,13 @@ func (c *Client) CancelMandate(ctx context.Context, data *CancelMandateRequest) 
 	return nil
 }
 
-func isAlreadyCancelledValidationError(err ErrorValidation) bool {
-	for _, message := range err.Messages {
-		formatted := strings.ToLower(message)
-		if strings.Contains(formatted, "no active mandate") {
-			return true
-		}
-	}
-
-	return false
-}
+//func isAlreadyCancelledValidationError(err ErrorValidation) bool {
+//	for _, message := range err.Messages {
+//		formatted := strings.ToLower(message)
+//		if strings.Contains(formatted, "no active mandate") {
+//			return true
+//		}
+//	}
+//
+//	return false
+//}
