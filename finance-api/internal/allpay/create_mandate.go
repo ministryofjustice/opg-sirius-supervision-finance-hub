@@ -63,13 +63,13 @@ func (c *Client) CreateMandate(ctx context.Context, input *CreateMandateRequest)
 
 	if err != nil {
 		logger.Error("unable to build create mandate request", "error", err)
-		return ErrorAPI{}
+		return apiError("Direct Debit cannot be setup due to an unexpected system error.")
 	}
 
 	resp, err := c.http.Do(req)
 	if err != nil {
 		logger.Error("unable to send create mandate request", "error", err)
-		return ErrorAPI{}
+		return apiError("Direct Debit cannot be setup due to an unexpected system error.")
 	}
 
 	defer unchecked(resp.Body.Close)
@@ -80,7 +80,7 @@ func (c *Client) CreateMandate(ctx context.Context, input *CreateMandateRequest)
 		err = json.NewDecoder(resp.Body).Decode(&ve)
 		if err != nil {
 			logger.Error("unable to parse create mandate validation response", "error", err)
-			return ErrorAPI{}
+			return apiError("Direct Debit cannot be setup due to an unexpected response from AllPay.")
 		}
 
 		logger.Error("create mandate request returned validation errors", "errors", ve)
@@ -89,7 +89,7 @@ func (c *Client) CreateMandate(ctx context.Context, input *CreateMandateRequest)
 
 	if resp.StatusCode != http.StatusOK {
 		logger.Error("create mandate request returned unexpected status code", "status", resp.Status)
-		return ErrorAPI{}
+		return apiError("Direct Debit cannot be setup due to an unexpected response from AllPay.")
 	}
 
 	return nil

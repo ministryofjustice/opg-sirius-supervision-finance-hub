@@ -56,13 +56,13 @@ func (c *Client) CreateSchedule(ctx context.Context, data *CreateScheduleInput) 
 
 	if err != nil {
 		logger.Error("unable to build create schedule request", "error", err)
-		return ErrorAPI{}
+		return apiError("Schedule cannot be created due to an unexpected system error.")
 	}
 
 	resp, err := c.http.Do(req)
 	if err != nil {
 		logger.Error("unable to send create schedule request", "error", err)
-		return ErrorAPI{}
+		return apiError("Schedule cannot be created due to an unexpected system error.")
 	}
 
 	defer unchecked(resp.Body.Close)
@@ -73,7 +73,7 @@ func (c *Client) CreateSchedule(ctx context.Context, data *CreateScheduleInput) 
 		err = json.NewDecoder(resp.Body).Decode(&ve)
 		if err != nil {
 			logger.Error("unable to parse create schedule validation response", "error", err)
-			return ErrorAPI{}
+			return apiError("Schedule cannot be created due to an unexpected response from AllPay.")
 		}
 
 		logger.Error("create schedule request returned validation errors", "errors", ve)
@@ -82,7 +82,7 @@ func (c *Client) CreateSchedule(ctx context.Context, data *CreateScheduleInput) 
 
 	if resp.StatusCode != http.StatusOK {
 		logger.Error("create schedule request returned unexpected status code", "status", resp.Status)
-		return ErrorAPI{}
+		return apiError("Schedule cannot be created due to an unexpected response from AllPay.")
 	}
 
 	return nil
