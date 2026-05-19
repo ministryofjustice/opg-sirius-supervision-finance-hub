@@ -1,6 +1,8 @@
 package allpay
 
 import (
+	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -91,13 +93,13 @@ func TestCancelMandate_UnexpectedStatus(t *testing.T) {
 	}
 }
 
-// HTPP level test to check that if mockAllPay returns a specific HTTP response then the CancelMandateRequest returns nil, not an error
+// HTTP level test to check that if AllPay returns the specific already-cancelled validation message then CancelMandate returns nil.
 func TestCancelMandateWhenAlreadyCancelled_ReturnsNil(t *testing.T) {
 	schemeCode := "SCHEME123"
 
 	date := time.Now()
-	//alreadyCancelled := ErrorValidation{Messages: []string{"No active mandate found"}}
-	//body, _ := json.Marshal(alreadyCancelled)
+	alreadyCancelled := ErrorValidation{Messages: []string{"A Direct Debit Mandate was not found for this account"}}
+	body, _ := json.Marshal(alreadyCancelled)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodDelete {
@@ -108,6 +110,7 @@ func TestCancelMandateWhenAlreadyCancelled_ReturnsNil(t *testing.T) {
 			t.Errorf("Unexpected URL path: %s", r.URL.Path)
 		}
 		w.WriteHeader(http.StatusUnprocessableEntity)
+		_, _ = w.Write(body)
 	}))
 	defer ts.Close()
 
@@ -130,3 +133,36 @@ func TestCancelMandateWhenAlreadyCancelled_ReturnsNil(t *testing.T) {
 		t.Errorf("Expected no error, got %v", err)
 	}
 }
+
+func TestCancelMandate_Validation422ReturnsError(t *testing.T) {
+	validation := ErrorValidation{Messages: []string{"Some generic validation message"}}
+	body, _ := json.Marshal(validation)
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		_, _ = w.Write(body)
+	}))
+	defer ts.Close()
+
+	c := &Client{
+		http: ts.Client(),
+		Envs: Envs{
+			schemeCode: "SCHEME123",
+			apiHost:    ts.URL,
+		},
+	}
+
+	err := c.CancelMandate(testContext(), &CancelMandateRequest{
+		ClosureDate: time.Now(),
+		ClientDetails: ClientDetails{
+			ClientReference: "12345678",
+			Surname:         "Cancelman",
+		},
+	})
+
+	var got ErrorValidation
+	if !errors.As(err, &got) {
+		t.Errorf("Expected ErrorValidation, got %v", err)
+	}
+}
+
