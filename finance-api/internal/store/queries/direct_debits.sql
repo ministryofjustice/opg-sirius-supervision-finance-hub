@@ -53,11 +53,15 @@ SELECT EXISTS (SELECT 1
                  AND fc.client_id = @client_id
                  AND pc.status = 'PENDING');
 
--- name: MarkPendingCollectionAsCollected :exec
-UPDATE pending_collection
+-- name: MarkPendingCollectionsAsCollected :exec
+UPDATE pending_collection pc
 SET ledger_id = @ledger_id,
     status    = 'COLLECTED'
-WHERE id = @id;
+FROM supervision_finance.finance_client fc
+WHERE pc.finance_client_id = fc.id
+  AND fc.court_ref = @court_ref
+  AND pc.collection_date = @collection_date
+  AND pc.status = 'PENDING';
 
 -- name: GetPendingCollections :many
 SELECT pc.id, pc.amount, pc.collection_date

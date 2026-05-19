@@ -34,12 +34,6 @@ type mockService struct {
 	lastCalledParams         []interface{}
 }
 
-func (s *mockService) AddCollectedPayments(ctx context.Context, date time.Time) error {
-	s.called = append(s.called, "AddCollectedPayments")
-	s.lastCalledParams = []interface{}{date}
-	return s.errs["AddCollectedPayments"]
-}
-
 func (s *mockService) ProcessAdhocEvent(ctx context.Context, event shared.AdhocEvent) error {
 	s.called = append(s.called, "ProcessAdhocEvent")
 	return s.errs["ProcessAdhocEvent"]
@@ -218,12 +212,6 @@ func (s *mockService) SendDirectDebitCollectionEvent(ctx context.Context, id int
 func (s *mockService) CreateDirectDebitScheduleForInvoice(ctx context.Context, details shared.InvoiceCreatedEvent) error {
 	s.called = append(s.called, "CreateDirectDebitScheduleForInvoice")
 	return s.errs["CreateDirectDebitScheduleForInvoice"]
-}
-
-func (s *mockService) ProcessFailedDirectDebitCollections(ctx context.Context, date time.Time) error {
-	s.called = append(s.called, "ProcessFailedDirectDebitCollections")
-	s.lastCalledParams = []interface{}{date}
-	return s.errs["ProcessFailedDirectDebitCollections"]
 }
 
 func (s *mockService) CheckPaymentMethod(ctx context.Context, clientID int32) error {

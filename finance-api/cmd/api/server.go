@@ -22,7 +22,6 @@ import (
 )
 
 type Service interface {
-	AddCollectedPayments(ctx context.Context, date time.Time) error
 	AddFeeReduction(ctx context.Context, clientId int32, data shared.AddFeeReduction) error
 	AddInvoiceAdjustment(ctx context.Context, clientId int32, invoiceId int32, ledgerEntry *shared.AddInvoiceAdjustmentRequest) (*shared.InvoiceReference, error)
 	AddManualInvoice(ctx context.Context, clientId int32, invoice shared.AddManualInvoice) error
@@ -46,7 +45,6 @@ type Service interface {
 	PostReportActions(ctx context.Context, report shared.ReportRequest)
 	ProcessAdhocEvent(ctx context.Context, event shared.AdhocEvent) error
 	ProcessDirectUploadReport(ctx context.Context, filename string, fileBytes io.Reader, uploadType shared.ReportUploadType) error
-	ProcessFailedDirectDebitCollections(ctx context.Context, date time.Time) error
 	ProcessFulfilledRefunds(ctx context.Context, records [][]string, date shared.Date) (map[int]string, error)
 	ProcessPayments(ctx context.Context, records [][]string, uploadType shared.ReportUploadType, bankDate shared.Date, pisNumber int) (map[int]string, error)
 	ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType) (map[int]string, error)

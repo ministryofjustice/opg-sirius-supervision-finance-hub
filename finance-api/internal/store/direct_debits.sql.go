@@ -199,19 +199,24 @@ func (q *Queries) GetPendingOutstandingBalance(ctx context.Context, clientID int
 	return column_1, err
 }
 
-const markPendingCollectionAsCollected = `-- name: MarkPendingCollectionAsCollected :exec
-UPDATE pending_collection
+const markPendingCollectionsAsCollected = `-- name: MarkPendingCollectionsAsCollected :exec
+UPDATE pending_collection pc
 SET ledger_id = $1,
     status    = 'COLLECTED'
-WHERE id = $2
+FROM supervision_finance.finance_client fc
+WHERE pc.finance_client_id = fc.id
+  AND fc.court_ref = $2
+  AND pc.collection_date = $3
+  AND pc.status = 'PENDING'
 `
 
-type MarkPendingCollectionAsCollectedParams struct {
-	LedgerID pgtype.Int4
-	ID       int32
+type MarkPendingCollectionsAsCollectedParams struct {
+	LedgerID       pgtype.Int4
+	CourtRef       pgtype.Text
+	CollectionDate pgtype.Date
 }
 
-func (q *Queries) MarkPendingCollectionAsCollected(ctx context.Context, arg MarkPendingCollectionAsCollectedParams) error {
-	_, err := q.db.Exec(ctx, markPendingCollectionAsCollected, arg.LedgerID, arg.ID)
+func (q *Queries) MarkPendingCollectionsAsCollected(ctx context.Context, arg MarkPendingCollectionsAsCollectedParams) error {
+	_, err := q.db.Exec(ctx, markPendingCollectionsAsCollected, arg.LedgerID, arg.CourtRef, arg.CollectionDate)
 	return err
 }

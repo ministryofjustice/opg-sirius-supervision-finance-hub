@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 	"github.com/stretchr/testify/assert"
@@ -135,9 +136,6 @@ func (suite *IntegrationSuite) Test_processReversals() {
 		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 24;",
 	)
 
-	dispatch := &mockDispatch{}
-	s := Service{store: store.New(seeder.Conn), dispatch: dispatch, tx: seeder.Conn}
-
 	tests := []struct {
 		name                string
 		records             [][]string
@@ -145,6 +143,7 @@ func (suite *IntegrationSuite) Test_processReversals() {
 		uploadDate          shared.Date
 		allocations         []createdReversalAllocation
 		expectedFailedLines map[int]string
+		expectedDispatch    any
 		want                error
 	}{
 		{
@@ -261,6 +260,7 @@ func (suite *IntegrationSuite) Test_processReversals() {
 				},
 			},
 			expectedFailedLines: map[int]string{},
+			expectedDispatch:    event.CreditOnAccount{ClientID: 4, CreditRemaining: 15000},
 		},
 		{
 			name: "misapplied payment - errored client in credit",
@@ -443,6 +443,7 @@ func (suite *IntegrationSuite) Test_processReversals() {
 				},
 			},
 			expectedFailedLines: map[int]string{},
+			expectedDispatch:    event.DirectDebitCollectionFailed{ClientID: 12, Reason: "payment.ReasonCode"},
 		},
 		{
 			name: "unable to reverse due to insufficient debt position",
@@ -479,6 +480,9 @@ func (suite *IntegrationSuite) Test_processReversals() {
 	}
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
+			dispatch := &mockDispatch{}
+			s := Service{store: store.New(seeder.Conn), dispatch: dispatch, tx: seeder.Conn}
+
 			var currentLedgerId int
 			_ = seeder.QueryRow(suite.ctx, `SELECT MAX(id) FROM ledger`).Scan(&currentLedgerId)
 
@@ -506,6 +510,7 @@ func (suite *IntegrationSuite) Test_processReversals() {
 			}
 
 			assert.Equal(t, tt.allocations, allocations)
+			assert.Equal(t, tt.expectedDispatch, dispatch.event)
 		})
 	}
 }
