@@ -71,6 +71,21 @@ resources:
 
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/{Date}"
     method: delete
+    pathParams:
+      # client 19 in seed_data.sql
+      ClientRef: MTkxOTE5MTk=
+      Surname: Q2FuY2Vs
+    response:
+      statusCode: 422
+      content: |
+        {
+          "messages": [
+            "A Direct Debit mandate was not found for this account"
+          ]
+        }
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/{Date}"
+    method: delete
     response:
       statusCode: 200
       file: data/success.json
