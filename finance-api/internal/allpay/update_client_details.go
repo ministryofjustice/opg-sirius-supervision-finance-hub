@@ -17,7 +17,8 @@ type UpdateClientDetailsInput struct {
 
 type updateClientDetailsRequest struct {
 	Address struct {
-		LastName string `json:"LastName"`
+		LastName      string `json:"LastName"`
+		TitleInitials string `json:"TitleInitials"` // unused but required for API
 		Address
 	} `json:"Address"`
 }
@@ -81,4 +82,3 @@ func (c *Client) UpdateClientDetails(ctx context.Context, data *UpdateClientDeta
 
 	return nil
 }
-
