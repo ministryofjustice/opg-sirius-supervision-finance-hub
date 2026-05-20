@@ -373,7 +373,6 @@ func (s *Service) ProcessReversalUploadLine(ctx context.Context, tx *store.Tx, d
 		}
 		err = s.dispatch.DirectDebitCollectionFailed(ctx, event.DirectDebitCollectionFailed{
 			ClientID: int(client.ClientID),
-			Reason:   "payment.ReasonCode", // TODO: Add reason code when we know where to get it
 		})
 		if err != nil {
 			s.Logger(ctx).Error("error dispatching \"direct-debit-collection-failed\" event", "error", err)

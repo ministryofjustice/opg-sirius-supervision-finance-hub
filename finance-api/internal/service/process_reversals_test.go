@@ -443,7 +443,7 @@ func (suite *IntegrationSuite) Test_processReversals() {
 				},
 			},
 			expectedFailedLines: map[int]string{},
-			expectedDispatch:    event.DirectDebitCollectionFailed{ClientID: 12, Reason: "payment.ReasonCode"},
+			expectedDispatch:    event.DirectDebitCollectionFailed{ClientID: 12},
 		},
 		{
 			name: "unable to reverse due to insufficient debt position",
