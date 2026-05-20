@@ -62,6 +62,12 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		e.Detail = detail
+	case DetailTypeClientUpdated:
+		var detail ClientUpdatedEvent
+		if err := json.Unmarshal(raw.Detail, &detail); err != nil {
+			return err
+		}
+		e.Detail = detail
 	case DetailTypeClientMadeInactive:
 		var detail ClientMadeInactiveEvent
 		if err := json.Unmarshal(raw.Detail, &detail); err != nil {
