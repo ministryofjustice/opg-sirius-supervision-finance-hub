@@ -67,8 +67,8 @@ func (c *Client) CancelMandate(ctx context.Context, data *CancelMandateRequest) 
 
 func isAlreadyCancelledValidationError(err ErrorValidation) bool {
 	for _, message := range err.Messages {
-		formatted := strings.ToLower(message)
-		if strings.Contains(formatted, "a direct debit mandate was not found for this account") {
+		formattedMessage := strings.ToLower(message)
+		if strings.Contains(formattedMessage, "a direct debit mandate was not found for this account") {
 			return true
 		}
 	}

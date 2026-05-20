@@ -93,7 +93,6 @@ func TestCancelMandate_UnexpectedStatus(t *testing.T) {
 	}
 }
 
-// HTTP level test to check that if AllPay returns the specific already-cancelled validation message then CancelMandate returns nil.
 func TestCancelMandateWhenAlreadyCancelled_ReturnsNil(t *testing.T) {
 	schemeCode := "SCHEME123"
 
@@ -134,9 +133,9 @@ func TestCancelMandateWhenAlreadyCancelled_ReturnsNil(t *testing.T) {
 	}
 }
 
-func TestCancelMandate_Validation422ReturnsError(t *testing.T) {
-	validation := ErrorValidation{Messages: []string{"Some generic validation message"}}
-	body, _ := json.Marshal(validation)
+func TestCancelMandate_ValidationErrorValidJSON(t *testing.T) {
+	ve := ErrorValidation{Messages: []string{"Some generic validation message"}}
+	body, _ := json.Marshal(ve)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnprocessableEntity)
@@ -160,9 +159,9 @@ func TestCancelMandate_Validation422ReturnsError(t *testing.T) {
 		},
 	})
 
-	var got ErrorValidation
-	if !errors.As(err, &got) {
+	var validationErr ErrorValidation
+	if !errors.As(err, &validationErr) {
+
 		t.Errorf("Expected ErrorValidation, got %v", err)
 	}
 }
-
