@@ -86,7 +86,7 @@ services:
         condition: service_healthy
 
   go-lint:
-    image: golangci/golangci-lint:v2.11.4
+    image: golangci/golangci-lint:v2.12.2
     working_dir: /go/src/app
     volumes:
       - ./:/go/src/app
@@ -125,7 +125,7 @@ services:
       retries: 5
 
   sqlc:
-    image: sqlc/sqlc:1.29.0
+    image: sqlc/sqlc:1.31.1
     environment:
       POSTGRES_CONN: localhost:5432
       POSTGRES_USER: user
