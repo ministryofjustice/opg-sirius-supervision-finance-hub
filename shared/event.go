@@ -6,21 +6,19 @@ import (
 )
 
 const (
-	EventSourceSirius                   = "opg.supervision.sirius"
-	EventSourceFinanceAdhoc             = "opg.supervision.finance.adhoc"
-	EventSourceInfra                    = "opg.supervision.infra"
-	EventSourceFinance                  = "opg.supervision.finance"
-	DetailTypeFinanceAdhoc              = "finance-adhoc"
-	DetailTypeInvoiceCreated            = "invoice-created"
-	DetailTypeClientCreated             = "client-created"
-	DetailTypeOrderCreated              = "order-created"
-	DetailTypeClientMadeInactive        = "client-made-inactive"
-	DetailTypeFinanceAdminUpload        = "finance-admin-upload"
-	DetailTypeScheduleToRemove          = "schedule-to-remove"
-	DetailTypeScheduledEvent            = "scheduled-event"
-	ScheduledEventRefundExpiry          = "refund-expiry"
-	ScheduledEventDirectDebitCollection = "direct-debit-collection"
-	ScheduledEventFailedCollections     = "failed-direct-debit-collections"
+	EventSourceSirius            = "opg.supervision.sirius"
+	EventSourceFinanceAdhoc      = "opg.supervision.finance.adhoc"
+	EventSourceInfra             = "opg.supervision.infra"
+	EventSourceFinance           = "opg.supervision.finance"
+	DetailTypeFinanceAdhoc       = "finance-adhoc"
+	DetailTypeInvoiceCreated     = "invoice-created"
+	DetailTypeClientCreated      = "client-created"
+	DetailTypeOrderCreated       = "order-created"
+	DetailTypeClientMadeInactive = "client-made-inactive"
+	DetailTypeFinanceAdminUpload = "finance-admin-upload"
+	DetailTypeScheduleToRemove   = "schedule-to-remove"
+	DetailTypeScheduledEvent     = "scheduled-event"
+	ScheduledEventRefundExpiry   = "refund-expiry"
 )
 
 type Event struct {
@@ -166,12 +164,6 @@ func (e *ScheduledEvent) UnmarshalJSON(data []byte) error {
 	}
 
 	switch e.Trigger {
-	case ScheduledEventDirectDebitCollection, ScheduledEventFailedCollections:
-		var override DateOverride
-		if err := json.Unmarshal(raw.Override, &override); err != nil {
-			return err
-		}
-		e.Override = override
 	case ScheduledEventRefundExpiry:
 		e.Override = nil
 	default:

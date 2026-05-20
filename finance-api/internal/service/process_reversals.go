@@ -7,6 +7,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/validation"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
@@ -363,6 +364,19 @@ func (s *Service) ProcessReversalUploadLine(ctx context.Context, tx *store.Tx, d
 	if remaining != 0 {
 		s.Logger(ctx).Error("process reversal upload line failed as amount remaining after applying to all available invoices", "amount", remaining)
 		return errors.New("unexpected error - remaining not zero")
+	}
+
+	if details.PaymentType == shared.TransactionTypeDirectDebitPayment {
+		client, err := tx.GetClientByCourtRef(ctx, details.ErroredCourtRef)
+		if err != nil {
+			return err
+		}
+		err = s.dispatch.DirectDebitCollectionFailed(ctx, event.DirectDebitCollectionFailed{
+			ClientID: int(client.ClientID),
+		})
+		if err != nil {
+			s.Logger(ctx).Error("error dispatching \"direct-debit-collection-failed\" event", "error", err)
+		}
 	}
 
 	return nil

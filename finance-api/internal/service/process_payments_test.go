@@ -42,6 +42,10 @@ func (suite *IntegrationSuite) Test_processPayments() {
 		"INSERT INTO invoice VALUES (5, 4, 4, 'AD', 'AD11227/19', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 		"INSERT INTO ledger VALUES (1, 'ref', '2024-01-01 15:30:27', '', 10000, 'payment', 'MOTO CARD PAYMENT', 'CONFIRMED', 4, NULL, NULL, NULL, '2024-01-01', NULL, NULL, NULL, NULL, '2020-05-05', 1);",
 		"INSERT INTO ledger_allocation VALUES (1, 1, 5, '2024-01-01 15:30:27', 10000, 'ALLOCATED', NULL, '', '2024-01-01', NULL);",
+		// direct debit payment with a matching pending collection
+		"INSERT INTO finance_client VALUES (5, 5, 'invoice-5', 'DIRECT DEBIT', NULL, 'DDREF01');",
+		"INSERT INTO invoice VALUES (6, 5, 5, 'AD', 'AD11228/19', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
+		"INSERT INTO pending_collection VALUES (1, 5, '2024-01-01', 10000, 'PENDING', NULL, '2024-01-01', 1);",
 		"ALTER SEQUENCE ledger_id_seq RESTART WITH 2;",
 		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 2;",
 	)
@@ -61,15 +65,16 @@ func (suite *IntegrationSuite) Test_processPayments() {
 		{
 			name: "Underpayment",
 			records: [][]string{
-				{"9800000000000000000", "1234", "100", "D", "01/01/2024"},
+				{"Case number (confirmed on Sirius)", "Cheque number", "Cheque Value (£)", "Comments", "Date in Bank"},
+				{"1234", "11111", "100", "", "01/01/2024"},
 			},
-			paymentType:      shared.ReportTypeUploadDirectDebitsCollections,
+			paymentType:      shared.ReportTypeUploadPaymentsSupervisionCheque,
 			bankDate:         shared.NewDate("2024-01-17"),
 			expectedClientId: 1,
 			expectedLedgerAllocations: []createdLedgerAllocation{
 				{
 					10000,
-					"DIRECT DEBIT PAYMENT",
+					"SUPERVISION CHEQUE PAYMENT",
 					"CONFIRMED",
 					time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 					10000,
@@ -153,6 +158,28 @@ func (suite *IntegrationSuite) Test_processPayments() {
 				2: "DUPLICATE_PAYMENT",
 			},
 		},
+		{
+			name: "Direct Debit payment marks matching pending collection as collected",
+			records: [][]string{
+				{"9800000000000000000", "DDREF01", "100", "D", "01/01/2024"},
+			},
+			paymentType:      shared.ReportTypeUploadDirectDebitsCollections,
+			bankDate:         shared.NewDate("2024-01-17"),
+			expectedClientId: 5,
+			expectedLedgerAllocations: []createdLedgerAllocation{
+				{
+					10000,
+					"DIRECT DEBIT PAYMENT",
+					"CONFIRMED",
+					time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+					10000,
+					"ALLOCATED",
+					6,
+					-1,
+				},
+			},
+			expectedFailedLines: map[int]string{},
+		},
 	}
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
@@ -183,6 +210,12 @@ func (suite *IntegrationSuite) Test_processPayments() {
 
 			assert.Equal(t, tt.expectedLedgerAllocations, createdLedgerAllocations)
 			assert.Equal(t, tt.expectedDispatch, dispatch.event)
+
+			if tt.paymentType == shared.ReportTypeUploadDirectDebitsCollections && len(tt.expectedLedgerAllocations) > 0 {
+				var collectionStatus string
+				_ = seeder.QueryRow(suite.ctx, `SELECT status FROM pending_collection WHERE finance_client_id = $1`, tt.expectedClientId).Scan(&collectionStatus)
+				assert.Equal(t, "COLLECTED", collectionStatus)
+			}
 		})
 	}
 }

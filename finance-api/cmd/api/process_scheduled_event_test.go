@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/ministryofjustice/opg-go-common/telemetry"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
@@ -37,52 +36,6 @@ func Test_processScheduledEvent(t *testing.T) {
 			expectedResponse:     nil,
 			hasError:             false,
 			expectedFunctionCall: "ExpireRefunds",
-		},
-		{
-			name: "Direct Debit Collection",
-			event: shared.ScheduledEvent{
-				Trigger: "direct-debit-collection",
-			},
-			expectedResponse:     nil,
-			hasError:             false,
-			expectedFunctionCall: "AddCollectedPayments",
-			expectedParams:       []interface{}{time.Now().UTC().Truncate(24 * time.Hour)},
-		},
-		{
-			name: "Direct Debit Collection with override",
-			event: shared.ScheduledEvent{
-				Trigger: "direct-debit-collection",
-				Override: shared.DateOverride{
-					Date: shared.NewDate("2022-04-02"),
-				},
-			},
-			expectedResponse:     nil,
-			hasError:             false,
-			expectedFunctionCall: "AddCollectedPayments",
-			expectedParams:       []interface{}{time.Date(2022, 4, 2, 0, 0, 0, 0, time.UTC)},
-		},
-		{
-			name: "Failed Direct Debit Collection",
-			event: shared.ScheduledEvent{
-				Trigger: "failed-direct-debit-collections",
-			},
-			expectedResponse:     nil,
-			hasError:             false,
-			expectedFunctionCall: "ProcessFailedDirectDebitCollections",
-			expectedParams:       []interface{}{time.Now().UTC().Truncate(24 * time.Hour)},
-		},
-		{
-			name: "Failed Direct Debit Collection with override",
-			event: shared.ScheduledEvent{
-				Trigger: "failed-direct-debit-collections",
-				Override: shared.DateOverride{
-					Date: shared.NewDate("2022-04-02"),
-				},
-			},
-			expectedResponse:     nil,
-			hasError:             false,
-			expectedFunctionCall: "ProcessFailedDirectDebitCollections",
-			expectedParams:       []interface{}{time.Date(2022, 4, 2, 0, 0, 0, 0, time.UTC)},
 		},
 	}
 	for _, tt := range tests {

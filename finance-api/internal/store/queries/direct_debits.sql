@@ -37,13 +37,6 @@ FROM debt d
          LEFT JOIN credit c ON c.id = d.id
          LEFT JOIN pending p ON p.id = d.id;
 
--- name: GetPendingCollectionsForDate :many
-SELECT pc.id, pc.amount, fc.court_ref
-FROM pending_collection pc
-         JOIN supervision_finance.finance_client fc ON fc.id = pc.finance_client_id
-WHERE pc.collection_date = @date_collected::DATE
-  AND pc.status = 'PENDING';
-
 -- name: CheckPendingCollection :one
 SELECT EXISTS (SELECT 1
                FROM pending_collection pc
@@ -53,11 +46,15 @@ SELECT EXISTS (SELECT 1
                  AND fc.client_id = @client_id
                  AND pc.status = 'PENDING');
 
--- name: MarkPendingCollectionAsCollected :exec
-UPDATE pending_collection
+-- name: MarkPendingCollectionsAsCollected :exec
+UPDATE pending_collection pc
 SET ledger_id = @ledger_id,
     status    = 'COLLECTED'
-WHERE id = @id;
+FROM supervision_finance.finance_client fc
+WHERE pc.finance_client_id = fc.id
+  AND fc.court_ref = @court_ref
+  AND pc.collection_date = @collection_date
+  AND pc.status = 'PENDING';
 
 -- name: GetPendingCollections :many
 SELECT pc.id, pc.amount, pc.collection_date
@@ -70,7 +67,8 @@ ORDER BY pc.collection_date;
 -- name: CancelPendingCollection :exec
 UPDATE pending_collection
 SET status = 'CANCELLED'
-WHERE id = @id;
+WHERE id = @id
+  AND status = 'PENDING';
 
 -- name: CancelPendingCollectionByCourtRefAndDate :exec
 UPDATE pending_collection pc

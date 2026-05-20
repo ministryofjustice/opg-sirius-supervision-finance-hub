@@ -15,6 +15,7 @@ const cancelPendingCollection = `-- name: CancelPendingCollection :exec
 UPDATE pending_collection
 SET status = 'CANCELLED'
 WHERE id = $1
+  AND status = 'PENDING'
 `
 
 func (q *Queries) CancelPendingCollection(ctx context.Context, id int32) error {
@@ -128,40 +129,6 @@ func (q *Queries) GetPendingCollections(ctx context.Context, clientID int32) ([]
 	return items, nil
 }
 
-const getPendingCollectionsForDate = `-- name: GetPendingCollectionsForDate :many
-SELECT pc.id, pc.amount, fc.court_ref
-FROM pending_collection pc
-         JOIN supervision_finance.finance_client fc ON fc.id = pc.finance_client_id
-WHERE pc.collection_date = $1::DATE
-  AND pc.status = 'PENDING'
-`
-
-type GetPendingCollectionsForDateRow struct {
-	ID       int32
-	Amount   int32
-	CourtRef pgtype.Text
-}
-
-func (q *Queries) GetPendingCollectionsForDate(ctx context.Context, dateCollected pgtype.Date) ([]GetPendingCollectionsForDateRow, error) {
-	rows, err := q.db.Query(ctx, getPendingCollectionsForDate, dateCollected)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetPendingCollectionsForDateRow
-	for rows.Next() {
-		var i GetPendingCollectionsForDateRow
-		if err := rows.Scan(&i.ID, &i.Amount, &i.CourtRef); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const getPendingOutstandingBalance = `-- name: GetPendingOutstandingBalance :one
 WITH finance_client_id AS (SELECT id
                            FROM finance_client
@@ -199,19 +166,24 @@ func (q *Queries) GetPendingOutstandingBalance(ctx context.Context, clientID int
 	return column_1, err
 }
 
-const markPendingCollectionAsCollected = `-- name: MarkPendingCollectionAsCollected :exec
-UPDATE pending_collection
+const markPendingCollectionsAsCollected = `-- name: MarkPendingCollectionsAsCollected :exec
+UPDATE pending_collection pc
 SET ledger_id = $1,
     status    = 'COLLECTED'
-WHERE id = $2
+FROM supervision_finance.finance_client fc
+WHERE pc.finance_client_id = fc.id
+  AND fc.court_ref = $2
+  AND pc.collection_date = $3
+  AND pc.status = 'PENDING'
 `
 
-type MarkPendingCollectionAsCollectedParams struct {
-	LedgerID pgtype.Int4
-	ID       int32
+type MarkPendingCollectionsAsCollectedParams struct {
+	LedgerID       pgtype.Int4
+	CourtRef       pgtype.Text
+	CollectionDate pgtype.Date
 }
 
-func (q *Queries) MarkPendingCollectionAsCollected(ctx context.Context, arg MarkPendingCollectionAsCollectedParams) error {
-	_, err := q.db.Exec(ctx, markPendingCollectionAsCollected, arg.LedgerID, arg.ID)
+func (q *Queries) MarkPendingCollectionsAsCollected(ctx context.Context, arg MarkPendingCollectionsAsCollectedParams) error {
+	_, err := q.db.Exec(ctx, markPendingCollectionsAsCollected, arg.LedgerID, arg.CourtRef, arg.CollectionDate)
 	return err
 }
