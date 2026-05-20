@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@cypress/grep": "^6.0.0",
-    "@ministryofjustice/frontend": "^5.0.0",
+    "@ministryofjustice/frontend": "^9.0.0",
     "govuk-frontend": "^5.0.0",
     "opg-sirius-header": "ministryofjustice/opg-sirius-header#semver:v0.53.3",
     "htmx.org": "^2.0.0",
