@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -47,6 +48,11 @@ func (c *Client) CancelMandate(ctx context.Context, data *CancelMandateRequest) 
 			return apiError("Direct Debit cannot be cancelled due to an unexpected response from AllPay.")
 		}
 
+		if isAlreadyCancelledValidationError(ve) {
+			logger.Info("mandate already cancelled in Allpay, treating as success", "messages", ve.Messages)
+			return nil
+		}
+
 		logger.Error("cancel mandate request returned validation errors", "errors", ve)
 		return ve
 	}
@@ -57,4 +63,15 @@ func (c *Client) CancelMandate(ctx context.Context, data *CancelMandateRequest) 
 	}
 
 	return nil
+}
+
+func isAlreadyCancelledValidationError(err ErrorValidation) bool {
+	for _, message := range err.Messages {
+		formattedMessage := strings.ToLower(message)
+		if strings.Contains(formattedMessage, "a direct debit mandate was not found for this account") {
+			return true
+		}
+	}
+
+	return false
 }

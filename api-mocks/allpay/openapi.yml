@@ -269,6 +269,20 @@ paths:
                 SchemeCode: 123456
                 LastName: Smith
                 ClientReference: ABC123XYZ
+        '422':
+          description: Mandate is not active or already cancelled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    items:
+                      type: string
+              example:
+                messages:
+                  - "A Direct Debit mandate was not found for this account"
 
   /AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/Schedule/{Date}/{Amount}:
     delete:
