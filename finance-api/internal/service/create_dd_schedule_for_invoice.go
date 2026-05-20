@@ -37,8 +37,8 @@ func (s *Service) CreateDirectDebitScheduleForInvoice(ctx context.Context, detai
 	}
 
 	allPayCustomer := shared.AllPayCustomer{
-		Surname:         client.Surname.String,
-		ClientReference: client.CourtRef.String,
+		Surname:         client.Surname,
+		ClientReference: client.CourtRef,
 	}
 	_, err = s.CreateDirectDebitSchedule(ctx, details.ClientID, shared.CreateSchedule{AllPayCustomer: allPayCustomer})
 	if err != nil {

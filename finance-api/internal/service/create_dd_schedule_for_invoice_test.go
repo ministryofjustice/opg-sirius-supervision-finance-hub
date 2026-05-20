@@ -17,7 +17,8 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitSchedule_SkipsDemand
 
 	seeder.SeedData(
 		"INSERT INTO public.persons VALUES (11, NULL, NULL, 'Scheduleson', NULL, NULL, NULL, NULL, FALSE, FALSE, NULL, NULL, 'Client', NULL);",
-		"INSERT INTO finance_client (id, client_id, sop_number, payment_method, batchnumber, court_ref) VALUES (1, 11, '1234', 'DEMANDED', NULL, '1234567T');",
+		"INSERT INTO finance_client VALUES (1, 11, '1234', 'DEMANDED', NULL, '1234567T');",
+		`INSERT INTO public.addresses VALUES (1, 11, '["1 Test Street"]', 'Testtown', NULL, 'TE1 1ST', NULL);`,
 		"INSERT INTO invoice VALUES (1, 11, 1, 'S2', 'S200123/24', '2024-01-01', '2025-03-31', 5000, NULL, '2024-01-01', NULL, '2024-01-01')",
 	)
 
@@ -63,7 +64,8 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitScheduleForInvoice()
 
 	seeder.SeedData(
 		"INSERT INTO public.persons VALUES (11, NULL, NULL, 'Scheduleson', NULL, NULL, NULL, NULL, FALSE, FALSE, NULL, NULL, 'Client', NULL);",
-		"INSERT INTO finance_client (id, client_id, sop_number, payment_method, batchnumber, court_ref) VALUES (1, 11, '1234', 'DIRECT DEBIT', NULL, '1234567T');",
+		"INSERT INTO finance_client VALUES (1, 11, '1234', 'DIRECT DEBIT', NULL, '1234567T');",
+		`INSERT INTO public.addresses VALUES (1, 11, '["1 Test Street"]', 'Testtown', NULL, 'TE1 1ST', NULL);`,
 		"INSERT INTO invoice VALUES (1, 11, 1, 'S2', 'S200123/24', '2024-01-01', '2025-03-31', 10000, NULL, '2024-01-01', NULL, '2024-01-01')",
 		"INSERT INTO invoice VALUES (2, 11, 1, 'S2', 'S200124/24', '2024-01-01', '2025-03-31', 1000, NULL, '2024-01-01', NULL, '2024-01-01')",
 	)
@@ -123,7 +125,8 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitScheduleForInvoice_s
 	// Seed client and invoice first so balance and join data exist
 	seeder.SeedData(
 		"INSERT INTO public.persons VALUES (11, NULL, NULL, 'Scheduleson', NULL, NULL, NULL, NULL, FALSE, FALSE, NULL, NULL, 'Client', NULL);",
-		"INSERT INTO finance_client (id, client_id, sop_number, payment_method, batchnumber, court_ref) VALUES (1, 11, '1234', 'DIRECT DEBIT', NULL, '1234567T');",
+		"INSERT INTO finance_client VALUES (1, 11, '1234', 'DIRECT DEBIT', NULL, '1234567T');",
+		`INSERT INTO public.addresses VALUES (1, 11, '["1 Test Street"]', 'Testtown', NULL, 'TE1 1ST', NULL);`,
 		"INSERT INTO invoice VALUES (1, 11, 1, 'S2', 'S200123/24', '2024-01-01', '2025-03-31', 10000, NULL, '2024-01-01', NULL, '2024-01-01')",
 	)
 

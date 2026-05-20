@@ -32,6 +32,33 @@ resources:
       statusCode: 400
       content: "Bad Request - Please check the format of your body request"
 
+  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}"
+    method: put
+    response:
+      statusCode: 200
+      file: data/success.json
+      template: true
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}"
+    method: put
+    requestBody:
+      jsonPath: $.Customer.LastName
+      value: name_validation
+      operator: contains
+    response:
+      statusCode: 422
+      file: data/validation.json
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}"
+    method: put
+    requestBody:
+      jsonPath: $.Customer.LastName
+      value: name_fail
+      operator: contains
+    response:
+      statusCode: 400
+      content: "Bad Request - Please check the format of your body request"
+
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates"
     method: post
     capture:

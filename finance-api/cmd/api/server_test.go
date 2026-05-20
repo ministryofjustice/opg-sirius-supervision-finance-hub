@@ -146,7 +146,7 @@ func (s *mockService) ProcessFinanceAdminUpload(ctx context.Context, detail shar
 	return s.errs["ProcessFinanceAdminUpload"]
 }
 
-func (s *mockService) UpdateClient(ctx context.Context, clientId int32, courtRef string) error {
+func (s *mockService) SetCourtReference(ctx context.Context, clientId int32, courtRef string) error {
 	s.called = append(s.called, "UpdateClient")
 	return s.errs["UpdateClient"]
 }
@@ -228,6 +228,11 @@ func (s *mockService) QueueScheduleRemovals(ctx context.Context, schedules [][]s
 func (s *mockService) RemoveDirectDebitSchedule(ctx context.Context, data shared.RemoveSchedule) error {
 	s.called = append(s.called, "RemoveDirectDebitSchedule")
 	return s.errs["RemoveDirectDebitSchedule"]
+}
+
+func (s *mockService) UpdateClientMandateDetails(ctx context.Context, id int32, detail shared.ClientUpdatedEvent) error {
+	s.called = append(s.called, "UpdateClientMandateDetails")
+	return s.errs["UpdateClientMandateDetails"]
 }
 
 type mockFileStorage struct {
