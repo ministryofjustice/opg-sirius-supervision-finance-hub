@@ -104,12 +104,6 @@ func (m *mockDispatch) DirectDebitCollection(ctx context.Context, event event.Di
 	return nil
 }
 
-func (m *mockDispatch) DirectDebitMandateReview(ctx context.Context, event event.DirectDebitMandateReview) error {
-	m.event = event
-	m.called = append(m.called, "DirectDebitMandateReview")
-	return nil
-}
-
 func (m *mockDispatch) ScheduleToRemove(ctx context.Context, event event.ScheduleToRemove) error {
 	m.event = event
 	m.called = append(m.called, "ScheduleToRemove")
