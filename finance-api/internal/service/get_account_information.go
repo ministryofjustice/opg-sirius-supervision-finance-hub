@@ -3,11 +3,12 @@ package service
 import (
 	"context"
 	"fmt"
+	"log/slog"
+
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
-	"log/slog"
 )
 
 func (s *Service) GetAccountInformation(ctx context.Context, id int32) (*shared.AccountInformation, error) {
@@ -25,7 +26,7 @@ func (s *Service) GetAccountInformation(ctx context.Context, id int32) (*shared.
 	}, nil
 }
 
-func (s *Service) UpdateClient(ctx context.Context, id int32, courtRef string) error {
+func (s *Service) SetCourtReference(ctx context.Context, id int32, courtRef string) error {
 	var cr pgtype.Text
 	_ = cr.Scan(courtRef)
 

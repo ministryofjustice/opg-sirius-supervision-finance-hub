@@ -65,35 +65,25 @@ func (q *Queries) GetAccountInformation(ctx context.Context, clientID int32) (Ge
 	return i, err
 }
 
-const getClientByCourtRef = `-- name: GetClientByCourtRef :one
-SELECT id AS finance_client_id, client_id FROM finance_client WHERE court_ref = $1
-`
-
-type GetClientByCourtRefRow struct {
-	FinanceClientID int32
-	ClientID        int32
-}
-
-func (q *Queries) GetClientByCourtRef(ctx context.Context, courtRef pgtype.Text) (GetClientByCourtRefRow, error) {
-	row := q.db.QueryRow(ctx, getClientByCourtRef, courtRef)
-	var i GetClientByCourtRefRow
-	err := row.Scan(&i.FinanceClientID, &i.ClientID)
-	return i, err
-}
-
 const getClientById = `-- name: GetClientById :one
-SELECT fc.id AS finance_client_id, fc.client_id, fc.court_ref, fc.payment_method, c.surname
+SELECT fc.id AS finance_client_id, fc.client_id, fc.court_ref::VARCHAR "court_ref", fc.payment_method,
+       c.surname::VARCHAR "surname",
+       (a.address_lines ->> 0)::VARCHAR "line_1", a.town::VARCHAR "town", a.postcode::VARCHAR "postcode"
 FROM finance_client fc
-INNER JOIN public.persons c ON fc.client_id = c.id
+JOIN public.persons c ON fc.client_id = c.id
+JOIN public.addresses a ON c.id = a.person_id
 WHERE fc.client_id = $1
 `
 
 type GetClientByIdRow struct {
 	FinanceClientID int32
 	ClientID        int32
-	CourtRef        pgtype.Text
+	CourtRef        string
 	PaymentMethod   string
-	Surname         pgtype.Text
+	Surname         string
+	Line1           string
+	Town            string
+	Postcode        string
 }
 
 func (q *Queries) GetClientById(ctx context.Context, clientID int32) (GetClientByIdRow, error) {
@@ -105,7 +95,26 @@ func (q *Queries) GetClientById(ctx context.Context, clientID int32) (GetClientB
 		&i.CourtRef,
 		&i.PaymentMethod,
 		&i.Surname,
+		&i.Line1,
+		&i.Town,
+		&i.Postcode,
 	)
+	return i, err
+}
+
+const getClientIdsByCourtRef = `-- name: GetClientIdsByCourtRef :one
+SELECT id AS finance_client_id, client_id FROM finance_client WHERE court_ref = $1
+`
+
+type GetClientIdsByCourtRefRow struct {
+	FinanceClientID int32
+	ClientID        int32
+}
+
+func (q *Queries) GetClientIdsByCourtRef(ctx context.Context, courtRef pgtype.Text) (GetClientIdsByCourtRefRow, error) {
+	row := q.db.QueryRow(ctx, getClientIdsByCourtRef, courtRef)
+	var i GetClientIdsByCourtRefRow
+	err := row.Scan(&i.FinanceClientID, &i.ClientID)
 	return i, err
 }
 
