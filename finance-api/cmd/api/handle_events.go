@@ -45,13 +45,6 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
 				return err
 			}
 		}
-	} else if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeOrderCreated {
-		if detail, ok := event.Detail.(shared.OrderCreatedEvent); ok {
-			err := s.service.CheckPaymentMethod(ctx, detail.ClientID)
-			if err != nil {
-				return err
-			}
-		}
 	} else if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeClientMadeInactive {
 		if detail, ok := event.Detail.(shared.ClientMadeInactiveEvent); ok {
 			allPayCustomer := shared.AllPayCustomer{

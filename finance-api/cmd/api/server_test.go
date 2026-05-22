@@ -214,12 +214,6 @@ func (s *mockService) CreateDirectDebitScheduleForInvoice(ctx context.Context, d
 	return s.errs["CreateDirectDebitScheduleForInvoice"]
 }
 
-func (s *mockService) CheckPaymentMethod(ctx context.Context, clientID int32) error {
-	s.called = append(s.called, "CheckPaymentMethod")
-	s.lastCalledParams = []interface{}{clientID}
-	return s.errs["CheckPaymentMethod"]
-}
-
 func (s *mockService) QueueScheduleRemovals(ctx context.Context, schedules [][]string, scheduleDate shared.Date) map[int]string {
 	s.called = append(s.called, "QueueScheduleRemovals")
 	return nil
