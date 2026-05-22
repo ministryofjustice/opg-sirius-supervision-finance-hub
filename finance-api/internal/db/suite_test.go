@@ -46,10 +46,6 @@ func (m *mockDispatch) DirectDebitCollectionFailed(ctx context.Context, event ev
 	return nil
 }
 
-func (m *mockDispatch) DirectDebitMandateReview(ctx context.Context, event event.DirectDebitMandateReview) error {
-	return nil
-}
-
 func (m *mockDispatch) PendingInvoiceAdjustment(ctx context.Context, event event.PendingInvoiceAdjustment) error {
 	return nil
 }

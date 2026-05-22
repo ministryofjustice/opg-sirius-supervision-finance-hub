@@ -26,7 +26,6 @@ type Dispatch interface {
 	DirectDebitScheduleFailed(ctx context.Context, event event.DirectDebitScheduleFailed) error
 	RefundAdded(ctx context.Context, event event.RefundAdded) error
 	DirectDebitCollection(ctx context.Context, event event.DirectDebitCollection) error
-	DirectDebitMandateReview(ctx context.Context, event event.DirectDebitMandateReview) error
 	DirectDebitCollectionFailed(ctx context.Context, event event.DirectDebitCollectionFailed) error
 	PendingInvoiceAdjustment(ctx context.Context, event event.PendingInvoiceAdjustment) error
 	ScheduleToRemove(ctx context.Context, event event.ScheduleToRemove) error
