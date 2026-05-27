@@ -31,13 +31,6 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
 				return err
 			}
 		}
-	} else if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeClientCreated {
-		if detail, ok := event.Detail.(shared.ClientCreatedEvent); ok {
-			err := s.service.SetCourtReference(ctx, detail.ClientID, detail.CourtRef)
-			if err != nil {
-				return err
-			}
-		}
 	} else if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeClientUpdated {
 		if detail, ok := event.Detail.(shared.ClientUpdatedEvent); ok {
 			err := s.service.UpdateClientMandateDetails(ctx, detail.ClientID, detail)

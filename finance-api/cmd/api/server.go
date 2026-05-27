@@ -49,7 +49,6 @@ type Service interface {
 	ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType) (map[int]string, error)
 	ProcessRefundReversals(ctx context.Context, records [][]string, date shared.Date) (map[int]string, error)
 	ReapplyCredit(ctx context.Context, clientID int32, tx *store.Tx) error
-	SetCourtReference(ctx context.Context, clientID int32, courtRef string) error
 	UpdatePaymentMethod(ctx context.Context, clientID int32, paymentMethod shared.PaymentMethod) error
 	UpdatePendingInvoiceAdjustment(ctx context.Context, clientId int32, adjustmentId int32, status shared.AdjustmentStatus) error
 	UpdateRefundDecision(ctx context.Context, clientId int32, refundId int32, status shared.RefundStatus) error
