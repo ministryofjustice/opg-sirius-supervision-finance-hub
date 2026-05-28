@@ -146,10 +146,6 @@ func (s *mockService) ProcessFinanceAdminUpload(ctx context.Context, detail shar
 	return s.errs["ProcessFinanceAdminUpload"]
 }
 
-func (s *mockService) SetCourtReference(ctx context.Context, clientId int32, courtRef string) error {
-	s.called = append(s.called, "UpdateClient")
-	return s.errs["UpdateClient"]
-}
 
 func (s *mockService) GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) {
 	s.called = append(s.called, "GenerateAndUploadReport")

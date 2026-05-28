@@ -12,7 +12,6 @@ const (
 	EventSourceFinance           = "opg.supervision.finance"
 	DetailTypeFinanceAdhoc       = "finance-adhoc"
 	DetailTypeInvoiceCreated     = "invoice-created"
-	DetailTypeClientCreated      = "client-created"
 	DetailTypeClientUpdated      = "client-updated"
 	DetailTypeOrderCreated       = "order-created"
 	DetailTypeClientMadeInactive = "client-made-inactive"
@@ -52,12 +51,6 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 		e.Detail = detail
 	case DetailTypeFinanceAdminUpload:
 		var detail FinanceAdminUploadEvent
-		if err := json.Unmarshal(raw.Detail, &detail); err != nil {
-			return err
-		}
-		e.Detail = detail
-	case DetailTypeClientCreated:
-		var detail ClientCreatedEvent
 		if err := json.Unmarshal(raw.Detail, &detail); err != nil {
 			return err
 		}
@@ -111,10 +104,6 @@ type InvoiceCreatedEvent struct {
 	InvoiceType InvoiceType `json:"invoiceType"`
 }
 
-type ClientCreatedEvent struct {
-	ClientID int32  `json:"clientId"`
-	CourtRef string `json:"courtRef"`
-}
 
 type ClientChanges struct {
 	Old string `json:"old"`

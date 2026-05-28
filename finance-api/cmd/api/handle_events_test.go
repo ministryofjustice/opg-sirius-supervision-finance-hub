@@ -35,16 +35,6 @@ func TestServer_handleEvents(t *testing.T) {
 			expectedHandler: "ReapplyCredit",
 		},
 		{
-			name: "client created event",
-			event: shared.Event{
-				Source:     "opg.supervision.sirius",
-				DetailType: "client-created",
-				Detail:     shared.ClientCreatedEvent{ClientID: 1, CourtRef: "12345678"},
-			},
-			expectedErr:     nil,
-			expectedHandler: "UpdateClient",
-		},
-		{
 			name: "client made inactive event",
 			event: shared.Event{
 				Source:     "opg.supervision.sirius",
