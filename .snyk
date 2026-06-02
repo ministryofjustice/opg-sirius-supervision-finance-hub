@@ -3,6 +3,11 @@ ignore:
     snyk:lic:golang:github.com:go-sql-driver:mysql:MPL-2.0:
         - '*' :
             reason: "waiting for goose update to fix the issue"
-            expires: "2026-06-06T00:00:00Z"
+            expires: "2026-06-30T00:00:00Z"
+            created: "2026-05-06T14:14:00Z"
+    SNYK-GOLANG-GOLANGORGXNETIDNA-17116876:
+        - '*' :
+            reason: "waiting for goose update to fix the issue"
+            expires: "2026-06-30T00:00:00Z"
             created: "2026-05-06T14:14:00Z"
 patch:
