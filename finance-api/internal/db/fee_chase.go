@@ -45,7 +45,7 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
 				COALESCE(a.postcode, '') AS "Postcode",
 				has_recent_af_letter.raiseddate,
 				has_recent_af_letter.templateid, 
-				has_recent_af_letter.createddate,
+				has_recent_af_letter.publisheddate,
 				latest_a2_or_a6_case.systemtype,
 				latest_a2_or_a6_case.publisheddate,
 				latest_a2_or_a6_case.case_id,
@@ -68,11 +68,12 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
 					ORDER BY c.casesubtype DESC LIMIT 1
                 ) c ON TRUE
                 LEFT JOIN LATERAL (
-                    SELECT i2.raiseddate, ies.templateid, ies.createddate 
+                    SELECT i2.raiseddate, ies.templateid, ies.publisheddate 
                     FROM supervision_finance.invoice i2
                     INNER JOIN supervision_finance.invoice_email_status ies ON ies.invoice_id = i2.id
                     WHERE i2.finance_client_id = fc.id
-                    AND i2.raiseddate > '2026-03-31'
+                    AND i2.raiseddate > '2026-03-30'
+					AND i2.raiseddate < '2026-04-01'
                 ) has_recent_af_letter ON TRUE
                 LEFT JOIN LATERAL (
                     SELECT d.systemtype, d.publisheddate, c.case_id
