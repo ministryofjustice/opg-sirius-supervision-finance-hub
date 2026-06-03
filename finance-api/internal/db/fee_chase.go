@@ -45,12 +45,6 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
 				COALESCE(a.postcode, '') AS "Postcode",
 				CONCAT('£', ABS(gi.total / 100.0)::NUMERIC(10,2)::VARCHAR(255)) AS "Total_debt",
 				gi.invoice,
-				latest_a2_or_a6_case.case_id AS a2a6_orderId,
-				latest_a2_or_a6_case.createddate AS a2a6_order_createddate,
-				latest_a2_or_a6_case.systemtype AS a2a6_order_systemtype,
-				latest_a2_or_a6_person.id AS a2a6_person_id,
-				latest_a2_or_a6_person.createddate AS a2a6_person_createddate,
-				latest_a2_or_a6_person.systemtype AS a2a6_person_systemtype,
 				af_email.raiseddate AS af_email_i_raiseddate,
 				af_email.startdate AS af_email_i_startdate,
 				af_email.status AS af_email_i_status,
@@ -77,26 +71,6 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
 			    	WHERE dii.deputy_id = cl.feepayer_id
                     LIMIT 1
             	) dii ON TRUE
-                LEFT JOIN LATERAL (
-                    SELECT d.systemtype, d.createddate, c.case_id
-                    FROM public.caseitem_document cd
-                    INNER JOIN public.documents d ON cd.document_id = d.id
-                    WHERE cd.caseitem_id = c.case_id
-                    AND d.systemtype IN ('a2', 'a6')
-                    AND deletedat IS NULL
-                    AND publisheddate IS NOT NULL
-                    ORDER BY publisheddate DESC LIMIT 1
-                ) latest_a2_or_a6_case ON TRUE
-                LEFT JOIN LATERAL (
-                    SELECT d.systemtype, d.createddate, p.id
-                    FROM public.person_document pd
-                    INNER JOIN public.documents d ON pd.document_id = d.id
-                    WHERE pd.person_id = cl.id
-                    AND d.systemtype IN ('a2', 'a6')
-                    AND deletedat IS NULL
-                    AND publisheddate IS NOT NULL
-                    ORDER BY publisheddate DESC LIMIT 1
-                ) latest_a2_or_a6_person ON TRUE
             	LEFT JOIN LATERAL (
                     SELECT sfi.startdate, sfi.raiseddate, ies.status, ies.createddate
                     FROM supervision_finance.invoice sfi
