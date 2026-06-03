@@ -82,6 +82,7 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
                     AND d.systemtype IN ('a2', 'a6')
                     AND deletedat IS NULL
                     AND publisheddate IS NOT NULL
+					AND publisheddate > '2026-03-31'
                     ORDER BY publisheddate DESC LIMIT 1
                 ) latest_a2_or_a6_case ON TRUE
                 LEFT JOIN LATERAL (
