@@ -2,8 +2,10 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/allpay"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
@@ -30,7 +32,9 @@ func (s *Server) createDirectDebitMandate(w http.ResponseWriter, r *http.Request
 	}
 
 	if err := s.service.CreateDirectDebitMandate(ctx, clientId, createMandate); err != nil {
-		logger.Error("creating mandate in createDirectDebitMandate failed", "err", err)
+		if !errors.Is(err, allpay.ErrorModulusCheckFailed{}) {
+			logger.Error("creating mandate in createDirectDebitMandate failed", "err", err)
+		}
 		return err
 	}
 
