@@ -90,7 +90,10 @@ func (c *Client) CreateDirectDebitMandate(ctx context.Context, clientId int, det
 		if err != nil {
 			return newStatusError(resp)
 		}
-		return newStatusError(resp)
+		switch e.Field {
+		case "Allpay":
+			return apierror.ValidationError{Errors: apierror.ValidationErrors{"Allpay": {"invalid": ""}}}
+		}
 	}
 
 	return newStatusError(resp)

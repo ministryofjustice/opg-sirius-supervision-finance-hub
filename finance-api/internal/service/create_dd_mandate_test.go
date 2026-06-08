@@ -80,7 +80,7 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitMandate_modulusCheck
 
 	Store := store.New(seeder.Conn)
 	allpayMock := mockAllpay{
-		errs: map[string]error{"ModulusCheck": allpay.ErrorModulusCheckFailed{}},
+		errs: map[string]error{"ModulusCheck": allpay.ErrorModulusCheckFailed},
 	}
 	dispatchMock := mockDispatch{}
 
@@ -112,7 +112,7 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitMandate_modulusCheck
 		},
 	})
 
-	assert.ErrorAs(suite.T(), err, &allpay.ErrorModulusCheckFailed{}, "error is not of type ErrorModulusCheckFailed")
+	assert.ErrorAs(suite.T(), err, &allpay.ErrorModulusCheckFailed, "error is not of type ErrorModulusCheckFailed")
 
 	rows := seeder.QueryRow(ctx, "SELECT payment_method FROM supervision_finance.finance_client WHERE id = 1")
 	var paymentMethod string
