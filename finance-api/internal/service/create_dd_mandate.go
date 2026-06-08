@@ -19,7 +19,7 @@ func (s *Service) CreateDirectDebitMandate(ctx context.Context, clientID int32, 
 	bankDetails := createMandate.BankAccount.BankDetails
 	err := s.allpay.ModulusCheck(ctx, bankDetails.SortCode, bankDetails.AccountNumber)
 	if err != nil {
-		return apierror.BadRequestError("ModulusCheck", "Failed", err)
+		return err
 	}
 
 	tx, err := s.BeginStoreTx(ctx)

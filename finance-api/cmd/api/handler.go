@@ -4,11 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/ministryofjustice/opg-go-common/telemetry"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"log/slog"
 	"net/http"
 	"runtime/debug"
+
+	"github.com/ministryofjustice/opg-go-common/telemetry"
 )
 
 type handlerFunc func(w http.ResponseWriter, r *http.Request) error
@@ -23,8 +23,7 @@ func (f handlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	if err := f(w, r); err != nil {
-		var valErr apierror.ValidationError
-		if !errors.As(err, &valErr) && !errors.Is(err, context.Canceled) {
+		if httpStatus(err) != http.StatusUnprocessableEntity && !errors.Is(err, context.Canceled) {
 			logger := telemetry.LoggerFromContext(r.Context())
 			logger.Error("an api error occurred", slog.String("err", err.Error()))
 		}

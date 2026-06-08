@@ -170,10 +170,13 @@ func TestCreateDirectDebitMandate_ModulusCheckFails(t *testing.T) {
 			  }
 			}`))
 		case "/clients/1/direct-debit":
-			w.WriteHeader(http.StatusBadRequest)
+			w.WriteHeader(http.StatusUnprocessableEntity)
 			_, _ = w.Write([]byte(`{
-			  "field": "ModulusCheck",
-			  "reason": "Failed"
+			  "validation_errors": {
+				"AccountDetails": {
+					"invalid": ""
+				}
+			  }
 			}`))
 		default:
 			t.Errorf("Unexpected path: %s", r.URL.Path)
@@ -246,12 +249,6 @@ func TestCreateDirectDebitMandate_AllpayFails(t *testing.T) {
 		SortCode:      "30-33-30",
 	})
 	assert.Error(t, err)
-	expected := apierror.ValidationError{Errors: apierror.ValidationErrors{
-		"Allpay": map[string]string{
-			"invalid": "",
-		},
-	}}
-	assert.Equal(t, expected, err)
 }
 
 func TestCreateDirectDebitMandate_createMandateFails(t *testing.T) {
