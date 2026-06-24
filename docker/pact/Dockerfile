@@ -1,5 +1,5 @@
 # Use an official Go image
-FROM golang:1.26
+FROM golang:1.26@sha256:8f4cb3b8d3fd8c3e6eccfde0fcf54e8cea74fbb04cea961a92ee1a913d22cb17
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
