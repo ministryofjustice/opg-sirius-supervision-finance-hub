@@ -20,6 +20,10 @@ func (b BadRequest) Error() string {
 	return fmt.Sprintf("bad request: field=%s reason=%s", b.Field, b.Reason)
 }
 
+func (b BadRequest) Unwrap() error {
+	return b.error
+}
+
 func (b BadRequest) HTTPStatus() int { return http.StatusBadRequest }
 
 func (b BadRequest) HasData() bool {

@@ -3,12 +3,13 @@ package server
 import (
 	"errors"
 	"fmt"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/api"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/util"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/api"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/util"
 )
 
 type SubmitManualInvoiceHandler struct {
@@ -27,6 +28,9 @@ func getFieldPointer(postForm url.Values, key string) *string {
 func (h *SubmitManualInvoiceHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 	clientID := getClientID(r)
+
+	// Limit request body size to 10MB to prevent memory exhaustion
+	r.Body = http.MaxBytesReader(w, r.Body, 10<<20)
 
 	invoiceType := r.PostFormValue("invoiceType")
 

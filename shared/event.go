@@ -6,19 +6,19 @@ import (
 )
 
 const (
-	EventSourceSirius                   = "opg.supervision.sirius"
-	EventSourceFinanceAdhoc             = "opg.supervision.finance.adhoc"
-	EventSourceInfra                    = "opg.supervision.infra"
-	DetailTypeFinanceAdhoc              = "finance-adhoc"
-	DetailTypeInvoiceCreated            = "invoice-created"
-	DetailTypeClientCreated             = "client-created"
-	DetailTypeOrderCreated              = "order-created"
-	DetailTypeClientMadeInactive        = "client-made-inactive"
-	DetailTypeFinanceAdminUpload        = "finance-admin-upload"
-	DetailTypeScheduledEvent            = "scheduled-event"
-	ScheduledEventRefundExpiry          = "refund-expiry"
-	ScheduledEventDirectDebitCollection = "direct-debit-collection"
-	ScheduledEventFailedCollections     = "failed-direct-debit-collections"
+	EventSourceSirius            = "opg.supervision.sirius"
+	EventSourceFinanceAdhoc      = "opg.supervision.finance.adhoc"
+	EventSourceInfra             = "opg.supervision.infra"
+	EventSourceFinance           = "opg.supervision.finance"
+	DetailTypeFinanceAdhoc       = "finance-adhoc"
+	DetailTypeInvoiceCreated     = "invoice-created"
+	DetailTypeClientUpdated      = "client-updated"
+	DetailTypeOrderCreated       = "order-created"
+	DetailTypeClientMadeInactive = "client-made-inactive"
+	DetailTypeFinanceAdminUpload = "finance-admin-upload"
+	DetailTypeScheduleToRemove   = "schedule-to-remove"
+	DetailTypeScheduledEvent     = "scheduled-event"
+	ScheduledEventRefundExpiry   = "refund-expiry"
 )
 
 type Event struct {
@@ -55,8 +55,8 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		e.Detail = detail
-	case DetailTypeClientCreated:
-		var detail ClientCreatedEvent
+	case DetailTypeClientUpdated:
+		var detail ClientUpdatedEvent
 		if err := json.Unmarshal(raw.Detail, &detail); err != nil {
 			return err
 		}
@@ -85,6 +85,12 @@ func (e *Event) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		e.Detail = detail
+	case DetailTypeScheduleToRemove:
+		var detail ScheduleToRemoveEvent
+		if err := json.Unmarshal(raw.Detail, &detail); err != nil {
+			return err
+		}
+		e.Detail = detail
 	default:
 		return fmt.Errorf("unknown detail type: %s", e.DetailType)
 	}
@@ -98,9 +104,15 @@ type InvoiceCreatedEvent struct {
 	InvoiceType InvoiceType `json:"invoiceType"`
 }
 
-type ClientCreatedEvent struct {
-	ClientID int32  `json:"clientId"`
-	CourtRef string `json:"courtRef"`
+
+type ClientChanges struct {
+	Old string `json:"old"`
+	New string `json:"new"`
+}
+
+type ClientUpdatedEvent struct {
+	ClientID int32         `json:"clientId"`
+	Surname  ClientChanges `json:"surname"`
 }
 
 type OrderCreatedEvent struct {
@@ -119,6 +131,13 @@ type FinanceAdminUploadEvent struct {
 	UploadType   ReportUploadType `json:"uploadType"`
 	UploadDate   Date             `json:"uploadDate"`
 	PisNumber    int              `json:"pisNumber"`
+}
+
+type ScheduleToRemoveEvent struct {
+	CourtRef string `json:"courtRef"`
+	Surname  string `json:"surname"`
+	Amount   int    `json:"amount"`
+	Date     Date   `json:"date"`
 }
 
 type AdhocEvent struct {
@@ -151,12 +170,6 @@ func (e *ScheduledEvent) UnmarshalJSON(data []byte) error {
 	}
 
 	switch e.Trigger {
-	case ScheduledEventDirectDebitCollection, ScheduledEventFailedCollections:
-		var override DateOverride
-		if err := json.Unmarshal(raw.Override, &override); err != nil {
-			return err
-		}
-		e.Override = override
 	case ScheduledEventRefundExpiry:
 		e.Override = nil
 	default:

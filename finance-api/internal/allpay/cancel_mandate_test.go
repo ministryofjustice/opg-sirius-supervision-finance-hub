@@ -1,6 +1,8 @@
 package allpay
 
 import (
+	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -36,7 +38,7 @@ func TestCancelMandate_Success(t *testing.T) {
 		ClosureDate: date,
 		ClientDetails: ClientDetails{
 			ClientReference: "12345678",
-			Surname:         "Cancelman",
+			Surname:         " Cancelman ", // whitespace should be stripped before encoding
 		},
 	})
 	if err != nil {
@@ -88,5 +90,78 @@ func TestCancelMandate_UnexpectedStatus(t *testing.T) {
 	})
 	if err == nil {
 		t.Error("Expected error due to unexpected status code")
+	}
+}
+
+func TestCancelMandateWhenAlreadyCancelled_ReturnsNil(t *testing.T) {
+	schemeCode := "SCHEME123"
+
+	date := time.Now()
+	alreadyCancelled := ErrorValidation{Messages: []string{"A Direct Debit Mandate was not found for this account"}}
+	body, _ := json.Marshal(alreadyCancelled)
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodDelete {
+			t.Errorf("Expected DELETE, got %s", r.Method)
+		}
+		today := date.Format("2006-01-02")
+		if r.URL.Path != "/AllpayApi/Customers/SCHEME123/MTIzNDU2Nzg=/Q2FuY2VsbWFu/Mandates/"+today {
+			t.Errorf("Unexpected URL path: %s", r.URL.Path)
+		}
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		_, _ = w.Write(body)
+	}))
+	defer ts.Close()
+
+	c := &Client{
+		http: ts.Client(),
+		Envs: Envs{
+			schemeCode: schemeCode,
+			apiHost:    ts.URL,
+		},
+	}
+
+	err := c.CancelMandate(testContext(), &CancelMandateRequest{
+		ClosureDate: date,
+		ClientDetails: ClientDetails{
+			ClientReference: "12345678",
+			Surname:         " Cancelman ", // whitespace should be stripped before encoding
+		},
+	})
+	if err != nil {
+		t.Errorf("Expected no error, got %v", err)
+	}
+}
+
+func TestCancelMandate_ValidationErrorValidJSON(t *testing.T) {
+	ve := ErrorValidation{Messages: []string{"Some generic validation message"}}
+	body, _ := json.Marshal(ve)
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		_, _ = w.Write(body)
+	}))
+	defer ts.Close()
+
+	c := &Client{
+		http: ts.Client(),
+		Envs: Envs{
+			schemeCode: "SCHEME123",
+			apiHost:    ts.URL,
+		},
+	}
+
+	err := c.CancelMandate(testContext(), &CancelMandateRequest{
+		ClosureDate: time.Now(),
+		ClientDetails: ClientDetails{
+			ClientReference: "12345678",
+			Surname:         "Cancelman",
+		},
+	})
+
+	var validationErr ErrorValidation
+	if !errors.As(err, &validationErr) {
+
+		t.Errorf("Expected ErrorValidation, got %v", err)
 	}
 }

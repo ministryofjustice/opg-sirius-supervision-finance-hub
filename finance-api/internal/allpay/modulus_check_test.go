@@ -75,5 +75,5 @@ func TestModulusCheck_apiError(t *testing.T) {
 	client := NewClient(ts.Client(), ts.URL, "test123", "TEST")
 
 	err := client.ModulusCheck(testContext(), "11-22-33", "12345678")
-	assert.Equal(t, ErrorAPI{}, err)
+	assert.Equal(t, apiError("Modulus check failed due to an unexpected response from AllPay."), err)
 }

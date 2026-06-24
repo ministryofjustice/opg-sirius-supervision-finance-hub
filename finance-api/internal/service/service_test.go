@@ -100,11 +100,13 @@ func (m *mockDispatch) DirectDebitCollectionFailed(ctx context.Context, event ev
 
 func (m *mockDispatch) DirectDebitCollection(ctx context.Context, event event.DirectDebitCollection) error {
 	m.event = event
+	m.called = append(m.called, "DirectDebitCollection")
 	return nil
 }
 
-func (m *mockDispatch) DirectDebitMandateReview(ctx context.Context, event event.DirectDebitMandateReview) error {
+func (m *mockDispatch) ScheduleToRemove(ctx context.Context, event event.ScheduleToRemove) error {
 	m.event = event
+	m.called = append(m.called, "ScheduleToRemove")
 	return nil
 }
 
@@ -141,10 +143,22 @@ func (m *mockAllpay) CreateSchedule(ctx context.Context, data *allpay.CreateSche
 	return m.errs["CreateSchedule"]
 }
 
+func (m *mockAllpay) RemoveSchedule(ctx context.Context, data *allpay.RemoveScheduleInput) error {
+	m.called = append(m.called, "RemoveSchedule")
+	m.lastCalledParams = []interface{}{data}
+	return m.errs["RemoveSchedule"]
+}
+
 func (m *mockAllpay) FetchFailedPayments(ctx context.Context, input allpay.FetchFailedPaymentsInput) (allpay.FailedPayments, error) {
 	m.called = append(m.called, "FetchFailedPayments")
 	m.lastCalledParams = []interface{}{input}
 	return m.failedPayments, m.errs["FetchFailedPayments"]
+}
+
+func (m *mockAllpay) UpdateClientDetails(ctx context.Context, data *allpay.UpdateClientDetailsInput) error {
+	m.called = append(m.called, "UpdateClientDetails")
+	m.lastCalledParams = []interface{}{data}
+	return m.errs["UpdateClientDetails"]
 }
 
 type mockGovUK struct {

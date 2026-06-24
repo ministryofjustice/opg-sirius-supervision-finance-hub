@@ -50,7 +50,9 @@ func (s *Server) processUpload(w http.ResponseWriter, r *http.Request) error {
 
 	go func(logger *slog.Logger) {
 		ctx := s.copyCtx(r)
-		ctx.(auth.Context).WithContext(telemetry.ContextWithLogger(context.Background(), logger))
+
+		//replaced context.Background to ensure goroutine inherits the correct request-scoped context
+		ctx.(auth.Context).WithContext(telemetry.ContextWithLogger(ctx, logger))
 		s.processUploadFile(ctx, Upload{
 			UploadType:   upload.UploadType,
 			EmailAddress: upload.EmailAddress,
@@ -122,6 +124,12 @@ func (s *Server) processUploadFile(ctx context.Context, upload Upload) {
 				logger.Error("unable to process reverse refunds due to error", "err", perr)
 			} else if len(failedLines) > 0 {
 				logger.Error(fmt.Sprintf("unable to process reverse refunds due to %d failed lines", len(failedLines)))
+			}
+			payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, err, failedLines)
+		} else if upload.UploadType.IsScheduleRemoval() {
+			failedLines := s.service.QueueScheduleRemovals(ctx, records, upload.UploadDate)
+			if len(failedLines) > 0 {
+				logger.Error(fmt.Sprintf("unable to process schedule removal due to %d failed lines", len(failedLines)))
 			}
 			payload = createUploadNotifyPayload(upload.EmailAddress, upload.UploadType, err, failedLines)
 		} else {

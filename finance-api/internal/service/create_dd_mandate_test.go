@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/allpay"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
@@ -79,7 +80,7 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitMandate_modulusCheck
 
 	Store := store.New(seeder.Conn)
 	allpayMock := mockAllpay{
-		errs: map[string]error{"ModulusCheck": errors.New("some error")},
+		errs: map[string]error{"ModulusCheck": allpay.ErrorModulusCheckFailed{}},
 	}
 	dispatchMock := mockDispatch{}
 
@@ -111,13 +112,7 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitMandate_modulusCheck
 		},
 	})
 
-	var e *apierror.BadRequest
-	if errors.As(err, &e) {
-		assert.Equal(suite.T(), "ModulusCheck", e.Field)
-		assert.Equal(suite.T(), "Failed", e.Reason)
-	} else {
-		suite.T().Error("error is not of type BadRequest")
-	}
+	assert.ErrorAs(suite.T(), err, &allpay.ErrorModulusCheckFailed{}, "error is not of type ErrorModulusCheckFailed")
 
 	rows := seeder.QueryRow(ctx, "SELECT payment_method FROM supervision_finance.finance_client WHERE id = 1")
 	var paymentMethod string

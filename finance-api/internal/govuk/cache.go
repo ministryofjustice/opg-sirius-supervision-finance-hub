@@ -16,8 +16,7 @@ type Caches struct {
 
 func newCaches() *Caches {
 	holidays := cache.New(defaultExpiration, defaultExpiration)
-	// unreachable cached value used for triggering cache refresh
-	_ = holidays.Add("refresh", true, defaultExpiration)
+	_ = holidays.Add("refresh", false, defaultExpiration)
 	return &Caches{
 		holidays: holidays,
 	}
@@ -29,7 +28,7 @@ func (c Caches) updateHolidays(holidays []Holiday) {
 	}
 
 	// add the refresh trigger back in
-	c.holidays.Set("refresh", true, defaultExpiration)
+	c.holidays.Set("refreshed", true, defaultExpiration)
 }
 
 func (c Caches) isHoliday(d time.Time) bool {
@@ -39,6 +38,6 @@ func (c Caches) isHoliday(d time.Time) bool {
 
 // shouldRefreshHolidays returns true if the default value has expired
 func (c Caches) shouldRefreshHolidays() bool {
-	_, b := c.holidays.Get("refresh")
+	_, b := c.holidays.Get("refreshed")
 	return !b
 }

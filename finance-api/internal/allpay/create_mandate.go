@@ -34,11 +34,22 @@ type CreateMandateRequest struct {
 	} `json:"BankAccount"`
 }
 
-func (c *Client) CreateMandate(ctx context.Context, data *CreateMandateRequest) error {
+func (c *Client) CreateMandate(ctx context.Context, input *CreateMandateRequest) error {
 	logger := c.logger(ctx)
 
-	// add scheme code here instead of leaking it outside the client
-	data.Customer.SchemeCode = c.schemeCode
+	data := CreateMandateRequest{
+		Customer: Customer{
+			ClientReference: input.Customer.ClientReference,
+			Surname:         trimChars(input.Customer.Surname, 19),
+			Address: Address{
+				Line1:    trimChars(input.Customer.Address.Line1, 40),
+				Town:     trimChars(input.Customer.Address.Town, 40),
+				PostCode: trimChars(input.Customer.Address.PostCode, 10),
+			},
+			SchemeCode: c.schemeCode, // add scheme code here instead of leaking it outside the client
+		},
+		BankAccount: input.BankAccount,
+	}
 
 	var body bytes.Buffer
 
@@ -48,17 +59,17 @@ func (c *Client) CreateMandate(ctx context.Context, data *CreateMandateRequest) 
 		return err
 	}
 
-	req, err := c.newRequest(ctx, http.MethodPost, fmt.Sprintf("/Customers/%s/VariableMandates/Create", c.schemeCode), &body)
+	req, err := c.newRequest(ctx, http.MethodPost, fmt.Sprintf("/Customers/%s/Mandates/Create", c.schemeCode), &body)
 
 	if err != nil {
 		logger.Error("unable to build create mandate request", "error", err)
-		return ErrorAPI{}
+		return apiError("Direct Debit cannot be setup due to an unexpected system error.")
 	}
 
 	resp, err := c.http.Do(req)
 	if err != nil {
 		logger.Error("unable to send create mandate request", "error", err)
-		return ErrorAPI{}
+		return apiError("Direct Debit cannot be setup due to an unexpected system error.")
 	}
 
 	defer unchecked(resp.Body.Close)
@@ -69,7 +80,7 @@ func (c *Client) CreateMandate(ctx context.Context, data *CreateMandateRequest) 
 		err = json.NewDecoder(resp.Body).Decode(&ve)
 		if err != nil {
 			logger.Error("unable to parse create mandate validation response", "error", err)
-			return ErrorAPI{}
+			return apiError("Direct Debit cannot be setup due to an unexpected response from AllPay.")
 		}
 
 		logger.Error("create mandate request returned validation errors", "errors", ve)
@@ -78,7 +89,7 @@ func (c *Client) CreateMandate(ctx context.Context, data *CreateMandateRequest) 
 
 	if resp.StatusCode != http.StatusOK {
 		logger.Error("create mandate request returned unexpected status code", "status", resp.Status)
-		return ErrorAPI{}
+		return apiError("Direct Debit cannot be setup due to an unexpected response from AllPay.")
 	}
 
 	return nil

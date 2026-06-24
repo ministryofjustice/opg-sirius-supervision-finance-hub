@@ -18,20 +18,20 @@ func (c *Client) ModulusCheck(ctx context.Context, sortCode string, accountNumbe
 
 	if err != nil {
 		logger.Error("unable to build modulus check request", "error", err)
-		return ErrorAPI{}
+		return apiError("Modulus check failed due to an unexpected system error.")
 	}
 
 	resp, err := c.http.Do(req)
 	if err != nil {
 		logger.Error("unable to send modulus check request", "error", err)
-		return ErrorAPI{}
+		return apiError("Modulus check failed due to an unexpected system error.")
 	}
 
 	defer unchecked(resp.Body.Close)
 
 	if resp.StatusCode != http.StatusOK {
 		logger.Error("modulus check request returned unexpected status code", "status", resp.Status)
-		return ErrorAPI{}
+		return apiError("Modulus check failed due to an unexpected response from AllPay.")
 	}
 
 	var modulusCheck modulusCheckResponse
@@ -39,7 +39,7 @@ func (c *Client) ModulusCheck(ctx context.Context, sortCode string, accountNumbe
 	err = json.NewDecoder(resp.Body).Decode(&modulusCheck)
 	if err != nil {
 		logger.Error("unable to parse modulus check response", "error", err)
-		return ErrorAPI{}
+		return apiError("Modulus check failed due to an unexpected response from AllPay.")
 	}
 
 	if !modulusCheck.Valid || !modulusCheck.DirectDebitCapable {

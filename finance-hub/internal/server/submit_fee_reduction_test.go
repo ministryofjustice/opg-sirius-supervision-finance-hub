@@ -1,13 +1,14 @@
 package server
 
 import (
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestAddFeeReductionSuccess(t *testing.T) {
@@ -58,7 +59,7 @@ func TestAddFeeReductionValidationErrors(t *testing.T) {
 	}
 
 	w := httptest.NewRecorder()
-	r, _ := http.NewRequest(http.MethodPost, "/add", nil)
+	r, _ := http.NewRequest(http.MethodPost, "/add", strings.NewReader(""))
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	r.SetPathValue("clientId", "1")
 

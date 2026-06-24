@@ -1,10 +1,12 @@
 package server
 
 import (
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSubmitApprovePendingInvoiceAdjustmentSuccess(t *testing.T) {
@@ -12,7 +14,7 @@ func TestSubmitApprovePendingInvoiceAdjustmentSuccess(t *testing.T) {
 	ro := &mockRoute{client: client}
 
 	w := httptest.NewRecorder()
-	r, _ := http.NewRequest(http.MethodPost, "/pending-invoice-adjustment", nil)
+	r, _ := http.NewRequest(http.MethodPost, "/pending-invoice-adjustment", strings.NewReader(""))
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	r.SetPathValue("ledgerId", "1")
 	r.SetPathValue("clientId", "1")
@@ -38,7 +40,7 @@ func TestSubmitRejectPendingInvoiceAdjustmentSuccess(t *testing.T) {
 	ro := &mockRoute{client: client}
 
 	w := httptest.NewRecorder()
-	r, _ := http.NewRequest(http.MethodPost, "/pending-invoice-adjustment", nil)
+	r, _ := http.NewRequest(http.MethodPost, "/pending-invoice-adjustment", strings.NewReader(""))
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	r.SetPathValue("ledgerId", "1")
 	r.SetPathValue("clientId", "1")

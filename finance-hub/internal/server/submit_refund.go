@@ -3,10 +3,11 @@ package server
 import (
 	"errors"
 	"fmt"
+	"net/http"
+
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/api"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-hub/internal/util"
-	"net/http"
 )
 
 type SubmitRefundHandler struct {
@@ -16,6 +17,9 @@ type SubmitRefundHandler struct {
 func (h *SubmitRefundHandler) render(v AppVars, w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 	clientID := getClientID(r)
+
+	// Limit request body size to 10MB to prevent memory exhaustion
+	r.Body = http.MaxBytesReader(w, r.Body, 10<<20)
 
 	var (
 		accountName   = r.PostFormValue("accountName")

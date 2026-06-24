@@ -9,12 +9,14 @@ import (
 	"context"
 )
 
-const purgePendingCollections = `-- name: PurgePendingCollections :execrows
-DELETE FROM pending_collection WHERE status <> 'COLLECTED'
+const changePendingCollectionDate = `-- name: ChangePendingCollectionDate :execrows
+UPDATE pending_collection
+SET collection_date = '2026-05-26'
+WHERE collection_date = '2026-05-25'
 `
 
-func (q *Queries) PurgePendingCollections(ctx context.Context) (int64, error) {
-	result, err := q.db.Exec(ctx, purgePendingCollections)
+func (q *Queries) ChangePendingCollectionDate(ctx context.Context) (int64, error) {
+	result, err := q.db.Exec(ctx, changePendingCollectionDate)
 	if err != nil {
 		return 0, err
 	}

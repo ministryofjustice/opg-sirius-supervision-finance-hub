@@ -22,7 +22,6 @@ import (
 )
 
 type Service interface {
-	AddCollectedPayments(ctx context.Context, date time.Time) error
 	AddFeeReduction(ctx context.Context, clientId int32, data shared.AddFeeReduction) error
 	AddInvoiceAdjustment(ctx context.Context, clientId int32, invoiceId int32, ledgerEntry *shared.AddInvoiceAdjustmentRequest) (*shared.InvoiceReference, error)
 	AddManualInvoice(ctx context.Context, clientId int32, invoice shared.AddManualInvoice) error
@@ -32,7 +31,7 @@ type Service interface {
 	CreateDirectDebitMandate(ctx context.Context, id int32, createMandate shared.CreateMandate) error
 	CreateDirectDebitSchedule(ctx context.Context, clientID int32, data shared.CreateSchedule) (service.PendingCollection, error)
 	CreateDirectDebitScheduleForInvoice(ctx context.Context, details shared.InvoiceCreatedEvent) error
-	CheckPaymentMethod(ctx context.Context, clientID int32) error
+	RemoveDirectDebitSchedule(ctx context.Context, data shared.RemoveSchedule) error
 	ExpireRefunds(ctx context.Context) error
 	GetAccountInformation(ctx context.Context, id int32) (*shared.AccountInformation, error)
 	GetAnnualBillingInformation(ctx context.Context) (shared.AnnualBillingInformation, error)
@@ -43,19 +42,19 @@ type Service interface {
 	GetPermittedAdjustments(ctx context.Context, invoiceId int32) ([]shared.AdjustmentType, error)
 	GetRefunds(ctx context.Context, clientId int32) (shared.Refunds, error)
 	PostReportActions(ctx context.Context, report shared.ReportRequest)
-	ProcessAdhocEvent(ctx context.Context) error
+	ProcessAdhocEvent(ctx context.Context, event shared.AdhocEvent) error
 	ProcessDirectUploadReport(ctx context.Context, filename string, fileBytes io.Reader, uploadType shared.ReportUploadType) error
-	ProcessFailedDirectDebitCollections(ctx context.Context, date time.Time) error
 	ProcessFulfilledRefunds(ctx context.Context, records [][]string, date shared.Date) (map[int]string, error)
 	ProcessPayments(ctx context.Context, records [][]string, uploadType shared.ReportUploadType, bankDate shared.Date, pisNumber int) (map[int]string, error)
 	ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType) (map[int]string, error)
 	ProcessRefundReversals(ctx context.Context, records [][]string, date shared.Date) (map[int]string, error)
 	ReapplyCredit(ctx context.Context, clientID int32, tx *store.Tx) error
-	UpdateClient(ctx context.Context, clientID int32, courtRef string) error
 	UpdatePaymentMethod(ctx context.Context, clientID int32, paymentMethod shared.PaymentMethod) error
 	UpdatePendingInvoiceAdjustment(ctx context.Context, clientId int32, adjustmentId int32, status shared.AdjustmentStatus) error
 	UpdateRefundDecision(ctx context.Context, clientId int32, refundId int32, status shared.RefundStatus) error
 	SendDirectDebitCollectionEvent(ctx context.Context, id int32, pendingCollection service.PendingCollection) error
+	QueueScheduleRemovals(ctx context.Context, schedules [][]string, scheduleDate shared.Date) map[int]string
+	UpdateClientMandateDetails(ctx context.Context, id int32, detail shared.ClientUpdatedEvent) error
 }
 type FileStorage interface {
 	GetFile(ctx context.Context, bucketName string, filename string) (io.ReadCloser, error)
@@ -112,9 +111,7 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 	// authFunc is a replacement for mux.HandleFunc
 	// which enriches the handler's HTTP instrumentation with the pattern as the http.route.
 	authFunc := func(pattern string, role string, h handlerFunc) {
-		// Configure the "http.route" for the HTTP instrumentation.
-		handler := otelhttp.WithRouteTag(pattern, h)
-		mux.Handle(pattern, s.authenticateAPI(s.requestLogger(s.authorise(role)(handler))))
+		mux.Handle(pattern, s.authenticateAPI(s.requestLogger(s.authorise(role)(h))))
 	}
 
 	authFunc("GET /clients/{clientId}", shared.RoleAny, s.getAccountInformation)
@@ -144,8 +141,7 @@ func (s *Server) SetupRoutes(logger *slog.Logger) http.Handler {
 
 	// unauthenticated as request is coming from EventBridge
 	eventFunc := func(pattern string, h handlerFunc) {
-		handler := otelhttp.WithRouteTag(pattern, h)
-		mux.Handle(pattern, s.authenticateEvent(s.requestLogger(handler)))
+		mux.Handle(pattern, s.authenticateEvent(s.requestLogger(h)))
 	}
 	eventFunc("POST /events", s.handleEvents)
 

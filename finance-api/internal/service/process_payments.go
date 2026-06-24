@@ -287,12 +287,31 @@ func (s *Service) ProcessPaymentsUploadLine(ctx context.Context, tx *store.Tx, d
 	}
 
 	if remaining > 0 {
-		client, _ := tx.GetClientByCourtRef(ctx, details.CourtRef)
+		client, _ := tx.GetClientIdsByCourtRef(ctx, details.CourtRef)
 		err = s.dispatch.CreditOnAccount(ctx, event.CreditOnAccount{
 			ClientID:        int(client.ClientID),
 			CreditRemaining: int(remaining),
 		})
 		return ledgerID, err
+	}
+
+	if details.LedgerType == shared.TransactionTypeDirectDebitPayment {
+		var (
+			lID            pgtype.Int4
+			collectionDate pgtype.Date
+		)
+
+		_ = lID.Scan(ledgerID)
+		_ = collectionDate.Scan(details.ReceivedDate.Time)
+
+		err = tx.MarkPendingCollectionsAsCollected(ctx, store.MarkPendingCollectionsAsCollectedParams{
+			LedgerID:       lID,
+			CourtRef:       details.CourtRef,
+			CollectionDate: collectionDate,
+		})
+		if err != nil {
+			s.Logger(ctx).Error("failed to mark pending collections as collected", "err", err, "ledger_id", lID)
+		}
 	}
 
 	return ledgerID, nil

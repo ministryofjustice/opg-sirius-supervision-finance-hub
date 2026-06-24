@@ -5,24 +5,98 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-go-common/telemetry"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
-func (s *Service) ProcessAdhocEvent(ctx context.Context) error {
+func (s *Service) ProcessAdhocEvent(ctx context.Context, event shared.AdhocEvent) error {
+	s.Logger(ctx).Info(fmt.Sprintf("Processing adhoc event: %s", event.Task))
+	switch event.Task {
+	case "ChangePendingCollectionDate":
+		s.processAdhocChangePendingCollectionDate(ctx)
+	case "SetDemanded":
+		s.processAdhocSetDemanded(ctx)
+	default:
+		return fmt.Errorf("invalid adhoc process: %s", event.Task)
+	}
+	return nil
+}
+
+func (s *Service) processAdhocChangePendingCollectionDate(ctx context.Context) {
 	// perform async so request context doesn't cancel before process is complete
 	go func(logger *slog.Logger) {
-		logger.Info("InvalidatePendingCollections: started")
-		funcCtx := telemetry.ContextWithLogger(context.Background(), logger)
-		funcCtx = ctx.(auth.Context).WithContext(funcCtx)
-		count, err := s.store.PurgePendingCollections(funcCtx)
+		logger.Info("ChangePendingCollectionDate: started")
+
+		funcCtx := telemetry.ContextWithLogger(context.WithoutCancel(ctx), logger)
+		count, err := s.store.ChangePendingCollectionDate(funcCtx)
 		if err != nil {
-			logger.Error("InvalidatePendingCollections: failed", "error", err)
+			logger.Error("ChangePendingCollectionDate: failed", "error", err)
 			return
 		}
 
-		logger.Info(fmt.Sprintf("InvalidatePendingCollections: %d pending collections deleted", count))
+		logger.Info(fmt.Sprintf("ChangePendingCollectionDate: %d pending collections updated", count))
 	}(telemetry.LoggerFromContext(ctx))
+}
 
-	return nil
+func (s *Service) processAdhocSetDemanded(ctx context.Context) {
+	// perform async so request context doesn't cancel before process is complete
+	go func(logger *slog.Logger) {
+		logger.Info("SetDemanded: started")
+
+		clientIDs := []int{
+			59290959,
+			20051524,
+			20044715,
+			20083594,
+			20098074,
+			46667347,
+			40131241,
+			20114931,
+			20090340,
+			20043623,
+			20051524,
+			20044715,
+			20083594,
+			20098074,
+			46667347,
+			40131241,
+			20114931,
+			20090340,
+			20043623,
+			20104998,
+		}
+
+		funcCtx := telemetry.ContextWithLogger(context.WithoutCancel(ctx), logger)
+
+		var (
+			count int
+			errs  int
+		)
+		for _, cid := range clientIDs {
+			var (
+				paymentMethod pgtype.Text
+				id            pgtype.Int4
+				createdBy     pgtype.Int4
+			)
+			_ = paymentMethod.Scan(shared.PaymentMethodDemanded.Key())
+			_ = store.ToInt4(&id, cid)
+			_ = store.ToInt4(&createdBy, 2180)
+
+			// update payment method first, in case this fails
+			err := s.store.SetPaymentMethod(funcCtx, store.SetPaymentMethodParams{
+				PaymentMethod: paymentMethod,
+				ClientID:      id,
+				CreatedBy:     createdBy,
+			})
+			if err != nil {
+				logger.Error("SetDemanded: failed", "error", err, "clientID", cid)
+				errs++
+			}
+			count++
+		}
+
+		logger.Info(fmt.Sprintf("SetDemanded: %d clients set to demanded, %d errored", count, errs))
+	}(telemetry.LoggerFromContext(ctx))
 }

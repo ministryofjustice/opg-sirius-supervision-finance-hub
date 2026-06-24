@@ -28,6 +28,30 @@ func TestNewRequest(t *testing.T) {
 	_, _ = client.newRequest(testContext(), "GET", "/", nil)
 }
 
+func TestTrimChars(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		limit    int
+		expected string
+	}{
+		{"within limit", "hello", 10, "hello"},
+		{"exactly at limit", "hello", 5, "hello"},
+		{"exceeds limit", "hello world", 5, "hello"},
+		{"trims leading and trailing spaces", "  hello  ", 10, "hello"},
+		{"trims then truncates", "  hello world  ", 5, "hello"},
+		{"unicode characters", "héllo", 4, "héll"},
+		{"empty string", "", 5, ""},
+		{"only spaces", "     ", 5, ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.expected, trimChars(tt.input, tt.limit))
+		})
+	}
+}
+
 func testContext() context.Context {
 	return auth.Context{
 		Context: telemetry.ContextWithLogger(context.Background(), telemetry.NewLogger("test")),

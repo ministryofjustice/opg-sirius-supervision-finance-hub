@@ -97,7 +97,7 @@ func (s *Service) CancelDirectDebitMandate(ctx context.Context, clientID int32, 
 	}
 
 	// remove schedules after committing the transaction, as the mandate has already been cancelled in Allpay, and we are unable to roll that back
-	return s.cancelPendingCollections(ctx, closureDate, clientDetails, collections)
+	return s.cancelPendingCollections(ctx, closureDate, collections)
 }
 
 /**
@@ -121,7 +121,7 @@ func (s *Service) calculateClosureDate(ctx context.Context, collections []store.
 	return s.govUK.NextWorkingDayOnOrAfterX(ctx, closureDate, closureDate.Day()) // will return the closure date if it is a working day
 }
 
-func (s *Service) cancelPendingCollections(ctx context.Context, closureDate time.Time, clientDetails allpay.ClientDetails, collections []store.GetPendingCollectionsRow) error {
+func (s *Service) cancelPendingCollections(ctx context.Context, closureDate time.Time, collections []store.GetPendingCollectionsRow) error {
 	for _, pc := range collections {
 		if pc.CollectionDate.Time.After(closureDate) {
 			err := s.store.CancelPendingCollection(ctx, pc.ID)

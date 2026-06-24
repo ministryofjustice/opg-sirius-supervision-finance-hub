@@ -1,5 +1,9 @@
 describe("Allpay end-to-end", () => {
     const apiUrl = Cypress.env('FINANCE_API_URL') ?? 'http://localhost:8181';
+    const user = {
+        id: 2,
+        roles: ['Finance Reporting']
+    };
 
     it("sets up Direct Debit mandate and create payment schedule", () => {
         cy.visit("/clients/29/invoices");
@@ -12,27 +16,38 @@ describe("Allpay end-to-end", () => {
     });
 
     it("collects scheduled payment", () => {
-        const sendEvent = (date) => cy.request({
-            method: 'POST',
-            url: `${apiUrl}/events`,
-            body: {
-                source: "opg.supervision.infra",
-                "detail-type": "scheduled-event",
-                detail: {
-                    trigger: "direct-debit-collection",
-                    override: {
-                        date: date
-                    }
-                }
-            },
-            headers: {
-                Authorization: `Bearer test`
-            }
-        });
+        const holidayApiUrl = Cypress.env('HOLIDAY_API_URL') ?? 'http://localhost:8080/bank-holidays.json';
 
-        sendEvent(getCollectionDate(0));
-        // send a second time in case it was delayed until the next month
-        sendEvent(getCollectionDate(1));
+        cy.request(holidayApiUrl).then((response) => {
+            const bankHolidays = new Set(
+                response.body['england-and-wales'].events.map(e => e.date)
+            );
+
+            const formattedDate = getCollectionDate(bankHolidays);
+            const [day, month, year] = formattedDate.split('/');
+            const isoDate = `${year}-${month}-${day}`;
+
+            const csvContent = `9800000000000000000,29292900,100,D,${formattedDate}\n`;
+            const base64Data = btoa(csvContent);
+
+            cy.task('generateJWT', user).then((token) => {
+                cy.request({
+                    method: 'POST',
+                    url: `${apiUrl}/uploads`,
+                    body: {
+                        data: base64Data,
+                        emailAddress: "test@example.com",
+                        uploadType: "DIRECT_DEBITS_COLLECTIONS",
+                        uploadDate: isoDate,
+                    },
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    },
+                }).then((response) => {
+                    expect(response.status).to.eq(200);
+                });
+            });
+        });
 
         cy.wait(1000); // async process so give it a second to complete
 
@@ -43,23 +58,37 @@ describe("Allpay end-to-end", () => {
     });
 
     it("reverses the failed payment", () => {
-        cy.request({
-            method: 'POST',
-            url: `${apiUrl}/events`,
-            body: {
-                source: "opg.supervision.infra",
-                "detail-type": "scheduled-event",
-                detail: {
-                    trigger: "failed-direct-debit-collections",
-                    override: {
-                        date: "2000-01-01"
-                    }
-                }
-            },
-            headers: {
-                Authorization: `Bearer test`
-            }
+        const holidayApiUrl = Cypress.env('HOLIDAY_API_URL') ?? 'http://localhost:8080/bank-holidays.json';
+
+        cy.request(holidayApiUrl).then((response) => {
+            const bankHolidays = new Set(
+                response.body['england-and-wales'].events.map(e => e.date)
+            );
+
+            const formattedDate = getCollectionDate(bankHolidays);
+
+            const csvContent = `Court reference,Bank date,Received date,Amount\n29292900,${formattedDate},${formattedDate},100\n`;
+            const base64Data = btoa(csvContent);
+
+            cy.task('generateJWT', user).then((token) => {
+                cy.request({
+                    method: 'POST',
+                    url: `${apiUrl}/uploads`,
+                    body: {
+                        data: base64Data,
+                        emailAddress: "test@example.com",
+                        uploadType: "FAILED_DIRECT_DEBITS_COLLECTIONS",
+                    },
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    },
+                }).then((response) => {
+                    expect(response.status).to.eq(200);
+                });
+            });
         });
+
+        cy.wait(1000); // async process so give it a second to complete
 
         cy.visit("/clients/29/invoices");
 
@@ -79,6 +108,7 @@ describe("Allpay end-to-end", () => {
         cy.visit("/clients/29/invoices");
         cy.contains(".govuk-button", "Cancel Direct Debit").click();
         cy.get("#cancel-direct-debit-form").contains(".govuk-button", "Cancel Direct Debit").click();
+        cy.contains('[data-cy="payment-method"]', "Demanded");
     });
 
     it("displays the events in the billing history", () => {
@@ -93,14 +123,14 @@ describe("Allpay end-to-end", () => {
 
         cy.get(".moj-timeline__item").eq(1).within(() => {
             cy.contains(".moj-timeline__title", "Direct Debit payment of £100 reversed");
-            cy.contains(".moj-timeline__byline", `by Colin Case`);
+            cy.contains(".moj-timeline__byline", `by Ian Admin`);
             cy.contains(".govuk-list", "£100 reversed against AD292929/24");
         });
 
         // the next three events may appear in any order, but in reality the scheduled event would be first, as a
         // schedule cannot be created before a mandate, and payments are scheduled for at least 14 working days in the future
         cy.contains(".moj-timeline__item", "Direct Debit payment of £100 received").within(() => {
-            cy.contains(".moj-timeline__byline", `by Colin Case`);
+            cy.contains(".moj-timeline__byline", `by Ian Admin`);
             cy.contains(".govuk-list", "£100 allocated to AD292929/24");
         });
 
@@ -115,35 +145,36 @@ describe("Allpay end-to-end", () => {
     });
 });
 
+function getCollectionDate(bankHolidays = new Set()) {
+    // mirrors production logic: add 14 working days, then find next working day on or after the 24th
+    let date = new Date();
+    date.setUTCHours(0, 0, 0, 0);
 
-function getCollectionDate(offset) {
-    const today = new Date();
-    let year = today.getFullYear();
-    let month = today.getMonth() + offset; // 0-indexed
-
-    // next month if collection date has already passed
-    if (today.getDate() > 24) {
-        month++;
+    let workingDaysToAdd = 14;
+    while (workingDaysToAdd > 0) {
+        date.setDate(date.getDate() + 1);
+        if (isWorkingDay(date, bankHolidays)) {
+            workingDaysToAdd--;
+        }
     }
 
-    if (month > 11) {
-        month = month % 12;
-        year++;
+    // advance to the 24th of the current month, or next month if already past it
+    let target = new Date(Date.UTC(date.getFullYear(), date.getMonth(), 24));
+    if (date.getDate() > 24) {
+        target = new Date(Date.UTC(date.getFullYear(), date.getMonth() + 1, 24));
     }
 
-    let collectionDate = new Date(year, month, 24);
-
-    // Get the day of the week (0 = Sunday, 6 = Saturday)
-    const dayOfWeek = collectionDate.getDay();
-
-    // If it's Saturday (6), move to Monday (25th)
-    if (dayOfWeek === 6) {
-        collectionDate.setDate(26);
-    }
-    // If it's Sunday (0), move to Monday (25th)
-    else if (dayOfWeek === 0) {
-        collectionDate.setDate(25);
+    // find the next working day on or after the 24th
+    while (!isWorkingDay(target, bankHolidays)) {
+        target.setDate(target.getDate() + 1);
     }
 
-    return `${collectionDate.getFullYear()}-${String(collectionDate.getMonth() + 1).padStart(2, '0')}-${String(collectionDate.getDate()).padStart(2, '0')}`;
+    return `${String(target.getDate()).padStart(2, '0')}/${String(target.getMonth() + 1).padStart(2, '0')}/${target.getFullYear()}`;
+}
+
+function isWorkingDay(date, bankHolidays) {
+    const dayOfWeek = date.getDay();
+    if (dayOfWeek === 0 || dayOfWeek === 6) return false;
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    return !bankHolidays.has(dateStr);
 }

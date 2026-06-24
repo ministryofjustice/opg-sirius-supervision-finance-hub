@@ -31,16 +31,9 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
 				return err
 			}
 		}
-	} else if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeClientCreated {
-		if detail, ok := event.Detail.(shared.ClientCreatedEvent); ok {
-			err := s.service.UpdateClient(ctx, detail.ClientID, detail.CourtRef)
-			if err != nil {
-				return err
-			}
-		}
-	} else if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeOrderCreated {
-		if detail, ok := event.Detail.(shared.OrderCreatedEvent); ok {
-			err := s.service.CheckPaymentMethod(ctx, detail.ClientID)
+	} else if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeClientUpdated {
+		if detail, ok := event.Detail.(shared.ClientUpdatedEvent); ok {
+			err := s.service.UpdateClientMandateDetails(ctx, detail.ClientID, detail)
 			if err != nil {
 				return err
 			}
@@ -52,6 +45,21 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
 				ClientReference: detail.CourtRef,
 			}
 			err := s.service.CancelDirectDebitMandate(ctx, detail.ClientID, shared.CancelMandate{AllPayCustomer: allPayCustomer})
+			if err != nil {
+				return err
+			}
+		}
+	} else if event.Source == shared.EventSourceFinance && event.DetailType == shared.DetailTypeScheduleToRemove {
+		if detail, ok := event.Detail.(shared.ScheduleToRemoveEvent); ok {
+			allPayCustomer := shared.AllPayCustomer{
+				Surname:         detail.Surname,
+				ClientReference: detail.CourtRef,
+			}
+			err := s.service.RemoveDirectDebitSchedule(ctx, shared.RemoveSchedule{
+				AllPayCustomer: allPayCustomer,
+				Amount:         detail.Amount,
+				CollectionDate: detail.Date.Time,
+			})
 			if err != nil {
 				return err
 			}

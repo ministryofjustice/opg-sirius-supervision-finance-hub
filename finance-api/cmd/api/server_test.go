@@ -34,13 +34,7 @@ type mockService struct {
 	lastCalledParams         []interface{}
 }
 
-func (s *mockService) AddCollectedPayments(ctx context.Context, date time.Time) error {
-	s.called = append(s.called, "AddCollectedPayments")
-	s.lastCalledParams = []interface{}{date}
-	return s.errs["AddCollectedPayments"]
-}
-
-func (s *mockService) ProcessAdhocEvent(ctx context.Context) error {
+func (s *mockService) ProcessAdhocEvent(ctx context.Context, event shared.AdhocEvent) error {
 	s.called = append(s.called, "ProcessAdhocEvent")
 	return s.errs["ProcessAdhocEvent"]
 }
@@ -152,10 +146,6 @@ func (s *mockService) ProcessFinanceAdminUpload(ctx context.Context, detail shar
 	return s.errs["ProcessFinanceAdminUpload"]
 }
 
-func (s *mockService) UpdateClient(ctx context.Context, clientId int32, courtRef string) error {
-	s.called = append(s.called, "UpdateClient")
-	return s.errs["UpdateClient"]
-}
 
 func (s *mockService) GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) {
 	s.called = append(s.called, "GenerateAndUploadReport")
@@ -220,16 +210,19 @@ func (s *mockService) CreateDirectDebitScheduleForInvoice(ctx context.Context, d
 	return s.errs["CreateDirectDebitScheduleForInvoice"]
 }
 
-func (s *mockService) ProcessFailedDirectDebitCollections(ctx context.Context, date time.Time) error {
-	s.called = append(s.called, "ProcessFailedDirectDebitCollections")
-	s.lastCalledParams = []interface{}{date}
-	return s.errs["ProcessFailedDirectDebitCollections"]
+func (s *mockService) QueueScheduleRemovals(ctx context.Context, schedules [][]string, scheduleDate shared.Date) map[int]string {
+	s.called = append(s.called, "QueueScheduleRemovals")
+	return nil
 }
 
-func (s *mockService) CheckPaymentMethod(ctx context.Context, clientID int32) error {
-	s.called = append(s.called, "CheckPaymentMethod")
-	s.lastCalledParams = []interface{}{clientID}
-	return s.errs["CheckPaymentMethod"]
+func (s *mockService) RemoveDirectDebitSchedule(ctx context.Context, data shared.RemoveSchedule) error {
+	s.called = append(s.called, "RemoveDirectDebitSchedule")
+	return s.errs["RemoveDirectDebitSchedule"]
+}
+
+func (s *mockService) UpdateClientMandateDetails(ctx context.Context, id int32, detail shared.ClientUpdatedEvent) error {
+	s.called = append(s.called, "UpdateClientMandateDetails")
+	return s.errs["UpdateClientMandateDetails"]
 }
 
 type mockFileStorage struct {

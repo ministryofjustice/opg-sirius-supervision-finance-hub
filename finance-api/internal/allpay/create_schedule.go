@@ -11,8 +11,10 @@ import (
 )
 
 type schedule struct {
-	Date   string `json:"ScheduleDate"`
-	Amount int32  `json:"Amount"`
+	Date          string `json:"ScheduleDate"`
+	Amount        int32  `json:"Amount"`
+	Frequency     string `json:"Frequency"`
+	TotalPayments int32  `json:"TotalPayments"`
 }
 
 type createScheduleRequest struct {
@@ -32,8 +34,10 @@ func (c *Client) CreateSchedule(ctx context.Context, data *CreateScheduleInput) 
 
 	s := createScheduleRequest{
 		Schedules: []schedule{{
-			Date:   data.Date.Format("2006-01-02"),
-			Amount: data.Amount,
+			Date:          data.Date.Format("2006-01-02"),
+			Amount:        data.Amount,
+			Frequency:     "1",
+			TotalPayments: 1,
 		}},
 	}
 
@@ -44,21 +48,21 @@ func (c *Client) CreateSchedule(ctx context.Context, data *CreateScheduleInput) 
 	}
 
 	req, err := c.newRequest(ctx, http.MethodPost,
-		fmt.Sprintf("/Customers/%s/%s/%s/VariableMandates",
+		fmt.Sprintf("/Customers/%s/%s/%s/Mandates",
 			c.schemeCode,
 			base64.StdEncoding.EncodeToString([]byte(data.ClientReference)),
-			base64.StdEncoding.EncodeToString([]byte(data.Surname)),
+			base64.StdEncoding.EncodeToString([]byte(trimChars(data.Surname, 19))),
 		), &body)
 
 	if err != nil {
 		logger.Error("unable to build create schedule request", "error", err)
-		return ErrorAPI{}
+		return apiError("Schedule cannot be created due to an unexpected system error.")
 	}
 
 	resp, err := c.http.Do(req)
 	if err != nil {
 		logger.Error("unable to send create schedule request", "error", err)
-		return ErrorAPI{}
+		return apiError("Schedule cannot be created due to an unexpected system error.")
 	}
 
 	defer unchecked(resp.Body.Close)
@@ -69,7 +73,7 @@ func (c *Client) CreateSchedule(ctx context.Context, data *CreateScheduleInput) 
 		err = json.NewDecoder(resp.Body).Decode(&ve)
 		if err != nil {
 			logger.Error("unable to parse create schedule validation response", "error", err)
-			return ErrorAPI{}
+			return apiError("Schedule cannot be created due to an unexpected response from AllPay.")
 		}
 
 		logger.Error("create schedule request returned validation errors", "errors", ve)
@@ -78,7 +82,7 @@ func (c *Client) CreateSchedule(ctx context.Context, data *CreateScheduleInput) 
 
 	if resp.StatusCode != http.StatusOK {
 		logger.Error("create schedule request returned unexpected status code", "status", resp.Status)
-		return ErrorAPI{}
+		return apiError("Schedule cannot be created due to an unexpected response from AllPay.")
 	}
 
 	return nil

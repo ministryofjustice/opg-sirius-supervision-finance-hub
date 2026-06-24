@@ -5,8 +5,7 @@ import (
 )
 
 type DirectDebitCollectionFailed struct {
-	ClientID int    `json:"clientId"`
-	Reason   string `json:"reason"`
+	ClientID int `json:"clientId"`
 }
 
 func (c *Client) DirectDebitCollectionFailed(ctx context.Context, event DirectDebitCollectionFailed) error {
