@@ -8,7 +8,7 @@ services:
         condition: service_healthy
 
   zap-proxy:
-    image: zaproxy/zap-bare
+    image: zaproxy/zap-bare@sha256:212e30c8ac6021cde3c2cbfeeb30caebed2f03003920e69afd856243b017aef0
     environment:
       ACTIVE_SCAN: ${ACTIVE_SCAN:-false}
       ACTIVE_SCAN_TIMEOUT: ${ACTIVE_SCAN_TIMEOUT:-300}
