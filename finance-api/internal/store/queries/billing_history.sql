@@ -51,7 +51,8 @@ FROM ledger_allocation la
          LEFT JOIN invoice i ON la.invoice_id = i.id
          LEFT JOIN fee_reduction fr ON l.fee_reduction_id = fr.id
 WHERE fc.client_id = $1
-  AND la.status NOT IN ('PENDING', 'UN ALLOCATED');
+  AND l.status = 'CONFIRMED'
+  AND la.status IN ('ALLOCATED', 'UNAPPLIED', 'REAPPLIED');
 
 -- name: GetRefundsForBillingHistory :many
 SELECT r.id AS refund_id,
