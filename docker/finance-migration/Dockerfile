@@ -1,10 +1,6 @@
-FROM alpine:3.23.4 AS build
+FROM golang:alpine3.23@sha256:d94c1169c47217d91242d8ae44891081169e1e99017804f94c3d9309b039d2de AS build
 
-RUN apk add --no-cache curl
-
-RUN curl -fsSL \
-    https://raw.githubusercontent.com/pressly/goose/master/install.sh |\
-    sh
+RUN CGO_ENABLED=0 go install github.com/pressly/goose/v3/cmd/goose@v3.27.2
 
 COPY migrations/ /database/
 RUN rm /database/1_baseline.sql
