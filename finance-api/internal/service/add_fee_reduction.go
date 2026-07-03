@@ -88,7 +88,7 @@ func (s *Service) AddFeeReduction(ctx context.Context, clientId int32, data shar
 		}
 	}
 
-	err = s.ReapplyCredit(ctx, clientId, tx)
+	err = s.PostLedgerActions(ctx, clientId, tx)
 	if err != nil {
 		return err
 	}

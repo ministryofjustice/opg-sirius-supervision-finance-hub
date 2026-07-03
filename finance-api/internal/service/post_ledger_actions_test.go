@@ -15,6 +15,12 @@ const (
 								JOIN supervision_finance.ledger l ON fc.id = l.finance_client_id 
 								JOIN supervision_finance.ledger_allocation la ON l.id = la.ledger_id 
                       				WHERE la.status = 'REAPPLIED' AND fc.client_id = 1;`
+	countPendingUnprocessedRefundsQuery = `SELECT COUNT(*) FROM supervision_finance.refund r
+											JOIN supervision_finance.finance_client fc ON fc.id = r.finance_client_id
+											WHERE fc.client_id = 1 AND r.decision = 'PENDING' AND r.processed_at IS NULL;`
+	countApprovedRefundsQuery = `SELECT COUNT(*) FROM supervision_finance.refund r
+									JOIN supervision_finance.finance_client fc ON fc.id = r.finance_client_id
+									WHERE fc.client_id = 1 AND r.decision = 'APPROVED';`
 )
 
 func (suite *IntegrationSuite) TestService_reapplyCredit_noInvoices() {
@@ -35,7 +41,7 @@ func (suite *IntegrationSuite) TestService_reapplyCredit_noInvoices() {
 	)
 	dispatch := &mockDispatch{}
 	s := Service{store: store.New(seeder.Conn), dispatch: dispatch, tx: seeder.Conn}
-	err := s.ReapplyCredit(ctx, 1, nil)
+	err := s.PostLedgerActions(ctx, 1, nil)
 	assert.Nil(suite.T(), err)
 
 	var credit int
@@ -70,7 +76,7 @@ func (suite *IntegrationSuite) TestService_reapplyCredit_oldestFirst() {
 	)
 	dispatch := &mockDispatch{}
 	s := Service{store: store.New(seeder.Conn), dispatch: dispatch, tx: seeder.Conn}
-	err := s.ReapplyCredit(ctx, 1, nil)
+	err := s.PostLedgerActions(ctx, 1, nil)
 	assert.Nil(suite.T(), err)
 
 	var (
@@ -123,7 +129,7 @@ func (suite *IntegrationSuite) TestService_reapplyCredit_requiresApprovedLedger(
 	)
 	dispatch := &mockDispatch{}
 	s := Service{store: store.New(seeder.Conn), dispatch: dispatch, tx: seeder.Conn}
-	err := s.ReapplyCredit(ctx, 1, nil)
+	err := s.PostLedgerActions(ctx, 1, nil)
 	assert.Nil(suite.T(), err)
 
 	var (
@@ -145,4 +151,39 @@ func (suite *IntegrationSuite) TestService_reapplyCredit_requiresApprovedLedger(
 
 	assert.Equal(suite.T(), 10000, amount)
 	assert.Equal(suite.T(), -5000, cachedDebtAmount)
+}
+
+func (suite *IntegrationSuite) TestService_postLedgerActions_resetsApprovedRefunds() {
+	ctx := suite.ctx
+	seeder := suite.cm.Seeder(ctx, suite.T())
+
+	seeder.SeedData(
+		"INSERT INTO finance_client VALUES (1, 1, 'no-invoice', 'DEMANDED', NULL);",
+		"INSERT INTO refund VALUES (1, 1, '2019-01-02', 11100, 'APPROVED', 'An approved refund to reset', 99, '2025-06-01 00:00:00', 99, '2025-06-02 00:00:00')",
+		"INSERT INTO refund VALUES (2, 1, '2019-01-05', 14400, 'APPROVED', 'A processing refund', 99, '2025-06-01 00:00:00', 99, '2025-06-02 00:00:00', '2026-06-03 00:00:00')",
+		"INSERT INTO refund VALUES (3, 1, '2019-01-11', 10000, 'PENDING', 'A pending refund', 99, '2025-06-01 00:00:00')",
+	)
+
+	dispatch := &mockDispatch{}
+	s := Service{store: store.New(seeder.Conn), dispatch: dispatch, tx: seeder.Conn}
+	err := s.PostLedgerActions(ctx, 1, nil)
+	assert.Nil(suite.T(), err)
+
+	var count int
+
+	row := seeder.QueryRow(ctx, countPendingUnprocessedRefundsQuery)
+	_ = row.Scan(&count)
+	assert.Equal(suite.T(), 2, count)
+
+	row = seeder.QueryRow(ctx, countApprovedRefundsQuery)
+	_ = row.Scan(&count)
+	assert.Equal(suite.T(), 1, count)
+
+	row = seeder.QueryRow(ctx, "SELECT COUNT(*) FROM supervision_finance.refund WHERE id = 1 AND decision_at IS NULL AND decision_by IS NULL;")
+	_ = row.Scan(&count)
+	assert.Equal(suite.T(), 1, count)
+
+	expected := event.RefundReset{ClientID: 1}
+	assert.Equal(suite.T(), expected, dispatch.event)
+	assert.Equal(suite.T(), []string{"RefundReset"}, dispatch.called)
 }

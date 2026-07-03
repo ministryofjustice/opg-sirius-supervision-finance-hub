@@ -90,7 +90,7 @@ UPDATE refund
 SET fulfilled_at = NOW()
 WHERE id = $1;
 
--- name: ExpirePendingRefunds :many
+-- name: ExpirePendingRefunds :one
 WITH expired_refunds AS (
     UPDATE refund
         SET decision = 'REJECTED', decision_at = NOW(), decision_by = $1
@@ -102,7 +102,7 @@ WITH expired_refunds AS (
 SELECT COUNT(*)
 FROM expired_refunds;
 
--- name: ExpireApprovedRefunds :many
+-- name: ExpireApprovedRefunds :one
 WITH expired_refunds AS (
     UPDATE refund
         SET cancelled_at = NOW(), cancelled_by = $1
@@ -114,7 +114,7 @@ WITH expired_refunds AS (
 SELECT COUNT(*)
 FROM expired_refunds;
 
--- name: ExpireProcessingRefunds :many
+-- name: ExpireProcessingRefunds :one
 WITH expired_refunds AS (
     UPDATE refund
         SET cancelled_at = NOW(), cancelled_by = $1
@@ -141,3 +141,13 @@ SELECT EXISTS (SELECT 1
                WHERE fc.court_ref = @court_ref
                  AND r.fulfilled_at::DATE = @fulfilled_date::DATE
                  AND r.amount = @amount);
+
+-- name: ResetApprovedRefunds :many
+UPDATE refund
+    SET decision = 'PENDING',
+        decision_at = NULL,
+        decision_by = NULL
+    WHERE decision = 'APPROVED'
+      AND processed_at IS NULL
+      AND finance_client_id = (SELECT id FROM finance_client WHERE client_id = @client_id)
+    RETURNING id;

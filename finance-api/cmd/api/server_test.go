@@ -45,7 +45,7 @@ func (s *mockService) UpdatePaymentMethod(ctx context.Context, clientID int32, p
 	return s.errs["UpdatePaymentMethod"]
 }
 
-func (s *mockService) ReapplyCredit(ctx context.Context, clientID int32, tx *store.Tx) error {
+func (s *mockService) PostLedgerActions(ctx context.Context, clientID int32, tx *store.Tx) error {
 	s.expectedIds = []int{int(clientID)}
 	s.called = append(s.called, "ReapplyCredit")
 	return s.errs["ReapplyCredit"]
@@ -145,7 +145,6 @@ func (s *mockService) ProcessFinanceAdminUpload(ctx context.Context, detail shar
 	s.called = append(s.called, "ProcessFinanceAdminUpload")
 	return s.errs["ProcessFinanceAdminUpload"]
 }
-
 
 func (s *mockService) GenerateAndUploadReport(ctx context.Context, reportRequest shared.ReportRequest, requestedDate time.Time) {
 	s.called = append(s.called, "GenerateAndUploadReport")
