@@ -1,4 +1,4 @@
-FROM golang:alpine3.23@sha256:d94c1169c47217d91242d8ae44891081169e1e99017804f94c3d9309b039d2de AS build
+FROM golang:alpine3.23@sha256:18b460dd17542c2ba43299a633cf6ebfc1115101509531471d7cfce1019af083 AS build
 
 RUN CGO_ENABLED=0 go install github.com/pressly/goose/v3/cmd/goose@v3.27.2
 
