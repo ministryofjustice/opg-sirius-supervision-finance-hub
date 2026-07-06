@@ -71,14 +71,13 @@ const FinalFeeDebtQuery = `SELECT client.caserecnumber AS "Case_no",
 			GROUP BY i.person_id
             ) AS gi
             , LATERAL (
-            SELECT COUNT(w.id)
-            FROM public.person_warning pw
-            INNER JOIN public.warnings w ON pw.warning_id = w.id
-            WHERE pw.person_id = client.id
-              AND w.isactive = TRUE
-              AND w.warningtype = 'Do not invoice'
-            ) AS do_not_invoice_warning_count
-        LEFT JOIN LATERAL (
+			SELECT COUNT(w.id)
+			FROM supervision.warnings w
+			WHERE w.client_id = client.id
+			  AND w.isactive = TRUE
+			  AND w.warningtype = 'Do not invoice'
+			) AS do_not_invoice_warning_count
+        	LEFT JOIN LATERAL (
                 SELECT c.closedondate, c.orderclosurereason
                 FROM public.cases c
                 WHERE client.id = c.client_id

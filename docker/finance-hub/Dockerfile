@@ -1,4 +1,4 @@
-FROM golang:1.26 AS base
+FROM golang:1.26@sha256:f96cc555eb8db430159a3aa6797cd5bae561945b7b0fe7d0e284c63a3b291609 AS base
 
 RUN adduser \
     --disabled-password \
@@ -15,7 +15,7 @@ ENV CGO_ENABLED=0 GOOS=linux
 
 RUN update-ca-certificates
 
-FROM node:24-alpine3.23 AS asset-env
+FROM node:24-alpine3.23@sha256:595398b0081eacda8e1c4c5b97b76cd1020e4d58a8ebcb4843b9bca1e79e7436 AS asset-env
 WORKDIR /app
 
 RUN mkdir -p web/static

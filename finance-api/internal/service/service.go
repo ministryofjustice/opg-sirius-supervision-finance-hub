@@ -29,6 +29,7 @@ type Dispatch interface {
 	DirectDebitCollectionFailed(ctx context.Context, event event.DirectDebitCollectionFailed) error
 	PendingInvoiceAdjustment(ctx context.Context, event event.PendingInvoiceAdjustment) error
 	ScheduleToRemove(ctx context.Context, event event.ScheduleToRemove) error
+	RefundReset(ctx context.Context, reset event.RefundReset) error
 }
 
 type FileStorage interface {

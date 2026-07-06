@@ -67,7 +67,7 @@ func (s *Service) UpdatePendingInvoiceAdjustment(ctx context.Context, clientId i
 		}
 	}
 	if status == shared.AdjustmentStatusApproved {
-		err = s.ReapplyCredit(ctx, clientId, tx)
+		err = s.PostLedgerActions(ctx, clientId, tx)
 		if err != nil {
 			return err
 		}

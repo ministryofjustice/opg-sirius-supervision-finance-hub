@@ -22,7 +22,7 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
 
 	if event.Source == shared.EventSourceSirius && event.DetailType == shared.DetailTypeInvoiceCreated {
 		if detail, ok := event.Detail.(shared.InvoiceCreatedEvent); ok {
-			err := s.service.ReapplyCredit(ctx, detail.ClientID, nil)
+			err := s.service.PostLedgerActions(ctx, detail.ClientID, nil)
 			if err != nil {
 				return err
 			}

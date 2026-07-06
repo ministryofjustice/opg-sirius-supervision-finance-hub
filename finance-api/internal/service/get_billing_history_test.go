@@ -50,6 +50,9 @@ func (suite *IntegrationSuite) TestService_GetBillingHistory() {
 
 		// legacy events - not to be displayed
 		"INSERT INTO supervision_finance.fee_reduction VALUES (22, 1, 'HARDSHIP', NULL, '2019-04-01', '2020-03-31', 'Legacy (no created BankDate) - do not display', FALSE, '2019-05-01');",
+		// legacy ledger - approved ledgers should not be included
+		"INSERT INTO supervision_finance.ledger VALUES (6,'legacy-ledger','2024-01-17 09:36:05','',10000,'legacy','DIRECT DEBIT PAYMENT','APPROVED',1,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2024-01-17 09:36:05',1);",
+		"INSERT INTO supervision_finance.ledger_allocation VALUES (8,6,NULL,'2024-01-17 09:36:05',10000,'ALLOCATED');",
 		// events that are for a different client - not to be displayed
 		"INSERT INTO supervision_finance.finance_client VALUES (2,22,2234,'DEMANDED',NULL);",
 		"INSERT INTO supervision_finance.invoice VALUES (3,22,2,'AD','AD000003/24','2024-01-01','2024-01-01',15000,NULL,'2024-01-01',NULL,'2024-01-01','Created manually',NULL,NULL,'2024-01-01 10:00:00',2);",
