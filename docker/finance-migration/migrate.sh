@@ -22,4 +22,4 @@ check_var DB_NAME $DB_NAME
 check_var DB_SCHEMA $DB_SCHEMA
 check_var COMMAND $1
 
-/usr/local/bin/goose -dir /database postgres $DB_CONN_STR $COMMAND
+/go/bin/goose -dir /database postgres $DB_CONN_STR $COMMAND
