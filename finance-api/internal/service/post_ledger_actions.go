@@ -13,11 +13,22 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
 )
 
-func (s *Service) ReapplyCredit(ctx context.Context, clientID int32, tx *store.Tx) error {
+func (s *Service) PostLedgerActions(ctx context.Context, clientID int32, tx *store.Tx) error {
 	if tx == nil {
-		return s.reapplyCreditTx(ctx, clientID)
+		return s.postLedgerActionsTx(ctx, clientID)
 	}
+	return s.postLedgerActions(ctx, clientID, tx)
+}
 
+func (s *Service) postLedgerActions(ctx context.Context, clientID int32, tx *store.Tx) error {
+	err := s.reapplyCredit(ctx, clientID, tx)
+	if err != nil {
+		return err
+	}
+	return s.resetRefunds(ctx, clientID, tx)
+}
+
+func (s *Service) reapplyCredit(ctx context.Context, clientID int32, tx *store.Tx) error {
 	var userID pgtype.Int4
 	_ = store.ToInt4(&userID, ctx.(auth.Context).User.ID)
 	creditPosition, err := tx.GetCreditBalanceAndOldestOpenInvoice(ctx, clientID)
@@ -75,28 +86,40 @@ func (s *Service) ReapplyCredit(ctx context.Context, clientID int32, tx *store.T
 	logger.Info(fmt.Sprintf("%d credit applied to invoice %d", reapplyAmount, creditPosition.InvoiceID.Int32))
 
 	// there may still be credit on account, so repeat to find the next applicable invoice
-	return s.ReapplyCredit(ctx, clientID, tx)
+	return s.PostLedgerActions(ctx, clientID, tx)
 }
 
 func getReapplyAmount(credit int32, outstanding int32) int32 {
 	if credit >= outstanding {
 		return outstanding
-	} else {
-		return credit
 	}
+
+	return credit
+}
+
+func (s *Service) resetRefunds(ctx context.Context, clientID int32, tx *store.Tx) error {
+	refunds, err := tx.ResetApprovedRefunds(ctx, clientID)
+	if err != nil {
+		return err
+	}
+	if len(refunds) > 0 {
+		return s.dispatch.RefundReset(ctx, event.RefundReset{ClientID: clientID})
+	}
+	return nil
+
 }
 
 /**
- * reapplyCreditTx is a wrapper function to supply a transaction where ReapplyCredit is called without an existing transaction
+ * postLedgerActionsTx is a wrapper function to supply a transaction where PostLedgerActions is called without an existing transaction
  */
-func (s *Service) reapplyCreditTx(ctx context.Context, clientID int32) error {
+func (s *Service) postLedgerActionsTx(ctx context.Context, clientID int32) error {
 	tx, err := s.BeginStoreTx(ctx)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback(ctx)
 
-	err = s.ReapplyCredit(ctx, clientID, tx)
+	err = s.postLedgerActions(ctx, clientID, tx)
 	if err != nil {
 		return err
 	}

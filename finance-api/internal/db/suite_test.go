@@ -34,6 +34,10 @@ func (m *mockDispatch) RefundAdded(ctx context.Context, event event.RefundAdded)
 	return nil
 }
 
+func (m *mockDispatch) RefundReset(ctx context.Context, event event.RefundReset) error {
+	return nil
+}
+
 func (m *mockDispatch) DirectDebitScheduleFailed(ctx context.Context, event event.DirectDebitScheduleFailed) error {
 	return nil
 }
