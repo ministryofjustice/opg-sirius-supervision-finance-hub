@@ -18,6 +18,8 @@ func (s *Service) ProcessAdhocEvent(ctx context.Context, event shared.AdhocEvent
 		s.processAdhocChangePendingCollectionDate(ctx)
 	case "SetDemanded":
 		s.processAdhocSetDemanded(ctx)
+	case "DirectDebitMandateScheduleCheck":
+		s.processAdhocDirectDebitMandateScheduleCheck(ctx)
 	default:
 		return fmt.Errorf("invalid adhoc process: %s", event.Task)
 	}
@@ -98,5 +100,20 @@ func (s *Service) processAdhocSetDemanded(ctx context.Context) {
 		}
 
 		logger.Info(fmt.Sprintf("SetDemanded: %d clients set to demanded, %d errored", count, errs))
+	}(telemetry.LoggerFromContext(ctx))
+}
+
+func (s *Service) processAdhocDirectDebitMandateScheduleCheck(ctx context.Context) {
+	// perform async so request context doesn't cancel before process is complete
+	go func(logger *slog.Logger) {
+		logger.Info("DD mandate & schedule check: started")
+
+		funcCtx := telemetry.ContextWithLogger(context.WithoutCancel(ctx), logger)
+		if err := s.CheckDirectDebitMandateSchedule(funcCtx, logger); err != nil {
+			logger.Error("DD mandate & schedule check: failed", "error", err)
+			return
+		}
+
+		logger.Info("DD mandate & schedule check: completed")
 	}(telemetry.LoggerFromContext(ctx))
 }

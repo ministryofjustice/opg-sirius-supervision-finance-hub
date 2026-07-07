@@ -94,6 +94,45 @@ func (q *Queries) CreatePendingCollection(ctx context.Context, arg CreatePending
 	return err
 }
 
+const getClientsSetToDirectDebitOnOrAfterSpecifiedDate = `-- name: GetClientsSetToDirectDebitOnOrAfterSpecifiedDate :many
+SELECT DISTINCT ON (fc.court_ref)
+    fc.court_ref,
+    p.surname::VARCHAR AS surname,
+    fc.payment_method AS current_payment_method
+FROM supervision_finance.payment_method pm
+    JOIN supervision_finance.finance_client fc ON fc.id = pm.finance_client_id
+    JOIN public.persons p ON p.id = fc.client_id
+WHERE pm.type = 'DIRECT DEBIT'
+  AND pm.created_at >= $1
+ORDER BY fc.court_ref, pm.created_at DESC, pm.id DESC
+`
+
+type GetClientsSetToDirectDebitOnOrAfterSpecifiedDateRow struct {
+	CourtRef             pgtype.Text
+	Surname              pgtype.Text
+	CurrentPaymentMethod string
+}
+
+func (q *Queries) GetClientsSetToDirectDebitOnOrAfterSpecifiedDate(ctx context.Context, date pgtype.Timestamp) ([]GetClientsSetToDirectDebitOnOrAfterSpecifiedDateRow, error) {
+	rows, err := q.db.Query(ctx, getClientsSetToDirectDebitOnOrAfterSpecifiedDate, date)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetClientsSetToDirectDebitOnOrAfterSpecifiedDateRow
+	for rows.Next() {
+		var i GetClientsSetToDirectDebitOnOrAfterSpecifiedDateRow
+		if err := rows.Scan(&i.CourtRef, &i.Surname, &i.CurrentPaymentMethod); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPendingCollections = `-- name: GetPendingCollections :many
 SELECT pc.id, pc.amount, pc.collection_date
 FROM pending_collection pc
