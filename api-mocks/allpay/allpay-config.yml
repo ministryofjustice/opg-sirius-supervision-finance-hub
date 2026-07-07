@@ -47,18 +47,7 @@ resources:
       Surname: c2NoZWR1bGVfdmFsaWRhdGlvbg==
     response:
       statusCode: 200
-      contentType: application/json
-      content: |
-        {
-          "FetchMandateScheduleData": [
-            {
-              "ClientReference": "schedule_validation",
-              "LastName": "schedule_validation",
-              "Status": "Live"
-            }
-          ],
-          "TotalRecords": 1
-        }
+      file: data/mandate_schedule_check_mandate_with_schedule.json
 
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/Schedule"
     method: get
@@ -68,20 +57,7 @@ resources:
       Surname: c2NoZWR1bGVfdmFsaWRhdGlvbg==
     response:
       statusCode: 200
-      contentType: application/json
-      content: |
-        {
-          "FetchMandateScheduleData": [
-            {
-              "Amount": 10000,
-              "ClientReference": "schedule_validation",
-              "LastName": "schedule_validation",
-              "ScheduleDate": "2026-07-24",
-              "Status": "Live"
-            }
-          ],
-          "TotalRecords": 1
-        }
+      file: data/mandate_schedule_check_schedule_with_schedule.json
 
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}"
     method: get
@@ -91,18 +67,7 @@ resources:
       Surname: c2NoZWR1bGVfZmFpbA==
     response:
       statusCode: 200
-      contentType: application/json
-      content: |
-        {
-          "FetchMandateScheduleData": [
-            {
-              "ClientReference": "schedule_fail",
-              "LastName": "schedule_fail",
-              "Status": "Live"
-            }
-          ],
-          "TotalRecords": 1
-        }
+      file: data/mandate_schedule_check_mandate_without_schedule.json
 
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/Schedule"
     method: get
@@ -112,12 +77,7 @@ resources:
       Surname: c2NoZWR1bGVfZmFpbA==
     response:
       statusCode: 200
-      contentType: application/json
-      content: |
-        {
-          "FetchMandateScheduleData": [],
-          "TotalRecords": 0
-        }
+      file: data/mandate_schedule_check_no_schedule.json
 
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}"
     method: put
