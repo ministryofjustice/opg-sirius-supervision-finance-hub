@@ -86,7 +86,7 @@ services:
         condition: service_healthy
 
   go-lint:
-    image: golangci/golangci-lint:v2.12.2
+    image: golangci/golangci-lint:v2.12.2@sha256:5cceeef04e53efe1470638d4b4b4f5ceefd574955ab3941b2d9a68a8c9ad5240
     working_dir: /go/src/app
     volumes:
       - ./:/go/src/app
@@ -94,21 +94,21 @@ services:
     command: golangci-lint run -v --timeout 5m
 
   gosec:
-    image: securego/gosec:2.24.6
+    image: securego/gosec:2.24.6@sha256:2cf71ea78210c496c65e3a987576a9c8317b68e20f2960520b3f6f8f9f539be5
     working_dir: /app
     volumes:
       - .:/app
     command: -exclude-dir=.gocache -exclude-generated -fmt=sarif -out=/app/test-results/gosec.sarif -stdout -verbose=text /app/...
 
   yarn:
-    image: node:24-alpine3.23
+    image: node:24-alpine3.23@sha256:595398b0081eacda8e1c4c5b97b76cd1020e4d58a8ebcb4843b9bca1e79e7436
     working_dir: /home/node/app
     entrypoint: yarn
     volumes:
       - ./finance-hub:/home/node/app
 
   sirius-db:
-    image: postgres:14-alpine
+    image: postgres:14-alpine@sha256:f1148c0146b1cd042c566ea15873b479e17bd14589c9eb6bd44a03224a7989c7
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
@@ -125,7 +125,7 @@ services:
       retries: 5
 
   sqlc:
-    image: sqlc/sqlc:1.29.0
+    image: sqlc/sqlc:1.29.0@sha256:0de3f476fb9c11192b4dd5413c531512e9fc5b3ec3cce075b7d7b4709a0c3e58
     environment:
       POSTGRES_CONN: localhost:5432
       POSTGRES_USER: user
@@ -155,7 +155,7 @@ services:
     command: "up"
 
   localstack:
-    image: localstack/localstack:4.14
+    image: localstack/localstack:4.14@sha256:3ebc37595918b8accb852f8048fef2aff047d465167edd655528065b07bc364a
     volumes:
       - "./scripts/localstack/init:/etc/localstack/init/ready.d"
       - "./scripts/localstack/files:/scripts/files"
@@ -189,7 +189,7 @@ services:
       - "8080:8080"
 
   pact-cli:
-    image: pactfoundation/pact-cli:1.5.0.4
+    image: pactfoundation/pact-cli:1.5.0.4@sha256:4708c3d61157bff90082a483e4ff70541eb66f951eb3e218ea3e80a557abd170
     working_dir: /go/src/app
     volumes:
       - ./pacts:/go/src/app/pacts

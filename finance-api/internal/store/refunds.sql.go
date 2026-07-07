@@ -98,7 +98,7 @@ func (q *Queries) CreateRefund(ctx context.Context, arg CreateRefundParams) (int
 	return id, err
 }
 
-const expireApprovedRefunds = `-- name: ExpireApprovedRefunds :many
+const expireApprovedRefunds = `-- name: ExpireApprovedRefunds :one
 WITH expired_refunds AS (
     UPDATE refund
         SET cancelled_at = NOW(), cancelled_by = $1
@@ -111,27 +111,14 @@ SELECT COUNT(*)
 FROM expired_refunds
 `
 
-func (q *Queries) ExpireApprovedRefunds(ctx context.Context, cancelledBy pgtype.Int4) ([]int64, error) {
-	rows, err := q.db.Query(ctx, expireApprovedRefunds, cancelledBy)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []int64
-	for rows.Next() {
-		var count int64
-		if err := rows.Scan(&count); err != nil {
-			return nil, err
-		}
-		items = append(items, count)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+func (q *Queries) ExpireApprovedRefunds(ctx context.Context, cancelledBy pgtype.Int4) (int64, error) {
+	row := q.db.QueryRow(ctx, expireApprovedRefunds, cancelledBy)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }
 
-const expirePendingRefunds = `-- name: ExpirePendingRefunds :many
+const expirePendingRefunds = `-- name: ExpirePendingRefunds :one
 WITH expired_refunds AS (
     UPDATE refund
         SET decision = 'REJECTED', decision_at = NOW(), decision_by = $1
@@ -144,27 +131,14 @@ SELECT COUNT(*)
 FROM expired_refunds
 `
 
-func (q *Queries) ExpirePendingRefunds(ctx context.Context, decisionBy pgtype.Int4) ([]int64, error) {
-	rows, err := q.db.Query(ctx, expirePendingRefunds, decisionBy)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []int64
-	for rows.Next() {
-		var count int64
-		if err := rows.Scan(&count); err != nil {
-			return nil, err
-		}
-		items = append(items, count)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+func (q *Queries) ExpirePendingRefunds(ctx context.Context, decisionBy pgtype.Int4) (int64, error) {
+	row := q.db.QueryRow(ctx, expirePendingRefunds, decisionBy)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }
 
-const expireProcessingRefunds = `-- name: ExpireProcessingRefunds :many
+const expireProcessingRefunds = `-- name: ExpireProcessingRefunds :one
 WITH expired_refunds AS (
     UPDATE refund
         SET cancelled_at = NOW(), cancelled_by = $1
@@ -177,24 +151,11 @@ SELECT COUNT(*)
 FROM expired_refunds
 `
 
-func (q *Queries) ExpireProcessingRefunds(ctx context.Context, cancelledBy pgtype.Int4) ([]int64, error) {
-	rows, err := q.db.Query(ctx, expireProcessingRefunds, cancelledBy)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []int64
-	for rows.Next() {
-		var count int64
-		if err := rows.Scan(&count); err != nil {
-			return nil, err
-		}
-		items = append(items, count)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+func (q *Queries) ExpireProcessingRefunds(ctx context.Context, cancelledBy pgtype.Int4) (int64, error) {
+	row := q.db.QueryRow(ctx, expireProcessingRefunds, cancelledBy)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }
 
 const getProcessingRefund = `-- name: GetProcessingRefund :one
@@ -368,6 +329,37 @@ WHERE refund_id = $1
 func (q *Queries) RemoveBankDetails(ctx context.Context, refundID int32) error {
 	_, err := q.db.Exec(ctx, removeBankDetails, refundID)
 	return err
+}
+
+const resetApprovedRefunds = `-- name: ResetApprovedRefunds :many
+UPDATE refund
+    SET decision = 'PENDING',
+        decision_at = NULL,
+        decision_by = NULL
+    WHERE decision = 'APPROVED'
+      AND processed_at IS NULL
+      AND finance_client_id = (SELECT id FROM finance_client WHERE client_id = $1)
+    RETURNING id
+`
+
+func (q *Queries) ResetApprovedRefunds(ctx context.Context, clientID int32) ([]int32, error) {
+	rows, err := q.db.Query(ctx, resetApprovedRefunds, clientID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int32
+	for rows.Next() {
+		var id int32
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const setRefundDecision = `-- name: SetRefundDecision :exec
