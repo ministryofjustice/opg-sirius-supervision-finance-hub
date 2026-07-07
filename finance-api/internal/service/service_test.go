@@ -113,6 +113,7 @@ func (m *mockDispatch) ScheduleToRemove(ctx context.Context, event event.Schedul
 type mockAllpay struct {
 	called           []string
 	failedPayments   allpay.FailedPayments
+	mandateSchedule  *allpay.MandateScheduleCheckOutput
 	errs             map[string]error
 	lastCalledParams []interface{}
 	closureDate      time.Time
@@ -153,6 +154,12 @@ func (m *mockAllpay) FetchFailedPayments(ctx context.Context, input allpay.Fetch
 	m.called = append(m.called, "FetchFailedPayments")
 	m.lastCalledParams = []interface{}{input}
 	return m.failedPayments, m.errs["FetchFailedPayments"]
+}
+
+func (m *mockAllpay) FetchMandateSchedule(ctx context.Context, input allpay.FetchMandateScheduleInput) (*allpay.MandateScheduleCheckOutput, error) {
+	m.called = append(m.called, "FetchMandateSchedule")
+	m.lastCalledParams = []interface{}{input}
+	return m.mandateSchedule, m.errs["FetchMandateSchedule"]
 }
 
 func (m *mockAllpay) UpdateClientDetails(ctx context.Context, data *allpay.UpdateClientDetailsInput) error {
