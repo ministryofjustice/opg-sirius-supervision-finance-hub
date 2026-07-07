@@ -43,6 +43,12 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
 				COALESCE(a.town, '') AS "City_Town",
 				COALESCE(a.county, '') AS "County",
 				COALESCE(a.postcode, '') AS "Postcode",
+				invoice_26_af_letter.raiseddate,
+				invoice_26_af_letter.templateid, 
+				invoice_26_af_letter.createddate,
+				any_a2_or_a6_on_case.systemtype,
+				any_a2_or_a6_on_case.publisheddate,
+				any_a2_or_a6_on_case.case_id,
 				CONCAT('£', ABS(gi.total / 100.0)::NUMERIC(10,2)::VARCHAR(255)) AS "Total_debt",
 				gi.invoice
         FROM public.persons cl
@@ -52,7 +58,7 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
                        SELECT a.* FROM public.addresses a WHERE a.person_id = p.id ORDER BY a.id DESC LIMIT 1
                 ) a ON TRUE
                 LEFT JOIN LATERAL (
-                    SELECT c.howdeputyappointed AS how_deputy_appointed
+                    SELECT c.howdeputyappointed AS how_deputy_appointed, c.id AS case_id
 					FROM supervision.order_deputy od
 					INNER JOIN public.cases c ON od.order_id = c.id
 					WHERE od.deputy_id = p.id
@@ -62,7 +68,30 @@ const FeeChaseQuery = `SELECT cl.caserecnumber AS "Case_no",
 					ORDER BY c.casesubtype DESC LIMIT 1
                 ) c ON TRUE
                 LEFT JOIN LATERAL (
-                	SELECT dii.annualbillinginvoice 
+                    SELECT i2.raiseddate, ies.templateid, ies.createddate
+                    FROM supervision_finance.invoice i2
+                    INNER JOIN supervision_finance.invoice_email_status ies ON ies.invoice_id = i2.id
+                    WHERE i2.finance_client_id = fc.id
+                    AND i2.raiseddate > '2026-03-30'
+					AND i2.raiseddate < '2026-04-01'
+                    AND ies.templateid IN ('af1', 'AF1', 'af2', 'AF2', 'af3', 'AF3')
+                    AND ies.createddate >= '2026-04-01'
+                    AND ies.createddate < '2026-05-26'
+                ) invoice_26_af_letter ON TRUE
+                LEFT JOIN LATERAL (
+                    SELECT d.systemtype, d.publisheddate, c.case_id
+                    FROM public.caseitem_document cd
+                    INNER JOIN public.documents d ON cd.document_id = d.id
+                    WHERE cd.caseitem_id = c.case_id
+                    AND d.systemtype IN ('a2', 'a6')
+                    AND deletedat IS NULL
+                    AND publisheddate IS NOT NULL
+					AND publisheddate >= '2026-04-01'
+                    AND publisheddate < '2026-05-26'
+                    ORDER BY publisheddate DESC LIMIT 1
+                ) any_a2_or_a6_on_case ON TRUE
+                LEFT JOIN LATERAL (
+                	SELECT dii.annualbillinginvoice
                     FROM supervision.deputy_important_information dii
 			    	WHERE dii.deputy_id = cl.feepayer_id
                     LIMIT 1
@@ -127,6 +156,12 @@ func (f *FeeChase) GetHeaders() []string {
 		"City_Town",
 		"County",
 		"Postcode",
+		"invoice_26_af_letter.raiseddate",
+		"invoice_26_af_letter.systemtype",
+		"invoice_26_af_letter.publisheddate",
+		"any_a2_or_a6_on_case.systemtype",
+		"any_a2_or_a6_on_case.createddate",
+		"any_a2_or_a6_on_case.case_id",
 		"Total_debt",
 	}
 
@@ -147,7 +182,7 @@ func (f *FeeChase) GetCallback() func(row pgx.CollectableRow) ([]string, error) 
 		}
 
 		for index, value := range values {
-			if index == 24 {
+			if index == 30 {
 				jsonBytes, err := json.Marshal(value)
 				if err != nil {
 					return nil, fmt.Errorf("error marshaling to JSON: %v", err)
@@ -174,3 +209,4 @@ func (f *FeeChase) GetCallback() func(row pgx.CollectableRow) ([]string, error) 
 		return stringRow, nil
 	}
 }
+
