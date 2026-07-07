@@ -40,6 +40,86 @@ resources:
       template: true
 
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}"
+    method: get
+    pathParams:
+      # court ref/surname: schedule_validation - mandate with schedule
+      ClientRef: c2NoZWR1bGVfdmFsaWRhdGlvbg==
+      Surname: c2NoZWR1bGVfdmFsaWRhdGlvbg==
+    response:
+      statusCode: 200
+      contentType: application/json
+      content: |
+        {
+          "FetchMandateScheduleData": [
+            {
+              "ClientReference": "schedule_validation",
+              "LastName": "schedule_validation",
+              "Status": "Live"
+            }
+          ],
+          "TotalRecords": 1
+        }
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/Schedule"
+    method: get
+    pathParams:
+      # court ref/surname: schedule_validation - mandate with schedule
+      ClientRef: c2NoZWR1bGVfdmFsaWRhdGlvbg==
+      Surname: c2NoZWR1bGVfdmFsaWRhdGlvbg==
+    response:
+      statusCode: 200
+      contentType: application/json
+      content: |
+        {
+          "FetchMandateScheduleData": [
+            {
+              "Amount": 10000,
+              "ClientReference": "schedule_validation",
+              "LastName": "schedule_validation",
+              "ScheduleDate": "2026-07-24",
+              "Status": "Live"
+            }
+          ],
+          "TotalRecords": 1
+        }
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}"
+    method: get
+    pathParams:
+      # court ref/surname: schedule_fail - mandate without schedule
+      ClientRef: c2NoZWR1bGVfZmFpbA==
+      Surname: c2NoZWR1bGVfZmFpbA==
+    response:
+      statusCode: 200
+      contentType: application/json
+      content: |
+        {
+          "FetchMandateScheduleData": [
+            {
+              "ClientReference": "schedule_fail",
+              "LastName": "schedule_fail",
+              "Status": "Live"
+            }
+          ],
+          "TotalRecords": 1
+        }
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/Schedule"
+    method: get
+    pathParams:
+      # court ref/surname: schedule_fail - mandate without schedule
+      ClientRef: c2NoZWR1bGVfZmFpbA==
+      Surname: c2NoZWR1bGVfZmFpbA==
+    response:
+      statusCode: 200
+      contentType: application/json
+      content: |
+        {
+          "FetchMandateScheduleData": [],
+          "TotalRecords": 0
+        }
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}"
     method: put
     requestBody:
       jsonPath: $.Customer.LastName
@@ -126,6 +206,7 @@ resources:
     response:
       statusCode: 400
       content: "Bad Request - Please check the format of your body request"
+
 
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/Schedule/{Date}/{Amount}"
     method: delete
