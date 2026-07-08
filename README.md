@@ -13,6 +13,11 @@
 A [walkthrough](docs/walkthrough.md) of this project has been written for the Golang Community of Practice, describing
 the package structure and some technical aspects of the codebase.
 
+### Direct Debit Runbook
+We have a [runbook](docs/runbook-direct-debit.md) describing the Direct Debit process and Allpay integration. This includes
+the expected flow of events, failure modes and the steps to resolve them, and information to assist with testing in both
+local and live environments.
+
 #### Installing dependencies locally:
 (This is only necessary if running without docker)
 

@@ -47,6 +47,9 @@ generation, which occurs in opg-sirius. The eventual aim is that this will be th
 
 It consists of the following packages:
 
+### `allpay`
+* Client for the Allpay API, which handles direct debit mandates and collections
+
 ### `api`
 * Located in `cmd/api` as this is an entrypoint into the application
 * Contains the HTTP handlers for the API requests, which respond with JSON
