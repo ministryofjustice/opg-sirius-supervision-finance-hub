@@ -28,7 +28,7 @@ func (suite *IntegrationSuite) TestService_generateScheduleData_success() {
 	pc, err := s.generateScheduleData(ctx, 11)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), PendingCollection{
+	assert.Equal(suite.T(), ScheduleData{
 		Amount:         10000,
 		CollectionDate: govUKMock.WorkingDay.Truncate(24 * time.Hour),
 	}, pc)
@@ -50,7 +50,7 @@ func (suite *IntegrationSuite) TestService_generateScheduleData_noBalance() {
 	pc, err := s.generateScheduleData(ctx, 11)
 
 	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), PendingCollection{}, pc)
+	assert.Equal(suite.T(), ScheduleData{}, pc)
 }
 
 func (suite *IntegrationSuite) TestService_generateScheduleData_balanceFetchFails() {

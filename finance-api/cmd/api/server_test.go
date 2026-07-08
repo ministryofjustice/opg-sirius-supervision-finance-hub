@@ -27,7 +27,7 @@ type mockService struct {
 	billingHistory           []shared.BillingHistory
 	refunds                  shared.Refunds
 	addRefund                shared.AddRefund
-	pendingCollection        service.PendingCollection
+	pendingCollection        service.ScheduleData
 	expectedIds              []int
 	called                   []string
 	errs                     map[string]error
@@ -189,7 +189,7 @@ func (s *mockService) CancelDirectDebitMandate(ctx context.Context, id int32, ca
 	return s.errs["CancelDirectDebitMandate"]
 }
 
-func (s *mockService) CreateDirectDebitMandate(ctx context.Context, id int32, createMandate shared.CreateMandate) (service.PendingCollection, error) {
+func (s *mockService) CreateDirectDebitMandate(ctx context.Context, id int32, createMandate shared.CreateMandate) (service.ScheduleData, error) {
 	s.called = append(s.called, "CreateDirectDebitMandate")
 	return s.pendingCollection, s.errs["CreateDirectDebitMandate"]
 }
@@ -199,7 +199,7 @@ func (s *mockService) CreateDirectDebitSchedule(ctx context.Context, details sha
 	return s.errs["CreateDirectDebitSchedule"]
 }
 
-func (s *mockService) SendDirectDebitCollectionEvent(ctx context.Context, id int32, pendingCollection service.PendingCollection) error {
+func (s *mockService) SendDirectDebitCollectionEvent(ctx context.Context, id int32, pendingCollection service.ScheduleData) error {
 	s.called = append(s.called, "SendDirectDebitCollectionEvent")
 	return s.errs["SendDirectDebitCollectionEvent"]
 }

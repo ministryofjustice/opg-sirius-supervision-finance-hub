@@ -18,7 +18,7 @@ import (
 
 const billingDay = 24
 
-type PendingCollection struct {
+type ScheduleData struct {
 	Amount         int32
 	CollectionDate time.Time
 }
@@ -125,25 +125,25 @@ func (s *Service) pendingScheduleExists(ctx context.Context, clientID int32) boo
 }
 
 // generateScheduleData creates a schedule object by checking outstanding balance and calculating collection date.
-// Returns an empty PendingCollection if there is no balance.
-func (s *Service) generateScheduleData(ctx context.Context, clientID int32) (PendingCollection, error) {
+// Returns an empty ScheduleData if there is no balance.
+func (s *Service) generateScheduleData(ctx context.Context, clientID int32) (ScheduleData, error) {
 	balance, err := s.store.GetPendingOutstandingBalance(ctx, clientID)
 	if err != nil {
 		s.Logger(ctx).Error("failed to fetch outstanding balance", "client_id", clientID, "error", err)
-		return PendingCollection{}, err
+		return ScheduleData{}, err
 	}
 
 	if balance < 1 {
-		return PendingCollection{}, nil
+		return ScheduleData{}, nil
 	}
 
 	date, err := s.calculateScheduleCollectionDate(ctx)
 	if err != nil {
 		s.Logger(ctx).Error("failed to calculate collection date", "client_id", clientID, "error", err)
-		return PendingCollection{}, err
+		return ScheduleData{}, err
 	}
 
-	return PendingCollection{
+	return ScheduleData{
 		Amount:         balance,
 		CollectionDate: date,
 	}, nil

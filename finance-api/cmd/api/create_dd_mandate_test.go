@@ -48,7 +48,7 @@ func TestServer_createDirectDebitMandateWithSchedule(t *testing.T) {
 	validator, _ := validation.New()
 
 	mock := &mockService{
-		pendingCollection: service.PendingCollection{
+		pendingCollection: service.ScheduleData{
 			Amount:         10000,
 			CollectionDate: time.Time{},
 		},

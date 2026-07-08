@@ -28,7 +28,7 @@ type Service interface {
 	AddRefund(ctx context.Context, clientId int32, refund shared.AddRefund) error
 	CancelFeeReduction(ctx context.Context, id int32, cancelledFeeReduction shared.CancelFeeReduction) error
 	CancelDirectDebitMandate(ctx context.Context, id int32, cancelMandate shared.CancelMandate) error
-	CreateDirectDebitMandate(ctx context.Context, id int32, createMandate shared.CreateMandate) (service.PendingCollection, error)
+	CreateDirectDebitMandate(ctx context.Context, id int32, createMandate shared.CreateMandate) (service.ScheduleData, error)
 	CreateDirectDebitSchedule(ctx context.Context, details shared.InvoiceCreatedEvent) error
 	RemoveDirectDebitSchedule(ctx context.Context, data shared.RemoveSchedule) error
 	ExpireRefunds(ctx context.Context) error
@@ -51,7 +51,7 @@ type Service interface {
 	UpdatePaymentMethod(ctx context.Context, clientID int32, paymentMethod shared.PaymentMethod) error
 	UpdatePendingInvoiceAdjustment(ctx context.Context, clientId int32, adjustmentId int32, status shared.AdjustmentStatus) error
 	UpdateRefundDecision(ctx context.Context, clientId int32, refundId int32, status shared.RefundStatus) error
-	SendDirectDebitCollectionEvent(ctx context.Context, id int32, pendingCollection service.PendingCollection) error
+	SendDirectDebitCollectionEvent(ctx context.Context, id int32, pendingCollection service.ScheduleData) error
 	QueueScheduleRemovals(ctx context.Context, schedules [][]string, scheduleDate shared.Date) map[int]string
 	UpdateClientMandateDetails(ctx context.Context, id int32, detail shared.ClientUpdatedEvent) error
 }
