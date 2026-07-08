@@ -189,24 +189,19 @@ func (s *mockService) CancelDirectDebitMandate(ctx context.Context, id int32, ca
 	return s.errs["CancelDirectDebitMandate"]
 }
 
-func (s *mockService) CreateDirectDebitMandate(ctx context.Context, id int32, createMandate shared.CreateMandate) error {
+func (s *mockService) CreateDirectDebitMandate(ctx context.Context, id int32, createMandate shared.CreateMandate) (service.PendingCollection, error) {
 	s.called = append(s.called, "CreateDirectDebitMandate")
-	return s.errs["CreateDirectDebitMandate"]
+	return s.pendingCollection, s.errs["CreateDirectDebitMandate"]
 }
 
-func (s *mockService) CreateDirectDebitSchedule(ctx context.Context, clientID int32, data shared.CreateSchedule) (service.PendingCollection, error) {
+func (s *mockService) CreateDirectDebitSchedule(ctx context.Context, details shared.InvoiceCreatedEvent) error {
 	s.called = append(s.called, "CreateDirectDebitSchedule")
-	return s.pendingCollection, s.errs["CreateDirectDebitSchedule"]
+	return s.errs["CreateDirectDebitSchedule"]
 }
 
 func (s *mockService) SendDirectDebitCollectionEvent(ctx context.Context, id int32, pendingCollection service.PendingCollection) error {
 	s.called = append(s.called, "SendDirectDebitCollectionEvent")
 	return s.errs["SendDirectDebitCollectionEvent"]
-}
-
-func (s *mockService) CreateDirectDebitScheduleForInvoice(ctx context.Context, details shared.InvoiceCreatedEvent) error {
-	s.called = append(s.called, "CreateDirectDebitScheduleForInvoice")
-	return s.errs["CreateDirectDebitScheduleForInvoice"]
 }
 
 func (s *mockService) QueueScheduleRemovals(ctx context.Context, schedules [][]string, scheduleDate shared.Date) map[int]string {

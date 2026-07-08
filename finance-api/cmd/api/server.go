@@ -28,9 +28,8 @@ type Service interface {
 	AddRefund(ctx context.Context, clientId int32, refund shared.AddRefund) error
 	CancelFeeReduction(ctx context.Context, id int32, cancelledFeeReduction shared.CancelFeeReduction) error
 	CancelDirectDebitMandate(ctx context.Context, id int32, cancelMandate shared.CancelMandate) error
-	CreateDirectDebitMandate(ctx context.Context, id int32, createMandate shared.CreateMandate) error
-	CreateDirectDebitSchedule(ctx context.Context, clientID int32, data shared.CreateSchedule) (service.PendingCollection, error)
-	CreateDirectDebitScheduleForInvoice(ctx context.Context, details shared.InvoiceCreatedEvent) error
+	CreateDirectDebitMandate(ctx context.Context, id int32, createMandate shared.CreateMandate) (service.PendingCollection, error)
+	CreateDirectDebitSchedule(ctx context.Context, details shared.InvoiceCreatedEvent) error
 	RemoveDirectDebitSchedule(ctx context.Context, data shared.RemoveSchedule) error
 	ExpireRefunds(ctx context.Context) error
 	GetAccountInformation(ctx context.Context, id int32) (*shared.AccountInformation, error)

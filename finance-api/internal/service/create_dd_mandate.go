@@ -15,16 +15,16 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
-func (s *Service) CreateDirectDebitMandate(ctx context.Context, clientID int32, createMandate shared.CreateMandate) error {
+func (s *Service) CreateDirectDebitMandate(ctx context.Context, clientID int32, createMandate shared.CreateMandate) (PendingCollection, error) {
 	bankDetails := createMandate.BankAccount.BankDetails
 	err := s.allpay.ModulusCheck(ctx, bankDetails.SortCode, bankDetails.AccountNumber)
 	if err != nil {
-		return err
+		return PendingCollection{}, err
 	}
 
 	tx, err := s.BeginStoreTx(ctx)
 	if err != nil {
-		return err
+		return PendingCollection{}, err
 	}
 	defer tx.Rollback(ctx)
 
@@ -45,10 +45,10 @@ func (s *Service) CreateDirectDebitMandate(ctx context.Context, clientID int32, 
 		CreatedBy:     createdBy,
 	})
 	if err != nil {
-		return err
+		return PendingCollection{}, err
 	}
 
-	err = s.allpay.CreateMandate(ctx, &allpay.CreateMandateRequest{
+	mandateRequest := &allpay.CreateMandateRequest{
 		Customer: allpay.Customer{
 			ClientReference: createMandate.ClientReference,
 			Surname:         createMandate.Surname,
@@ -67,11 +67,47 @@ func (s *Service) CreateDirectDebitMandate(ctx context.Context, clientID int32, 
 				AccountNumber: bankDetails.AccountNumber,
 			},
 		},
-	})
+	}
+
+	// Check for outstanding debt to determine if we should create mandate with schedule
+	schedule, err := s.generateScheduleData(ctx, clientID)
+	if err != nil {
+		return PendingCollection{}, err
+	}
+
+	// If there is outstanding debt, add schedules to mandate request
+	var pc PendingCollection
+	if schedule.Amount > 0 {
+		mandateRequest.Schedules = []allpay.Schedule{{
+			ScheduleDate:  schedule.CollectionDate.Format("2006-01-02"),
+			Amount:        schedule.Amount,
+			Frequency:     "1",
+			TotalPayments: 1,
+		}}
+
+		// Create pending collection record
+		var cd pgtype.Date
+		_ = cd.Scan(schedule.CollectionDate)
+
+		err = tx.CreatePendingCollection(ctx, store.CreatePendingCollectionParams{
+			ClientID:       clientID,
+			CollectionDate: cd,
+			Amount:         schedule.Amount,
+			CreatedBy:      ctx.(auth.Context).User.ID,
+		})
+		if err != nil {
+			s.Logger(ctx).Error(fmt.Sprintf("Error creating pending collection for client : %d", clientID), slog.String("err", err.Error()))
+			return PendingCollection{}, err
+		}
+
+		pc = schedule
+	}
+
+	err = s.allpay.CreateMandate(ctx, mandateRequest)
 
 	if err != nil {
 		s.Logger(ctx).Error(fmt.Sprintf("Error creating mandate with allpay, rolling back payment method change for client : %d", clientID), slog.String("err", err.Error()))
-		return apierror.BadRequestError("Allpay", "Failed", err)
+		return PendingCollection{}, apierror.BadRequestError("Allpay", "Failed", err)
 	}
 
 	err = s.dispatch.PaymentMethodChanged(ctx, event.PaymentMethod{
@@ -79,8 +115,8 @@ func (s *Service) CreateDirectDebitMandate(ctx context.Context, clientID int32, 
 		PaymentMethod: shared.PaymentMethodDirectDebit,
 	})
 	if err != nil {
-		return err
+		return PendingCollection{}, err
 	}
 
-	return tx.Commit(ctx)
+	return pc, tx.Commit(ctx)
 }
