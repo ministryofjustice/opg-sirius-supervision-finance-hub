@@ -12,15 +12,15 @@ import (
 func TestCancelMandate_Success(t *testing.T) {
 	schemeCode := "SCHEME123"
 
-	date := time.Now()
+	date := time.Now().AddDate(0, 0, 1) // future date
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodDelete {
 			t.Errorf("Expected DELETE, got %s", r.Method)
 		}
-		today := date.Format("2006-01-02")
-		if r.URL.Path != "/AllpayApi/Customers/SCHEME123/MTIzNDU2Nzg=/Q2FuY2VsbWFu/Mandates/"+today {
-			t.Errorf("Unexpected URL path: %s", r.URL.Path)
+		expectedPath := "/AllpayApi/Customers/SCHEME123/MTIzNDU2Nzg=/Q2FuY2VsbWFu/Mandates/" + date.Format("2006-01-02")
+		if r.URL.Path != expectedPath {
+			t.Errorf("Unexpected URL path: got %s, want %s", r.URL.Path, expectedPath)
 		}
 		w.WriteHeader(http.StatusOK)
 	}))
@@ -56,7 +56,7 @@ func TestCancelMandate_RequestCreationFails(t *testing.T) {
 	}
 
 	err := c.CancelMandate(testContext(), &CancelMandateRequest{
-		ClosureDate: time.Now(),
+		ClosureDate: time.Now().AddDate(0, 0, 1),
 		ClientDetails: ClientDetails{
 			ClientReference: "12345678",
 			Surname:         "Cancelman",
@@ -82,7 +82,7 @@ func TestCancelMandate_UnexpectedStatus(t *testing.T) {
 	}
 
 	err := c.CancelMandate(testContext(), &CancelMandateRequest{
-		ClosureDate: time.Now(),
+		ClosureDate: time.Now().AddDate(0, 0, 1),
 		ClientDetails: ClientDetails{
 			ClientReference: "12345678",
 			Surname:         "Cancelman",
@@ -96,7 +96,7 @@ func TestCancelMandate_UnexpectedStatus(t *testing.T) {
 func TestCancelMandateWhenAlreadyCancelled_ReturnsNil(t *testing.T) {
 	schemeCode := "SCHEME123"
 
-	date := time.Now()
+	date := time.Now().AddDate(0, 0, 1) // future date
 	alreadyCancelled := ErrorValidation{Messages: []string{"A Direct Debit Mandate was not found for this account"}}
 	body, _ := json.Marshal(alreadyCancelled)
 
@@ -104,9 +104,9 @@ func TestCancelMandateWhenAlreadyCancelled_ReturnsNil(t *testing.T) {
 		if r.Method != http.MethodDelete {
 			t.Errorf("Expected DELETE, got %s", r.Method)
 		}
-		today := date.Format("2006-01-02")
-		if r.URL.Path != "/AllpayApi/Customers/SCHEME123/MTIzNDU2Nzg=/Q2FuY2VsbWFu/Mandates/"+today {
-			t.Errorf("Unexpected URL path: %s", r.URL.Path)
+		expectedPath := "/AllpayApi/Customers/SCHEME123/MTIzNDU2Nzg=/Q2FuY2VsbWFu/Mandates/" + date.Format("2006-01-02")
+		if r.URL.Path != expectedPath {
+			t.Errorf("Unexpected URL path: got %s, want %s", r.URL.Path, expectedPath)
 		}
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		_, _ = w.Write(body)
@@ -152,7 +152,7 @@ func TestCancelMandate_ValidationErrorValidJSON(t *testing.T) {
 	}
 
 	err := c.CancelMandate(testContext(), &CancelMandateRequest{
-		ClosureDate: time.Now(),
+		ClosureDate: time.Now().AddDate(0, 0, 1),
 		ClientDetails: ClientDetails{
 			ClientReference: "12345678",
 			Surname:         "Cancelman",
@@ -161,7 +161,38 @@ func TestCancelMandate_ValidationErrorValidJSON(t *testing.T) {
 
 	var validationErr ErrorValidation
 	if !errors.As(err, &validationErr) {
-
 		t.Errorf("Expected ErrorValidation, got %v", err)
+	}
+}
+
+func TestCancelMandate_SuccessWithoutClosureDate(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodDelete {
+			t.Errorf("Expected DELETE, got %s", r.Method)
+		}
+		if r.URL.Path != "/AllpayApi/Customers/SCHEME123/MTIzNDU2Nzg=/Q2FuY2VsbWFu/Mandates" {
+			t.Errorf("Unexpected URL path: %s", r.URL.Path)
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer ts.Close()
+
+	c := &Client{
+		http: ts.Client(),
+		Envs: Envs{
+			schemeCode: "SCHEME123",
+			apiHost:    ts.URL,
+		},
+	}
+
+	err := c.CancelMandate(testContext(), &CancelMandateRequest{
+		ClosureDate: time.Now().Truncate(24 * time.Hour),
+		ClientDetails: ClientDetails{
+			ClientReference: "12345678",
+			Surname:         " Cancelman ",
+		},
+	})
+	if err != nil {
+		t.Errorf("Expected no error, got %v", err)
 	}
 }

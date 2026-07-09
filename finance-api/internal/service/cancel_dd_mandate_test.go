@@ -51,7 +51,7 @@ func (suite *IntegrationSuite) TestService_CancelDirectDebitMandate() {
 	assert.NoError(suite.T(), err)
 
 	assert.Equal(suite.T(), "CancelMandate", allpayMock.called[0])
-	assert.Equal(suite.T(), today.AddDate(0, 0, 2).UTC().Truncate(24*time.Hour), allpayMock.closureDate)
+	assert.Equal(suite.T(), today.AddDate(0, 0, 2).UTC().Truncate(24*time.Hour), allpayMock.closureDate.UTC().Truncate(24*time.Hour))
 
 	rows := seeder.QueryRow(ctx, "SELECT payment_method FROM supervision_finance.finance_client WHERE id = 1")
 	var paymentMethod string
@@ -74,6 +74,8 @@ func (suite *IntegrationSuite) TestService_CancelDirectDebitMandate() {
 func (suite *IntegrationSuite) TestService_CancelDirectDebitMandate_fails() {
 	ctx := suite.ctx
 	seeder := suite.cm.Seeder(ctx, suite.T())
+
+	today := time.Now()
 
 	seeder.SeedData(
 		"INSERT INTO public.persons VALUES (11, NULL, NULL, 'Person', NULL, NULL, NULL, NULL, FALSE, FALSE, NULL, NULL, 'Client', NULL);",
@@ -106,6 +108,7 @@ func (suite *IntegrationSuite) TestService_CancelDirectDebitMandate_fails() {
 	assert.Error(suite.T(), err)
 
 	assert.Equal(suite.T(), "CancelMandate", allpayMock.called[0])
+	assert.Equal(suite.T(), today.UTC().Truncate(24*time.Hour), allpayMock.closureDate.UTC().Truncate(24*time.Hour))
 
 	rows := seeder.QueryRow(ctx, "SELECT payment_method FROM supervision_finance.finance_client WHERE id = 1")
 	var paymentMethod string
