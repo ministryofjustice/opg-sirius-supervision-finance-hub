@@ -311,6 +311,58 @@ paths:
                 Error: true
                 Messages:
                   - 'Amount is greater than £20,000,000.00'
+    delete:
+      summary: Cancel a mandate without a closure date
+      parameters:
+        - name: SchemeCode
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: ClientRef
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Base64-encoded client reference
+        - name: Surname
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Base64-encoded surname
+      responses:
+        '200':
+          description: Mandate cancelled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  SchemeCode:
+                    type: integer
+                  LastName:
+                    type: string
+                  ClientReference:
+                    type: string
+              example:
+                SchemeCode: 123456
+                LastName: Smith
+                ClientReference: ABC123XYZ
+        '422':
+          description: Mandate is not active or already cancelled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    items:
+                      type: string
+              example:
+                messages:
+                  - "A Direct Debit mandate was not found for this account"
 
   /AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/{Date}:
     delete:
@@ -335,10 +387,11 @@ paths:
           description: Base64-encoded surname
         - name: Date
           in: path
+          required: true
           schema:
             type: string
             format: date
-          description: 'Format: YY-MM-DD' will cancel for today's date if not provided
+          description: 'Format: YY-MM-DD'
       responses:
         '200':
           description: Mandate cancelled successfully

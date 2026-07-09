@@ -96,7 +96,7 @@ resources:
       statusCode: 400
       content: "Bad Request - Please check the format of your body request"
 
-  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/{Date}"
+  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates"
     method: delete
     pathParams:
       # client 19 in seed_data.sql
@@ -111,12 +111,36 @@ resources:
           ]
         }
 
-  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/{Date}"
+  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates"
     method: delete
     response:
       statusCode: 200
       file: data/success.json
       template: true
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates"
+    method: delete
+    pathParams:
+      # cancel_fail
+      Surname: Y2FuY2VsX2ZhaWw=
+    response:
+      statusCode: 400
+      content: "Bad Request - Please check the format of your body request"
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/{Date}"
+    method: delete
+    pathParams:
+      # client 19 in seed_data.sql
+      ClientRef: MTkxOTE5MTk=
+      Surname: Q2FuY2Vs
+    response:
+      statusCode: 422
+      content: |
+        {
+          "messages": [
+            "A Direct Debit mandate was not found for this account"
+          ]
+        }
 
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/{Date}"
     method: delete
@@ -213,4 +237,3 @@ resources:
     response:
       statusCode: 200
       file: data/mod_check_nonexistent_sortcode.json
-
