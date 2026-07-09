@@ -272,7 +272,7 @@ paths:
                     type: integer
               example:
                 FetchMandateScheduleData:
-                  - ClientReference: schedule_validation
+                  - ClientReference: 27272700
                     LastName: schedule_validation
                     Status: Live
                 TotalRecords: 1
@@ -330,7 +330,7 @@ paths:
                   value:
                     FetchMandateScheduleData:
                       - Amount: 10000
-                        ClientReference: schedule_validation
+                        ClientReference: 27272700
                         LastName: schedule_validation
                         ScheduleDate: 2026-07-24
                         Status: Live

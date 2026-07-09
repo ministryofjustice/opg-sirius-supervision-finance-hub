@@ -42,8 +42,8 @@ resources:
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}"
     method: get
     pathParams:
-      # court ref/surname: schedule_validation - mandate with schedule
-      ClientRef: c2NoZWR1bGVfdmFsaWRhdGlvbg==
+      # finance_client.court_ref/surname: 27272700 / schedule_validation - mandate with schedule
+      ClientRef: MjcyNzI3MDA=
       Surname: c2NoZWR1bGVfdmFsaWRhdGlvbg==
     response:
       statusCode: 200
@@ -52,8 +52,8 @@ resources:
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/Schedule"
     method: get
     pathParams:
-      # court ref/surname: schedule_validation - mandate with schedule
-      ClientRef: c2NoZWR1bGVfdmFsaWRhdGlvbg==
+      # finance_client.court_ref/surname: 27272700 / schedule_validation - mandate with schedule
+      ClientRef: MjcyNzI3MDA=
       Surname: c2NoZWR1bGVfdmFsaWRhdGlvbg==
     response:
       statusCode: 200
@@ -62,8 +62,8 @@ resources:
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}"
     method: get
     pathParams:
-      # court ref/surname: schedule_fail - mandate without schedule
-      ClientRef: c2NoZWR1bGVfZmFpbA==
+      # finance_client.court_ref/surname: 26262600 / schedule_fail - mandate without schedule
+      ClientRef: MjYyNjI2MDA=
       Surname: c2NoZWR1bGVfZmFpbA==
     response:
       statusCode: 200
@@ -72,8 +72,8 @@ resources:
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/Schedule"
     method: get
     pathParams:
-      # court ref/surname: schedule_fail - mandate without schedule
-      ClientRef: c2NoZWR1bGVfZmFpbA==
+      # finance_client.court_ref/surname: 26262600 / schedule_fail - mandate without schedule
+      ClientRef: MjYyNjI2MDA=
       Surname: c2NoZWR1bGVfZmFpbA==
     response:
       statusCode: 200
