@@ -170,7 +170,7 @@ func TestCancelMandate_SuccessWithoutClosureDate(t *testing.T) {
 		if r.Method != http.MethodDelete {
 			t.Errorf("Expected DELETE, got %s", r.Method)
 		}
-		if r.URL.Path != "/AllpayApi/Customers/SCHEME123/MTIzNDU2Nzg=/Q2FuY2VsbWFu/Mandates" {
+		if r.URL.Path != "/AllpayApi/Customers/SCHEME123/MTIzNDU2Nzg=/Q2FuY2VsbWFu/Mandates/" {
 			t.Errorf("Unexpected URL path: %s", r.URL.Path)
 		}
 		w.WriteHeader(http.StatusOK)

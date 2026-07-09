@@ -18,7 +18,7 @@ type CancelMandateRequest struct {
 func (c *Client) CancelMandate(ctx context.Context, data *CancelMandateRequest) error {
 	logger := c.logger(ctx)
 
-	path := fmt.Sprintf("/Customers/%s/%s/%s/Mandates",
+	path := fmt.Sprintf("/Customers/%s/%s/%s/Mandates/",
 		c.schemeCode,
 		base64.StdEncoding.EncodeToString([]byte(data.ClientReference)),
 		base64.StdEncoding.EncodeToString([]byte(trimChars(data.Surname, 19))),
@@ -27,7 +27,7 @@ func (c *Client) CancelMandate(ctx context.Context, data *CancelMandateRequest) 
 	today := time.Now().UTC().Truncate(24 * time.Hour)
 	// closure date must be in the future, so if it is today's date, we omit it from the request
 	if data.ClosureDate.UTC().Truncate(24 * time.Hour).After(today) {
-		path = fmt.Sprintf("%s/%s", path, data.ClosureDate.Format("2006-01-02"))
+		path += data.ClosureDate.Format("2006-01-02")
 	}
 
 	req, err := c.newRequest(ctx, http.MethodDelete, path, nil)
