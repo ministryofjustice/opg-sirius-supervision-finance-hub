@@ -335,11 +335,10 @@ paths:
           description: Base64-encoded surname
         - name: Date
           in: path
-          required: true
           schema:
             type: string
             format: date
-          description: 'Format: YY-MM-DD'
+          description: 'Format: YY-MM-DD' will cancel for today's date if not provided
       responses:
         '200':
           description: Mandate cancelled successfully
