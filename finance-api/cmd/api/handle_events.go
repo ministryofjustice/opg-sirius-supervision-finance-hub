@@ -26,7 +26,7 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) error {
 			if err != nil {
 				return err
 			}
-			err = s.service.CreateDirectDebitScheduleForInvoice(ctx, detail)
+			err = s.service.CreateDirectDebitSchedule(ctx, detail)
 			if err != nil {
 				return err
 			}
