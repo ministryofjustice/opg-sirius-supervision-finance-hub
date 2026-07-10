@@ -34,34 +34,11 @@ type MandateScheduleCheckOutput struct {
 	ScheduleError string
 }
 
-// FetchMandateSchedule fetches mandate and schedule data for one client so the caller can write a single CSV row.
-func (c *Client) FetchMandateSchedule(ctx context.Context, data FetchMandateScheduleInput) (*MandateScheduleCheckOutput, error) {
-
-	mandate, mandateErr := c.fetchMandateData(ctx, data)
-	schedule, scheduleErr := c.fetchScheduleData(ctx, data)
-
-	// Return a combined result with any errors from the individual fetches. This allows the caller to handle partial failures gracefully.
-	output := &MandateScheduleCheckOutput{
-		Mandate:  mandate,
-		Schedule: schedule,
-	}
-
-	// if mandate/schedule fails it still produces usable result and won't stop the command on the first bad Allpay response
-	if mandateErr != nil {
-		output.MandateError = mandateErr.Error()
-	}
-	if scheduleErr != nil {
-		output.ScheduleError = scheduleErr.Error()
-	}
-
-	return output, nil
-}
-
-func (c *Client) fetchMandateData(ctx context.Context, data FetchMandateScheduleInput) (*FetchMandateScheduleOutput, error) {
+func (c *Client) FetchMandate(ctx context.Context, data FetchMandateScheduleInput) (*FetchMandateScheduleOutput, error) {
 	return c.fetchMandateScheduleData(ctx, data, "", "mandate")
 }
 
-func (c *Client) fetchScheduleData(ctx context.Context, data FetchMandateScheduleInput) (*FetchMandateScheduleOutput, error) {
+func (c *Client) FetchSchedule(ctx context.Context, data FetchMandateScheduleInput) (*FetchMandateScheduleOutput, error) {
 	return c.fetchMandateScheduleData(ctx, data, "/Mandates/Schedule", "schedule")
 }
 

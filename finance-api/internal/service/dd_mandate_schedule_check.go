@@ -32,9 +32,7 @@ func (s *Service) CheckDirectDebitMandateSchedule(ctx context.Context, logger *s
 
 	logger.Info("DD mandate & schedule check: clients found", "count", len(clients))
 
-	//creates temporary CSV in memory to hold the data
 	var csvBuffer bytes.Buffer
-	//writes a UTF-8 BOM — Byte Order Mark — at the start of the CSV to help Excel open the CSV without character encoding issues.
 	if _, err = csvBuffer.Write([]byte("\uFEFF")); err != nil {
 		return fmt.Errorf("write CSV BOM: %w", err)
 	}
@@ -45,32 +43,27 @@ func (s *Service) CheckDirectDebitMandateSchedule(ctx context.Context, logger *s
 	}
 
 	for i, client := range clients {
-		result, err := s.allpay.FetchMandateSchedule(ctx, allpay.FetchMandateScheduleInput{
+		input := allpay.FetchMandateScheduleInput{
 			ClientDetails: allpay.ClientDetails{
 				ClientReference: client.CourtRef.String,
 				Surname:         client.Surname.String,
 			},
-		})
-		if err != nil {
-			logger.Error("DD mandate & schedule check: unable to fetch mandate schedule data", "courtRef", client.CourtRef.String, "error", err)
-			result = &allpay.MandateScheduleCheckOutput{MandateError: err.Error()}
 		}
+
+		result := fetchMandateSchedule(ctx, s.allpay, input, logger)
 
 		if !shouldWriteMissingScheduleRow(result) {
 			continue
 		}
 
-		//only write CSV row for court refs that have missing schedules
 		if err = writeCSVRow(writer, client.CourtRef.String, client.Surname.String, result); err != nil {
 			return err
 		}
 
-		//service logs every 50 clients
 		if (i+1)%50 == 0 || i+1 == len(clients) {
 			logger.Info("DD mandate & schedule check: progress", "processed", i+1, "total", len(clients))
 		}
 
-		//service sleeps for 250ms between each client to avoid overwhelming the AllPay API
 		if i+1 < len(clients) {
 			time.Sleep(ddMandateScheduleCheckSleep)
 		}
@@ -83,7 +76,6 @@ func (s *Service) CheckDirectDebitMandateSchedule(ctx context.Context, logger *s
 
 	fileName := fmt.Sprintf("dd-mandate-schedule-check/%s.csv", time.Now().UTC().Format("2006-01-02T15-04-05Z"))
 
-	//The service builds the CSV in memory and uploads it:
 	versionID, err := s.fileStorage.StreamFile(ctx, s.env.AsyncBucket, fileName, io.NopCloser(bytes.NewReader(csvBuffer.Bytes())))
 	if err != nil {
 		return fmt.Errorf("upload CSV to S3: %w", err)
@@ -91,6 +83,28 @@ func (s *Service) CheckDirectDebitMandateSchedule(ctx context.Context, logger *s
 
 	logger.Info("DD mandate & schedule check: CSV uploaded", "bucket", s.env.AsyncBucket, "key", fileName, "versionId", versionID)
 	return nil
+}
+
+func fetchMandateSchedule(ctx context.Context, allpayClient AllpayClient, input allpay.FetchMandateScheduleInput, logger *slog.Logger) *allpay.MandateScheduleCheckOutput {
+	result := &allpay.MandateScheduleCheckOutput{}
+
+	mandate, err := allpayClient.FetchMandate(ctx, input)
+	if err != nil {
+		logger.Error("DD mandate check: unable to fetch mandate data", "courtRef", input.ClientReference, "error", err)
+		result.MandateError = err.Error()
+	} else {
+		result.Mandate = mandate
+	}
+
+	schedule, err := allpayClient.FetchSchedule(ctx, input)
+	if err != nil {
+		logger.Error("DD schedule check: unable to fetch schedule data", "courtRef", input.ClientReference, "error", err)
+		result.ScheduleError = err.Error()
+	} else {
+		result.Schedule = schedule
+	}
+
+	return result
 }
 
 func writeCSVHeader(writer *csv.Writer) error {
@@ -112,7 +126,6 @@ func writeCSVRow(writer *csv.Writer, courtRef string, surname string, result *al
 		mandateError = result.MandateError
 		scheduleError = result.ScheduleError
 
-		//based on the assumption that a court ref can only have one mandate
 		if result.Mandate != nil && len(result.Mandate.FetchMandateScheduleDataType) > 0 {
 			mandateStatus = result.Mandate.FetchMandateScheduleDataType[0].Status
 		}
@@ -132,12 +145,10 @@ func shouldWriteMissingScheduleRow(result *allpay.MandateScheduleCheckOutput) bo
 		return false
 	}
 
-	// If either Allpay lookup failed, include the row so the error is visible in the CSV for investigation.
 	if result.MandateError != "" || result.ScheduleError != "" {
 		return true
 	}
 
-	// We are only interested in clients where Allpay has a mandate but no schedule.
 	mandateExists := result.Mandate != nil && result.Mandate.TotalRecords > 0
 	scheduleMissing := result.Schedule != nil && result.Schedule.TotalRecords == 0
 
