@@ -235,6 +235,10 @@ INSERT INTO finance_client VALUES (25001, 25, 'mandate_fail', 'DIRECT DEBIT', nu
 INSERT INTO finance_client VALUES (26001, 26, 'schedule_fail', 'DIRECT DEBIT', null, '26262600');
 INSERT INTO finance_client VALUES (27001, 27, 'schedule_validation', 'DIRECT DEBIT', null, '27272700');
 
+-- adhoc direct debit mandate/schedule check
+INSERT INTO payment_method VALUES (nextval('payment_method_id_seq'), 26001, 'DIRECT DEBIT', '2026-05-01', 1); -- mandate without schedule
+INSERT INTO payment_method VALUES (nextval('payment_method_id_seq'), 27001, 'DIRECT DEBIT', '2026-05-01', 1); -- mandate with schedule
+
 -- failed direct debit payments (api)
 INSERT INTO finance_client VALUES (28001, 28, 'failedddpayment', 'DIRECT DEBIT', null, '28282800');
 INSERT INTO invoice VALUES (22, 28, 28001, 'AD', 'AD282828/24', '2024-04-01', '2025-03-31', 10000, null, '2025-03-31', 10, '2024-04-01', null, null, null, '2024-05-11T12:01:59+00:00', 2);
@@ -268,3 +272,4 @@ SELECT setval('ledger_allocation_id_seq', (SELECT MAX(id) FROM ledger_allocation
 SELECT setval('invoice_fee_range_id_seq', (SELECT MAX(id) FROM invoice_fee_range));
 SELECT setval('refund_id_seq', (SELECT MAX(id) FROM refund));
 SELECT setval('pending_collection_id_seq', (SELECT MAX(id) FROM pending_collection));
+SELECT setval('payment_method_id_seq', (SELECT MAX(id) FROM payment_method));

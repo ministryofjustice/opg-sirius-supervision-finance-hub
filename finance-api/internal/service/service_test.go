@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"slices"
 	"testing"
@@ -55,6 +56,33 @@ var (
 
 func (m *MockClient) Do(req *http.Request) (*http.Response, error) {
 	return GetDoFunc(req)
+}
+
+type mockFileStorage struct {
+	bucket string
+	key    string
+	body   string
+}
+
+func (m *mockFileStorage) GetFile(_ context.Context, _ string, _ string) (io.ReadCloser, error) {
+	return nil, nil
+}
+
+func (m *mockFileStorage) GetFileWithVersion(_ context.Context, _ string, _ string, _ string) (io.ReadCloser, error) {
+	return nil, nil
+}
+
+func (m *mockFileStorage) StreamFile(_ context.Context, bucketName string, fileName string, stream io.ReadCloser) (*string, error) {
+	defer func() { _ = stream.Close() }()
+	body, err := io.ReadAll(stream)
+	if err != nil {
+		return nil, err
+	}
+	m.bucket = bucketName
+	m.key = fileName
+	m.body = string(body)
+	versionID := "test-version"
+	return &versionID, nil
 }
 
 type mockDispatch struct {
@@ -117,11 +145,15 @@ func (m *mockDispatch) ScheduleToRemove(ctx context.Context, event event.Schedul
 }
 
 type mockAllpay struct {
-	called           []string
-	failedPayments   allpay.FailedPayments
-	errs             map[string]error
-	lastCalledParams []interface{}
-	closureDate      time.Time
+	called              []string
+	failedPayments      allpay.FailedPayments
+	fetchMandateInputs  []allpay.FetchMandateInput
+	fetchScheduleInputs []allpay.FetchScheduleInput
+	mandates            map[string]*allpay.FetchMandateOutput
+	schedules           map[string]*allpay.FetchScheduleOutput
+	errs                map[string]error
+	lastCalledParams    []interface{}
+	closureDate         time.Time
 }
 
 func (m *mockAllpay) CancelMandate(ctx context.Context, data *allpay.CancelMandateRequest) error {
@@ -159,6 +191,22 @@ func (m *mockAllpay) FetchFailedPayments(ctx context.Context, input allpay.Fetch
 	m.called = append(m.called, "FetchFailedPayments")
 	m.lastCalledParams = []interface{}{input}
 	return m.failedPayments, m.errs["FetchFailedPayments"]
+}
+
+func (m *mockAllpay) FetchMandate(ctx context.Context, input allpay.FetchMandateInput) (*allpay.FetchMandateOutput, error) {
+	m.called = append(m.called, "FetchMandate")
+	m.lastCalledParams = []interface{}{input}
+	m.fetchMandateInputs = append(m.fetchMandateInputs, input)
+
+	return m.mandates[input.ClientReference], m.errs["FetchMandate"]
+}
+
+func (m *mockAllpay) FetchSchedule(ctx context.Context, input allpay.FetchScheduleInput) (*allpay.FetchScheduleOutput, error) {
+	m.called = append(m.called, "FetchSchedule")
+	m.lastCalledParams = []interface{}{input}
+	m.fetchScheduleInputs = append(m.fetchScheduleInputs, input)
+
+	return m.schedules[input.ClientReference], m.errs["FetchSchedule"]
 }
 
 func (m *mockAllpay) UpdateClientDetails(ctx context.Context, data *allpay.UpdateClientDetailsInput) error {
