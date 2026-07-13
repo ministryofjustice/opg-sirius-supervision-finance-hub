@@ -109,7 +109,7 @@ func (s *Service) processAdhocDirectDebitMandateScheduleCheck(ctx context.Contex
 		logger.Info("DD mandate & schedule check: started")
 
 		funcCtx := telemetry.ContextWithLogger(context.WithoutCancel(ctx), logger)
-		if err := s.CheckDirectDebitMandateSchedule(funcCtx, logger); err != nil {
+		if err := s.GenerateReportOfClientsWithMissingSchedules(funcCtx, logger); err != nil {
 			logger.Error("DD mandate & schedule check: failed", "error", err)
 			return
 		}

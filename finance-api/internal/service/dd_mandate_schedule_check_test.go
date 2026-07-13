@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func (suite *IntegrationSuite) TestService_CheckDirectDebitMandateSchedule_writesOnlyMandatesWithMissingSchedules() {
+func (suite *IntegrationSuite) TestService_GenerateReportOfClientsWithMissingSchedules_onlyWritesMandatesWithMissingSchedules() {
 	ctx := suite.ctx
 	seeder := suite.cm.Seeder(ctx, suite.T())
 
@@ -25,21 +25,21 @@ func (suite *IntegrationSuite) TestService_CheckDirectDebitMandateSchedule_write
 	)
 
 	allpayMock := mockAllpay{
-		mandates: map[string]*allpay.FetchMandateScheduleOutput{
+		mandates: map[string]*allpay.FetchMandateOutput{
 			"missing-schedule": {
-				FetchMandateScheduleDataType: allpay.FetchMandateScheduleDataType{{ClientReference: "missing-schedule", LastName: "MissingSchedule", Status: "Live"}},
-				TotalRecords:                 1,
+				FetchMandateData: allpay.FetchMandateData{{ClientReference: "missing-schedule", LastName: "MissingSchedule", Status: "Live"}},
+				TotalRecords:     1,
 			},
 			"has-schedule": {
-				FetchMandateScheduleDataType: allpay.FetchMandateScheduleDataType{{ClientReference: "has-schedule", LastName: "HasSchedule", Status: "Live"}},
-				TotalRecords:                 1,
+				FetchMandateData: allpay.FetchMandateData{{ClientReference: "has-schedule", LastName: "HasSchedule", Status: "Live"}},
+				TotalRecords:     1,
 			},
 		},
-		schedules: map[string]*allpay.FetchMandateScheduleOutput{
+		schedules: map[string]*allpay.FetchScheduleOutput{
 			"missing-schedule": {TotalRecords: 0},
 			"has-schedule": {
-				FetchMandateScheduleDataType: allpay.FetchMandateScheduleDataType{{Amount: 10000, ClientReference: "has-schedule", LastName: "HasSchedule", ScheduleDate: "2026-07-24", Status: "Live"}},
-				TotalRecords:                 1,
+				FetchScheduleData: allpay.FetchScheduleData{{Amount: 10000, ClientReference: "has-schedule", LastName: "HasSchedule", ScheduleDate: "2026-07-24", Status: "Live"}},
+				TotalRecords:      1,
 			},
 		},
 	}
@@ -53,7 +53,7 @@ func (suite *IntegrationSuite) TestService_CheckDirectDebitMandateSchedule_write
 		env:         &Env{AsyncBucket: "async-bucket"},
 	}
 
-	err := s.CheckDirectDebitMandateSchedule(ctx, slog.Default())
+	err := s.GenerateReportOfClientsWithMissingSchedules(ctx, slog.Default())
 
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), "async-bucket", fileStorage.bucket)
@@ -72,18 +72,24 @@ func (suite *IntegrationSuite) TestService_CheckDirectDebitMandateSchedule_write
 func TestShouldWriteMissingScheduleRow(t *testing.T) {
 	tests := []struct {
 		name   string
-		result *allpay.MandateScheduleCheckOutput
+		result *mandateScheduleCheckOutput
 		want   bool
 	}{
 		{name: "nil result", result: nil, want: false},
-		{name: "mandate exists and schedule missing", result: &allpay.MandateScheduleCheckOutput{
-			Mandate:  &allpay.FetchMandateScheduleOutput{TotalRecords: 1},
-			Schedule: &allpay.FetchMandateScheduleOutput{TotalRecords: 0},
+		{name: "mandate exists and schedule missing", result: &mandateScheduleCheckOutput{
+			Mandate:  &allpay.FetchMandateOutput{TotalRecords: 1},
+			Schedule: &allpay.FetchScheduleOutput{TotalRecords: 0},
 		}, want: true},
-		{name: "mandate and schedule exist", result: &allpay.MandateScheduleCheckOutput{
-			Mandate:  &allpay.FetchMandateScheduleOutput{TotalRecords: 1},
-			Schedule: &allpay.FetchMandateScheduleOutput{TotalRecords: 1},
+		{name: "mandate and schedule exist", result: &mandateScheduleCheckOutput{
+			Mandate:  &allpay.FetchMandateOutput{TotalRecords: 1},
+			Schedule: &allpay.FetchScheduleOutput{TotalRecords: 1},
 		}, want: false},
+		{name: "mandate lookup error", result: &mandateScheduleCheckOutput{
+			MandateError: "failed",
+		}, want: true},
+		{name: "schedule lookup error", result: &mandateScheduleCheckOutput{
+			ScheduleError: "failed",
+		}, want: true},
 	}
 
 	for _, tt := range tests {

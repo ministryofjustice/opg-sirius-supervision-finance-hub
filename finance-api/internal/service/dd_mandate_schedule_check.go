@@ -18,7 +18,14 @@ const (
 	ddMandateScheduleCheckSleep    = 250 * time.Millisecond
 )
 
-func (s *Service) CheckDirectDebitMandateSchedule(ctx context.Context, logger *slog.Logger) error {
+type mandateScheduleCheckOutput struct {
+	Mandate       *allpay.FetchMandateOutput
+	Schedule      *allpay.FetchScheduleOutput
+	MandateError  string
+	ScheduleError string
+}
+
+func (s *Service) GenerateReportOfClientsWithMissingSchedules(ctx context.Context, logger *slog.Logger) error {
 	parsedDate, err := time.Parse("2006-01-02", ddMandateScheduleCheckFromDate)
 	if err != nil {
 		return err
@@ -43,27 +50,31 @@ func (s *Service) CheckDirectDebitMandateSchedule(ctx context.Context, logger *s
 	}
 
 	for i, client := range clients {
-		input := allpay.FetchMandateScheduleInput{
-			ClientDetails: allpay.ClientDetails{
-				ClientReference: client.CourtRef.String,
-				Surname:         client.Surname.String,
-			},
+		clientDetails := allpay.ClientDetails{
+			ClientReference: client.CourtRef.String,
+			Surname:         client.Surname.String,
 		}
 
-		result := fetchMandateSchedule(ctx, s.allpay, input, logger)
-
-		if !shouldWriteMissingScheduleRow(result) {
-			continue
+		mandateInput := allpay.FetchMandateInput{
+			ClientDetails: clientDetails,
 		}
 
-		if err = writeCSVRow(writer, client.CourtRef.String, client.Surname.String, result); err != nil {
-			return err
+		scheduleInput := allpay.FetchScheduleInput{
+			ClientDetails: clientDetails,
+		}
+
+		result := fetchMandateSchedule(ctx, s.allpay, mandateInput, scheduleInput, logger)
+
+		if shouldWriteMissingScheduleRow(result) {
+			if err = writeCSVRow(writer, client.CourtRef.String, client.Surname.String, result); err != nil {
+				return err
+			}
 		}
 
 		if (i+1)%50 == 0 || i+1 == len(clients) {
 			logger.Info("DD mandate & schedule check: progress", "processed", i+1, "total", len(clients))
 		}
-
+		
 		if i+1 < len(clients) {
 			time.Sleep(ddMandateScheduleCheckSleep)
 		}
@@ -85,20 +96,20 @@ func (s *Service) CheckDirectDebitMandateSchedule(ctx context.Context, logger *s
 	return nil
 }
 
-func fetchMandateSchedule(ctx context.Context, allpayClient AllpayClient, input allpay.FetchMandateScheduleInput, logger *slog.Logger) *allpay.MandateScheduleCheckOutput {
-	result := &allpay.MandateScheduleCheckOutput{}
+func fetchMandateSchedule(ctx context.Context, allpayClient AllpayClient, mandateInput allpay.FetchMandateInput, scheduleInput allpay.FetchScheduleInput, logger *slog.Logger) *mandateScheduleCheckOutput {
+	result := &mandateScheduleCheckOutput{}
 
-	mandate, err := allpayClient.FetchMandate(ctx, input)
+	mandate, err := allpayClient.FetchMandate(ctx, mandateInput)
 	if err != nil {
-		logger.Error("DD mandate check: unable to fetch mandate data", "courtRef", input.ClientReference, "error", err)
+		logger.Error("DD mandate check: unable to fetch mandate data", "courtRef", mandateInput.ClientReference, "error", err)
 		result.MandateError = err.Error()
 	} else {
 		result.Mandate = mandate
 	}
 
-	schedule, err := allpayClient.FetchSchedule(ctx, input)
+	schedule, err := allpayClient.FetchSchedule(ctx, scheduleInput)
 	if err != nil {
-		logger.Error("DD schedule check: unable to fetch schedule data", "courtRef", input.ClientReference, "error", err)
+		logger.Error("DD schedule check: unable to fetch schedule data", "courtRef", scheduleInput.ClientReference, "error", err)
 		result.ScheduleError = err.Error()
 	} else {
 		result.Schedule = schedule
@@ -117,7 +128,7 @@ func writeCSVHeader(writer *csv.Writer) error {
 	})
 }
 
-func writeCSVRow(writer *csv.Writer, courtRef string, surname string, result *allpay.MandateScheduleCheckOutput) error {
+func writeCSVRow(writer *csv.Writer, courtRef string, surname string, result *mandateScheduleCheckOutput) error {
 	mandateStatus := ""
 	mandateError := ""
 	scheduleError := ""
@@ -126,8 +137,8 @@ func writeCSVRow(writer *csv.Writer, courtRef string, surname string, result *al
 		mandateError = result.MandateError
 		scheduleError = result.ScheduleError
 
-		if result.Mandate != nil && len(result.Mandate.FetchMandateScheduleDataType) > 0 {
-			mandateStatus = result.Mandate.FetchMandateScheduleDataType[0].Status
+		if result.Mandate != nil && len(result.Mandate.FetchMandateData) > 0 {
+			mandateStatus = result.Mandate.FetchMandateData[0].Status
 		}
 	}
 
@@ -140,7 +151,7 @@ func writeCSVRow(writer *csv.Writer, courtRef string, surname string, result *al
 	})
 }
 
-func shouldWriteMissingScheduleRow(result *allpay.MandateScheduleCheckOutput) bool {
+func shouldWriteMissingScheduleRow(result *mandateScheduleCheckOutput) bool {
 	if result == nil {
 		return false
 	}
@@ -148,7 +159,6 @@ func shouldWriteMissingScheduleRow(result *allpay.MandateScheduleCheckOutput) bo
 	if result.MandateError != "" || result.ScheduleError != "" {
 		return true
 	}
-
 	mandateExists := result.Mandate != nil && result.Mandate.TotalRecords > 0
 	scheduleMissing := result.Schedule != nil && result.Schedule.TotalRecords == 0
 
