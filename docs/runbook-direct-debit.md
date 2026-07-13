@@ -279,6 +279,36 @@ these logs and can be found in the CloudWatch dashboard.
       encountered in production.
 
 ---
+## Testing Changes
+
+When rolling out a new feature or change to the Allpay integration, there are two options for testing in a deployed environment:
+
+### Mock
+
+By default, all environments other than Production use the Allpay mock service (`api-mocks/allpay`). This is a stub implementation 
+of the Allpay API using Imposter, which returns canned responses, conditional on certain request parameters. Documentation 
+for the mock is found in the `api-mocks/allpay/README.md`.
+
+### Test Allpay tenant
+
+Allpay provides a separate test environment and tenant for testing. This is a production-like environment, and can be used
+to test the integration where the mock either has been shown to not be representative of the production environment, or 
+where the feature being tested is not yet implemented.
+
+**Note:** The test environment is potentially shared with any other Allpay customers. As a result, the test environment 
+integration is only available on our ephemeral dev environments. The data is cleared by Allpay on a daily basis, so be aware
+that data may persist between dev environments, or may be lost at any time. Although our dev environments do not contain
+real client data, never use real data of any sort using this integration, as it may be visible to other Allpay customers.
+
+To use the test environment, untick the option "Use Mock Service for Allpay?" when creating a development environment in
+Jenkins.
+
+As the test environment is production-like, it requires real bank account details in order to pass the modulus check. For
+this, we can use these [UK IBAN examples](https://iban.co.uk/examples.html).
+
+Unfortunately, we have no access to the Allpay portal for this environment.
+
+---
 
 ## Key ADRs
 

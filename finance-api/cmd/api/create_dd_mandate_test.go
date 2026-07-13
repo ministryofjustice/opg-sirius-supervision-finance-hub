@@ -48,7 +48,7 @@ func TestServer_createDirectDebitMandateWithSchedule(t *testing.T) {
 	validator, _ := validation.New()
 
 	mock := &mockService{
-		pendingCollection: service.PendingCollection{
+		pendingCollection: service.ScheduleData{
 			Amount:         10000,
 			CollectionDate: time.Time{},
 		},
@@ -61,8 +61,7 @@ func TestServer_createDirectDebitMandateWithSchedule(t *testing.T) {
 
 	assert.Equal(t, http.StatusCreated, w.Code)
 	assert.Equal(t, "CreateDirectDebitMandate", mock.called[0])
-	assert.Equal(t, "CreateDirectDebitSchedule", mock.called[1])
-	assert.Equal(t, "SendDirectDebitCollectionEvent", mock.called[2])
+	assert.Equal(t, "SendDirectDebitCollectionEvent", mock.called[1])
 }
 
 func TestServer_createDirectDebitMandateWithoutSchedule(t *testing.T) {
@@ -106,6 +105,5 @@ func TestServer_createDirectDebitMandateWithoutSchedule(t *testing.T) {
 
 	assert.Equal(t, http.StatusCreated, w.Code)
 	assert.Equal(t, "CreateDirectDebitMandate", mock.called[0])
-	assert.Equal(t, "CreateDirectDebitSchedule", mock.called[1])
-	assert.Equal(t, "SendDirectDebitCollectionEvent", mock.called[2])
+	assert.Equal(t, "SendDirectDebitCollectionEvent", mock.called[1])
 }

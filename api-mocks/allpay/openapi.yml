@@ -18,7 +18,7 @@ security:
 paths:
   /AllpayApi/Customers/{SchemeCode}/Mandates/Create:
     post:
-      summary: Create a pre-schedule mandate without a payment schedule
+      summary: Create a mandate, optionally with a payment schedule
       parameters:
         - name: SchemeCode
           in: path
@@ -96,6 +96,25 @@ paths:
                           type: string
                         PostCode:
                           type: string
+                Schedules:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      ScheduleDate:
+                        type: string
+                        format: date
+                        required: true
+                      Amount:
+                        type: number
+                        required: true
+                      Frequency:
+                        type: string
+                        required: true
+                        description: '<1, W, F, 4, M, Q, 6, A>'
+                      TotalPayments:
+                        type: integer
+                        required: true
       responses:
         '200':
           description: Mandate successfully created
