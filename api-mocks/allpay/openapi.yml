@@ -18,7 +18,7 @@ security:
 paths:
   /AllpayApi/Customers/{SchemeCode}/Mandates/Create:
     post:
-      summary: Create a pre-schedule mandate without a payment schedule
+      summary: Create a mandate, optionally with a payment schedule
       parameters:
         - name: SchemeCode
           in: path
@@ -96,6 +96,25 @@ paths:
                           type: string
                         PostCode:
                           type: string
+                Schedules:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      ScheduleDate:
+                        type: string
+                        format: date
+                        required: true
+                      Amount:
+                        type: number
+                        required: true
+                      Frequency:
+                        type: string
+                        required: true
+                        description: '<1, W, F, 4, M, Q, 6, A>'
+                      TotalPayments:
+                        type: integer
+                        required: true
       responses:
         '200':
           description: Mandate successfully created
@@ -224,6 +243,122 @@ paths:
                 Messages:
                   - 'TitleInitials must not start with a comma'
                   - 'PostCode - Only alphanumeric characters and spaces allowed'
+    get:
+      summary: Get mandate information for each client
+      parameters:
+        - name: SchemeCode
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: ClientRef
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Base64-encoded client reference
+        - name: Surname
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Base64-encoded surname
+      responses:
+        '200':
+          description: Mandate information for client
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  FetchMandateScheduleData:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        Amount:
+                          type: integer
+                        ClientReference:
+                          type: string
+                        LastName:
+                          type: string
+                        ScheduleDate:
+                          type: string
+                          format: date
+                        Status:
+                          type: string
+                  TotalRecords:
+                    type: integer
+              example:
+                FetchMandateScheduleData:
+                  - ClientReference: 27272700
+                    LastName: schedule_validation
+                    Status: Live
+                TotalRecords: 1
+
+  /AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/Schedule:
+    get:
+      summary: Get schedule information for each client
+      parameters:
+        - name: SchemeCode
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: ClientRef
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Base64-encoded client reference
+        - name: Surname
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Base64-encoded surname
+      responses:
+        '200':
+          description: Schedule information for client
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  FetchMandateScheduleData:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        Amount:
+                          type: integer
+                        ClientReference:
+                          type: string
+                        LastName:
+                          type: string
+                        ScheduleDate:
+                          type: string
+                          format: date
+                        Status:
+                          type: string
+                  TotalRecords:
+                    type: integer
+              examples:
+                withSchedule:
+                  summary: Client has schedule data
+                  value:
+                    FetchMandateScheduleData:
+                      - Amount: 10000
+                        ClientReference: 27272700
+                        LastName: schedule_validation
+                        ScheduleDate: 2026-07-24
+                        Status: Live
+                    TotalRecords: 1
+                noSchedule:
+                  summary: Client has no schedule data
+                  value:
+                    FetchMandateScheduleData: []
+                    TotalRecords: 0
 
   /AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates:
     post:

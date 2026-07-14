@@ -32,19 +32,14 @@ func (s *Server) createDirectDebitMandate(w http.ResponseWriter, r *http.Request
 		return err
 	}
 
-	if err := s.service.CreateDirectDebitMandate(ctx, clientId, createMandate); err != nil {
+	pendingCollection, err := s.service.CreateDirectDebitMandate(ctx, clientId, createMandate)
+	if err != nil {
 		var modulusErr allpay.ErrorModulusCheckFailed
 		if errors.As(err, &modulusErr) {
 			return modulusCheckFailedValidationError(modulusErr)
 		}
 		logger.Error("creating mandate in createDirectDebitMandate failed", "err", err)
 		return err
-	}
-
-	pendingCollection, err := s.service.CreateDirectDebitSchedule(ctx, clientId, shared.CreateSchedule{AllPayCustomer: createMandate.AllPayCustomer})
-	if err != nil {
-		logger.Error("creating schedule in createDirectDebitMandate failed", "err", err)
-		// Confirmed with business they do not want an error message returned even if the schedule fails
 	}
 
 	if err := s.service.SendDirectDebitCollectionEvent(ctx, clientId, pendingCollection); err != nil {

@@ -78,3 +78,16 @@ WHERE pc.finance_client_id = fc.id
   AND fc.court_ref = @court_ref
   AND pc.collection_date = @collection_date
   AND pc.status = 'PENDING';
+
+
+-- name: GetClientsSetToDirectDebitOnOrAfterSpecifiedDate :many
+SELECT DISTINCT ON (fc.court_ref)
+    fc.court_ref,
+    p.surname::VARCHAR AS surname,
+    fc.payment_method AS current_payment_method
+FROM supervision_finance.payment_method pm
+    JOIN supervision_finance.finance_client fc ON fc.id = pm.finance_client_id
+    JOIN public.persons p ON p.id = fc.client_id
+WHERE pm.type = 'DIRECT DEBIT'
+  AND pm.created_at >= @date
+ORDER BY fc.court_ref, pm.created_at DESC, pm.id DESC;

@@ -40,6 +40,46 @@ resources:
       template: true
 
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}"
+    method: get
+    pathParams:
+      # finance_client.court_ref/surname: 27272700 / schedule_validation - mandate with schedule
+      ClientRef: MjcyNzI3MDA=
+      Surname: c2NoZWR1bGVfdmFsaWRhdGlvbg==
+    response:
+      statusCode: 200
+      file: data/mandate_schedule_check_mandate_with_schedule.json
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/Schedule"
+    method: get
+    pathParams:
+      # finance_client.court_ref/surname: 27272700 / schedule_validation - mandate with schedule
+      ClientRef: MjcyNzI3MDA=
+      Surname: c2NoZWR1bGVfdmFsaWRhdGlvbg==
+    response:
+      statusCode: 200
+      file: data/mandate_schedule_check_schedule_with_schedule.json
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}"
+    method: get
+    pathParams:
+      # finance_client.court_ref/surname: 26262600 / schedule_fail - mandate without schedule
+      ClientRef: MjYyNjI2MDA=
+      Surname: c2NoZWR1bGVfZmFpbA==
+    response:
+      statusCode: 200
+      file: data/mandate_schedule_check_mandate_without_schedule.json
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/Schedule"
+    method: get
+    pathParams:
+      # finance_client.court_ref/surname: 26262600 / schedule_fail - mandate without schedule
+      ClientRef: MjYyNjI2MDA=
+      Surname: c2NoZWR1bGVfZmFpbA==
+    response:
+      statusCode: 200
+      file: data/mandate_schedule_check_no_schedule.json
+
+  - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}"
     method: put
     requestBody:
       jsonPath: $.Customer.LastName
@@ -150,6 +190,7 @@ resources:
     response:
       statusCode: 400
       content: "Bad Request - Please check the format of your body request"
+
 
   - path: "/AllpayApi/Customers/{SchemeCode}/{ClientRef}/{Surname}/Mandates/Schedule/{Date}/{Amount}"
     method: delete

@@ -1,0 +1,11 @@
+{
+  "FetchMandateScheduleData": [
+    {
+      "ClientReference": "27272700",
+      "LastName": "schedule_validation",
+      "Status": "Live"
+    }
+  ],
+  "TotalRecords": 1
+}
+

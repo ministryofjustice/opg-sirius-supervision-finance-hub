@@ -27,11 +27,19 @@ type Customer struct {
 	SchemeCode      string  `json:"SchemeCode"`
 }
 
+type Schedule struct {
+	ScheduleDate  string `json:"ScheduleDate"`
+	Amount        int32  `json:"Amount"`
+	Frequency     string `json:"Frequency"`
+	TotalPayments int32  `json:"TotalPayments"`
+}
+
 type CreateMandateRequest struct {
-	Customer    Customer `json:"Customer"`
+	Customer    Customer     `json:"Customer"`
 	BankAccount struct {
 		BankDetails BankDetails `json:"BankDetails"`
 	} `json:"BankAccount"`
+	Schedules []Schedule `json:"Schedules,omitempty"`
 }
 
 func (c *Client) CreateMandate(ctx context.Context, input *CreateMandateRequest) error {
@@ -49,6 +57,7 @@ func (c *Client) CreateMandate(ctx context.Context, input *CreateMandateRequest)
 			SchemeCode: c.schemeCode, // add scheme code here instead of leaking it outside the client
 		},
 		BankAccount: input.BankAccount,
+		Schedules:   input.Schedules,
 	}
 
 	var body bytes.Buffer

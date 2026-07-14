@@ -22,15 +22,17 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitMandate() {
 	Store := store.New(seeder.Conn)
 	allpayMock := mockAllpay{}
 	dispatchMock := mockDispatch{}
+	govUKMock := &mockGovUK{}
 
 	s := &Service{
 		store:    Store,
 		allpay:   &allpayMock,
 		dispatch: &dispatchMock,
+		govUK:    govUKMock,
 		tx:       seeder.Conn,
 	}
 
-	err := s.CreateDirectDebitMandate(ctx, 11, shared.CreateMandate{
+	pc, err := s.CreateDirectDebitMandate(ctx, 11, shared.CreateMandate{
 		AllPayCustomer: shared.AllPayCustomer{
 			ClientReference: "11111111",
 			Surname:         "Holder",
@@ -68,6 +70,9 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitMandate() {
 	_ = rows.Scan(&paymentMethodDbEntry)
 	assert.Equal(suite.T(), "DIRECT DEBIT", paymentMethodDbEntry)
 
+	// Verify PendingCollection is empty when no balance
+	assert.Equal(suite.T(), int32(0), pc.Amount)
+
 }
 
 func (suite *IntegrationSuite) TestService_CreateDirectDebitMandate_modulusCheckFails() {
@@ -91,7 +96,7 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitMandate_modulusCheck
 		tx:       seeder.Conn,
 	}
 
-	err := s.CreateDirectDebitMandate(ctx, 11, shared.CreateMandate{
+	_, err := s.CreateDirectDebitMandate(ctx, 11, shared.CreateMandate{
 		AllPayCustomer: shared.AllPayCustomer{
 			ClientReference: "11111111",
 			Surname:         "Holder",
@@ -143,7 +148,7 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitMandate_createMandat
 		tx:       seeder.Conn,
 	}
 
-	err := s.CreateDirectDebitMandate(ctx, 11, shared.CreateMandate{
+	_, err := s.CreateDirectDebitMandate(ctx, 11, shared.CreateMandate{
 		AllPayCustomer: shared.AllPayCustomer{
 			ClientReference: "11111111",
 			Surname:         "Holder",

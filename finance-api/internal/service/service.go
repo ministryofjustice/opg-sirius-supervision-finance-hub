@@ -48,6 +48,8 @@ type AllpayClient interface {
 	ModulusCheck(ctx context.Context, sortCode string, accountNumber string) error
 	CreateSchedule(ctx context.Context, data *allpay.CreateScheduleInput) error
 	FetchFailedPayments(ctx context.Context, data allpay.FetchFailedPaymentsInput) (allpay.FailedPayments, error)
+	FetchMandate(ctx context.Context, data allpay.FetchMandateInput) (*allpay.FetchMandateOutput, error)
+	FetchSchedule(ctx context.Context, data allpay.FetchScheduleInput) (*allpay.FetchScheduleOutput, error)
 	RemoveSchedule(ctx context.Context, data *allpay.RemoveScheduleInput) error
 	UpdateClientDetails(ctx context.Context, data *allpay.UpdateClientDetailsInput) error
 }
