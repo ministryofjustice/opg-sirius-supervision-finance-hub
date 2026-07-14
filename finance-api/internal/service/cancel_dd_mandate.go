@@ -96,7 +96,6 @@ func (s *Service) CancelDirectDebitMandate(ctx context.Context, clientID int32, 
 		return err
 	}
 
-	// remove schedules after committing the transaction, as the mandate has already been cancelled in Allpay, and we are unable to roll that back
 	return s.cancelPendingCollections(ctx, closureDate, collections)
 }
 

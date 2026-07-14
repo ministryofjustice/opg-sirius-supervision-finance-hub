@@ -18,13 +18,19 @@ type CancelMandateRequest struct {
 func (c *Client) CancelMandate(ctx context.Context, data *CancelMandateRequest) error {
 	logger := c.logger(ctx)
 
-	req, err := c.newRequest(ctx, http.MethodDelete,
-		fmt.Sprintf("/Customers/%s/%s/%s/Mandates/%s",
-			c.schemeCode,
-			base64.StdEncoding.EncodeToString([]byte(data.ClientReference)),
-			base64.StdEncoding.EncodeToString([]byte(trimChars(data.Surname, 19))),
-			data.ClosureDate.Format("2006-01-02"),
-		), nil)
+	path := fmt.Sprintf("/Customers/%s/%s/%s/Mandates/",
+		c.schemeCode,
+		base64.StdEncoding.EncodeToString([]byte(data.ClientReference)),
+		base64.StdEncoding.EncodeToString([]byte(trimChars(data.Surname, 19))),
+	)
+
+	today := time.Now().UTC().Truncate(24 * time.Hour)
+	// closure date must be in the future, so if it is today's date, we omit it from the request
+	if data.ClosureDate.UTC().Truncate(24 * time.Hour).After(today) {
+		path += data.ClosureDate.Format("2006-01-02")
+	}
+
+	req, err := c.newRequest(ctx, http.MethodDelete, path, nil)
 
 	if err != nil {
 		logger.Error("unable to build cancel mandate request", "error", err)
