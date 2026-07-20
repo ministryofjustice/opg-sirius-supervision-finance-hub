@@ -129,7 +129,7 @@ services:
       retries: 5
 
   sqlc:
-    image: sqlc/sqlc:1.29.0@sha256:0de3f476fb9c11192b4dd5413c531512e9fc5b3ec3cce075b7d7b4709a0c3e58
+    image: sqlc/sqlc:1.31.1@sha256:70f53171d27b2424e9358869975455a6e955a5aa8e58a998a270a6e34e525537
     environment:
       POSTGRES_CONN: localhost:5432
       POSTGRES_USER: user
