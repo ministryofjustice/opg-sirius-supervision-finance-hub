@@ -10,4 +10,9 @@ ignore:
             reason: "waiting for goose update to fix the issue"
             expires: "2026-07-30T00:00:00Z"
             created: "2026-05-06T14:14:00Z"
+    SNYK-GOLANG-GOOGLEGOLANGORGGRPCINTERNALTRANSPORT-18172578:
+        - '*' :
+            reason: "waiting for goose update to fix the issue"
+            expires: "2026-07-30T00:00:00Z"
+            created: "2026-05-06T14:14:00Z"
 patch:
