@@ -107,7 +107,7 @@ func (s *Service) CancelDirectDebitMandate(ctx context.Context, clientID int32, 
  * the pending collections that fall within those three working days and sets the closure date to the next working day.
  */
 func (s *Service) calculateClosureDate(ctx context.Context, collections []store.GetPendingCollectionsRow) (time.Time, error) {
-	closureDate := time.Now().Truncate(24 * time.Hour)
+	closureDate := time.Now().UTC().Truncate(24*time.Hour).AddDate(0, 0, 1)
 	bacsDate, err := s.govUK.AddWorkingDays(ctx, closureDate, 3)
 	if err != nil {
 		return time.Time{}, err

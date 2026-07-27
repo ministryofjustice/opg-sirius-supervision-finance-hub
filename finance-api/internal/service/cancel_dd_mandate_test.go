@@ -18,7 +18,7 @@ func (suite *IntegrationSuite) TestService_CancelDirectDebitMandate() {
 	ctx := suite.ctx
 	seeder := suite.cm.Seeder(ctx, suite.T())
 
-	today := time.Now()
+	today := time.Now().UTC().Truncate(24 * time.Hour)
 
 	seeder.SeedData(
 		"INSERT INTO public.persons VALUES (11, NULL, NULL, 'Person', NULL, NULL, NULL, NULL, FALSE, FALSE, NULL, NULL, 'Client', NULL);",
@@ -198,10 +198,10 @@ func (suite *IntegrationSuite) TestService_CancelDirectDebitMandate_skips_when_n
 }
 
 func TestCalculateClosureDate(t *testing.T) {
+	today := time.Now().UTC().Truncate(24 * time.Hour)
 	govUKMock := mockGovUK{
 		NonWorkingDays: []time.Time{
-			time.Now().UTC().Truncate(24 * time.Hour),                  // today is a non-working day
-			time.Now().UTC().AddDate(0, 0, 4).Truncate(24 * time.Hour), // non-working day on day 4
+			today.AddDate(0, 0, 4), // non-working day on day 4
 		},
 	}
 	s := &Service{
@@ -216,7 +216,7 @@ func TestCalculateClosureDate(t *testing.T) {
 		{
 			name:        "no pending collections",
 			collections: []store.GetPendingCollectionsRow{},
-			want:        time.Now().AddDate(0, 0, 1), // today is non-working day
+			want:        today.AddDate(0, 0, 1),
 		},
 		{
 			name: "pending collection on day 1",
@@ -225,13 +225,13 @@ func TestCalculateClosureDate(t *testing.T) {
 					ID:     1,
 					Amount: 12345,
 					CollectionDate: pgtype.Date{
-						Time:             time.Now().AddDate(0, 0, 1),
+						Time:             today.AddDate(0, 0, 1),
 						InfinityModifier: 0,
 						Valid:            true,
 					},
 				},
 			},
-			want: time.Now().AddDate(0, 0, 2), // 1 day after pending collection date
+			want: today.AddDate(0, 0, 2),
 		},
 		{
 			name: "pending collection on day 2",
@@ -240,13 +240,13 @@ func TestCalculateClosureDate(t *testing.T) {
 					ID:     1,
 					Amount: 12345,
 					CollectionDate: pgtype.Date{
-						Time:             time.Now().AddDate(0, 0, 2),
+						Time:             today.AddDate(0, 0, 2),
 						InfinityModifier: 0,
 						Valid:            true,
 					},
 				},
 			},
-			want: time.Now().AddDate(0, 0, 3),
+			want: today.AddDate(0, 0, 3),
 		},
 		{
 			name: "pending collection on day 3",
@@ -255,13 +255,13 @@ func TestCalculateClosureDate(t *testing.T) {
 					ID:     1,
 					Amount: 12345,
 					CollectionDate: pgtype.Date{
-						Time:             time.Now().AddDate(0, 0, 3),
+						Time:             today.AddDate(0, 0, 3),
 						InfinityModifier: 0,
 						Valid:            true,
 					},
 				},
 			},
-			want: time.Now().AddDate(0, 0, 5), // non-working day on day 4
+			want: today.AddDate(0, 0, 5), // non-working day on day 4
 		},
 		{
 			name: "pending collection on day 4",
@@ -270,13 +270,13 @@ func TestCalculateClosureDate(t *testing.T) {
 					ID:     1,
 					Amount: 12345,
 					CollectionDate: pgtype.Date{
-						Time:             time.Now().AddDate(0, 0, 4),
+						Time:             today.AddDate(0, 0, 4),
 						InfinityModifier: 0,
 						Valid:            true,
 					},
 				},
 			},
-			want: time.Now().AddDate(0, 0, 1), // today is non-working day
+			want: today.AddDate(0, 0, 5),
 		},
 		{
 			name: "multiple pending collections",
@@ -285,7 +285,7 @@ func TestCalculateClosureDate(t *testing.T) {
 					ID:     1,
 					Amount: 12345,
 					CollectionDate: pgtype.Date{
-						Time:             time.Now().AddDate(0, 0, 1),
+						Time:             today.AddDate(0, 0, 1),
 						InfinityModifier: 0,
 						Valid:            true,
 					},
@@ -294,7 +294,7 @@ func TestCalculateClosureDate(t *testing.T) {
 					ID:     2,
 					Amount: 12345,
 					CollectionDate: pgtype.Date{
-						Time:             time.Now().AddDate(0, 0, 2),
+						Time:             today.AddDate(0, 0, 2),
 						InfinityModifier: 0,
 						Valid:            true,
 					},
@@ -303,13 +303,13 @@ func TestCalculateClosureDate(t *testing.T) {
 					ID:     3,
 					Amount: 12345,
 					CollectionDate: pgtype.Date{
-						Time:             time.Now().AddDate(0, 0, 20),
+						Time:             today.AddDate(0, 0, 20),
 						InfinityModifier: 0,
 						Valid:            true,
 					},
 				},
 			},
-			want: time.Now().AddDate(0, 0, 3),
+			want: today.AddDate(0, 0, 3),
 		},
 	}
 	for _, tt := range tests {
