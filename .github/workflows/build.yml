@@ -31,7 +31,7 @@ jobs:
     name: Identify version
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: "0"
       - name: Define commit SHA and branch
@@ -59,13 +59,13 @@ jobs:
 
     steps:
       - name: Set up Go
-        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
-          go-version: 1.26.3
+          go-version: 1.26.5
         id: go
 
       - name: Check out code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Run unit tests
         run: make unit-test
@@ -105,7 +105,7 @@ jobs:
     name: sqlc validation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: diff
         run: make sqlc-diff
@@ -118,7 +118,7 @@ jobs:
     name: Go Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - name: Go Lint
         run: make go-lint
 
@@ -126,12 +126,12 @@ jobs:
     name: Go Sec
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - name: Go Sec
         run: make gosec
       - name: Upload GoSec results to GitHub Security tab
         if: ${{ always() }}
-        uses: github/codeql-action/upload-sarif@9e0d7b8d25671d64c341c19c0152d693099fb5ba # v4.35.5
+        uses: github/codeql-action/upload-sarif@7188fc363630916deb702c7fdcf4e481b751f97a # v4.37.1
         with:
           sarif_file: 'test-results/gosec.sarif'
           category: gosec
@@ -141,7 +141,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: ['sqlc']
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - name: Build Images
         run: make build-all
       - name: Run cypress
@@ -166,11 +166,11 @@ jobs:
       tag: ${{ steps.semver_tag.outputs.created_tag }}
       timestamp: ${{ steps.set_timestamp.outputs.build_timestamp }}
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: '0'
       - name: Configure OIDC AWS credentials for ECR Pull
-        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
+        uses: aws-actions/configure-aws-credentials@517a711dbcd0e402f90c77e7e2f81e849156e31d # v6.2.2
         with:
           role-to-assume: arn:aws:iam::311462405659:role/sirius-supervision-component-ecr-role
           role-session-name: opg-sirius-supervision-finance-hub-github-actions-ecr-push
@@ -178,7 +178,7 @@ jobs:
           aws-region: eu-west-1
       - name: ECR Login
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@fa648b43de3d4d023bcb3f89ed6940096949c419 # v2.1.5
+        uses: aws-actions/amazon-ecr-login@d539f0932e70871a027e9d5a9d8fc38589180a64 # v2.1.6
         with:
           registries: 311462405659
       - name: Test Migrations
@@ -233,7 +233,7 @@ jobs:
       TAG: ${{ needs.create-tag.outputs.tag }}
       TIMESTAMP: ${{ needs.create-tag.outputs.timestamp }}
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: '0'
 
@@ -252,7 +252,7 @@ jobs:
           docker load -i /tmp/images/${{ matrix.service_name }}-multi-arch.tar
 
       - name: Configure OIDC AWS credentials for ECR push
-        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
+        uses: aws-actions/configure-aws-credentials@517a711dbcd0e402f90c77e7e2f81e849156e31d # v6.2.2
         with:
           role-to-assume: arn:aws:iam::311462405659:role/sirius-supervision-component-ecr-role
           role-session-name: opg-sirius-supervision-finance-hub-github-actions-ecr-push
@@ -261,13 +261,13 @@ jobs:
 
       - name: ECR Login
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@fa648b43de3d4d023bcb3f89ed6940096949c419 # v2.1.5
+        uses: aws-actions/amazon-ecr-login@d539f0932e70871a027e9d5a9d8fc38589180a64 # v2.1.6
         with:
           registries: 311462405659
 
       - name: Snyk Scan
         if: matrix.scan == 1
-        uses: ministryofjustice/opg-github-actions/actions/snyk-scan@5fba2afe28b31b8c5eaf1fb4235e2d32aea24a1e # v4.8.3
+        uses: ministryofjustice/opg-github-actions/actions/snyk-scan@722a5f955424aaba01e9ca43d68390cd4048d6e1 # v4.10.2
         with:
           SNYK_TEST_IMAGE: 311462405659.dkr.ecr.eu-west-1.amazonaws.com/sirius/${{ matrix.ecr_repository }}:latest
           SNYK_TOKEN: ${{ secrets.SNYK_OPG_ORG_TOKEN }}
@@ -275,7 +275,7 @@ jobs:
 
       - name: Upload Snyk scan results to GitHub Security tab
         if: matrix.scan == 1 && always()
-        uses: github/codeql-action/upload-sarif@9e0d7b8d25671d64c341c19c0152d693099fb5ba # v4.35.5
+        uses: github/codeql-action/upload-sarif@7188fc363630916deb702c7fdcf4e481b751f97a # v4.37.1
         with:
           sarif_file: 'test-results/snyk.sarif'
           category: snyk-docker-${{ matrix.service_name }}
@@ -315,10 +315,10 @@ jobs:
     needs: ['create-tag', 'end_of_pr_workflow']
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Configure OIDC AWS credentials for SSM
-        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
+        uses: aws-actions/configure-aws-credentials@517a711dbcd0e402f90c77e7e2f81e849156e31d # v6.2.2
         with:
           role-to-assume: arn:aws:iam::997462338508:role/sirius-supervision-component-ssm-role
           role-session-name: opg-sirius-supervision-finance-hub-github-actions-ssm-push
