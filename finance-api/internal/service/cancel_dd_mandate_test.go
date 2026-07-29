@@ -279,6 +279,21 @@ func TestCalculateClosureDate(t *testing.T) {
 			want: today.AddDate(0, 0, 5),
 		},
 		{
+			name: "pending collection in past",
+			collections: []store.GetPendingCollectionsRow{
+				{
+					ID:     1,
+					Amount: 12345,
+					CollectionDate: pgtype.Date{
+						Time:             today.AddDate(0, -1, 0),
+						InfinityModifier: 0,
+						Valid:            true,
+					},
+				},
+			},
+			want: today.AddDate(0, 0, 1),
+		},
+		{
 			name: "multiple pending collections",
 			collections: []store.GetPendingCollectionsRow{
 				{
