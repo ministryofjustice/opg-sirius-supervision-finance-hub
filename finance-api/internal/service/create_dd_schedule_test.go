@@ -176,8 +176,10 @@ func (suite *IntegrationSuite) TestService_CreateDirectDebitSchedule_success() {
 	assert.EqualValues(suite.T(), expected, p)
 	assert.Equal(suite.T(), "CreateSchedule", allPayMock.called[0])
 	assert.Equal(suite.T(), &allpay.CreateScheduleInput{
-		Date:   govUKMock.WorkingDay.Truncate(24 * time.Hour),
-		Amount: 11000,
+		ScheduleInput: allpay.ScheduleInput{
+			Date:   govUKMock.WorkingDay.Truncate(24 * time.Hour),
+			Amount: 11000,
+		},
 		ClientDetails: allpay.ClientDetails{
 			ClientReference: "1234567T",
 			Surname:         "Scheduleson",

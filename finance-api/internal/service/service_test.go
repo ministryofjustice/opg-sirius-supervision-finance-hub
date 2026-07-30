@@ -163,7 +163,7 @@ func (m *mockAllpay) CancelMandate(ctx context.Context, data *allpay.CancelManda
 	return m.errs["CancelMandate"]
 }
 
-func (m *mockAllpay) CreateMandate(ctx context.Context, data *allpay.CreateMandateRequest) error {
+func (m *mockAllpay) CreateMandate(ctx context.Context, data *allpay.CreateMandateInput) error {
 	m.called = append(m.called, "CreateMandate")
 	m.lastCalledParams = []interface{}{data}
 	return m.errs["CreateMandate"]
