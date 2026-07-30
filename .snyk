@@ -1,18 +1,4 @@
 version: v1.25.1
 ignore:
-    snyk:lic:golang:github.com:go-sql-driver:mysql:MPL-2.0:
-        - '*' :
-            reason: "waiting for goose update to fix the issue"
-            expires: "2026-07-30T00:00:00Z"
-            created: "2026-05-06T14:14:00Z"
-    SNYK-GOLANG-GOLANGORGXNETIDNA-17116876:
-        - '*' :
-            reason: "waiting for goose update to fix the issue"
-            expires: "2026-07-30T00:00:00Z"
-            created: "2026-05-06T14:14:00Z"
-    SNYK-GOLANG-GOOGLEGOLANGORGGRPCINTERNALTRANSPORT-18172578:
-        - '*' :
-            reason: "waiting for goose update to fix the issue"
-            expires: "2026-07-30T00:00:00Z"
-            created: "2026-05-06T14:14:00Z"
+
 patch:
