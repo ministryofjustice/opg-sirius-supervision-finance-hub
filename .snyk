@@ -1,3 +1,8 @@
 version: v1.25.1
 ignore:
+    snyk:lic:golang:github.com:go-sql-driver:mysql:MPL-2.0:
+        - '*' :
+            reason: "waiting for goose update to fix the issue (not fixed as of v3.27.3)"
+            expires: "2026-08-30T00:00:00Z"
+            created: "2026-05-06T14:14:00Z"
 patch:
