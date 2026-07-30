@@ -35,7 +35,7 @@ type Schedule struct {
 }
 
 type CreateMandateRequest struct {
-	Customer    Customer     `json:"Customer"`
+	Customer    Customer `json:"Customer"`
 	BankAccount struct {
 		BankDetails BankDetails `json:"BankDetails"`
 	} `json:"BankAccount"`
@@ -52,7 +52,7 @@ func (c *Client) CreateMandate(ctx context.Context, input *CreateMandateRequest)
 			Address: Address{
 				Line1:    trimChars(input.Customer.Address.Line1, 40),
 				Town:     trimChars(input.Customer.Address.Town, 40),
-				PostCode: trimChars(input.Customer.Address.PostCode, 10),
+				PostCode: trimChars(input.Customer.Address.PostCode, 8),
 			},
 			SchemeCode: c.schemeCode, // add scheme code here instead of leaking it outside the client
 		},
