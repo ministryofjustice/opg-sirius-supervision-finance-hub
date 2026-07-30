@@ -113,9 +113,9 @@ func TestCreateMandate_DataFormatting(t *testing.T) {
 		{
 			name: "truncates postcode to 10 characters",
 			input: CreateMandateRequest{Customer: Customer{
-				Address: Address{PostCode: "SW1A 1AA TOOLONG"},
+				Address: Address{PostCode: "DA12 25TX"},
 			}},
-			expectedPostCode: "SW1A 1AA T",
+			expectedPostCode: "DA12 25T",
 		},
 	}
 
