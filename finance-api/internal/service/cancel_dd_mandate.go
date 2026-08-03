@@ -113,10 +113,12 @@ func (s *Service) calculateClosureDate(ctx context.Context, collections []store.
 		return time.Time{}, err
 	}
 	for _, pc := range collections {
-		if pc.CollectionDate.Time.Truncate(24 * time.Hour).After(bacsDate) {
-			break
+		collectionTime := pc.CollectionDate.Time.Truncate(24 * time.Hour)
+		if collectionTime.Before(closureDate) || collectionTime.After(bacsDate) {
+			continue
 		}
-		closureDate = pc.CollectionDate.Time.AddDate(0, 0, 1)
+
+		closureDate = collectionTime.AddDate(0, 0, 1)
 	}
 	return s.govUK.NextWorkingDayOnOrAfterX(ctx, closureDate, closureDate.Day()) // will return the closure date if it is a working day
 }
