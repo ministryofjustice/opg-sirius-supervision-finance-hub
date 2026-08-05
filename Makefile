@@ -56,9 +56,6 @@ up: clean build-dev start-and-seed sqlc-gen
 down:
 	docker compose down
 
-compile-assets:
-	docker compose run --rm npm run build
-
 sqlc-gen:
 	docker compose run --rm sqlc generate
 

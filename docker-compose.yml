@@ -104,6 +104,13 @@ services:
       - .:/app
     command: -exclude-dir=.gocache -exclude-generated -fmt=sarif -out=/app/test-results/gosec.sarif -stdout -verbose=text /app/...
 
+  npm:
+    image: node:24-alpine3.23@sha256:595398b0081eacda8e1c4c5b97b76cd1020e4d58a8ebcb4843b9bca1e79e7436
+    working_dir: /home/node/app
+    entrypoint: npm
+    volumes:
+      - ./finance-hub:/home/node/app
+
   sirius-db:
     image: postgres:17-alpine@sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193
     environment:
