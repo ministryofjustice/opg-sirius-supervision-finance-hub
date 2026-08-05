@@ -4,6 +4,10 @@ WORKDIR /root
 
 COPY cypress/package.json .
 COPY cypress/package-lock.json .
+
+RUN apt-get update \\
+    && apt-get install -y --no-install-recommends git \\
+    && rm -rf /var/lib/apt/lists/*
 RUN npm ci --ignore-scripts
 
 ENV CYPRESS_VIDEO=false

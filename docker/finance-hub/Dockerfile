@@ -24,6 +24,7 @@ COPY finance-hub/web/assets web/assets
 COPY finance-hub/package*.json .
 COPY finance-hub/.npmrc .
 
+RUN apk add --no-cache git
 RUN npm ci --ignore-scripts
 RUN npm run build
 
