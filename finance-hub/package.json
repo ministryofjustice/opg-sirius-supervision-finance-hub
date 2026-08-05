@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "license": "MIT",
   "scripts": {
-    "build": "yarn build:js && yarn build:css && yarn build:images",
+    "build": "npm run build:js && npm run build:css && npm run build:images",
     "build:js": "esbuild --bundle web/assets/main.js --minify --outfile=web/static/javascript/all.js --sourcemap --resolve-extensions=.mjs,.js",
     "build:css": "sass --load-path . --style compressed web/assets/main.scss web/static/stylesheets/all.css",
     "build:images": "mkdir -p web/static/assets/images && cp node_modules/govuk-frontend/dist/govuk/assets/images/* node_modules/@ministryofjustice/frontend/moj/assets/images/* web/static/assets/images",
@@ -12,13 +12,13 @@
     "test-server": "cd internal/server && go test",
     "lint": "eslint web/assets",
     "fmt": "prettier --write .",
-    "watch": "yarn build:css && yarn build:js --watch=forever"
+    "watch": "npm run build:css && npm run build:js -- --watch=forever"
   },
   "dependencies": {
     "@cypress/grep": "^6.0.0",
     "@ministryofjustice/frontend": "^5.0.0",
     "govuk-frontend": "^5.0.0",
-    "opg-sirius-header": "ministryofjustice/opg-sirius-header#semver:v0.53.15",
+    "opg-sirius-header": "git+https://github.com/ministryofjustice/opg-sirius-header.git#semver:v0.53.15",
     "htmx.org": "^2.0.0",
     "htmx-ext-response-targets": "^2.0.0"
   },
@@ -30,7 +30,7 @@
     "prettier": "^3.0.0",
     "sass": "^1.70.0"
   },
-  "resolutions": {
+  "overrides": {
     "colors": "1.4.0"
   }
 }
