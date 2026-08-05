@@ -21,7 +21,7 @@ local and live environments.
 #### Installing dependencies locally:
 (This is only necessary if running without docker)
 
-- `yarn install`
+- `npm install`
 - `go mod download`
 ---
 
@@ -33,7 +33,7 @@ To enable debugging and hot-reloading of Go files:
 `make up`
 
 Hot-reloading is managed independently for both apps and should happen seamlessly. Hot-reloading for web assets (JS, CSS, etc.)
-is also provided via a Yarn watch command.
+is also provided via an npm watch command.
 
 Both the `finance-hub` (front end) and `finance-api` (back end) can be debugged independently, as they expose different
 ports for Delve:

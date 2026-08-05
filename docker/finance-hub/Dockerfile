@@ -21,11 +21,10 @@ WORKDIR /app
 RUN mkdir -p web/static
 
 COPY finance-hub/web/assets web/assets
-COPY finance-hub/package.json .
-COPY finance-hub/yarn.lock .
+COPY finance-hub/package*.json .
 
-RUN yarn install --frozen-lockfile --ignore-scripts
-RUN yarn build
+RUN npm ci --ignore-scripts
+RUN npm run build
 
 FROM base AS healthcheck-build
 WORKDIR /app
