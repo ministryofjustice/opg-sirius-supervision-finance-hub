@@ -42,17 +42,16 @@ build-migrations:
 	docker compose build finance-migration
 
 build-dev:
-	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml build --parallel finance-hub finance-api npm
+	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml build --parallel finance-hub finance-api
 
 build-all:
 	docker compose build --parallel finance-hub finance-api finance-migration json-server cypress sirius-db allpay-mock holidays-api-mock
 
 clean:
 	docker compose down
-	docker compose run --rm npm
 
 up: clean build-dev start-and-seed sqlc-gen
-	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml up finance-hub finance-api npm
+	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml up finance-hub finance-api
 
 down:
 	docker compose down
