@@ -4,6 +4,8 @@ WORKDIR /root
 
 COPY cypress/package.json .
 COPY cypress/package-lock.json .
+
+RUN apk add --no-cache git
 RUN npm ci --ignore-scripts
 
 ENV CYPRESS_VIDEO=false

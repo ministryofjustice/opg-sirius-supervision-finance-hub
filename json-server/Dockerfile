@@ -7,6 +7,7 @@ EXPOSE 3000
 
 COPY json-server .
 
+RUN apk add --no-cache git
 RUN npm ci --ignore-scripts
 
 ENTRYPOINT ["npm", "run", "serve"]
