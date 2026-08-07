@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
@@ -34,8 +35,9 @@ var basePath string
 // function and use the DbInstance to interact with the database as needed (e.g. to insert data prior to testing).
 // Ensure to run TearDown at the end of the tests to clean up.
 type ContainerManager struct {
-	Address   string
-	Container *postgres.PostgresContainer
+	Address    string
+	searchPath string
+	Container  *postgres.PostgresContainer
 }
 
 // Restore restores the DB to the snapshot backup and re-establishes the connection
@@ -45,7 +47,13 @@ func (db *ContainerManager) Restore(ctx context.Context) {
 		log.Fatal(err)
 	}
 
-	if err := waitUntilReady(ctx, db.Address); err != nil {
+	connString, err := db.Container.ConnectionString(ctx, fmt.Sprintf("search_path=%s", db.searchPath))
+	if err != nil {
+		log.Fatal(err)
+	}
+	db.Address = connString
+
+	if err := waitUntilReady(ctx, connString); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -55,18 +63,14 @@ func waitUntilReady(ctx context.Context, connString string) error {
 	defer cancel()
 	started := time.Now()
 
-	pool, err := pgxpool.New(waitCtx, connString)
-	if err != nil {
-		return fmt.Errorf("create pool: %w", err)
-	}
-	defer pool.Close()
-
 	ticker := time.NewTicker(restoreRetryInterval)
 	defer ticker.Stop()
 
 	var lastErr error
 	for {
-		if err := pool.Ping(waitCtx); err == nil {
+		conn, err := pgx.Connect(waitCtx, connString)
+		if err == nil {
+			_ = conn.Close(waitCtx)
 			if time.Since(started) >= restoreStabilizeFor {
 				return nil
 			}
@@ -128,8 +132,9 @@ func Init(ctx context.Context, searchPath string) *ContainerManager {
 	}
 
 	return &ContainerManager{
-		Container: container,
-		Address:   connString,
+		Container:  container,
+		Address:    connString,
+		searchPath: searchPath,
 	}
 }
 
