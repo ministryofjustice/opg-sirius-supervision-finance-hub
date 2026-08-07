@@ -20,9 +20,12 @@ import (
 )
 
 const (
-	dbname   = "test_db"
-	user     = "test_user"
-	password = "test_password"
+	dbname               = "test_db"
+	user                 = "test_user"
+	password             = "test_password"
+	restoreReadyTimeout  = 20 * time.Second
+	restoreRetryInterval = 100 * time.Millisecond
+	restoreStabilizeFor  = 1 * time.Second
 )
 
 var basePath string
@@ -42,8 +45,45 @@ func (db *ContainerManager) Restore(ctx context.Context) {
 		log.Fatal(err)
 	}
 
-	// Restore sometimes "completes" before indexes have been rebuilt, so we need to wait a bit
-	time.Sleep(1 * time.Second)
+	if err := waitUntilReady(ctx, db.Address); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func waitUntilReady(ctx context.Context, connString string) error {
+	waitCtx, cancel := context.WithTimeout(ctx, restoreReadyTimeout)
+	defer cancel()
+	started := time.Now()
+
+	pool, err := pgxpool.New(waitCtx, connString)
+	if err != nil {
+		return fmt.Errorf("create pool: %w", err)
+	}
+	defer pool.Close()
+
+	ticker := time.NewTicker(restoreRetryInterval)
+	defer ticker.Stop()
+
+	var lastErr error
+	for {
+		if err := pool.Ping(waitCtx); err == nil {
+			if time.Since(started) >= restoreStabilizeFor {
+				return nil
+			}
+			lastErr = fmt.Errorf("restore still stabilizing")
+		} else {
+			lastErr = err
+		}
+
+		select {
+		case <-waitCtx.Done():
+			if lastErr != nil {
+				return fmt.Errorf("database not ready: %w", lastErr)
+			}
+			return fmt.Errorf("database not ready: %w", waitCtx.Err())
+		case <-ticker.C:
+		}
+	}
 }
 
 func Init(ctx context.Context, searchPath string) *ContainerManager {
