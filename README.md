@@ -28,9 +28,9 @@ local and live environments.
 ## Local development
 The application ran through Docker can be accessed on `localhost:8888/finance/clients/1/invoices`.
 
-To enable debugging and hot-reloading of Go files:
+To enable debugging and hot-reloading of Go files and JS assets:
 
-`make up`
+`make dev-up`
 
 Hot-reloading is managed independently for both apps and should happen seamlessly. Hot-reloading for web assets (JS, CSS, etc.)
 is also provided via an npm watch command.
