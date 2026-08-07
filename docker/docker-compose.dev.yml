@@ -38,8 +38,8 @@ services:
     volumes:
       - ./api-mocks/allpay:/opt/imposter/config
 
-  yarn:
-    command: watch
+  npm:
+    command: run watch
 
   json-server:
     volumes:
