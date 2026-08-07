@@ -50,8 +50,11 @@ build-all:
 clean:
 	docker compose down
 
-up: clean build-dev start-and-seed sqlc-gen
-	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml up finance-hub finance-api
+up: clean build start-and-seed sqlc-gen
+	docker compose up finance-hub finance-api
+
+dev-up: clean build-dev start-and-seed sqlc-gen
+	docker compose -f docker-compose.yml -f docker/docker-compose.dev.yml up finance-hub finance-api watch-assets
 
 down:
 	docker compose down
