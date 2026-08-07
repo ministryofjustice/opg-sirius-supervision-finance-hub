@@ -165,3 +165,36 @@ func TestCancelMandate_ValidationErrorValidJSON(t *testing.T) {
 		t.Errorf("Expected ErrorValidation, got %v", err)
 	}
 }
+
+func TestIsAlreadyCancelledValidationError(t *testing.T) {
+	testCases := []struct {
+		name     string
+		messages []string
+		want     bool
+	}{
+		{
+			name:     "mandate not found message",
+			messages: []string{"A Direct Debit Mandate was not found for this account"},
+			want:     true,
+		},
+		{
+			name:     "direct debit closed message",
+			messages: []string{"This Direct Debit is closed"},
+			want:     true,
+		},
+		{
+			name:     "unrelated validation message",
+			messages: []string{"Some generic validation message"},
+			want:     false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := isAlreadyCancelledValidationError(ErrorValidation{Messages: tc.messages})
+			if got != tc.want {
+				t.Errorf("isAlreadyCancelledValidationError() = %t, want %t", got, tc.want)
+			}
+		})
+	}
+}
