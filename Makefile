@@ -25,7 +25,7 @@ hub-tests: setup-directories
 	docker compose run --rm hub-test-runner
 
 api-tests: setup-directories
-	go run gotest.tools/gotestsum@latest --format testname  --junitfile test-results/api-unit-tests.xml -- ./finance-api/... -coverprofile=test-results/api-coverage.txt
+	go run gotest.tools/gotestsum@latest --format testname  --junitfile test-results/api-unit-tests.xml -- -p 1 ./finance-api/... -coverprofile=test-results/api-coverage.txt
 
 combine-coverage:
 	cat test-results/hub-coverage.txt > test-results/coverage.txt
