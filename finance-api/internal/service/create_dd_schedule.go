@@ -83,8 +83,10 @@ func (s *Service) CreateDirectDebitSchedule(ctx context.Context, details shared.
 			ClientReference: client.CourtRef,
 			Surname:         client.Surname,
 		},
-		Date:   schedule.CollectionDate,
-		Amount: schedule.Amount,
+		ScheduleInput: allpay.ScheduleInput{
+			Date:   schedule.CollectionDate,
+			Amount: schedule.Amount,
+		},
 	})
 	if err != nil {
 		var ve allpay.ErrorValidation

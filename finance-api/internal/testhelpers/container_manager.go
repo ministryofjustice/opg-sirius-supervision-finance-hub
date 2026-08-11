@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
@@ -20,9 +21,12 @@ import (
 )
 
 const (
-	dbname   = "test_db"
-	user     = "test_user"
-	password = "test_password"
+	dbname               = "test_db"
+	user                 = "test_user"
+	password             = "test_password"
+	restoreReadyTimeout  = 20 * time.Second
+	restoreRetryInterval = 100 * time.Millisecond
+	restoreStabilizeFor  = 1 * time.Second
 )
 
 var basePath string
@@ -31,8 +35,9 @@ var basePath string
 // function and use the DbInstance to interact with the database as needed (e.g. to insert data prior to testing).
 // Ensure to run TearDown at the end of the tests to clean up.
 type ContainerManager struct {
-	Address   string
-	Container *postgres.PostgresContainer
+	Address    string
+	searchPath string
+	Container  *postgres.PostgresContainer
 }
 
 // Restore restores the DB to the snapshot backup and re-establishes the connection
@@ -42,8 +47,47 @@ func (db *ContainerManager) Restore(ctx context.Context) {
 		log.Fatal(err)
 	}
 
-	// Restore sometimes "completes" before indexes have been rebuilt, so we need to wait a bit
-	time.Sleep(1 * time.Second)
+	connString, err := db.Container.ConnectionString(ctx, fmt.Sprintf("search_path=%s", db.searchPath))
+	if err != nil {
+		log.Fatal(err)
+	}
+	db.Address = connString
+
+	if err := waitUntilReady(ctx, connString); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func waitUntilReady(ctx context.Context, connString string) error {
+	waitCtx, cancel := context.WithTimeout(ctx, restoreReadyTimeout)
+	defer cancel()
+	started := time.Now()
+
+	ticker := time.NewTicker(restoreRetryInterval)
+	defer ticker.Stop()
+
+	var lastErr error
+	for {
+		conn, err := pgx.Connect(waitCtx, connString)
+		if err == nil {
+			_ = conn.Close(waitCtx)
+			if time.Since(started) >= restoreStabilizeFor {
+				return nil
+			}
+			lastErr = fmt.Errorf("restore still stabilizing")
+		} else {
+			lastErr = err
+		}
+
+		select {
+		case <-waitCtx.Done():
+			if lastErr != nil {
+				return fmt.Errorf("database not ready: %w", lastErr)
+			}
+			return fmt.Errorf("database not ready: %w", waitCtx.Err())
+		case <-ticker.C:
+		}
+	}
 }
 
 func Init(ctx context.Context, searchPath string) *ContainerManager {
@@ -88,8 +132,9 @@ func Init(ctx context.Context, searchPath string) *ContainerManager {
 	}
 
 	return &ContainerManager{
-		Container: container,
-		Address:   connString,
+		Container:  container,
+		Address:    connString,
+		searchPath: searchPath,
 	}
 }
 

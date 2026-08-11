@@ -10,20 +10,26 @@ import (
 	"time"
 )
 
-type schedule struct {
-	Date          string `json:"ScheduleDate"`
-	Amount        int32  `json:"Amount"`
-	Frequency     string `json:"Frequency"`
-	TotalPayments int32  `json:"TotalPayments"`
+type createScheduleRequest struct {
+	Schedules []Schedule `json:"Schedules"`
 }
 
-type createScheduleRequest struct {
-	Schedules []schedule `json:"Schedules"`
+type ScheduleInput struct {
+	Date   time.Time
+	Amount int32
+}
+
+func (s ScheduleInput) ToSchedule() Schedule {
+	return Schedule{
+		Date:          s.Date.Format("2006-01-02"),
+		Amount:        s.Amount,
+		Frequency:     "1",
+		TotalPayments: 1,
+	}
 }
 
 type CreateScheduleInput struct {
-	Date   time.Time
-	Amount int32
+	ScheduleInput
 	ClientDetails
 }
 
@@ -33,12 +39,7 @@ func (c *Client) CreateSchedule(ctx context.Context, data *CreateScheduleInput) 
 	var body bytes.Buffer
 
 	s := createScheduleRequest{
-		Schedules: []schedule{{
-			Date:          data.Date.Format("2006-01-02"),
-			Amount:        data.Amount,
-			Frequency:     "1",
-			TotalPayments: 1,
-		}},
+		Schedules: []Schedule{data.ToSchedule()},
 	}
 
 	err := json.NewEncoder(&body).Encode(s)
