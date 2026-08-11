@@ -1,4 +1,10 @@
-// Sirius specific styles
+@use "node_modules/@ministryofjustice/frontend/moj/all" as *;
+@use "node_modules/govuk-frontend/dist/govuk" as *;
+$govuk-assets-path: "/supervision/finance/assets/";
+
+#footer-background {
+  background: govuk-functional-colour("body-background");
+}
 
 .sirius-finance {
   .govuk-width-container,
@@ -21,7 +27,7 @@
     display: flex;
     justify-content: space-between;
     padding: 1em 0 0.5em;
-    border-bottom: 1px solid $govuk-border-colour;
+    border-bottom: 1px solid govuk-functional-colour("border");
     margin-bottom: 2em;
   }
 
@@ -38,7 +44,7 @@
     justify-content: flex-start;
     margin-bottom: 2em;
     padding-bottom: 1em;
-    border-bottom: 1px solid $govuk-border-colour;
+    border-bottom: 1px solid govuk-functional-colour("border");
   }
 
   .moj-sub-navigation {
@@ -50,7 +56,7 @@
       display: flex;
       justify-content: space-between;
       padding: 0.5em 0 0.5em;
-      border-bottom: 1px solid $govuk-border-colour;
+      border-bottom: 1px solid govuk-functional-colour("border");
       margin-bottom: 2em;
     }
   }
@@ -82,7 +88,7 @@
 
     .secondary {
       display: block;
-      color: $govuk-secondary-text-colour;
+      color: govuk-functional-colour("secondary-text");
       font-size: 1rem;
       line-height: 1.25;
     }

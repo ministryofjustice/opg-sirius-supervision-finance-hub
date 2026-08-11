@@ -1,12 +1,3 @@
-$govuk-include-default-font-face: false;
-$govuk-moj-table-background-color: #e7f2fb;
-$govuk-assets-path: "/supervision/finance/assets/";
+@forward "node_modules/opg-sirius-header/sass/main";
+@forward "./scss/finance-hub";
 
-@import "node_modules/govuk-frontend/dist/govuk/all";
-@import "node_modules/@ministryofjustice/frontend/moj/all";
-@import "node_modules/opg-sirius-header/sass/sirius-header";
-@import "./scss/finance-hub";
-
-#footer-background {
-  background: #f4f8fb;
-}
