@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 type BankDetails struct {
@@ -21,14 +22,13 @@ type Address struct {
 }
 
 type Customer struct {
-	ClientReference string  `json:"ClientReference"`
-	Surname         string  `json:"LastName"`
-	Address         Address `json:"Address"`
-	SchemeCode      string  `json:"SchemeCode"`
+	ClientDetails
+	Address    Address `json:"Address"`
+	SchemeCode string  `json:"SchemeCode"`
 }
 
 type Schedule struct {
-	ScheduleDate  string `json:"ScheduleDate"`
+	Date          string `json:"ScheduleDate"`
 	Amount        int32  `json:"Amount"`
 	Frequency     string `json:"Frequency"`
 	TotalPayments int32  `json:"TotalPayments"`
@@ -42,13 +42,18 @@ type CreateMandateRequest struct {
 	Schedules []Schedule `json:"Schedules,omitempty"`
 }
 
-func (c *Client) CreateMandate(ctx context.Context, input *CreateMandateRequest) error {
+type CreateMandateInput struct {
+	Customer    Customer
+	BankDetails BankDetails
+	Schedule    *ScheduleInput
+}
+
+func (c *Client) CreateMandate(ctx context.Context, input *CreateMandateInput) error {
 	logger := c.logger(ctx)
 
 	data := CreateMandateRequest{
 		Customer: Customer{
-			ClientReference: input.Customer.ClientReference,
-			Surname:         trimChars(input.Customer.Surname, 19),
+			ClientDetails: input.Customer.ClientDetails,
 			Address: Address{
 				Line1:    trimChars(input.Customer.Address.Line1, 40),
 				Town:     trimChars(input.Customer.Address.Town, 40),
@@ -56,8 +61,15 @@ func (c *Client) CreateMandate(ctx context.Context, input *CreateMandateRequest)
 			},
 			SchemeCode: c.schemeCode, // add scheme code here instead of leaking it outside the client
 		},
-		BankAccount: input.BankAccount,
-		Schedules:   input.Schedules,
+		BankAccount: struct {
+			BankDetails BankDetails `json:"BankDetails"`
+		}{
+			BankDetails: input.BankDetails,
+		},
+	}
+
+	if input.Schedule != nil {
+		data.Schedules = []Schedule{input.Schedule.ToSchedule()}
 	}
 
 	var body bytes.Buffer
@@ -92,6 +104,19 @@ func (c *Client) CreateMandate(ctx context.Context, input *CreateMandateRequest)
 			return apiError("Direct Debit cannot be setup due to an unexpected response from AllPay.")
 		}
 
+		if alreadyExistsValidationError(ve) {
+			logger.Info("mandate already exists in Allpay", "messages", ve.Messages)
+
+			if input.Schedule != nil {
+				logger.Info("creating schedule for existing mandate in Allpay")
+				return c.CreateSchedule(ctx, &CreateScheduleInput{
+					ScheduleInput: *input.Schedule,
+					ClientDetails: input.Customer.ClientDetails,
+				})
+			}
+			return nil
+		}
+
 		logger.Error("create mandate request returned validation errors", "errors", ve)
 		return ve
 	}
@@ -102,4 +127,15 @@ func (c *Client) CreateMandate(ctx context.Context, input *CreateMandateRequest)
 	}
 
 	return nil
+}
+
+func alreadyExistsValidationError(err ErrorValidation) bool {
+	for _, message := range err.Messages {
+		formattedMessage := strings.ToLower(message)
+		if strings.Contains(formattedMessage, "this direct debit reference is already being used") {
+			return true
+		}
+	}
+
+	return false
 }

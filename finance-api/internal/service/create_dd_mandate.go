@@ -48,24 +48,22 @@ func (s *Service) CreateDirectDebitMandate(ctx context.Context, clientID int32, 
 		return ScheduleData{}, err
 	}
 
-	mandateRequest := &allpay.CreateMandateRequest{
+	input := &allpay.CreateMandateInput{
 		Customer: allpay.Customer{
-			ClientReference: createMandate.ClientReference,
-			Surname:         createMandate.Surname,
+			ClientDetails: allpay.ClientDetails{
+				ClientReference: createMandate.ClientReference,
+				Surname:         createMandate.Surname,
+			},
 			Address: allpay.Address{
 				Line1:    createMandate.Address.Line1,
 				Town:     createMandate.Address.Town,
 				PostCode: createMandate.Address.PostCode,
 			},
 		},
-		BankAccount: struct {
-			BankDetails allpay.BankDetails `json:"BankDetails"`
-		}{
-			BankDetails: allpay.BankDetails{
-				AccountName:   bankDetails.AccountName,
-				SortCode:      strings.ReplaceAll(bankDetails.SortCode, "-", ""),
-				AccountNumber: bankDetails.AccountNumber,
-			},
+		BankDetails: allpay.BankDetails{
+			AccountName:   bankDetails.AccountName,
+			SortCode:      strings.ReplaceAll(bankDetails.SortCode, "-", ""),
+			AccountNumber: bankDetails.AccountNumber,
 		},
 	}
 
@@ -78,12 +76,10 @@ func (s *Service) CreateDirectDebitMandate(ctx context.Context, clientID int32, 
 	// If there is outstanding debt, add schedules to mandate request
 	var pc ScheduleData
 	if schedule.Amount > 0 {
-		mandateRequest.Schedules = []allpay.Schedule{{
-			ScheduleDate:  schedule.CollectionDate.Format("2006-01-02"),
-			Amount:        schedule.Amount,
-			Frequency:     "1",
-			TotalPayments: 1,
-		}}
+		input.Schedule = &allpay.ScheduleInput{
+			Date:   schedule.CollectionDate,
+			Amount: schedule.Amount,
+		}
 
 		// Create pending collection record
 		var cd pgtype.Date
@@ -103,7 +99,7 @@ func (s *Service) CreateDirectDebitMandate(ctx context.Context, clientID int32, 
 		pc = schedule
 	}
 
-	err = s.allpay.CreateMandate(ctx, mandateRequest)
+	err = s.allpay.CreateMandate(ctx, input)
 
 	if err != nil {
 		s.Logger(ctx).Error(fmt.Sprintf("Error creating mandate with allpay, rolling back payment method change for client : %d", clientID), slog.String("err", err.Error()))
