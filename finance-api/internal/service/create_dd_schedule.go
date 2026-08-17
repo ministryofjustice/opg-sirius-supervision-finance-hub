@@ -58,7 +58,7 @@ func (s *Service) CreateDirectDebitSchedule(ctx context.Context, details shared.
 		return nil
 	}
 
-	tx, err := s.BeginStoreTx(ctx)
+	tx, err := s.BeginStoreTxForClient(ctx, details.ClientID)
 	if err != nil {
 		return err
 	}

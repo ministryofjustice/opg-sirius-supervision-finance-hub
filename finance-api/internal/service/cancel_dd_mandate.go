@@ -23,7 +23,7 @@ func (s *Service) CancelDirectDebitMandate(ctx context.Context, clientID int32, 
 		return nil
 	}
 
-	tx, err := s.BeginStoreTx(ctx)
+	tx, err := s.BeginStoreTxForClient(ctx, clientID)
 	if err != nil {
 		return err
 	}

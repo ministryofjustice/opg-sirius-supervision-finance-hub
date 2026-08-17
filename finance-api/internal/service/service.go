@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -102,6 +103,22 @@ func (s *Service) BeginStoreTx(ctx context.Context) (*store.Tx, error) {
 	}
 
 	return store.NewTx(tx), nil
+}
+
+func (s *Service) BeginStoreTxForClient(ctx context.Context, clientID int32) (*store.Tx, error) {
+	tx, err := s.BeginStoreTx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = tx.LockFinanceClient(ctx, clientID)
+	if err != nil {
+		s.Logger(ctx).Error(fmt.Sprintf("Error locking finance client %d before starting transaction", clientID), slog.String("err", err.Error()))
+		tx.Rollback(ctx)
+		return nil, err
+	}
+
+	return tx, nil
 }
 
 func (s *Service) Logger(ctx context.Context) *slog.Logger {
