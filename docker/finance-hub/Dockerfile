@@ -3,9 +3,8 @@ FROM golang:1.26@sha256:3aff6657219a4d9c14e27fb1d8976c49c29fddb70ba835014f477e1c
 RUN adduser \
     --disabled-password \
     --gecos "" \
-    --home "/nonexistent" \
+    --home "/home/app-user" \
     --shell "/sbin/nologin" \
-    --no-create-home \
     --uid 65532 \
     app-user
 
@@ -44,6 +43,10 @@ COPY --from=asset-env /app/web/static web/static
 COPY --from=healthcheck-build /go/bin/healthcheck /go/bin/healthcheck
 
 RUN go install github.com/air-verse/air@latest && go install github.com/go-delve/delve/cmd/dlv@latest
+RUN mkdir -p /app/finance-hub/tmp && chown -R app-user:app-user /app/finance-hub
+ENV HOME=/home/app-user
+ENV GOCACHE=/tmp/.cache/go-build
+ENV GOMODCACHE=/tmp/.cache/go-mod
 
 HEALTHCHECK --interval=5s --timeout=5s --start-period=5s --retries=5 CMD [ "/go/bin/healthcheck" ]
 EXPOSE 8080
