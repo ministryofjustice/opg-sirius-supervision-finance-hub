@@ -65,20 +65,6 @@ func (q *Queries) GetAccountInformation(ctx context.Context, clientID int32) (Ge
 	return i, err
 }
 
-const lockFinanceClient = `-- name: LockFinanceClient :one
-SELECT id
-FROM finance_client
-WHERE client_id = $1
-FOR UPDATE
-`
-
-func (q *Queries) LockFinanceClient(ctx context.Context, clientID int32) (int32, error) {
-	row := q.db.QueryRow(ctx, lockFinanceClient, clientID)
-	var id int32
-	err := row.Scan(&id)
-	return id, err
-}
-
 const getClientById = `-- name: GetClientById :one
 SELECT fc.id AS finance_client_id, fc.client_id, fc.court_ref::VARCHAR "court_ref", fc.payment_method,
        c.surname::VARCHAR "surname",
@@ -193,6 +179,20 @@ func (q *Queries) GetReversibleBalanceByCourtRef(ctx context.Context, dollar_1 p
 	var balance int32
 	err := row.Scan(&balance)
 	return balance, err
+}
+
+const lockFinanceClient = `-- name: LockFinanceClient :one
+SELECT id
+FROM finance_client
+WHERE client_id = $1
+FOR UPDATE
+`
+
+func (q *Queries) LockFinanceClient(ctx context.Context, clientID int32) (int32, error) {
+	row := q.db.QueryRow(ctx, lockFinanceClient, clientID)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
 }
 
 const updateClient = `-- name: UpdateClient :exec

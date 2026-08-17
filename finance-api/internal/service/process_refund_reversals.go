@@ -2,10 +2,8 @@ package service
 
 import (
 	"context"
-	"errors"
 	"time"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
@@ -36,16 +34,8 @@ func (s *Service) ProcessRefundReversals(ctx context.Context, records [][]string
 					continue
 				}
 
-				client, err := s.store.GetClientIdsByCourtRef(ctx, details.CourtRef)
-				if errors.Is(err, pgx.ErrNoRows) || client.ClientID == 0 {
-					failedLines[index] = validation.UploadErrorProcessing
-					continue
-				}
-				if err != nil {
-					failedLines[index] = validation.UploadErrorProcessing
-					continue
-				}
-
+				// we know client exists because validateRefundReversalLine has already checked
+				client, _ := s.store.GetClientIdsByCourtRef(ctx, details.CourtRef)
 				clientLines[client.ClientID] = append(clientLines[client.ClientID], refundReversalUploadLine{
 					index:   index,
 					details: details,

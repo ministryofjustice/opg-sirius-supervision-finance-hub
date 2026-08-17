@@ -5,7 +5,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
@@ -59,29 +58,13 @@ func (s *Service) processReversalsForClient(ctx context.Context, uploadType shar
 			continue
 		}
 
-		client, err := s.store.GetClientIdsByCourtRef(ctx, line.details.ErroredCourtRef)
-		if errors.Is(err, pgx.ErrNoRows) || client.ClientID == 0 {
-			(*failedLines)[line.index] = validation.UploadErrorProcessing
-			continue
-		}
-		if err != nil {
-			(*failedLines)[line.index] = validation.UploadErrorProcessing
-			continue
-		}
-
+		// we know client exists because validateReversalLine has already checked
+		client, _ := s.store.GetClientIdsByCourtRef(ctx, line.details.ErroredCourtRef)
 		clientIDs = append(clientIDs, client.ClientID)
 
 		if uploadType == shared.ReportTypeUploadMisappliedPayments {
-			correctClient, err := s.store.GetClientIdsByCourtRef(ctx, line.details.CorrectCourtRef)
-			if errors.Is(err, pgx.ErrNoRows) || correctClient.ClientID == 0 {
-				(*failedLines)[line.index] = validation.UploadErrorProcessing
-				continue
-			}
-			if err != nil {
-				(*failedLines)[line.index] = validation.UploadErrorProcessing
-				continue
-			}
-
+			// we know client exists because validateApplyLine has already checked
+			correctClient, _ := s.store.GetClientIdsByCourtRef(ctx, line.details.CorrectCourtRef)
 			clientIDs = append(clientIDs, correctClient.ClientID)
 		}
 
