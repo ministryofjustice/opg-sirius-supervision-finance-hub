@@ -6,6 +6,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -106,16 +107,24 @@ func (s *Service) BeginStoreTx(ctx context.Context) (*store.Tx, error) {
 }
 
 func (s *Service) BeginStoreTxForClient(ctx context.Context, clientID int32) (*store.Tx, error) {
+	return s.BeginStoreTxForClients(ctx, []int32{clientID})
+}
+
+func (s *Service) BeginStoreTxForClients(ctx context.Context, clientIDs []int32) (*store.Tx, error) {
 	tx, err := s.BeginStoreTx(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = tx.LockFinanceClient(ctx, clientID)
-	if err != nil {
-		s.Logger(ctx).Error(fmt.Sprintf("Error locking finance client %d before starting transaction", clientID), slog.String("err", err.Error()))
-		tx.Rollback(ctx)
-		return nil, err
+	slices.Sort(clientIDs)
+
+	for _, clientID := range clientIDs {
+		_, err = tx.LockFinanceClient(ctx, clientID)
+		if err != nil {
+			s.Logger(ctx).Error(fmt.Sprintf("Error locking finance client %d before starting transaction", clientID), slog.String("err", err.Error()))
+			tx.Rollback(ctx)
+			return nil, err
+		}
 	}
 
 	return tx, nil
