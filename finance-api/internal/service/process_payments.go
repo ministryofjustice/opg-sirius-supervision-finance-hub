@@ -2,13 +2,11 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/event"
@@ -35,21 +33,8 @@ func (s *Service) ProcessPayments(ctx context.Context, records [][]string, uploa
 					continue
 				}
 
-				client, err := s.store.GetClientIdsByCourtRef(ctx, details.CourtRef)
-				if errors.Is(err, pgx.ErrNoRows) {
-					failedLines[index] = validation.UploadErrorClientNotFound
-					continue
-				}
-				if err != nil {
-					failedLines[index] = validation.UploadErrorProcessing
-					continue
-				}
-
-				if client.ClientID == 0 {
-					failedLines[index] = validation.UploadErrorClientNotFound
-					continue
-				}
-
+				// we know client exists because validatePaymentLine has already checked
+				client, _ := s.store.GetClientIdsByCourtRef(ctx, details.CourtRef)
 				clientLines[client.ClientID] = append(clientLines[client.ClientID], paymentUploadLine{
 					index:   index,
 					details: details,
@@ -73,30 +58,20 @@ func (s *Service) processPaymentsForClient(ctx context.Context, clientID int32, 
 	}
 	defer tx.Rollback(ctx)
 
-	validLines := make([]paymentUploadLine, 0, len(lines))
-
 	for _, line := range lines {
-		if !s.validatePaymentLine(ctx, line.details, line.index, failedLines) {
-			continue
-		}
-
-		validLines = append(validLines, line)
-	}
-
-	for _, line := range validLines {
 		_, err = s.ProcessPaymentsUploadLine(ctx, tx, line.details)
 		if err != nil {
 			// if a client has two identical payments in the same file, we want both to create ledger transactions, but if
 			// one succeeds and the other fails, we want to fail both, as otherwise it would be impossible to upload the
 			// duplicate in a subsequent upload.
-			s.markPaymentLinesFailed(validLines, failedLines, validation.UploadErrorProcessing)
+			s.markPaymentLinesFailed(lines, failedLines, validation.UploadErrorProcessing)
 			return
 		}
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		s.markPaymentLinesFailed(validLines, failedLines, validation.UploadErrorProcessing)
+		s.markPaymentLinesFailed(lines, failedLines, validation.UploadErrorProcessing)
 	}
 }
 
