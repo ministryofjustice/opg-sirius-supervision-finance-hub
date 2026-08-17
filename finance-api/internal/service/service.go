@@ -44,7 +44,7 @@ type NotifyClient interface {
 
 type AllpayClient interface {
 	CancelMandate(ctx context.Context, data *allpay.CancelMandateRequest) error
-	CreateMandate(ctx context.Context, data *allpay.CreateMandateRequest) error
+	CreateMandate(ctx context.Context, data *allpay.CreateMandateInput) error
 	ModulusCheck(ctx context.Context, sortCode string, accountNumber string) error
 	CreateSchedule(ctx context.Context, data *allpay.CreateScheduleInput) error
 	FetchFailedPayments(ctx context.Context, data allpay.FetchFailedPaymentsInput) (allpay.FailedPayments, error)

@@ -17,8 +17,8 @@ type Envs struct {
 }
 
 type ClientDetails struct {
-	ClientReference string
-	Surname         string
+	ClientReference string `json:"ClientReference"`
+	Surname         string `json:"LastName"`
 }
 
 type Client struct {

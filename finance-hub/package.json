@@ -16,9 +16,9 @@
   },
   "dependencies": {
     "@cypress/grep": "^6.0.0",
-    "@ministryofjustice/frontend": "^5.0.0",
-    "govuk-frontend": "^5.0.0",
-    "opg-sirius-header": "git+https://github.com/ministryofjustice/opg-sirius-header.git#semver:v0.53.15",
+    "@ministryofjustice/frontend": "^9.0.0",
+    "govuk-frontend": "^6.0.0",
+    "opg-sirius-header": "ministryofjustice/opg-sirius-header#semver:v0.53.19",
     "htmx.org": "^2.0.0",
     "htmx-ext-response-targets": "^2.0.0"
   },
@@ -28,7 +28,7 @@
     "@eslint/eslintrc": "^3.3.3",
     "@eslint/js": "^10.0.1",
     "prettier": "^3.0.0",
-    "sass": "^1.70.0"
+    "sass": "^1.101.0"
   },
   "overrides": {
     "colors": "1.4.0"
