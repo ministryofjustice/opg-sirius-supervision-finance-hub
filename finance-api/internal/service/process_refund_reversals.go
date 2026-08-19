@@ -16,14 +16,14 @@ type refundReversalDetails struct {
 	fulfilledDate pgtype.Date
 }
 
+type refundReversalUploadLine struct {
+	index   int
+	details refundReversalDetails
+}
+
 func (s *Service) ProcessRefundReversals(ctx context.Context, records [][]string, bankDate shared.Date) (map[int]string, error) {
 	failedLines := make(map[int]string)
-
-	tx, err := s.BeginStoreTx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback(ctx)
+	clientLines := make(map[int32][]refundReversalUploadLine)
 
 	for index, record := range records {
 		if !isHeaderRow(shared.ReportTypeUploadReverseFulfilledRefunds, index) && safeRead(record, 0) != "" {
@@ -34,20 +34,53 @@ func (s *Service) ProcessRefundReversals(ctx context.Context, records [][]string
 					continue
 				}
 
-				_, err := s.ProcessPaymentsUploadLine(ctx, tx, details.PaymentDetails)
-				if err != nil {
-					return nil, err
-				}
+				// we know client exists because validateRefundReversalLine has already checked
+				client, _ := s.store.GetClientIdsByCourtRef(ctx, details.CourtRef)
+				clientLines[client.ClientID] = append(clientLines[client.ClientID], refundReversalUploadLine{
+					index:   index,
+					details: details,
+				})
 			}
+		}
+	}
+
+	for clientID, lines := range clientLines {
+		s.processRefundReversalsForClient(ctx, clientID, lines, &failedLines)
+	}
+
+	return failedLines, nil
+}
+
+func (s *Service) processRefundReversalsForClient(ctx context.Context, clientID int32, lines []refundReversalUploadLine, failedLines *map[int]string) {
+	tx, err := s.BeginStoreTxForClient(ctx, clientID)
+	if err != nil {
+		s.markRefundReversalLinesFailed(lines, failedLines, validation.UploadErrorProcessing)
+		return
+	}
+	defer tx.Rollback(ctx)
+
+	for _, line := range lines {
+		_, err = s.ProcessPaymentsUploadLine(ctx, tx, line.details.PaymentDetails)
+		if err != nil {
+			s.markRefundReversalLinesFailed(lines, failedLines, validation.UploadErrorProcessing)
+			return
 		}
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		return nil, err
+		s.markRefundReversalLinesFailed(lines, failedLines, validation.UploadErrorProcessing)
 	}
+}
 
-	return failedLines, nil
+func (s *Service) markRefundReversalLinesFailed(lines []refundReversalUploadLine, failedLines *map[int]string, reason string) {
+	for _, line := range lines {
+		if _, exists := (*failedLines)[line.index]; exists {
+			continue
+		}
+
+		(*failedLines)[line.index] = reason
+	}
 }
 
 func getRefundReversalDetails(ctx context.Context, record []string, formDate shared.Date, index int, failedLines *map[int]string) refundReversalDetails {
@@ -95,11 +128,15 @@ func (s *Service) validateRefundReversalLine(ctx context.Context, details refund
 	var amount pgtype.Int4
 	_ = store.ToInt4(&amount, details.Amount)
 
-	exists, _ := s.store.CheckRefundForReversalExists(ctx, store.CheckRefundForReversalExistsParams{
+	exists, err := s.store.CheckRefundForReversalExists(ctx, store.CheckRefundForReversalExistsParams{
 		CourtRef:      details.CourtRef,
 		FulfilledDate: details.fulfilledDate,
 		Amount:        amount,
 	})
+	if err != nil {
+		(*failedLines)[index] = validation.UploadErrorProcessing
+		return false
+	}
 
 	if !exists {
 		(*failedLines)[index] = validation.UploadErrorRefundForReversalNotFound

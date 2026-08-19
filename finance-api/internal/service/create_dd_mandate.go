@@ -22,7 +22,7 @@ func (s *Service) CreateDirectDebitMandate(ctx context.Context, clientID int32, 
 		return ScheduleData{}, err
 	}
 
-	tx, err := s.BeginStoreTx(ctx)
+	tx, err := s.BeginStoreTxForClient(ctx, clientID)
 	if err != nil {
 		return ScheduleData{}, err
 	}

@@ -2,8 +2,10 @@ package service
 
 import (
 	"context"
+	"errors"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/auth"
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/finance-api/internal/store"
@@ -11,46 +13,91 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
+type fulfilledRefundUploadLine struct {
+	index   int
+	details shared.FulfilledRefundDetails
+}
+
 func (s *Service) ProcessFulfilledRefunds(ctx context.Context, records [][]string, bankDate shared.Date) (map[int]string, error) {
 	failedLines := make(map[int]string)
-
-	tx, err := s.BeginStoreTx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback(ctx)
+	clientLines := make(map[int32][]fulfilledRefundUploadLine)
 
 	for index, record := range records {
 		if !isHeaderRow(shared.ReportTypeUploadFulfilledRefunds, index) && safeRead(record, 0) != "" {
 			details := getRefundDetails(ctx, record, bankDate, index, &failedLines)
 
 			if details != (shared.FulfilledRefundDetails{}) {
-				id, _ := tx.GetProcessingRefund(ctx, store.GetProcessingRefundParams{
-					CourtRef:      details.CourtRef,
-					Amount:        details.Amount,
-					AccountName:   details.AccountName,
-					AccountNumber: details.AccountNumber,
-					SortCode:      details.SortCode,
-				})
-				if id == 0 {
+				client, err := s.store.GetClientIdsByCourtRef(ctx, details.CourtRef)
+				if errors.Is(err, pgx.ErrNoRows) || client.ClientID == 0 {
 					failedLines[index] = validation.UploadErrorRefundNotFound
 					continue
 				}
-
-				err := s.ProcessFulfilledRefundsLine(ctx, tx, id, details)
 				if err != nil {
-					return nil, err
+					failedLines[index] = validation.UploadErrorProcessing
+					continue
 				}
+
+				clientLines[client.ClientID] = append(clientLines[client.ClientID], fulfilledRefundUploadLine{
+					index:   index,
+					details: details,
+				})
 			}
+		}
+	}
+
+	for clientID, lines := range clientLines {
+		s.processFulfilledRefundsForClient(ctx, clientID, lines, &failedLines)
+	}
+
+	return failedLines, nil
+}
+
+func (s *Service) processFulfilledRefundsForClient(ctx context.Context, clientID int32, lines []fulfilledRefundUploadLine, failedLines *map[int]string) {
+	tx, err := s.BeginStoreTxForClient(ctx, clientID)
+	if err != nil {
+		s.markFulfilledRefundLinesFailed(lines, failedLines, validation.UploadErrorProcessing)
+		return
+	}
+	defer tx.Rollback(ctx)
+
+	for _, line := range lines {
+		refundID, err := tx.GetProcessingRefund(ctx, store.GetProcessingRefundParams{
+			CourtRef:      line.details.CourtRef,
+			Amount:        line.details.Amount,
+			AccountName:   line.details.AccountName,
+			AccountNumber: line.details.AccountNumber,
+			SortCode:      line.details.SortCode,
+		})
+		if errors.Is(err, pgx.ErrNoRows) || refundID == 0 {
+			(*failedLines)[line.index] = validation.UploadErrorRefundNotFound
+			continue
+		}
+		if err != nil {
+			s.markFulfilledRefundLinesFailed(lines, failedLines, validation.UploadErrorProcessing)
+			return
+		}
+
+		err = s.ProcessFulfilledRefundsLine(ctx, tx, refundID, line.details)
+		if err != nil {
+			s.markFulfilledRefundLinesFailed(lines, failedLines, validation.UploadErrorProcessing)
+			return
 		}
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		return nil, err
+		s.markFulfilledRefundLinesFailed(lines, failedLines, validation.UploadErrorProcessing)
 	}
+}
 
-	return failedLines, nil
+func (s *Service) markFulfilledRefundLinesFailed(lines []fulfilledRefundUploadLine, failedLines *map[int]string, reason string) {
+	for _, line := range lines {
+		if _, exists := (*failedLines)[line.index]; exists {
+			continue
+		}
+
+		(*failedLines)[line.index] = reason
+	}
 }
 
 func getRefundDetails(ctx context.Context, record []string, formDate shared.Date, index int, failedLines *map[int]string) shared.FulfilledRefundDetails {
