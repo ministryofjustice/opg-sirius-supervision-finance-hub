@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"strconv"
 	"testing"
 	"time"
@@ -46,6 +47,12 @@ func (suite *IntegrationSuite) Test_processPayments() {
 		"INSERT INTO finance_client VALUES (5, 5, 'invoice-5', 'DIRECT DEBIT', NULL, 'DDREF01');",
 		"INSERT INTO invoice VALUES (6, 5, 5, 'AD', 'AD11228/19', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 		"INSERT INTO pending_collection VALUES (1, 5, '2024-01-01', 10000, 'PENDING', NULL, '2024-01-01', 1);",
+		"INSERT INTO finance_client VALUES (6, 6, 'invoice-6', 'DEMANDED', NULL, '223344');",
+		"INSERT INTO invoice VALUES (7, 6, 6, 'AD', 'AD11229/19', '2023-04-01', '2025-03-31', 15000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
+		"INSERT INTO finance_client VALUES (7, 7, 'invoice-7', 'DEMANDED', NULL, '334455');",
+		"INSERT INTO invoice VALUES (8, 7, 7, 'AD', 'AD11230/19', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
+		"INSERT INTO finance_client VALUES (8, 8, 'invoice-8', 'DEMANDED', NULL, '445566');",
+		"INSERT INTO invoice VALUES (9, 8, 8, 'AD', 'AD11231/19', '2023-04-01', '2025-03-31', 10000, NULL, '2024-03-31', 11, '2024-03-31', NULL, NULL, NULL, '2024-03-31 00:00:00', '99');",
 		"ALTER SEQUENCE ledger_id_seq RESTART WITH 2;",
 		"ALTER SEQUENCE ledger_allocation_id_seq RESTART WITH 2;",
 	)
@@ -144,6 +151,40 @@ func (suite *IntegrationSuite) Test_processPayments() {
 			expectedFailedLines: map[int]string{},
 		},
 		{
+			name: "Same client duplicate lines in one file are both processed",
+			records: [][]string{
+				{"Case number (confirmed on Sirius)", "Cheque number", "Cheque Value (£)", "Comments", "Date in Bank"},
+				{"223344", "11111", "50", "", "01/01/2024"},
+				{"223344", "11111", "50", "", "01/01/2024"},
+			},
+			paymentType:      shared.ReportTypeUploadPaymentsSupervisionCheque,
+			bankDate:         shared.NewDate("2024-01-17"),
+			expectedClientId: 6,
+			expectedLedgerAllocations: []createdLedgerAllocation{
+				{
+					5000,
+					"SUPERVISION CHEQUE PAYMENT",
+					"CONFIRMED",
+					time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+					5000,
+					"ALLOCATED",
+					7,
+					-1,
+				},
+				{
+					5000,
+					"SUPERVISION CHEQUE PAYMENT",
+					"CONFIRMED",
+					time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+					5000,
+					"ALLOCATED",
+					7,
+					-1,
+				},
+			},
+			expectedFailedLines: map[int]string{},
+		},
+		{
 			name: "failure cases",
 			records: [][]string{
 				{"Ordercode", "Date", "Amount"},
@@ -180,10 +221,41 @@ func (suite *IntegrationSuite) Test_processPayments() {
 			},
 			expectedFailedLines: map[int]string{},
 		},
+		{
+			name: "Processing error is returned as failed lines and other clients still commit",
+			records: [][]string{
+				{"Case number (confirmed on Sirius)", "Cheque number", "Cheque Value (£)", "Comments", "Date in Bank"},
+				{"334455", "54321", "250.10", "", "01/01/2024"},
+				{"445566", "11111", "100", "", "01/01/2024"},
+			},
+			paymentType:      shared.ReportTypeUploadPaymentsSupervisionCheque,
+			bankDate:         shared.NewDate("2024-01-17"),
+			pisNumber:        150,
+			expectedClientId: 8,
+			expectedLedgerAllocations: []createdLedgerAllocation{
+				{
+					10000,
+					"SUPERVISION CHEQUE PAYMENT",
+					"CONFIRMED",
+					time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+					10000,
+					"ALLOCATED",
+					9,
+					150,
+				},
+			},
+			expectedFailedLines: map[int]string{
+				1: "PROCESSING_ERROR",
+			},
+			expectedDispatch: event.CreditOnAccount{ClientID: 7, CreditRemaining: 15010},
+		},
 	}
 	for _, tt := range tests {
 		suite.T().Run(tt.name, func(t *testing.T) {
 			dispatch := &mockDispatch{}
+			if tt.name == "Processing error is returned as failed lines and other clients still commit" {
+				dispatch.err = errors.New("dispatch failed")
+			}
 			s := Service{store: store.New(seeder.Conn), dispatch: dispatch, tx: seeder.Conn}
 
 			var currentLedgerId int

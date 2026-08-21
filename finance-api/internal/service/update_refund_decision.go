@@ -12,7 +12,7 @@ import (
 )
 
 func (s *Service) UpdateRefundDecision(ctx context.Context, clientId int32, refundId int32, status shared.RefundStatus) error {
-	tx, err := s.BeginStoreTx(ctx)
+	tx, err := s.BeginStoreTxForClient(ctx, clientId)
 	if err != nil {
 		return err
 	}

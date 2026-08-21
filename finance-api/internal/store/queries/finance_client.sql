@@ -27,6 +27,12 @@ FROM finance_client fc
          LEFT JOIN invoice i ON fc.id = i.finance_client_id
 GROUP BY fc.payment_method, b.paid, b.credit;
 
+-- name: LockFinanceClient :one
+SELECT id
+FROM finance_client
+WHERE client_id = $1
+FOR UPDATE;
+
 -- name: UpdateClient :exec
 UPDATE finance_client
 SET court_ref = $1

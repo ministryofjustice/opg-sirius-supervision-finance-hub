@@ -88,48 +88,49 @@ func (m *mockFileStorage) StreamFile(_ context.Context, bucketName string, fileN
 type mockDispatch struct {
 	called []string
 	event  any
+	err    error
 }
 
 func (m *mockDispatch) PendingInvoiceAdjustment(ctx context.Context, event event.PendingInvoiceAdjustment) error {
 	m.event = event
 	m.called = append(m.called, "PendingInvoiceAdjustment")
-	return nil
+	return m.err
 }
 
 func (m *mockDispatch) PaymentMethodChanged(ctx context.Context, event event.PaymentMethod) error {
 	m.event = event
 	m.called = append(m.called, "PaymentMethodChanged")
-	return nil
+	return m.err
 }
 
 func (m *mockDispatch) CreditOnAccount(ctx context.Context, event event.CreditOnAccount) error {
 	m.event = event
 	m.called = append(m.called, "CreditOnAccount")
-	return nil
+	return m.err
 }
 
 func (m *mockDispatch) RefundAdded(ctx context.Context, event event.RefundAdded) error {
 	m.event = event
 	m.called = append(m.called, "RefundAdded")
-	return nil
+	return m.err
 }
 
 func (m *mockDispatch) RefundReset(ctx context.Context, event event.RefundReset) error {
 	m.event = event
 	m.called = append(m.called, "RefundReset")
-	return nil
+	return m.err
 }
 
 func (m *mockDispatch) DirectDebitScheduleFailed(ctx context.Context, event event.DirectDebitScheduleFailed) error {
 	m.event = event
 	m.called = append(m.called, "DirectDebitScheduleFailed")
-	return nil
+	return m.err
 }
 
 func (m *mockDispatch) DirectDebitCollectionFailed(ctx context.Context, event event.DirectDebitCollectionFailed) error {
 	m.event = event
 	m.called = append(m.called, "DirectDebitCollectionFailed")
-	return nil
+	return m.err
 }
 
 func (m *mockDispatch) DirectDebitCollection(ctx context.Context, event event.DirectDebitCollection) error {

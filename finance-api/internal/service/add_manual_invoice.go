@@ -45,7 +45,7 @@ func (s *Service) AddManualInvoice(ctx context.Context, clientId int32, data sha
 		return apierror.ValidationError{Errors: validationErrors}
 	}
 
-	tx, err := s.BeginStoreTx(ctx)
+	tx, err := s.BeginStoreTxForClient(ctx, clientId)
 	if err != nil {
 		return err
 	}
