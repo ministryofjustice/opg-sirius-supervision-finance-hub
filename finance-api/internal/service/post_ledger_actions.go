@@ -113,7 +113,7 @@ func (s *Service) resetRefunds(ctx context.Context, clientID int32, tx *store.Tx
  * postLedgerActionsTx is a wrapper function to supply a transaction where PostLedgerActions is called without an existing transaction
  */
 func (s *Service) postLedgerActionsTx(ctx context.Context, clientID int32) error {
-	tx, err := s.BeginStoreTx(ctx)
+	tx, err := s.BeginStoreTxForClient(ctx, clientID)
 	if err != nil {
 		return err
 	}

@@ -44,7 +44,7 @@ func (s *Service) AddFeeReduction(ctx context.Context, clientId int32, data shar
 		CreatedBy:    createdBy,
 	}
 
-	tx, err := s.BeginStoreTx(ctx)
+	tx, err := s.BeginStoreTxForClient(ctx, clientId)
 	if err != nil {
 		return err
 	}

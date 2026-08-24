@@ -273,6 +273,7 @@ func Test_formatFailedLines(t *testing.T) {
 				11: "REFUND_NOT_FOUND_FOR_REVERSAL",
 				12: "MAXIMUM_DEBT",
 				13: "DUPLICATE_PAYMENT",
+				14: "PROCESSING_ERROR",
 			},
 			want: []string{
 				"Line 1: Unable to parse date - please use the format DD/MM/YYYY",
@@ -288,6 +289,7 @@ func Test_formatFailedLines(t *testing.T) {
 				"Line 11: The refund to reverse could not be found - either the data does not match or the refund has not been fulfilled",
 				"Line 12: Payment could not be reversed - maximum invoice debt exceeded",
 				"Line 13: Duplicate payment line",
+				"Line 14: This line could not be processed and was not committed. Please retry.",
 			},
 		},
 	}

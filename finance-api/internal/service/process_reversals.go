@@ -13,63 +13,114 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
+type reversalUploadLine struct {
+	index   int
+	details shared.ReversalDetails
+}
+
 func (s *Service) ProcessPaymentReversals(ctx context.Context, records [][]string, uploadType shared.ReportUploadType) (map[int]string, error) {
 	failedLines := make(map[int]string)
-
-	tx, err := s.BeginStoreTx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback(ctx)
-
-	var processedRecords []shared.ReversalDetails
+	clientLines := make(map[string][]reversalUploadLine)
 
 	for index, record := range records {
 		if index != 0 && safeRead(record, 0) != "" {
 			details := getReversalLines(ctx, record, uploadType, index, &failedLines)
 
 			if details != (shared.ReversalDetails{}) {
-				if !s.validateReversalLine(ctx, details, uploadType, processedRecords, index, &failedLines) {
-					continue
-				}
+				clientLines[details.ErroredCourtRef.String] = append(clientLines[details.ErroredCourtRef.String], reversalUploadLine{
+					index:   index,
+					details: details,
+				})
+			}
+		}
+	}
 
-				if uploadType == shared.ReportTypeUploadMisappliedPayments {
-					if !s.validateApplyLine(ctx, details, index, &failedLines) {
-						continue
-					}
-				}
+	for _, lines := range clientLines {
+		s.processReversalsForClient(ctx, uploadType, lines, &failedLines)
+	}
 
-				err = s.ProcessReversalUploadLine(ctx, tx, details)
-				if err != nil {
-					return nil, err
-				}
+	return failedLines, nil
+}
 
-				processedRecords = append(processedRecords, details)
+func (s *Service) processReversalsForClient(ctx context.Context, uploadType shared.ReportUploadType, lines []reversalUploadLine, failedLines *map[int]string) {
+	var (
+		clientIDs        []int32
+		processedRecords []shared.ReversalDetails
+		validLines       []reversalUploadLine
+	)
 
-				if uploadType == shared.ReportTypeUploadMisappliedPayments {
-					_, err = s.ProcessPaymentsUploadLine(ctx, tx, shared.PaymentDetails{
-						Amount:       details.Amount,
-						BankDate:     details.BankDate,
-						CourtRef:     details.CorrectCourtRef,
-						LedgerType:   details.PaymentType,
-						ReceivedDate: details.ReceivedDate,
-						CreatedBy:    details.CreatedBy,
-						PisNumber:    details.PisNumber,
-					})
-					if err != nil {
-						return nil, err
-					}
-				}
+	for _, line := range lines {
+		if !s.validateReversalLine(ctx, line.details, uploadType, processedRecords, line.index, failedLines) {
+			continue
+		}
+
+		if uploadType == shared.ReportTypeUploadMisappliedPayments && !s.validateApplyLine(ctx, line.details, line.index, failedLines) {
+			continue
+		}
+
+		// we know client exists because validateReversalLine has already checked
+		client, _ := s.store.GetClientIdsByCourtRef(ctx, line.details.ErroredCourtRef)
+		clientIDs = append(clientIDs, client.ClientID)
+
+		if uploadType == shared.ReportTypeUploadMisappliedPayments {
+			// we know client exists because validateApplyLine has already checked
+			correctClient, _ := s.store.GetClientIdsByCourtRef(ctx, line.details.CorrectCourtRef)
+			clientIDs = append(clientIDs, correctClient.ClientID)
+		}
+
+		validLines = append(validLines, line)
+		processedRecords = append(processedRecords, line.details)
+	}
+
+	if len(validLines) == 0 {
+		return
+	}
+
+	tx, err := s.BeginStoreTxForClients(ctx, clientIDs)
+	if err != nil {
+		s.markReversalLinesFailed(validLines, failedLines, validation.UploadErrorProcessing)
+		return
+	}
+	defer tx.Rollback(ctx)
+
+	for _, line := range validLines {
+		err = s.ProcessReversalUploadLine(ctx, tx, line.details)
+		if err != nil {
+			s.markReversalLinesFailed(validLines, failedLines, validation.UploadErrorProcessing)
+			return
+		}
+
+		if uploadType == shared.ReportTypeUploadMisappliedPayments {
+			_, err = s.ProcessPaymentsUploadLine(ctx, tx, shared.PaymentDetails{
+				Amount:       line.details.Amount,
+				BankDate:     line.details.BankDate,
+				CourtRef:     line.details.CorrectCourtRef,
+				LedgerType:   line.details.PaymentType,
+				ReceivedDate: line.details.ReceivedDate,
+				CreatedBy:    line.details.CreatedBy,
+				PisNumber:    line.details.PisNumber,
+			})
+			if err != nil {
+				s.markReversalLinesFailed(validLines, failedLines, validation.UploadErrorProcessing)
+				return
 			}
 		}
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		return nil, err
+		s.markReversalLinesFailed(validLines, failedLines, validation.UploadErrorProcessing)
 	}
+}
 
-	return failedLines, nil
+func (s *Service) markReversalLinesFailed(lines []reversalUploadLine, failedLines *map[int]string, reason string) {
+	for _, line := range lines {
+		if _, exists := (*failedLines)[line.index]; exists {
+			continue
+		}
+
+		(*failedLines)[line.index] = reason
+	}
 }
 
 func getReversalLines(ctx context.Context, record []string, uploadType shared.ReportUploadType, index int, failedLines *map[int]string) shared.ReversalDetails {
@@ -216,7 +267,7 @@ func getReversalLines(ctx context.Context, record []string, uploadType shared.Re
 }
 
 func (s *Service) validateReversalLine(ctx context.Context, details shared.ReversalDetails, uploadType shared.ReportUploadType, processedRecords []shared.ReversalDetails, index int, failedLines *map[int]string) bool {
-	ledgerCount, _ := s.store.CountDuplicateLedger(ctx, store.CountDuplicateLedgerParams{
+	ledgerCount, err := s.store.CountDuplicateLedger(ctx, store.CountDuplicateLedgerParams{
 		CourtRef:     details.ErroredCourtRef,
 		Amount:       details.Amount,
 		Type:         details.PaymentType.Key(),
@@ -225,6 +276,10 @@ func (s *Service) validateReversalLine(ctx context.Context, details shared.Rever
 		PisNumber:    details.PisNumber,
 		SkipBankDate: details.SkipBankDate,
 	})
+	if err != nil {
+		(*failedLines)[index] = validation.UploadErrorProcessing
+		return false
+	}
 
 	if ledgerCount == 0 {
 		(*failedLines)[index] = validation.UploadErrorNoMatchedPayment
@@ -232,14 +287,18 @@ func (s *Service) validateReversalLine(ctx context.Context, details shared.Rever
 	}
 
 	if uploadType == shared.ReportTypeUploadMisappliedPayments {
-		exists, _ := s.store.CheckClientExistsByCourtRef(ctx, details.CorrectCourtRef)
+		exists, err := s.store.CheckClientExistsByCourtRef(ctx, details.CorrectCourtRef)
+		if err != nil {
+			(*failedLines)[index] = validation.UploadErrorProcessing
+			return false
+		}
 		if !exists {
 			(*failedLines)[index] = validation.UploadErrorReversalClientNotFound
 			return false
 		}
 	}
 
-	reversalCount, _ := s.store.CountDuplicateLedger(ctx, store.CountDuplicateLedgerParams{
+	reversalCount, err := s.store.CountDuplicateLedger(ctx, store.CountDuplicateLedgerParams{
 		CourtRef:     details.ErroredCourtRef,
 		Amount:       -details.Amount,
 		Type:         details.PaymentType.Key(),
@@ -247,6 +306,10 @@ func (s *Service) validateReversalLine(ctx context.Context, details shared.Rever
 		ReceivedDate: details.ReceivedDate,
 		PisNumber:    details.PisNumber,
 	})
+	if err != nil {
+		(*failedLines)[index] = validation.UploadErrorProcessing
+		return false
+	}
 
 	if reversalCount >= ledgerCount {
 		(*failedLines)[index] = validation.UploadErrorDuplicateReversal
@@ -258,7 +321,11 @@ func (s *Service) validateReversalLine(ctx context.Context, details shared.Rever
 		return false
 	}
 
-	reversible, _ := s.store.GetReversibleBalanceByCourtRef(ctx, details.ErroredCourtRef)
+	reversible, err := s.store.GetReversibleBalanceByCourtRef(ctx, details.ErroredCourtRef)
+	if err != nil {
+		(*failedLines)[index] = validation.UploadErrorProcessing
+		return false
+	}
 
 	if reversible < details.Amount {
 		(*failedLines)[index] = validation.UploadErrorMaximumDebt
@@ -269,7 +336,11 @@ func (s *Service) validateReversalLine(ctx context.Context, details shared.Rever
 }
 
 func (s *Service) validateApplyLine(ctx context.Context, details shared.ReversalDetails, index int, failedLines *map[int]string) bool {
-	exists, _ := s.store.CheckClientExistsByCourtRef(ctx, details.CorrectCourtRef)
+	exists, err := s.store.CheckClientExistsByCourtRef(ctx, details.CorrectCourtRef)
+	if err != nil {
+		(*failedLines)[index] = validation.UploadErrorProcessing
+		return false
+	}
 
 	if !exists {
 		(*failedLines)[index] = validation.UploadErrorReversalClientNotFound

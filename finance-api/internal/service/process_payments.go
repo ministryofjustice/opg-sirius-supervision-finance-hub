@@ -15,14 +15,14 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
+type paymentUploadLine struct {
+	index   int
+	details shared.PaymentDetails
+}
+
 func (s *Service) ProcessPayments(ctx context.Context, records [][]string, uploadType shared.ReportUploadType, bankDate shared.Date, pisNumber int) (map[int]string, error) {
 	failedLines := make(map[int]string)
-
-	tx, err := s.BeginStoreTx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback(ctx)
+	clientLines := make(map[int32][]paymentUploadLine)
 
 	for index, record := range records {
 		if !isHeaderRow(uploadType, index) && safeRead(record, 0) != "" {
@@ -33,20 +33,56 @@ func (s *Service) ProcessPayments(ctx context.Context, records [][]string, uploa
 					continue
 				}
 
-				_, err := s.ProcessPaymentsUploadLine(ctx, tx, details)
-				if err != nil {
-					return nil, err
-				}
+				// we know client exists because validatePaymentLine has already checked
+				client, _ := s.store.GetClientIdsByCourtRef(ctx, details.CourtRef)
+				clientLines[client.ClientID] = append(clientLines[client.ClientID], paymentUploadLine{
+					index:   index,
+					details: details,
+				})
 			}
+		}
+	}
+
+	for clientID, lines := range clientLines {
+		s.processPaymentsForClient(ctx, clientID, lines, &failedLines)
+	}
+
+	return failedLines, nil
+}
+
+func (s *Service) processPaymentsForClient(ctx context.Context, clientID int32, lines []paymentUploadLine, failedLines *map[int]string) {
+	tx, err := s.BeginStoreTxForClient(ctx, clientID)
+	if err != nil {
+		s.markPaymentLinesFailed(lines, failedLines, validation.UploadErrorProcessing)
+		return
+	}
+	defer tx.Rollback(ctx)
+
+	for _, line := range lines {
+		_, err = s.ProcessPaymentsUploadLine(ctx, tx, line.details)
+		if err != nil {
+			// if a client has two identical payments in the same file, we want both to create ledger transactions, but if
+			// one succeeds and the other fails, we want to fail both, as otherwise it would be impossible to upload the
+			// duplicate in a subsequent upload.
+			s.markPaymentLinesFailed(lines, failedLines, validation.UploadErrorProcessing)
+			return
 		}
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		return nil, err
+		s.markPaymentLinesFailed(lines, failedLines, validation.UploadErrorProcessing)
 	}
+}
 
-	return failedLines, nil
+func (s *Service) markPaymentLinesFailed(lines []paymentUploadLine, failedLines *map[int]string, reason string) {
+	for _, line := range lines {
+		if _, exists := (*failedLines)[line.index]; exists {
+			continue
+		}
+
+		(*failedLines)[line.index] = reason
+	}
 }
 
 func getLedgerType(uploadType shared.ReportUploadType) (shared.TransactionType, error) {
@@ -190,7 +226,7 @@ Duplicate payments within the same file will be processed due to the transaction
 been processed, which is expected behaviour as there are legitimate reasons for a payment being duplicated, but duplicates will always appear in the same file.
 */
 func (s *Service) validatePaymentLine(ctx context.Context, details shared.PaymentDetails, index int, failedLines *map[int]string) bool {
-	count, _ := s.store.CountDuplicateLedger(ctx, store.CountDuplicateLedgerParams{
+	count, err := s.store.CountDuplicateLedger(ctx, store.CountDuplicateLedgerParams{
 		CourtRef:     details.CourtRef,
 		Amount:       details.Amount,
 		Type:         details.LedgerType.Key(),
@@ -198,13 +234,21 @@ func (s *Service) validatePaymentLine(ctx context.Context, details shared.Paymen
 		ReceivedDate: details.ReceivedDate,
 		PisNumber:    details.PisNumber,
 	})
+	if err != nil {
+		(*failedLines)[index] = validation.UploadErrorProcessing
+		return false
+	}
 
 	if count > 0 {
 		(*failedLines)[index] = validation.UploadErrorDuplicatePayment
 		return false
 	}
 
-	exists, _ := s.store.CheckClientExistsByCourtRef(ctx, details.CourtRef)
+	exists, err := s.store.CheckClientExistsByCourtRef(ctx, details.CourtRef)
+	if err != nil {
+		(*failedLines)[index] = validation.UploadErrorProcessing
+		return false
+	}
 
 	if !exists {
 		(*failedLines)[index] = validation.UploadErrorClientNotFound
