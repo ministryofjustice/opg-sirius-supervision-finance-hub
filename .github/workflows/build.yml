@@ -101,6 +101,19 @@ jobs:
       - name: Check out code
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
+      - name: Install Pact Go runtime
+        run: |
+          pact_go_version="$(go list -m -f '{{.Version}}' github.com/pact-foundation/pact-go/v2)"
+          pact_lib_dir="$RUNNER_TEMP/pact-go"
+
+          go install github.com/pact-foundation/pact-go/v2@"$pact_go_version"
+          mkdir -p "$pact_lib_dir"
+          "$(go env GOPATH)/bin/pact-go" install --libDir "$pact_lib_dir"
+
+          echo "PACT_GO_LIB_DOWNLOAD_PATH=$pact_lib_dir" >> "$GITHUB_ENV"
+          echo "CGO_LDFLAGS=-L$pact_lib_dir" >> "$GITHUB_ENV"
+          echo "LD_LIBRARY_PATH=$pact_lib_dir:${LD_LIBRARY_PATH:-}" >> "$GITHUB_ENV"
+
       - name: Run unit tests
         run: make unit-test
 
