@@ -206,14 +206,5 @@ services:
     volumes:
       - ./pacts:/go/src/app/pacts
 
-  hub-test-runner:
-    build:
-      context: docker/test-runner/
-    command: gotestsum --junitfile test-results/hub-unit-tests.xml -- ./finance-hub/... -coverprofile=test-results/hub-coverage.txt
-    working_dir: /go/src/app
-    volumes:
-      - ./:/go/src/app
-      - ./.gocache:/go/pkg/mod
-
 volumes:
   watch-assets-node-modules:
