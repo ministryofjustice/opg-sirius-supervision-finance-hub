@@ -5,6 +5,7 @@ all:
 	$(MAKE) cypress
 	$(MAKE) down
 
+GOTESTSUM = go run gotest.tools/gotestsum@latest --format testname
 
 .PHONY: cypress zap
 
@@ -22,10 +23,10 @@ gosec: setup-directories
 	docker compose run --rm gosec
 
 hub-tests: setup-directories
-	docker compose run --rm hub-test-runner
+	$(GOTESTSUM) --junitfile test-results/hub-unit-tests.xml -- ./finance-hub/... -coverprofile=test-results/hub-coverage.txt
 
 api-tests: setup-directories
-	go run gotest.tools/gotestsum@latest --format testname  --junitfile test-results/api-unit-tests.xml -- -p 1 ./finance-api/... -coverprofile=test-results/api-coverage.txt
+	$(GOTESTSUM) --junitfile test-results/api-unit-tests.xml -- -p 1 ./finance-api/... -coverprofile=test-results/api-coverage.txt
 
 combine-coverage:
 	cat test-results/hub-coverage.txt > test-results/coverage.txt
