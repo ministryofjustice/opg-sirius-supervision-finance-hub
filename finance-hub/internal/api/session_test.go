@@ -79,7 +79,7 @@ func TestClient_GetUserSession_Errors(t *testing.T) {
 }
 
 func TestGetSession_contract(t *testing.T) {
-	pact, err := consumer.NewV2Pact(consumer.MockHTTPProviderConfig{
+	pact, err := consumer.NewV4Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "sirius-supervision-finance-hub",
 		Provider: "sirius",
 		LogDir:   "../../../logs",
@@ -91,10 +91,10 @@ func TestGetSession_contract(t *testing.T) {
 		AddInteraction().
 		Given("User exists").
 		UponReceiving("A request for the current user").
-		WithRequest("GET", "/supervision-api/v1/users/current", func(b *consumer.V2RequestBuilder) {
+		WithRequest("GET", "/supervision-api/v1/users/current", func(b *consumer.V4RequestBuilder) {
 			b.Header("Accept", matchers.S("application/json"))
 		}).
-		WillRespondWith(200, func(b *consumer.V2ResponseBuilder) {
+		WillRespondWith(200, func(b *consumer.V4ResponseBuilder) {
 			b.Header("Content-Type", matchers.S("application/json"))
 			b.JSONBody(matchers.MapMatcher{
 				"id":          matchers.Like(1),

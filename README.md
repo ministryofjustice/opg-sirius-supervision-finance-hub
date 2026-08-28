@@ -77,6 +77,10 @@ For simplicity, the scheduled events sent from AWS have been scripted as their o
 ## Run the unit/integration tests
 `make test`
 
+If you want to run the Pact tests locally, you will need to have pact-go installed. You can do this with:
+* `go mod tidy`
+* `sudo pact-go install`
+
 ## Run *all* Cypress tests headless
 ```spec
 make build-all (optional)

@@ -75,7 +75,7 @@ func TestPersonDetailsReturns500Error(t *testing.T) {
 }
 
 func TestGetPersonDetails_contract(t *testing.T) {
-	pact, err := consumer.NewV2Pact(consumer.MockHTTPProviderConfig{
+	pact, err := consumer.NewV4Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "sirius-supervision-finance-hub",
 		Provider: "sirius",
 		LogDir:   "../../../logs",
@@ -88,10 +88,10 @@ func TestGetPersonDetails_contract(t *testing.T) {
 		Given("A supervision client exists with ID 123").
 		UponReceiving("A request for client").
 		WithRequestPathMatcher("GET", matchers.Regex("/supervision-api/v1/clients/123", `\/supervision-api\/v1\/clients\/\d+`),
-			func(b *consumer.V2RequestBuilder) {
+			func(b *consumer.V4RequestBuilder) {
 				b.Header("Accept", matchers.S("application/json"))
 			}).
-		WillRespondWith(200, func(b *consumer.V2ResponseBuilder) {
+		WillRespondWith(200, func(b *consumer.V4ResponseBuilder) {
 			b.Header("Content-Type", matchers.S("application/json"))
 			b.JSONBody(matchers.MapMatcher{
 				"id":            matchers.Like(123),
