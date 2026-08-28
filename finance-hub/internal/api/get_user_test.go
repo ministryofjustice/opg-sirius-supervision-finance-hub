@@ -157,7 +157,7 @@ func TestGetUserReturns500Error(t *testing.T) {
 }
 
 func TestGetUsers_contract(t *testing.T) {
-	pact, err := consumer.NewV2Pact(consumer.MockHTTPProviderConfig{
+	pact, err := consumer.NewV4Pact(consumer.MockHTTPProviderConfig{
 		Consumer: "sirius-supervision-finance-hub",
 		Provider: "sirius",
 		LogDir:   "../../../logs",
@@ -169,10 +169,10 @@ func TestGetUsers_contract(t *testing.T) {
 		AddInteraction().
 		Given("Users exists").
 		UponReceiving("A request for users").
-		WithRequest("GET", "/supervision-api/v1/users", func(b *consumer.V2RequestBuilder) {
+		WithRequest("GET", "/supervision-api/v1/users", func(b *consumer.V4RequestBuilder) {
 			b.Header("Accept", matchers.S("application/json"))
 		}).
-		WillRespondWith(200, func(b *consumer.V2ResponseBuilder) {
+		WillRespondWith(200, func(b *consumer.V4ResponseBuilder) {
 			b.Header("Content-Type", matchers.S("application/json"))
 			b.JSONBody(matchers.EachLike(matchers.MapMatcher{
 				"id":          matchers.Like(1),
