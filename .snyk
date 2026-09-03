@@ -3,6 +3,26 @@ ignore:
     snyk:lic:golang:github.com:go-sql-driver:mysql:MPL-2.0:
         - '*' :
             reason: "waiting for goose update to fix the issue (not fixed as of v3.27.3)"
-            expires: "2026-08-30T00:00:00Z"
+            expires: "2026-09-11T00:00:00Z"
             created: "2026-05-06T14:14:00Z"
+    SNYK-GOLANG-GOOGLEGOLANGORGGRPCMEM-19497931:
+        - '*' :
+            reason: "Fixed in v3.28.0 but too new to release)"
+            expires: "2026-09-11T00:00:00Z"
+            created: "2026-09-03T09:30:00Z"
+    SNYK-GOLANG-GOOGLEGOLANGORGGRPCINTERNALTRANSPORT-19497932:
+        - '*' :
+            reason: "Fixed in v3.28.0 but too new to release)"
+            expires: "2026-09-11T00:00:00Z"
+            created: "2026-09-03T09:30:00Z"
+    SNYK-GOLANG-GOOGLEGOLANGORGGRPCINTERNALMEM-19497930:
+        - '*' :
+            reason: "Fixed in v3.28.0 but too new to release)"
+            expires: "2026-09-11T00:00:00Z"
+            created: "2026-09-03T09:30:00Z"
+    SNYK-GOLANG-GOOGLEGOLANGORGGRPCINTERNALENVCONFIG-19497928:
+        - '*' :
+            reason: "Fixed in v3.28.0 but too new to release)"
+            expires: "2026-09-11T00:00:00Z"
+            created: "2026-09-03T09:30:00Z"
 patch:
