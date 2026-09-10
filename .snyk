@@ -5,4 +5,9 @@ ignore:
             reason: "waiting for goose update to fix the issue (not fixed as of v3.27.3)"
             expires: "2026-09-30T00:00:00Z"
             created: "2026-05-06T14:14:00Z"
+    SNYK-GOLANG-GITHUBCOMGRPCECOSYSTEMGRPCGATEWAYV2RUNTIME-19432132:
+        - '*' :
+            reason: "Known issue, no fix yet available"
+            expires: "2026-09-30T00:00:00Z"
+            created: "2026-09-03T09:30:00Z"
 patch:
