@@ -17,6 +17,9 @@
         "enabled": true
     },
     "minimumReleaseAge": "7 days",
+    "postUpdateOptions": [
+        "gomodTidy"
+    ],
     "packageRules": [
         {
             "automerge": true,
