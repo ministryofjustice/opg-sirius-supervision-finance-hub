@@ -1,6 +1,6 @@
 module github.com/ministryofjustice/opg-sirius-supervision-finance-hub
 
-go 1.25.7
+go 1.26.0
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.42.1
@@ -24,8 +24,8 @@ require (
 	github.com/testcontainers/testcontainers-go v0.43.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.43.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.70.0
-	golang.org/x/exp v0.0.0-20260718201538-764159d718ef
-	golang.org/x/sync v0.22.0
+	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba
+	golang.org/x/sync v0.23.0
 	golang.org/x/text v0.41.0
 )
 
