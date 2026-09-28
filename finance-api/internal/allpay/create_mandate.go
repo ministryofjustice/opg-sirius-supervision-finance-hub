@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -122,7 +123,8 @@ func (c *Client) CreateMandate(ctx context.Context, input *CreateMandateInput) e
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		logger.Error("create mandate request returned unexpected status code", "status", resp.Status)
+		msg, _ := io.ReadAll(resp.Body)
+		logger.Error("create mandate request returned unexpected status code", "status", resp.Status, "msg", string(msg))
 		return apiError("Direct Debit cannot be setup due to an unexpected response from AllPay.")
 	}
 
