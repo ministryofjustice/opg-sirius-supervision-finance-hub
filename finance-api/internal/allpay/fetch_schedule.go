@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 )
 
@@ -52,7 +53,8 @@ func (c *Client) FetchSchedule(ctx context.Context, input FetchScheduleInput) (*
 	defer unchecked(resp.Body.Close)
 
 	if resp.StatusCode != http.StatusOK {
-		logger.Error("schedule fetch request returned unexpected status code", "status", resp.Status)
+		msg, _ := io.ReadAll(resp.Body)
+		logger.Error("schedule fetch request returned unexpected status code", "status", resp.Status, "msg", string(msg))
 		return nil, apiError("schedule data cannot be fetched due to an unexpected response from AllPay.")
 	}
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 )
 
@@ -30,7 +31,8 @@ func (c *Client) ModulusCheck(ctx context.Context, sortCode string, accountNumbe
 	defer unchecked(resp.Body.Close)
 
 	if resp.StatusCode != http.StatusOK {
-		logger.Error("modulus check request returned unexpected status code", "status", resp.Status)
+		msg, _ := io.ReadAll(resp.Body)
+		logger.Error("modulus check request returned unexpected status code", "status", resp.Status, "msg", string(msg))
 		return apiError("Modulus check failed due to an unexpected response from AllPay.")
 	}
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 )
@@ -63,7 +64,8 @@ func (c *Client) fetchFailedPaymentsForPage(ctx context.Context, input FetchFail
 	defer unchecked(resp.Body.Close)
 
 	if resp.StatusCode != http.StatusOK {
-		logger.Error("failed payments request returned unexpected status code", "status", resp.Status)
+		msg, _ := io.ReadAll(resp.Body)
+		logger.Error("failed payments request returned unexpected status code", "status", resp.Status, "msg", string(msg))
 		return nil, apiError("Failed payments cannot be fetched due to an unexpected response from AllPay.")
 	}
 

@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -58,7 +59,8 @@ func (c *Client) CancelMandate(ctx context.Context, data *CancelMandateRequest) 
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		logger.Error("cancel mandate request returned unexpected status code", "status", resp.Status)
+		msg, _ := io.ReadAll(resp.Body)
+		logger.Error("cancel mandate request returned unexpected status code", "status", resp.Status, "msg", string(msg))
 		return apiError("Direct Debit cannot be cancelled due to an unexpected response from AllPay.")
 	}
 

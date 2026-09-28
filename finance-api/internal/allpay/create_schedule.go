@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 )
@@ -82,7 +83,8 @@ func (c *Client) CreateSchedule(ctx context.Context, data *CreateScheduleInput) 
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		logger.Error("create schedule request returned unexpected status code", "status", resp.Status)
+		msg, _ := io.ReadAll(resp.Body)
+		logger.Error("create schedule request returned unexpected status code", "status", resp.Status, "msg", string(msg))
 		return apiError("Schedule cannot be created due to an unexpected response from AllPay.")
 	}
 

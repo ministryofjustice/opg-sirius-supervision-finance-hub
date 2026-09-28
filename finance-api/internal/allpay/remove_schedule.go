@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 )
@@ -54,7 +55,8 @@ func (c *Client) RemoveSchedule(ctx context.Context, data *RemoveScheduleInput) 
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		logger.Error("remove schedule request returned unexpected status code", "status", resp.Status)
+		msg, _ := io.ReadAll(resp.Body)
+		logger.Error("remove schedule request returned unexpected status code", "status", resp.Status, "msg", string(msg))
 		return apiError("Cannot remove schedule due to an unexpected response from AllPay.")
 	}
 
