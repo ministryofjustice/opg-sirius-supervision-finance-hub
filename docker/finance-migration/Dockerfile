@@ -16,7 +16,7 @@ RUN rm /database/1_baseline.sql
 
 
 FROM scratch
-COPY --from=busybox:1.38.0-uclibc@sha256:297dda192bda2157ddf40abb47a45a1090caff1864db9cfb9ce4b901ba318a3c /bin/sh /bin/sh
+COPY --from=busybox:1.38.0-uclibc@sha256:b699b0c739b2d039afd8e2488a3ccfc0b9a86301d87633448d4a93c57bee8c76 /bin/sh /bin/sh
 COPY --from=build /etc/passwd /etc/passwd
 COPY --from=build /etc/group /etc/group
 COPY --from=build /go/bin/goose /go/bin/goose
