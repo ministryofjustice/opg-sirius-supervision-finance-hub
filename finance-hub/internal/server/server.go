@@ -17,7 +17,7 @@ import (
 
 type ApiClient interface {
 	AddFeeReduction(context.Context, int, string, string, string, string, string) error
-	AddInvoiceAdjustment(context.Context, int, int, int, string, string, string, bool) error
+	AddInvoiceAdjustment(context.Context, int, int, string, string, string, bool) error
 	AddManualInvoice(context.Context, int, string, *string, *string, *string, *string, *string, *string) error
 	AddRefund(context.Context, int, string, string, string, string) error
 	CancelFeeReduction(context.Context, int, int, string) error
@@ -59,7 +59,6 @@ type Envs struct {
 	SiriusPublicURL  string
 	Prefix           string
 	BackendURL       string
-	BillingTeamID    int
 	ShowDirectDebits bool
 }
 

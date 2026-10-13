@@ -9,7 +9,7 @@ RUN adduser \
     --uid 65532 \
     migration-user
 
-RUN CGO_ENABLED=0 go install github.com/pressly/goose/v3/cmd/goose@v3.28.0
+RUN CGO_ENABLED=0 go install github.com/pressly/goose/v3/cmd/goose@v3.29.0
 
 COPY migrations/ /database/
 RUN rm /database/1_baseline.sql
