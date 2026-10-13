@@ -11,7 +11,7 @@ import (
 	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/shared"
 )
 
-func (c *Client) AddInvoiceAdjustment(ctx context.Context, clientId int, supervisionBillingTeamId int, invoiceId int, adjustmentType string, notes string, amount string, managerOverride bool) error {
+func (c *Client) AddInvoiceAdjustment(ctx context.Context, clientId int, invoiceId int, adjustmentType string, notes string, amount string, managerOverride bool) error {
 	var body bytes.Buffer
 
 	adjustment := shared.AddInvoiceAdjustmentRequest{

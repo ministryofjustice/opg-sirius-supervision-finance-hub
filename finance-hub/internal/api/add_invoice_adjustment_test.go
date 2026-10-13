@@ -3,12 +3,13 @@ package api
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/ministryofjustice/opg-sirius-supervision-finance-hub/apierror"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestAddInvoiceAdjustment(t *testing.T) {
@@ -29,7 +30,7 @@ func TestAddInvoiceAdjustment(t *testing.T) {
 		}, nil
 	}
 
-	err := client.AddInvoiceAdjustment(testContext(), 2, 41, 4, "CREDIT_MEMO", "notes here", "100", false)
+	err := client.AddInvoiceAdjustment(testContext(), 2, 41, "CREDIT_MEMO", "notes here", "100", false)
 	assert.Equal(t, nil, err)
 }
 
@@ -41,7 +42,7 @@ func TestAddInvoiceAdjustmentUnauthorised(t *testing.T) {
 
 	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	err := client.AddInvoiceAdjustment(testContext(), 2, 41, 4, "CREDIT_MEMO", "notes here", "100", false)
+	err := client.AddInvoiceAdjustment(testContext(), 2, 41, "CREDIT_MEMO", "notes here", "100", false)
 
 	assert.Equal(t, ErrUnauthorized.Error(), err.Error())
 }
@@ -54,7 +55,7 @@ func TestAddInvoiceAdjustmentReturns500Error(t *testing.T) {
 
 	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	err := client.AddInvoiceAdjustment(testContext(), 2, 41, 4, "CREDIT_MEMO", "notes here", "100", false)
+	err := client.AddInvoiceAdjustment(testContext(), 2, 41, "CREDIT_MEMO", "notes here", "100", false)
 	assert.Equal(t, StatusError{
 		Code:   http.StatusInternalServerError,
 		URL:    svr.URL + "/clients/2/invoices/4/invoice-adjustments",
@@ -79,7 +80,7 @@ func TestAddInvoiceAdjustmentReturnsValidationError(t *testing.T) {
 
 	client := NewClient(http.DefaultClient, &mockJWTClient{}, Envs{svr.URL, svr.URL})
 
-	err := client.AddInvoiceAdjustment(testContext(), 2, 41, 4, "CREDIT_MEMO", "notes here", "100", false)
+	err := client.AddInvoiceAdjustment(testContext(), 2, 41, "CREDIT_MEMO", "notes here", "100", false)
 	expectedError := apierror.ValidationError{Errors: apierror.ValidationErrors{"Field": map[string]string{"Tag": "Message"}}}
 	assert.Equal(t, expectedError, err.(apierror.ValidationError))
 }
