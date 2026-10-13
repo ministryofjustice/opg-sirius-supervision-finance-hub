@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -32,19 +31,17 @@ type Envs struct {
 	prefix           string
 	port             string
 	jwtSecret        string
-	billingTeamID    int
 	showDirectDebits bool
 }
 
 func parseEnvs() (*Envs, error) {
 	envs := map[string]string{
-		"SIRIUS_URL":                  os.Getenv("SIRIUS_URL"),
-		"SIRIUS_PUBLIC_URL":           os.Getenv("SIRIUS_PUBLIC_URL"),
-		"PREFIX":                      os.Getenv("PREFIX"),
-		"BACKEND_URL":                 os.Getenv("BACKEND_URL"),
-		"SUPERVISION_BILLING_TEAM_ID": os.Getenv("SUPERVISION_BILLING_TEAM_ID"),
-		"PORT":                        os.Getenv("PORT"),
-		"JWT_SECRET":                  os.Getenv("JWT_SECRET"),
+		"SIRIUS_URL":        os.Getenv("SIRIUS_URL"),
+		"SIRIUS_PUBLIC_URL": os.Getenv("SIRIUS_PUBLIC_URL"),
+		"PREFIX":            os.Getenv("PREFIX"),
+		"BACKEND_URL":       os.Getenv("BACKEND_URL"),
+		"PORT":              os.Getenv("PORT"),
+		"JWT_SECRET":        os.Getenv("JWT_SECRET"),
 	}
 
 	var missing []error
@@ -52,11 +49,6 @@ func parseEnvs() (*Envs, error) {
 		if v == "" {
 			missing = append(missing, errors.New("missing environment variable: "+k))
 		}
-	}
-
-	billingTeamId, err := strconv.Atoi(envs["SUPERVISION_BILLING_TEAM_ID"])
-	if err != nil {
-		missing = append(missing, errors.New("invalid SUPERVISION_BILLING_TEAM_ID"))
 	}
 
 	if len(missing) > 0 {
@@ -69,7 +61,6 @@ func parseEnvs() (*Envs, error) {
 		prefix:           envs["PREFIX"],
 		backendURL:       envs["BACKEND_URL"],
 		jwtSecret:        envs["JWT_SECRET"],
-		billingTeamID:    billingTeamId,
 		webDir:           "web",
 		port:             envs["PORT"],
 		showDirectDebits: os.Getenv("SHOW_DIRECT_DEBITS") == "1",
@@ -119,7 +110,6 @@ func run(ctx context.Context, logger *slog.Logger) error {
 			SiriusPublicURL:  envs.siriusPublicURL,
 			Prefix:           envs.prefix,
 			BackendURL:       envs.backendURL,
-			BillingTeamID:    envs.billingTeamID,
 			ShowDirectDebits: envs.showDirectDebits,
 		}),
 		ReadHeaderTimeout: 10 * time.Second,
