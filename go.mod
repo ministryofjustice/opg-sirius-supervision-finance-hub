@@ -1,6 +1,6 @@
 module github.com/ministryofjustice/opg-sirius-supervision-finance-hub
 
-go 1.26.6
+go 1.26.10
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.42.1
