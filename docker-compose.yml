@@ -89,6 +89,8 @@ services:
     depends_on:
       finance-hub:
         condition: service_healthy
+      finance-api:
+        condition: service_healthy
 
   go-lint:
     image: golangci/golangci-lint:v2.12.2@sha256:5cceeef04e53efe1470638d4b4b4f5ceefd574955ab3941b2d9a68a8c9ad5240
@@ -168,7 +170,7 @@ services:
     command: "up"
 
   localstack:
-    image: localstack/localstack:2026.10.2@sha256:0e95fa70a58fff808cdc4c8deea8cf56a247cdad403c082e33ec37924987e0c3
+    image: localstack/localstack:4.14@sha256:3ebc37595918b8accb852f8048fef2aff047d465167edd655528065b07bc364a
     volumes:
       - "./scripts/localstack/init:/etc/localstack/init/ready.d"
       - "./scripts/localstack/files:/scripts/files"

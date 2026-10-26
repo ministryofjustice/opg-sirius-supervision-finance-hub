@@ -1,9 +1,17 @@
 describe("Allpay end-to-end", () => {
-    const apiUrl = Cypress.env('FINANCE_API_URL') ?? 'http://localhost:8181';
+    let apiUrl;
+    let holidayApiUrl;
     const user = {
         id: 2,
         roles: ['Finance Reporting']
     };
+
+    before(() => {
+        cy.env(['FINANCE_API_URL', 'HOLIDAY_API_URL']).then((env) => {
+            apiUrl = env.FINANCE_API_URL ?? 'http://localhost:8181';
+            holidayApiUrl = env.HOLIDAY_API_URL ?? 'http://localhost:8080/bank-holidays.json';
+        });
+    });
 
     it("sets up Direct Debit mandate and create payment schedule", () => {
         cy.visit("/clients/29/invoices");
@@ -16,8 +24,6 @@ describe("Allpay end-to-end", () => {
     });
 
     it("collects scheduled payment", () => {
-        const holidayApiUrl = Cypress.env('HOLIDAY_API_URL') ?? 'http://localhost:8080/bank-holidays.json';
-
         cy.request(holidayApiUrl).then((response) => {
             const bankHolidays = new Set(
                 response.body['england-and-wales'].events.map(e => e.date)
@@ -58,8 +64,6 @@ describe("Allpay end-to-end", () => {
     });
 
     it("reverses the failed payment", () => {
-        const holidayApiUrl = Cypress.env('HOLIDAY_API_URL') ?? 'http://localhost:8080/bank-holidays.json';
-
         cy.request(holidayApiUrl).then((response) => {
             const bankHolidays = new Set(
                 response.body['england-and-wales'].events.map(e => e.date)
