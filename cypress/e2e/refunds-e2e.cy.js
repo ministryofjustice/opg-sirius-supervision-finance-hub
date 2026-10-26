@@ -7,13 +7,21 @@ describe("Refunds E2E", () => {
     const dd = String(today.getDate()).padStart(2, '0');
     const mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
     const yyyy = today.getFullYear();
-    const apiUrl = Cypress.env('FINANCE_API_URL') ?? 'http://localhost:8181';
-    const jsonServerUrl = Cypress.env('JSON_SERVER_URL') ?? 'http://localhost:3000';
-    const notifyUrl = `${jsonServerUrl}/v2/notifications/email`;
+    let apiUrl;
+    let jsonServerUrl;
+    let notifyUrl;
     const user = {
         id: 2,
         roles: ['Finance Reporting']
     };
+
+    before(() => {
+        cy.env(['FINANCE_API_URL', 'JSON_SERVER_URL']).then((env) => {
+            apiUrl = env.FINANCE_API_URL ?? 'http://localhost:8181';
+            jsonServerUrl = env.JSON_SERVER_URL ?? 'http://localhost:3000';
+            notifyUrl = `${jsonServerUrl}/v2/notifications/email`;
+        });
+    });
 
     // removes all notify emails from json-server to prevent them getting committed
     after(() => {

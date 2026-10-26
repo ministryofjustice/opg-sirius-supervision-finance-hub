@@ -4,15 +4,24 @@
  * running as part of the Cypress suite, we can use the same setup here (despite not being UI-driven tests).
  */
 describe('API Tests', () => {
-    const apiUrl = Cypress.env('FINANCE_API_URL') ?? 'http://localhost:8181';
-    const jsonServerUrl = Cypress.env('JSON_SERVER_URL') ?? 'http://localhost:3000';
-    const notifyUrl = `${jsonServerUrl}/v2/notifications/email`;
+    let apiUrl;
+    let jsonServerUrl;
+    let notifyUrl;
     const generateReportSuccessTemplateId = "bade69e4-0eb1-4896-a709-bd8f8371a629";
     const processingSuccessTemplateId = "8c85cf6c-695f-493a-a25f-77b4fb5f6a8e";
     const user = {
         id: 2,
         roles: ['Finance Reporting']
     };
+
+    before(() => {
+        cy.env(['FINANCE_API_URL', 'JSON_SERVER_URL']).then((env) => {
+            apiUrl = env.FINANCE_API_URL ?? 'http://localhost:8181';
+            jsonServerUrl = env.JSON_SERVER_URL ?? 'http://localhost:3000';
+            notifyUrl = `${jsonServerUrl}/v2/notifications/email`;
+        });
+    });
+
     // removes all notify emails from json-server to prevent them getting committed
     after(() => {
         cy.request({
