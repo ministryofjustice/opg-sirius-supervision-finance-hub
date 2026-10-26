@@ -4,6 +4,9 @@ services:
       target: dev
     ports:
       - '2345:2345'
+    privileged: false
+    user: root
+    read_only: false
     volumes:
       - ./finance-hub/.air.toml:/app/finance-hub/.air.toml
       - ./go.mod:/app/go.mod
@@ -22,6 +25,7 @@ services:
       target: dev
     ports:
       - '3456:2345'
+    read_only: true
     volumes:
       - ./finance-api/.air.toml:/app/finance-api/.air.toml
       - ./go.mod:/app/go.mod
