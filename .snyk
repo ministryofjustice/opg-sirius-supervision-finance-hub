@@ -5,4 +5,14 @@ ignore:
             reason: "waiting for goose update to fix the issue (not fixed as of v3.27.3)"
             expires: "2026-11-02T00:00:00Z"
             created: "2026-05-06T14:14:00Z"
+    SNYK-GOLANG-GITHUBCOMKLAUSPOSTCOMPRESSHUFF0-21755460
+        - 'huff0@v1.20.1':
+            reason: "not our direct package so unable to update"
+            expires: "2026-11-28T00:00:00Z"
+            created: "2026-10-28T09:00:00Z"
+    SNYK-GOLANG-GITHUBCOMKLAUSPOSTCOMPRESSFSE-21755459
+        - 'fse@v1.20.1':
+            reason: "not our direct package so unable to update"
+            expires: "2026-11-28T00:00:00Z"
+            created: "2026-10-28T09:00:00Z"
 patch:
