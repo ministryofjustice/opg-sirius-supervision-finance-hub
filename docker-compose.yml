@@ -41,12 +41,12 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: finance
       AWS_REGION: eu-west-1
-      AWS_BASE_URL: http://localstack:4566
-      AWS_ACCESS_KEY_ID: localstack
-      AWS_SECRET_ACCESS_KEY: localstack
+      AWS_BASE_URL: http://ministack:4566
+      AWS_ACCESS_KEY_ID: ministack
+      AWS_SECRET_ACCESS_KEY: ministack
       EVENT_BUS_NAME: local-main
       S3_ENCRYPTION_KEY: alias/aws/s3
-      AWS_S3_ENDPOINT: http://localstack:4566
+      AWS_S3_ENDPOINT: http://ministack:4566
       SIRIUS_PUBLIC_URL: http://localhost:8181
       FINANCE_ADMIN_PREFIX: /supervision/finance-admin
       JWT_SECRET: mysupersecrettestkeythatis128bits
@@ -64,7 +64,7 @@ services:
     depends_on:
       allpay-mock:
         condition: service_healthy
-      localstack:
+      ministack:
         condition: service_healthy
       sirius-db:
         condition: service_healthy
@@ -169,12 +169,12 @@ services:
       DB_SCHEMA: supervision_finance
     command: "up"
 
-  localstack:
-    image: localstack/localstack:4.14@sha256:3ebc37595918b8accb852f8048fef2aff047d465167edd655528065b07bc364a
+  ministack:
+    image: ministackorg/ministack:1.5.34@sha256:21dd9d52bd1e3308b55e5205945963eb024398f69e874ecc329f76783da01e62
     volumes:
-      - "./scripts/localstack/init:/etc/localstack/init/ready.d"
-      - "./scripts/localstack/files:/scripts/files"
-      - "./scripts/localstack/wait:/scripts/wait"
+      - "./scripts/ministack/init:/docker-entrypoint-initaws.d/ready.d"
+      - "./scripts/ministack/files:/scripts/files"
+      - "./scripts/ministack/wait:/scripts/wait"
     ports:
       - "4566:4566"
     environment:
