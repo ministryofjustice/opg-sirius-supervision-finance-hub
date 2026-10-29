@@ -76,7 +76,7 @@ start-and-seed:
 	$(MAKE) build-migrations
 	$(MAKE) migrate
 	docker compose exec sirius-db psql -U user -d finance -a -f ./seed_data.sql
-	docker compose up -d localstack json-server allpay-mock holidays-api-mock
+	docker compose up -d ministack json-server allpay-mock holidays-api-mock
 
 test-migrations:
 	docker compose pull finance-migration
