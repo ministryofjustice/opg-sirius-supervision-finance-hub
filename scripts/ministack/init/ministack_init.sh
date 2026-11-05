@@ -31,4 +31,3 @@ awslocal s3 cp /scripts/files/feemoto_01042025normal.csv s3://opg-backoffice-asy
 
 create_bucket "opg-backoffice-reports-local"
 awslocal s3api put-bucket-versioning --bucket "opg-backoffice-reports-local" --versioning-configuration Status=Enabled
-

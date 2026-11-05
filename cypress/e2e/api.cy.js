@@ -1,6 +1,6 @@
 /**
  * Some routes in the API are not accessible via the UI, so we need to test them directly.
- * As this requires the backend, database, and localstack to be running, and they are already
+ * As this requires the backend, database, and ministack to be running, and they are already
  * running as part of the Cypress suite, we can use the same setup here (despite not being UI-driven tests).
  */
 describe('API Tests', () => {
