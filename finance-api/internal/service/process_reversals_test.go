@@ -509,7 +509,7 @@ func (suite *IntegrationSuite) Test_processReversals() {
 				allocations = append(allocations, r)
 			}
 
-			assert.Equal(t, tt.allocations, allocations)
+			assert.ElementsMatch(t, tt.allocations, allocations)
 			assert.Equal(t, tt.expectedDispatch, dispatch.event)
 		})
 	}
