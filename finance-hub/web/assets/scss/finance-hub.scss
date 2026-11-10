@@ -1,5 +1,5 @@
-@use "node_modules/@ministryofjustice/frontend/moj/all" as *;
-@use "node_modules/govuk-frontend/dist/govuk" as *;
+@use "@ministryofjustice/frontend/moj/all" as *;
+@use "govuk-frontend/dist/govuk" as *;
 $moj-assets-path: "/supervision/finance/assets/";
 
 #footer-background {
