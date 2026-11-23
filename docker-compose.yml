@@ -101,13 +101,11 @@ services:
     command: golangci-lint run -v --timeout 5m
 
   gosec:
-    image: securego/gosec:2.24.6@sha256:2cf71ea78210c496c65e3a987576a9c8317b68e20f2960520b3f6f8f9f539be5
+    image: golang:1.27.3-alpine@sha256:b8c9b82affbbb82a020bbcf998dad2ba9516944ac7e883524642a481a9505e9c
     working_dir: /app
-    environment:
-      GOTOOLCHAIN: auto
     volumes:
       - .:/app
-    command: -exclude-dir=.gocache -exclude-generated -fmt=sarif -out=/app/test-results/gosec.sarif -stdout -verbose=text /app/...
+    command: go tool gosec -exclude-dir=.gocache -exclude-generated -fmt=sarif -out=/app/test-results/gosec.sarif -stdout -verbose=text /app/...
 
   watch-assets:
     image: node:24-alpine3.24@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53
